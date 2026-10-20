@@ -19,8 +19,8 @@ export const TAGGED_KIND_NAME = 'tagged';
 // its inputs read places, an input the call leaves out where its place reads
 // one, and an answer that reaches none of the kinds `returns` names; and under
 // a kind, a payload of none of its kinds, or an element of none, a refusal of
-// kinds named by the role of its holder alone.
-export const subjectRefusalAddress = (address, kinds) => `${address}/SubjectNot${kindsWord(kinds)}Error`;
+// kinds named by the role of its holder alone, the subject's by its label [QSERR#site].
+export const subjectRefusalAddress = (address, labelName) => `${address}/SubjectNot${capitalOf(labelName)}Error`;
 // The call of a function `apply` runs or `fill` fills, under which every refusal of
 // it is named, its subject refused by its role, the kinds `on` names its `:expected` [QSBLD#fn].
 export const FN_CALL_ADDRESS = 'fn/call';
@@ -31,5 +31,4 @@ export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
 export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;
 export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
 
-const kindsWord = kinds => kinds.map(capitalOf).join('Or');
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };

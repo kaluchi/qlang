@@ -6,6 +6,7 @@
 
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { isRegex, isErrorValue, beneathTags } from '../types.mjs';
 import { engineOf } from '../regex-read.mjs';
 
@@ -50,18 +51,18 @@ registerPrimitive('string/scan', (text, regex) => Object.freeze(Array.from(text.
 const SYNTAX_CHARACTERS = /[\\^$.*+?()[\]{}|/]/g;
 const engineOfText = needle => engineOf(needle.replace(SYNTAX_CHARACTERS, '\\$&'), '', 'g');
 
-const StringReplaceWithAnswerNotStringError = declareRefusal('string/replace/with/AnswerNotStringError');
+const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/with/AnswerKindNotTakenError');
 
 // The text with every match of the code's own: the code runs on the vector
 // `match` answers for each, and its answer is a string or the error it
-// raised.
+// raised [QSTXT#match].
 async function replacedByCode(text, engine, code) {
   let replaced = '';
   let from = 0;
   for (const found of text.matchAll(engine)) {
     const answer = await code(matchVector(found));
     if (isErrorValue(answer)) return answer;
-    if (typeof beneathTags(answer) !== 'string') throw new StringReplaceWithAnswerNotStringError({ actualValue: answer });
+    if (typeof beneathTags(answer) !== 'string') throw new StringReplaceWithAnswerKindNotTakenError({ expected: kindsExpected('string'), actualValue: answer });
     replaced += text.slice(from, found.index) + beneathTags(answer);
     from = found.index + found[0].length;
   }

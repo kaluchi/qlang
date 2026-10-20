@@ -158,12 +158,12 @@ a vector or a map under a tag of another kind refused, which `payload`
 opens. A tag
 no declaration names, the tag of a verb and the tag of an invariant lay
 themselves over a payload as it is [QSNAM#address], and the tag of a
-name that holds data is refused as `::construct/TagNotKindError`. `tag`
+name that holds data is refused as `::construct/TagNamesAValueError`. `tag`
 lays a tag over the value in the pipe, `5 | tag ::Foo`, or over the pair
 `[tag payload]` it takes apart, through the tag's kind; a name that is
 no tag name is refused as `::any/tag/name/KindNotTakenError`, a
 subject that is no pair as `::any/tag/SubjectNotPairError`, and a pair
-whose first is no tag as `::any/tag/PairTagNotTagError`.
+whose first is no tag as `::any/tag/PairTagKindNotTakenError`.
 
 ```qlang
 > ::Width#5 | add 3 | get [~(type) ~(payload)]
@@ -185,7 +185,7 @@ whose first is no tag as `::any/tag/PairTagNotTagError`.
 ::Foo#5
 
 > get [~(::vec/sort#5 | type) ~(::vec/take/count/NotIntegerError#5 | type) ~(:limit 5 | ::limit#1 !| type)]
-[::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNotKindError]
+[::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNamesAValueError]
 ```
 
 ## closed

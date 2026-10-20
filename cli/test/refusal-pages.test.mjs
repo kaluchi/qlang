@@ -52,7 +52,7 @@ describe('every page of a refusal is declared by a site or raised by rule [QSERR
   }
 
   it('holds the pages of the core and of the command line in one root', () => {
-    expect(['call/UnknownNameError', 'any/out/SubjectNotStringError', 'vec/table/RowNotMapError'].every(address => declared.has(address) && refusalPages.includes(address))).toBe(true);
-    expect(['any/out/SubjectNotStringError', 'vec/table/RowNotMapError'].every(address => !ofTheCore.has(address))).toBe(true);
+    expect(['call/UnknownNameError', 'any/out/SubjectKindNotTakenError', 'vec/table/RowKindNotTakenError'].every(address => declared.has(address) && refusalPages.includes(address))).toBe(true);
+    expect(['any/out/SubjectKindNotTakenError', 'vec/table/RowKindNotTakenError'].every(address => !ofTheCore.has(address))).toBe(true);
   });
 });

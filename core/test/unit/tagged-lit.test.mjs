@@ -112,7 +112,7 @@ describe('what a tag before a payload refuses and hands on', () => {
   it('refuses a tag whose node is neither a kind nor a verb', async () => {
     const err = await evalQuery(':limit 5 | ::limit[]');
     expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('construct/TagNotKindError'));
+    expect(err.tag).toEqual(makeTag('construct/TagNamesAValueError'));
   });
 
   it('lays the tag of a verb over the args of a call of it, which read back [QSBLD#input]', async () => {

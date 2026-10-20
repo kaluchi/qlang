@@ -14,14 +14,14 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
         ~(::point["a" 1 1] !| type | eq ::point/ElementKindNotTakenError)
-    | holds :PayloadNotThreeNumbersError
+    | holds :PayloadNotOffsetLineAndColumnError
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
         ~~|
         ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
-    | proves :PayloadNotThreeNumbersError/refusesSixNumbers
+    | proves :PayloadNotOffsetLineAndColumnError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
-        ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotThreeNumbersError)
+        ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotOffsetLineAndColumnError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
         ~(::point{:a 1 :b 2 :c 3} !| type | eq ::point/PayloadKindNotTakenError)

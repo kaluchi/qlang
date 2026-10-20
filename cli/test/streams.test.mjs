@@ -44,11 +44,11 @@ describe('out — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('hello!');
   });
 
-  it('refuses a subject that is no string as ::any/out/SubjectNotStringError, writing nothing', async () => {
+  it('refuses a subject that is no string as ::any/out/SubjectKindNotTakenError, writing nothing', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalRaised(cellEntry, 'any/out/SubjectNotStringError', {
+    expectRefusalRaised(cellEntry, 'any/out/SubjectKindNotTakenError', {
       actualType: { name: 'number' }
     });
   });
@@ -92,10 +92,10 @@ describe('err — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('oops');
   });
 
-  it('refuses a subject that is no string as ::any/err/SubjectNotStringError', async () => {
+  it('refuses a subject that is no string as ::any/err/SubjectKindNotTakenError', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
-    expectRefusalRaised(cellEntry, 'any/err/SubjectNotStringError', {
+    expectRefusalRaised(cellEntry, 'any/err/SubjectKindNotTakenError', {
       actualType: { name: 'vec' }
     });
   });

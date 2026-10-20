@@ -86,7 +86,7 @@
             declares before it, the refusal that carries it,
             `carries :TooWideError/w …`.
         ~~|
-    | throws :ConstructorNotBuiltinError
+    | throws :ConstructorKindNotTakenError
         |~~ The constructor of a kind is the one a host hands a kind of the
             core, `::builtin{}`, or null, whether `impl` gives it or the
             literal writes it: a kind attaches its tag by its commands, and
@@ -248,12 +248,12 @@
     | proves :FactUnderNoNameError/refusesAFactUnderNoName
         |~~ A fact under a name the kind does not declare is refused. ~~|
         ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| type | eq ::kind/FactUnderNoNameError)
-    | proves :ConstructorNotBuiltinError/refusesANumber
+    | proves :ConstructorKindNotTakenError/refusesANumber
         |~~ A number is no constructor of a host. ~~|
-        ~(::kind[~() 5] !| type | eq ::kind/ConstructorNotBuiltinError)
-    | proves :ConstructorNotBuiltinError/refusesCode
+        ~(::kind[~() 5] !| get [~(type) /expected] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
+    | proves :ConstructorKindNotTakenError/refusesCode
         |~~ Code that would build another value is refused. ~~|
-        ~(::kind[~() ~(add 1)] !| type | eq ::kind/ConstructorNotBuiltinError))
+        ~(::kind[~() ~(add 1)] !| type | eq ::kind/ConstructorKindNotTakenError))
     ::builtin{}]
 
 :kind/wraps
@@ -529,7 +529,7 @@
         |~~ A constructor that is no `::builtin{}` is refused as the
             literal refuses it.
         ~~|
-        ~(get [~(::kind | impl 5 !| type) ~(::kind | impl ~(add 1) !| type)] | eq [::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError])
+        ~(get [~(::kind | impl 5 !| type) ~(::kind | impl ~(add 1) !| type)] | eq [::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError])
     | proves :constructsNothingByAConstructorOfAnotherKind
         |~~ A constructor a host handed with another kind constructs
             nothing under this one.

@@ -15,6 +15,7 @@ export { isCallStep, isBindStep, isGroupStep, isFailStep, holdsALiteral, declare
 export { isVerbBody } from './chain.mjs';
 export { splitAddress } from './address.mjs';
 export { printValue } from './print-value.mjs';
+export { kindsExpected } from './ordering.mjs';
 export { toPlain, fromPlain, fromJsonText } from './runtime/json.mjs';
 export { printAnswer, elideAnswer, caretOf } from './runtime/print.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';

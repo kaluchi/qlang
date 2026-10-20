@@ -26,6 +26,7 @@ import {
   addressesOf, declarationsUnder, nodeOf, refuseWithheld, residenceOnSubject
 } from '../nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
 import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
 
@@ -34,7 +35,8 @@ import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
 const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
-const AnyDocAnchorElementNotKeywordError = declareRefusal('any/doc/anchor/ElementNotKeywordError');
+const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/anchor/NameKindNotTakenError');
+const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/anchor/ElementKindNotTakenError');
 const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
 // What a refusal of an axis holds, the subject a name nothing declares:
@@ -133,12 +135,12 @@ const anchorsOf = anchor => (isNull(beneathTags(anchor)) ? [] : isVec(beneathTag
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the
-// subject itself [QSSLF#axis].
+// subject itself, a name of another kind refused by its role [QSSLF#axis].
 function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
     const name = beneathTags(anchor);
-    if (!isKeyword(name)) throw new AnyDocAnchorElementNotKeywordError({ index, actualValue: anchor });
+    if (!isKeyword(name)) throw new AnyDocAnchorNameKindNotTakenError({ index, expected: kindsExpected('keyword'), actualValue: anchor });
     return recordReadBy(index === 0 ? reached : underRecord(reached), name, state, AnyDocUnknownNameError);
   }, subject);
 }
@@ -151,11 +153,11 @@ const underRecord = record => makeTag(record.get('name').name);
 const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject, anchorsOf(anchor), state));
 
 // A set of anchors reads a page at each, in the order of the set, an
-// element that is no anchor and no vector of them refused at its index.
+// element that is no anchor and no vector of them refused at its index [QSSLF#axis].
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
-  if (stranger >= 0) throw new AnyDocAnchorElementNotKeywordError({ index: stranger, actualValue: anchor[stranger] });
+  if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ index: stranger, expected: kindsExpected('keyword', 'null', 'vec'), actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
 });
 

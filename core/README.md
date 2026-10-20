@@ -73,8 +73,10 @@ cell.defect;              // what was raised past the fail track, else null
   is a defect of the host, `::builtin/ForeignValueError`, raised past the
   fail track: a cell holds it as its `defect`, and the others throw it.
 - A host's verb refuses a call by a refusal declared at its site by its
-  address, `declareRefusal('any/out/SubjectNotStringError')` from
-  `@kaluchi/qlang-core/errors`, and paged under its noun in the host's
+  address, `declareRefusal('any/out/SubjectKindNotTakenError')` from
+  `@kaluchi/qlang-core/errors`, a refusal of a kind named by the role of
+  the value it refuses with the kinds it takes as the fact `:expected`,
+  `kindsExpected('string')`, and paged under its noun in the host's
   source, a refusal of the subject its call was served thrown through
   `refusingTheSubject`, which holds the kind of that subject alone, and a
   refusal of a part of it through `refusingAPart` with the segments of the

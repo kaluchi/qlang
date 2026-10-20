@@ -83,12 +83,12 @@ registerPrimitive('desc/construct', payload => makeTagged(DESC_TAG, payload));
 // `::doc[…]` — the doc of a vector of prose strings and quotes [QSSLF#doc], so
 // a doc comes apart into its segments and back by `tag`.
 const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');
-const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
+const DocElementKindNotTakenError = declareRefusal('doc/ElementKindNotTakenError');
 
 function docConstructor(payload) {
   if (!isVec(payload) || !holdsNoOtherTag(payload, DOC_TAG_NAME)) throw new DocPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
-    if (!isDocSegment(element)) throw new DocElementNotSegmentError({ index, actualValue: element });
+    if (!isDocSegment(element)) throw new DocElementKindNotTakenError({ index, expected: kindsExpected('quote', 'string'), actualValue: element });
   });
   return makeDoc(payload);
 }

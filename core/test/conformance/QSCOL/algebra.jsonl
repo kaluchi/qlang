@@ -1,7 +1,7 @@
 {"name":"union-merges-two-sets-of-mixed-kinds","query":"#[1 \"a\"] | union #[null 2]","expect":"#[null 1 2 \"a\"]"}
 {"name":"minus-of-two-sets-of-numbers-keeps-what-the-other-lacks","query":"#[1 2 3 4] | minus #[0 2 4 6]","expect":"#[1 3]"}
 {"name":"inter-of-two-sets-of-numbers-keeps-what-both-hold","query":"#[1 2 3 4] | inter #[0 2 4 6]","expect":"#[2 4]"}
-{"name":"a-vector-is-no-set-for-the-algebra","query":"[[1] [2]] | union !| get [~(type) ~(trace | last | place)]","expect":"[::vec/union/ElementNotSetOrMapError /0]"}
+{"name":"a-vector-is-no-set-for-the-algebra","query":"[[1] [2]] | union !| get [~(type) ~(trace | last | place)]","expect":"[::vec/union/ElementKindNotTakenError /0]"}
 {"name":"a-set-of-sets-folds-by-the-verb-of-vectors-and-by-flat","query":"#[#[1] #[2]] | get [~(vec/union) ~(flat)]","expect":"[#[1 2] #[1 2]]"}
 {"name":"a-set-of-sets-folds-in-its-one-order-as-the-vector-it-is","query":"get [~(#[#[1 2] #[1]] | toVec | minus) ~([#[1 2] #[1]] | minus)]","expect":"[#[] #[2]]"}
 {"name":"inter-selects-by-a-vector-of-keys","query":"{:a 1 :b 2 :c 3} | inter [:a :c]","expect":"{:a 1 :c 3}"}

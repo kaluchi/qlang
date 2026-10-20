@@ -869,7 +869,9 @@ the site and the workflows among them; a month of the
 history in a chapter, a seed, a page of the catalog, a case and the
 code; a count in markdown prose that
 a command answers; the ranges of the siblings; every refusal declared by
-its address; an export of the root of the core no host reads and no page
+its address, and one whose last name names a kind after `Not` but as the
+label its subject resides on or the kind a conversion of its address
+reads [QSERR#site]; an export of the root of the core no host reads and no page
 writes; a report of the research without the session's reading
 beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
 of the prose that name a token the branch took out [QSWRK#documents];

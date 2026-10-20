@@ -55,7 +55,7 @@ a function with none, which the constructor of `::fn` reads back, a
 payload that is no pair of the quote of a chain and a recipe refused as
 `::fn/PayloadNotPairError`, a step of the quote that is no command its
 chain takes as `::fn/CommandNotTakenError` and a recipe that is no code,
-there or given by `impl`, as `::fn/RecipeNotCodeError`. `apply` hands a
+there or given by `impl`, as `::fn/RecipeKindNotTakenError`. `apply` hands a
 function its args, a vector or a set, another value refused as
 `::any/apply/args/KindNotTakenError`, and the call of the function is
 refused under `::fn/call/…`, a function whose recipe it cannot run as
@@ -64,8 +64,8 @@ with it [QSHST#source]; a quote or a path takes empty args alone,
 `[]`, `#[]` or an empty vector under a tag, others refused as
 `::any/apply/args/NotTakenError`; `fill` writes the args into the head
 of its code, refused under `::fn/call/…` as a call and, for a function
-whose recipe is no code, a primitive's or none, as
-`::fn/fill/RecipeNotCodeError`; and `inputs` answers its inputs, each a
+whose recipe is no quote, a primitive's or none, as
+`::fn/fill/RecipeKindNotTakenError` at the place of the recipe; and `inputs` answers its inputs, each a
 map of its name, its page, its place and its kinds as written.
 
 ```qlang
@@ -213,7 +213,7 @@ name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
 refusal, `carries` a fact, `proves` a law, a quote under `::law`, and
 `impl` its constructor, a `::builtin{}`, another value refused as
-`::kind/ConstructorNotBuiltinError` as the literal refuses it; a command
+`::kind/ConstructorKindNotTakenError` as the literal refuses it; a command
 written after `impl` joins the others. The slot of a kind holds
 its constructor, the `::builtin{}` `impl` gives it, or null where its
 chain writes no `impl`. The constructor a host hands with a kind beside
@@ -243,7 +243,7 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 "::kind[~(wraps |~~ The sizes. ~~| ::map) null]"
 
 > get [~(::kind[[] null] !| type) ~(::kind | reads :null |~~ n ~~| /n !| type) ~(::kind | impl 5 !| type) ~(::kind[~() ~(add 1)] !| type)]
-[::kind/PayloadNotPairError ::kind/CommandNotTakenError ::kind/ConstructorNotBuiltinError ::kind/ConstructorNotBuiltinError]
+[::kind/PayloadNotPairError ::kind/CommandNotTakenError ::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError]
 
 > :B |~~ B. ~~| (::kind | wraps |~~ w ~~| ::number | impl ::builtin{}) | get [~(::B#5 | type) ~(::B"x" !| type)]
 [::B ::B/PayloadKindNotTakenError]
@@ -296,7 +296,7 @@ before its kind is declared keeps the tag; a literal or `tag` after the
 declaration is held to the kind, and so is a verb that keeps the value's
 kind, which lays its tags again, each through its kind, so an edit that
 breaks an invariant is refused. The tag of a name that holds a value is
-refused as `::construct/TagNotKindError`, while the tag of a verb, a
+refused as `::construct/TagNamesAValueError`, while the tag of a verb, a
 contract among them, and of an invariant, whose node holds its quote
 under `::invariant`, lays itself over the value [QSNAM#address].
 
@@ -305,7 +305,7 @@ under `::invariant`, lays itself over the value [QSNAM#address].
 ::Sorted/NotSortedError
 
 > :number/c (::fn | takes :x |~~ x ~~| /0) | get [~(::number/c[1] | type) ~(:limit 5 | ::limit[1] !| type)]
-[::number/c ::construct/TagNotKindError]
+[::number/c ::construct/TagNamesAValueError]
 
 > :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | ::Box/TooBigError[1] | type
 ::Box/TooBigError

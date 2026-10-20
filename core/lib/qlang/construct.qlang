@@ -54,7 +54,7 @@
             from.
         ~~|
         ::string
-    | throws :TagNotKindError
+    | throws :TagNamesAValueError
         |~~ The tag before a payload addresses a kind, a label declared by
             its chain or by its page alone, a verb, whose args it lays
             itself over, `::vec/take[2]`, an invariant, whose refusal it
@@ -64,7 +64,7 @@
             is put under a tag of its own by `tag`, `limit | tag ::Limit`.
             ::link~(::construct | doc)
         ~~|
-    | carries :TagNotKindError/tag
+    | carries :TagNamesAValueError/tag
         |~~ The tag, whose node is neither a label, a verb nor an
             invariant.
         ~~|
@@ -103,17 +103,17 @@
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
-    | proves :TagNotKindError/refusesTheTagOfAValue
+    | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
         ~(:limit 5 | ::limit[1]
-          !| get [~(type) /tag /actualType] | eq [::construct/TagNotKindError ::limit ::number])
-    | proves :TagNotKindError/laysAVerbsTagOverItsArgs
+          !| get [~(type) /tag /actualType] | eq [::construct/TagNamesAValueError ::limit ::number])
+    | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | type | eq ::vec/take)
-    | proves :TagNotKindError/laysAnInvariantsTagOverAValue
+    | proves :TagNamesAValueError/laysAnInvariantsTagOverAValue
         |~~ The tag of an invariant lays itself over a value. ~~|
         ~(::vec/take/count/NotIntegerError#5 | type | eq ::vec/take/count/NotIntegerError)
-    | proves :TagNotKindError/putsTheValueUnderATagOfItsOwn
+    | proves :TagNamesAValueError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
         ~(:limit 5 | limit | tag ::Limit | payload | eq 5)
     | impl ::builtin{}

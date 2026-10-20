@@ -85,7 +85,7 @@
         |~~ A fact is named under a name the function declares before it,
             the refusal that carries it, `carries :TooBigError/bound …`.
         ~~|
-    | throws :RecipeNotCodeError
+    | throws :RecipeKindNotTakenError
         |~~ The recipe is a quote, a primitive of the host, or null for a
             contract, whether `impl` gives it or the literal writes it.
         ~~|
@@ -246,9 +246,9 @@
     | proves :FactUnderNoNameError/refusesAFactWithNoPath
         |~~ A fact is a fact of a refusal, written with its path. ~~|
         ~(::fn[~(carries :y |~~ A y. ~~|) ~(1)] !| type | eq ::fn/FactUnderNoNameError)
-    | proves :RecipeNotCodeError/refusesANumber
+    | proves :RecipeKindNotTakenError/refusesANumber
         |~~ A number is no recipe. ~~|
-        ~(::fn[~() 5] !| type | eq ::fn/RecipeNotCodeError)
+        ~(::fn[~() 5] !| get [~(type) /expected] | eq [::fn/RecipeKindNotTakenError #[::builtin ::null ::quote]])
     | proves :RecipeMissingError/refusesAContract
         |~~ A function with no recipe is refused at its call. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0) [3] !| type | eq ::fn/RecipeMissingError)
@@ -707,7 +707,7 @@
     | proves :refusesARecipeThatIsNoCode
         |~~ A recipe that is no code is refused as the literal refuses it.
         ~~|
-        ~(::fn | impl 5 !| type | eq ::fn/RecipeNotCodeError)
+        ~(::fn | impl 5 !| type | eq ::fn/RecipeKindNotTakenError)
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | fn/impl ~(add 1) !| type | eq ::fn/impl/SubjectNotFnError))
@@ -726,8 +726,10 @@
         ~(it)
     | returns |~~ The code, its inputs written at its head. ~~| ::quote
     | throws :SubjectNotFnError |~~ `fill` writes into a function. ~~|
-    | throws :RecipeNotCodeError
-        |~~ `fill` writes into code: a contract or a primitive has none. ~~|
+    | throws :RecipeKindNotTakenError
+        |~~ `fill` writes into code, a quote: a contract or a primitive has
+            none.
+        ~~|
     | proves :writesTheArgs
         |~~ The value goes into the head of the code. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3 | add by))
@@ -754,9 +756,9 @@
     | proves :SubjectNotFnError/refusesANumber
         |~~ A number is no function. ~~|
         ~(5 | fill 3 !| type | eq ::fn/fill/SubjectNotFnError)
-    | proves :RecipeNotCodeError/refusesAContract
+    | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| type | eq ::fn/fill/RecipeNotCodeError))
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(type) /expected ~(trace | last | place)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
     ::builtin{}]
 
 :fn/inputs

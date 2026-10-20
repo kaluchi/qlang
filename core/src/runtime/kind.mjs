@@ -6,6 +6,7 @@
 
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { chainOfKind, KIND_COMMAND_NAMES } from '../chain.mjs';
 import { commandStep } from '../steps.mjs';
 import {
@@ -16,12 +17,12 @@ import {
 const KIND_TAG = makeTag(KIND_TAG_NAME);
 
 const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
-const KindConstructorNotBuiltinError = declareRefusal('kind/ConstructorNotBuiltinError');
+const KindConstructorKindNotTakenError = declareRefusal('kind/ConstructorKindNotTakenError');
 
 // A kind of its commands and its constructor, held here on every road to one: a
 // constructor that is no `::builtin{}` and a command its chain does not take are refused [QSBLD#kind].
 function madeKind(commands, constructor) {
-  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
+  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorKindNotTakenError({ expected: kindsExpected('builtin', 'null'), actualValue: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));
   chainOfKind(kind);
   return kind;

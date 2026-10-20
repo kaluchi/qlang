@@ -52,7 +52,7 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 [[1 :a] [2 :b]]
 
 > get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)])]
-[[[1 2] [1 2]] [::set/zip/ElementNotVecError /0]]
+[[[1 2] [1 2]] [::set/zip/ElementKindNotTakenError /0]]
 
 > get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
 [[1 2 3 4] [1 2 3] [1 2 3 [4]] 2]
@@ -61,7 +61,7 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 2.5
 
 > [1 "x"] | avg !| get [~(type) ~(trace | last | place)]
-[::vec/avg/ElementNotNumberError /1]
+[::vec/avg/ElementKindNotTakenError /1]
 
 > [::W#2 1] | sum
 ::W#3
@@ -186,7 +186,7 @@ among them, as `::set/union/other/KindNotTakenError`. A vector folds the
 sets or the maps it holds, from its first element as it is written, and
 takes no value beside them, `[#[1] #[2]] | union 5` refused as
 `ArgsBeyondInputsError`. A fold takes a set or a map first, a value of
-another kind refused at its index, `ElementNotSetOrMapError`; `union`
+another kind refused at its index, `ElementKindNotTakenError`; `union`
 refuses so a later value that is no set or map, while `minus` and
 `inter` take after a map the keys a map, a vector or a set names, as the
 verbs of a map do; a later value the algebra has no rule
@@ -229,7 +229,7 @@ tags they share; one part answers itself.
 |~| raised, and no !| caught it ::set/union/other/KindNotTakenError!{ … }
 
 > [1 2] | union !| type
-::vec/union/ElementNotSetOrMapError
+::vec/union/ElementKindNotTakenError
 
 > ::T{:a 1} | union {:b 2}
 ::T{:a 1 :b 2}

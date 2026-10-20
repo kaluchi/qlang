@@ -59,7 +59,7 @@ computed at the call, or a quote or a path that answers one in its turn,
 run once every condition before it held for `allOf` and once none did
 for `anyOf`, the first that decides answering with the quotes after it
 unrun. A quote that answers another kind is refused at its index,
-`::any/allOf/ConditionNotBooleanError`, a quote that answers a failure
+`::any/allOf/ConditionKindNotTakenError`, a quote that answers a failure
 hands it on as the answer, a condition of another kind than a boolean, a
 path or a quote is refused as `ElementKindNotTakenError` at the first
 such index, and an error computed at the call at its own, the conditions
@@ -76,7 +76,7 @@ computed in their order before their kinds are read [QSQUO#modifier].
 false
 
 > 5 | allOf ~(1) !| get [~(type) /index]
-[::any/allOf/ConditionNotBooleanError 0]
+[::any/allOf/ConditionKindNotTakenError 0]
 
 > 5 | allOf ~(true | tag ::Ok)
 true
@@ -93,7 +93,7 @@ condition or a branch the call leaves out is refused,
 paths, pairs of a predicate and a branch run in order, an odd last
 clause the default, null where none matches and no default stands: a
 predicate that answers no boolean is refused as
-`::any/cond/ConditionNotBooleanError` at its index from zero, one that
+`::any/cond/ConditionKindNotTakenError` at its index from zero, one that
 answers a failure hands it on, a clause of another kind is refused as
 `::any/cond/clauses/ElementKindNotTakenError`, and a call with no pair as
 `::any/cond/clauses/NoBranchesError`.
@@ -116,7 +116,7 @@ all do, each stopping at the first that decides: `any` false and `every`
 true over an empty container. They reside on vectors and on maps, a set
 reaching those of vectors [QSDSP#residence], and over a map they read
 its values. A predicate that answers no boolean is refused as
-`::vec/every/ConditionNotBooleanError` at its index, at its key over a
+`::vec/every/ConditionKindNotTakenError` at its index, at its key over a
 map, the place of the step's frame naming it [QSERR#trace], and a
 predicate that answers a failure hands it on as the answer.
 
@@ -128,10 +128,10 @@ true
 true
 
 > get [~(#[true 1] | every ~(it) !| type) ~(42 | any ~(gt 0) !| get /addresses)]
-[::vec/every/ConditionNotBooleanError #[::map/any ::vec/any]]
+[::vec/every/ConditionKindNotTakenError #[::map/any ::vec/any]]
 
 > {:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | place)]
-[::map/every/ConditionNotBooleanError /b]
+[::map/every/ConditionKindNotTakenError /b]
 ```
 
 ## coalesce

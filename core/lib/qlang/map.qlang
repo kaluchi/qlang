@@ -215,7 +215,7 @@
   ~~|
   ::fn
     | returns |~~ The sum of the values, `0` for the empty map. ~~| ::number
-    | throws :ElementNotNumberError
+    | throws :ElementKindNotTakenError
         |~~ `sum` adds the numbers the map holds; the place of its frame
             names the first entry whose value is none, and a field is
             read first, `map /amount | sum`.
@@ -233,14 +233,14 @@
     | proves :sumsAFieldReadFirst
         |~~ A field of each value is read by `map` before the sum. ~~|
         ~({:a {:amount 1} :b {:amount 2}} | map /amount | sum | eq 3)
-    | proves :ElementNotNumberError/refusesAString
+    | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| get [~(type) /actualType ~(trace | last | place)]
-          |  eq [::map/sum/ElementNotNumberError ::string /b])
-    | proves :ElementNotNumberError/refusesANull
+          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          |  eq [::map/sum/ElementKindNotTakenError ::string /b #[::number]])
+    | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:a null} | sum !| get [~(type) ~(trace | last | place)] | eq [::map/sum/ElementNotNumberError /a])
+        ~({:a null} | sum !| get [~(type) ~(trace | last | place)] | eq [::map/sum/ElementKindNotTakenError /a])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
         ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
@@ -261,7 +261,7 @@
     | returns
         |~~ The mean of the values, null for the empty map. ~~|
         #[::number ::null]
-    | throws :ElementNotNumberError
+    | throws :ElementKindNotTakenError
         |~~ `avg` takes the mean of the numbers the map holds; the place
             of its frame names the first entry whose value is none.
         ~~|
@@ -276,11 +276,11 @@
             negation is zero.
         ~~|
         ~({:a 1e308 :b -1e308} | avg | eq 0)
-    | proves :ElementNotNumberError/refusesAString
+    | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| get [~(type) /actualType ~(trace | last | place)]
-          |  eq [::map/avg/ElementNotNumberError ::string /b])
+          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          |  eq [::map/avg/ElementKindNotTakenError ::string /b #[::number]])
     | impl ::builtin{}
 
 :map/min
@@ -442,7 +442,7 @@
             tags of the map.
         ~~|
         ::map
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for the value of
             each entry; the place of its frame names the entry whose
             predicate answered another kind.
@@ -464,11 +464,11 @@
     | proves :predicate/KindNotTakenError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
         ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/KindNotTakenError)
-    | proves :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/filter/ConditionNotBooleanError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/filter/ConditionKindNotTakenError /a ::number #[::boolean]])
     | impl ::builtin{}
 
 :map/every
@@ -494,7 +494,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ The predicate of `every` answers a boolean for the value of
             each entry; the place of its frame names the entry whose
             predicate answered another kind.
@@ -510,11 +510,11 @@
     | proves :holdsOfTheEmptyMap
         |~~ The empty map holds no value to fail. ~~|
         ~({} | every ~(gt 0))
-    | proves :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/every/ConditionNotBooleanError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/every/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
@@ -545,7 +545,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionNotBooleanError
+    | throws :ConditionKindNotTakenError
         |~~ The predicate of `any` answers a boolean for the value of each
             entry; the place of its frame names the entry whose predicate
             answered another kind.
@@ -556,11 +556,11 @@
     | proves :failsOfTheEmptyMap
         |~~ The empty map holds no value to pass. ~~|
         ~({} | any ~(gt 0) | not)
-    | proves :ConditionNotBooleanError/refusesANumberAnswer
+    | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType]
-          |  eq [::map/any/ConditionNotBooleanError /a ::number])
+          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          |  eq [::map/any/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.

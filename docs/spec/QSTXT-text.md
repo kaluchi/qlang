@@ -93,7 +93,7 @@ refused at its index, the place of the step's frame naming it
 "a;b;c"
 
 > ["a" 42] | join "," !| get [~(type) ~(trace | last | place)]
-[::vec/join/ElementNotStringOrKeywordError /1]
+[::vec/join/ElementKindNotTakenError /1]
 ```
 
 ## regex
@@ -152,7 +152,7 @@ and a dollar by `$$`, a group the regex lacks standing as written, but
 for two digits whose first names a group, `$10` read as `$1` and `0`, as
 ECMAScript reads it; it stands as written where a text is replaced; and
 code that answers no string is refused as
-`::string/replace/with/AnswerNotStringError`. `toRegex` reads a string as
+`::string/replace/with/AnswerKindNotTakenError`. `toRegex` reads a string as
 the source of a regex, its input `flags` a string the call gives: a
 string that writes no regex the engine reads is refused as
 `::string/toRegex/TextNotRegexError` with the engine's reason and, where

@@ -273,9 +273,16 @@ one, `::construct/LiteralComputesError` beside
 takes is refused by the holder's role, `KindNotTakenError`,
 `PayloadKindNotTakenError` or `ElementKindNotTakenError`, the answer of a
 verb, the subject of a function `apply` runs, `SubjectKindNotTakenError`,
-and the key an element files under, `KeyKindNotTakenError`, among them,
-the set of the kinds it takes the fact `:expected`; the subject of a verb
-is refused by the label it resides on, `SubjectNotNumberError`. The
+the key an element files under, `KeyKindNotTakenError`, the answer of a
+condition, `ConditionKindNotTakenError`, the row of a table,
+`RowKindNotTakenError`, and the constructor and the recipe of a chain,
+the answer of code a verb runs and the tag of a pair among them, the set
+of the kinds it takes the fact `:expected`; the subject of a verb is
+refused by the label it resides on, `SubjectNotNumberError`. A last name
+names a kind after `Not` there alone and as the kind a conversion of its
+address reads, `::string/toNumber/TextNotNumberError`, so a name moves
+only with its word, and an invariant names the roles of what it holds,
+`::point/PayloadNotOffsetLineAndColumnError`. The
 refusal of an input's value lives under the input and that of the
 subject's under `subject`, whether an invariant or a primitive raises
 it, and what a run answers under the verb. A
@@ -331,7 +338,7 @@ a segment a path read as an index numbers.
 [true [#[:actualType :trace] ::string]]
 
 > [1 "x"] | sum !| get [~(keys) ~(trace | first | place)]
-[#[:actualType :actualValue :trace] /1]
+[#[:actualType :actualValue :expected :trace] /1]
 
 > ::error | manifest | has ::error/actualType
 true

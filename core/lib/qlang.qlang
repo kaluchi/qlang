@@ -731,7 +731,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | open | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| type | eq ::vec/filter/ConditionNotBooleanError)
+        ~([1 2] | filter ~(1) !| get [~(type) /expected] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)

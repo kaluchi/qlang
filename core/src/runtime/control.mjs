@@ -7,13 +7,14 @@
 
 import { isNull, isErrorValue, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { isMissedRead } from '../path-read.mjs';
 import { failedOnAPart } from '../eval-trace.mjs';
 
-const AnyCondConditionNotBooleanError = declareRefusal('any/cond/ConditionNotBooleanError');
-const AnyAllOfConditionNotBooleanError = declareRefusal('any/allOf/ConditionNotBooleanError');
-const AnyAnyOfConditionNotBooleanError = declareRefusal('any/anyOf/ConditionNotBooleanError');
+const AnyCondConditionKindNotTakenError = declareRefusal('any/cond/ConditionKindNotTakenError');
+const AnyAllOfConditionKindNotTakenError = declareRefusal('any/allOf/ConditionKindNotTakenError');
+const AnyAnyOfConditionKindNotTakenError = declareRefusal('any/anyOf/ConditionKindNotTakenError');
 
 registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
@@ -22,18 +23,18 @@ registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, th
 // a condition computed at the call is the boolean it answered, a quote
 // answers one in its turn, and the first condition that decides answers
 // with the quotes after it unrun [QSCND#boolean].
-async function verdictOfConditions(subject, conditions, decisive, ConditionNotBooleanError) {
+async function verdictOfConditions(subject, conditions, decisive, ConditionKindNotTakenError) {
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;
     if (isErrorValue(verdict)) return verdict;
-    if (typeof beneathTags(verdict) !== 'boolean') throw new ConditionNotBooleanError({ index, actualValue: verdict });
+    if (typeof beneathTags(verdict) !== 'boolean') throw new ConditionKindNotTakenError({ index, expected: kindsExpected('boolean'), actualValue: verdict });
     if (beneathTags(verdict) === decisive) return decisive;
   }
   return !decisive;
 }
 
-registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionNotBooleanError)));
-registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionNotBooleanError)));
+registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionKindNotTakenError)));
+registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionKindNotTakenError)));
 
 // The first alternative that answers a value, each in its place [QSCND#coalesce].
 registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
@@ -48,14 +49,14 @@ registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alterna
 }));
 
 // The clauses alternate a predicate and its branch, a pair at least by
-// the invariant of the clauses, and a clause left over is the default.
+// the invariant of the clauses, and a clause left over is the default [QSCND#branch].
 registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
     if (typeof beneathTags(answer) !== 'boolean') {
-      throw new AnyCondConditionNotBooleanError({ index: clauseIndex, actualValue: answer });
+      throw new AnyCondConditionKindNotTakenError({ index: clauseIndex, expected: kindsExpected('boolean'), actualValue: answer });
     }
     if (beneathTags(answer)) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;

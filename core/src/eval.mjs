@@ -38,7 +38,7 @@ import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-tra
 
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
-const ConstructTagNotKindError = declareRefusal('construct/TagNotKindError');
+const ConstructTagNamesAValueError = declareRefusal('construct/TagNamesAValueError');
 const CallValueMeetsVerbError = declareRefusal('call/ValueMeetsVerbError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
@@ -724,10 +724,10 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn });
   let walked = subjectOfCall(chain, labelName, state.pipeValue);
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
-  if (walked === null) return refusalUnder(subjectRefusalAddress(address, [labelName]), {}, state.scope, state.pipeValue);
+  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue);
   if (handed !== undefined && handed.labelName !== labelName) {
     walked = subjectOfCall(chain, handed.labelName, state.pipeValue);
-    if (walked === null) return refusalUnder(subjectRefusalAddress(address, [handed.labelName]), {}, state.scope, state.pipeValue);
+    if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), {}, state.scope, state.pipeValue);
   }
   const scope = callScopeOf(state, ofTheRoot);
   const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});
@@ -947,7 +947,7 @@ export async function layTag(tagName, payload, state) {
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
   if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
-  throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
+  throw new ConstructTagNamesAValueError({ tag: makeTag(tagName), actualValue: declared });
 }
 
 // A value under a kind [QSBLD#value]: its payload held to its kinds, each field

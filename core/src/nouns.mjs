@@ -371,7 +371,7 @@ export function ruleRefusalsOf(scope, address) {
 // kinds of each element, and an element of none of them, and an answer of
 // none of several kinds.
 function functionRuleRefusalsOf(chain, address, labelName) {
-  const refusals = [subjectRefusalAddress(address, [labelName])];
+  const refusals = [subjectRefusalAddress(address, labelName)];
   if (chain.places !== null) refusals.push(argsBeyondInputsAddress(address));
   for (const { name, kinds, each, reading } of chain.inputs) {
     const inputAddress = `${address}/${name.name}`;

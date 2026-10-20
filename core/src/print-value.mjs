@@ -15,7 +15,6 @@ import {
   isDoc,
   isFrame,
   isTrace,
-  isValueClass,
   ELISION_TAG,
   ERROR_TAG,
   formOf,
@@ -191,7 +190,7 @@ function printStep(step, quoting = false) {
   if (isBindStep(step)) return printBind(step);
   if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting));
   const errorFields = errorFieldsOf(step);
-  if (errorFields !== null) return `${isValueClass(step, 'underTag') ? step.tag.literal : ''}!{${printEntries([...errorFields], quoting)}}`;
+  if (errorFields !== null) return `!{${printEntries([...errorFields], quoting)}}`;
   if (isQuote(step)) return `~(${printSteps(step)})`;
   if (isDoc(step)) return printValue(step);
   if (isSet(step)) return `#[${step.map(part => printStep(part, quoting)).join(' ')}]`;

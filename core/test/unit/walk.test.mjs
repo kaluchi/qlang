@@ -158,7 +158,7 @@ describe('tagHeadEnd', () => {
   });
 
   it('reads where the tags an error literal writes before its bang end, none for an error literal that writes none [QSERR#rest], [QSHST#tools]', () => {
-    expect(headsOf('[::E!{:k 1} ::E::error!{} !{:j 2} ::A::B!{}]')).toEqual(['::E', '::E::error', '::A', '::B']);
+    expect(headsOf('[::E!{:k 1} ::E::error!{} !{:j 2} ::A::B!{}]')).toEqual(['::E', '::E', '::error', '::A', '::B']);
     expect(headsOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}')).toEqual(['::Late']);
   });
 
@@ -172,13 +172,14 @@ describe('tagHeadEnd', () => {
 });
 
 describe('tagWrittenBy', () => {
-  it('names the tag a tagged literal writes, an error literal holding each tag written before its bang as a part [QSERR#rest], [QSQUO#step]', () => {
+  it('names the tag a tagged literal writes, a tag written before an error literal among them, and the kind of errors written there a part of the literal [QSERR#rest], [QSQUO#step]', () => {
     const [error, call] = rootOf('::Foo!{:k 1} | get [::Bar[1] !{:j 2} ::Baz]').parts;
     const [vec] = call.parts;
     expect(vec.parts.map(tagWrittenBy)).toEqual(['Bar', null, null]);
-    expect(tagWrittenBy(error)).toBeNull();
-    expect(error.parts.map(({ value }) => (isTag(value) ? value.name : value?.name ?? value))).toEqual(['Foo', 'k', 1]);
-    expect(rootOf('::E::error!{}').parts[0].parts.map(({ value }) => value.name)).toEqual(['E', 'error']);
+    expect(tagWrittenBy(error)).toBe('Foo');
+    expect(error.parts[0].parts.map(({ value }) => value?.name ?? value)).toEqual(['k', 1]);
+    const [literal] = rootOf('::E::error!{}').parts[0].parts;
+    expect(literal.parts.map(({ value }) => value.name)).toEqual(['error']);
   });
 });
 
@@ -198,7 +199,7 @@ describe('findNameOccurrences', () => {
     // that writes none names no tag [QSERR#rest].
     const source = '::Foo!{:k 1} | get [::Foo[1] !{:j 2}]';
     const refs = findNameOccurrences(rootOf(source), 'Foo', TAG_SPELLING);
-    expect(refs.map(({ span }) => source.slice(span.start.offset, span.end.offset))).toEqual(['::Foo', '::Foo[1]']);
+    expect(refs.map(({ span }) => source.slice(span.start.offset, span.end.offset))).toEqual(['::Foo!{:k 1}', '::Foo[1]']);
     expect(findNameOccurrences(rootOf('[::error!{:k 1} ::error]'), 'error', TAG_SPELLING)).toHaveLength(2);
   });
 

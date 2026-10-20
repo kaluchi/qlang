@@ -30,6 +30,9 @@
 {"name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| type","expect":"::vec/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | type","expect":"::link"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\" see ::vec~(x) \""}
+{"decision":"D378","name":"the-quote-of-a-doc-under-the-tag-of-quotes-is-the-quote-itself","query":"|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)","expect":"true"}
+{"decision":"D378","name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":":x |~~ see ::vec~(x) ~~| 1 !| type","expect":"::vec/PayloadKindNotTakenError"}
+{"decision":"D378","name":"a-page-whose-quote-breaks-an-invariant-of-its-role-refuses-its-declaration","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | :x |~~ see ::Role~(x) ~~| 1 !| type","expect":"::Role/k"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type","expect":"::Role/k"}
 {"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)) | |~~ see ::Role~(x) ~~| | segments | get /1 | type","expect":"::Role"}
 {"name":"a-link-is-followed-by-apply","query":"|~~ ::link~(::vec | manifest) ~~| | links | first | :l it | (null | apply l | has ::vec/count)","expect":"true"}

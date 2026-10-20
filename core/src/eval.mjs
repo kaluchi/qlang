@@ -201,33 +201,34 @@ async function elementAnswer(element, state) {
 }
 
 // An error literal is the literal of the kind of errors, as `#[…]` is the
-// set's: `!{…}` is `::error{…}`, an error at rest, and `::Foo!{…}` is
-// `::Foo::error{…}`, laid through the label of its tag as a tagged literal
-// lays a payload, a refusal of the label answering for the literal; every
-// entry is a fact, and `raise` raises the error [QSERR#rest].
+// set's: `!{…}` is `::error{…}`, an error at rest, its facts laid through the
+// label of `::error`, and `::Foo!{…}` the tagged literal of it; every entry is
+// a fact, and `raise` raises the error [QSERR#rest].
 async function evalErrorLiteral(step, state) {
   const facts = await entryValues(errorFieldsOf(step), state);
   if (isErrorValue(facts)) return withPipeValue(state, facts);
-  const atRest = await layTag(ERROR_TAG.name, facts, state);
-  return withPipeValue(state, isValueClass(step, 'underTag') ? await layTag(step.tag.name, atRest, state) : atRest);
+  return withPipeValue(state, await layTag(ERROR_TAG.name, facts, state));
 }
 
-// A doc's quote takes the role the tags written before it give, each laid
-// over the quote through its label as a tagged literal lays a payload, so a
-// tag whose label takes no quote refuses the doc,
-// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does [QSSLF#doc].
+// A doc is the literal of `::doc`, as `#[…]` is the set's: it lays each tag of
+// the role of a quote through the tag's label, from the inside out, as a
+// tagged literal lays a payload, and is built once from the values they lay,
+// so a tag whose label takes no quote refuses the doc,
+// `|~~ see ::number~(~(x)) ~~|` as `::number~(~(x))` does, and `::quote~(a)` in
+// a doc is the quote `~(a)` [QSSLF#doc].
 async function evalDoc(doc, state) {
+  const segments = [];
   for (const segment of doc) {
-    if (!isValueClass(segment, 'underTag')) continue;
     const tags = [];
-    for (let over = segment; isValueClass(over, 'underTag'); over = over.payload) tags.push(over.tag);
-    let laid = beneathTags(segment);
-    for (const tag of tags.reverse()) {
+    let laid = segment;
+    for (; isValueClass(laid, 'underTag'); laid = laid.payload) tags.unshift(laid.tag);
+    for (const tag of tags) {
       laid = await layTag(tag.name, laid, state);
       if (isErrorValue(laid)) return withPipeValue(state, laid);
     }
+    segments.push(laid);
   }
-  return withPipeValue(state, doc);
+  return withPipeValue(state, makeDoc(segments));
 }
 
 // A tagged literal lays its tag over its payload through the tag's label.
@@ -254,8 +255,9 @@ function passedUntagged(payloadError, construct, payloadStep, tagName, scope) {
 // The one binding form: the value passes on, and a fresh scope holds the
 // record of the binding, whose value is the body evaluated once at declaration
 // against the current value, `42 | :x it | add 1 | x` answering 42, a quote
-// among them as the data it is [QSBLD#fn], a declaration of docs alone binding
-// them as a page, and a body that fails answering the failure, which no name
+// among them as the data it is [QSBLD#fn], its docs the docs of its slot laid
+// as every doc is [QSSLF#doc], a declaration of docs alone binding them as a
+// page, and a doc or a body that fails answering the failure, which no name
 // holds [QSERR#flow]; a name is declared once in its scope [QSNAM#scope], a
 // node the root holds once at all and a name with a path under a noun declared
 // before it [QSNAM#address], never a value withheld from held code
@@ -272,7 +274,12 @@ async function evalBind(bind, state, at) {
     throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTag(nounName) });
   }
 
-  const docs = bind.get('docs') ?? [];
+  const docs = [];
+  for (const written of bind.get('docs') ?? []) {
+    const doc = (await evalStep(written, state)).pipeValue;
+    if (isErrorValue(doc)) return withPipeValue(state, doc);
+    docs.push(doc);
+  }
   const answered = bind.has('body')
     ? (await evalStep(bind.get('body'), state)).pipeValue
     : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));

@@ -89,11 +89,9 @@ describe('assembling steps by hand', () => {
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
-  it('an error at rest of a tag is the step of the literal that spells it', async () => {
-    // The tag an error literal writes before its bang is the tag of the
-    // error at rest it spells, so an error of any tag stands in a quote
-    // [QSQUO#step].
-    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote | toString'))
+  it('an error at rest under the tag of its site is a value under a tag, which no text writes as a step [QSQUO#step]', async () => {
+    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote !| type')).toEqual(await evalQuery('::quote/ElementNotStepError'));
+    expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ~("x" | add 1 !| minus #[:trace] | payload)} | tag ::construct | get [~(it)] | tag ::quote | toString'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
   });
 
@@ -118,7 +116,7 @@ describe('assembling steps by hand', () => {
     expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
     expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
     expect(await messageOf('get [~(~(count) | tag ::group)]')).toContain('write `get [~(count)]`');
-    expect(await messageOf('{:a ::call{:name :count}} | tag ::error | tag ::Foo')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
+    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| get /message')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
   });
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing [QSQUO#step]', async () => {

@@ -25,5 +25,5 @@
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| type","expect":"::error"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
-{"name":"the-step-of-a-tagged-error-literal-is-the-error-at-rest-it-spells","query":"~(::Foo!{:k 1}) | first | get [~(type) /k]","expect":"[::Foo 1]"}
+{"decision":"D378","name":"the-step-of-a-tagged-error-literal-is-the-construction-of-its-tag-over-the-literal","query":"~(::Foo!{:k 1}) | first | get [~(type) /tag ~(get /payload | get [~(type) /k])]","expect":"[::construct ::Foo [::error 1]]"}
 {"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(type) /actualType]","expect":"[::error/PayloadKindNotTakenError ::vec]"}

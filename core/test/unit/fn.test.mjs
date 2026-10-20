@@ -46,6 +46,12 @@ describe('the refusals by rule of an input that names the kinds of each element 
       'number/each/xs/ElementKindNotTakenError'
     ]);
   });
+
+  it('names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
+    const own = await createSession();
+    await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
+    expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
+  });
 });
 
 describe('a host\'s verb written as the chain of its function [QSHST#source]', () => {

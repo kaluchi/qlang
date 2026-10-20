@@ -36,17 +36,13 @@ const isAtom = value => value === null || ['boolean', 'number', 'string'].includ
 export const isPathAlone = quote => quote.length === 1 && isPath(quote[0]);
 
 // isOfTheKindOfErrors(value) — whether a value is the error `!{…}` writes, the
-// map of its facts under `::error` alone, a tag written before it the tag of
-// its error, `::E::error!{…}` the step `::E!{…}` is [QSERR#rest], [QSQUO#step].
+// map of its facts under `::error` alone [QSERR#rest].
 export const isOfTheKindOfErrors = value => isMap(value) && tagNameOf(value) === ERROR_TAG.name;
 
-// The fields of the step of an error literal, a map under `::error` beneath
-// the tag the literal writes before its bang [QSERR#rest]; null for any
-// other value.
-export function errorFieldsOf(value) {
-  const fields = isValueClass(value, 'underTag') ? value.payload : value;
-  return isOfTheKindOfErrors(fields) ? fields : null;
-}
+// The fields of the step of an error literal, its facts, a tag written
+// before its bang a tagged literal over it [QSERR#rest], [QSQUO#step]; null
+// for any other value.
+export const errorFieldsOf = value => (isOfTheKindOfErrors(value) ? value : null);
 
 // computes(step) — a step that computes, which no literal holds [QSLIT#closed].
 export const computes = value => isCallStep(value) || isGroupStep(value);
@@ -114,9 +110,9 @@ export const computesWithin = value => holdsWithin(value, computes);
 
 function literalMessage(literal, written) {
   const template = written.quoting(literal);
-  if (errorFieldsOf(literal) === null) return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${template}\``;
-  const tagged = isValueClass(literal, 'underTag') ? ` | tag ${literal.tag.literal}` : '';
-  return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${template.slice(template.indexOf('!') + 1)}${tagged} | raise\``;
+  const tagged = isConstructStep(literal) && errorFieldsOf(literal.get('payload')) !== null;
+  if (errorFieldsOf(literal) === null && !tagged) return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${template}\``;
+  return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${template.slice(template.indexOf('!') + 1)}${tagged ? ` | tag ${literal.get('tag').literal}` : ''} | raise\``;
 }
 
 // A literal holds no part that computes, as `written` reads its parts, the
@@ -162,7 +158,6 @@ const GroupPayloadEmptyError = declareRefusal('group/PayloadEmptyError');
 
 const isWord = value => holdsALiteral(value) || isGroupStep(value) || (isCallStep(value) && !value.has('modifiers'));
 const isBody = value => (holdsALiteral(value) && !isDoc(value)) || isGroupStep(value) || isCallStep(value);
-const isTaggedPayload = value => isPartOfALiteral(value) && !isOfTheKindOfErrors(value);
 const vecOfOneAtLeast = isElement => value => isBareVec(value) && value.length > 0 && value.every(isElement);
 
 // The schema of each record, the rule each field holds and the fields it requires.
@@ -176,7 +171,7 @@ const BIND = {
 };
 const CONSTRUCT = {
   tag: CONSTRUCT_TAG, PayloadKindNotTakenError: ConstructPayloadKindNotTakenError, PayloadNotSchemaError: ConstructPayloadNotSchemaError,
-  fields: { tag: isTag, payload: isTaggedPayload }, required: ['tag', 'payload']
+  fields: { tag: isTag, payload: isPartOfALiteral }, required: ['tag', 'payload']
 };
 
 // The record a map writes, a payload of another kind refused by the role of
@@ -214,11 +209,15 @@ export function bindOf(payload, written) {
   return bind;
 }
 
-// `::construct`, a tagged literal: its tag and its payload, no error literal,
-// which the tag before its bang writes [QSQUO#step]; the parser's literal is
-// held to the rule of a literal whole by the step that holds it [QSLIT#closed].
+// `::construct`, a tagged literal: its tag and its payload, an error literal
+// a tag before its bang writes among them, but the kind of errors over an
+// error literal, which is the literal itself [QSQUO#step], [QSERR#rest]; the
+// parser's literal is held to the rule of a literal whole by the step that
+// holds it [QSLIT#closed].
 export function constructOf(payload) {
-  return recordFrom(payload, CONSTRUCT);
+  const construct = recordFrom(payload, CONSTRUCT);
+  if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: keyword('tag'), actualValue: construct.get('tag') });
+  return construct;
 }
 
 // `::construct` assembled from data holds its payload a literal that computes
@@ -300,7 +299,7 @@ export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));
 // literal of its payload [QSQUO#step].
 function stepOfValue(value) {
   const fields = errorFieldsOf(value);
-  if (fields !== null) return errorAtRest(isValueClass(value, 'underTag') ? value.tag : ERROR_TAG, new Map([...fields].map(([key, fact]) => [key, stepOfValue(fact)])));
+  if (fields !== null) return errorAtRest(ERROR_TAG, new Map([...fields].map(([key, fact]) => [key, stepOfValue(fact)])));
   if (isSet(value)) return makeSet(value.map(stepOfValue));
   if (isQuote(value) && isPathAlone(value)) return constructOf(new Map([['tag', QUOTE_TAG], ['payload', Object.freeze([value[0]])]]));
   if (isQuote(value) || isDoc(value)) return value;

@@ -814,22 +814,23 @@ function kindsOfCommands() {
 
 // ── (19) The exports of the root of the package ────────────────
 //
-// The root exports what a host builds on: a name a file of the tree outside
-// the core imports from it, or the page of the package names [QSWRK#tooling].
+// The root exports what a host builds on: a name a workspace outside the core
+// imports by the name of the package, or the page of the package names
+// [QSWRK#tooling].
 
 const ROOT_OF_THE_PACKAGE = 'core/src/index.mjs';
 const PAGE_OF_THE_PACKAGE = 'core/README.md';
 const EXPORTED_NAMES_RE = /export\s*\{([^}]*)\}\s*from/g;
-const NAMES_READ_FROM_THE_ROOT_RE = /(?:import\s*\{([^}]*)\}\s*from\s*|\{([^}]*)\}\s*=\s*await\s+import\(\s*)['"](?:@kaluchi\/qlang-core|(?:\.\.?\/)+core\/src\/index\.mjs)['"]/g;
+const NAMES_A_HOST_IMPORTS_RE = /import\s*\{([^}]*)\}\s*from\s*['"]@kaluchi\/qlang-core['"]/g;
 const NAME_A_PAGE_WRITES_RE = /`([A-Za-z_$][\w$]*)/g;
 
-const namesOfList = list => list.split(',').map(entry => entry.trim().split(/\s+as\s+|\s*:\s*/)[0]).filter(Boolean);
+const namesOfList = list => list.split(',').map(entry => entry.trim()).filter(Boolean);
 
 function exportsNoHostReads() {
   const read = new Set([...readText(join(repoRoot, PAGE_OF_THE_PACKAGE)).matchAll(NAME_A_PAGE_WRITES_RE)].map(([, name]) => name));
-  const hosts = execFileSync('git', ['ls-files', 'cli', 'lsp', 'site', 'vscode', 'scripts'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
+  const hosts = execFileSync('git', ['ls-files', 'cli', 'lsp', 'site', 'vscode'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
   for (const path of hosts) {
-    for (const [, imported, destructured] of readText(join(repoRoot, path)).matchAll(NAMES_READ_FROM_THE_ROOT_RE)) namesOfList(imported ?? destructured).forEach(name => read.add(name));
+    for (const [, imported] of readText(join(repoRoot, path)).matchAll(NAMES_A_HOST_IMPORTS_RE)) namesOfList(imported).forEach(name => read.add(name));
   }
   return [...readText(join(repoRoot, ROOT_OF_THE_PACKAGE)).matchAll(EXPORTED_NAMES_RE)]
     .flatMap(([, names]) => namesOfList(names))

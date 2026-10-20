@@ -160,8 +160,8 @@ function readAtTheDoor(value, handed, opened, walked) {
     if (walked.has(part) || isKeyword(part) || isTag(part) || isRegex(part) || isPath(part)) return null;
     if (!isErrorValue(part) && !isValueClass(part, 'underTag')) return containerAtTheDoor(part, opened);
     if (!isTag(part.tag)) return `${isErrorValue(part) ? 'an error' : 'a value'} whose tag ${accountOfForeign(part.tag)} is no tag`;
-    if (isErrorValue(part) && !isMap(part.descriptor)) return `an error whose facts ${accountOfForeign(part.descriptor)} are no map`;
-    part = isErrorValue(part) ? part.descriptor : part.payload;
+    if (isErrorValue(part) && !isMap(part.facts)) return `an error whose facts ${accountOfForeign(part.facts)} are no map`;
+    part = isErrorValue(part) ? part.facts : part.payload;
   }
 }
 

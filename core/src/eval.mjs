@@ -134,7 +134,7 @@ async function applySuccessTrack(state, step, at) {
 async function applyFailTrack(state, step, at) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
-  const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.descriptor));
+  const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.facts));
   let atRest;
   try {
     atRest = raised.tag.name === ERROR_TAG.name ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
@@ -386,8 +386,8 @@ function repairOfPathSubject(path, call) {
 }
 
 function repairOfRefusedPath(refused, call, subject) {
-  if (!refused.descriptor.has('actualValue')) return isPath(subject) ? repairOfPathSubject(subject, call) : null;
-  const value = refused.descriptor.get('actualValue');
+  if (!refused.facts.has('actualValue')) return isPath(subject) ? repairOfPathSubject(subject, call) : null;
+  const value = refused.facts.get('actualValue');
   if (!isPath(value)) return null;
   const modifiers = call.get('modifiers') ?? [];
   const written = modifiers.findIndex(modifier => isPath(modifier)
@@ -398,10 +398,10 @@ function repairOfRefusedPath(refused, call, subject) {
 
 function withRepairOfPath(state, call, subject, scope) {
   const refused = state.pipeValue;
-  if (!isErrorValue(refused) || refused.descriptor.has('repair') || refused.descriptor.has('trace')) return state;
+  if (!isErrorValue(refused) || refused.facts.has('repair') || refused.facts.has('trace')) return state;
   const repair = repairOfRefusedPath(refused, call, subject);
   if (repair === null) return state;
-  const facts = factsInOrder(refused.tag, new Map(refused.descriptor).set('repair', repair), scope);
+  const facts = factsInOrder(refused.tag, new Map(refused.facts).set('repair', repair), scope);
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
 }
 
@@ -907,7 +907,7 @@ function refusalOfFailedModifier(chain, address, index, error, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const input = chain.inputs.find(({ reading }) => reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
   if (!(input?.kinds?.includes('quote') ?? false)) return error;
-  const atRest = errorAtRest(error.tag, new Map(error.descriptor));
+  const atRest = errorAtRest(error.tag, new Map(error.facts));
   const inputAddress = `${address}/${input.name.name}`;
   if (input.each && input.reading.readsArgs) {
     return refusalUnder(elementsRefusalAddress(inputAddress), { index, expected: kindsExpected(...input.kinds), actualValue: atRest }, scope);

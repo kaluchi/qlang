@@ -58,7 +58,7 @@ export function deepEqual(a, b) {
   if (isErrorValue(a)) {
     return isErrorValue(b)
       && a.tag.name === b.tag.name
-      && deepEqual(a.descriptor, b.descriptor);
+      && deepEqual(a.facts, b.facts);
   }
   return false;
 }

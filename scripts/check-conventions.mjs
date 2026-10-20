@@ -22,7 +22,7 @@
 //   (3) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
 //       the cases of the conformance suite, the tests, the
-//       primitives, the files — drifts the moment the next commit
+//       primitives, the files — is false the moment the next commit
 //       lands. Prose states the invariant, the generator states
 //       the number. Scanned outside fenced blocks and inline
 //       code spans so example values stay legal.
@@ -256,7 +256,7 @@ function* walkRefusalScanRoots() {
   }
 }
 
-function refusalDeclarationDrift() {
+function refusalsOffTheirAddress() {
   const violations = [];
   for (const filePath of walkRefusalScanRoots()) {
     const text = readText(filePath);
@@ -343,10 +343,10 @@ function scanProseTallies() {
 // `workspace-manifests.mjs` owns the rule: which dependency maps
 // count and what range a sibling declaration carries. The release
 // script rewrites against that module; this check enforces it, so a
-// range that drifts between releases fails here rather than in the
+// range off its sibling's version fails here rather than in the
 // registry, where a consumer resolves it for real.
 
-function workspaceRangeDrift() {
+function rangesOffTheirSibling() {
   const violations = [];
   for (const declaration of siblingDeclarations(readWorkspaces(repoRoot))) {
     if (declaration.declaredRange === declaration.expectedRange) continue;
@@ -376,7 +376,7 @@ function anchorRootOf(anchorPath) {
   return existsSync(sisterRoot) ? sisterRoot : null;
 }
 
-function anchorDrift() {
+function anchorsTheTreeLacks() {
   const violations = [];
   for (const documentPath of ANCHOR_DOCUMENTS) {
     const text = readText(join(repoRoot, documentPath));
@@ -476,7 +476,7 @@ function misplacedRecords() {
 // cases cite the records in force, and the documents that hold the work
 // those in force or waiting on a target [QSWRK#baseline].
 
-function baselineDrift() {
+function baselineUnwalked() {
   return walkOfBaseline(repoRoot).violations;
 }
 
@@ -812,27 +812,53 @@ function kindsOfCommands() {
   return kindsNamedForCommands(sources);
 }
 
+// ── (19) The exports of the root of the package ────────────────
+//
+// The root exports what a host builds on: a name a file of the tree outside
+// the core imports from it, or the page of the package names [QSWRK#tooling].
+
+const ROOT_OF_THE_PACKAGE = 'core/src/index.mjs';
+const PAGE_OF_THE_PACKAGE = 'core/README.md';
+const EXPORTED_NAMES_RE = /export\s*\{([^}]*)\}\s*from/g;
+const NAMES_READ_FROM_THE_ROOT_RE = /(?:import\s*\{([^}]*)\}\s*from\s*|\{([^}]*)\}\s*=\s*await\s+import\(\s*)['"](?:@kaluchi\/qlang-core|(?:\.\.?\/)+core\/src\/index\.mjs)['"]/g;
+const NAME_A_PAGE_WRITES_RE = /`([A-Za-z_$][\w$]*)/g;
+
+const namesOfList = list => list.split(',').map(entry => entry.trim().split(/\s+as\s+|\s*:\s*/)[0]).filter(Boolean);
+
+function exportsNoHostReads() {
+  const read = new Set([...readText(join(repoRoot, PAGE_OF_THE_PACKAGE)).matchAll(NAME_A_PAGE_WRITES_RE)].map(([, name]) => name));
+  const hosts = execFileSync('git', ['ls-files', 'cli', 'lsp', 'site', 'vscode', 'scripts'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(path => /\.(?:mjs|js|astro)$/.test(path));
+  for (const path of hosts) {
+    for (const [, imported, destructured] of readText(join(repoRoot, path)).matchAll(NAMES_READ_FROM_THE_ROOT_RE)) namesOfList(imported ?? destructured).forEach(name => read.add(name));
+  }
+  return [...readText(join(repoRoot, ROOT_OF_THE_PACKAGE)).matchAll(EXPORTED_NAMES_RE)]
+    .flatMap(([, names]) => namesOfList(names))
+    .filter(name => !read.has(name))
+    .map(name => ({ file: ROOT_OF_THE_PACKAGE, name }));
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
   forbidden: scanForbiddenWords(),
-  refusalDeclarations: refusalDeclarationDrift(),
+  refusalDeclarations: refusalsOffTheirAddress(),
   proseTallies: scanProseTallies(),
-  workspaceRanges: workspaceRangeDrift(),
-  anchors: anchorDrift(),
+  workspaceRanges: rangesOffTheirSibling(),
+  anchors: anchorsTheTreeLacks(),
   catalogDecisions: decisionsInCatalog(),
   undecided: recordsWithoutDecider(),
   unmarked: unmarkedArtifacts(),
   misplaced: misplacedRecords(),
   broken: brokenLinks(),
   outOfStep: fatesOutOfStep(),
-  unwalked: baselineDrift(),
+  unwalked: baselineUnwalked(),
   intrusions: specIntrusions(),
   swollen: seriesBeyondTwo(),
   unread: unreadReports(),
   takenOutNamed: namesOfTakenOut(),
   retired: retiredWordsWritten(),
-  commandKinds: kindsOfCommands()
+  commandKinds: kindsOfCommands(),
+  unreadExports: exportsNoHostReads()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

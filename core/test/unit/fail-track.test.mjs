@@ -134,7 +134,7 @@ describe('per-site error classes carry unique identity', () => {
   it('a subject of another kind is refused under the address of the verb [QSERR#site]', async () => {
     const refused = await evalQuery('"x" | add 1');
     expect(refused.tag.name).toBe('number/add/SubjectNotNumberError');
-    expect(refused.descriptor.get('actualType').name).toBe('string');
+    expect(refused.facts.get('actualType').name).toBe('string');
   });
 
   it('an input that breaks its invariant is refused under the address of the input [QSBLD#fn]', async () => {
@@ -154,22 +154,22 @@ describe('per-site error classes carry unique identity', () => {
   it('sum element non-number → VecSumElementNotNumberError, the element and its kind among the facts', async () => {
     const refused = await evalQuery('[1 "two" 3] | sum');
     expect(refused.originalError.address).toBe('vec/sum/ElementNotNumberError');
-    expect(refused.descriptor.get('index')).toBe(1);
-    expect(refused.descriptor.get('actualType').name).toBe('string');
-    expect(refused.descriptor.get('actualValue')).toBe('two');
+    expect(refused.facts.get('index')).toBe(1);
+    expect(refused.facts.get('actualType').name).toBe('string');
+    expect(refused.facts.get('actualValue')).toBe('two');
   });
 
   it('gt across kinds is refused by the kinds of its input, the kind it met among the facts [QSBLD#fn]', async () => {
     const refused = await evalQuery('"a" | gt 5');
     expect(refused.tag.name).toBe('string/gt/value/KindNotTakenError');
-    expect(refused.descriptor.get('actualType').name).toBe('number');
+    expect(refused.facts.get('actualType').name).toBe('number');
   });
 
   it('a path on a value with no parts → PathSubjectHasNoPartsError, the segment it met among the facts [QSPTH#get]', async () => {
     const refused = await evalQuery('42 | get /name');
     expect(refused.originalError.name).toBe('SubjectHasNoPartsError');
-    expect(refused.descriptor.get('segment').name).toBe('name');
-    expect(refused.descriptor.get('actualType').name).toBe('number');
+    expect(refused.facts.get('segment').name).toBe('name');
+    expect(refused.facts.get('actualType').name).toBe('number');
   });
 
   it('apply args to non-function → CallValueTakesNoModifiersError', async () => {
@@ -177,14 +177,14 @@ describe('per-site error classes carry unique identity', () => {
     // `::call/ValueTakesNoModifiersError` [QSNAM#value].
     const refused = await evalQuery('5 | :five it | five 42');
     expect(refused.originalError.name).toBe('ValueTakesNoModifiersError');
-    expect(refused.descriptor.get('name').name).toBe('five');
-    expect(refused.descriptor.get('actualType').name).toBe('number');
+    expect(refused.facts.get('name').name).toBe('five');
+    expect(refused.facts.get('actualType').name).toBe('number');
   });
 
   it('a key of a map of another kind is refused by the kinds of its input [QSBLD#fn]', async () => {
     const refused = await evalQuery('{:a 1} | has [42]');
     expect(refused.tag.name).toBe('map/has/key/KindNotTakenError');
-    expect(refused.descriptor.get('actualType').name).toBe('vec');
+    expect(refused.facts.get('actualType').name).toBe('vec');
   });
 
   it('payload on a value under no tag is refused under the address of payload [QSBLD#fn]', async () => {
@@ -195,7 +195,7 @@ describe('per-site error classes carry unique identity', () => {
     const refused = await evalQuery('[:foo 42] | tag');
     expect(refused.originalError).toBeInstanceOf(QlangError);
     expect(refused.originalError.name).toBe('PairTagNotTagError');
-    expect(refused.descriptor.get('actualType').name).toBe('keyword');
+    expect(refused.facts.get('actualType').name).toBe('keyword');
   });
 
   it('a value and a tag one vector holds meet by a name that keeps the vector', async () => {
@@ -209,8 +209,8 @@ describe('per-site error classes carry unique identity', () => {
     // A `:kind` entry names no tag [QSERR#rest]: the tag is the map's own.
     const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
-    expect(result.descriptor.get('kind')).toEqual(makeTag('Other'));
-    expect(result.descriptor.get('detail')).toBe('x');
+    expect(result.facts.get('kind')).toEqual(makeTag('Other'));
+    expect(result.facts.get('detail')).toBe('x');
   });
 
   it('payload strips the header off every kind of payload under a tag', async () => {

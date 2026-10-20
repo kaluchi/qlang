@@ -96,10 +96,10 @@ describe('createSession lifecycle', () => {
     const sessionInstance = await createSession();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
-    expect(numbered.result.descriptor.has('origin')).toBe(false);
+    expect(numbered.result.facts.has('origin')).toBe(false);
     const named = await sessionInstance.evalCell('[1 2', { uri: 'shop.qlang' });
-    expect(named.result.descriptor.get('origin')).toEqual(keyword('shop.qlang'));
-    expect(named.result.descriptor.has('uri')).toBe(false);
+    expect(named.result.facts.get('origin')).toEqual(keyword('shop.qlang'));
+    expect(named.result.facts.has('uri')).toBe(false);
   });
 
   it('evalCell records the error on runtime failure', async () => {
@@ -310,7 +310,7 @@ describe('a query runs as one cell of a session [QSHST#source]', () => {
 
   it('answers a source that does not parse by its failure, naming no origin, as such a cell does', async () => {
     const refused = await evalQuery('[1 2');
-    expect([refused.tag, refused.descriptor.has('origin')]).toEqual([makeTag('quote/ParseError'), false]);
+    expect([refused.tag, refused.facts.has('origin')]).toEqual([makeTag('quote/ParseError'), false]);
   });
 
   it('runs over the scope it is handed, the root\'s where none is', async () => {

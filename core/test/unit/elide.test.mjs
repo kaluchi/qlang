@@ -106,7 +106,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
   it('keeps the steps and the place of every frame within a budget, its subject alone giving way [QSHST#answer]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
-    const trace = elideAnswer(failing, 60).descriptor.get('trace');
+    const trace = elideAnswer(failing, 60).facts.get('trace');
     expect(trace.map(([, steps, place = null]) => [printValue(steps), place === null ? null : printValue(place)]))
       .toEqual([['~(nope)', null], [`~(filter ~(nope) | ${skipped})`, '/0']]);
     expect(trace.map(([subject]) => printValue(subject).startsWith('::elision{'))).toEqual([false, true]);
@@ -135,7 +135,7 @@ describe('alertOf [QSHST#answer]', () => {
 
   it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
     const query = `${records} | filter ~(nope)`;
-    const [arose, passed] = alertOf(await evalQuery(query)).descriptor.get('trace');
+    const [arose, passed] = alertOf(await evalQuery(query)).facts.get('trace');
     expect(printValue(arose[0])).toBe('{:n 0}');
     expect(passed[0].get('size')).toBe(30);
     expect(deepEqual(await continued(query, passed[0]), await evalQuery(records))).toBe(true);
@@ -143,14 +143,14 @@ describe('alertOf [QSHST#answer]', () => {
 
   it('counts a text it passed by its characters, through the tags over it', async () => {
     const query = `"${'a'.repeat(100)}" | tag ::Box | within ~(add 1)`;
-    const passed = alertOf(await evalQuery(query)).descriptor.get('trace')[1][0];
+    const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
     expect(passed.get('size')).toBe(100);
   });
 
   it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
     const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const query = `${many} | add 1`;
-    const subject = alertOf(await evalQuery(query)).descriptor.get('trace')[0][0];
+    const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     const rest = subject[subject.length - 1];
     expect(deepEqual(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1))).toBe(true);
   });
@@ -158,7 +158,7 @@ describe('alertOf [QSHST#answer]', () => {
   it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
     const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
     const query = `${wide} | add 1`;
-    const subject = alertOf(await evalQuery(query)).descriptor.get('trace')[0][0];
+    const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     expect(subject.get('size')).toBe(200);
     expect(printValue(subject.get('read'))).toBe('~(!| get /trace/0/0)');
     expect(deepEqual(await continued(query, subject), await evalQuery(wide))).toBe(true);
@@ -167,34 +167,34 @@ describe('alertOf [QSHST#answer]', () => {
   it('cuts a long string where the failure arose to its head', async () => {
     const text = LONG.repeat(10);
     const query = `"${text}" | add 1`;
-    const elision = alertOf(await evalQuery(query)).descriptor.get('trace')[0][0];
+    const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     expect(text.startsWith(elision.get('head'))).toBe(true);
     expect(await continued(query, elision)).toBe(text);
   });
 
   it('gives a map and a string it passed way whole, and keeps what prints shorter than its elision', async () => {
-    const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).descriptor.get('trace');
+    const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).facts.get('trace');
     expect(map[0].get('size')).toBe(2);
     const text = LONG.repeat(3);
-    const [, string] = alertOf(await evalQuery(`"${text}" | (add 1)`)).descriptor.get('trace');
+    const [, string] = alertOf(await evalQuery(`"${text}" | (add 1)`)).facts.get('trace');
     expect(string[0].get('size')).toBe(text.length);
-    const [, kept] = alertOf(await evalQuery('5 | (add "x")')).descriptor.get('trace');
+    const [, kept] = alertOf(await evalQuery('5 | (add "x")')).facts.get('trace');
     expect(kept[0]).toBe(5);
   });
 
   it('measures the subject of a frame on the one line the frame prints on', async () => {
     const six = '6 | range | map ~(get {:id ~(it) :name "user" :tags ["a" "b"]})';
-    const [arose] = alertOf(await evalQuery(`${six} | get /9`)).descriptor.get('trace');
+    const [arose] = alertOf(await evalQuery(`${six} | get /9`)).facts.get('trace');
     expect(deepEqual(arose[0], await evalQuery(six))).toBe(true);
     const nested = '[{:a {:b 1}} {:a {:b 2}} {:a {:b "x"}}]';
-    const [, passed] = alertOf(await evalQuery(`${nested} | map ~(get /a/b | add 1)`)).descriptor.get('trace');
+    const [, passed] = alertOf(await evalQuery(`${nested} | map ~(get /a/b | add 1)`)).facts.get('trace');
     expect(deepEqual(passed[0], await evalQuery(nested))).toBe(true);
   });
 
   it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSHST#answer]', async () => {
     const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));
-    const inner = alert.descriptor.get('actualValue');
+    const inner = alert.facts.get('actualValue');
     expect(isErrorValue(inner)).toBe(false);
     const subject = inner.payload.get('trace')[0][0];
     const rest = subject[subject.length - 1];

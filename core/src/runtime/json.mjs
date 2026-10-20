@@ -42,7 +42,7 @@ const TO_PLAIN_HANDLERS = {
   set:     s => s.map(toPlain),
   // A failure a host converts writes its tag beside its facts, which no
   // value of the pipe holds; its literal is the form that reads back.
-  error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.descriptor) } })
+  error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.facts) } })
 };
 
 export function toPlain(v) {

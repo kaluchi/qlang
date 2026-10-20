@@ -115,7 +115,7 @@ describe('eval — Map and path', () => {
     const result = await evalQuery('{:name "Alice"} | get /age');
     expect(isErrorValue(result)).toBe(true);
     expect(result.tag.name).toBe('path/KeyNotInMapError');
-    expect(result.descriptor.get('key').name).toBe('age');
+    expect(result.facts.get('key').name).toBe('age');
   });
 
   it('reads a nested path', async () => {
@@ -255,8 +255,8 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     const entry = await s.evalCell('42 | bomb');
     expect(isErrorValue(entry.result)).toBe(true);
     expect(entry.result.tag.name).toBe('call/HostFailureError');
-    expect([...entry.result.descriptor.keys()]).toEqual(['message', 'trace']);
-    expect(entry.result.descriptor.get('message')).toBe('raw boom');
+    expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
+    expect(entry.result.facts.get('message')).toBe('raw boom');
   });
 });
 

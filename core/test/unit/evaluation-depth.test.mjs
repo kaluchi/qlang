@@ -13,11 +13,11 @@ import { makeTag } from '../../src/types.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('the limit of the evaluation depth — self-calling verb', () => {
-  it('lifts ::call/EvaluationDepthExceededError with :depth and :limit on the descriptor', async () => {
+  it('lifts ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
     const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
     expect(runaway.tag).toEqual(makeTag('call/EvaluationDepthExceededError'));
-    expect(runaway.descriptor.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
-    expect(runaway.descriptor.get('limit')).toBe(EVAL_DEPTH_LIMIT);
+    expect(runaway.facts.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
+    expect(runaway.facts.get('limit')).toBe(EVAL_DEPTH_LIMIT);
     const original = runaway.originalError;
     expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
     expect(original).toBeInstanceOf(QlangError);

@@ -14,17 +14,11 @@ export {
 export { isCallStep, isBindStep, isGroupStep, isFailStep, holdsALiteral, declaresKind } from './steps.mjs';
 export { bodyRuns } from './chain.mjs';
 export { splitAddress } from './address.mjs';
-export { printValue, printQuoteSource } from './print-value.mjs';
-export {
-  toPlain, fromPlain, fromJsonText, StringParseJsonNumberNotFiniteError
-} from './runtime/json.mjs';
+export { printValue } from './print-value.mjs';
+export { toPlain, fromPlain, fromJsonText } from './runtime/json.mjs';
 export { printAnswer, elideAnswer, caretOf } from './runtime/print.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';
-export {
-  keyword, isKeyword, makeTag, isTag, isErrorValue,
-  bindingValueOf, makeErrorValue,
-  TAG_HEADER_SYMBOL, stampTagHeader, typeOf
-} from './types.mjs';
+export { keyword, isKeyword, makeTag, isTag, isErrorValue, makeErrorValue, typeOf } from './types.mjs';
 export {
   verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf,
   shownFor, answerKindsOf, kindsOfWalk

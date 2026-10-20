@@ -115,7 +115,7 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
 // raised [QSERR#print].
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  return `${tagHead}${printMapLike('!{', e.descriptor, indent, printedOf)}`;
+  return `${tagHead}${printMapLike('!{', e.facts, indent, printedOf)}`;
 }
 
 // A payload touches its tag by its own sign, and a number, a boolean,

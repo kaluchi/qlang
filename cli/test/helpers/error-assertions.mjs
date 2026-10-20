@@ -3,7 +3,7 @@
 // A refusal reaches the query as an error value: its tag is the address
 // of what refused, `result !| type` answering
 // `::any/out/SubjectNotStringError` and the like, and its facts stand in
-// its descriptor in the order the catalog declares them [QSERR#site]. A
+// the order the catalog declares them [QSERR#site]. A
 // refusal a site of a verb raised keeps the JavaScript instance it
 // was raised as in the opaque `originalError` slot, which a host
 // re-throws, one kind of error named by the same address.
@@ -15,7 +15,7 @@ import { QlangError } from '@kaluchi/qlang-core/errors';
 // A fact matches the shape listed for it: a value of the language that is
 // an object, a keyword or a tag, by the fields listed, any other by value.
 function expectFact(errorValue, fact, expected) {
-  const actual = errorValue.descriptor.get(fact);
+  const actual = errorValue.facts.get(fact);
   if (expected !== null && typeof expected === 'object') expect(actual, `the fact :${fact}`).toMatchObject(expected);
   else expect(actual, `the fact :${fact}`).toEqual(expected);
 }

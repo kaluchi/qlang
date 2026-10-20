@@ -87,7 +87,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
 
   it('passes a failure the primitive answers, whose facts are values', async () => {
     const failure = makeErrorValue(makeTag('error'), new Map([['a', 1]]));
-    expect((await answerOf(failure)).descriptor.get('a')).toBe(1);
+    expect((await answerOf(failure)).facts.get('a')).toBe(1);
     expect((await session.evalCell(`${answering(failure)} | answer !| get /a`)).result).toBe(1);
   });
 

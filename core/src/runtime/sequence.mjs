@@ -369,10 +369,7 @@ registerPrimitive('map/reverse', map => new Map([...map].reverse()));
 // `flat` lifts one level of nesting: the inner sequences splice in
 // order, and the answer of a set is a set again, so a set of sets
 // flattens into their union [QSCOL#sequence], [QSCOL#algebra].
-registerPrimitive('vec/flat', sequence => sequence.flatMap(element => {
-  const beneath = beneathTags(element);
-  return isVec(beneath) ? beneath : [element];
-}));
+registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(beneathTags(element)) ? beneathTags(element) : [element])));
 
 // ── the fold ───────────────────────────────────────────────────
 

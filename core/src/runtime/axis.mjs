@@ -128,10 +128,7 @@ export function pageOfRecord(record) {
 // The anchors `doc` reads in turn beneath their tags: none for null, a
 // keyword alone, the elements of a vector, and any other value one anchor
 // the read refuses [QSSLF#axis].
-function anchorsOf(anchor) {
-  const beneath = beneathTags(anchor);
-  return isNull(beneath) ? [] : isVec(beneath) ? beneath : [anchor];
-}
+const anchorsOf = anchor => (isNull(beneathTags(anchor)) ? [] : isVec(beneathTags(anchor)) ? beneathTags(anchor) : [anchor]);
 
 // The record the anchors reach, read in turn, each the last name of a node
 // under the record the one before it reached, no anchor the record of the

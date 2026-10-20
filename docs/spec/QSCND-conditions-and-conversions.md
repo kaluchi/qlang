@@ -114,14 +114,24 @@ true
 
 ## coalesce
 
-`coalesce` answers the first alternative that is not null, one at least,
-`::any/coalesce/alternatives/EmptyError` refusing none. An alternative is
-code, a quote or a path, which runs against the subject, or a value,
-which answers itself; a call whose alternatives are all values puts the
-subject first, so `query /timeout | coalesce 30` reads the timeout, else
-30. Code that answers a failure is taken as no value, as null is, and a
-value computed at the call that is a failure is the answer of the call
-[QSQUO#modifier]. Code after the alternative that answers stays unrun.
+`coalesce` answers the first of its alternatives that answers a value,
+one at least, `::any/coalesce/alternatives/EmptyError` refusing none.
+Each alternative stands in its place: code, a quote or a path, runs
+against the subject, and a value answers itself; the subject stands
+before the alternative where the call gives one and it is a value, so
+`query /timeout | coalesce 30` reads the timeout, else 30, while several
+values alone, which leave the place of the subject open, are refused,
+`::any/coalesce/alternatives/ValuesAloneError`, the subject first written
+by a quote, `coalesce ~(it) e 8080`, and a field by a path,
+`coalesce /t 30`. An alternative passes to the next where it answers
+null or the refusal of a read `query` answers null for, a key a map
+lacks, an index past an end or null on the way [QSPTH#query], met on its
+own way and not in the code a verb ran on a part of it, whose frame
+names the place of the part [QSERR#trace]; code that answers any other
+failure answers the call with it, and so does a value computed at the
+call that is a failure [QSQUO#modifier]. Null answers where every
+alternative passes, and code after the alternative that answers stays
+unrun.
 
 ```qlang
 > {} | coalesce /missing ~("fallback")
@@ -129,6 +139,15 @@ value computed at the call that is a failure is the answer of the call
 
 > [{:t 45} {:t null}] | map ~(query /t | coalesce 30)
 [45 30]
+
+> get [~({:t null} | coalesce (get /t) 30 !| type) ~(9000 | coalesce ~(it) 7000 8080) ~({:t null} | coalesce /t 30)]
+[::any/coalesce/alternatives/ValuesAloneError 9000 30]
+
+> {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| type) ~(coalesce ~(get /items | first | get /cost) 0)]
+[::path/KeyNotInMapError 0]
+
+> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| type)]
+[0 ::call/UnknownNameError]
 ```
 
 ## convert

@@ -970,7 +970,7 @@
       rest among them, as a map of its `$tag` and `payload`. Text
       that is no JSON is refused with the message of the reader of JSON,
       and a number past the doubles is refused with the path to it in the
-      text.
+      text as its `:path`, none where the number is the whole text.
       ::link~(::any/json | doc) ::link~(::string/parse | doc)
   ~~|
   ::fn
@@ -993,12 +993,10 @@
             number of qlang is, `1e400`, which no number of the language
             holds, so reading it is refused. It is met where JSON text is
             read, by `parseJson` and by a host reading the data a query
-            starts from; a literal of qlang past the range is the parser's
-            own refusal.
+            starts from, its `:path` the path to the number in the text,
+            none where the number is the whole text; a literal of qlang past
+            the range is the parser's own refusal.
         ~~|
-    | carries :NumberNotFiniteError/path
-        |~~ The path to the number in the text. ~~|
-        ::vec
     | proves :readsANumber
         |~~ A JSON number reads as a number. ~~|
         ~("42" | parseJson | eq 42)
@@ -1048,8 +1046,10 @@
         |~~ A number past the range of doubles is refused. ~~|
         ~("1e400" | parseJson !| type | eq ::string/parseJson/NumberNotFiniteError)
     | proves :NumberNotFiniteError/namesThePathToTheNumber
-        |~~ The refusal names the path to the number in the text. ~~|
-        ~("[1, 1e400]" | parseJson !| get /path | eq [1])
+        |~~ The refusal names the path to the number in the text, and none
+            where the number is the whole text.
+        ~~|
+        ~(get [~("[1, 1e400]" | parseJson !| get /path) ~("1e400" | parseJson !| has :path)] | eq [/1 false])
     | impl ::builtin{}
 
 :string/parse

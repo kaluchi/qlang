@@ -1010,8 +1010,9 @@
 :map/minus
   |~~ Answers the entries of the map whose keys are not among the keys the
       call gives, under the tags of the map: the keys of a map, or the
-      keys a vector or a set names, each a keyword or a string, as `get`
-      reads a key. `{:a 1 :tmp 3} | minus #[:tmp]` answers `{:a 1}`, and
+      keys a vector or a set names, each a keyword, a number or a string,
+      as `get` reads a key alone, a number naming the key of its text.
+      `{:a 1 :tmp 3} | minus #[:tmp]` answers `{:a 1}`, and
       a key the map lacks changes nothing. A single key is written in a
       set, `minus #[:tmp]`. A set and a vector take out their elements by
       a `minus` of their own.
@@ -1027,9 +1028,10 @@
             is written in a set, `minus #[:tmp]`.
         ~~|
     | throws :keys/ElementKindNotTakenError
-        |~~ A key `minus` takes out of a map is a keyword or a string, as
-            `get` reads a key; `:index` names the first element of the
-            keys that is neither, and `:expected` the two kinds.
+        |~~ A key `minus` takes out of a map is a keyword, a number or a
+            string, as `get` reads a key alone; `:index` names the first
+            element of the keys that is none of them, and `:expected` the
+            three kinds.
         ~~|
     | returns
         |~~ The entries whose keys are not among the keys, under the tags
@@ -1051,22 +1053,26 @@
     | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
         ~(::Box{:a 1 :b 2} | minus [:a] | eq ::Box{:b 2})
+    | proves :leavesTheKeyOfANumber
+        |~~ A number names the key of its text, as `get` reads it. ~~|
+        ~({:"1" 5 :b 2} | minus [1] | eq {:b 2})
     | proves :keys/KindNotTakenError/refusesASingleKey
         |~~ A key written alone is refused; a set holds it. ~~|
         ~({:a 1} | minus "a" !| type | eq ::map/minus/keys/KindNotTakenError)
-    | proves :keys/ElementKindNotTakenError/refusesANumber
-        |~~ A number among the keys is refused under the input at its
+    | proves :keys/ElementKindNotTakenError/refusesABoolean
+        |~~ A boolean among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
-        ~({:a 1} | minus [:a 1]
+        ~({:a 1} | minus [:a true]
           !| get [~(type) /actualType /index /expected]
-          |  eq [::map/minus/keys/ElementKindNotTakenError ::number 1 #[::keyword ::string]])
+          |  eq [::map/minus/keys/ElementKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
     | impl ::builtin{}
 
 :map/inter
   |~~ Answers the entries of the map whose keys are among the keys the
       call gives, under the tags of the map: the keys of a map, or the
-      keys a vector or a set names, each a keyword or a string.
+      keys a vector or a set names, each a keyword, a number or a string,
+      as `get` reads a key alone.
       `{:a 1 :b 2 :c 3} | inter #[:a :b]` answers `{:a 1 :b 2}`, and keys
       the map lacks keep none of its entries. A set and a vector keep the
       elements they share by an `inter` of their own.
@@ -1081,9 +1087,10 @@
             `inter #[:a]`.
         ~~|
     | throws :keys/ElementKindNotTakenError
-        |~~ A key `inter` keeps of a map is a keyword or a string, as `get`
-            reads a key; `:index` names the first element of the keys that
-            is neither, and `:expected` the two kinds.
+        |~~ A key `inter` keeps of a map is a keyword, a number or a
+            string, as `get` reads a key alone; `:index` names the first
+            element of the keys that is none of them, and `:expected` the
+            three kinds.
         ~~|
     | returns
         |~~ The entries whose keys are among the keys, under the tags of
@@ -1108,7 +1115,7 @@
         ~~|
         ~({:a 1} | inter [[:a]]
           !| get [~(type) /actualType /index /expected]
-          |  eq [::map/inter/keys/ElementKindNotTakenError ::vec 0 #[::keyword ::string]])
+          |  eq [::map/inter/keys/ElementKindNotTakenError ::vec 0 #[::keyword ::number ::string]])
     | proves :keys/KindNotTakenError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
             input.

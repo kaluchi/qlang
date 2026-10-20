@@ -155,10 +155,8 @@ verbs of a set and of a map meet the value their call gives: those of a
 set take the `:other` set, `#[1] | union #[2]`; the `union` of a map takes
 the `:other` map, the later value of a key standing, `merge` answering as
 it does; and the `minus` and `inter` of a map take off or keep the
-`:keys` a map, a vector or a set names, each a keyword or a string, an
-element of another kind refused under that input at its index as
-`::map/minus/keys/ElementKindNotTakenError` with
-`:expected #[::keyword ::string]`. A call that gives none is refused under
+`:keys` a map, a vector or a set names, each read as a key [QSPTH#key].
+A call that gives none is refused under
 the input, `::set/union/other/NotGivenError` as
 `::map/union/other/NotGivenError`, and a value of another kind, null
 among them, as `::set/union/other/KindNotTakenError`. A vector folds the
@@ -168,8 +166,7 @@ takes no value beside them, `[#[1] #[2]] | union 5` refused as
 another kind refused at its index, `ElementNotSetOrMapError`; `union`
 refuses so a later value that is no set or map, while `minus` and
 `inter` take after a map the keys a map, a vector or a set names, as the
-verbs of a map do, a key of another kind refused under the verb,
-`::vec/minus/KeyKindNotTakenError`; a later value the algebra has no rule
+verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
 `KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
 map in `union` among them; and a fold of nothing is refused as
@@ -208,9 +205,6 @@ none, under the tags of the first; one part answers itself.
 
 > [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
 [{:b 2} {:a 1} ::vec/union/KindsMismatchedError]
-
-> get [~({:a 1} | minus [:a 1] !| get [~(type) /index /expected]) ~([{:a 1} [1]] | minus !| type)]
-[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::string]] ::vec/minus/KeyKindNotTakenError]
 ```
 
 ## group

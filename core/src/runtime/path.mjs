@@ -6,40 +6,34 @@
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
-import { isPath, makePath, isKeyword, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementNotKeyError = declareRefusal('vec/toPath/ElementNotKeyError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
-// The path a key names, a keyword, a string or a number, of one segment.
-function pathOfKey(key) {
-  return makePath([isKeyword(key) ? key.name : String(key)]);
-}
+// A path, or the path of one segment a key alone names [QSPTH#key].
+const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
 
-const isKey = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
+// A path read from the subject, a miss read softly answering the fallback.
+function readOne(subject, path, soft, fallback) {
+  const read = readPath(subject, path, soft);
+  return read === MISSED ? fallback : read;
+}
 
 // A path or a key read from the subject; any other value a template whose
 // paths are read and whose quotes, closed at the call, are run against the
 // subject in their places, its other values kept, each container laid back
 // under its tags as a write lays it, the first failure the answer [QSLIT#tag].
-function readByPath(subject, path, soft, fallback, state) {
-  if (isPath(path) || isKey(path)) {
-    const read = readPath(subject, isPath(path) ? path : pathOfKey(path), soft);
-    return read === MISSED ? fallback : read;
-  }
-  return readTemplate(subject, path, soft, fallback, state);
-}
+const readByPath = (subject, path, soft, fallback, state) =>
+  (isPath(path) || isKeyAlone(path) ? readOne(subject, pathOf(path), soft, fallback) : readTemplate(subject, path, soft, fallback, state));
 
 async function readTemplate(subject, template, soft, fallback, state) {
   if (typeof template === 'function') return await template(subject);
-  if (isPath(template)) {
-    const read = readPath(subject, template, soft);
-    return read === MISSED ? fallback : read;
-  }
+  if (isPath(template)) return readOne(subject, template, soft, fallback);
   if (isValueClass(template, 'underTag')) {
     const payload = await readTemplate(subject, template.payload, soft, fallback, state);
     if (payload === template.payload) return template;
@@ -111,8 +105,6 @@ async function relaid(original, rebuilt, state) {
   return await layTag(tag.name, rebuilt, state);
 }
 
-const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : pathOfKey(pathOrKey));
-
 registerStateReader('any/put', (subject, pathOrKey, value, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
 registerStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) => {
@@ -143,16 +135,16 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it` [QSPTH#value].
+// A path names one segment at least, the value itself being `it` [QSPTH#value],
+// each the text of a key alone [QSPTH#key]; a path is itself.
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw new VecToPathSubjectEmptyError({ actualValue: keys });
   return makePath(keys.map((key, index) => {
-    if (!isKey(key) || (typeof key === 'number' && !Number.isInteger(key))) {
-      throw new VecToPathElementNotKeyError({ index, actualValue: key });
-    }
-    return isKeyword(key) ? key.name : String(key);
+    if (!isKeyAlone(key)) throw new VecToPathElementNotKeyError({ index, actualValue: key });
+    return keyNameOf(key);
   }));
 });
+registerPrimitive('path/toPath', path => path);
 
 // A string in JSON Pointer's form, a fragment's `#` before it read too,
 // `~1` a slash and `~0` a tilde within a segment.

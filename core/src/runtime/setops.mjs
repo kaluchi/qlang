@@ -6,10 +6,11 @@
 // a pair the algebra has no rule for refused by the verb with the kinds it
 // met [QSORD#order], [QSCOL#algebra].
 
-import { isSet, isKeyword, isString, isVec, isMap, typeOf } from '../types.mjs';
+import { isSet, isVec, isMap, typeOf } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
+import { isKeyAlone, keyNameOf } from '../path-read.mjs';
 
 // The algebra of two sets is a merge of their elements in the one
 // order [QSORD#order]: each operation keeps the elements of the left alone,
@@ -49,19 +50,15 @@ function unionOfMaps(left, right) {
   return merged;
 }
 
-// A map minus or inter another map or a vector of keys drops or keeps its
-// entries by key: the other map's keys, or the keys the vector names, a set
-// among them (`#[:tmp]`, `[:a "c"]`), each a keyword or a string naming a key
-// as `get` and `has` read it, and an element of another kind refused at its
-// index with those two kinds as `:expected` [QSPTH#key].
-const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'string');
+// A map minus or inter a map or a vector of keys drops or keeps its entries
+// by key, each a key alone, an element of another kind refused at its index [QSPTH#key].
+const KINDS_NAMING_A_MAP_KEY = kindsExpected('keyword', 'number', 'string');
 
 function keyNamesOf(keysValue, KeyRefusal) {
   if (isMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
-    if (isKeyword(keyOfEntry)) return keyOfEntry.name;
-    if (isString(keyOfEntry)) return keyOfEntry;
-    throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
+    if (!isKeyAlone(keyOfEntry)) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
+    return keyNameOf(keyOfEntry);
   }));
 }
 

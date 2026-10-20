@@ -110,12 +110,20 @@ asked for by `contains` [QSCOL#sequence].
 A key or an index alone, a keyword, a number or a string, is the path of
 one segment of its text where `get`, `query` and the verbs that write
 take a path, which a map reads as a key and a vector as an index, so one
-the query computes is read; any other value given to `get` or
-`query` is a template [QSPTH#template]. Every place that takes a key of a
-map reads a string so. The keys `minus` takes out of a map and `inter`
-keeps of it are the value of their input `keys`, a map, a vector or a set
-of keys, each a keyword or a string: an element of another kind is
-refused under that input at its index, the two kinds as `:expected`,
+the query computes is read. Any other value `get` and `query` take is a
+template [QSPTH#template], a vector, a map or a set, or a value under a
+tag, a quote among them, and they refuse the rest under their input
+`path`, `::any/get/path/KindNotTakenError`, so a key computed from data
+that holds null is refused where it is read, and a key a modifier failed
+to compute answers its failure [QSQUO#modifier]. A boolean, null and a
+tag name are no key: a map files them under the keyword `toKeyword`
+answers [QSCND#convert], which reads that key, `get :true`. Every place
+that takes a key of a map reads a string so, and a number as the key of
+its text. The keys
+`minus` takes out of a map and `inter` keeps of it are the value of
+their input `keys`, a map, a vector or a set of keys, each a keyword, a
+number or a string: an element of another kind is refused under that
+input at its index, the three kinds as `:expected`,
 `::map/minus/keys/ElementKindNotTakenError` and
 `::map/inter/keys/ElementKindNotTakenError`, and a single key as
 `::map/minus/keys/KindNotTakenError` and
@@ -131,11 +139,17 @@ reading `:b` under `:a`.
 > {:k "b" :b 7} | get (get /k)
 7
 
-> {:a 1 :b 2} | minus ["a"]
-{:b 2}
+> get [~({:k null} | get (get /k) !| type) ~({} | get (get /k) !| type)]
+[::any/get/path/KindNotTakenError ::path/KeyNotInMapError]
 
-> get [~({:a 1} | minus [:a 1] !| get [~(type) /index /expected]) ~([{:a 1} [1]] | minus !| type)]
-[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::string]] ::vec/minus/KeyKindNotTakenError]
+> [1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]
+[::any/get/path/KindNotTakenError [2 3]]
+
+> {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
+[{:"1" 5} {:"1" 5} {:b 2}]
+
+> get [~({:a 1} | minus [:a true] !| get [~(type) /index /expected]) ~([{:a 1} [true]] | minus !| type)]
+[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
 1
@@ -212,11 +226,13 @@ verb where one verb holds the name and by the call where several do
 likely meant as. `segments` answers the keys and the indices of a path,
 a key as its keyword and an index as its number, a segment of digits
 that writes no number a key, `/01` answering `[:"01"]`. `toPath` reads a
-path from a vector of keys and indices, an empty one refused as
-`::vec/toPath/SubjectEmptyError` and an element that is neither a key
-nor an index as `::vec/toPath/ElementNotKeyError`, and from a string in the form of JSON
+path from a vector of keys alone, each a keyword, a string or a number,
+the segment of its text [QSPTH#key], an empty one refused as
+`::vec/toPath/SubjectEmptyError` and an element of another kind as
+`::vec/toPath/ElementNotKeyError`; from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
-string of another form refused as `::string/toPath/NotPointerError`.
+string of another form refused as `::string/toPath/NotPointerError`; and
+a path answers it with itself.
 
 ```qlang
 > get [~(/tags | count !| get [~(type) /repair]) ~(/tags | keys !| get [~(type) /repair])]
@@ -228,8 +244,8 @@ string of another form refused as `::string/toPath/NotPointerError`.
 > /01 | segments
 [:"01"]
 
-> "/a~1b/0" | toPath
-/:a/b/0
+> get [~("/a~1b/0" | toPath) ~([:a 1.5] | toPath) ~(/a/0 | toPath)]
+[/:a/b/0 /a/"1.5" /a/0]
 
 > [] | toPath !| type
 ::vec/toPath/SubjectEmptyError

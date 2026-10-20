@@ -4,7 +4,7 @@
 // [QSPTH#write].
 
 import { declareRefusal } from './errors.mjs';
-import { beneathTags, isDoc, isFn, isKind, isMap, isQuote, isVec, keyword } from './types.mjs';
+import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, keyword, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
@@ -15,6 +15,20 @@ export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerErro
 // What a soft read answers where the path misses, a key or an index
 // missing or null standing before its last segment.
 export const MISSED = Symbol('qlang/missed');
+
+// A key alone, a keyword, a string or a number, names the segment of its text [QSPTH#key].
+export const isKeyAlone = value => isKeyword(value) || typeof value === 'string' || typeof value === 'number';
+
+export const keyNameOf = key => (isKeyword(key) ? key.name : String(key));
+
+// A strict read's refusal of a part the subject lacks and of null on the way,
+// a miss a soft read answers null for [QSPTH#query].
+const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexOutOfBoundsError.prototype.address]);
+
+export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
+
+export const isMissedRead = error => isMissedPart(error)
+  || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.descriptor.get('actualType')?.name === CORE_KIND.null.name);
 
 // partsOfTemplate(value) → the parts a template of `get` reads in their
 // places, the elements of a vector or a set and the values of a map, under

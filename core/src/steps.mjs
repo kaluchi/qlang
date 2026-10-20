@@ -98,17 +98,19 @@ export function partsOfALiteral(value) {
   return isConstructStep(value) ? [value.get('payload')] : partsOfAContainer(value) ?? [];
 }
 
-// computesWithin(literal) — whether a part of a literal computes, walked by a
-// stack of its own [QSLIT#closed], [QSQUO#step].
-export function computesWithin(value) {
+// Whether a literal or a part of it at any depth answers the test, walked by
+// a stack of its own [QSLIT#closed], [QSQUO#step].
+function holdsWithin(value, test) {
   const pending = [value];
   while (pending.length > 0) {
     const part = pending.pop();
-    if (computes(part)) return true;
+    if (test(part)) return true;
     for (const held of partsOfALiteral(part)) pending.push(held);
   }
   return false;
 }
+
+export const computesWithin = value => holdsWithin(value, computes);
 
 function literalMessage(literal, written) {
   const template = written.quoting(literal);
@@ -227,12 +229,16 @@ export function constructOfData(payload, written) {
   return construct;
 }
 
-// `::fail`, the step `!|` runs: the quote of one step, no step of the fail
-// track and no path, which a verb reads [QSQUO#step], [QSSYN#step].
+// `::fail`, the step `!|` runs: the quote of one step, no step of the fail track, no
+// path, no quote and no literal that holds either [QSQUO#step], [QSSYN#step].
 export function failOf(payload, written) {
   if (!isQuote(payload)) throw new FailPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ actualValue: payload });
-  if (isPath(payload[0])) throw new FailStepNotCommandError({ message: laterStepMessage(payload[0], written), actualValue: payload[0] });
+  const [step] = payload;
+  if (isPath(step) || isQuote(step)) throw new FailStepNotCommandError({ message: laterStepMessage(step, written), actualValue: step });
+  if (partsOfALiteral(step).some(part => holdsWithin(part, held => isPath(held) || isQuote(held)))) {
+    throw new FailStepNotCommandError({ message: `a literal that holds a path or a quote is the template \`get\` reads: write \`get ${written.quoting(step)}\``, actualValue: step });
+  }
   return makeTagged(FAIL_TAG, payload);
 }
 

@@ -1,5 +1,5 @@
 |~ `::path`, the kind of a path, and what is declared under it: its
-   verb and the refusals of a read that misses.
+   verbs and the refusals of a read that misses.
    The rules it holds: [QSDSP#residence], [QSPTH#value]. ~|
 
 :path
@@ -174,5 +174,21 @@
     | proves :readsBackByToPath
         |~~ The segments build the path back. ~~|
         ~(/a/0 | segments | toPath | print | eq "/a/0")
+    | impl ::builtin{}
+
+:path/toPath
+  |~~ Answers the path itself, so `map ~toPath` turns paths, the vectors of
+      their keys and the strings of JSON Pointer that write them into
+      paths, `[/a ["a" 0] "/b"] | map ~toPath` answering `[/a /a/0 /b]`.
+      ::link~(::vec/toPath | doc) ::link~(::string/toPath | doc)
+  ~~|
+  ::fn
+    | returns |~~ The path itself. ~~| ::path
+    | proves :answersItself
+        |~~ A path, its keys and its pointer turn into the path. ~~|
+        ~([/a ["a" 0] "/b"] | map ~toPath | eq [/a /a/0 /b])
+    | proves :answersUnderItsTags
+        |~~ A path under a tag answers under the tag. ~~|
+        ~(::T#/a | toPath | eq ::T#/a)
     | impl ::builtin{}
 

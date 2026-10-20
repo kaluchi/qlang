@@ -79,8 +79,10 @@
         ~~|
         ::quote
     | carries :path
-        |~~ The path a read followed where it missed, the key or the index
-            it missed named beside it.
+        |~~ The path to the part the refusal stands at: the path a read
+            followed where it missed, the key or the index it missed named
+            beside it, or the path to a number of a JSON text past the
+            doubles.
         ~~|
         ::path
     | carries :index

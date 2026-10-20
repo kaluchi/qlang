@@ -9,7 +9,7 @@ import {
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
-import { readPath, partsOfTemplate, PathIndexOutOfBoundsError, PathKeyNotInMapError } from './path-read.mjs';
+import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveOf,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
@@ -565,13 +565,6 @@ async function answerOfPipeline(steps, state) {
 // A strict read of a place past the values of the args.
 const MISSED_PLACE = Symbol('missedPlace');
 
-// A strict read of a place the args do not hold.
-const MISSED_PLACE_ADDRESSES = new Set([PathIndexOutOfBoundsError.prototype.address, PathKeyNotInMapError.prototype.address]);
-
-function isMissedPlace(error) {
-  return MISSED_PLACE_ADDRESSES.has(error.tag.name);
-}
-
 // ─── The scope a call opens ─────────────────────────────────────
 
 // The scope a call opens, read once for the scope it is called in, which
@@ -890,7 +883,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     depthBelow(state);
     const reached = placeRead(input.reading, values, overArgs);
     const read = isThenable(reached) ? await reached : reached;
-    if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPlace(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
+    if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(read)) return read;
     const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope);
     if (isErrorValue(held)) return held;
@@ -978,7 +971,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
   const read = isPath(field.place)
     ? pathOfArgs(field.place, withPipeValue(state, payload))
     : await answerOfPipeline(field.place, nestState(state, payload, opened()));
-  if (isErrorValue(read) && isMissedPlace(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
+  if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
   if (isErrorValue(read)) return read;
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);
   if (isErrorValue(held)) return held;

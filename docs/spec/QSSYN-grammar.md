@@ -27,8 +27,10 @@ a modifier. A value written as a later step on the success track is
 refused by the parser: a path, a container literal and a tagged literal
 naming `get`, a tag name `tag` and a quote `apply`, and an atom, a
 regex, an error literal and a doc refused as a value standing where a
-command stands; after `!|` a value is the recovery the catch answers,
-and a path is refused as after `|`. A question mark after a segment of a
+command stands; after `!|` a value is the recovery the catch answers, a
+path and a quote are refused there as after `|`, and a literal that
+holds a path or a quote at any depth, the template `get` reads, naming
+`get`. A question mark after a segment of a
 path is refused, naming `query`. A quote whose code is a path alone, a
 leading `|` before it among it, is refused, the path given bare in its
 place, and a path followed by a word is refused naming the verb it
@@ -39,11 +41,14 @@ name is refused.
 > "{:a 1} | /a" | parse !| get /message
 "a path is a value, which the verb that takes it reads: write `get /a`"
 
-> "5 | ~(add 1)" | parse !| get /message | contains "by `apply`"
-true
+> get [~("5 | ~(add 1)" | parse !| get /message | contains "by `apply`") ~("\"x\" | add 1 !| ~(get /message)" | parse !| get /message | contains "by `apply`")]
+[true true]
 
 > "5 | ::Box#5" | parse !| get /message
 "a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`"
+
+> "!{:k 1 :j 2} | raise !| [/k /j]" | parse !| get /message
+"a literal that holds a path or a quote is the template `get` reads: write `get [/k /j]`"
 
 > "get /age?" | parse !| get /message
 "a part that may be missing is read by `query`, which answers null where it misses: write `query /age`"

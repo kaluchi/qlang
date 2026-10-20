@@ -241,15 +241,15 @@ describe('the answer of a verb of the host', async () => {
 });
 
 describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNode)', async () => {
-  it('lifts an error of JavaScript a primitive throws to a failure of the host', async () => {
+  it('lifts an error of JavaScript and any other value a primitive throws to a failure of the host', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const { isErrorValue } = await import('../../src/types.mjs');
-    // A host's primitive that throws an error of JavaScript, no QlangError.
+    // A host's primitive that throws an error of JavaScript, no QlangError, and one that throws undefined.
     const s = await createSession({
       sources: [{
         uri: 'tests/bomb',
-        source: ':any/bomb ::builtin{}',
-        primitives: { 'any/bomb': () => { throw new Error('raw boom'); } }
+        source: ':any/bomb ::builtin{}\n:any/hollow ::builtin{}',
+        primitives: { 'any/bomb': () => { throw new Error('raw boom'); }, 'any/hollow': () => { throw undefined; } }
       }]
     });
     const entry = await s.evalCell('42 | bomb');
@@ -257,6 +257,7 @@ describe('eval.mjs — errorFromForeign arm (non-QlangError thrown inside evalNo
     expect(entry.result.tag.name).toBe('call/HostFailureError');
     expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
     expect(entry.result.facts.get('message')).toBe('raw boom');
+    expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | place)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
   });
 });
 

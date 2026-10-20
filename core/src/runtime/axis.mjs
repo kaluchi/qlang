@@ -66,11 +66,11 @@ function recordOfKind(scope, value) {
 }
 
 // The node a refusal no node declares reads its page from: the address of
-// what refused, the call of a function `apply` runs for a role of it [QSSLF#axis].
+// what refused, or the call of a function for a role of it no node declares [QSSLF#axis].
 function nodeOfRefused(scope, name) {
   const [refusedName] = splitAddress(name);
   if (refusedName === null || !name.endsWith('Error')) return null;
-  return nodeOf(scope, refusedName.startsWith(`${FN_CALL_ADDRESS}/`) ? FN_CALL_ADDRESS : refusedName);
+  return nodeOf(scope, refusedName) ?? (refusedName.startsWith(`${FN_CALL_ADDRESS}/`) ? nodeOf(scope, FN_CALL_ADDRESS) : null);
 }
 
 // The record of the node the subject holds under an anchor, or null: the

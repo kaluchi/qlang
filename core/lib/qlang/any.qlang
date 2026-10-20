@@ -1492,22 +1492,16 @@
       is, and the laws that show it at work, each the pair of its claim
       and its query, `::number | tutorial`. A value reads the page and
       the laws of its kind. A name nothing declares is refused as `doc`
-      refuses it, under the tag of `doc`. An anchor, a keyword after it,
-      reads the node the name holds under it, as `doc` reads one,
-      `::vec | tutorial :take`.
+      refuses it, under the tag of `doc`. The call takes no anchor: a
+      node is read by its address, `::vec/take | tutorial`.
       ::link~(::any/doc | doc) ::link~(::any/laws | doc)
   ~~|
   ::fn
-    | takes :anchor
-        |~~ The last name of the node whose page and laws the call
-            answers, a keyword, null when the call gives none.
-        ~~|
-        ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
-        |~~ The anchor is a keyword or null, the last name of a node under
-            the subject, `::vec | tutorial :take`.
-        ~~|
     | returns |~~ The page and the laws. ~~| ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `tutorial` reads the name of its subject and takes no anchor:
+            a node is read by its address, `::vec/take | tutorial`.
+        ~~|
     | proves :pairsThePageWithTheLaws
         |~~ A tutorial is the page of a name and its laws. ~~|
         ~(::number | tutorial | get [~(get /0 | type) ~(get /1 | type)] | eq [::doc ::map])
@@ -1517,12 +1511,10 @@
     | proves :refusesANameNothingDeclares
         |~~ A name nothing declares is refused as `doc` refuses it. ~~|
         ~(::nothere | tutorial !| type | eq ::any/doc/UnknownNameError)
-    | proves :readsTheNodeUnderAnAnchor
-        |~~ An anchor reads the page and the laws of the node the name holds
-            under it.
-        ~~|
-        ~(::vec | tutorial :take | eq (::vec/take | tutorial))
-    | impl ~(if (anchor | eq null) ~(get [~(doc) ~(laws)]) ~(get [~(doc anchor) ~(laws anchor)]))
+    | proves :ArgsBeyondInputsError/refusesAnAnchor
+        |~~ An anchor given to `tutorial` is refused under the verb. ~~|
+        ~(::vec | tutorial :take !| type | eq ::any/tutorial/ArgsBeyondInputsError)
+    | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
 
 :any/tag
   |~~ Answers the subject under the name the call gives, a tag name,

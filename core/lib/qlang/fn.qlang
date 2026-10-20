@@ -261,11 +261,11 @@
         ~~|
         ~({:a 1} | apply (::fn | impl (::vec/first | binding | get /value | get /1)) [] !| type | eq ::fn/RecipeMissingError)
     | tells :call
-        |~~ The call of a function `apply` runs, which no verb names: a
-            refusal of its subject, its args, its inputs, its answer or
-            its invariants is named under it,
-            `::fn/call/by/KindNotTakenError`, as a verb's is named under
-            its address, and reads this page, the pages of the roles
+        |~~ The call of a function `apply` runs or whose inputs `fill`
+            reads, which no verb names: a refusal of its subject, its
+            args, its inputs, its answer or its invariants is named under
+            it, `::fn/call/by/KindNotTakenError`, as a verb's is named
+            under its address, and reads this page, the pages of the roles
             staying with the function; a function named under a label
             names them under its address, where each reads its own.
         ~~|

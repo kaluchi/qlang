@@ -204,8 +204,9 @@
 :map/sum
   |~~ Answers the sum of the values, each a number, `{:a 10 :b 20} | sum`
       answering `30` and the empty map `0`; it takes no value. A value
-      that is no number is refused with its key, and a field of each value
-      is read first by `map`, `map /amount | sum`. A vector and a set sum
+      that is no number is refused, the place of its frame naming its key,
+      and a field of each value is read first by `map`,
+      `map /amount | sum`. A vector and a set sum
       their elements by the `sum` of vectors, and two fields of one record
       add by `sumOf /x /y`.
       ::link~(::map/avg | doc) ::link~(::vec/sum | doc)
@@ -249,8 +250,9 @@
       answering `1.5`, or null for the empty map, which has no mean, the
       mean of numbers staying among the finite doubles,
       `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A
-      value that is no number is refused with its key, and a field of each
-      value is read first by `map`, `map /amount | avg`. A vector and a
+      value that is no number is refused, the place of its frame naming its
+      key, and a field of each value is read first by `map`,
+      `map /amount | avg`. A vector and a
       set answer by the `avg` of vectors.
       ::link~(::map/sum | doc) ::link~(::vec/avg | doc)
   ~~|

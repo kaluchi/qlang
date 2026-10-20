@@ -5,7 +5,7 @@
 // measures it; the next measurement orders a new set.
 //
 // A set lives under `sets/<id>/`: `set.json` (who wrote it, whether it
-// was seen), `tasks.json`, `inputs/`, the author's record under
+// was seen), `tasks.json`, `data/`, the author's record under
 // `author/`, and the runs under `runs/`, each named
 // `<screen>~<mode>~<model>~<n>.json`, the screen of a measurement the
 // number of the decision it measures [QSWRK#measure].
@@ -27,8 +27,8 @@ const scratchRoot = join(tmpdir(), 'qlang-benchmark');
 
 const setDirOf = setId => join(setsDir, setId);
 const tasksOf = setId => JSON.parse(readFileSync(join(setDirOf(setId), 'tasks.json'), 'utf8'));
-const inputNamesOf = setId => readdirSync(join(setDirOf(setId), 'inputs'));
-const isTextInput = input => input !== null && !input.endsWith('.json');
+const dataNamesOf = setId => readdirSync(join(setDirOf(setId), 'data'));
+const isTextData = data => data !== null && !data.endsWith('.json');
 const commitOf = () => execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
 
 function setRecordOf(setId) {
@@ -44,7 +44,7 @@ function markSeen(setId, reason) {
 // ── author ─────────────────────────────────────────────────────
 
 // A clean author writes the set in a directory of its own, with the
-// file tools and node alone; its inputs, tasks and generator are copied
+// file tools and node alone; its data, tasks and generator are copied
 // under `sets/<id>/`, the scratch directory lying on any drive.
 export async function author(setId, model = 'sonnet') {
   if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists: a set is authored once and its reader never saw it [QSWRK#measure]`);
@@ -62,18 +62,18 @@ export async function author(setId, model = 'sonnet') {
     child.stdin.end(prompt);
   });
   const setDir = setDirOf(setId);
-  mkdirSync(join(setDir, 'inputs'), { recursive: true });
+  mkdirSync(join(setDir, 'data'), { recursive: true });
   mkdirSync(join(setDir, 'author'), { recursive: true });
   for (const name of readdirSync(workDir)) {
     const from = join(workDir, name);
     if (name === 'tasks.json') copyFileSync(from, join(setDir, 'tasks.json'));
     else if (/\.(c?js|mjs)$/.test(name)) copyFileSync(from, join(setDir, 'author', name));
-    else copyFileSync(from, join(setDir, 'inputs', name));
+    else copyFileSync(from, join(setDir, 'data', name));
   }
   writeFileSync(join(setDir, 'author', 'prompt.txt'), prompt);
   writeFileSync(join(setDir, 'author', 'record.json'), authorRecord);
   writeFileSync(join(setDir, 'set.json'), JSON.stringify({ id: setId, author: model, written: new Date().toISOString().slice(0, 10), seen: false }, null, 1) + '\n');
-  console.log(`set ${setId}: ${tasksOf(setId).length} tasks, inputs ${inputNamesOf(setId).join(' ')}`);
+  console.log(`set ${setId}: ${tasksOf(setId).length} tasks, data ${dataNamesOf(setId).join(' ')}`);
 }
 
 // ── run ────────────────────────────────────────────────────────
@@ -85,9 +85,9 @@ function promptOf(setId, screen) {
   return [
     'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its command line, as the language prints them, and you may run the `qlang` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the input files of the current directory; read nothing else. A query over an input file reads it from stdin: `qlang \'<query>\' < file.json`, and a text file `qlang --raw \'<query>\' < file.log`.',
-    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`; a task with no input runs with nothing piped, so its query writes the data the task gives as a literal):',
-    ...tasks.map(task => `${task.id} (${task.input ?? 'no input'}): ${task.text}`),
+    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qlang \'<query>\' < file.json`, and a text file `qlang --raw \'<query>\' < file.log`.',
+    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
+    ...tasks.map(task => `${task.id} (${task.data ?? 'no data file'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
   ].join('\n');
 }
@@ -144,7 +144,7 @@ export async function run(setId, { decision, model, runs, reason }) {
     const workDir = join(scratchRoot, 'children', `${setId}-${screen.name}-${mode}-${model}-${runIndex}`);
     rmSync(workDir, { recursive: true, force: true });
     mkdirSync(workDir, { recursive: true });
-    for (const name of inputNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'inputs', name), join(workDir, name));
+    for (const name of dataNamesOf(setId)) copyFileSync(join(setDirOf(setId), 'data', name), join(workDir, name));
     jobs.push(runChild({ prompt, model, workDir }).then(record => writeFileSync(join(runsDir, `${prefix}${runIndex}.json`), JSON.stringify({
       set: setId, decision, screen: screen.name, screenHash: screen.hash, mode, model, run: runIndex,
       date: new Date().toISOString().slice(0, 10), commit, reason: reason ?? null, environment: CHILD_ENVIRONMENT, ...record,
@@ -168,13 +168,13 @@ function finalQueriesOf(setId, reply) {
   return finals;
 }
 
-// What the tree answers for a query over the input of its task, as JSON,
+// What the tree answers for a query over the data of its task, as JSON,
 // or null when it fails.
 function answerOf(setId, task, query) {
   try {
-    const flags = isTextInput(task.input) ? ['--raw'] : [];
-    const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    const flags = isTextData(task.data) ? ['--raw'] : [];
+    const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
+    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed) };
   } catch {
     return null;
@@ -243,13 +243,13 @@ export function misses(setId, runName, taskIds) {
     let printed = '(no query)';
     if (query !== null) {
       try {
-        const input = task.input === null ? '' : readFileSync(join(setDirOf(setId), 'inputs', task.input));
-        printed = execFileSync(process.execPath, [commandLine, ...(isTextInput(task.input) ? ['--raw'] : []), query], { input, encoding: 'utf8', timeout: 30000, env: pipeEnv });
+        const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
+        printed = execFileSync(process.execPath, [commandLine, ...(isTextData(task.data) ? ['--raw'] : []), query], { input: data, encoding: 'utf8', timeout: 30000, env: pipeEnv });
       } catch (failure) {
         printed = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
       }
     }
-    console.log(`== ${task.id} (${task.input})\n${task.text}\nEXPECTED ${JSON.stringify(task.expected)}\nQUERY ${query}\nGOT ${printed.replace(/\s+/g, ' ').slice(0, 400)}\n`);
+    console.log(`== ${task.id} (${task.data})\n${task.text}\nEXPECTED ${JSON.stringify(task.expected)}\nQUERY ${query}\nGOT ${printed.replace(/\s+/g, ' ').slice(0, 400)}\n`);
   }
 }
 

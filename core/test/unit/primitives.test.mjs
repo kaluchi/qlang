@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { PRIMITIVE_REGISTRY } from '../../src/primitives.mjs';
-import { QlangInvariantError } from '../../src/errors.mjs';
+import { QlangDefect } from '../../src/errors.mjs';
 
 describe('the table of the primitives — registering before the bootstrap', () => {
   it('holds a primitive registered under an address, the primitives under its noun answering it [QSHST#source]', () => {
@@ -27,7 +27,7 @@ describe('the table of the primitives — registering before the bootstrap', () 
       PRIMITIVE_REGISTRY.register(null, () => null);
       expect.fail('should have thrown');
     } catch (e) {
-      expect(e).toBeInstanceOf(QlangInvariantError);
+      expect(e).toBeInstanceOf(QlangDefect);
       expect(e.name).toBe('AddressNotStringError');
       expect(e.facts).toEqual({ actualValue: 'null' });
     }
@@ -39,7 +39,7 @@ describe('the table of the primitives — registering before the bootstrap', () 
       PRIMITIVE_REGISTRY.register('testPrim/twice', () => 'second');
       expect.fail('should have thrown');
     } catch (e) {
-      expect(e).toBeInstanceOf(QlangInvariantError);
+      expect(e).toBeInstanceOf(QlangDefect);
       expect(e.address).toBe('builtin/AddressRegisteredTwiceError');
       expect(e.facts.address).toBe('testPrim/twice');
       expect(e.message).toMatch(/testPrim\/twice is already registered/);
@@ -74,7 +74,7 @@ describe('the table of the primitives — the primitives of the language by addr
       PRIMITIVE_REGISTRY.register(42, () => null);
       expect.fail('should have thrown');
     } catch (e) {
-      expect(e).toBeInstanceOf(QlangInvariantError);
+      expect(e).toBeInstanceOf(QlangDefect);
       expect(e.name).toBe('TableSealedError');
       expect(e.facts.address).toBe(42);
       expect(e.message).toMatch(/the table is sealed/);

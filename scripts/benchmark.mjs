@@ -27,7 +27,7 @@ import { verdict } from './benchmark/verdict.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const benchDir = join(repoRoot, 'scripts', 'benchmark');
-const inputsDir = join(benchDir, 'inputs');
+const dataDir = join(benchDir, 'data');
 
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue } = await core('index.mjs');
@@ -41,7 +41,7 @@ async function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json`] : [`(${query}) | json`];
   let stdout = '';
   let stderr = '';
-  const stdin = Readable.from([readFileSync(join(inputsDir, task.input))], { objectMode: false });
+  const stdin = Readable.from([readFileSync(join(dataDir, task.data))], { objectMode: false });
   const code = await main(flags, stdin, { write: written => { stdout += written; } }, { write: written => { stderr += written; } }, pipeEnv);
   if (code !== 0) throw new Error(`the command line exits ${code}: ${stderr}`);
   return stdout;
@@ -51,7 +51,7 @@ async function answerOf(query, task) {
 // the language alone answers a value, held against the literal of its
 // answer.
 async function referenceHolds(task) {
-  if (task.input === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
+  if (task.data === undefined) return deepEqual(await evalQuery(task.reference), await evalQuery(task.answer));
   return isDeepStrictEqual(JSON.parse(await answerOf(task.reference, task)), JSON.parse(task.answer));
 }
 
@@ -59,7 +59,7 @@ async function check() {
   const wrong = [];
   for (const task of TASKS) if (!(await referenceHolds(task))) wrong.push(task);
   for (const task of wrong) {
-    const given = task.input === undefined ? printValue(await evalQuery(task.reference)) : (await answerOf(task.reference, task)).trim();
+    const given = task.data === undefined ? printValue(await evalQuery(task.reference)) : (await answerOf(task.reference, task)).trim();
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
   if (wrong.length > 0) {

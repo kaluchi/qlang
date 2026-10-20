@@ -247,7 +247,7 @@ describe('printValue keyword round-trip', async () => {
       const original = await evalQuery(src);
       const printed = printValue(original);
       const reparsed = await evalQuery(printed);
-      expect(deepEqual(original, reparsed), `quoted-keyword round-trip drift on ${src} → ${printed}`).toBe(true);
+      expect(deepEqual(original, reparsed), `a quoted keyword read back as another value: ${src} → ${printed}`).toBe(true);
     }
   });
 

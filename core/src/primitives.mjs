@@ -4,19 +4,19 @@
 // language those under its noun as a host hands its own and seals the table
 // [QSHST#source].
 
-import { declareInvariantError } from './errors.mjs';
+import { declareDefect } from './errors.mjs';
 import { splitAddress } from './address.mjs';
 import { accountOfForeign } from './types.mjs';
 
-const BuiltinAddressNotStringError = declareInvariantError(
+const BuiltinAddressNotStringError = declareDefect(
   'builtin/AddressNotStringError',
   ({ actualValue }) => `register: an address must be a string, got ${actualValue}`);
 
-const BuiltinAddressRegisteredTwiceError = declareInvariantError(
+const BuiltinAddressRegisteredTwiceError = declareDefect(
   'builtin/AddressRegisteredTwiceError',
   ({ address }) => `register: ${address} is already registered; two runtime modules claim the same address`);
 
-const BuiltinTableSealedError = declareInvariantError(
+const BuiltinTableSealedError = declareDefect(
   'builtin/TableSealedError',
   ({ address }) => `register: the table is sealed; cannot register ${address} after the bootstrap`);
 

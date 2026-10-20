@@ -1,5 +1,5 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
-import { declareInvariantError } from './errors.mjs';
+import { declareDefect } from './errors.mjs';
 import { TAG_SIGIL } from './scope-keys.mjs';
 
 export const NULL = null;
@@ -385,7 +385,7 @@ export function typeOf(v) {
 // A value of no kind where the core takes what a host hands or reads a kind,
 // and a number past the doubles where it is written, a defect raised past the
 // fail track, `:actualValue` naming it as JavaScript holds it [QSHST#source].
-export const BuiltinForeignValueError = declareInvariantError('builtin/ForeignValueError',
+export const BuiltinForeignValueError = declareDefect('builtin/ForeignValueError',
   ({ actualValue }) => `the core met ${actualValue}, a value of no kind of the language`);
 
 export function refuseForeign(value) {

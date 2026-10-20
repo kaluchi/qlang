@@ -6,10 +6,11 @@ import {
   QlangError,
   CallUnknownNameError,
   CallEvaluationDepthExceededError,
-  QlangInvariantError,
+  QlangDefect,
   BuiltinRefusalDeclaredTwiceError,
   declareRefusal,
-  declareForeignError
+  declareForeignError,
+  declaredRefusals
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
 import { catchOriginalError, expectErrorResult } from '../helpers/error-assertions.mjs';
@@ -48,9 +49,9 @@ describe('a refusal declared by its address [QSERR#site]', () => {
   });
 });
 
-describe('QlangInvariantError', () => {
+describe('QlangDefect', () => {
   it('is constructible with message and context', () => {
-    const invariantErr = new QlangInvariantError('registration failed', { site: 'X', verb: 'foo' });
+    const invariantErr = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
     expect(invariantErr.message).toBe('registration failed');
     expect(invariantErr.facts.site).toBe('X');
     expect(invariantErr.facts.verb).toBe('foo');
@@ -98,6 +99,10 @@ describe('one address, one site', () => {
   // The address is the tag a refusal answers by and the name of its
   // page, so a second class under one address would speak for the
   // other site.
+  it('lists every address a site declared, which the pages of the refusals are held against [QSERR#site]', () => {
+    expect([...declaredRefusals()]).toEqual(expect.arrayContaining(['tests/ProbeError', 'call/UnknownNameError', 'builtin/RefusalDeclaredTwiceError']));
+  });
+
   it('refuses a second declaration of an address already declared', () => {
     let refusal = null;
     try {
@@ -105,7 +110,7 @@ describe('one address, one site', () => {
     } catch (caught) {
       refusal = caught;
     }
-    expect(refusal).toBeInstanceOf(QlangInvariantError);
+    expect(refusal).toBeInstanceOf(QlangDefect);
     expect(refusal).toBeInstanceOf(BuiltinRefusalDeclaredTwiceError);
     expect(refusal.name).toBe('RefusalDeclaredTwiceError');
     expect(refusal.facts.address).toBe('call/UnknownNameError');

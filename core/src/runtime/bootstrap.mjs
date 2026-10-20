@@ -4,7 +4,7 @@
 // condition of `#qlang/load-source` picks.
 
 import { loadSource } from '#qlang/load-source';
-import { declareInvariantError } from '../errors.mjs';
+import { declareDefect } from '../errors.mjs';
 
 // The sources the language declares its root by, in order, each the source
 // of one noun, its page and what is declared under it [QSDSP#residence]: the
@@ -22,7 +22,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
 
 // A source of the language the locator does not serve leaves the root
 // without the declarations it holds, `:origin` naming it [QSHST#source].
-export const BuiltinBootstrapSourceMissingError = declareInvariantError(
+export const BuiltinBootstrapSourceMissingError = declareDefect(
   'builtin/BootstrapSourceMissingError',
   ({ origin }) => `qlang bootstrap: '#${origin.name}' must resolve to a source of the language — ` +
     'add an entry to package.json#imports or the import map');

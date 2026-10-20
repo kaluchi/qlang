@@ -1,6 +1,6 @@
 // The refusals a verb that is a function raises by rule, read from its
-// chain as its call raises them, which the catalog's drift test holds
-// against the pages of the root's verbs [QSERR#site].
+// chain as its call raises them, which the guard of the pages of the
+// refusals holds against the pages of the root's verbs [QSERR#site].
 
 import { describe, it, expect } from 'vitest';
 import { createSession } from '../../src/session.mjs';

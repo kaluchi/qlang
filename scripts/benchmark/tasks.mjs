@@ -1,5 +1,5 @@
 // The tasks whose references run in the gate as `check:benchmark` [QSWRK#measure]:
-// each a question over a file of data in `inputs/`, or over the language
+// each a question over a file of data in `data/`, or over the language
 // alone, the answer, as JSON the query over the data writes by `| json`
 // or as a qlang literal, and the reference, the shortest query the tree
 // answers it with, which proves the task solvable and names the price the
@@ -7,43 +7,43 @@
 
 export const TASKS = [
   {
-    id: 'T1', input: 'users.json',
+    id: 'T1', data: 'users.json',
     question: 'the names of the users whose role is "admin", oldest first. Expected shape: a JSON array of strings.',
     reference: 'get /data | filter ~(get /role | eq "admin") | sort /age | reverse | map /name',
     answer: '["Cid","Ann"]'
   },
   {
-    id: 'T2', input: 'users.json',
+    id: 'T2', data: 'users.json',
     question: 'how many distinct email addresses there are when compared case-insensitively. Expected shape: a number.',
     reference: 'get /data | map ~(get /email | lower) | distinct | count',
     answer: '4'
   },
   {
-    id: 'T3', input: 'orders.json',
+    id: 'T3', data: 'orders.json',
     question: 'the number of orders per status. Expected shape: a JSON object status → count.',
     reference: 'groupBy ~(get /status | toKeyword) | map ~count',
     answer: '{"paid":3,"pending":2,"cancelled":1}'
   },
   {
-    id: 'T4', input: 'orders.json',
+    id: 'T4', data: 'orders.json',
     question: 'the total amount of the "paid" orders per customer. Expected shape: a JSON object customer → sum.',
     reference: 'filter ~(get /status | eq "paid") | groupBy ~(get /customer | toKeyword) | map ~(map /amount | sum)',
     answer: '{"acme":160.5,"globex":300}'
   },
   {
-    id: 'T5', input: 'app.log', raw: true,
+    id: 'T5', data: 'app.log', raw: true,
     question: 'the distinct messages of the ERROR lines, where the message is the text after the level word. Expected shape: a JSON list of strings.',
     reference: 'lines | filter ~(contains "ERROR") | map ~(split "ERROR " | last) | distinct | sort',
     answer: '["db timeout"]'
   },
   {
-    id: 'T6', input: 'users.json',
+    id: 'T6', data: 'users.json',
     question: 'for each user an object with its id and the number of its tags, keys "id" and "tagCount". Expected shape: array of objects.',
     reference: 'get /data | map ~(get {:id /id :tagCount ~(get /tags | count)})',
     answer: '[{"id":1,"tagCount":2},{"id":2,"tagCount":1},{"id":3,"tagCount":1},{"id":4,"tagCount":0},{"id":5,"tagCount":2}]'
   },
   {
-    id: 'T7', input: 'users.json',
+    id: 'T7', data: 'users.json',
     question: 'the emails of the users having the tag "ops". Expected shape: array of strings.',
     reference: 'get /data | filter ~(get /tags | any ~(eq "ops")) | map /email',
     answer: '["Ann@Example.com","eve@example.com"]'

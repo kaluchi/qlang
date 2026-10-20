@@ -35,7 +35,7 @@ import {
   siblingDeclarations,
   writeWorkspaceManifest
 } from './workspace-manifests.mjs';
-import { lstatSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -43,16 +43,13 @@ import { setTimeout as sleep } from 'node:timers/promises';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 
-// Publishable workspaces — all bumped to the same release version.
-// Keep in sync with .github/workflows/deploy.yml's publish matrix.
-const PUBLISHED_WORKSPACES = [
-  '@kaluchi/qlang-core',
-  '@kaluchi/qlang-cli'
-];
-
-// CI workflow on master that must be green before and after the
-// Release commit. Matches .github/workflows/ci.yml's `name:` field.
-const CI_WORKFLOW = 'CI';
+// The workspaces the release publishes, each bumped to its version, read
+// from the matrix of the workflow that publishes them, and the workflow
+// whose run on master is green before and after the Release commit, by
+// its name.
+const workflowAt = name => readFileSync(resolve(REPO_ROOT, '.github/workflows', name), 'utf8');
+const PUBLISHED_WORKSPACES = [...workflowAt('deploy.yml').matchAll(/^\s*- workspace: "([^"]+)"\s*$/gm)].map(([, workspace]) => workspace);
+const CI_WORKFLOW = /^name:\s*(\S[^\r\n]*)/m.exec(workflowAt('ci.yml'))[1];
 
 function run(cmd, opts = {}) {
   console.log(`  $ ${cmd}`);

@@ -12,7 +12,7 @@ import { langRuntime } from '../../src/runtime/index.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { toPlain } from '../../src/runtime/json.mjs';
 import { compareValues } from '../../src/ordering.mjs';
-import { declareRefusal, declareInvariantError } from '../../src/errors.mjs';
+import { declareRefusal, declareDefect } from '../../src/errors.mjs';
 import { WITHHELD_KEY } from '../../src/scope-keys.mjs';
 import {
   keyword, makeTag, makeTagged, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, ERROR_TAG
@@ -25,7 +25,7 @@ import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-do
 const ANSWERS = [];
 const answering = value => ANSWERS.push(value) - 1;
 const AnyRefuseRefusedError = declareRefusal('any/refuse/RefusedError');
-const AnyBreakBrokenError = declareInvariantError('any/break/BrokenError', () => 'the host broke');
+const AnyBreakBrokenError = declareDefect('any/break/BrokenError', () => 'the host broke');
 let session;
 let lawful;
 

@@ -5,7 +5,7 @@
 import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
 import { splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME } from './address.mjs';
-import { QlangError, QlangInvariantError } from './errors.mjs';
+import { QlangError, QlangDefect } from './errors.mjs';
 import { printPath } from './print-value.mjs';
 import { kindsOfWalk } from './nouns.mjs';
 import { functionOfRecipe, chainOfFn } from './chain.mjs';
@@ -108,7 +108,7 @@ function lawfulAnswer(answer, address, handed) {
 // A refusal whose facts hold a value of no kind fails as such an answer does,
 // a fact left undefined none.
 function refusalHeld(thrown, address, handed) {
-  if (!(thrown instanceof QlangError) || thrown instanceof QlangInvariantError) return thrown;
+  if (!(thrown instanceof QlangError) || thrown instanceof QlangDefect) return thrown;
   const foreign = foreignPartOf(new Map(Object.entries(thrown.facts).filter(([, fact]) => fact !== undefined)), new Set(handed));
   return foreign === null ? thrown : failureOfTheDoor(address, foreign);
 }

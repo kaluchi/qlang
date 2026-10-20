@@ -225,9 +225,9 @@ function scanForbiddenWords() {
 // `class Foo extends …` ends in `Error`; the abstract roots are the bases
 // every site extends.
 
-const ABSTRACT_BASES = new Set(['QlangError', 'QlangInvariantError']);
+const ABSTRACT_BASES = new Set(['QlangError', 'QlangDefect']);
 
-const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
+const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declareDefect|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
 const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang[A-Za-z]*Error|Error)\b/g;
 const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);

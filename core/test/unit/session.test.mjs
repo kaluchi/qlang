@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { keyword, makeBinding, makeErrorValue, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
-import { QlangInvariantError, declareRefusal } from '../../src/errors.mjs';
+import { QlangDefect, declareRefusal } from '../../src/errors.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-door.mjs';
 
 describe('createSession lifecycle', () => {
@@ -287,19 +287,19 @@ describe('a cell whose failure is no error value', () => {
     sources: [{
       uri: 'tests/collapse',
       source: ':any/collapse ::builtin{}',
-      primitives: { 'any/collapse': () => { throw new QlangInvariantError('a defect of the host'); } }
+      primitives: { 'any/collapse': () => { throw new QlangDefect('a defect of the host'); } }
     }]
   });
 
   it('answers a defect as the defect of its cell, with no result [QSHST#source]', async () => {
     const cellEntry = await (await collapsing()).evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();
-    expect(cellEntry.defect).toBeInstanceOf(QlangInvariantError);
-    expect(cellEntry.defect.name).toBe('QlangInvariantError');
+    expect(cellEntry.defect).toBeInstanceOf(QlangDefect);
+    expect(cellEntry.defect.name).toBe('QlangDefect');
   });
 
   it('raises the defect of the cell a query runs as to its caller [QSHST#source]', async () => {
-    await expect(evalQuery('42 | collapse', (await collapsing()).scope)).rejects.toBeInstanceOf(QlangInvariantError);
+    await expect(evalQuery('42 | collapse', (await collapsing()).scope)).rejects.toBeInstanceOf(QlangDefect);
   });
 });
 

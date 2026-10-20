@@ -7,7 +7,7 @@ import {
   withPipeValue, withScope, nestState, depthBelow, scopeSet, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
-import { declareRefusal, QlangError, QlangInvariantError, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
+import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
@@ -89,7 +89,7 @@ function evaluatorOf(step) {
 // The failure a throw at a step raised against the subject it met, located
 // at the step's span, a defect of the runtime riding past the fail track.
 function errorOfThrow(caughtError, step, subject, scope) {
-  if (caughtError instanceof QlangInvariantError) throw caughtError;
+  if (caughtError instanceof QlangDefect) throw caughtError;
   const span = partOf(step)?.span ?? null;
   return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, scope, span) : errorFromForeign(caughtError, span, scope);
 }

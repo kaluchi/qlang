@@ -38,18 +38,21 @@ registerPrimitive('vec/last', lastOf);
 registerPrimitive('map/last', map => lastOf([...map.values()]));
 
 // ── side by side ───────────────────────────────────────────────
-// The elements at each index of the vectors a vector holds, as long as
-// the shortest, an element that is no vector refused at its index
-// [QSCOL#sequence].
+// The elements at each index of the vectors a vector or a set holds, as long
+// as the shortest, an element that is no vector refused at its index
+// [QSCOL#sequence], [QSORD#set].
 const VecZipElementNotVecError = declareRefusal('vec/zip/ElementNotVecError');
-registerPrimitive('vec/zip', vectors => {
+const SetZipElementNotVecError = declareRefusal('set/zip/ElementNotVecError');
+function columnsOf(vectors, ElementNotVecError) {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw refusingAPart(new VecZipElementNotVecError({ actualValue: vectors[index] }), index);
+    if (!Array.isArray(column)) throw refusingAPart(new ElementNotVecError({ actualValue: vectors[index] }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
-});
+}
+registerPrimitive('vec/zip', vectors => columnsOf(vectors, VecZipElementNotVecError));
+registerPrimitive('set/zip', vectors => columnsOf(vectors, SetZipElementNotVecError));
 
 // ── sum and mean ───────────────────────────────────────────────
 

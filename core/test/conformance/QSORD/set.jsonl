@@ -19,3 +19,4 @@
 {"name":"distinct-turns-the-images-of-a-set-back-into-a-set","query":"#[1 2 3] | map ~(add 1) | distinct","expect":"#[2 3 4]"}
 {"name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
 {"name":"keys-answer-the-one-order","query":"{:b 1 :a 2} | keys | payload","expect":"[:a :b]"}
+{"decision":"D384","name":"a-set-answers-zip-by-its-own-the-vector-of-its-columns","query":"get [~(#[[1 1] [2 2]] | zip) ~(::Box#[[1 1] [2 2]] | zip) ~(#[3 1 2] | vec/sort) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)])]","expect":"[[[1 2] [1 2]] [[1 2] [1 2]] #[1 2 3] [::set/zip/ElementNotVecError /0]]"}

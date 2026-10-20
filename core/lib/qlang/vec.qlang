@@ -1498,8 +1498,10 @@
       `[[1 2] [:a :b]] | zip` answers `[[1 :a] [2 :b]]`, and the empty
       vector answers `[]`. Each element is a vector, a set, a quote and a
       doc among them; a single vector is put beside the others in a
-      vector first, `get [~(get /names) ~(get /ages)] | zip`. It takes no value.
-      ::link~(::vec/flat | doc)
+      vector first, `get [~(get /names) ~(get /ages)] | zip`, and a set
+      answers the vector of its columns by a `zip` of its own. It takes no
+      value.
+      ::link~(::vec/flat | doc) ::link~(::set/zip | doc)
   ~~|
   ::fn
     | returns |~~ The elements at each index, a vector each. ~~| ::vec

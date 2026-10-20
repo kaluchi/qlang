@@ -46,7 +46,7 @@ function shapeOf(current, top) {
     return foldedOf(value, shapes) ?? shapes;
   }
   const elements = [...value];
-  const element = elements.length === 0 ? [] : [tupleOf(elements) ?? elements.map(part => shapeOf(part, false)).reduce(mergedShape)];
+  const element = elements.length === 0 ? [] : [tupleOf(elements) ?? collapsed(elements.map(part => shapeOf(part, false)))];
   return isSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
@@ -54,7 +54,7 @@ function shapeOf(current, top) {
 // tuple, a shape for each index, and a list where every index holds one.
 function tupleOf(elements) {
   if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
-  const byIndex = elements[0].map((_, index) => elements.map(element => shapeOf(element[index], false)).reduce(mergedShape));
+  const byIndex = elements[0].map((_, index) => collapsed(elements.map(element => shapeOf(element[index], false))));
   return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? null : Object.freeze(byIndex);
 }
 
@@ -77,7 +77,7 @@ function foldedOf(value, shapes) {
   if (value.size === 0 || parts.every(part => part === null)) return null;
   const keyedByData = [...value.keys()].every(isDataKey);
   if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
-  const merged = [...shapes.values()].reduce(mergedShape);
+  const merged = collapsed([...shapes.values()]);
   if (!keyedByData && isAlternatives(marksOf(merged).core)) return null;
   const [first] = value.keys();
   return makeTagged(EACH_TAG, new Map([[first, merged]]));
@@ -135,7 +135,9 @@ const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(r
 const mergesWith = (left, right) => compareValues(left, right) === 0 || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
   || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
 const lacked = shape => marked({ ...marksOf(shape), absent: true });
-const collapsed = shapes => shapes.reduce(mergedShape);
+// The shape the shapes of parts share, merged in the one order, so the order of
+// the data changes none [QSPTH#shape].
+const collapsed = shapes => [...shapes].sort(compareValues).reduce(mergedShape);
 
 function mergedByIndex(left, right) {
   if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];

@@ -24,7 +24,7 @@ const MAP_KIND      = 10;
 const QUOTE_KIND    = 11;
 const DOC_KIND      = 12;
 // Every other value under a tag ranks by the name of its tag, then by its
-// payload, a desc reversing its own [D393].
+// payload, a desc reversing its own [QSORD#order], [QSORD#desc].
 const TAGGED_KIND   = 13;
 // A failure raised, which no value holds, ranks after every value by its tag
 // and then its facts, so the tools that hold an answer to the one they expect
@@ -114,7 +114,7 @@ export function kindsExpected(...kindNames) {
 
 // Two values rank kind before kind, and two of one kind by value, a value
 // under another tag by the name of its tag and then its payload, which a
-// desc reverses [D393].
+// desc reverses [QSORD#order], [QSORD#desc].
 function compareKinded(leftKind, left, rightKind, right) {
   if (leftKind !== rightKind) return leftKind < rightKind ? -1 : 1;
   switch (leftKind) {

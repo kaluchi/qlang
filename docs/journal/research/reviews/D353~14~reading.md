@@ -179,4 +179,4 @@
 QSHST#answer и QSERR#print по D393, QSWRK#review по D392 — список
 рецензента, сверенный с деревом после починок.
 
-[D393]: ../../D393.md
+[D393]: ../../replaced/D393.md

@@ -359,8 +359,11 @@ its facts alone. The answer of a host that is a failure prints under the
 line comment `|~| raised, and no !| caught it`, which a reading of the
 literal passes over, and an error at rest an answer gives prints as the
 value it is. A host that prints for a person's eye draws below the
-refusal of a text the line the reading stopped in and a caret under the
-place its `:location` names.
+refusal of a text of one line that line within an excerpt of three
+hundred characters around the place its `:location` names, an ellipsis
+where the excerpt cuts it, and a caret under that place as far as the
+excerpt reaches, whatever the length of the line; `:location` names the
+place in the whole text.
 
 ```qlang
 > !{:a 1} | raise !| print | parse | open | raise !| keys
@@ -383,4 +386,7 @@ $ qlang '[01' < /dev/null | sed -n '1,8p'
 }
 |~| [01
 |~|  ^~
+
+$ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^|~| …x' -e '\^$'
+2
 ```

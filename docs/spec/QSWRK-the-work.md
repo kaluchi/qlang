@@ -602,13 +602,15 @@ of its own, and its value on the line after them.
 
 The mission's measure is the first attempt of a fresh model, which the
 benchmark takes by its sets. A child of the benchmark, `claude -p` from
-a directory of its own with no settings, memory or server, runs the
+a directory of its own with no settings, memory or server, at the effort
+`high`, which no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the
+environment of its start, runs the
 command line on the tasks of a set, handed one first screen, the pages
 of the language and of the command line as
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])` prints them, which
 `firstScreen` of `scripts/benchmark/screens.mjs` answers trimmed. A set
-is written by a clean author who never sees the language: the data, the
-tasks and a script that computes the answers. A set measures once:
+is written by a clean author who never sees the language, at the effort
+of a child: the data, the tasks and a script that computes the answers. A set measures once:
 reading what its children missed, `misses` or `frictions`, marks it
 seen, `run` refuses a set seen, and the next measurement orders a new
 set. A sentence of the first page stays by what it carries to a clean
@@ -622,11 +624,17 @@ number; the numbers measured grow, `run` refusing a number below the
 last one measured, and a second measurement under a number states its
 reason. A run fixes its circumstances when it runs: the screen the tree
 printed, saved under the number with its hash, the hash `screen` prints,
-the commit of a tree with no change outside it, the model, the date, the
-set, every call of the command line and what the language answered, and
-its score, each final query run by that tree against the author's
+the commit of a tree with no change outside it, the model, the
+environment its child was started with, its effort among it, the date,
+the set, every call of the command line and what the language answered,
+and its score, each final query run by that tree against the author's
 answer; `verdict` sets the runs of a measurement beside the measurement
 before it, or the one it names, as they fixed them.
+
+```sh
+$ node -e "import('./scripts/benchmark/child.mjs').then(m=>console.log(JSON.stringify(m.RUN_ENVIRONMENT)))"
+{"MSYS_NO_PATHCONV":"1","CLAUDE_CODE_EFFORT_LEVEL":"high"}
+```
 `scripts/benchmark/tasks.mjs` keeps each task with its question, the
 data it reads where it reads any, its answer and its reference, the
 shortest query the tree answers it with; the references run in the gate
@@ -674,16 +682,27 @@ baseline cleans them [QSWRK#baseline]. The README of the research,
 report into being, how each is named and how long it stays.
 
 The scripts of the research start their readers alike, through
-`scripts/research-runs.mjs`, which holds the start of a clean reader,
-the refusals of a run, its number, the head of a report, the line under
-`Runs.` and the packing of what a run reads into groups of about one
-weight. A reader is a clean Opus, `claude -p --model opus` started from
-an empty directory of its own with `--restricted` and
+`scripts/research-runs.mjs`, which holds the start of a clean reader and
+its effort, the refusals of a run, its number, the head of a report, the
+line under `Runs.` and the packing of what a run reads into groups of
+about one weight. A reader is a clean Opus, `claude -p --model opus`
+started from an empty directory of its own with `--restricted` and
 `--strict-mcp-config`, with no instruction file, memory or server, the
 tree's `qlang` first on its path and its tools Read, Grep, Glob and Bash,
 Bash for `qlang`, `grep` and `git ls-files`, or for `qlang` alone in the
-outside audit, and no other git command; the readers of a run start at
-once, and each answers the prompt of its kind in Russian. A run reads
+outside audit, and for the commands of Bash that only read, `ls`, `cat`,
+`which` and `time` among them, which the harness passes unasked and which
+read no more than Read and Glob read; a command of git that reads the
+history asks and is refused, so the history stays out of its reach. A
+reader runs at the effort `max`, or at the one its run names by
+`--effort`, one of `low`, `medium`, `high`, `xhigh` and `max`, any other
+level stopping the run before a reader starts, set by
+`CLAUDE_CODE_EFFORT_LEVEL` in the environment of its start over every
+flag and settings file, so the effort of the session that starts it
+reaches no reader. The readers of a run start at once, and each answers
+the prompt of its kind in Russian; the head of a report names the
+commands its reader ran by and its effort, and the reading of the run
+reads its claims against them. A run reads
 the tree at HEAD of the checkout it runs in, every change of which a
 commit holds, best on master after a branch landed, and from a worktree
 of that commit outside the repository, with its own install and build,
@@ -691,6 +710,17 @@ where another session works in the checkout. It refuses a call that
 names no record in force, a tree with a change no commit holds and a
 second run for one record on one tree, and a run whose checkout moved
 under its readers writes no report and no line under `Runs.`.
+
+```sh
+$ node -e "import('./scripts/research-runs.mjs').then(m=>console.log(m.headOf({what:'x',tree:'t',onTheBaseline:'b',date:'d',started:new Date(0),ended:new Date(0),allowed:'qlang',effort:'max'}).split('\n').slice(2).join('\n')))"
+> Run as `claude -p --model opus` from an empty directory with `--restricted` and `--strict-mcp-config`, tools `Read Grep Glob Bash`, qlang allowed and the commands of Bash that only read, which the harness passes unasked, no CLAUDE.md, memory or MCP server, no `FORCE_COLOR`.
+> At the effort `max`, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of its start, which no flag and no settings file overrides.
+$ node -e "import('./scripts/research-runs.mjs').then(m=>{const e=m.readerEnvironment({FORCE_COLOR:'1',CLAUDE_CODE_EFFORT_LEVEL:'low'},'max');console.log(e.CLAUDE_CODE_EFFORT_LEVEL,'FORCE_COLOR' in e)})"
+max false
+$ node scripts/spec-check.mjs --dry --effort none 2>&1; echo "exit $?"
+--effort names one of low, medium, high, xhigh and max: none is none of them
+exit 1
+```
 
 `node scripts/spec-check.mjs --records Dnn …` gives each open record named
 a clean critic of its own, who bootstraps from the chapters, the first

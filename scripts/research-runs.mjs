@@ -107,14 +107,14 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 // own, with no instruction file, memory or server, the tree's `qlang` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
 // allows and the commands that only read, which the harness passes unasked,
-// and no git command but the listing of the files a caller gives it [D392].
+// and no git command but the listing of the files a caller gives it [QSWRK#review].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
 export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
 // The effort a clean reader runs at, `max` unless its run names another of
 // the efforts by `--effort`, which `CLAUDE_CODE_EFFORT_LEVEL` sets in the
 // environment of its start, where no flag and no settings file overrides it,
-// so the effort of the session that starts it reaches no reader [D394].
+// so the effort of the session that starts it reaches no reader [QSWRK#review].
 export const READER_EFFORT = 'max';
 const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'];
 

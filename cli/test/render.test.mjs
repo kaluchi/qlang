@@ -190,7 +190,7 @@ describe('answerText — the answer as the language prints it', () => {
 
 // The command line draws the caret of a refused text below its alert, the
 // line within an excerpt around the place, above the prose of the page
-// [D393].
+// [QSERR#print].
 describe('answerText — the caret of a refused text', () => {
   const refused = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`;
 
@@ -199,7 +199,7 @@ describe('answerText — the caret of a refused text', () => {
     expect(text).toMatch(/\}\n\|~\| \[1 2\n\|~\| {5}\^\n\|~\| The page\.$/);
   });
 
-  it('draws the caret under the line of a refused text, the line within an excerpt where a budget left it out of the alert [D393]', async () => {
+  it('draws the caret under the line of a refused text, the line within an excerpt where a budget left it out of the alert [QSERR#print]', async () => {
     const failure = await evalQuery(refused);
     expect(await answerText(failure, await langRuntime())).toContain(`}\n|~| ${refused}\n|~| ${' '.repeat(113)}^`);
     const bounded = await answerText(failure, await langRuntime(), 80);
@@ -220,7 +220,7 @@ describe('answerText — the budget of the answer', () => {
     expect(text).toContain(':read ~(drop ');
   });
 
-  it('cuts an error within the budget, the largest of its facts giving way beneath !| [D393]', async () => {
+  it('cuts an error within the budget, the largest of its facts giving way beneath !| [QSHST#answer]', async () => {
     const failing = await evalQuery(`[{:n 1 :text "${'x'.repeat(200)}"} {:n 2}] | filter ~(nope)`);
     expect(await answerText(failing, await langRuntime(), budget)).toContain(':trace ::elision{:size 2 :read ~(!| get /trace)}');
   });

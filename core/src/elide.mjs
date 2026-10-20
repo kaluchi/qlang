@@ -1,4 +1,4 @@
-// The view of a value within a budget of characters of its print [D393]:
+// The view of a value within a budget of characters of its print [QSPRN#elide]:
 // while the print exceeds the budget, the largest part, or a part within it
 // that prints more than half of it, gives way to an elision, a value of the
 // kind `::elision`. A vector, a set and a map keep their first parts and an
@@ -14,7 +14,7 @@
 // elision the value taken holds counts as one element, the views of one answer
 // telling the rest by the elisions they made.
 //
-// A failure a host prints is an alert [D393]: its tag and its facts, the data
+// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
 // it carries cut to what places the failure. The subject of the first frame
 // of its trace, where the failure arose, and every other fact print within an
 // excerpt each; the subject of every later frame, which the failure only
@@ -111,7 +111,7 @@ function partsOfContainer(value, view) {
 // prints its own way, at the top as beneath it; a container of more than one
 // part at the top and of any beneath it, through the tags over it, and each of
 // its parts; a frame's subject alone, its steps and its place kept; and each
-// fact of a failure, which keeps its tag and the names of its facts [D393];
+// fact of a failure, which keeps its tag and the names of its facts [QSPRN#elide], [QSHST#answer];
 // an elision, made or held, and an atom never.
 function partsOf(value, path, view, parts) {
   if (isElision(value)) return;
@@ -170,7 +170,7 @@ const halves = (value, view) => isContainer(value) && !isText(value) && view.pri
 // A container keeping its first parts and ending with an elision of the rest,
 // a map's under the key `:"…"`, its tag kept; a map whose kept entries hold the
 // key `:"…"` of the data keeping those before it alone, and giving way whole
-// where none stands before it [D393].
+// where none stands before it [QSPRN#elide].
 function halvedTo(part, kept, view) {
   const { path, value } = part;
   const { entries, standsFor } = partsOfContainer(value, view);
@@ -229,7 +229,7 @@ function replacedAt(value, path, replacement, view) {
 
 // The view as a value: each set it built stands in the one order again, its
 // elision where `::elision` ranks, the reads of its elisions written against
-// the order of the value taken [D393].
+// the order of the value taken [QSPRN#elide].
 function inOrder(value, view) {
   if (!view.built.has(value)) return value;
   if (isErrorValue(value)) return makeErrorValue(value.tag, new Map([...value.facts].map(([name, fact]) => [name, inOrder(fact, view)])));
@@ -261,7 +261,7 @@ function partGivingWay(sized) {
 // least prints shorter than they do, a container halving on to its least at
 // the most; where no part's least is shorter, the view stands over the budget.
 // A view that prints on one line, the subject of a frame, is measured so
-// [D393].
+// [QSPRN#elide].
 function elideWithin(value, budget, start, printedOf, oneLine = false, rests = new WeakSet()) {
   const view = viewOf(start, printedOf, oneLine, rests);
   let shown = value;
@@ -302,7 +302,7 @@ function passedOver(value, read, printedOf, oneLine, rests) {
 
 // The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [D393].
+// whole, each measured on the one line a frame prints on [QSHST#answer].
 function framesOf(trace, read, printedOf, rests) {
   return makeTrace(trace.map((frame, index) => {
     const { subject, unfinished, place } = partsOfFrame(frame);
@@ -325,7 +325,7 @@ export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet
 // rest, and then its facts give way within the budget, the failure keeping
 // its tag and the names of its facts. The views of one answer share the rests
 // they made, so every `:size` counts what its `:read` answers beneath `!|`
-// [D393].
+// [QSHST#answer].
 export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {
   if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget, printedOf);
   const rests = new WeakSet();

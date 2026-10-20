@@ -4,8 +4,11 @@
 
 :absent
   |~~ An absent marks in a shape a part some of the data lacks, a key some
-      of the records merged there lack or the element of a vector or a set
-      empty in some, over the shape of the rest and outside `::nullable`:
+      of the records merged there lack, each key of the records and folds
+      an empty map stands beside, `[{:a 1} {:b 2} {}] | shape` answering
+      `::shape[#[{:a ::absent::number} {:b ::absent::number}]]`, or the
+      element of a vector or a set empty in some, over the shape of the
+      rest and outside `::nullable`:
       `[{:a 1} {:a 2 :b "x"}] | shape` answers
       `::shape[{:a ::number :b ::absent::string}]`.
       ::link~(::shape | doc)
@@ -14,6 +17,9 @@
     | proves :marksAKeySomeRecordsLack
         |~~ A key some records lack stands marked absent. ~~|
         ~([{:a 1} {:a 2 :b "x"}] | shape | eq ::shape[{:a ::number :b ::absent::string}])
+    | proves :marksEachRecordBesideAnEmptyMap
+        |~~ An empty map marks each key of the records beside it absent. ~~|
+        ~([{:a 1} {:b 2} {}] | shape | eq ::shape[#[{:a ::absent::number} {:b ::absent::number}]])
     | proves :marksTheElementOfAVectorEmptyInSome
         |~~ The element of a vector empty in some of the data is absent. ~~|
         ~([{:labels [{:name "bug"}]} {:labels []}] | shape | eq ::shape[{:labels [::absent{:name ::string}]}])

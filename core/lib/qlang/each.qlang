@@ -6,15 +6,15 @@
   |~~ An each stands in a shape for a map whose values are not all null,
       every key of which is data, an id, a date, a uuid or an email, or
       which holds more than eight names whose values, containers, values
-      under a tag or null, share one shape, over its first key and the
-      shape of its values: `{:"17" {:id 1} :"42" {:id 2}} | shape` answers
+      under a tag or null, share one shape, over its least key and the
+      shape of its values: `{:"42" {:id 2} :"17" {:id 1}} | shape` answers
       `::shape::each{:"17" {:id ::number}}`.
       ::link~(::shape | doc)
   ~~|
   ::kind
     | proves :foldsAMapKeyedByData
-        |~~ A map keyed by data folds over its first key. ~~|
-        ~({:"17" {:id 1} :"42" {:id 2}} | shape | eq ::shape::each{:"17" {:id ::number}})
+        |~~ A map keyed by data folds over its least key. ~~|
+        ~({:"42" {:id 2} :"17" {:id 1}} | shape | eq ::shape::each{:"17" {:id ::number}})
     | proves :foldsAtomsKeyedByData
         |~~ A map keyed by data folds over atoms as well. ~~|
         ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape | eq ::shape::each{:"2024-01-01" ::number})

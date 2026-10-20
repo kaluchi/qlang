@@ -58,8 +58,8 @@ function tupleOf(elements) {
   return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? null : Object.freeze(byIndex);
 }
 
-// A map whose values are not all null folds into `::each` over its first key
-// and the shape of its values where every key is data, an id of digits, a
+// A map whose values are not all null folds into `::each` over its least key
+// [D385] and the shape of its values where every key is data, an id of digits, a
 // date or a time, a uuid or an email, and where more than eight names hold
 // containers, values under a tag or null of one shape.
 const DATA_KEYS = [
@@ -79,9 +79,10 @@ function foldedOf(value, shapes) {
   if (!keyedByData && (value.size <= NAMES_A_RECORD_HOLDS || !parts.every(holdsParts))) return null;
   const merged = collapsed([...shapes.values()]);
   if (!keyedByData && isAlternatives(marksOf(merged).core)) return null;
-  const [first] = value.keys();
-  return makeTagged(EACH_TAG, new Map([[first, merged]]));
+  return makeTagged(EACH_TAG, new Map([[leastOf(value.keys()), merged]]));
 }
+
+const leastOf = keys => [...keys].sort(compareValues)[0];
 
 // The shape stands under `::shape`, whose page tells how a shape reads [QSPTH#shape].
 registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
@@ -100,76 +101,104 @@ function marksOf(shape) {
   return { absent, nullable, core };
 }
 
+const isNullShape = shape => compareValues(shape, NULL_KIND) === 0;
+
 function marked({ absent, nullable, core }) {
-  const held = nullable && compareValues(core, NULL_KIND) !== 0 ? makeTagged(NULLABLE_TAG, core) : core;
+  const held = nullable && !isNullShape(core) ? makeTagged(NULLABLE_TAG, core) : core;
   return absent ? makeTagged(ABSENT_TAG, held) : held;
 }
 
-// The shape two parts share: their marks joined over the shape their cores
-// share, a null giving way to the other as `::nullable`.
-function mergedShape(left, right) {
-  if (compareValues(left, right) === 0) return left;
-  const l = marksOf(left);
-  const r = marksOf(right);
-  const leftNull = compareValues(l.core, NULL_KIND) === 0;
-  const rightNull = compareValues(r.core, NULL_KIND) === 0;
-  const core = leftNull ? r.core : rightNull ? l.core : mergedCore(l.core, r.core);
-  return marked({ absent: l.absent || r.absent, nullable: l.nullable || r.nullable || leftNull || rightNull, core });
-}
-
-// The shape two cores share: two lists, two tuples index by index or two sets
-// one element, an empty one marking it `::absent`, two records sharing a key
-// the record of both, a key one lacks `::absent`, two folds of one shape or a
-// fold and an empty map one fold, and any other two the set of their kinds,
-// merged until no two of them merge.
+const lacked = shape => marked({ ...marksOf(shape), absent: true });
 const isSetOf = shape => isSet(shape) && shape.length < 2;
 const isAlternatives = shape => isSet(shape) && shape.length > 1;
 const isRecord = shape => isMap(shape) && !isTagged(shape);
 const isList = shape => isVec(shape) && !isTagged(shape);
-const shareAKey = (left, right) => left.size === 0 || right.size === 0 || [...left.keys()].some(key => right.has(key));
+const isFold = shape => isMark(shape, EACH_TAG);
 const eachKey = each => [...payloadBeneath(each).keys()][0];
 const eachShape = each => [...payloadBeneath(each).values()][0];
-const eachesMerge = (left, right) => isMark(left, EACH_TAG) && isMark(right, EACH_TAG) && !isAlternatives(mergedShape(eachShape(left), eachShape(right)));
-const isEmptyRecord = shape => isRecord(shape) && shape.size === 0;
-const eachAndEmpty = (left, right) => (isMark(left, EACH_TAG) && isEmptyRecord(right)) || (isEmptyRecord(left) && isMark(right, EACH_TAG));
-const mergesWith = (left, right) => compareValues(left, right) === 0 || eachesMerge(left, right) || eachAndEmpty(left, right) || (isSetOf(left) && isSetOf(right))
-  || (isList(left) && isList(right)) || (isRecord(left) && isRecord(right) && shareAKey(left, right));
-const lacked = shape => marked({ ...marksOf(shape), absent: true });
-// The shape the shapes of parts share, merged in the one order [QSPTH#shape].
-const collapsed = shapes => [...shapes].sort(compareValues).reduce(mergedShape);
 
-function mergedByIndex(left, right) {
-  if (left.length === 0 || right.length === 0) return [lacked(collapsed(left.length === 0 ? right : left))];
-  if (left.length !== right.length) return [collapsed([...left, ...right])];
-  const byIndex = left.map((shape, index) => mergedShape(shape, right[index]));
-  return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? [byIndex[0]] : byIndex;
+// The shape the shapes of parts share, merged from all of them at once, so data
+// in any order answers one shape at any depth [D385]: their marks joined over the
+// cores they share, a null giving way to the rest as `::nullable`.
+function collapsed(shapes) {
+  const marks = shapes.map(marksOf);
+  const cores = marks.flatMap(({ core }) => (isNullShape(core) ? [] : isAlternatives(core) ? [...core] : [core]));
+  return marked({
+    absent: marks.some(({ absent }) => absent),
+    nullable: marks.some(({ nullable, core }) => nullable || isNullShape(core)),
+    core: cores.length === 0 ? NULL_KIND : mergedCores(cores)
+  });
 }
 
-function mergedCore(left, right) {
-  if (compareValues(left, right) === 0) return left;
-  if (eachesMerge(left, right)) return makeTagged(EACH_TAG, new Map([[eachKey(left), mergedShape(eachShape(left), eachShape(right))]]));
-  if (eachAndEmpty(left, right)) {
-    const each = isEmptyRecord(left) ? right : left;
-    return makeTagged(EACH_TAG, new Map([[eachKey(each), lacked(eachShape(each))]]));
-  }
-  if (isSetOf(left) && isSetOf(right)) return makeSet(mergedByIndex(left, right));
-  if (isList(left) && isList(right)) return Object.freeze(mergedByIndex(left, right));
-  if (isRecord(left) && isRecord(right) && shareAKey(left, right)) {
-    const keys = [...new Set([...left.keys(), ...right.keys()])];
-    return new Map(keys.map(key => [key, left.has(key) && right.has(key) ? mergedShape(left.get(key), right.get(key)) : lacked(left.get(key) ?? right.get(key))]));
-  }
-  const kinds = [...(isAlternatives(left) ? left : [left]), ...(isAlternatives(right) ? right : [right])];
+// The cores of parts merged: vectors into one, sets into one, records that
+// share a key into one, folds whose values merge into one, and an empty map,
+// which holds no key, lacking each key of the records and folds beside it; the
+// rest stand apart as the set of their kinds [D385].
+function mergedCores(cores) {
+  const kinds = [...makeSet(cores)];
+  const lacks = kinds.some(kind => isRecord(kind) && kind.size === 0) && kinds.some(kind => (isRecord(kind) && kind.size > 0) || isFold(kind));
+  const parts = classesOf(lacks ? kinds.filter(kind => !isRecord(kind) || kind.size > 0) : kinds);
+  const merged = makeSet(parts.map(members => mergedClass(members, lacks)));
+  return merged.length === 1 ? merged[0] : merged;
+}
+
+// The kinds gathered into the classes that merge, until no two classes do.
+function classesOf(kinds) {
+  const classes = kinds.map(kind => [kind]);
   for (let found = true; found;) {
     found = false;
-    for (let at = 0; at < kinds.length && !found; at += 1) {
-      const with_ = kinds.findIndex((kind, index) => index > at && mergesWith(kinds[at], kind));
-      if (with_ !== -1) {
-        kinds[at] = mergedCore(kinds[at], kinds[with_]);
-        kinds.splice(with_, 1);
+    for (let at = 0; at < classes.length && !found; at += 1) {
+      const other = classes.findIndex((members, index) => index > at && mergeTogether(classes[at], members));
+      if (other !== -1) {
+        classes[at] = [...classes[at], ...classes.splice(other, 1)[0]];
         found = true;
       }
     }
   }
-  const set = makeSet(kinds);
-  return set.length === 1 ? set[0] : set;
+  return classes;
+}
+
+function mergeTogether(left, right) {
+  const [one] = left;
+  const [other] = right;
+  if (isList(one) || isList(other)) return isList(one) && isList(other);
+  if (isSetOf(one) || isSetOf(other)) return isSetOf(one) && isSetOf(other);
+  if (isRecord(one) || isRecord(other)) return isRecord(one) && isRecord(other) && keysOf(left).some(key => right.some(record => record.has(key)));
+  return isFold(one) && isFold(other) && !isAlternatives(marksOf(collapsed([...left, ...right].map(eachShape))).core);
+}
+
+const keysOf = records => [...new Set([...records].sort(compareValues).flatMap(record => [...record.keys()]))];
+
+function mergedClass(members, lacks) {
+  const [first] = members;
+  if (isList(first)) return Object.freeze(elementsMerged(members));
+  if (isSetOf(first)) return makeSet(elementsMerged(members));
+  if (isRecord(first)) return recordMerged(members, lacks);
+  if (!isFold(first)) return first;
+  const values = collapsed(members.map(eachShape));
+  return makeTagged(EACH_TAG, new Map([[leastOf(members.map(eachKey)), lacks ? lacked(values) : values]]));
+}
+
+// The element vectors or sets share: none where all are empty, marked
+// `::absent` where some are, a tuple where tuples of one length part index by
+// index, and one element of all of them else.
+function elementsMerged(members) {
+  const filled = members.filter(member => member.length > 0);
+  if (filled.length === 0) return [];
+  const elements = filled.flatMap(member => [...member]);
+  if (filled.length < members.length) return [lacked(collapsed(elements))];
+  if (filled.some(member => member.length !== filled[0].length)) return [collapsed(elements)];
+  const byIndex = filled[0].map((_, index) => collapsed(filled.map(member => member[index])));
+  return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? [byIndex[0]] : byIndex;
+}
+
+// The record records that share a key make: the keys of all of them, each over
+// the shape its values share, marked `::absent` where some lack it or an empty
+// map stands beside them.
+function recordMerged(records, lacks) {
+  return new Map(keysOf(records).map(key => {
+    const holding = records.filter(record => record.has(key));
+    const shape = collapsed(holding.map(record => record.get(key)));
+    return [key, lacks || holding.length < records.length ? lacked(shape) : shape];
+  }));
 }

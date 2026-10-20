@@ -4,7 +4,7 @@
 {"name":"a-bare-name-alone-reads-its-quote","query":":double ~(mul 2) | 5 | double","expect":"~(mul 2)"}
 {"name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | :d it | d | content","expect":"\" note \""}
 {"name":"an-input-holding-a-value-takes-no-modifiers","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| type","expect":"::call/ValueTakesNoModifiersError"}
-{"decision":"D380","name":"a-name-that-holds-a-value-refuses-modifiers-holding-the-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :name :five\n  :addresses #[]\n  :actualType ::number\n  :actualValue 5\n  :trace ::trace[::frame[5 ~(five 42)]]\n} | raise"}
+{"name":"a-name-that-holds-a-value-refuses-modifiers-holding-the-value","query":"5 | :five it | five 42","expect":"::call/ValueTakesNoModifiersError!{\n  :name :five\n  :addresses #[]\n  :actualType ::number\n  :actualValue 5\n  :trace ::trace[::frame[5 ~(five 42)]]\n} | raise"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}
 {"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(type) /name]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}

@@ -341,8 +341,20 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-export function makeFrame(subject, steps, place = null) {
-  return makeTagged(FRAME_TAG, place === null ? [subject, steps] : [subject, steps, place]);
+export function makeFrame(subject, unfinished, place = null) {
+  return makeTagged(FRAME_TAG, place === null ? [subject, unfinished] : [subject, unfinished, place]);
+}
+
+// The parts of a frame in their places, which every reader of a frame reads it by [QSERR#trace].
+export const SUBJECT_INDEX_OF_A_FRAME = 0;
+
+export function partsOfFrame(frame) {
+  const [subject, unfinished, place = null] = frame;
+  return { subject, unfinished, place };
+}
+
+export function holdsTheLayoutOfAFrame(parts) {
+  return parts.length <= 3 && isQuote(parts[1]) && parts[1].length > 0 && (parts.length === 2 || isPath(parts[2]));
 }
 
 export function makeTrace(frames) {

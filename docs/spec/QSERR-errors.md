@@ -121,13 +121,20 @@ away.
 
 A step whose answer is a failure its subject was not passes a frame: a
 step that fails, `raise`, and a step that answers a failure from inside
-it, the call of a verb, a group, a verb running a quote, while a modifier
-of a step answers within the frame of that step. A verb that runs its
-code on the parts of its subject, `map`, `filter`, `every`, `any` and
-`reduce`, and the keys of `sort`, `min`, `max`, `groupBy` and `indexBy`,
-names the place of the part its code failed on, the path of its index,
-in a set the index in the one order, or of its key in a map, and `update`
-the path it wrote; a step that ran no code on a part names none. The
+it, the call of a verb, a group, a verb running a quote and the one word
+of a fold [QSCOL#reduce], while a modifier of a step, a raise written
+there among it, and a part of a literal, which is one step, answer within
+the frame of that step, and no step the reader did not write joins it. A
+verb that runs its code on the parts of its subject, `map`, `filter`,
+`every`, `any` and `reduce`, and the keys of `sort`, `min`, `max`,
+`groupBy` and `indexBy`, names the place of the part its code failed on,
+the path of its index, in a set the index in the one order, or of its key
+in a map, and `update` the path it wrote. The place and whether a raise
+resumes its trace are facts of the call, which the step that receives the
+failure writes its frame by, the step of `apply` by those of the function
+it runs and a declaration by those of the call of its body, so no value
+carries them from one call into another; a step that ran no code on a
+part names none. The
 steps skipped at the level that reads the failure,
 `trace | last | skipped`, run again by `apply` as held code runs
 [QSQUO#held].
@@ -199,6 +206,9 @@ true
 
 > ::error{:a 1} | trace
 ::trace[]
+
+> get [~(::A[::number"x"] !| trace | map ~failed) ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| trace | map ~failed)]
+[[~(::A[::number"x"])] [~(pre) ~(eq raise)]]
 
 > !{:a 1 :trace 5} | trace !| type
 ::error/trace/answer/KindNotTakenError
@@ -284,9 +294,12 @@ or holds a value of no kind of the language, its `:message` naming the
 verb and the path where that value stands [QSHST#source]. A refusal of
 the runtime holds its facts in the order the catalog declares them, the
 label's own first, the facts `::error` declares after them, `:expected`,
-`:actualType` and `:actualValue` among them, `:actualValue` left out
-where it equals the subject the first frame holds, whatever its identity,
-and the trace last; an error a reader writes holds its facts as written,
+`:actualType` and `:actualValue` among them, and the trace last: the
+value it refuses as `:actualValue`, whatever that value equals, and its
+kind as `:actualType`, but a refusal of the subject its step was served,
+which holds the kind of that value alone, the first frame holding the
+subject, a host refusing its own so through `refusingTheSubject`
+[QSHST#source]; an error a reader writes holds its facts as written,
 a `:trace` it writes where it stands and the trace its flight begins
 last. A fact is a value of the language: a name a step read and a key a
 path read are keywords, an index and a segment a path read as an index
@@ -301,6 +314,9 @@ numbers, an entry of a map named by its `:key`.
 
 > 1 | add 1 2 !| entries | map ~first
 [:actualType :places :actualValue :trace]
+
+> get [~("zz" | toRegex "zz" !| has /actualValue) ~(::W"x" | toNumber !| get [~(keys) /actualType])]
+[true [#[:actualType :trace] ::string]]
 
 > ::error | manifest | has ::error/actualType
 true

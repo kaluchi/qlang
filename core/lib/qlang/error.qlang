@@ -100,8 +100,9 @@
         ~~|
         ::number
     | carries :actualValue
-        |~~ The value refused, where it is not the subject that the first
-            frame of the trace holds.
+        |~~ The value refused, but in a refusal of the subject its step was
+            served, which holds its kind alone, the first frame of the trace
+            holding the subject.
         ~~|
         ::any
     | carries :leftType |~~ The kind of the value on the left. ~~| ::tag

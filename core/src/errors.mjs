@@ -14,6 +14,12 @@ export class QlangError extends Error {
   }
 }
 
+// refusingTheSubject(refusal) → the refusal of the subject its step was served [QSERR#site].
+export function refusingTheSubject(refusal) {
+  refusal.refusesTheSubject = true;
+  return refusal;
+}
+
 // A defect of the runtime or of what a host handed: the table of
 // primitives, the bootstrap, the root a host's sources declare. It is
 // raised past the fail track to the host, with its message.

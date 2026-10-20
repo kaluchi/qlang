@@ -95,7 +95,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('a fold names the place of its element on its frame where its one word, a host\'s verb, answers or throws such a failure', async () => {
     const answered = await hostHanding([makeFrame(0, parse('pre'))]);
-    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null /0]')).toBe(true);
+    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null null /0]')).toBe(true);
     const thrown = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | place)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
   });
@@ -103,6 +103,13 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
     const session = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(session, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+  });
+
+  it('carries no place of a fold\'s call of a host\'s word into another call that answers the same failure, the place a fact of its call', async () => {
+    const kept = makeErrorValue(makeTag('error'), new Map());
+    const session = await createSession({ sources: [{ uri: 'host', source: ':any/again |~~ Answers the one failure its host keeps. ~~| (::fn | takes :x |~~ x ~~| ~(it) | impl ::builtin{})', primitives: { 'any/again': () => kept } }] });
+    expect(await answerIn(session, '[1 2] | reduce 0 ~(again) !| trace | last | place')).toEqual(makePath(['0']));
+    expect(await answerIn(session, '5 | again 1 !| trace | last | place')).toBe(null);
   });
 
   it('a refusal the constructor of a host\'s kind throws inside a literal with an empty trace holds none, the literal\'s frame its first', async () => {
@@ -335,27 +342,5 @@ describe('error-convert coercion edge cases', () => {
     expect(errorVal.facts.has('index')).toBe(false);
     expect(errorVal.facts.get('actualValue')).toBe(null);
     expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
-  });
-
-  it('an actualValue equal to the subject the first frame holds is left out of the facts', async () => {
-    // The value refused equals the subject, whatever its identity, so the
-    // first frame of the trace holds it alone [QSERR#site].
-    const subject = new Map([['nested', 1]]);
-    const typeErr = new TestsProbeTypeError({ actualValue: new Map([['nested', 1]]) });
-    const errorVal = errorFromQlang(typeErr, subject, await langRuntime());
-    expect(errorVal.facts.has('actualValue')).toBe(false);
-    expect(errorVal.facts.get('actualType').name).toBe('map');
-  });
-
-  it('an actualValue other than the subject stays among the facts', async () => {
-    // A value refused that is not the subject, a part a path of several keys
-    // reads, an element or the value of an input, stays among the facts as
-    // `:actualValue` [QSERR#site].
-    const container = [1, 'x', 3];
-    const drilled = 'x';
-    const typeErr = new TestsProbeTypeError({ actualValue: drilled, index: 1 });
-    const errorVal = errorFromQlang(typeErr, container, await langRuntime());
-    expect(errorVal.facts.get('actualValue')).toBe(drilled);
-    expect(errorVal.facts.get('index')).toBe(1);
   });
 });

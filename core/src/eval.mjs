@@ -4,10 +4,10 @@
 
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
-  withPipeValue, withScope, nestState, depthBelow, scopeSet, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
+  withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
-import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
+import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
@@ -21,7 +21,7 @@ import { makeSet, kindsExpected } from './ordering.mjs';
 import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
-  tagCallStepOf, commandStep, groupStep
+  commandStep, groupStep
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
@@ -34,9 +34,7 @@ import {
   notGivenAddress, payloadRefusalName, subjectRefusalAddress
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
-import {
-  answerOfStep, answerOfElement, skipping, raisedBy, isRaisedBy
-} from './eval-trace.mjs';
+import { answerOfStep, skipping, flightOfACall } from './eval-trace.mjs';
 
 // The tag of a name that holds data puts no value under it: a value goes
 // under a label, a verb, an invariant or a tag no node answers [QSBLD#label].
@@ -69,7 +67,7 @@ async function evalStep(step, state, at) {
   try {
     return await evaluatorOf(step)(step, state, at);
   } catch (caughtError) {
-    return withPipeValue(state, raisedBy(errorOfThrow(caughtError, step, state.pipeValue, state.scope), step));
+    return withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope));
   }
 }
 
@@ -121,7 +119,7 @@ async function fork(state, sub) {
 async function applySuccessTrack(state, step, at) {
   if (isErrorValue(state.pipeValue)) return withPipeValue(state, skipping(state.pipeValue, step, state.scope));
   const answered = await evalStep(step, state, at);
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), state.pipeValue, state.scope));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), state.pipeValue, state.scope, answered.flight));
 }
 
 // `!|` alone catches a failure, its step running on the error at rest, the
@@ -143,7 +141,7 @@ async function applyFailTrack(state, step, at) {
   }
   if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => makeQuote([step]), errorOfKind, state.scope));
   const answered = await evalStep(step, withPipeValue(state, atRest), at);
-  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), atRest, state.scope));
+  return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), atRest, state.scope, answered.flight));
 }
 
 // A group runs its quote as a fork, a step of the quote that holds it
@@ -181,7 +179,7 @@ async function evalSet(set, state) {
 async function elementValues(elements, state) {
   const values = [];
   for (const element of elements) {
-    const answered = await elementAnswer(element, state);
+    const answered = (await evalStep(element, state)).pipeValue;
     if (isErrorValue(answered)) return answered;
     values.push(answered);
   }
@@ -191,13 +189,6 @@ async function elementValues(elements, state) {
 async function entryValues(map, state) {
   const values = await elementValues([...map.values()], state);
   return isErrorValue(values) ? values : new Map([...map.keys()].map((key, index) => [key, values[index]]));
-}
-
-// The value an element of a literal answers: a refusal the kind of its tag
-// raised passes a frame at the element, and one handed on from an element
-// inside it goes on as it is to the literal it fails [QSERR#trace].
-async function elementAnswer(element, state) {
-  return answerOfElement((await evalStep(element, state)).pipeValue, element, state.pipeValue, state.scope);
 }
 
 // An error literal, `!{…}`, is the literal of `::error`, as `#[…]` is the
@@ -226,23 +217,11 @@ async function evalDoc(doc, state) {
   return withPipeValue(state, makeDoc(segments));
 }
 
-// A tagged literal lays its tag over its payload through the tag's label.
+// A tagged literal lays its tag over its payload through the tag's label, a
+// payload that fails answering its failure [QSERR#flow].
 async function evalConstruct(construct, state) {
-  const tagName = construct.get('tag').name;
-  const payloadStep = construct.get('payload');
-  const payload = (await evalStep(payloadStep, state)).pipeValue;
-  if (isErrorValue(payload)) return withPipeValue(state, passedUntagged(payload, construct, payloadStep, tagName, state.scope));
-  return withPipeValue(state, await layTag(tagName, payload, state));
-}
-
-// The error a tagged literal's payload answered, passed by the tag as an
-// error passes every step, the tag's step joining the skipped steps of
-// its last frame [QSERR#trace], and the literal's own raise where the payload
-// raised it.
-function passedUntagged(payloadError, construct, payloadStep, tagName, scope) {
-  const passed = skipping(payloadError, tagCallStepOf(makeTag(tagName)), scope);
-  if (isRaisedBy(payloadError, payloadStep)) raisedBy(passed, construct);
-  return passed;
+  const payload = (await evalStep(construct.get('payload'), state)).pipeValue;
+  return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
 // ─── Declarations ───────────────────────────────────────────────
@@ -275,10 +254,9 @@ async function evalBind(bind, state, at) {
     if (isErrorValue(doc)) return withPipeValue(state, doc);
     docs.push(doc);
   }
-  const answered = bind.has('body')
-    ? (await evalStep(bind.get('body'), state)).pipeValue
-    : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
-  if (isErrorValue(answered)) return withPipeValue(state, answered);
+  const body = bind.has('body') ? await evalStep(bind.get('body'), state) : null;
+  const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
+  if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (writesOutsideItsChain(state.scope, nounName, splitAddress(name)[1], answered)) {
     throw new BindWrittenOutsideItsChainError({ name: keyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
@@ -427,7 +405,7 @@ async function callByName(lookupName, modifiers, state, call) {
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.scope, addresses, state.pipeValue);
       const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : undefined;
-      throw new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue });
+      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
     }
     throw new CallUnknownNameError({
       name: keyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses
@@ -555,12 +533,12 @@ function placeRead({ path, place, index, onePlace, strict, fallback, readsArgs }
 
 // A place that is a path other than one index, `/0/by` or `/-1`, reads it
 // from the args as `get` does, a part the args do not hold one the call
-// left out [QSBLD#input].
+// left out, a refusal holding the value it met [QSBLD#input], [QSPTH#get].
 function pathOfArgs(path, state) {
   try {
     return readPath(state.pipeValue, path);
   } catch (refusal) {
-    return errorFromQlang(refusal, state.pipeValue, state.scope);
+    return errorFromQlang(refusal, undefined, state.scope);
   }
 }
 
@@ -711,17 +689,19 @@ export async function callVerbOn(record, subject, state) {
 async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
-  return withPipeValue(state, await callFunction(fn, { address, labelName: splitAddress(address)[0], ofTheRoot }, modifiers, state));
+  const flight = flightOfACall();
+  const answer = await callFunction(fn, { address, labelName: splitAddress(address)[0], ofTheRoot }, modifiers, state, flight);
+  return withFlight(withPipeValue(state, answer), flight);
 }
 
 // applyFunction(fn, subject, args, state) → the answer of a function `apply`
 // runs on a subject, the values of a vector its args, every refusal named
-// under the call of a function, `fn/call`, since no verb names it.
+// under `fn/call`, which no verb names, its flight the flight of `apply`.
 const FN_CALL_ADDRESS = 'fn/call';
 
 export async function applyFunction(fn, subject, args, state) {
   const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
-  return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject));
+  return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject), state.flight);
 }
 
 // inputsOfFunction(fn, args, state) → the values the inputs of a function
@@ -732,7 +712,7 @@ export async function inputsOfFunction(fn, args, state) {
   return isErrorValue(called) ? called : called.values;
 }
 
-async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state) {
+async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state, flight) {
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
   const steps = isQuote(recipe) ? recipe : null;
@@ -751,7 +731,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps);
   if (isErrorValue(called)) return called;
   const running = steps === null
-    ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state), called.state, address)
+    ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -763,19 +743,20 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 
 // The values a primitive is handed, its inputs in the order `takes` names
 // them, each it runs as code closed at the call where the call keeps that
-// the quote came from, a path read as `get` reads it, and every element so
-// of one that holds the args of the call whole, the reducer of a fold the
-// code that folds; any other value as it is [QSHST#source].
-function handedTo(primitive, chain, { values, origins }, state) {
+// the quote came from and holding the flight of the call, a path read as
+// `get` reads it, and every element so of one that holds the args whole, the
+// reducer of a fold the code that folds; any other value as it is [QSHST#source].
+function handedTo(primitive, chain, { values, origins }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;
   const originOfQuote = quote => origins.get(quote);
+  const ofTheCall = code => (typeof code === 'function' ? Object.assign(code, { flight }) : code);
   return values.map((value, at) => {
     const { name, reading } = chain.inputs[at];
     if (asCode.within?.has(name.name)) return quotesClosedIn(value, originOfQuote);
-    if (asCode.folded?.has(name.name)) return foldingCodeOf(value, originOfQuote, state);
+    if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, originOfQuote, state));
     if (!asCode.run?.has(name.name)) return value;
-    return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : codeOfArg(value, originOfQuote, state);
+    return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : ofTheCall(codeOfArg(value, originOfQuote, state));
   });
 }
 
@@ -833,8 +814,8 @@ function codeOfArg(value, originOfQuote, state) {
 // The code a fold is handed [QSCOL#reduce]: a quote of one step, a call
 // with no modifiers that reaches a verb, calls it as the pipe calls it, the
 // value so far its subject and the element its arg, in the scope the quote
-// came from, a value of that scope under the name meeting the verb; any
-// other code runs on the pair of the two.
+// came from, a value of that scope under the name meeting the verb, a failure
+// passing a frame at that step; any other code runs on the pair of the two.
 function foldingCodeOf(value, originOfQuote, state) {
   const code = codeOfArg(value, originOfQuote, state);
   const onThePair = async (acc, element) => await code([acc, element]);
@@ -843,11 +824,13 @@ function foldingCodeOf(value, originOfQuote, state) {
   const name = call.get('name').name;
   const callerState = stateOfOrigin(originOfQuote(value));
   const calledOn = invoke => async (acc, element) => {
+    let answered;
     try {
-      return (await invoke([() => element], withPipeValue(callerState, acc))).pipeValue;
+      answered = await invoke([() => element], withPipeValue(callerState, acc));
     } catch (caughtError) {
-      return errorOfThrow(caughtError, call, acc, callerState.scope);
+      answered = withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope));
     }
+    return answerOfStep(answered.pipeValue, () => makeQuote([call]), acc, callerState.scope, answered.flight);
   };
   if (name.includes('/')) {
     if (!isVerb(callerState.scope, name)) return onThePair;

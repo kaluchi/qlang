@@ -3,7 +3,7 @@
 // follows a path as a read does and misses as a read misses [QSPTH#get],
 // [QSPTH#write].
 
-import { declareRefusal } from './errors.mjs';
+import { declareRefusal, refusingTheSubject } from './errors.mjs';
 import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, keyword, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
 
@@ -53,56 +53,59 @@ export function segmentIndex(segment) {
 // meets read beneath the tags over it. A miss is refused with the key and
 // the keys near it, or the index and the length, and a value on the path
 // that has no parts with the segment it met, each refusal with the path it
-// followed and the value it met beneath its tags; read softly, a miss
-// answers MISSED and the refusal of a kind stands.
+// followed and the value it met beneath its tags, of the subject at its first
+// segment; read softly, a miss answers MISSED and a refusal of a kind stands.
 export function readPath(subject, path, soft = false) {
   let current = subject;
-  for (const segment of path.segments) {
+  for (const [depth, segment] of path.segments.entries()) {
     const container = beneathTags(current);
     if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
-        throw keyNotInMap(container, segment, path);
+        throw keyNotInMap(container, segment, path, depth);
       }
       current = container.get(segment);
       continue;
     }
     if (isVec(container)) {
-      const at = indexIn(container, segment, path, soft);
+      const at = indexIn(container, segment, path, depth, soft);
       if (at === MISSED) return MISSED;
       current = container[at];
       continue;
     }
-    throw noPartsOn(container, segment, path);
+    throw noPartsOn(container, segment, path, depth);
   }
   return current;
 }
 
+// A refusal of a read at a depth of its path, of the subject at the first [QSPTH#get].
+const refusalAt = (refusal, depth) => (depth === 0 ? refusingTheSubject(refusal) : refusal);
+
 // The refusal of a key the map lacks, with the keys near it, as a name is
 // near the names of the scope [QSSLF#near].
-export function keyNotInMap(container, segment, path) {
+export function keyNotInMap(container, segment, path, depth) {
   const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => keyword(name)));
-  return new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: container });
+  return refusalAt(new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: container }), depth);
 }
 
 // The index a segment names in a vector, counted from the end where it
 // is negative; a segment that names no index is refused, and an index
 // past the end too, or answers MISSED read softly.
-export function indexIn(container, segment, path, soft = false) {
+export function indexIn(container, segment, path, depth, soft = false) {
   const index = segmentIndex(segment);
-  if (Number.isNaN(index)) throw new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: container });
+  if (Number.isNaN(index)) throw refusalAt(new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: container }), depth);
   const at = index < 0 ? container.length + index : index;
   if (at >= 0 && at < container.length) return at;
   if (soft) return MISSED;
-  throw new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container });
+  throw refusalAt(new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container }), depth);
 }
 
 // The refusal of a value on the path that has no parts.
-export function noPartsOn(value, segment, path) {
-  return new PathSubjectHasNoPartsError({
+export function noPartsOn(value, segment, path, depth) {
+  return refusalAt(new PathSubjectHasNoPartsError({
     segment: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
     path,
     actualValue: value
-  });
+  }), depth);
 }

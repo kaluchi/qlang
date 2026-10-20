@@ -4,57 +4,32 @@
 // a step it skips joining the steps of the last [QSERR#catch], [QSERR#trace]. The helpers build a
 // new error for every change; none re-enters the evaluator.
 //
-//   `answerOfStep(answer, stepQuoteOf, subject, scope)` — the answer of a step
-//     of a pipeline: a failure its subject was not passes a frame there,
-//     unless its maker wrote its trace and it resumes it.
-//   `answerOfElement(answer, element, subject, scope)` — the value an element
-//     of a literal answers: a refusal the kind of its tag raised passes a
-//     frame at the element, and one handed on from inside it goes on as it is.
+//   `answerOfStep(answer, stepQuoteOf, subject, scope, flight)` — the answer
+//     of a step of a pipeline: a failure its subject was not passes a frame
+//     there at the place the flight of its call names, unless it resumes.
 //   `skipping(error, skippedStep, scope)` — the failure that skipped a step.
-//   `atPlace(error, place)` — marks a failure at the part a verb's code failed on.
-//   `resumingItsTrace(error)` — marks a failure `raise` made of a map
-//     that wrote a trace.
-//   `raisedBy(error, step)` — marks the failure a step's own fault raised.
+//   `flightOfACall()` — the place and the resumption a call answers beside its failure.
+//   `atPlace(code, error, place)` — the failure of the code of a call at a part.
 //
 // A failure holds its trace from its first frame, and the refusal of the
 // text of a query, which flew no step, holds no `:trace` [QSERR#trace],
 // [QSERR#print].
 
-import { isErrorValue, isPath, isQuote, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makeQuote, makeTrace, FRAME_TAG, TRACE_TAG } from './types.mjs';
+import { isErrorValue, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makeQuote, makeTrace, partsOfFrame, holdsTheLayoutOfAFrame, FRAME_TAG, TRACE_TAG } from './types.mjs';
 import { kindsExpected } from './ordering.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
 import { walkToKinds } from './dispatch.mjs';
 
-const RESUMING_THEIR_TRACE = new WeakSet();
-const RAISED_BY = new WeakMap();
-const PLACES = new WeakMap();
+export const flightOfACall = () => ({ place: null, resumes: false });
 
-export function resumingItsTrace(error) {
-  RESUMING_THEIR_TRACE.add(error);
-  return error;
-}
-
-export function resumesItsTrace(error) {
-  return RESUMING_THEIR_TRACE.has(error);
-}
-
-export function raisedBy(error, step) {
-  RAISED_BY.set(error, step);
-  return error;
-}
-
-export function isRaisedBy(error, step) {
-  return RAISED_BY.get(error) === step;
-}
-
-export function atPlace(error, place) {
-  PLACES.set(error, place);
+export function atPlace(code, error, place) {
+  code.flight.place = place;
   return error;
 }
 
 // Whether a failure arose in the code a verb ran on a part, a frame naming its place [QSERR#trace].
-export const failedOnAPart = error => error.facts.get('trace').some(frame => frame.length === 3);
+export const failedOnAPart = error => error.facts.get('trace').some(frame => partsOfFrame(frame).place !== null);
 
 // framesOfTrace(payload) → the frames of a trace, the one check of the
 // constructor of `::trace` and of every trace a frame joins, each element
@@ -64,7 +39,7 @@ const TraceElementKindNotTakenError = declareRefusal('trace/ElementKindNotTakenE
 
 function frameOf(element) {
   const frame = walkToKinds(element, [FRAME_TAG.name])?.served;
-  return frame?.length <= 3 && isQuote(frame[1]) && frame[1].length > 0 && (frame.length === 2 || isPath(frame[2])) ? frame : undefined;
+  return frame !== undefined && holdsTheLayoutOfAFrame(frame) ? frame : undefined;
 }
 
 export function framesOfTrace(payload) {
@@ -86,35 +61,30 @@ function heldTrace(error, scope) {
   }
 }
 
-// The error with its frames given, a fresh value that carries no mark.
+// The error with its frames given, a fresh value.
 function withTrace(error, frames) {
   const facts = new Map(error.facts).set('trace', makeTrace(frames));
   return makeErrorValue(error.tag, facts, { location: error.location, originalError: error.originalError });
 }
 
-function withFrame(error, stepQuote, subject, scope) {
-  const frame = makeFrame(subject, stepQuote, PLACES.get(error) ?? null);
+function withFrame(error, stepQuote, subject, scope, place) {
   const [held, frames] = heldTrace(error, scope);
-  return withTrace(held, [...frames, frame]);
+  return withTrace(held, [...frames, makeFrame(subject, stepQuote, place)]);
 }
 
-export function answerOfStep(answer, stepQuoteOf, subject, scope) {
+export function answerOfStep(answer, stepQuoteOf, subject, scope, flight = null) {
   if (!isErrorValue(answer)) return answer;
-  if (resumesItsTrace(answer)) return withTrace(answer, answer.facts.get('trace'));
-  return withFrame(answer, stepQuoteOf(), subject, scope);
-}
-
-export function answerOfElement(answer, element, subject, scope) {
-  return isErrorValue(answer) && isRaisedBy(answer, element) ? withFrame(answer, makeQuote([element]), subject, scope) : answer;
+  if (flight?.resumes) return withTrace(answer, answer.facts.get('trace'));
+  return withFrame(answer, stepQuoteOf(), subject, scope, flight?.place ?? null);
 }
 
 // The failure that skipped a step, its last frame taking the step; one whose
-// trace holds no frame, a refusal inside a literal before its step answers
+// trace holds no frame, a failure a host hands as the first value of its pipe
 // among them, goes on as it is, and a trace its kind refuses gives way to
 // the refusal [QSERR#trace].
 export function skipping(error, skippedStep, scope) {
   const [held, frames] = heldTrace(error, scope);
   if (frames.length === 0) return held;
-  const [subject, steps, place = null] = frames[frames.length - 1];
-  return withTrace(held, [...frames.slice(0, -1), makeFrame(subject, makeQuote([...steps, skippedStep]), place)]);
+  const { subject, unfinished, place } = partsOfFrame(frames[frames.length - 1]);
+  return withTrace(held, [...frames.slice(0, -1), makeFrame(subject, makeQuote([...unfinished, skippedStep]), place)]);
 }

@@ -92,7 +92,8 @@ and a quote or a path under it goes bare into an input that takes code,
 held as data [QSQUO#held], a function to `apply` alone [QSQUO#modifier]. A
 name that holds a value, called with modifiers, is refused as
 `::call/ValueTakesNoModifiersError` with its `:name`, the name as it was
-declared, and the `:addresses` of the verbs of its last name.
+declared, its value as `:actualValue` and the `:addresses` of the verbs of
+its last name.
 
 ```qlang
 > :double ~(mul 2) | 5 | double
@@ -104,8 +105,8 @@ declared, and the `:addresses` of the verbs of its last name.
 > :double ~(mul 2) | [1 2 3] | map double
 [2 4 6]
 
-> 5 | :five it | five 42 !| type
-::call/ValueTakesNoModifiersError
+> 5 | :five it | five 42 !| get [~(type) /actualValue]
+[::call/ValueTakesNoModifiersError 5]
 
 > :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get /name
 :Box/side

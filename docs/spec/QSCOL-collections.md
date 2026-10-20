@@ -132,7 +132,9 @@ its first arg, in the scope of the step that wrote the quote, a value
 that scope binds under the name of the verb meeting it as a step does.
 Any other code runs on the pair of the value so far and the element, a
 path, a call with modifiers, a quote of more steps and a name that
-reaches no verb among it.
+reaches no verb among it. A failure the one word answers passes a frame
+at its step, the value so far the subject that frame holds, and the step
+of `reduce` names the place of the element [QSERR#trace].
 
 ```qlang
 > [1 2 3] | reduce 0 ~(add)
@@ -146,6 +148,9 @@ reaches no verb among it.
 
 > :add 5 | [1 2 3] | reduce 0 ~(add) !| type
 ::call/ValueMeetsVerbError
+
+> [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(place)])
+[["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]
 ```
 
 ## algebra
@@ -170,7 +175,8 @@ verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
 `KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
 map in `union` among them; and a fold of nothing is refused as
-`SubjectEmptyError`. A set of sets is folded by the verb of vectors,
+`SubjectEmptyError`, a refusal of its subject [QSERR#site]. A set of sets
+is folded by the verb of vectors,
 `#[#[1] #[2]] | vec/union`, or as the vector it is in the one order,
 `toVec | minus`, and `flat` unites it. The verbs of sets and of maps
 answer under the subject's tags [QSDSP#answer]; a vector's fold answers

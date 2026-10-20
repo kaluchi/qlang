@@ -49,7 +49,10 @@ read by index, `::path/IndexNotIntegerError`, and a value on the path
 that has no parts, `::path/SubjectHasNoPartsError`, each naming the
 segment it could not read as `:segment`. A path reads beneath the tags
 over each value it meets, each refusal naming the value it met beneath
-them as `:actualValue`, and a vector, a set, a doc, a quote, a function
+them as `:actualValue`, but at the subject of the step that reads it,
+`get`, `query`, `has`, a write and a path run as code, whose kind alone
+it names [QSERR#site], the place of an input or a field holding the args
+or the payload it met; and a vector, a set, a doc, a quote, a function
 and a kind read by index.
 
 ```qlang
@@ -67,6 +70,9 @@ and a kind read by index.
 
 > {:b ::T#5} | get /b/c !| get [~(type) /actualValue]
 [::path/SubjectHasNoPartsError 5]
+
+> get [~(::T#5 | get /a !| get [~(keys) /actualType]) ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue)]
+[[#[:actualType :path :segment :trace] ::number] [1 2]]
 ```
 
 ## query

@@ -8,7 +8,7 @@
 
 import { isSet, isVec, isMap, typeOf, beneathTags } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 
@@ -103,7 +103,7 @@ function interPair(left, right, { KindsMismatchedError, KeyKindNotTakenError }) 
 // maps, every one of a union and the first of a difference or a common part,
 // are sets or maps.
 function foldOf(values, pair, refusals, readsEvery) {
-  if (values.length === 0) throw new refusals.SubjectEmptyError();
+  if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
   const read = values.map(beneathTags);
   (readsEvery ? read : read.slice(0, 1)).forEach((value, index) => {
     if (!isSet(value) && !isMap(value)) throw new refusals.ElementNotSetOrMapError({ index, actualValue: values[index] });

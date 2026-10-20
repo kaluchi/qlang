@@ -56,7 +56,7 @@
 :frame/subject
   |~~ Answers the subject of the frame, the value the step that failed
       there met, `::frame["x" ~(add 1)] | subject` answering `"x"`: the
-      first frame of a trace holds the value the refusal met, and the
+      first frame of a trace holds the subject the step that failed met, and the
       frame of a verb that ran its code on a part of its subject the whole
       subject, its `place` naming the part.
       ::link~(::frame/place | doc) ::link~(::frame/failed | doc)
@@ -68,7 +68,7 @@
             `"x" | add 1 !| trace | first | subject`.
         ~~|
     | proves :answersTheValueTheStepMet
-        |~~ The first frame holds the value the refusal met. ~~|
+        |~~ The first frame holds the subject the step that failed met. ~~|
         ~("x" | add 1 !| trace | first | subject | eq "x")
     | proves :answersTheWholeSubjectOfAVerb
         |~~ The frame of `map` holds the vector it ran its code over. ~~|

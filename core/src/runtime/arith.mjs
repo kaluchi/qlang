@@ -4,7 +4,7 @@
 // [QSERR#site], [QSBLD#fn], and an answer that left the finite doubles is refused
 // as it is brought under `::number` [QSNUM#arithmetic].
 
-import { declareRefusal } from '../errors.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
@@ -29,7 +29,7 @@ registerPrimitive('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 // longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 registerPrimitive('number/range', count => {
-  if (count > LONGEST_VECTOR) throw new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count });
+  if (count > LONGEST_VECTOR) throw refusingTheSubject(new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count }));
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 

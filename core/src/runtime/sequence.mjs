@@ -20,7 +20,7 @@ import { pathReads } from './path.mjs';
 const indexed = sequence => [...sequence].map((element, index) => [{ index }, element]);
 const keyed = map => [...map].map(([key, value]) => [{ key: keyword(key) }, value]);
 
-const failedAt = (error, segment) => atPlace(error, makePath([String(segment)]));
+const failedAt = (code, error, segment) => atPlace(code, error, makePath([String(segment)]));
 const segmentOf = at => at.index ?? at.key.name;
 
 // ── size and ends ──────────────────────────────────────────────
@@ -120,7 +120,7 @@ async function keyedEntries(entries, key) {
     }
     const sortKey = await key(entry[1]);
     const failed = errorOfKey(sortKey);
-    if (failed !== null) return failedAt(failed, entry[0]);
+    if (failed !== null) return failedAt(key, failed, entry[0]);
     ranked.push({ entry, sortKey });
   }
   return ranked;
@@ -179,7 +179,7 @@ async function answersOf(elements, code) {
   const answers = [];
   for (const [at, element] of elements) {
     const answer = await code(element);
-    if (isErrorValue(answer)) return failedAt(answer, segmentOf(at));
+    if (isErrorValue(answer)) return failedAt(code, answer, segmentOf(at));
     answers.push(answer);
   }
   return answers;
@@ -198,7 +198,7 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
 // another answer is refused where the element stands.
 async function verdictOf(predicate, at, element, ConditionNotBooleanError) {
   const verdict = await predicate(element);
-  if (isErrorValue(verdict)) return failedAt(verdict, segmentOf(at));
+  if (isErrorValue(verdict)) return failedAt(predicate, verdict, segmentOf(at));
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
   throw new ConditionNotBooleanError({ ...at, actualValue: verdict });
@@ -262,7 +262,7 @@ registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdic
 // [QSCOL#group].
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
-  if (isErrorValue(answer)) return failedAt(answer, index);
+  if (isErrorValue(answer)) return failedAt(key, answer, index);
   const named = keywordFiledFor(beneathTags(answer));
   if (named === null) throw new KeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer });
   const taken = filed.get(named.name);
@@ -380,7 +380,7 @@ async function foldOf(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {
     acc = await reducer(acc, element);
-    if (isErrorValue(acc)) return failedAt(acc, segment);
+    if (isErrorValue(acc)) return failedAt(reducer, acc, segment);
   }
   return acc;
 }

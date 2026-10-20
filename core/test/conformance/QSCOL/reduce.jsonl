@@ -28,3 +28,4 @@
 {"name":"a-quote-of-one-word-after-a-leading-pipe-is-the-short-form","query":"[1 2 3] | reduce 0 ~(| add)","expect":"6"}
 {"name":"a-reducer-assembled-from-data-folds-by-the-short-form","query":"[1 2 3] | reduce 0 ([::call{:name :add}] | tag ::quote)","expect":"6"}
 {"name":"a-reducer-of-a-call-and-a-step-after-it-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add | it) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"name":"the-one-word-of-a-fold-passes-a-frame-at-the-step-that-failed","query":"[1 2] | reduce \"x\" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(place)])","expect":"[[\"x\" ~(add) null] [[1 2] ~(reduce \"x\" ~(add)) /0]]"}

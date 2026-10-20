@@ -6,7 +6,7 @@
 import { registerPrimitive } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeTagged, makeTrace, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, stampTagHeader
+  isTag, makeTagged, makeTrace, holdsNoOtherTag, BUILTIN_TAG, DESC_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -20,7 +20,7 @@ import { asPrinted } from '../print-value.mjs';
 const SetPayloadKindNotTakenError = declareRefusal('set/PayloadKindNotTakenError');
 
 function setConstructor(payload) {
-  if (!isVec(payload)) throw new SetPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, SET_TAG_NAME)) throw new SetPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   return makeSet(payload);
 }
 
@@ -51,8 +51,8 @@ function coreKindConstructor(isOfKind, ErrorCls) {
   };
 }
 
-const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
-const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
+const isBareVec = payload => isVec(payload) && holdsNoOtherTag(payload, 'vec');
+const isBareMap = payload => isMap(payload) && holdsNoOtherTag(payload, 'map');
 
 registerPrimitive('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
 registerPrimitive('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
@@ -83,7 +83,7 @@ const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError
 const DocElementNotSegmentError = declareRefusal('doc/ElementNotSegmentError');
 
 function docConstructor(payload) {
-  if (!isVec(payload)) throw new DocPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, DOC_TAG_NAME)) throw new DocPayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
     if (!isDocSegment(element)) throw new DocElementNotSegmentError({ index, actualValue: element });
   });
@@ -106,7 +106,7 @@ registerPrimitive('trace/construct', payload => makeTrace(framesOfTrace(payload)
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
 
 function builtinConstructor(payload) {
-  if (!isMap(payload)) throw new BuiltinPayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
+  if (!isMap(payload) || !holdsNoOtherTag(payload, BUILTIN_TAG.name)) throw new BuiltinPayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   const descriptor = new Map();
   for (const [k, v] of payload) descriptor.set(k, v);
   stampTagHeader(descriptor, BUILTIN_TAG);

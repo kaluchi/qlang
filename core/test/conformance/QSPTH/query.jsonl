@@ -26,3 +26,4 @@
 {"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42","expect":"null"}
 {"name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}
+{"decision":"D377","name":"null-beneath-the-tags-a-path-meets-is-a-miss","query":"{:a ::T#null :b ::T#5} | get [~(query /a/b) ~(coalesce /a/b 0) ~(coalesce /a 0) ~(get /b/c !| get [~(type) /actualType])]","expect":"[null 0 0 [::path/SubjectHasNoPartsError ::number]]"}

@@ -6,7 +6,7 @@
 
 import { registerPrimitive, runs } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { isRegex, isErrorValue } from '../types.mjs';
+import { isRegex, isErrorValue, beneathTags } from '../types.mjs';
 import { engineOf } from '../regex-read.mjs';
 
 const engineFor = (regex, extra = '') => engineOf(regex.source, regex.flags, extra);
@@ -61,8 +61,8 @@ async function replacedByCode(text, engine, code) {
   for (const found of text.matchAll(engine)) {
     const answer = await code(matchVector(found));
     if (isErrorValue(answer)) return answer;
-    if (typeof answer !== 'string') throw new StringReplaceWithAnswerNotStringError({ actualValue: answer });
-    replaced += text.slice(from, found.index) + answer;
+    if (typeof beneathTags(answer) !== 'string') throw new StringReplaceWithAnswerNotStringError({ actualValue: answer });
+    replaced += text.slice(from, found.index) + beneathTags(answer);
     from = found.index + found[0].length;
   }
   return replaced + text.slice(from);

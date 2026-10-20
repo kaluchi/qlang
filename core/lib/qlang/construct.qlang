@@ -24,7 +24,8 @@
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::construct` builds the step of a tagged literal from its
-            record, a map; a payload of another kind is refused.
+            record, a map; a payload of another kind is refused, a map
+            under another tag among them.
             ::link~(::construct | doc)
         ~~|
     | throws :PayloadNotSchemaError

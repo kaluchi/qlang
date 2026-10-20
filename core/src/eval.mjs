@@ -13,9 +13,9 @@ import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, primitiveOf,
   typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
-  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
+  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags, payloadBeneath,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass
+  ERROR_TAG, TRACE_TAG, CORE_KIND, isValueClass
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
 import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
@@ -31,7 +31,7 @@ import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfReci
 import { inputsRunBy, inputsRunWithin, inputsFoldedBy } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, payloadRefusalName, subjectRefusalAddress
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress, TAGGED_KIND_NAME
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
 import {
@@ -484,8 +484,8 @@ function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
   return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeOf(refused)), scope));
 }
 
-// The value an input, a payload or a field holds: the value of its kind the
-// walk of its tags reaches, or, where it names the kinds of each element,
+// The value an input, a payload or a field holds: the value of its kind
+// beneath every tag over it, or, where it names the kinds of each element,
 // the vector, or the set, of each element's, a quote and a doc, whose
 // elements are steps and segments, as they are; a value of none of its kinds
 // is refused, a value that is no vector where they are the kinds of each
@@ -496,7 +496,7 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope) : reached.served;
+    return reached === null ? refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope) : bareOf(reached.served, kinds);
   }
   const elements = walkToKinds(value, ['vec']);
   if (elements === null) return refusalUnder(refusalOf(false), { expected: kindsExpected('vec'), actualValue: value }, scope);
@@ -504,8 +504,15 @@ function heldByItsKinds({ kinds, each }, refusalOf, value, scope) {
   const refused = refusedElementOf(elements.served, kinds);
   if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
-  const served = Array.from(elements.served, element => walkToKinds(element, kinds).served);
+  const served = Array.from(elements.served, element => bareOf(walkToKinds(element, kinds).served, kinds));
   return isSet(elements.served) ? makeSet(served) : Object.freeze(served);
+}
+
+// A vector or a map the walk reached, bare where the tag it holds is no kind
+// of the core and none the holder names [QSDSP#walk].
+function bareOf(value, kinds) {
+  const tag = value?.[TAG_HEADER_SYMBOL];
+  return tag === undefined || Object.hasOwn(CORE_KIND, tag.name) || kinds.some(kind => kind === tag.name || kind === TAGGED_KIND_NAME) ? value : payloadBeneath(value);
 }
 
 // The names of the refusals of the kinds of an input or a field under its
@@ -929,22 +936,17 @@ export async function layTag(tagName, payload, state) {
   const node = nodeOf(state.scope, tagName);
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
-  if (isDoc(declared)) return laidUnder(tagName, payload);
-  if (node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
+  if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
   throw new ConstructTagNotKindError({ tag: makeTag(tagName), actualValue: declared });
-}
-
-// A value under the tag of a label, a value of the label's own kind staying
-// as it is.
-function laidUnder(tagName, value) {
-  return typeOf(value).name === tagName ? value : makeTagged(makeTag(tagName), value);
 }
 
 // A value under a kind [QSBLD#value]: its payload held to its kinds, each field
 // read and held, the constructor a host hands its kind run, its answer held at
 // the door, and the invariants of the value held, every refusal named under
 // the label, the code of a place or a condition running in the scope a call
-// opens; the kind attaches the tag or refuses the payload [QSLIT#tag], [QSHST#source].
+// opens; the kind lays its tag before the tags of the payload, a value its
+// constructor makes of its kind standing as it is, or refuses the payload
+// [QSLIT#tag], [QSHST#source].
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.scope);
@@ -957,7 +959,7 @@ async function underKind(tagName, kind, payload, state) {
   }
   const constructs = primitiveOf(constructorOf(kind));
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
-  const labelled = laidUnder(tagName, constructed);
+  const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
 }

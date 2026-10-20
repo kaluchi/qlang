@@ -25,7 +25,8 @@
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
             a host's verb ends with and the constructor a kind of the core
             takes, `impl ::builtin{}`; a payload of another kind is refused,
-            and the descriptor is written `::builtin{}`.
+            a map under another tag among them, and the descriptor is
+            written `::builtin{}`.
         ~~|
     | throws :AddressRegisteredTwiceError
         |~~ Two modules of the runtime registered a primitive under one

@@ -3,7 +3,7 @@
 
 import { layTag } from '../eval.mjs';
 import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
-import { isVec, isNull, isTag, payloadBeneath } from '../types.mjs';
+import { isVec, isNull, isTag, payloadBeneath, beneathTags } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 
 const AnyTagPairTagNotTagError = declareRefusal('any/tag/PairTagNotTagError');
@@ -20,15 +20,12 @@ registerPrimitive('tagged/within', runs(['code'], async (subject, code) => await
 // the constructor of the tag [QSDSP#residence]: `value | tag ::Foo` lays the
 // tag over the subject, and `[::Foo value] | tag` over the second element of
 // the pair it takes apart.
-async function layTagOfPair(pair, state) {
-  if (!isVec(pair) || pair.length !== 2) {
-    throw new AnyTagSubjectNotPairError({
-      actualValue: pair
-    });
-  }
+async function layTagOfPair(subject, state) {
+  const pair = beneathTags(subject);
+  if (!isVec(pair) || pair.length !== 2) throw new AnyTagSubjectNotPairError({ actualValue: subject });
   const [pairTag, value] = pair;
-  if (!isTag(pairTag)) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
-  return await layTag(pairTag.name, value, state);
+  if (!isTag(beneathTags(pairTag))) throw new AnyTagPairTagNotTagError({ actualValue: pairTag });
+  return await layTag(beneathTags(pairTag).name, value, state);
 }
 
 registerStateReader('any/tag', async (subject, tagName, state) =>

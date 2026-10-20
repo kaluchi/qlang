@@ -296,6 +296,10 @@ export function payloadBeneath(value) {
   return isMap(value) ? new Map(value) : Object.freeze([...value]);
 }
 
+// Whether a vector or a map holds no tag but the kind's own, the payload a
+// kind of the core reads as the value itself [QSLIT#tag].
+export const holdsNoOtherTag = (value, kindName) => (value[TAG_HEADER_SYMBOL]?.name ?? kindName) === kindName;
+
 // The descriptor `::builtin{}`, the recipe of a verb or the constructor of a
 // kind a host answers by a primitive, or the value of a name under a label
 // alone [QSHST#source].

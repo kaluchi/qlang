@@ -56,8 +56,8 @@ export function segmentIndex(segment) {
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const segment of path.segments) {
-    if (current === null && soft) return MISSED;
     const container = beneathTags(current);
+    if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {
         if (soft) return MISSED;
@@ -72,7 +72,7 @@ export function readPath(subject, path, soft = false) {
       current = container[at];
       continue;
     }
-    throw noPartsOn(current, segment, path);
+    throw noPartsOn(container, segment, path);
   }
   return current;
 }

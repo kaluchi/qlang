@@ -1503,10 +1503,10 @@
       a kind is laid through the kind: `5 | tag ::number` answers `5`, a
       payload the kind refuses is refused, `"5" | tag ::number`, and a
       kind the reader declares holds its invariants. A tag over a tagged
-      value nests it, a label over a value already under it standing
-      once, `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` reading `::Lab[1]`, but
-      for `::desc`, whose reversals stack; replacing the tag goes through
-      the payload, `payload | tag ::Crate`. A tag over an error at rest
+      value stands before its tags and never in their place, its own
+      among them, `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` standing twice;
+      replacing the tag goes through the payload, `payload | tag ::Crate`.
+      A tag over an error at rest
       names its site, `[::Late !{:by 3}] | tag` answering
       `::Late!{:by 3}`, and `raise` raises it under that tag.
       The call takes one name; a keyword, `:box`, names a field and no
@@ -2120,8 +2120,10 @@
       with the keys near it, so a misspelled field is found where it is
       read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
       computes is read as the path of one segment, a keyword, a string or
-      a number, its text the segment, `get (get /k)`, and any other value
-      is refused, so a key the data leaves null is found where it is read;
+      a number, its text the segment, `get (get /k)`, a key or a path
+      under a tag read beneath it, and any other value that is no
+      template is refused, so a key the data leaves null is found where it
+      is read;
       a boolean, null and a tag name a map files under the keyword
       `toKeyword` answers, which reads that key, `get :true`. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each

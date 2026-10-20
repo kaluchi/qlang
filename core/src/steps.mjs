@@ -8,7 +8,7 @@ import { declareRefusal } from './errors.mjs';
 import { kindsExpected, makeSet } from './ordering.mjs';
 import {
   keyword, isKeyword, isTag, isRegex, isPath, isDoc, isQuote, isVec, isMap, isSet, isTagged, isValueClass,
-  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
+  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, holdsNoOtherTag, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 const CALL_TAG      = makeTag('call');
@@ -182,7 +182,7 @@ const CONSTRUCT = {
 // The record a map writes, a payload of another kind refused by the role of
 // the holder and a field that breaks its record by its name [QSQUO#step].
 function recordFrom(payload, record) {
-  if (!isMap(payload)) throw new record.PayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
+  if (!isMap(payload) || !holdsNoOtherTag(payload, record.tag.name)) throw new record.PayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: keyword(name), actualValue: null });
   for (const [name, value] of payload) {
     if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: keyword(name), actualValue: value });
@@ -253,7 +253,7 @@ export function groupOf(payload) {
 // value after the head of the success track refused but after a
 // declaration, by the message of its kind [QSQUO#step], [QSSYN#step].
 export function quoteOf(payload, written) {
-  if (!isVec(payload)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, QUOTE_TAG.name)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
     if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
   });

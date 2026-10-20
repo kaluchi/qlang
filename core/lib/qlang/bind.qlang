@@ -24,7 +24,8 @@
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::bind` builds the step of a declaration from its record, a
-            map; a payload of another kind is refused.
+            map; a payload of another kind is refused, a map under another
+            tag among them.
             ::link~(::bind | doc)
         ~~|
     | throws :PayloadNotSchemaError

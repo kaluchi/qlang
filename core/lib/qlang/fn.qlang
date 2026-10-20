@@ -44,8 +44,8 @@
         |~~ The literal of a function is a pair, the quote of the commands
             of its chain and its recipe,
             `::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]`: a payload
-            of another shape, a first that is no quote among them, is
-            refused.
+            of another shape, a first that is no quote and a pair under
+            another tag among them, is refused.
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain

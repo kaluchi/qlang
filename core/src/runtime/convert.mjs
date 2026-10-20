@@ -4,7 +4,7 @@
 // itself, and what a verb cannot read whole it refuses under its address
 // [QSCND#convert].
 
-import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf } from '../types.mjs';
+import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf, beneathTags } from '../types.mjs';
 import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
@@ -112,9 +112,10 @@ const VecToMapKeyKindNotTakenError = declareRefusal('vec/toMap/KeyKindNotTakenEr
 
 function mapOfPairs(pairs) {
   const built = new Map();
-  pairs.forEach((pair, index) => {
-    if (!isVec(pair) || pair.length !== 2) throw new VecToMapElementNotPairError({ index, actualValue: pair });
-    const key = keywordFiledFor(pair[0]);
+  pairs.forEach((element, index) => {
+    const pair = beneathTags(element);
+    if (!isVec(pair) || pair.length !== 2) throw new VecToMapElementNotPairError({ index, actualValue: element });
+    const key = keywordFiledFor(beneathTags(pair[0]));
     if (key === null) throw new VecToMapKeyKindNotTakenError({ index, expected: KINDS_A_KEY_FILES_UNDER, actualValue: pair[0] });
     built.set(key.name, pair[1]);
   });

@@ -41,8 +41,7 @@
       `::Box[42] | payload` answering `[42]`: the reverse of `tag` where
       the tag lays itself over the value as it is, so
       `value | tag ::Foo | payload` answers the value, whatever its kind,
-      while a kind of the core reads its payload as a value of its own
-      and a label stands once over a value already under it.
+      while a kind of the core reads its payload as a value of its own.
       A value under two tags opens one, `::A::B[1] | payload` answering
       `::B[1]`. A set is a vector under its tag, so its payload is the
       vector of its elements in their one order, `#[2 1] | payload`

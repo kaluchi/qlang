@@ -10,7 +10,7 @@ import { chainOfKind } from '../chain.mjs';
 import { commandStep } from '../steps.mjs';
 import {
   isVec, isNull, isQuote, isBuiltinDescriptor, isKind, commandsOf, constructorOf,
-  makeTag, makeTagged, makeQuote, KIND_TAG_NAME
+  makeTag, makeTagged, makeQuote, holdsNoOtherTag, KIND_TAG_NAME
 } from '../types.mjs';
 
 const KIND_TAG = makeTag(KIND_TAG_NAME);
@@ -30,7 +30,7 @@ function madeKind(commands, constructor) {
 // commands and the constructor a host hands a kind of the core, or null for a
 // kind its commands alone build [QSLIT#tag]; another payload is refused.
 registerPrimitive('kind/construct', payload => {
-  if (!isVec(payload) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
   const [commands, constructor] = payload;
   if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorNotBuiltinError({ actualValue: constructor });
   return madeKind(commands, constructor);

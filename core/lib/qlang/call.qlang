@@ -27,7 +27,8 @@
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::call` builds the step of a command from its record, a map;
-            a payload of another kind is refused.
+            a payload of another kind is refused, a map under another tag
+            among them.
             ::link~(::call | doc)
         ~~|
     | throws :PayloadNotSchemaError

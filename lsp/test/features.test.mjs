@@ -7,7 +7,8 @@ import {
   documentSymbols, signatureHelpAtOffset,
   semanticTokensFor, SEMANTIC_TOKEN_TYPES, foldingRangesOf
 } from '../src/features.mjs';
-import { langRuntime, evalQuery, isTag } from '@kaluchi/qlang-core';
+import { langRuntime, evalQuery, isTag, verbNames } from '@kaluchi/qlang-core';
+import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 // Docs whose quote stands under the tag of a group or of the fail track, in a
 // literal, as a modifier and in the quote of a doc [QSSLF#doc].
@@ -856,69 +857,24 @@ function decodeSemanticTokens(data, types) {
 }
 
 describe('semanticTokensFor', () => {
-  it('[QSHST#tools] paints a verb of the language as `function`', async () => {
-    const { data } = await semanticTokensFor('[1 2 3] | count');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    const countTok = tokens.find(t => t.type === 'function');
-    expect(countTok).toBeTruthy();
-    expect(countTok.line).toBe(0);
-  });
+  // A source that writes every kind of token but the source past a parse, and
+  // the kinds that send no token, a bracket and a gap [QSHST#tools].
+  const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
+  const UNCOATED = new Set(['vec', 'set', 'map', 'group', 'punctuation', 'whitespace', 'unparsed']);
 
-  it('[QSHST#tools] paints a `::Tag` head as `struct`', async () => {
-    const { data } = await semanticTokensFor('::number/add/SubjectNotNumberError | doc');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    const tagTok = tokens.find(t => t.type === 'struct');
-    expect(tagTok).toBeTruthy();
-    expect(tagTok.length).toBe('::number/add/SubjectNotNumberError'.length);
-  });
-
-  it('[QSHST#tools] paints a user-bound identifier reference as `variable`', async () => {
-    const { data } = await semanticTokensFor(':double ~(mul 2) | 5 | apply double');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.some(t => t.type === 'variable')).toBe(true);
-  });
-
-  it('[QSHST#tools] paints a regex literal as `regexp`', async () => {
-    const { data } = await semanticTokensFor('"a1" | contains #"\\d"i');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    const regexTok = tokens.find(t => t.type === 'regexp');
-    expect(regexTok).toBeTruthy();
-    expect(regexTok.length).toBe('#"\\d"i'.length);
-  });
-
-  it('[QSHST#tools] paints a comment span as `comment`', async () => {
-    const { data } = await semanticTokensFor('42 |~| trace');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.some(t => t.type === 'comment')).toBe(true);
-  });
-
-  it('[QSHST#tools] paints a string literal as `string`', async () => {
-    const { data } = await semanticTokensFor('"hello"');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.some(t => t.type === 'string')).toBe(true);
-  });
-
-  it('[QSHST#tools] paints the delimiters of a quote as `string`', async () => {
-    const { data } = await semanticTokensFor('~(count)');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    // Quote literal renders the ~( and ) delimiters as `string` kind
-    expect(tokens.some(t => t.type === 'string')).toBe(true);
-  });
-
-  it('[QSHST#tools] paints a number literal as `number`', async () => {
-    const { data } = await semanticTokensFor('42');
-    const tokens = decodeSemanticTokens(data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.some(t => t.type === 'number')).toBe(true);
-  });
-
-  it('[QSHST#tools] coats each kind of the core\'s tokens by a type of the protocol, a path and a keyword as the property they read, and a bracket and a gap by none', async () => {
-    const src = ':x |~~ d ~~| 1 | [null true /a/b :k !{} ::T] !| count | x';
-    const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES);
-    expect(tokens.map(({ char, length, type }) => [src.slice(char, char + length), type])).toEqual([
-      [':x', 'keyword'], ['|~~ d ~~|', 'comment'], ['1', 'number'], ['null', 'number'], ['true', 'number'], ['/a/b', 'property'], [':k', 'property'],
-      ['!{', 'keyword'], ['}', 'keyword'], ['::T', 'struct'], ['!|', 'keyword'], ['count', 'function'], ['x', 'variable']
-    ]);
+  it('[QSHST#tools] coats each kind of the core\'s tokens but a bracket and a gap by a type of its legend, which holds each type once', async () => {
+    const coated = tokenize(EVERY_KIND, verbNames(await langRuntime())).filter(token => !UNCOATED.has(token.kind));
+    const sent = decodeSemanticTokens((await semanticTokensFor(EVERY_KIND)).data, SEMANTIC_TOKEN_TYPES);
+    expect(sent.map(({ char, length }) => EVERY_KIND.slice(char, char + length))).toEqual(coated.map(({ start, end }) => EVERY_KIND.slice(start, end)));
+    for (const { type } of sent) expect(SEMANTIC_TOKEN_TYPES).toContain(type);
     expect(SEMANTIC_TOKEN_TYPES).toEqual([...new Set(SEMANTIC_TOKEN_TYPES)]);
+  });
+
+  it('[QSHST#tools] coats a call of a verb of the root apart from a name of the reader', async () => {
+    const src = ':double ~(mul 2) | 5 | apply double';
+    const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES);
+    const typeAt = offset => tokens.find(({ char }) => char === offset).type;
+    expect(typeAt(src.indexOf('apply'))).not.toBe(typeAt(src.lastIndexOf('double')));
   });
 
   it('[QSHST#tools] splits a multi-line comment into per-line entries', async () => {

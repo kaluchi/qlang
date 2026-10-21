@@ -204,17 +204,15 @@ describe('runRepl — the first cell given on the command line', () => {
   });
 });
 
-// A cell prints within the one budget of every answer, an answer past it as
-// the refusal in its place, and an error as its alert within it, without the
-// prose of its page [QSHST#repl].
+// A cell prints its answer whole, past the budget of every answer as well,
+// and an error as its alert within it, without the prose of its page [QSHST#repl].
 describe('runRepl — the bound of an answer', () => {
-  it('prints an answer past the budget as the refusal, without the prose of its page', async () => {
+  it('prints an answer past the budget whole, its last element among it', async () => {
     const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
-    expect(printed).toContain('::qlang/AnswerBeyondBudgetError!{');
-    expect(printed).toContain(':read ~(drop ');
-    expect(printed).not.toContain('print | out');
+    expect(printed).toContain('{:id 2999 :name "user"}]');
+    expect(printed).not.toContain('::qlang/AnswerBeyondBudgetError');
   });
 
   it('prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {

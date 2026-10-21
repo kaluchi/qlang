@@ -41,3 +41,8 @@
 {"name":"a-doc-before-the-key-of-a-map-entry-is-refused-by-the-parser","query":"\"{|~~ doc ~~| :k 1}\" | parse !| get [~(type) /found]","expect":"[::quote/ParseError \"|\"]"}
 {"name":"a-quote-of-a-line-doc-is-tried-as-code-within-its-line-alone","query":"\"[|~~| x ~(a\\n 1 2 | f\" | parse !| get /location","expect":"::span[17 2 6 18 2 7]"}
 {"name":"a-line-doc-ends-at-its-line-break-a-carriage-return-before-a-line-feed-left-out-of-its-prose","query":"get [~(\"|~~| x\\r\\n\" | parse | first | content) ~(\"[|~~| x\\r\\n 1]\" | parse | first | first | content) ~(\"|~~| a\\rb\" | parse | first | content)]","expect":"[\" x\" \" x\" \" a\\nb\"]"}
+{"name":"a-span-between-backquotes-of-a-block-doc-holds-a-doc-nested-in-it","query":"|~~ a `f |~~ b ~~| c` then `~(count)` d ~~| | segments","expect":"[\" a `f |~~ b ~~| c` then `~(count)` d \"]"}
+{"name":"a-span-between-backquotes-closes-at-its-run-with-a-doc-left-open-in-it","query":"|~~ a `|~~` then `~(count)` d ~~| | segments","expect":"[\" a `|~~` then `~(count)` d \"]"}
+{"name":"a-closer-in-a-span-that-closes-none-of-its-docs-ends-the-doc","query":"[|~~ a `|~~ b ~~| ~~| |~~ c` d ~~|] | count","expect":"2"}
+{"name":"the-marker-of-a-line-doc-in-a-span-opens-no-doc-there","query":"[|~~ a `|~~| ~~| |~~ b` c ~~|] | count","expect":"2"}
+{"name":"a-span-opens-none-of-the-docs-a-span-before-it-left-open","query":"[|~~ a `|~~` then `~~| |~~ b` c ~~|] | count","expect":"2"}

@@ -222,9 +222,10 @@ $ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap 
 
 ## answer
 
-The command line writes every answer as the language prints it,
+The command line writes the answer of a query as the language prints it,
 whatever data standard input held, a string as its text, within the one
-budget every host prints an answer within, `ANSWER_BUDGET` of the core,
+budget every host prints an answer within but the REPL, which prints the
+answer of a cell whole [QSHST#repl], `ANSWER_BUDGET` of the core,
 the characters of the print counted as `count` counts a string, which
 is never smaller than the first screen,
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
@@ -405,11 +406,11 @@ where the shell hands its arguments.
 ## repl
 
 The REPL runs a cell at a time in one session, each cell a scope of its
-own [QSNAM#scope], and prints each answer within the budget of every
-answer [QSHST#answer] as its literal, a string among them, a failure as
-its alert without the prose of its page and an answer past the budget as
-the refusal in its place, painted whether or not standard output is a
-terminal; a cell that wrote by `out` holds the channel, no value of its
+own [QSNAM#scope], and prints the answer of each cell whole, as its
+literal, a string among them and an answer past the budget of every
+answer [QSHST#answer] as well, and a failure as its alert within that
+budget, without the prose of its page, painted whether or not standard
+output is a terminal; a cell that wrote by `out` holds the channel, no value of its
 answer printed after it, while its failure prints; a defect raised past
 the fail track, as a cell ran or as
 its answer printed, it writes on standard error as `qlang:` and its
@@ -425,6 +426,14 @@ an escape before `[` opens a sequence however its chunks split it, and
 Alt with an arrow reads as the arrow. Its colour is a layer over the
 tokens of the core's `tokenize` [QSHST#tools], a colour to each kind and
 a token inside a quote in italics.
+
+```sh
+$ printf '5000 | range\n' | qlang -i | grep -o '4999' | wc -l
+1
+
+$ printf '"x" | add 1\n' | qlang -i | grep -c '|~|'
+1
+```
 
 ## tools
 

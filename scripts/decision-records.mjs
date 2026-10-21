@@ -26,6 +26,7 @@ export const RESEARCH_FOLDERS = [
   { folder: 'design-check', form: 'report' },
   { folder: 'reviews', form: 'report' },
   { folder: 'outside-audit', form: 'report' },
+  { folder: 'prior-art', form: 'report' },
   { folder: 'spec-check', form: 'run' },
   { folder: 'pentimento-audit', form: 'run' },
 ];

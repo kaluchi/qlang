@@ -183,8 +183,12 @@ opens a query is the doc value it is; a doc after a command is its next
 modifier, and one after a step that is no command is refused, a note
 inside a pipeline being a comment. Inside a doc, a span between
 backquotes is prose, as markdown reads it, a run of backquotes closing
-at the next run of as many and a run with no such closer prose itself,
-and a `~(…)` outside one, under the tags written before it, is a segment
+at the next run of as many and a run with no such closer prose itself.
+In a block doc a span holds a doc nested in it: a `|~~` in the span
+opens a doc of the span and a `~~|` closes the last it opened, `|~~|`
+opening none; a `~~|` that closes none of the docs of the span ends the
+span and the doc, and the run that closes the span closes it whatever
+docs it left open. A `~(…)` outside a span, under the tags written before it, is a segment
 of code where it reads as code, and prose where it does not, its steps
 breaking a rule of a step or its text a rule the grammar holds there, a
 number written with a leading zero among them; a `~(` that reads as no
@@ -202,6 +206,15 @@ alone staying in it.
 
 > |~~ a ``~(add 1)`` c ~~| | segments
 [" a ``~(add 1)`` c "]
+
+> |~~ a `f |~~ b ~~| c` then `~(count)` d ~~| | segments
+[" a `f |~~ b ~~| c` then `~(count)` d "]
+
+> |~~ a `|~~` then `~(count)` d ~~| | segments
+[" a `|~~` then `~(count)` d "]
+
+> [|~~ a `~~| |~~ b` c ~~|] | count
+2
 
 > get [~("|~~| a ~(b, ~(add 1)) c" | parse | first | segments | count) ~("|~~ a ~(f 01) ~~|" | parse | first | segments | count) ~(|~~ a ~(count | 1) b ~~| | segments | count)]
 [1 1 1]

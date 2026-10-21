@@ -29,6 +29,11 @@ A folder for each kind of report, told by what calls a report into being:
   instructions, which a record calls for,
   `node scripts/outside-audit.mjs --for Dnn`, `D327~1.md` with
   `D327~1~reading.md`.
+- `prior-art/`: a study of the prior art of a question of a record, by a
+  reader the session starts, who searches the work outside the tree, the
+  documentation, the code, the issues and the papers of others, each
+  finding with its source, named after the record and numbered,
+  `D404~1.md` with `D404~1~reading.md`.
 - `pentimento-audit/`: a pentimento audit of the tree by clean readers,
   which a record calls for and carries the fates of,
   `node scripts/pentimento-audit.mjs --for Dnn`: a folder for each run

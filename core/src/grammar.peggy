@@ -307,9 +307,36 @@
   // line break [QSSYN#doc].
   let spanOfALine = false;
 
+  // The docs a span between backquotes opened and did not close [QSSYN#doc].
+  let docsInASpan = 0;
+
   // Whether the parser reads the last line of the source, where the quote of a
   // line doc names its continuations [QSSYN#doc].
   const onTheLastLine = () => offset() >= lineStarts[lineStarts.length - 1];
+
+  // The offsets where a rule failed under the counters of the parse: a read
+  // there fails at once, a read aloud where the failure was read aloud [D404].
+  const FAILED_SILENTLY = 1;
+  const FAILED_ALOUD = 2;
+  const keyOf = () => offset() * 8 + (docQuoteDepth > 0 ? 4 : 0) + (lookingAhead > 0 ? 2 : 0) + (spanOfALine ? 1 : 0);
+
+  function knownToFail(failures) {
+    const known = failures[keyOf()];
+    return known === FAILED_ALOUD || (known === FAILED_SILENTLY && peg$silentFails > 0);
+  }
+
+  function failedHere(failures) {
+    const key = keyOf();
+    if (failures[key] !== FAILED_ALOUD) failures[key] = peg$silentFails > 0 ? FAILED_SILENTLY : FAILED_ALOUD;
+    return false;
+  }
+
+  const failuresOf = () => new Uint8Array(input.length * 8 + 8);
+  const groupFailures = failuresOf();
+  const quoteFailures = failuresOf();
+  const taggedFailures = failuresOf();
+  const nestedDocFailures = failuresOf();
+  const nestedCommentFailures = failuresOf();
 
   // The path a quote holds alone, a leading pipe before it among it, or null.
   function pathAlone(pipeline) {
@@ -454,7 +481,8 @@ QuoteSpan
     { return '~(' + content + ')'; }
 
 // Inside a block comment the line markers are bare tokens, the block
-// forms nest, and the closer of the other block form is content.
+// forms nest, and the closer of the other block form is content; a block
+// that failed at an offset fails there again at once [D404].
 NestedLineDocSpan
   = "|~~|"
     { return text(); }
@@ -462,11 +490,13 @@ NestedLinePlainSpan
   = "|~|"
     { return text(); }
 NestedBlockDocSpan
-  = "|~~" !"|" BlockDocContent "~~|"
+  = &{ return !knownToFail(nestedDocFailures); } "|~~" !"|" BlockDocContent "~~|"
     { return text(); }
+  / &{ return failedHere(nestedDocFailures); } "|~~"
 NestedBlockPlainSpan
-  = "|~" ![|~] BlockPlainContent "~|"
+  = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockPlainContent "~|"
     { return text(); }
+  / &{ return failedHere(nestedCommentFailures); } "|~"
 
 BlockPlainContent
   = chars:(
@@ -541,15 +571,12 @@ PathBeforeWord
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
 // the group `(gt(1))`.
 Command
-  = callName:CallName first:(FirstModifierSeparator @ModifierWord)? rest:(ModifierGap @ModifierWord)*
+  = callName:CallName touching:(&"(" @ModifierWord)? rest:(ModifierGap @ModifierWord)*
     &{
-      const modifiers = first === null ? [] : [first, ...rest];
+      const modifiers = touching === null ? rest : [touching, ...rest];
       return accepted(() => ({ value: through(() => callOf(callFieldsOf(callName, modifiers), asWritten), facts => modifiers[facts.index]), parts: modifiers }));
     }
     { return taken(); }
-
-FirstModifierSeparator
-  = ModifierGap / &"("
 
 // The whitespace before a modifier: on the same line, or on a later one
 // that does not open a declaration [QSSYN#line].
@@ -574,16 +601,13 @@ StepOpens
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each of which may take a line of its own [QSNAM#address]; a lone
-// `:foo` is a keyword.
+// `:foo` is a keyword, its name and its slot read once [D404].
 BindStep
-  = key:BindName & { return key.value.name.includes('/'); } docs:(__ @DocSlot)? body:DefinitionBody?
-    & { return docs !== null || body !== null; }
-    &{ return accepted(() => bindOfReads(key, docs, body)); }
-    { return taken(); }
-  / key:BindName docs:(__ @DocSlot) body:ChainBody
-    &{ return accepted(() => bindOfReads(key, docs, body)); }
-    { return taken(); }
-  / key:BindName docs:(__ @DocSlot)? body:Body?
+  = key:BindName docs:(__ @DocSlot)? body:(
+        &{ return key.value.name.includes('/'); } @DefinitionBody
+      / &{ return docs !== null; } @ChainBody
+      / @Body
+    )?
     & { return docs !== null || body !== null; }
     &{ return accepted(() => bindOfReads(key, docs, body)); }
     { return taken(); }
@@ -627,12 +651,12 @@ DefinitionBody
     &{ return accepted(() => sentenceOf(head, tail)); }
     { return taken(); }
 
-// A later step of a body begun on a later line: a command, or after `!|`
-// the recovery, a value among them.
+// A later step of a body begun on a later line, where no declaration opens
+// [D404]: a command, or after `!|` the recovery, a value among them.
 BodySentenceStep
-  = __ c:Combinator __ !BindStep step:Step & { return c === '!|' || standsAsCommand(step.value); }
+  = __ c:Combinator __ !DeclarationOpens step:Step & { return c === '!|' || standsAsCommand(step.value); }
     { return { combinator: c, step }; }
-  / __ c:PipedCombinator __ !BindStep step:Step
+  / __ c:PipedCombinator __ !DeclarationOpens step:Step
     { return { combinator: c, step }; }
 
 // ── Words ──────────────────────────────────────────────────────────
@@ -681,17 +705,21 @@ CallName
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,
 // the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
+// A tagged literal that failed at an offset fails there again at once [D404].
 TaggedLit
-  = head:TagLit "#" payload:PayloadAfterHash
-    { return taggedRead(head, payload); }
-  / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ PayloadAfterHash _ ")") "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
-    { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${sourceOf(payload)}\``); }
-  / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ TaggedPayload _ ")") "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
-    { error(`a literal touches its tag by its own sign: write \`::${tag}${sourceOf(payload)}\``); }
-  / &{ return docQuoteDepth === 0; } &("::" TagName ParenGroup) "::" tag:TagName group:ParenGroup
-    { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${input.slice(group.content.start.offset, group.content.end.offset)} | tag ::${tag}\``); }
-  / head:TagLit payload:TaggedPayload
-    { return taggedRead(head, payload); }
+  = &"::" &{ return !knownToFail(taggedFailures); } @(
+      head:TagLit "#" payload:PayloadAfterHash
+      { return taggedRead(head, payload); }
+    / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ PayloadAfterHash _ ")") "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
+      { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${sourceOf(payload)}\``); }
+    / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ TaggedPayload _ ")") "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
+      { error(`a literal touches its tag by its own sign: write \`::${tag}${sourceOf(payload)}\``); }
+    / &{ return docQuoteDepth === 0; } &("::" TagName ParenGroup) "::" tag:TagName group:ParenGroup
+      { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${input.slice(group.content.start.offset, group.content.end.offset)} | tag ::${tag}\``); }
+    / head:TagLit payload:TaggedPayload
+      { return taggedRead(head, payload); }
+    )
+  / &"::" &{ return failedHere(taggedFailures); } "::"
 
 PayloadAfterHash
   = NumberLit
@@ -724,19 +752,22 @@ TagName
   = NamespacedName
   / KeywordName
 
+// A group that failed at an offset fails there again at once [D404].
 ParenGroup
-  = "(" _ p:Pipeline _ ")"
+  = "(" &{ return !knownToFail(groupFailures); } _ p:Pipeline _ ")"
     {
       const read = part(groupOf(p.value), p.parts);
       read.content = p.span;
       return read;
     }
+  / "(" &{ return failedHere(groupFailures); }
 
 // A quote holds the pipeline it is written around, a leading combinator
 // included (`~(!| get /trace)`), `~()` the empty quote; a name or a tag name
-// alone may drop the parentheses, `~add`, `~::T`, and a path is refused [QSSYN#step].
+// alone may drop the parentheses, `~add`, `~::T`, and a path is refused [QSSYN#step];
+// a quote that failed at an offset fails there again at once [D404].
 QuoteLit
-  = "~(" _ pipeline:Pipeline? _ ")"
+  = "~(" &{ return !knownToFail(quoteFailures); } _ pipeline:Pipeline? _ ")"
     &{ return docQuoteDepth === 0 || pathAlone(pipeline) === null; }
     {
       const path = pathAlone(pipeline);
@@ -745,6 +776,7 @@ QuoteLit
       read.content = pipeline === null ? null : pipeline.span;
       return read;
     }
+  / "~(" &{ return failedHere(quoteFailures); }
 
 ShortQuoteLit
   = "~" pipeline:(TagLit / Name)
@@ -843,7 +875,7 @@ BlockDocText
 LineDocPart
   = ProseRunOfALine { return text(); }
   / &{ return onTheLastLine(); } quote:DocQuote { return quote; }
-  / &{ return !onTheLastLine(); } &(quote:DocQuote &{ return quote.span.start.line === quote.span.end.line; }) quote:DocQuote { return quote; }
+  / &(quote:DocQuote &{ return quote.span.start.line === quote.span.end.line; }) quote:DocQuote { return quote; }
   / LineQuoteSpan
   / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
@@ -852,7 +884,7 @@ LineDocPart
 BlockDocPart
   = ProseRunOfABlock { return text(); }
   / DocQuote
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
+  / open:$("`"+) &{ docsInASpan = 0; return true; } (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / DocInASpan / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -876,6 +908,12 @@ ProseRunOfABlock "character of prose"
 
 ProseOfABlock "character of prose"
   = [^`]
+
+// A doc nested in a span between backquotes of a block is its prose [QSSYN#doc].
+DocInASpan "character of prose"
+  = "|~~|"
+  / "|~~" &{ docsInASpan += 1; return true; }
+  / "~~|" &{ return docsInASpan > 0; } &{ docsInASpan -= 1; return true; }
 
 ProseOfAString "character of prose"
   = !["\\] @QuoteSpanChar

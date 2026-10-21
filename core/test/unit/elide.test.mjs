@@ -24,16 +24,16 @@ function elisionsOf(value, found = []) {
   return found;
 }
 
-// Every elision of the view of the answer of a query counts the elements, the
-// entries or the characters its read, continued from the query, answers.
-async function sizesHold(query, view) {
-  const elisions = elisionsOf(view);
+// Every elision of the views of the alert of a query counts the elements, the
+// entries or the characters its read, continued from the query beneath `!|`,
+// answers, the query run once for them all.
+async function sizesHold(query, budgets) {
+  const failing = await evalQuery(query);
+  const elisions = budgets.flatMap(budget => elisionsOf(elideAnswer(failing, budget)));
   expect(elisions.length).toBeGreaterThan(0);
-  for (const elision of elisions) {
-    const answered = await continued(query, elision);
-    const count = typeof answered === 'string' ? Array.from(answered).length : answered instanceof Map ? answered.size : answered.length;
-    expect([printValue(elision.get('read')), elision.get('size')]).toEqual([printValue(elision.get('read')), count]);
-  }
+  const reads = elisions.map(elision => printValue(elision.get('read')).slice(2, -1).replace(/^!\| /, ''));
+  const counts = await evalQuery(`${query} !| get [${reads.map(read => `~(${read} | count)`).join(' ')}]`);
+  expect(elisions.map((elision, at) => [reads[at], elision.get('size')])).toEqual(reads.map((read, at) => [read, counts[at]]));
 }
 
 describe('elide [QSPRN#elide]', () => {
@@ -144,14 +144,10 @@ describe('elideAnswer [QSPRN#elide]', () => {
   });
 
   it('counts what each read answers where the views of an alert cut a part again [QSHST#answer]', async () => {
-    const runaway = ':number/inf ~(add 1 | inf) | 0 | inf';
-    for (const budget of [150, 250, 2000]) await sizesHold(runaway, elideAnswer(await evalQuery(runaway), budget));
-    const growing = ':vec/inf ~(append 1 | inf) | [] | inf';
-    await sizesHold(growing, elideAnswer(await evalQuery(growing), 2000));
-    const counted = '1000 | range | add 1';
-    await sizesHold(counted, elideAnswer(await evalQuery(counted), 150));
-    const ranked = '40 | range | map ~(tag ::zeta) | toSet | add 1';
-    await sizesHold(ranked, elideAnswer(await evalQuery(ranked), 150));
+    await sizesHold(':number/inf ~(add 1 | inf) | 0 | inf', [150, 250, 2000]);
+    await sizesHold(':vec/inf ~(append 1 | inf) | [] | inf', [2000]);
+    await sizesHold('1000 | range | add 1', [150]);
+    await sizesHold('40 | range | map ~(tag ::zeta) | toSet | add 1', [150]);
   });
 
   it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [QSHST#answer]', async () => {

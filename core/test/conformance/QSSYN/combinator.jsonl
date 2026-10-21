@@ -11,5 +11,5 @@
 {"name":"a-group-and-a-quote-may-open-with-a-combinator","query":"get [~(5 | (| add 1)) ~(5 | apply ~(!| 0))]","expect":"[6 5]"}
 {"name":"a-pipe-before-the-catch-at-the-head-stands-for-it","query":"\"| !| 0\" | parse","expect":"~(!| 0)"}
 {"name":"a-pipe-after-the-catch-at-the-head-is-refused-as-the-habit","query":"\"!| | 0\" | parse !| get /message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
-{"decision":"D403","name":"a-semicolon-between-two-queries-is-refused-naming-a-template","query":"\"::vec | doc; ::map | doc\" | parse !| get /message","expect":"\"`;` joins neither steps nor queries: steps are joined by `|`, and one query asks several by a template, `get [~(…) ~(…)]`\""}
-{"decision":"D403","name":"a-semicolon-after-a-step-is-refused-where-it-stands","query":"\"[1 2] | count ; count\" | parse !| get /location","expect":"::span[14 1 15 15 1 16]"}
+{"name":"a-semicolon-between-two-queries-is-refused-naming-a-template","query":"\"::vec | doc; ::map | doc\" | parse !| get /message","expect":"\"`;` joins neither steps nor queries: steps are joined by `|`, and one query asks several by a template, `get [~(…) ~(…)]`\""}
+{"name":"a-semicolon-after-a-step-is-refused-where-it-stands","query":"\"[1 2] | count ; count\" | parse !| get /location","expect":"::span[14 1 15 15 1 16]"}

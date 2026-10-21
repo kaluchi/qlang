@@ -44,13 +44,16 @@ A number is a finite double, written as an integer, a decimal, a minus
 sign and an exponent, `1e10`, `2.5e-3`, `1.5E+6`, its whole part
 written as JSON writes it, a zero alone or digits opening with another,
 `01` refused by the parser with the form `1`. A literal whose magnitude
-passes the largest double, `1e400`, is refused by the parser; one
-smaller than the least reads as `0`, and digits past a double's
-precision round.
+passes the largest double, `1e400`, is refused by the parser where it
+begins; one smaller than the least reads as `0`, and digits past a
+double's precision round.
 
 ```qlang
 > -2.5e3
 -2500
+
+> "1e400" | parse !| get [~(type) /found /location]
+[::quote/ParseError "1" ::span[0 1 1 1 1 2]]
 
 > [1e0 2e3 1.5e-2]
 [1 2000 0.015]
@@ -114,7 +117,8 @@ where the key is no bare name. A vector separates its elements by
 whitespace or by commas, one comma between every two, and braces with
 string keys separate their entries by commas, one between every two; a
 map of keyword keys and a set are written with whitespace, and a map that
-writes its keys both ways is refused naming the two. An object reads
+writes its keys both ways is refused where its entries end, naming the
+two. An object reads
 as the map of its keys, `type` and `error` as any other, and a
 duplicate key reads as `JSON.parse` reads it, at the boundary as in a
 query [QSPRN#json].
@@ -134,6 +138,9 @@ query [QSPRN#json].
 
 > {"a": 1, "b": 2, "a": 3}
 {:a 3 :b 2}
+
+> "{\"a\": 1, :b 2}" | parse !| get [/message /location]
+["a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\"a\": 1, \"b\": 2}`" ::span[7 1 8 7 1 8]]
 ```
 
 ## tag
@@ -201,8 +208,9 @@ of `get`, its tags and its brackets kept, `[::Box[x] 1]` naming
 the facts built by `get` and made an error by `raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
-naming `::Width#5`. In the code of a doc, a literal that computes reads
-as prose.
+naming `::Width#5`; a map entry of two values is refused where it
+stands, naming the template of `get`. In the code of a doc, a literal
+that computes reads as prose.
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| get /message
@@ -210,6 +218,9 @@ as prose.
 
 > "::Width(5)" | parse !| get /message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"
+
+> "{:a 1 2}" | parse !| get [/message /location]
+["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
 > :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| type
 ::Pos/NegError

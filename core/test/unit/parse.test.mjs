@@ -224,7 +224,7 @@ describe('parse — error handling', () => {
       .toEqual(['letters of a name', '/', 'whitespace', ')', 'character of prose', '::', '~(', '`', ',', ']']);
   });
 
-  it('fails the try of the quote of a doc on a rule of a step and on a refusal the grammar does not pass over there, a refusal it passes over letting the quote read as code [D403]', () => {
+  it('fails the try of the quote of a doc on a rule of a step and on a refusal the grammar does not pass over there, a refusal it passes over letting the quote read as code [QSSYN#doc]', () => {
     for (const text of [
       '| | f', '|f', '::Box f', '::Box |~~ d ~~|', 'f |~ c', 'f | ', 'f | !| | g', 'f | | g', 'f| g', 'f |g', 'f(a)(b)', 'f a, b', '5 f', '5\nf',
       '5 |~~ d ~~|', '/ne ""', '::T(1)', '::T([1])', '::T(add 1)', '(f a, b)', '~(/a)', '~(f a, b)', '~/a', '~[1]',
@@ -333,11 +333,11 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 
-  it('refuses a bare nest left open of groups, quotes and maps reading each depth once [D403]', () => {
+  it('refuses a bare nest left open of groups, quotes and maps reading each depth once [QSSYN#refusal]', () => {
     for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
   });
 
-  it('reads the quote of a line doc on the last line of the source once, line docs nested thirteen deep in the quotes of line docs read within two seconds [D403]', () => {
+  it('reads the quote of a line doc on the last line of the source once, line docs nested thirteen deep in the quotes of line docs read within two seconds [QSSYN#doc]', () => {
     const started = Date.now();
     expect(stepOf('|~~| ' + '~(|~~| '.repeat(13) + 'x')).toHaveLength(1);
     expect(Date.now() - started).toBeLessThan(2000);

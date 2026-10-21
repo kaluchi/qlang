@@ -198,5 +198,19 @@
     [" x" " a\nb"]
     ```
 
-[D403]: ../../D403.md
+Перенос базиса переписал разделы, которые переопределяла D403:
+[QSSYN#step], [QSSYN#combinator], [QSSYN#line], [QSSYN#doc],
+[QSSYN#refusal], [QSLIT#number], [QSLIT#json] и [QSLIT#closed]. Каждая
+ссылка на запись в коде и тестах названа своим разделом, а заголовок
+теста голых вложений называет [QSSYN#refusal].
+
+[D403]: ../../replaced/D403.md
 [D404]: ../../D404.md
+[QSSYN#step]: ../../../spec/QSSYN-grammar.md#step
+[QSSYN#combinator]: ../../../spec/QSSYN-grammar.md#combinator
+[QSSYN#line]: ../../../spec/QSSYN-grammar.md#line
+[QSSYN#doc]: ../../../spec/QSSYN-grammar.md#doc
+[QSSYN#refusal]: ../../../spec/QSSYN-grammar.md#refusal
+[QSLIT#number]: ../../../spec/QSLIT-values-and-literals.md#number
+[QSLIT#json]: ../../../spec/QSLIT-values-and-literals.md#json
+[QSLIT#closed]: ../../../spec/QSLIT-values-and-literals.md#closed

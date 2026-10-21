@@ -308,7 +308,7 @@
   let spanOfALine = false;
 
   // Whether the parser reads the last line of the source, where the quote of a
-  // line doc names its continuations [D403].
+  // line doc names its continuations [QSSYN#doc].
   const onTheLastLine = () => offset() >= lineStarts[lineStarts.length - 1];
 
   // The path a quote holds alone, a leading pipe before it among it, or null.
@@ -365,7 +365,7 @@ PipelineHead
 
 // A tag name in the place of a declaration's name declares nothing: a
 // name is declared by its keyword, and a value under a tag touches its
-// payload [QSNAM#address], [D403].
+// payload [QSNAM#address], [QSSYN#step].
 TagDeclarationRefusal
   = &{ return docQuoteDepth === 0; } &(TagLit _h1 !Combinator (DocOpen / Word)) TagLit _h1 !Combinator (DocOpen / Word)
     { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
@@ -386,7 +386,7 @@ PipedCombinator
 // A combinator written against its neighbour, a pipe written against a
 // tilde, which opens a comment, a combinator with no step after it before a
 // closing bracket, the end of the source named where the parse reads it, a
-// combinator after `| !|`, a semicolon after a step [D403], a
+// combinator after `| !|`, a semicolon after a step [QSSYN#combinator], a
 // word written against the word before it, and a step that follows a step
 // with no combinator between them; a slash written against a word is the
 // dangling segment of a path, which the parser names by the key it expected.
@@ -413,7 +413,7 @@ PipelineStep
 
 // A doc documents the declaration whose slot it stands in, between the
 // name and the body; written before a declaration it is refused, since
-// no step reads a doc it hands to the next [D403].
+// no step reads a doc it hands to the next [QSSYN#doc].
 DocBeforeDeclaration
   = &{ return docQuoteDepth === 0; } &(DocLit (_ DocLit)* _ BindStep) DocLit (_ DocLit)* _
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
@@ -504,7 +504,7 @@ Step
   / DotStepRefusal
 
 // The path of jq refused naming the path, read by `get` where a step stands
-// and written bare where a modifier does, and a dot alone naming `it` [D403].
+// and written bare where a modifier does, and a dot alone naming `it` [QSSYN#step].
 DotStepRefusal
   = &{ return docQuoteDepth === 0; } &DottedPath path:DottedPath
     { error(`\`${text()}\` is no path: a part is read by \`get\` and a path, which opens with a slash, \`get ${path}\``); }
@@ -680,7 +680,7 @@ CallName
 // payload touching the tag by a sign that continues the literal, a number,
 // a boolean, null or a path, whose literal would continue the tag's name,
 // by `#`, `::Width#5`; parentheses after a tag,
-// the sign of code, are refused [D403]. `::tag` alone is the tag name.
+// the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
 TaggedLit
   = head:TagLit "#" payload:PayloadAfterHash
     { return taggedRead(head, payload); }
@@ -734,7 +734,7 @@ ParenGroup
 
 // A quote holds the pipeline it is written around, a leading combinator
 // included (`~(!| get /trace)`), `~()` the empty quote; a name or a tag name
-// alone may drop the parentheses, `~add`, `~::T`, and a path is refused [D403].
+// alone may drop the parentheses, `~add`, `~::T`, and a path is refused [QSSYN#step].
 QuoteLit
   = "~(" _ pipeline:Pipeline? _ ")"
     &{ return docQuoteDepth === 0 || pathAlone(pipeline) === null; }
@@ -839,7 +839,7 @@ BlockDocText
 // closing at a run of as many and a run with no such closer prose, and in
 // a block a nested comment or doc at `|`; a `~(` that reads as no code
 // reads to the `)` that pairs it as prose, and a line doc, whose line ends
-// at `\n` or `\r\n`, tries its quote as code within the line [D403].
+// at `\n` or `\r\n`, tries its quote as code within the line [QSSYN#doc].
 LineDocPart
   = ProseRunOfALine { return text(); }
   / &{ return onTheLastLine(); } quote:DocQuote { return quote; }
@@ -908,9 +908,9 @@ ErrorLit
   / tag:TagLit? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
     { return errorRead(tag, [head, ...tail]); }
 
-// Braces with string keys and commas are JSON syntax for a map, whose
-// keys read as the keywords of their strings; where its entries end, the
-// other spelling is refused, and so is an entry of two values [D403].
+// Braces with string keys and commas are JSON syntax for a map, whose keys
+// read as the keywords of their strings; where its entries end, the other
+// spelling is refused, and so is an entry of two values [QSLIT#json], [QSLIT#closed].
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &{ return docQuoteDepth === 0; } &("," _ Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
@@ -984,7 +984,7 @@ LiteralGap
 // key, a keyword of names joined by `/` after `:`, or an index; the slash alone, with no
 // segment begun after it, names no path, the value itself being `it`, and a
 // question mark after a segment, the habit of a read that may miss, leads to
-// `query` [D403].
+// `query` [QSSYN#step].
 Path
   = &{ return docQuoteDepth === 0; } &("/" KeySegment ("/" KeySegment)* "?") segments:("/" @$KeySegment "?"?)+
     { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query /${segments.join('/')}\``); }

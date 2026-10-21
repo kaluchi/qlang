@@ -425,7 +425,7 @@ export function formOf(v) {
 
 // typeOf(v) — the kind of a value, the tag `type` answers [QSLIT#kind]: its
 // outermost tag, or the kind of the core its literal implies, an object of no
-// kind of the core raised as `::builtin/ForeignValueError` [QSHST#source].
+// kind of the core raised as `::builtin/ForeignValueError` [QSHST#door].
 export function typeOf(v) {
   if (isNull(v)) return CORE_KIND.null;
   if (isBoolean(v)) return CORE_KIND.boolean;
@@ -443,7 +443,7 @@ export function typeOf(v) {
 
 // A value of no kind where the core takes what a host hands or reads a kind,
 // and a number past the doubles where it is written, a defect raised past the
-// fail track, `:actualValue` naming it as JavaScript holds it [QSHST#source].
+// fail track, `:actualValue` naming it as JavaScript holds it [QSHST#door].
 export const BuiltinForeignValueError = declareDefect('builtin/ForeignValueError',
   ({ actualValue }) => `the core met ${actualValue}, a value of no kind of the language`);
 
@@ -452,7 +452,7 @@ export function refuseForeign(value) {
 }
 
 // accountOfForeign(value) → a value as JavaScript holds it: its type and its
-// name, its maker or its text, `function hello`, `object Map`, `undefined` [QSHST#source].
+// name, its maker or its text, `function hello`, `object Map`, `undefined` [QSHST#door].
 export function accountOfForeign(value) {
   if (value === undefined || value === null) return String(value);
   if (typeof value === 'function') return `function ${value.name}`.trimEnd();

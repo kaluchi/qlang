@@ -14,8 +14,8 @@ await session.evalCell([
   ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by))'
 ].join(' | '));
 
-describe('the refusals a verb that is a function raises by rule [QSERR#site]', () => {
-  it('names an answer of none of several kinds where its label is none of them', () => {
+describe('the refusals a verb that is a function raises by rule', () => {
+  it('[QSERR#site] names an answer of none of several kinds where its label is none of them', () => {
     expect(ruleRefusalsOf(session.scope, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
@@ -25,23 +25,23 @@ describe('the refusals a verb that is a function raises by rule [QSERR#site]', (
     ]);
   });
 
-  it('names no refusal of an answer whose kinds hold its label', () => {
+  it('[QSERR#site] names no refusal of an answer whose kinds hold its label', () => {
     expect(ruleRefusalsOf(session.scope, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
   });
 
-  it('names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
+  it('[QSERR#site] names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
     expect(ruleRefusalsOf(session.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
 
-  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
+  it('[QSERR#site] names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {
     const own = await createSession();
     await own.evalCell(':number/v ~(1)');
     expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
 
-describe('the refusals by rule of an input that names the kinds of each element [QSBLD#fn]', () => {
-  it('names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
+describe('the refusals by rule of an input that names the kinds of each element', () => {
+  it('[QSBLD#input] names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
     const own = await createSession();
     await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
@@ -53,15 +53,15 @@ describe('the refusals by rule of an input that names the kinds of each element 
     ]);
   });
 
-  it('names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
+  it('[QSBLD#input] names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
     const own = await createSession();
     await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
   });
 });
 
-describe('a host\'s verb written as the chain of its function [QSHST#source]', () => {
-  it('runs the code inputs of a host\'s verb, a quote written in the step in the scope of the step', async () => {
+describe('a host\'s verb written as the chain of its function', () => {
+  it('[QSHST#source] runs the code inputs of a host\'s verb, a quote written in the step in the scope of the step', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/declared',
       source: [
@@ -77,7 +77,7 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
     expect((await hosted.evalCell(':k 10 | 5 | each ~(add k) ~(mul 2)')).result).toEqual([15, 10]);
   });
 
-  it('hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
+  it('[QSHST#source] hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
     const hosted = await createSession({ sources: [{
       uri: 'test/declared-values',
       source: [
@@ -97,8 +97,8 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
   });
 });
 
-describe('a verb a later source declares as a function [QSBLD#recipe]', () => {
-  it('runs by its function, its recipe reading its input past a value of the reader of the name', async () => {
+describe('a verb a later source declares as a function', () => {
+  it('[QSBLD#recipe] runs by its function, its recipe reading its input past a value of the reader of the name', async () => {
     const hosted = await createSession({ sources: [{ uri: 'test/twice', source: ':number/twice ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by | add by)]' }] });
     expect((await hosted.evalCell(':by 99 | 5 | twice 1')).result).toBe(7);
   });
@@ -108,10 +108,10 @@ describe('a verb a later source declares as a function [QSBLD#recipe]', () => {
 // or `query` with a default or none, is read where it stands, a quote of a
 // path alone as the path, and any other place runs as code over the args,
 // `~(it)` alone reading them whole [QSBLD#input].
-describe('the place of an input [QSBLD#input]', () => {
+describe('the place of an input', () => {
   const answerOf = async query => (await (await createSession()).evalCell(query)).result;
 
-  it('fills the head of the code with the step that answers the value of each input, a value of every kind [QSBLD#fn]', async () => {
+  it('[QSBLD#input] fills the head of the code with the step that answers the value of each input, a value of every kind', async () => {
     for (const [value, written] of [
       ['[1 2]', '[1 2]'], ['{:a 1}', '{:a 1}'], ['#[1]', '#[1]'], ['::Box[1]', '::Box[1]'], ['!{:a 1}', '!{:a 1}'],
       ['::Foo!{:a 1}', '::Foo!{:a 1}'], ['~(add 1)', '~(add 1)'], ['("/a" | parse)', '::quote[/a]'], ['|~~ d ~~|', '(|~~ d ~~|)'],
@@ -122,19 +122,19 @@ describe('the place of an input [QSBLD#input]', () => {
     }
   });
 
-  it('reads a place of a path a quote holds alone as the path', async () => {
+  it('[QSBLD#input] reads a place of a path a quote holds alone as the path', async () => {
     expect(await answerOf(':any/h (::fn | takes :n |~~ N. ~~| ("/0" | parse) | impl ~(n)) | 1 | h 7')).toBe(7);
   });
 
-  it('runs a place that reads a part deeper than one arg as code over the args', async () => {
+  it('[QSBLD#input] runs a place that reads a part deeper than one arg as code over the args', async () => {
     expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)) | 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
   });
 
-  it('runs a place of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
+  it('[QSBLD#input] runs a place of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
     expect((await answerOf(':any/three (::fn | takes :n |~~ N. ~~| ~(query /0 1 2) | impl ~(n)) | 1 | three 9')).tag.name).toBe('any/query/ArgsBeyondInputsError');
   });
 
-  it('reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other place', async () => {
+  it('[QSBLD#input] reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other place', async () => {
     for (const place of ['~(it | first)', '~(it 1)']) {
       const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${place} ::quote | impl ~(code)) | 1 | g (count)`);
       expect(failed.tag.name, place).toBe('call/KindAnswersNoVerbError');

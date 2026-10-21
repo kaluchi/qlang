@@ -36,8 +36,8 @@ async function sizesHold(query, budgets) {
   expect(elisions.map((elision, at) => [reads[at], elision.get('size')])).toEqual(reads.map((read, at) => [read, counts[at]]));
 }
 
-describe('elide [QSPRN#elide]', () => {
-  it('keeps the first element of the top, the part within it giving way', async () => {
+describe('elide', () => {
+  it('[QSPRN#elide] keeps the first element of the top, the part within it giving way', async () => {
     const value = await evalQuery(`["${LONG.repeat(3)}" "${LONG.repeat(3)}"]`);
     const view = elide(value, 200);
     expect(view.length).toBe(2);
@@ -45,21 +45,21 @@ describe('elide [QSPRN#elide]', () => {
     expect(view[1].get('size')).toBe(1);
   });
 
-  it('gives a map way whole', async () => {
+  it('[QSPRN#elide] gives a map way whole', async () => {
     const value = await evalQuery('{:m {:a "some text here" :b "more text there"} :n 1}');
     const elision = elide(value, 40).get('m');
     expect(elision.get('size')).toBe(2);
     expect(compareValues(await readBack(value, elision), value.get('m')) === 0).toBe(true);
   });
 
-  it('keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
+  it('[QSPRN#elide] keeps the tag of a map it gives way within, and reads through a tag over an atom', async () => {
     const tagged = await evalQuery(`:Box |~~ Box. ~~| | ::Box{:s "${LONG}" :n 1}`);
     expect(elide(tagged, 50)[TAG_HEADER_SYMBOL].name).toBe('Box');
     const wrapped = await evalQuery(`{:b ::Box"${LONG}" :n 1}`);
     expect(await readBack(wrapped, elide(wrapped, 50).get('b'))).toEqual(await evalQuery(`::Box"${LONG}"`));
   });
 
-  it('gives way within a vector under a tag and a map beneath a stack of tags', async () => {
+  it('[QSPRN#elide] gives way within a vector under a tag and a map beneath a stack of tags', async () => {
     const vector = await evalQuery(`:Row |~~ Row. ~~| | ::Row["${LONG}" 1]`);
     const vectorView = elide(vector, 50);
     expect(vectorView[TAG_HEADER_SYMBOL].name).toBe('Row');
@@ -70,13 +70,13 @@ describe('elide [QSPRN#elide]', () => {
     expect(await readBack(stacked, stackedView.payload.get('s'))).toBe(LONG);
   });
 
-  it('reads a key with a space by a quoted path', async () => {
+  it('[QSPRN#elide] reads a key with a space by a quoted path', async () => {
     const value = await evalQuery(`{:"a key" "${LONG}"}`);
     const elision = elide(value, 30).get('a key');
     expect(await readBack(value, elision)).toBe(LONG);
   });
 
-  it('gives the largest part way first, the others staying once the print fits', async () => {
+  it('[QSPRN#elide] gives the largest part way first, the others staying once the print fits', async () => {
     const value = await evalQuery(`{:a "${'a'.repeat(100)}" :b "${'b'.repeat(300)}" :c "${'c'.repeat(120)}"}`);
     const view = elide(value, 400);
     expect(view.get('b')[TAG_HEADER_SYMBOL].name).toBe('elision');
@@ -84,14 +84,14 @@ describe('elide [QSPRN#elide]', () => {
   });
 });
 
-describe('alertWithin [QSPRN#elide]', () => {
-  it('gives an alert past its budget way to a shorter print within the budget [QSHST#answer]', async () => {
+describe('alertWithin', () => {
+  it('[QSERR#alert] gives an alert past its budget way to a shorter print within the budget', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}] | add 1`);
     expect(printValue(alertOf(failing)).length).toBeGreaterThan(300);
     expect(printValue(alertWithin(failing, 300)).length).toBeLessThanOrEqual(300);
   });
 
-  it('gives way within the trace of a failure past its budget, the trace kept a trace and the rest of its frames read beneath !| [QSHST#answer]', async () => {
+  it('[QSERR#alert] gives way within the trace of a failure past its budget, the trace kept a trace and the rest of its frames read beneath !|', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
     expect(printValue(alertOf(failing)).length).toBeGreaterThan(190);
     const trace = alertWithin(failing, 190).facts.get('trace');
@@ -99,7 +99,7 @@ describe('alertWithin [QSPRN#elide]', () => {
     expect(printValue(trace[trace.length - 1])).toBe('::elision{:size 1 :read ~(!| get /trace | drop 1)}');
   });
 
-  it('cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts [QSHST#answer]', async () => {
+  it('[QSERR#alert] cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
     const view = alertWithin(failing, 60);
@@ -108,7 +108,7 @@ describe('alertWithin [QSPRN#elide]', () => {
     expect(view.facts.get('trace').get('size')).toBe(failing.facts.get('trace').length);
   });
 
-  it('keeps the facts of a failure whose first fact is named as the rest of a map is [QSHST#answer]', async () => {
+  it('[QSERR#alert] keeps the facts of a failure whose first fact is named as the rest of a map is', async () => {
     const forty = Array.from({ length: 40 }, (_, index) => index).join(' ');
     const failing = await evalQuery(`!{:"…" 1 :b "${'a'.repeat(134)}" :c [${forty}]} | raise`);
     const view = alertWithin(failing, 60);
@@ -116,14 +116,14 @@ describe('alertWithin [QSPRN#elide]', () => {
     expect([view.facts.get('…'), view.facts.get('b').get('size'), view.facts.get('c').get('size')]).toEqual([1, 134, 40]);
   });
 
-  it('counts what each read answers where the views of an alert cut a part again [QSHST#answer]', async () => {
+  it('[QSERR#alert] counts what each read answers where the views of an alert cut a part again', async () => {
     await sizesHold(':number/inf ~(add 1 | inf) | 0 | inf', [150, 250, 2000]);
     await sizesHold(':vec/inf ~(append 1 | inf) | [] | inf', [2000]);
     await sizesHold('1000 | range | add 1', [150]);
     await sizesHold('40 | range | map ~(tag ::zeta) | toSet | add 1', [150]);
   });
 
-  it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [QSHST#answer]', async () => {
+  it('[QSERR#alert] keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !|', async () => {
     const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
     const trace = alertWithin(failing, 2000).facts.get('trace');
     const rest = trace[trace.length - 1];
@@ -134,7 +134,7 @@ describe('alertWithin [QSPRN#elide]', () => {
     expect(printValue(trace).length).toBeLessThanOrEqual(300);
   });
 
-  it('cuts an alert that holds no trace past a budget, the refusal of a text among them [QSHST#answer]', async () => {
+  it('[QSERR#alert] cuts an alert that holds no trace past a budget, the refusal of a text among them', async () => {
     const refused = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`);
     const view = alertWithin(refused, 80);
     expect(view.facts.has('trace')).toBe(false);
@@ -142,25 +142,25 @@ describe('alertWithin [QSPRN#elide]', () => {
     expect(view.facts.get('source').get('size')).toBe(refused.facts.get('source').length);
   });
 
-  it('keeps every frame of an alert within its budget [QSHST#answer]', async () => {
+  it('[QSERR#alert] keeps every frame of an alert within its budget', async () => {
     const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
     expect(alertWithin(failing, 100000).facts.get('trace').length).toBe(failing.facts.get('trace').length);
   });
 
-  it('answers an alert that fits its budget as the alert itself [QSHST#answer]', async () => {
+  it('[QSERR#alert] answers an alert that fits its budget as the alert itself', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] | filter ~(nope)`);
     expect(printValue(alertWithin(failing, 100000))).toBe(printValue(alertOf(failing)));
   });
 });
 
-// A failure a host prints is an alert [QSHST#answer]: the subject of the frame where
+// A failure a host prints is an alert [QSERR#alert]: the subject of the frame where
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt, a value
 // shown once, and the read of every elision continuing the query beneath `!|`.
-describe('alertOf [QSHST#answer]', () => {
+describe('alertOf', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
 
-  it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
+  it('[QSERR#alert] keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
     const query = `${records} | filter ~(nope)`;
     const [arose, passed] = alertOf(await evalQuery(query)).facts.get('trace');
     expect(printValue(arose[0])).toBe('{:n 0}');
@@ -168,13 +168,13 @@ describe('alertOf [QSHST#answer]', () => {
     expect(compareValues(await continued(query, passed[0]), await evalQuery(records)) === 0).toBe(true);
   });
 
-  it('counts a text it passed by its characters, through the tags over it', async () => {
+  it('[QSERR#alert] counts a text it passed by its characters, through the tags over it', async () => {
     const query = `"${'a'.repeat(100)}" | tag ::Box | within ~(add 1)`;
     const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
     expect(passed.get('size')).toBe(100);
   });
 
-  it('gives a subject way whole where its cut still passes the excerpt, an atom counted by its print', async () => {
+  it('[QSERR#alert] gives a subject way whole where its cut still passes the excerpt, an atom counted by its print', async () => {
     const name = 'k'.repeat(400);
     const query = `:${name} | add 1`;
     const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
@@ -182,13 +182,13 @@ describe('alertOf [QSHST#answer]', () => {
     expect(await continued(query, elision)).toEqual(await evalQuery(`:${name}`));
   });
 
-  it('counts a vector it passed by its elements, through the tags over it', async () => {
+  it('[QSERR#alert] counts a vector it passed by its elements, through the tags over it', async () => {
     const query = '300 | range | tag ::B | tag ::A | map ~(add "x")';
     const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
     expect(passed.get('size')).toBe(300);
   });
 
-  it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
+  it('[QSERR#alert] cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
     const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const query = `${many} | add 1`;
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
@@ -196,7 +196,7 @@ describe('alertOf [QSHST#answer]', () => {
     expect(compareValues(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1)) === 0).toBe(true);
   });
 
-  it('keeps the first entries of a wide map where the failure arose, the rest under :"…" read beneath !| [QSHST#answer]', async () => {
+  it('[QSERR#alert] keeps the first entries of a wide map where the failure arose, the rest under :"…" read beneath !|', async () => {
     const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
     const query = `${wide} | add 1`;
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
@@ -207,7 +207,7 @@ describe('alertOf [QSHST#answer]', () => {
     expect((await continued(query, rest)).size).toBe(200 - kept);
   });
 
-  it('cuts a long string where the failure arose to its head', async () => {
+  it('[QSERR#alert] cuts a long string where the failure arose to its head', async () => {
     const text = LONG.repeat(10);
     const query = `"${text}" | add 1`;
     const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
@@ -215,7 +215,7 @@ describe('alertOf [QSHST#answer]', () => {
     expect(await continued(query, elision)).toBe(text);
   });
 
-  it('gives a map and a string it passed way whole, and keeps what prints shorter than its elision', async () => {
+  it('[QSERR#alert] gives a map and a string it passed way whole, and keeps what prints shorter than its elision', async () => {
     const [, map] = alertOf(await evalQuery(`{:s "${LONG}" :t "${LONG}"} | (add 1)`)).facts.get('trace');
     expect(map[0].get('size')).toBe(2);
     const text = LONG.repeat(3);
@@ -225,7 +225,7 @@ describe('alertOf [QSHST#answer]', () => {
     expect(kept[0]).toBe(5);
   });
 
-  it('measures the subject of a frame on the one line the frame prints on', async () => {
+  it('[QSERR#alert] measures the subject of a frame on the one line the frame prints on', async () => {
     const six = '6 | range | map ~(get {:id ~(it) :name "user" :tags ["a" "b"]})';
     const [arose] = alertOf(await evalQuery(`${six} | get /9`)).facts.get('trace');
     expect(compareValues(arose[0], await evalQuery(six)) === 0).toBe(true);
@@ -234,7 +234,7 @@ describe('alertOf [QSHST#answer]', () => {
     expect(compareValues(passed[0], await evalQuery(nested)) === 0).toBe(true);
   });
 
-  it('cuts an error at rest among its facts within its excerpt, its parts read beneath the fact [QSHST#answer]', async () => {
+  it('[QSERR#alert] cuts an error at rest among its facts within its excerpt, its parts read beneath the fact', async () => {
     const query = `${records} | map (get /n)`;
     const alert = alertOf(await evalQuery(query));
     const inner = alert.facts.get('actualValue');

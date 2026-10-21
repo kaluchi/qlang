@@ -23,18 +23,18 @@ const reachesIntoTheWords = imports => [...imports].filter(([path]) => !isOfTheW
 describe('the imports of core/src', () => {
   const imports = importsOfCore(repoRoot);
 
-  it('form no cycle, the parser and the modules its grammar imports among them', () => {
+  it('[QSWRK#tooling] form no cycle, the parser and the modules its grammar imports among them', () => {
     expect(cyclesOf(imports)).toEqual([]);
     expect(imports.get('core/src/parse.mjs')).toContain('core/gen/grammar.mjs');
     expect(imports.get('core/gen/grammar.mjs')).toEqual(expect.arrayContaining(['core/src/steps.mjs', 'core/src/walk.mjs']));
   });
 
-  it('reach the words and the root from the session and the root of the package alone', () => {
+  it('[QSWRK#tooling] reach the words and the root from the session and the root of the package alone', () => {
     expect(reachesIntoTheWords(imports)).toEqual([]);
     expect(imports.get('core/src/session.mjs')).toContain('core/src/runtime/index.mjs');
   });
 
-  it('keep the records of the steps below the parser, reaching none of its modules', () => {
+  it('[QSWRK#tooling] keep the records of the steps below the parser, reaching none of its modules', () => {
     const reached = new Set();
     const reach = path => imports.get(path).filter(target => !reached.has(target)).forEach(target => { reached.add(target); reach(target); });
     reach('core/src/steps.mjs');
@@ -42,7 +42,7 @@ describe('the imports of core/src', () => {
     expect(reached).toContain('core/src/types.mjs');
   });
 
-  it('find a cycle and a reach into the words where a module writes one, the words and the session aside', () => {
+  it('[QSWRK#tooling] find a cycle and a reach into the words where a module writes one, the words and the session aside', () => {
     const written = new Map([
       ['core/src/a.mjs', ['core/src/b.mjs']],
       ['core/src/b.mjs', ['core/src/a.mjs', 'core/src/runtime/c.mjs']],
@@ -54,7 +54,7 @@ describe('the imports of core/src', () => {
     expect(reachesIntoTheWords(written)).toEqual(['core/src/b.mjs → core/src/runtime/c.mjs']);
   });
 
-  it('read the loaders the imports of the package map through every condition', () => {
+  it('[QSWRK#tooling] read the loaders the imports of the package map through every condition', () => {
     expect(imports.get('core/src/runtime/bootstrap.mjs')).toEqual(expect.arrayContaining(['core/host/load-source-node.mjs', 'core/src/load-source-web.mjs']));
   });
 
@@ -72,7 +72,7 @@ describe('the imports of core/src', () => {
     }
   };
 
-  it('read a cycle a module writes in double quotes, through the parser', () => {
+  it('[QSWRK#tooling] read a cycle a module writes in double quotes, through the parser', () => {
     const written = importsWritten({
       'core/package.json': '{"imports":{}}',
       'core/src/a.mjs': 'import { b } from "./b.mjs";\n',
@@ -83,7 +83,7 @@ describe('the imports of core/src', () => {
     expect(cyclesOf(written)).toEqual([['core/gen/grammar.mjs', 'core/src/a.mjs', 'core/src/b.mjs']]);
   });
 
-  it('read a cycle a module closes through a loader the imports of the package map, a name they map to no module naming none', () => {
+  it('[QSWRK#tooling] read a cycle a module closes through a loader the imports of the package map, a name they map to no module naming none', () => {
     const written = importsWritten({
       'core/package.json': JSON.stringify({ imports: { '#load': { node: './host/load.mjs', default: './src/load.mjs' }, '#boot': './src/boot.mjs' } }),
       'core/src/boot.mjs': "import { load } from '#load';\nimport '#unmapped';\n",

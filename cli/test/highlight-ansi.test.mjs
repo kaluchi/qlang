@@ -1,119 +1,65 @@
 // The colour of a terminal, the line of the REPL and an answer painted under
 // `--color`, a layer over the core's `tokenize`: each kind of token in the
 // escape of its colour, a token inside a quote in italics, and whitespace and
-// the source past the parse written plain [QSHST#repl].
-// The rules it holds: [QSWRK#tooling], [QSHST#repl].
+// the source past the parse written plain [QSCLI#colour].
+// The rules it holds: [QSWRK#tooling], [QSCLI#colour].
 
 import { describe, it, expect } from 'vitest';
+import { tokenize } from '@kaluchi/qlang-core/highlight';
 import { highlightAnsi } from '../src/highlight-ansi.mjs';
 
-const ANY_ANSI = /\x1b\[[0-9;]*m/;
-const ANSI_RESET = '\x1b[0m';
+const ESCAPE = /\x1b\[[0-9;]*m/g;
+const RESET = '\x1b[0m';
+const VERBS = new Set(['filter', 'count', 'gt']);
+// A source that writes every kind of token but the source past a parse.
+const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
 
-const noVerbNames = new Set();
+// The painted text of each token of a source, in their order.
+function paintedTokens(source, verbNames) {
+  let rest = highlightAnsi(source, verbNames);
+  return tokenize(source, verbNames).map(token => {
+    const text = source.slice(token.start, token.end);
+    const painted = /^\x1b\[[0-9;]*m/.exec(rest)?.[0];
+    const whole = painted === undefined ? text : `${painted}${text}${RESET}`;
+    expect(rest.startsWith(whole), `${token.kind} ${JSON.stringify(text)}`).toBe(true);
+    rest = rest.slice(whole.length);
+    return { ...token, painted };
+  });
+}
 
 describe('highlightAnsi', () => {
-  it('wraps a number, a boolean and null in the yellow escape pair', () => {
-    expect(highlightAnsi('42', noVerbNames)).toBe('\x1b[33m42\x1b[0m');
-    expect(highlightAnsi('true', noVerbNames)).toBe('\x1b[33mtrue\x1b[0m');
-    expect(highlightAnsi('null', noVerbNames)).toBe('\x1b[33mnull\x1b[0m');
+  it('[QSCLI#colour] writes every character of the source in its order, each escape closed by the reset', () => {
+    const out = highlightAnsi(EVERY_KIND, VERBS);
+    expect(out.replace(ESCAPE, '')).toBe(EVERY_KIND);
+    const escapes = out.match(ESCAPE);
+    expect(escapes.filter(escape => escape === RESET).length * 2).toBe(escapes.length);
   });
 
-  it('wraps a String literal in the green escape pair', () => {
-    const out = highlightAnsi('"hi"', noVerbNames);
-    expect(out).toBe('\x1b[32m"hi"\x1b[0m');
+  it('[QSCLI#colour] paints each kind of the core\'s tokens in an escape of its own and the whitespace between them plain', () => {
+    const tokens = paintedTokens(EVERY_KIND, VERBS);
+    expect(new Set(tokens.map(token => token.kind)).size).toBeGreaterThan(20);
+    for (const token of tokens) expect(token.painted === undefined, token.kind).toBe(token.kind === 'whitespace' && !token.italic);
   });
 
-  it('wraps a regex literal, its flags among it, in the bright-magenta escape pair', () => {
-    const out = highlightAnsi('#"\\d+"i', noVerbNames);
-    expect(out).toBe('\x1b[95m#"\\d+"i\x1b[0m');
+  it('[QSCLI#colour] paints a call of a verb the root holds apart from a name it does not', () => {
+    const [verb] = paintedTokens('count', VERBS);
+    const [name] = paintedTokens('count', new Set());
+    expect([verb.kind, name.kind]).toEqual(['verb', 'name']);
+    expect(verb.painted).not.toBe(name.painted);
   });
 
-  it('paints a ~(…) Quote with green upright delimiters and italic body', () => {
-    const out = highlightAnsi('~(:active)', noVerbNames);
-    expect(out).toContain('\x1b[32m~(\x1b[0m');
-    expect(out).toContain('\x1b[3;36m:active\x1b[0m');
-    expect(out).toContain('\x1b[32m)\x1b[0m');
+  it('[QSCLI#colour] lays every token inside a quote in italics, its whitespace among it, and the brackets of the quote upright', () => {
+    const tokens = paintedTokens('~(add 1)', VERBS);
+    for (const token of tokens) expect(/^\x1b\[3[;m]/.test(token.painted ?? ''), JSON.stringify(token)).toBe(token.italic === true);
+    expect(tokens.filter(token => token.italic).map(token => token.kind)).toEqual(['name', 'whitespace', 'number']);
   });
 
-  it('wraps a tag name in the bright-cyan tag escape', () => {
-    const out = highlightAnsi('::Box', noVerbNames);
-    expect(out).toBe('\x1b[96m::Box\x1b[0m');
+  it('[QSCLI#colour] paints a line cut short, as it is typed', () => {
+    expect(highlightAnsi('(unclosed', VERBS)).toMatch(ESCAPE);
   });
 
-  it('wraps the ::tag head of a tagged literal and descends into the payload, every call a name where no names of verbs are handed', () => {
-    const out = highlightAnsi('::Box~(mul x)', noVerbNames);
-    expect(out).toContain('\x1b[96m::Box\x1b[0m');
-    expect(out).toContain('\x1b[32m~(\x1b[0m');
-    expect(out).toContain('\x1b[3;36mmul\x1b[0m');
-    expect(out).toContain('\x1b[32m)\x1b[0m');
-  });
-
-  it('wraps a keyword and a path, which reads keys, in the cyan escape pair', () => {
-    expect(highlightAnsi(':active', noVerbNames)).toBe('\x1b[36m:active\x1b[0m');
-    expect(highlightAnsi('/a/b', noVerbNames)).toBe('\x1b[36m/a/b\x1b[0m');
-  });
-
-  it('wraps the call of a verb of the language in the bright-blue escape pair', () => {
-    const verbNames = new Set(['count']);
-    const out = highlightAnsi('count', verbNames);
-    expect(out).toBe('\x1b[94mcount\x1b[0m');
-  });
-
-  it('wraps the name a declaration writes in the bold-bright-blue escape', () => {
-    const out = highlightAnsi(':x 1', new Set());
-    expect(out).toMatch('\x1b[1;94m:x\x1b[0m');
-  });
-
-  it('wraps a comment and the prose of a doc in the dim escape', () => {
-    expect(highlightAnsi('|~| note |~|', noVerbNames)).toBe('\x1b[2m|~| note |~|\x1b[0m');
-    expect(highlightAnsi('|~~ a doc ~~|', noVerbNames)).toBe('\x1b[2m|~~ a doc ~~|\x1b[0m');
-  });
-
-  it('emits whitespace verbatim with no escape sequence', () => {
-    const out = highlightAnsi('[1 2]', new Set());
-    expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m \x1b[33m2\x1b[0m\x1b[93m]\x1b[0m');
-  });
-
-  it('wraps `!{` / `}` error-literal brackets in bright red', () => {
-    const out = highlightAnsi('!{}', new Set());
-    expect(out).toBe('\x1b[91m!{\x1b[0m\x1b[91m}\x1b[0m');
-  });
-
-  it('wraps the `!|` fail-track combinator in bright red', () => {
-    const out = highlightAnsi('1 !| get /k', new Set());
-    expect(out).toMatch('\x1b[91m!|\x1b[0m');
-  });
-
-  it('wraps `#[` / `]` set brackets in bright green', () => {
-    const out = highlightAnsi('#[:a]', new Set());
-    expect(out).toMatch('\x1b[92m#[\x1b[0m');
-    expect(out).toMatch('\x1b[92m]\x1b[0m');
-  });
-
-  it('keeps the braces of a map, the parentheses of a group and the pipe in the grey escape', () => {
-    expect(highlightAnsi('{:a 1}', new Set())).toBe('\x1b[90m{\x1b[0m\x1b[36m:a\x1b[0m \x1b[33m1\x1b[0m\x1b[90m}\x1b[0m');
-    expect(highlightAnsi('(1) | count', new Set())).toBe('\x1b[90m(\x1b[0m\x1b[33m1\x1b[0m\x1b[90m)\x1b[0m \x1b[90m|\x1b[0m \x1b[36mcount\x1b[0m');
-  });
-
-  it('always closes every escape with the reset sequence', () => {
-    const out = highlightAnsi('[1 2 3] | count', new Set(['count']));
-    const opens = out.match(/\x1b\[[0-9;]*m/g) ?? [];
-    const resets = opens.filter((s) => s === ANSI_RESET);
-    expect(opens.length).toBeGreaterThan(0);
-    expect(resets.length * 2).toBe(opens.length);
-  });
-
-  it('paints a line cut short, as it is typed', () => {
-    expect(highlightAnsi('(unclosed', noVerbNames)).toMatch(ANY_ANSI);
-  });
-
-  it('keeps the italics of whitespace inside a quote', () => {
-    expect(highlightAnsi('~(add 1)', noVerbNames)).toContain('\x1b[3m \x1b[0m');
-  });
-
-  it('writes the source past where its parse stopped plain', () => {
-    expect(highlightAnsi(')))', noVerbNames)).toBe(')))');
-    expect(highlightAnsi('{:a 1 | zz) 5', noVerbNames)).toMatch(/\| zz\) 5$/);
+  it('[QSCLI#colour] writes the source past where its parse stopped plain', () => {
+    expect(highlightAnsi(')))', VERBS)).toBe(')))');
+    expect(highlightAnsi('{:a 1 | zz) 5', VERBS)).toMatch(/\| zz\) 5$/);
   });
 });

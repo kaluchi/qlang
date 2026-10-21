@@ -31,7 +31,7 @@
   import { walkParts } from '../src/walk.mjs';
 
   // A span between backquotes in the prose of a doc: its text and the span of
-  // the code its runs of backquotes hold [QSHST#tools].
+  // the code its runs of backquotes hold [QSHST#tokens].
   class Backquoted {
     constructor(text, code) {
       this.text = text;
@@ -41,7 +41,7 @@
 
   // The segments of a doc, its prose, each run of it one string, and the parts
   // of the quotes among it, with the spans of the code its spans between
-  // backquotes hold [QSHST#tools].
+  // backquotes hold [QSHST#tokens].
   function proseJoined(parts) {
     const segments = [];
     const backquoted = [];
@@ -247,7 +247,7 @@
 
   // A tagged literal, the construction of its tag over its payload, its head
   // the tag, but `::error` before an error literal, which is that literal
-  // [QSQUO#step], [QSERR#rest], [QSHST#tools].
+  // [QSQUO#step], [QSERR#rest], [QSHST#tokens].
   function taggedRead(head, payload, at = span()) {
     if (head.value.name === ERROR_TAG.name && isOfTheKindOfErrors(payload.value)) return Object.assign(part(payload.value, [head, ...payload.parts], at), { head: { ...head.span, end: (payload.head ?? head.span).end } });
     return Object.assign(part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload], at), { head: head.span });
@@ -261,14 +261,14 @@
   }
 
   // The segments of a doc, the span of its text to its last word and the spans
-  // of the code between its backquotes [QSHST#tools].
+  // of the code between its backquotes [QSHST#tokens].
   function textRead(parts) {
     const { source, start } = range();
     return { ...proseJoined(parts), text: { source, start: pointOf(start), end: pointOf(start + text().trimEnd().length) } };
   }
 
   // A span between backquotes, its runs of backquotes as many on each side
-  // [QSHST#tools].
+  // [QSHST#tokens].
   function backquotedRead(run) {
     const { source, start, end } = range();
     return new Backquoted(text(), { source, start: pointOf(start + run), end: pointOf(end - run) });
@@ -925,7 +925,7 @@ LineQuoteSpan "character of prose"
   / &{ spanOfALine = false; return false; } "~("
 
 // A quote of a doc, under the stack of tags written before it, which gives it
-// its role [QSSLF#doc] and is its head [QSHST#tools], the depth `docQuoteDepth` counts given
+// its role [QSSLF#doc] and is its head [QSHST#tokens], the depth `docQuoteDepth` counts given
 // back whether a quote is read or not.
 DocQuote
   = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }

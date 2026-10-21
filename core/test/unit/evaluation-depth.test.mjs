@@ -12,7 +12,7 @@ import { CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 import { catchOriginalError } from '../helpers/error-assertions.mjs';
 
 describe('the limit of the evaluation depth — self-calling verb', () => {
-  it('answers ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
+  it('[QSNAM#verb] answers ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
     const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
     expect(runaway.facts.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
     expect(runaway.facts.get('limit')).toBe(EVAL_DEPTH_LIMIT);
@@ -32,7 +32,7 @@ describe('the limit of the evaluation depth — every re-entry seam', () => {
     ['an invariant of a kind laying its own tag',    ':T |~~ T. ~~| (::kind | holds :E |~~ e ~~| ~(::T#1 | payload | eq 1)) | ::T#1']
   ];
   for (const [seamName, query] of seams) {
-    it(`terminates on ${seamName}`, async () => {
+    it(`[QSNAM#verb] terminates on ${seamName}`, async () => {
       const original = await catchOriginalError(query);
       expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
       expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
@@ -41,7 +41,7 @@ describe('the limit of the evaluation depth — every re-entry seam', () => {
 });
 
 describe('the limit of the evaluation depth — host seams', () => {
-  it('runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
+  it('[QSNAM#verb] runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
     // The host's tally counts the depths whose `runLaws` step returned, the
     // root and every depth below it up to the limit, the step at the depth
     // refused answering the failure, which skips the tally.

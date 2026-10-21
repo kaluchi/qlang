@@ -72,7 +72,7 @@ const casesByFile = files.map(file => ({
 describe('conformance: the requirements agree', () => {
   const allCases = casesByFile.flatMap(({ file, cases }) => cases.map(test => ({ file, ...test })));
 
-  it('holds no query to two answers', async () => {
+  it('[QSWRK#cases] holds no query to two answers', async () => {
     const contradictions = [];
     for (const [query, sameQuery] of Map.groupBy(allCases, test => test.query)) {
       if (sameQuery.length < 2) continue;
@@ -87,7 +87,7 @@ describe('conformance: the requirements agree', () => {
   // A case is gated by its section, the file it stands in, and names a
   // record only while the record's change is in transit over it, the record
   // opening the case [QSWRK#cases].
-  it('opens a case that names a record with the one record in force, whose record stands in the root of the records [QSWRK#cases]', () => {
+  it('[QSWRK#cases] opens a case that names a record with the one record in force, whose record stands in the root of the records', () => {
     const decisionsDir = join(here, '..', '..', '..', 'docs', 'journal');
     const ungated = allCases.filter(({ file: _file, ...test }) => test.decision !== undefined
       && (typeof test.decision !== 'string' || Object.keys(test)[0] !== 'decision' || !existsSync(join(decisionsDir, `${test.decision}.md`))))
@@ -96,12 +96,12 @@ describe('conformance: the requirements agree', () => {
   });
 
   // The name of a case says the rule it shows, in four words at least [QSWRK#cases].
-  it('names each case by the rule it shows, in four words at least [QSWRK#cases]', () => {
+  it('[QSWRK#cases] names each case by the rule it shows, in four words at least', () => {
     const terse = allCases.filter(test => test.name.split('-').length < 4).map(test => `${test.file}#${test.name}`);
     expect(terse).toEqual([]);
   });
 
-  it('stands each file as a section of a chapter of the specification [QSWRK#cases]', () => {
+  it('[QSWRK#cases] stands each file as a section of a chapter of the specification', () => {
     const specDir = join(here, '..', '..', '..', 'docs', 'spec');
     const homeless = files.filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];
@@ -115,7 +115,7 @@ describe('conformance: the requirements agree', () => {
 for (const { file, cases } of casesByFile) {
   describe(`conformance: ${file}`, () => {
     for (const test of cases) {
-      it(test.target === true ? `target: ${test.name}` : test.name, async () => {
+      it(`[QSWRK#cases] ${test.target === true ? 'target: ' : ''}${test.name}`, async () => {
         assertLiteral(parse(test.expect), test.name);
 
         const queryResult = await evalQuery(test.query);

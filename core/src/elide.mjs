@@ -1,6 +1,6 @@
 // The view of a value within a budget of characters of its print, each part
 // it leaves out an `::elision` whose `:read` reaches it [QSPRN#elide], and the
-// alert of a failure a host prints [QSHST#answer]: `elide`, `alertOf`,
+// alert of a failure a host prints [QSERR#alert]: `elide`, `alertOf`,
 // `alertWithin` and `headOfAnswer`, `printedOf(part)` answering the print a
 // kind declared under it gives a part.
 
@@ -17,7 +17,7 @@ import { commandStep, FAIL_TAG } from './steps.mjs';
 const HEAD_CHARACTERS = 40;
 export const EXCERPT_CHARACTERS = 300;
 
-// The characters a host prints an answer within, above the first screen [QSHST#answer].
+// The characters a host prints an answer within, above the first screen [QSPRN#budget].
 export const ANSWER_BUDGET = 16000;
 const printedByTheCore = () => undefined;
 
@@ -86,7 +86,7 @@ function partsOfContainer(value, view) {
 // prints its own way, at the top as beneath it; a container of more than one
 // part at the top and of any beneath it, through the tags over it, and each of
 // its parts; a frame's subject alone, its steps and its place kept; and each
-// fact of a failure, which keeps its tag and the names of its facts [QSPRN#elide], [QSHST#answer];
+// fact of a failure, which keeps its tag and the names of its facts [QSPRN#elide], [QSERR#alert];
 // an elision, made or held, and an atom never.
 function partsOf(value, path, view, parts) {
   if (isElision(value)) return;
@@ -273,7 +273,7 @@ function passedOver(value, read, printedOf, oneLine, rests) {
 
 // The trace of an alert: each frame keeps its steps and its place, the
 // subject of the first within its excerpt, of every later one given way
-// whole, each measured on the one line a frame prints on [QSHST#answer].
+// whole, each measured on the one line a frame prints on [QSERR#alert].
 function framesOf(trace, read, printedOf, rests) {
   return makeTrace(trace.map((frame, index) => {
     const { subject, unfinished, place } = partsOfFrame(frame);
@@ -293,7 +293,7 @@ export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet
 
 // An alert within a budget: one that fits stands, and past it its trace keeps
 // its first frames and its facts give way, the views of one answer sharing the
-// rests they made [QSHST#answer].
+// rests they made [QSERR#alert].
 export function alertWithin(error, budget, printedOf = printedByTheCore) {
   const rests = new WeakSet();
   const alert = alertOf(error, printedOf, rests);
@@ -306,7 +306,7 @@ export function alertWithin(error, budget, printedOf = printedByTheCore) {
 
 // The head of an answer past the budget within the excerpt of an alert, each
 // `:read` continuing the query from the answer, and of a failure its error at
-// rest so, each `:read` beneath `!|` [QSHST#answer].
+// rest so, each `:read` beneath `!|` [QSERR#alert].
 export function headOfAnswer(answer, printedOf = printedByTheCore) {
   if (!isErrorValue(answer)) return excerptOf(answer, OF_THE_VALUE, printedOf, false, new WeakSet());
   return excerptOf(errorAtRest(answer.tag, answer.facts), OF_THE_FACTS, printedOf, false, new WeakSet());

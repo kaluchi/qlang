@@ -163,7 +163,7 @@ no semantics of the core.
 
 [QSWRK#documents]: ../spec/QSWRK-the-work.md#documents
 [QSSLF]: ../spec/QSSLF-the-language-describes-itself.md
-[QSHST#source]: ../spec/QSHST-hosts-and-the-command-line.md#source
+[QSHST#source]: ../spec/QSHST-hosts.md#source
 [QSWRK#measure]: ../spec/QSWRK-the-work.md#measure
 [QSWRK#diff]: ../spec/QSWRK-the-work.md#diff
 [QSWRK#review]: ../spec/QSWRK-the-work.md#review

@@ -2,7 +2,8 @@
 // move of the baseline [QSWRK#baseline]: the author has written the sections anew
 // in the present, and the run does the rest. A case that names the record
 // drops the name, every case standing in the section of a chapter
-// [QSWRK#cases]; a citation of the record in the code,
+// [QSWRK#cases], and a test that names it second in its title drops it, its
+// title opening with its rule alone [QSWRK#baseline]; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
 // record overrides one, once in a run, and is listed for the author where
 // it overrides several; the record gains its line `Dissolved into` the
@@ -68,6 +69,8 @@ for (const name of names) {
       return JSON.stringify(rest);
     }).join('\n'));
   }
+  const second = new RegExp(String.raw`(['"\x60]\[(?:QS[A-Z]{3}#[a-z][a-z-]*|[DE]\d+)\]) \[${name}\] `, 'g');
+  for (const path of tracked.filter(path => /\.test\.m?js$/.test(path))) rewrite(path, text => text.replace(second, '$1 '));
   // A citation names the section, or waits for the author.
   const citing = tracked.filter(path => isCitingCode(path) || CITING_DOCUMENTS.includes(path));
   const left = [];

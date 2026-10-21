@@ -215,7 +215,18 @@ workflow under `.github/workflows/` in the comment at their head or above
 the block that holds the rule, and a source of the catalog in the comment
 above its pages, `The rules it holds: [QSDSP#residence]`. A file of the
 conformance suite marks its section by its path, and a case the record in
-transit over that section by its `decision` [QSWRK#cases]; the sister
+transit over that section by its `decision` [QSWRK#cases]; a test, an
+`it` or a `test` of a suite of any workspace, names first in its title,
+in brackets, the one rule it holds, the section of a chapter or, where no
+chapter states the rule, the record in force of a domain its tests hold,
+and second, while the change of a record in transit brought it, that
+record, as a case names it by its `decision`, its rule following in
+words with no citation inside,
+`it('[QSCLI#answer] reads -h as the query of the page of the command line', …)`,
+a test written in a loop or a table writing its rule as a literal of its
+title and the test the runner of the conformance suite makes of each case
+opening with `[QSWRK#cases]`, while a `describe` groups tests and names
+no rule and the mark at the head of a test file holds none; the sister
 project names a record of qlang with the repository, `(qlang Dnn)`; and a
 screen and a run of a set of the benchmark name the record they measure
 in the name of their file, `screens/D395.txt` and
@@ -229,7 +240,10 @@ that names nothing, a tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside
 `docs/` or a workflow, is an orphan, which `check:conventions` refuses and
 the desk counts; the files of a set of the benchmark, the data its runs
 wrote and the generator its author wrote, are no artifacts and carry no
-mark inside them. A page of the catalog, the public interface of the
+mark inside them. A regression is no kind of its own: a defect met is a
+requirement the cases left unsaid, whose repair brings a case, or a test
+where no case can state it, under the record that repairs it. A page of
+the catalog, the public interface of the
 language, cites the sections and pages a reader follows, a record only
 in the comment at the head of its source.
 
@@ -240,8 +254,10 @@ on its first parent line, which the walk reads from the history; its move
 leaves master a clean desk, no record in transit in the tree of its
 merge and no text in both voices [QSWRK#documents], where the next shift
 starts. It moves when a branch lands, before an outside audit among
-them; the records a change of the journal alone writes, which lands
-without a branch, wait for the next branch, and no more than twenty
+them; a change of the journal that overrides no section, an open record,
+the aim, the line of a fate, a report of the research and its reading,
+lands on master without a branch, a record in transit living on the branch
+of its shift from the commit that writes it, and no more than twenty
 records stand written since it. The move is the last commit or the last commits
 of the branch, the chapters written there alone; the gate runs after it,
 and the branch lands.
@@ -251,7 +267,8 @@ At the move:
 - Every record in transit that the maintainer and the tree accept
   dissolves into the sections it overrides: they are written anew in
   the present, and `node scripts/dissolve-records.mjs Dnn` takes the
-  record off every case that names it, names its section in each
+  record off every case that names it and off the title of every test
+  that names it second, names its section in each
   citation of it where it overrides one and lists the citations for the
   author where it overrides several, writes its line `Dissolved into` and
   moves it out. It refuses a record that overrides nothing. Records in
@@ -300,7 +317,8 @@ chapter the baseline did not hold waiting for the next move; a document
 of the research the baseline holds that nothing in force holds; a series
 of the benchmark past its two latest at the baseline; a seed that cites
 a record in transit; more than twenty records since the baseline; a
-record in transit in the tree of the merge that landed it; a citation in
+record in transit in the tree of the merge that landed it or in the tree of
+master; a citation in
 the code and the tests of a record out of force or of one of the
 language no met case holds, a case that names a record out of force or
 being decided, and a citation in a seed of a record out of force or of
@@ -314,8 +332,9 @@ A branch is a shift: it takes the scars of its shift, is named after
 them, states in its description what it shows when it lands, and lands
 on master by a merge commit after the move of the baseline, its last
 commits, made locally where no pull request is open. Code is committed
-on a branch, a chapter is written at the move of one, and a change to
-the journal alone lands on master directly. A push waits for the
+on a branch, a chapter is written at the move of one, and a change of
+the journal that overrides no section lands on master directly, a record
+in transit living on the branch of its shift. A push waits for the
 maintainer's invitation, a commit is never amended, and the branch is
 deleted after the merge, locally and on the remote.
 
@@ -925,8 +944,11 @@ reads [QSERR#site]; an export of the root of the core no host reads and no page
 writes; a report of the research without the session's reading
 beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
 of the prose that name a token the branch took out [QSWRK#documents];
-and the form of a record from `D155` on, its `Domain.`, its decider and
-the fields of an open record.
+the title of a test that no literal states, that opens with no section of
+a chapter and no record its tests hold, that opens with two sections, or
+that names second a record out of transit or one that overrides neither
+its section nor its chapter; and the form of a record from `D155` on,
+its `Domain.`, its decider and the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a
 clean master in step with its remote whose checks on GitHub are green:

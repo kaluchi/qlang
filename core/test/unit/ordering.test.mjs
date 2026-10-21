@@ -16,7 +16,7 @@ const LADDER = [
 ];
 
 describe('the one order ranks each value of a ladder after the one before it', () => {
-  it('answers the sign of the places of every two values', async () => {
+  it('[QSORD#order] answers the sign of the places of every two values', async () => {
     const values = [];
     for (const query of LADDER) values.push(await evalQuery(query));
     for (const [at, value] of values.entries()) {
@@ -28,13 +28,13 @@ describe('the one order ranks each value of a ladder after the one before it', (
 });
 
 describe('the tests compare a value of the language by the tie of the one order', () => {
-  it('tells a set and a value under a tag from the vector and the map of no tag', async () => {
+  it('[QSWRK#tooling] tells a set and a value under a tag from the vector and the map of no tag', async () => {
     expect(await evalQuery('#[1 2]')).not.toEqual([1, 2]);
     expect(await evalQuery('::Box{:a 1}')).not.toEqual(new Map([['a', 1]]));
     expect(await evalQuery('[#[1]]')).not.toEqual([[1]]);
   });
 
-  it('leaves a value of no kind and a container of one to vitest', () => {
+  it('[QSWRK#tooling] leaves a value of no kind and a container of one to vitest', () => {
     expect([{ start: 1 }]).toEqual([{ start: 1 }]);
     expect(makeTag('number')).toMatchObject({ name: 'number' });
   });

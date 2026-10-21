@@ -23,14 +23,14 @@ async function sessionRecordingVisits(visits) {
   }] });
 }
 
-describe('the forks of a sequence run in its order [QSQUO#modifier]', () => {
+describe('the forks of a sequence run in its order', () => {
   for (const [label, query] of [
     ['the elements under `map` over a vector', '[3 2 1] | map ~visit'],
     ['the values under `map` over a map', '{:a 3 :b 2 :c 1} | map ~visit'],
     ['the elements of a vector literal', 'get [~(3 | visit) ~(2 | visit) ~(1 | visit)]'],
     ['the keys of `sort`', '[3 2 1] | sort ~(visit)'],
   ]) {
-    it(label, async () => {
+    it(`[QSQUO#modifier] ${label}`, async () => {
       const visits = [];
       const session = await sessionRecordingVisits(visits);
       const cell = await session.evalCell(query);

@@ -14,8 +14,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('the loaders of the sources of the language [QSHST#source]', () => {
-  it('raises it on Node for a file the package maps that does not read, its origin the keyword of the source', async () => {
+describe('the loaders of the sources of the language', () => {
+  it('[QSHST#source] raises it on Node for a file the package maps that does not read, its origin the keyword of the source', async () => {
     const { loadSource } = await import('../../host/load-source-node.mjs');
     const raised = await loadSource('qlang/vec').catch(error => error);
     expect(raised.address).toBe('builtin/SourceLoadError');
@@ -25,7 +25,7 @@ describe('the loaders of the sources of the language [QSHST#source]', () => {
     expect(raised.facts.cause).toBe(unreadable);
   });
 
-  it('raises it in a browser for a response that fails, its status the cause', async () => {
+  it('[QSHST#source] raises it in a browser for a response that fails, its status the cause', async () => {
     vi.stubGlobal('fetch', async () => ({ ok: false, status: 404 }));
     const { loadSource } = await import('../../src/load-source-web.mjs');
     const raised = await loadSource('qlang/vec').catch(error => error);

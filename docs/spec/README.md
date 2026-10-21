@@ -25,8 +25,10 @@ The chapters, in the order the concepts rest on each other:
 | [QSNAM](QSNAM-names-and-scope.md) | names and scope |
 | [QSDSP](QSDSP-a-verb-found-through-its-subject.md) | a verb found through its subject |
 | [QSBLD](QSBLD-functions-and-kinds.md) | a function and a kind built by commands |
-| [QSERR](QSERR-errors.md) | an error at rest and in flight |
+| [QSERR](QSERR-errors.md) | an error at rest and in flight, and the alert a host prints of a failure |
 | [QSSLF](QSSLF-the-language-describes-itself.md) | the language describes itself: axes, laws, docs, the first page, the catalog |
-| [QSPRN](QSPRN-printing-and-codecs.md) | printing, codecs, elision, a place in text |
-| [QSHST](QSHST-hosts-and-the-command-line.md) | hosts and the command line |
+| [QSPRN](QSPRN-printing-and-codecs.md) | printing, codecs, elision, the budget of an answer, a place in text |
+| [QSHST](QSHST-hosts.md) | hosts and their boundary: the sources and the primitives a host hands, the doors, the session, the streams and the tokens |
+| [QSCLI](QSCLI-the-command-line.md) | the command line and its REPL: the answer, standard input, the shell, the colour and the line editor |
+| [QSLSP](QSLSP-the-language-server.md) | the language server and the editor: what the server reads, reaches and offers, the symbols of a document, and the extension |
 | [QSWRK](QSWRK-the-work.md) | the work: the records of decisions, the specification, the cases, the branch, the measures and the tooling |

@@ -3,8 +3,8 @@
    the streams under `::any`. Their primitives take the values alone, the
    served subject and the values of their inputs, but that of `tap`, which
    reads the state of its call.
-   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#repl],
-   [QSHST#stdin]. ~|
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSCLI#repl],
+   [QSCLI#stdin]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints

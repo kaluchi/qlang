@@ -41,9 +41,9 @@ A finding is something you can show: a file and a line, the rule of the work or 
 2. **Записана.** Чтение имён тела глагола по тексту, а не по вызовам,
    решила [D372], расхождение с языком глава называет, чтение у каждого
    вызова отставлено с ценой. Проба:
-   `rg -n "a reading of the text alone" docs/spec/QSHST-hosts-and-the-command-line.md` → одна строка.
+   `rg -n "a reading of the text alone" docs/spec/QSHST-hosts.md` → одна строка.
 3. **Сделана.** Окраска по одному имени. Проба:
-   `rg -n "read by the name alone" docs/spec/QSHST-hosts-and-the-command-line.md` → одна строка; правило в [D372].
+   `rg -n "read by the name alone" docs/spec/QSHST-hosts.md` → одна строка; правило в [D372].
 4. **Сделана.** Зазор читает грамматика: справка подписи на
    `[1 2 3] | take |~ how many ~| ` → `take count`, тест падает на сервере до
    починки; шаг у курсора и знаки автодополнения сервер пишет сам, ядро их
@@ -64,7 +64,7 @@ A finding is something you can show: a file and a line, the rule of the work or 
    → eval-smoke:283, errors:61, features.test:374 и :636, door:221,
    grammar.peggy:16 (и :249, что называла эти разделы и раньше), и
    `rg -n "^// \[QSNAM#scope\]\." core/src/eval.mjs` → :150, у `evalGroup`.
-10. **Сделана.** Проба: `node scripts/sensors/run-probes.mjs docs/spec/QSHST-hosts-and-the-command-line.md` → все ok.
+10. **Сделана.** Проба: `node scripts/sensors/run-probes.mjs docs/spec/QSHST-hosts.md` → все ok.
 11. **Сделана.** Проба: `node scripts/sensors/run-probes.mjs docs/journal/D293.md` → все ok, `typeof declareRefusal(…)` → `function`.
 12. **Сделана.** Проба: `rg -n "vscode/syntaxes" docs/journal/D353.md` → одна строка.
 13. **Сделана.** Проба: `node scripts/sensors/run-probes.mjs docs/journal/D257.md` → ok и одна цель.

@@ -19,7 +19,7 @@
 Что несёт ветка. Пачку 27 из `docs/journal/D353.md` (строка пачки 27): запись хоста в транзите `docs/journal/D402.md` над [QSHST#stdin] и [QSHST#answer]. Командная строка поднимает текст stdin словом `parseJson`, которое она запускает на тексте в сессии запроса как ячейку, которую сессия не нумерует (`uri: 'stdin'`), так что запрос остаётся `cell-1`: текст не JSON остаётся строкой, любой другой отказ (число за пределами double) — ответ (`liftOfInput` в `cli/src/stdin.mjs`, `runQuery` в `cli/src/run.mjs`). Запрос, чей первый шаг, ничего не объявляющий, — `in` (по имени или по адресу `any/in`), не читает субъекта и ничего не поднимает: `readsItsSubject` в `core/src/walk.mjs` принимает имена слов хоста, которые не читают субъекта, командная строка передаёт `in` и `any/in` (`cli/src/main.mjs`). `--json` уходит (отказ как всякий аргумент с двумя дефисами, не названный флагом), его чтение — `in | parseJson`; корень пакета ядра больше не экспортирует `fromJsonText`. Справка, страница `::cli`, `cli/README.md` переписаны. D340 обрезана частью 10 и взятым из части 11; `--raw` и справка, печатаемая страницей `::cli`, оставлены в D340 на слово мейнтейнера (одиннадцатый аутсайд-аудит голосовал оставить `--raw`; `-h` как страница не может назвать бюджет из константы ядра).
 Решение консилиума, на котором стоит D402: `docs/journal/research/design-check/D340~2.md`, разделы «## 10.» и «## 11.».
 
-Как читать. Сначала целиком `docs/spec/QSWRK-the-work.md` и `docs/journal/AIM.md`. Затем D402, строку пачки 27 в D353, обрезанную D340 (сравни с `git show master:docs/journal/D340.md`), разделы 10 и 11 консилиума, главу `docs/spec/QSHST-hosts-and-the-command-line.md`, разделы answer и stdin (они старые — их перепишет перенос базиса). Затем `git -C D:/git/qlang diff master...HEAD` целиком; каждый тронутый файл кода и страницы читай целиком, не только дифф: `cli/src/stdin.mjs`, `cli/src/run.mjs`, `cli/src/main.mjs`, `cli/src/argv.mjs`, `core/src/walk.mjs`, `core/src/index.mjs`, `core/src/runtime/json.mjs` (примитив `parseJson` и `fromJsonText`), `core/src/session.mjs` (как ячейка с `uri` не нумеруется), `cli/lib/qlang/cli.qlang`, `cli/README.md`, тесты `cli/test/stdin.test.mjs`, `main.test.mjs`, `argv.test.mjs`, `run.test.mjs`, `integration/cli-bin.test.mjs`, `core/test/unit/walk.test.mjs`.
+Как читать. Сначала целиком `docs/spec/QSWRK-the-work.md` и `docs/journal/AIM.md`. Затем D402, строку пачки 27 в D353, обрезанную D340 (сравни с `git show master:docs/journal/D340.md`), разделы 10 и 11 консилиума, главу `docs/spec/QSHST-hosts.md`, разделы answer и stdin (они старые — их перепишет перенос базиса). Затем `git -C D:/git/qlang diff master...HEAD` целиком; каждый тронутый файл кода и страницы читай целиком, не только дифф: `cli/src/stdin.mjs`, `cli/src/run.mjs`, `cli/src/main.mjs`, `cli/src/argv.mjs`, `core/src/walk.mjs`, `core/src/index.mjs`, `core/src/runtime/json.mjs` (примитив `parseJson` и `fromJsonText`), `core/src/session.mjs` (как ячейка с `uri` не нумеруется), `cli/lib/qlang/cli.qlang`, `cli/README.md`, тесты `cli/test/stdin.test.mjs`, `main.test.mjs`, `argv.test.mjs`, `run.test.mjs`, `integration/cli-bin.test.mjs`, `core/test/unit/walk.test.mjs`.
 
 Что проверять. Дифф против принципов AIM (одна модель, одно написание факта, язык описывает себя, всякое значение — литерал, безопасно смотреть на ответ, граница хоста) и правил QSWRK (record true as a whole, marks, cases, cuts, comments, diff). По оси:
 (a) Подъём. Пустой stdin, терминал, `< /dev/null`, текст не JSON, JSON с порядком ключей, ключ дважды, число за double на глубине (путь), JSON-строка `""`, текст из одних пробелов, BOM, `--raw`. Отвечает ли подъём ровно как `parseJson`; нет ли разницы между `printf X | qlang 'count'` и `printf X | qlang 'in | parseJson | count'` там, где текст — JSON. Дефект при подъёме. Нумерация ячеек: остаётся ли запрос `cell-1` (видно ли это где-то читателю — трасса, `:location`, REPL), не оставляет ли ячейка подъёма следов в сессии (привязки, история).
@@ -38,7 +38,7 @@
    нет пробы того же запроса. Починено переносом: раздел [QSHST#stdin]
    написан заново, проба `--json` заменена пробами D402.
    ```sh
-   $ node scripts/sensors/run-probes.mjs docs/spec/QSHST-hosts-and-the-command-line.md | grep -c '^ok'
+   $ node scripts/sensors/run-probes.mjs docs/spec/QSHST-hosts.md | grep -c '^ok'
    38
    ```
 
@@ -213,6 +213,6 @@
 [D340]: ../../D340.md
 [D402]: ../../replaced/D402.md
 [QSLIT#json]: ../../../spec/QSLIT-values-and-literals.md#json
-[QSHST#stdin]: ../../../spec/QSHST-hosts-and-the-command-line.md#stdin
-[QSHST#answer]: ../../../spec/QSHST-hosts-and-the-command-line.md#answer
-[QSHST#source]: ../../../spec/QSHST-hosts-and-the-command-line.md#source
+[QSHST#stdin]: ../../../spec/QSCLI-the-command-line.md#stdin
+[QSHST#answer]: ../../../spec/QSCLI-the-command-line.md#answer
+[QSHST#source]: ../../../spec/QSHST-hosts.md#source

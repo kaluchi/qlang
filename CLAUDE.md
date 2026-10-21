@@ -136,7 +136,7 @@ pitches, no talk of commits or pull requests.
 Verify before asserting. Any claim about behaviour is run with
 `qlang '…'` in script mode or in `qlang -i`; in Git Bash a query that
 begins with `/` arrives as a path, which the command line reads back
-[QSHST#shell]. A long tool output is persisted with a short preview; filter it
+[QSCLI#shell]. A long tool output is persisted with a short preview; filter it
 instead of reading it back whole.
 
 ## Workspaces
@@ -210,7 +210,9 @@ resides on or the kind a conversion of its address reads [QSERR#site],
 on an export of the root of the core that no workspace beside it reads
 from the package and its README does not write [QSWRK#tooling],
 on a decision named in a page of the catalog, which a reader of the
-language cannot follow, on a record that names no decider [QSWRK#journal], and
+language cannot follow, on a record that names no decider [QSWRK#journal],
+on the title of a test that does not open with the one rule it holds, the
+section of a chapter or a record its tests hold [QSWRK#marks], and
 on a path this file, the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that
@@ -251,7 +253,9 @@ findings each with its file and its line [QSWRK#review].
   open, so master is the clean desk [QSWRK#branch]. Never
   commit code on master, and write a chapter of `docs/spec/` in the last
   commits of a branch alone, where its records dissolve [QSWRK#spec]; a
-  change to the journal alone lands without a branch. A branch states in
+  change of the journal that overrides no section lands without a branch,
+  and a record in transit lives on the branch of its shift
+  [QSWRK#baseline]. A branch states in
   its description what it shows when it
   lands. The sign of its diff by
   area, which `node scripts/measure.mjs` computes from the history, is

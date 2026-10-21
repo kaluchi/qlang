@@ -21,7 +21,7 @@ function captureIoContext(stdinPayload = '') {
 }
 
 describe('in', () => {
-  it('replaces pipeValue with the stdin payload as a String', async () => {
+  it('[QSHST#effect] replaces pipeValue with the stdin payload as a String', async () => {
     const io = captureIoContext('hello\nworld');
     const cellEntry = await runQuery('in', io);
     expect(cellEntry.defect).toBeNull();
@@ -30,7 +30,7 @@ describe('in', () => {
 });
 
 describe('out — the subject, written when it is a string', () => {
-  it('writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
+  it('[QSHST#effect] writes the String subject to stdoutWrite with a trailing newline and is identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"hello" | out | append "!"', io);
     expect(cellEntry.defect).toBeNull();
@@ -38,7 +38,7 @@ describe('out — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('hello!');
   });
 
-  it('refuses a subject that is no string as ::any/out/SubjectKindNotTakenError, writing nothing', async () => {
+  it('[QSHST#effect] refuses a subject that is no string as ::any/out/SubjectKindNotTakenError, writing nothing', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
@@ -49,7 +49,7 @@ describe('out — the subject, written when it is a string', () => {
 });
 
 describe('out — the text the call gives, computed against the subject', () => {
-  it('writes the text the call gives, computed against the subject, and answers the subject', async () => {
+  it('[QSHST#effect] writes the text the call gives, computed against the subject, and answers the subject', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out print', io);
     expect(cellEntry.defect).toBeNull();
@@ -57,7 +57,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     expect(cellEntry.result).toBe(42);
   });
 
-  it('refuses a text of another kind by the law of its input', async () => {
+  it('[QSHST#effect] refuses a text of another kind by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
@@ -66,7 +66,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     });
   });
 
-  it('answers the error its text answers, as every modifier of a verb does', async () => {
+  it('[QSHST#effect] answers the error its text answers, as every modifier of a verb does', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
@@ -77,7 +77,7 @@ describe('out — the text the call gives, computed against the subject', () => 
 });
 
 describe('err — the subject, written when it is a string', () => {
-  it('writes to stderrWrite, leaves stdout untouched, identity on pipeValue', async () => {
+  it('[QSHST#effect] writes to stderrWrite, leaves stdout untouched, identity on pipeValue', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"oops" | err', io);
     expect(cellEntry.defect).toBeNull();
@@ -86,7 +86,7 @@ describe('err — the subject, written when it is a string', () => {
     expect(cellEntry.result).toBe('oops');
   });
 
-  it('refuses a subject that is no string as ::any/err/SubjectKindNotTakenError', async () => {
+  it('[QSHST#effect] refuses a subject that is no string as ::any/err/SubjectKindNotTakenError', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectKindNotTakenError', {
@@ -96,14 +96,14 @@ describe('err — the subject, written when it is a string', () => {
 });
 
 describe('err — the text the call gives, computed against the subject', () => {
-  it('writes the text the call gives, computed against the subject, to stderr', async () => {
+  it('[QSHST#effect] writes the text the call gives, computed against the subject, to stderr', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err print', io);
     expect(cellEntry.defect).toBeNull();
     expect(io.stderrText()).toBe('[1 2 3]\n');
   });
 
-  it('refuses a text of another kind on stderr by the law of its input', async () => {
+  it('[QSHST#effect] refuses a text of another kind on stderr by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
     expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
@@ -113,7 +113,7 @@ describe('err — the text the call gives, computed against the subject', () => 
 });
 
 describe('tap', () => {
-  it('mirrors pipeValue onto stderr with the labelled prefix and is identity', async () => {
+  it('[QSHST#effect] mirrors pipeValue onto stderr with the labelled prefix and is identity', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap :before-count | count', io);
     expect(cellEntry.defect).toBeNull();
@@ -122,7 +122,7 @@ describe('tap', () => {
     expect(io.stdoutText()).toBe('');
   });
 
-  it('refuses a label that is not a keyword by the law of its input', async () => {
+  it('[QSHST#effect] refuses a label that is not a keyword by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
     expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
@@ -130,14 +130,14 @@ describe('tap', () => {
     });
   });
 
-  it('writes its subject as an answer prints, the print a kind declares among it [QSHST#effect]', async () => {
+  it('[QSHST#effect] writes its subject as an answer prints, the print a kind declares among it', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery(':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count', io);
     expect(cellEntry.result).toBe(1);
     expect(io.stderrText()).toBe('[tap x] [box]\n');
   });
 
-  it('writes the refusal in the place of a subject past the budget, its reads continuing from the subject, and goes on [QSHST#effect]', async () => {
+  it('[QSHST#effect] writes the refusal in the place of a subject past the budget, its reads continuing from the subject, and goes on', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
     expect(cellEntry.result).toBe(3000);

@@ -3,7 +3,7 @@
 // of the core's `tokenize` a span whose class is its kind, `italic` beside it
 // inside a quote, which `site/src/styles/global.css` coats; every call is a
 // name where no names of the root's words are handed.
-// The rules it holds: [QSWRK#tooling], [QSHST#tools].
+// The rules it holds: [QSWRK#tooling], [QSHST#tokens].
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

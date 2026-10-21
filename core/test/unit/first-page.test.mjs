@@ -16,12 +16,12 @@ const examples = [...content.matchAll(EXAMPLE)].map(([, input, query, answer]) =
   answer
 }));
 
-describe('the first page [QSSLF#page]', () => {
-  it('states the answers of its examples', () => {
+describe('the first page', () => {
+  it('[QSSLF#page] states the answers of its examples', () => {
     expect(examples.length).toBeGreaterThan(20);
   });
 
-  it.each(examples)('$query answers $answer', async ({ query, answer }) => {
+  it.each(examples)('[QSSLF#page] $query answers $answer', async ({ query, answer }) => {
     expect(compareValues(await evalQuery(query), await evalQuery(answer)) === 0).toBe(true);
   });
 });

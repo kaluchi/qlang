@@ -2,7 +2,7 @@
 // over them: the part at an offset, the end of the head of a tag, the
 // occurrences of a name and its two spellings, the names visible at a place,
 // whether a query reads its subject and the rule of a name declared twice
-// [QSQUO#step], [QSHST#tools].
+// [QSQUO#step], [QSLSP#server].
 
 import { splitAddress } from './address.mjs';
 import { isPath, isTag } from './types.mjs';
@@ -69,7 +69,7 @@ export function tagWrittenBy({ value }) {
 
 // tagHeadEnd(part) → where the tags a tagged literal, an error literal or a
 // quote of a doc writes at its head end, which the parser records, or null
-// [QSERR#rest], [QSHST#tools].
+// [QSERR#rest], [QSLSP#server].
 export const tagHeadEnd = read => read.head?.end.offset ?? null;
 
 // findNameOccurrences(root, name, spelling?) → the parts that name it, a
@@ -112,7 +112,7 @@ export function visibleAt(declaration, offset) {
 // `declaresAVerb` holds of, the last part of its declaration, of those outside
 // the body the nodes and the labels wherever they stand, the verb among them;
 // under the spelling of a tag the labels alone [QSSLF#catalog], [QSNAM#address],
-// [QSNAM#verb], [QSHST#tools].
+// [QSNAM#verb], [QSLSP#server].
 export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, declaresAVerb = () => false) {
   const declarations = [];
   walkParts(root, (read) => {
@@ -143,7 +143,7 @@ const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !==
 
 // readsItsSubject(quote, verbsOfNoSubject?) → whether a query reads the subject
 // it is handed, which a host lifting it from a stream waits on only then
-// [QSHST#stdin]: by its first step on the success track that declares nothing,
+// [QSCLI#stdin]: by its first step on the success track that declares nothing,
 // a group as its code, a literal and a verb `verbsOfNoSubject` names reading
 // none, a bare name of one a declaration before it shadows, or by the body of
 // such a declaration; a query of declarations alone reads it.

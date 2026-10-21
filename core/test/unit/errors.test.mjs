@@ -15,7 +15,7 @@ import {
 import { keyword } from '../../src/types.mjs';
 
 describe('QlangError base class', () => {
-  it('carries its facts', () => {
+  it('[QSERR#site] carries its facts', () => {
     const qlangErr = new QlangError('boom', { count: 5 });
     expect(qlangErr.facts).toEqual({ count: 5 });
     expect(qlangErr.message).toBe('boom');
@@ -27,8 +27,8 @@ describe('QlangError base class', () => {
 // A refusal whose site hands no facts.
 const TestsProbeError = declareRefusal('tests/ProbeError');
 
-describe('a refusal declared by its address [QSERR#site]', () => {
-  it('carries the facts its site hands, named by the last name of its address', () => {
+describe('a refusal declared by its address', () => {
+  it('[QSERR#site] carries the facts its site hands, named by the last name of its address', () => {
     const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);
     expect(unresolvedErr.facts.name.name).toBe('foo');
@@ -36,25 +36,25 @@ describe('a refusal declared by its address [QSERR#site]', () => {
     expect(unresolvedErr.address).toBe('call/UnknownNameError');
   });
 
-  it('says its address as its message, whatever facts its site hands', () => {
+  it('[QSERR#site] says its address as its message, whatever facts its site hands', () => {
     expect(new TestsProbeError().message).toBe('::tests/ProbeError');
     expect(new CallEvaluationDepthExceededError({ depth: 11, limit: 10 }).message).toBe('::call/EvaluationDepthExceededError');
   });
 
-  it('hands no facts where its site hands none', () => {
+  it('[QSERR#site] hands no facts where its site hands none', () => {
     const probeErr = new TestsProbeError();
     expect(probeErr.name).toBe('ProbeError');
     expect(probeErr.facts).toEqual({});
   });
 
-  it('names the class of a refusal by the last name of its address', () => {
+  it('[QSERR#site] names the class of a refusal by the last name of its address', () => {
     expect(CallUnknownNameError.name).toBe('UnknownNameError');
     expect(TestsProbeError.name).toBe('ProbeError');
   });
 });
 
 describe('QlangDefect', () => {
-  it('carries its message and its facts', () => {
+  it('[QSERR#site] carries its message and its facts', () => {
     const defect = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
     expect(defect.message).toBe('registration failed');
     expect(defect.facts.site).toBe('X');
@@ -68,11 +68,11 @@ describe('one address, one site', () => {
   // The address is the tag a refusal answers by and the name of its
   // page, so a second class under one address would speak for the
   // other site.
-  it('lists every address a site declared, which the pages of the refusals are held against [QSERR#site]', () => {
+  it('[QSERR#site] lists every address a site declared, which the pages of the refusals are held against', () => {
     expect([...declaredRefusals()]).toEqual(expect.arrayContaining(['tests/ProbeError', 'call/UnknownNameError', 'builtin/RefusalDeclaredTwiceError']));
   });
 
-  it('refuses a second declaration of an address already declared', () => {
+  it('[QSERR#site] refuses a second declaration of an address already declared', () => {
     let refusal = null;
     try {
       declareRefusal('call/UnknownNameError');
@@ -90,7 +90,7 @@ describe('one address, one site', () => {
 describe('declareForeignError — a failure of the embedding', () => {
   // The class stays off the QlangError hierarchy and carries the address
   // every other declaration stamps.
-  it('declares a class outside the QlangError hierarchy that still names its site', () => {
+  it('[QSERR#site] declares a class outside the QlangError hierarchy that still names its site', () => {
     const TestsBridgeUnreachableError = declareForeignError('tests/BridgeUnreachableError',
       ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
     const foreignErr = new TestsBridgeUnreachableError({ endpoint: 'ipc://bridge' });

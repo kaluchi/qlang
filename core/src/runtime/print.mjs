@@ -1,5 +1,5 @@
 // The primitives of `print` [QSPRN#print] and `elide` [QSPRN#elide], and the
-// one print of an answer every host prints within the budget [QSHST#answer].
+// one print of an answer every host prints within the budget [QSPRN#budget].
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
@@ -33,7 +33,7 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 
 // boundAnswer(answer, scope, written?) → what a host prints for an answer, a
 // failure as its alert, where its print or the text `written` fits the
-// budget, and else the refusal of an answer past it in its place [QSHST#answer].
+// budget, and else the refusal of an answer past it in its place [QSPRN#budget].
 export async function boundAnswer(answer, scope, written = null) {
   const printedOf = await printsOfKinds(answer, scope);
   const failed = isErrorValue(answer);

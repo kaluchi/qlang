@@ -11,11 +11,11 @@ import { buildLangRuntime } from '../../src/runtime/index.mjs';
 import { keyword } from '../../src/types.mjs';
 
 describe('platformLocator', () => {
-  it('returns null for an unmapped source', async () => {
+  it('[QSHST#source] returns null for an unmapped source', async () => {
     expect(await platformLocator('does/not/exist/anywhere')).toBeNull();
   });
 
-  it('returns { source } for a source of the language', async () => {
+  it('[QSHST#source] returns { source } for a source of the language', async () => {
     const result = await platformLocator('qlang');
     expect(typeof result.source).toBe('string');
     expect(result.source.length).toBeGreaterThan(100);
@@ -23,14 +23,14 @@ describe('platformLocator', () => {
 });
 
 describe('BootstrapSourceMissingError', () => {
-  it('names the source it missed as its origin, and where a host maps it', () => {
+  it('[QSHST#source] names the source it missed as its origin, and where a host maps it', () => {
     const err = new BuiltinBootstrapSourceMissingError({ origin: keyword('qlang/vec') });
     expect(err.name).toBe('BootstrapSourceMissingError');
     expect(err.message).toContain('#qlang/vec');
     expect(err.message).toContain('package.json#imports');
   });
 
-  it('fires from buildLangRuntime when the locator serves no source, naming the first as its origin', async () => {
+  it('[QSHST#source] fires from buildLangRuntime when the locator serves no source, naming the first as its origin', async () => {
     const refused = await buildLangRuntime(async () => null).catch(error => error);
     expect(refused).toBeInstanceOf(BuiltinBootstrapSourceMissingError);
     expect(refused).toMatchObject({ name: 'BootstrapSourceMissingError', facts: { origin: keyword('qlang/builtin') } });
@@ -38,7 +38,7 @@ describe('BootstrapSourceMissingError', () => {
 });
 
 describe('a source of the language the parser refuses', () => {
-  it('raises its parse error, which names the source', async () => {
+  it('[QSHST#source] raises its parse error, which names the source', async () => {
     let thrown = null;
     try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
     expect(thrown).toBeInstanceOf(ParseError);
@@ -46,12 +46,12 @@ describe('a source of the language the parser refuses', () => {
   });
 });
 
-describe('the facts and the message of SourceLoadError [QSHST#source]', () => {
+describe('the facts and the message of SourceLoadError', () => {
   // The class a loader raises for a source that does not read, built here by
   // hand, its facts the origin of the source, where it was looked for and the
   // host's account of the failure.
 
-  it('carries the origin, the location and the cause, and names no platform', async () => {
+  it('[QSHST#source] carries the origin, the location and the cause, and names no platform', async () => {
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const cause = new Error('EACCES: permission denied');
     const err = new BuiltinSourceLoadError({ origin: keyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
@@ -60,7 +60,7 @@ describe('the facts and the message of SourceLoadError [QSHST#source]', () => {
     expect(err.facts).toEqual({ origin: keyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
   });
 
-  it('writes a cause that is no error as its text', async () => {
+  it('[QSHST#source] writes a cause that is no error as its text', async () => {
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');
     const err = new BuiltinSourceLoadError({ origin: keyword('qlang/vec'), sourceLocation: '/x.qlang', cause: 'raw-string-cause' });
     expect(err.message).toBe("failed to read qlang source 'qlang/vec' from /x.qlang — raw-string-cause");

@@ -64,7 +64,7 @@ export const KIND_COMMAND_NAMES = Object.freeze([...KIND_COMMANDS.keys()]);
 export const COMMAND_NAMES = Object.freeze([...new Set([...FN_COMMAND_NAMES, ...KIND_COMMAND_NAMES, 'impl'])]);
 
 // isVerbBody(body) → whether the body of a declaration as written is the value of a
-// verb: a quote, a `::builtin{}` or a function built from `::fn` [QSNAM#address], [QSHST#tools].
+// verb: a quote, a `::builtin{}` or a function built from `::fn` [QSNAM#address], [QSLSP#server].
 export function isVerbBody(body) {
   return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }

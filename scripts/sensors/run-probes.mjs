@@ -57,7 +57,7 @@ const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.m
 // A probe reads as the command line reads a query: the first cell of a
 // session of its own over the scope the command line's sources declare once,
 // its streams silent, its subject the noun of the language, each query
-// answered once in a run [QSWRK#probe], [QSHST#stdin].
+// answered once in a run [QSWRK#probe], [QSCLI#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
 const { scope: withTheCommandLine } = await createSession({ sources: cliSources(SILENT_STREAMS) });

@@ -60,7 +60,7 @@ function printPathSegment(segment, afterSlashedKey) {
 
 // A value under a tag writes its tag before its payload, a descriptor's
 // `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
-// error write their own brackets, and a number past the doubles is raised [QSHST#source].
+// error write their own brackets, and a number past the doubles is raised [QSHST#door].
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),

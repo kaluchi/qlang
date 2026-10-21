@@ -28,8 +28,8 @@ beforeAll(async () => {
   declaredPages = await declaredPagesOf(evalQuery, addresses);
 }, 120_000);
 
-describe('the links of the catalog [QSSLF#doc]', () => {
-  it('tells a dead link, a doc no name declares and a link to its own page', async () => {
+describe('the links of the catalog', () => {
+  it('[QSSLF#doc] tells a dead link, a doc no name declares and a link to its own page', async () => {
     const pages = new Set([printValue(await evalQuery('::qlang/values | doc'))]);
     const ownPage = printValue(await evalQuery('::qlang | doc'));
     expect(wrongTarget(await evalQuery('::qlang/nothing | doc'), pages, ownPage)).toBe('answers the error ::any/doc/UnknownNameError');
@@ -40,7 +40,7 @@ describe('the links of the catalog [QSSLF#doc]', () => {
     expect(wrongTarget(await evalQuery('::qlang/values | doc'), pages, ownPage)).toBeNull();
   });
 
-  it('every link leads to the page of another name of the language', async () => {
+  it('[QSSLF#doc] every link leads to the page of another name of the language', async () => {
     expect(await wrongLinksOf(evalQuery, links, declaredPages)).toEqual([]);
     expect(links.length).toBeGreaterThan(0);
   }, 120_000);

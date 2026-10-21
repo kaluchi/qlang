@@ -39,7 +39,7 @@ head of an answer past the budget leave out stands as an `::elision`
 before the print, so the print holds all it is given. The print of a
 failure finds the print of each part of its facts as the print of every
 value does. Every host prints an answer through the one print of the
-core, `boundAnswer`, within the budget of every answer [QSHST#answer],
+core, `boundAnswer`, within the budget of every answer [QSPRN#budget],
 the command line a string as its text and the REPL and the site as its
 literal.
 
@@ -174,6 +174,29 @@ elision it holds. A value whose print fits is answered as it is.
 
 > [{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| type
 ::trace/ElementKindNotTakenError
+```
+
+## budget
+
+Every host but the REPL prints an answer within one budget,
+`ANSWER_BUDGET` of the core, the characters of the print counted as
+`count` counts a string, which is never smaller than the first screen,
+`[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
+prints whole, and one past the budget prints as the failure
+`::qlang/AnswerBeyondBudgetError` in its place, whose facts are
+`:characters`, the characters of the print, `:budget`, `:actualType`,
+the kind of the answer, and `:actualValue`, its head, the answer cut to
+the excerpt of an alert [QSERR#alert], or given way whole where no cut
+fits it, the `:read` of each elision there continuing the query from the
+answer, `~(drop 12)` [QSERR#site]. A query cuts a value by `elide`
+[QSPRN#elide], and the command line writes no flag that sets or cuts the
+budget [QSCLI#answer].
+
+```sh
+$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|::elision\{:size [0-9]+ :read ~\(drop [0-9]+\)\}'
+:characters 70891
+:budget 16000
+::elision{:size 2988 :read ~(drop 12)}
 ```
 
 ## span

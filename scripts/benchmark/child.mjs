@@ -14,7 +14,7 @@ import { delimiter, join } from 'node:path';
 const SYSTEM_PROMPT = 'You are a careful assistant.';
 const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(cat:*)', 'Bash(head:*)'];
 
-// The environment a child runs in beside the session's [QSHST#shell]: Git Bash
+// The environment a child runs in beside the session's [QSCLI#shell]: Git Bash
 // rewrites an argument that begins with `/` into a path of Windows, which
 // mangles a query that reads a part, and the conversion is off.
 export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });

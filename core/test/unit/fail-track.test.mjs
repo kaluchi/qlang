@@ -12,12 +12,12 @@ import { catchOriginalError } from '../helpers/error-assertions.mjs';
 // ── raise ──────────────────────────────────────────────
 
 describe('raise', () => {
-  it('a failure in the pipe skips raise', async () => {
+  it('[QSERR#catch] a failure in the pipe skips raise', async () => {
     const evalResult = await evalQuery('("not-a-number" | add 1) | raise !| type');
     expect(evalResult).toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
-  it('an error literal under the address of a refusal, raised, keeps every fact it writes [QSERR#rest]', async () => {
+  it('[QSERR#raise] an error literal under the address of a refusal, raised, keeps every fact it writes', async () => {
     const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
     expect(isErrorValue(err)).toBe(true);
     expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
@@ -25,7 +25,7 @@ describe('raise', () => {
     expect(err.facts.get('note')).toBe(42);
   });
 
-  it('raise takes the tag the map carries and keeps every entry a fact', async () => {
+  it('[QSERR#raise] raise takes the tag the map carries and keeps every entry a fact', async () => {
     // A `:kind` entry names no tag [QSERR#rest]: the tag is the map's own.
     const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
     expect(result.tag.name).toBe('MyTag');
@@ -37,32 +37,32 @@ describe('raise', () => {
 // ── `!|` runs a verb ───────────────────────────────────────────
 
 describe('`!|` runs a verb on the error at rest', () => {
-  it('a verb called by `!|` runs its steps on the error at rest', async () => {
+  it('[QSERR#catch] a verb called by `!|` runs its steps on the error at rest', async () => {
     const evalResult = await evalQuery(':any/handler ~(get /kind) | !{:kind :oops} | raise !| handler');
     expect(evalResult).toEqual(keyword('oops'));
   });
 
-  it('the steps skipped past a comment run again by apply as the call after it', async () => {
+  it('[QSERR#trace] the steps skipped past a comment run again by apply as the call after it', async () => {
     const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
     expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
   });
 });
 
 describe('source axis prints the declaration for rare forms of a body', () => {
-  it('renders a call that gives no modifiers as the body of a declaration', async () => {
+  it('[QSSLF#axis] renders a call that gives no modifiers as the body of a declaration', async () => {
     expect(await evalQuery('[1 2] | :x count | ::x | source | toString')).toBe(':x count');
   });
 
-  it('a line comment inside the body of a declaration leaves no step', async () => {
+  it('[QSSLF#axis] a line comment inside the body of a declaration leaves no step', async () => {
     const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | toString');
     expect(evalResult).toBe(':x (42)');
   });
 
-  it('renders an error literal as the body of a declaration', async () => {
+  it('[QSSLF#axis] renders an error literal as the body of a declaration', async () => {
     expect(await evalQuery(':x !{:a 1} | ::x | source | toString')).toBe(':x !{:a 1}');
   });
 
-  it('renders a group that opens with `!|` as the body of a declaration', async () => {
+  it('[QSSLF#axis] renders a group that opens with `!|` as the body of a declaration', async () => {
     // The body of a declaration is a step, so a pipeline that opens with
     // `!|` is written as a group, which keeps its parentheses in print
     // [QSNAM#declare].
@@ -71,7 +71,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
 });
 
 describe('the refusals of the runtime', () => {
-  it('every refusal of the runtime is one kind of error, its message its address [QSERR#site]', async () => {
+  it('[QSERR#site] every refusal of the runtime is one kind of error, its message its address', async () => {
     const queries = [
       '42 | count',
       '[1 "two"] | sum',

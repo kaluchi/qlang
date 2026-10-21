@@ -20,12 +20,12 @@ async function catalogReaders() {
 }
 
 describe('the laws of the catalog, run by runLaws', () => {
-  it('every law answers true', async () => {
+  it('[QSSLF#laws] every law answers true', async () => {
     const failures = await failingLawsOf(evalQuery, await catalogReaders());
     expect(failures, `${failures.length} law(s) of the catalog failed:\n${reportOfLaws(failures)}`).toEqual([]);
   }, 30000);
 
-  it('every law reads back from the text of its code as itself', async () => {
+  it('[QSSLF#laws] every law reads back from the text of its code as itself', async () => {
     // `toString` writes each law as the text of its code, which `parse` reads
     // back as the law, a reader whose read answers a failure failing [QSQUO#parse].
     const unequal = [];
@@ -36,14 +36,14 @@ describe('the laws of the catalog, run by runLaws', () => {
     expect(unequal).toEqual([]);
   }, 30000);
 
-  it('no quote of a page is read as prose', async () => {
+  it('[QSSLF#catalog] no quote of a page is read as prose', async () => {
     // A quote the parser refuses reads as prose [QSSLF#doc], so a link or a
     // snippet a change of the grammar breaks leaves its page with no
     // failure to show; prose names code inside backticks alone.
     expect(await proseQuotesOf(evalQuery, await catalogReaders())).toEqual([]);
   }, 30000);
 
-  it('the laws of every name answer true and nothing else', async () => {
+  it('[QSSLF#laws] the laws of every name answer true and nothing else', async () => {
     const readers = await catalogReaders();
     const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map ~(runLaws | map /ok) | flat | distinct`);
     expect(isErrorValue(distinctOkValues)).toBe(false);

@@ -36,7 +36,7 @@ const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.m
 
 // What the command line answers for a query over the data of its task,
 // as JSON text, which `| json | out` writes whole, past the budget of every
-// answer [QSHST#answer], run in this process as
+// answer [QSCLI#answer], run in this process as
 // `bin.mjs` runs it, its data handed as standard input.
 async function answerOf(query, task) {
   const flags = task.raw ? ['--raw', `(${query}) | json | out`] : [`(${query}) | json | out`];

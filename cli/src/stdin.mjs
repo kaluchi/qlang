@@ -1,4 +1,4 @@
-// Standard input of the command line [QSHST#stdin]: its text, read to its end,
+// Standard input of the command line [QSCLI#stdin]: its text, read to its end,
 // the empty string from a terminal, and the first value a query that reads its
 // subject starts from, which `parseJson` lifts the text to.
 

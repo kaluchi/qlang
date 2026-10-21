@@ -1,8 +1,8 @@
 // The editor's extension: it launches the language server of the checkout,
 // paints a block of qlang in a preview of markdown by the core's tokens and
 // selects a word by the regex of a name the core exports, each once the module
-// that holds it has loaded [QSHST#tools].
-// The rules it holds: [QSWRK#tooling], [QSHST#tools].
+// that holds it has loaded [QSLSP#extension].
+// The rules it holds: [QSWRK#tooling], [QSLSP#extension].
 
 const path = require('path');
 const vscode = require('vscode');
@@ -12,7 +12,7 @@ const { blockHtml } = require('./markdown-block.js');
 let client;
 
 // The core's `tokenize` and the names of the root's words a block is painted
-// by, each handed over as it loads [QSHST#tools].
+// by, each handed over as it loads [QSLSP#extension].
 const painter = { tokenize: null, verbNames: new Set() };
 
 function activate(context) {

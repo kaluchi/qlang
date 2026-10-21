@@ -17,10 +17,11 @@ describe('runRepl — in / out behaviour', () => {
 describe('runQuery', () => {
   it('binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('"qlang" | out', io);
+    let writesOfOut = 0;
+    const cellEntry = await runQuery('"qlang" | out', { ...io, recordStdoutEffect: () => { writesOfOut += 1; } });
     expect(cellEntry.defect).toBeNull();
     expect(io.stdoutText()).toBe('qlang\n');
-    expect(io.stdoutEffectCount()).toBe(1);
+    expect(writesOfOut).toBe(1);
   });
 });
 

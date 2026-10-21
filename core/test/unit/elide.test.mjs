@@ -208,6 +208,14 @@ describe('alertOf [QSHST#answer]', () => {
     expect(passed.get('size')).toBe(100);
   });
 
+  it('gives a subject way whole where its cut still passes the excerpt, an atom counted by its print', async () => {
+    const name = 'k'.repeat(400);
+    const query = `:${name} | add 1`;
+    const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
+    expect([elision.get('size'), printValue(elision.get('read'))]).toEqual([name.length + 1, '~(!| get /trace/0/0)']);
+    expect(await continued(query, elision)).toEqual(await evalQuery(`:${name}`));
+  });
+
   it('counts a vector it passed by its elements, through the tags over it', async () => {
     const query = '300 | range | tag ::B | tag ::A | map ~(add "x")';
     const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];

@@ -337,9 +337,20 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
     for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
   });
 
-  it('reads the quote of a line doc on the last line of the source once, line docs nested thirteen deep in the quotes of line docs read within two seconds [QSSYN#doc]', () => {
+  it.each([
+    ['calls by habit nested, left open', 'f('.repeat(19) + 'x ]'],
+    ['declarations with docs nested, left open', ':vec/f |~~ d ~~| ('.repeat(9) + 'get /a'],
+    ['bare names with docs nested in their docs, closed', ':x |~~ ~('.repeat(18) + '1' + ') ~~| 1'.repeat(18)],
+    ['quotes of commands nested, left open', 'f ~('.repeat(12) + 'x'],
+    ['quotes of templates nested, left open', 'get [~('.repeat(11) + 'x'],
+    ['tags with parentheses nested, left open', '::A('.repeat(1024) + 'x'],
+    ['block docs nested, left open', '|~~ a '.repeat(20)],
+    ['block comments nested, left open', '|~ a '.repeat(24)],
+    ['line docs in the quotes of line docs', '|~~| ' + '~(|~~| '.repeat(13) + 'x'],
+    ['a run of declarations joined by pipes, their bodies on the next line', Array.from({ length: 700 }, (_, at) => `:vec/f${at}\n  ~(get /0)`).join(' |\n') + ' | [1]']
+  ])('reads %s within two seconds [D404]', (_, text) => {
     const started = Date.now();
-    expect(stepOf('|~~| ' + '~(|~~| '.repeat(13) + 'x')).toHaveLength(1);
+    refusalOf(text);
     expect(Date.now() - started).toBeLessThan(2000);
   });
 

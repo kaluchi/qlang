@@ -3,6 +3,7 @@
 // The rules it holds: [QSSYN#step], [QSSYN#line].
 
 import { describe, it, expect } from 'vitest';
+import { Worker } from 'node:worker_threads';
 import { parse, ParseError } from '../../src/parse.mjs';
 import { partOf } from '../../src/walk.mjs';
 import { isCallStep, isBindStep, isConstructStep, isGroupStep, isFailStep } from '../../src/steps.mjs';
@@ -331,6 +332,20 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
   });
 
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
+  // A read past its bound blocks the thread that reads it, past any timeout
+  // of the suite, so a worker reads the text and is stopped at ten seconds,
+  // which answer as never [D404].
+  const millisecondsOfARead = text => new Promise((resolve, reject) => {
+    const worker = new Worker(`const { parentPort, workerData } = require('node:worker_threads');
+      import(workerData.parser).then(({ parse }) => {
+        const started = Date.now();
+        try { parse(workerData.text); } catch {}
+        parentPort.postMessage(Date.now() - started);
+      });`, { eval: true, workerData: { text, parser: new URL('../../src/parse.mjs', import.meta.url).href } });
+    const stop = setTimeout(() => worker.terminate().then(() => resolve(Infinity)), 10000);
+    worker.once('message', elapsed => { clearTimeout(stop); worker.terminate().then(() => resolve(elapsed)); });
+    worker.once('error', failure => { clearTimeout(stop); reject(failure); });
+  });
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 
   it('refuses a bare nest left open of groups, quotes and maps reading each depth once [QSSYN#refusal]', () => {
@@ -348,10 +363,8 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
     ['block comments nested, left open', '|~ a '.repeat(24)],
     ['line docs in the quotes of line docs', '|~~| ' + '~(|~~| '.repeat(13) + 'x'],
     ['a run of declarations joined by pipes, their bodies on the next line', Array.from({ length: 700 }, (_, at) => `:vec/f${at}\n  ~(get /0)`).join(' |\n') + ' | [1]']
-  ])('reads %s within two seconds [D404]', (_, text) => {
-    const started = Date.now();
-    refusalOf(text);
-    expect(Date.now() - started).toBeLessThan(2000);
+  ])('reads %s within two seconds [D404]', async (_, text) => {
+    expect(await millisecondsOfARead(text)).toBeLessThan(2000);
   });
 
   it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', () => {

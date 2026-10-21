@@ -113,9 +113,10 @@
 //       `:expected`: the refusals the code declares, read as (2) reads them,
 //       and those the pages of the catalog write, read by the parser [QSERR#site].
 //
-//   (21) A test names first in its title the one rule it holds, the section
-//       of a chapter or a record in force of a domain its tests hold, and
-//       second the record in transit over that section that brought it [QSWRK#marks].
+//   (21) A test file stands in the section whose rule its tests hold,
+//       `<chapter>/<section>.test.mjs` under the tests of its workspace, or
+//       at a record in force of a domain its tests hold, and the title of a
+//       test cites no rule [QSWRK#marks].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -125,7 +126,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
-import { baselineOf, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
+import { baselineOf, chaptersOfSpec, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
@@ -134,7 +135,7 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
-import { problemOfTitle, testsOfTree } from './test-titles.mjs';
+import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -886,25 +887,22 @@ function exportsNoHostReads() {
     .map(finding => ({ file: rootPath.split(sep).join('/'), ...finding }));
 }
 
-// ── (21) A test names the rule it holds ────────────────────────
+// ── (21) A test stands in the section of its rule ──────────────
 //
-// A test is held by its own title alone: it opens with the one rule the test
-// holds, the section of a chapter, or the record in force of a domain whose
-// tests hold it where no chapter states the rule, and second, while a record
-// in transit brought it, that record, which overrides its section or its
-// chapter whole [QSWRK#marks].
+// A test file stands in the section whose rule its tests hold, named by its
+// path as a file of the cases is, or at the record in force of a domain whose
+// tests hold it where no chapter states the rule, and the title of a test
+// cites no rule, which the path names [QSWRK#marks].
 
-function testsNamingNoRule() {
+function testsOffTheirSection() {
   const records = readDecisionRecords(repoRoot);
-  const transit = recordsInTransit(repoRoot);
+  const sections = new Set([...chaptersOfSpec(repoRoot)].flatMap(([chapter, names]) => [...names].map(name => `${chapter}#${name}`)));
   const heldByItsTests = name => {
     const record = records.get(name);
     return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
   };
-  return testsOfTree(repoRoot).flatMap(test => {
-    const problem = problemOfTitle(test, { heldByItsTests, overridesOf: name => transit.get(name) });
-    return problem === null ? [] : [{ file: test.file, line: test.line, problem, title: (test.title ?? '').slice(0, 80) }];
-  });
+  return testFilesOfTree(repoRoot).flatMap(({ path, text }) => problemsOfTestFile(path, text, { sections, heldByItsTests })
+    .map(({ line, problem }) => ({ file: path, line, problem })));
 }
 
 // ── Main ───────────────────────────────────────────────────────
@@ -930,7 +928,7 @@ const { text, failed } = verdictOf({
   retired: retiredWordsWritten(),
   commandKinds: kindsOfCommands(),
   unreadExports: exportsNoHostReads(),
-  testsNamingNoRule: testsNamingNoRule()
+  testsOffTheirSection: testsOffTheirSection()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

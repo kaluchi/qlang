@@ -1,10 +1,10 @@
-// The marks of the rules the artifacts hold [QSWRK#marks]: a module, a
-// script and a test file name a section in a comment or a title,
-// `[QSNAM#scope]`, and a record while its change is in transit, `[Dnn]`, a
-// case names the record in transit over its section in its `decision`, and
-// the sister project names a record of qlang as `(qlang Dnn)`. A record
-// lists no file; its scope is every place that marks it, which this search
-// answers.
+// The marks of the rules the artifacts hold [QSWRK#marks]: a module and a
+// script name a section in a comment, `[QSNAM#scope]`, and a record while its
+// change is in transit, `[Dnn]`, a test file and a file of the cases name
+// their section by their path, a case the record in transit over its section
+// in its `decision`, and the sister project names a record of qlang as
+// `(qlang Dnn)`. A record lists no file; its scope is every place that marks
+// it, which this search answers.
 //
 // Usage:
 //   node scripts/marks.mjs                 the artifacts that name nothing, the orphans
@@ -21,6 +21,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { baselineOf } from './baseline-walk.mjs';
 import { readText } from './tree-reads.mjs';
+import { homeOfPath } from './test-homes.mjs';
 import { FATE, FIELD_OPENS, LINK_DEFINITION, RUN_LINE, JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -127,6 +128,17 @@ export function marksOfTree(root = repoRoot) {
       const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readText(join(root, path)))];
       marks.push(...found.map(mark => ({ path, ...mark })));
       blocks.set(path, found.map(({ name, line }) => ({ from: line, to: line, names: new Set([name]) })));
+      continue;
+    }
+    const home = homeOfPath(path);
+    if (home !== null) {
+      // A test file marks by its path the section its tests hold, its whole
+      // text, and a comment in it the rules it cites [QSWRK#marks].
+      const name = home.section ?? home.record;
+      const text = readText(join(root, path));
+      const cited = marksOfText(text, MARK);
+      marks.push({ path, name, line: 1 }, ...cited.map(mark => ({ path, ...mark })));
+      blocks.set(path, [{ from: 1, to: Infinity, names: new Set([name]) }, ...(cited.length > 0 ? blocksOf(cited, text, path) : [])]);
       continue;
     }
     if (!isArtifact(path)) continue;

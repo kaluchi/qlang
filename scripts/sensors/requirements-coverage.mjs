@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // The coverage of the sources of the core by its requirements alone, the
-// cases of the conformance suite and the laws of the catalog, run by their
-// two runners under the coverage of vitest with no threshold: the share of
+// cases of the conformance suite and the laws of the catalog, run by the test
+// files of their two sections, `QSWRK/cases` and `QSSLF/laws`, under the
+// coverage of vitest with no threshold: the share of
 // each axis they reach, and by module the lines of code they reach not,
 // which a test of another suite holds or nothing does [QSWRK#tooling].
 //
@@ -16,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const core = fileURLToPath(new URL('../../core', import.meta.url));
 const vitest = fileURLToPath(new URL('../../node_modules/vitest/vitest.mjs', import.meta.url));
 const shown = Number(process.argv[2] ?? 12);
-const RUNNERS = ['test/unit/conformance.test.mjs', 'test/unit/catalog-laws.test.mjs'];
+const RUNNERS = ['test/unit/QSWRK/cases.test.mjs', 'test/unit/QSSLF/laws.test.mjs'];
 
 const report = mkdtempSync(join(tmpdir(), 'requirements-coverage-'));
 const run = spawnSync(process.execPath, [vitest, 'run', '--coverage', '--coverage.reporter=json-summary', '--coverage.reporter=json',

@@ -40,3 +40,4 @@
 {"name":"a-line-doc-that-holds-a-quote-of-no-code-reads-back-from-its-print","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | :d it | print | parse | first | eq d","expect":"true"}
 {"name":"a-doc-before-the-key-of-a-map-entry-is-refused-by-the-parser","query":"\"{|~~ doc ~~| :k 1}\" | parse !| get [~(type) /found]","expect":"[::quote/ParseError \"|\"]"}
 {"decision":"D403","name":"a-quote-of-a-line-doc-is-tried-as-code-within-its-line-alone","query":"\"[|~~| x ~(a\\n 1 2 | f\" | parse !| get /location","expect":"::span[17 2 6 18 2 7]"}
+{"decision":"D403","name":"a-line-doc-ends-at-its-line-break-a-carriage-return-before-a-line-feed-left-out-of-its-prose","query":"get [~(\"|~~| x\\r\\n\" | parse | first | content) ~(\"[|~~| x\\r\\n 1]\" | parse | first | first | content) ~(\"|~~| a\\rb\" | parse | first | content)]","expect":"[\" x\" \" x\" \" a\\nb\"]"}

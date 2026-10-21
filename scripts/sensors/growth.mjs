@@ -19,7 +19,12 @@ const PARSE = {
   'groups nested, left open': n => repeat('(', n) + 'x ]',
   'groups nested, closed': n => repeat('(', n) + '1' + repeat(')', n),
   'tags with parentheses nested': n => repeat('::A(', n) + '1' + repeat(')', n),
+  'tags with parentheses nested, left open': n => repeat('::A(', n) + 'x',
+  'calls by habit nested, left open': n => repeat('f(', n) + 'x ]',
   'quotes nested, left open': n => repeat('~(', n) + 'x',
+  'quotes of commands nested, left open': n => repeat('f ~(', n) + 'x',
+  'quotes of templates nested, left open': n => repeat('get [~(', n) + 'x',
+  'recipes of verbs nested, left open': n => repeat(':vec/f (::fn | impl ~(', n) + 'x',
   'vectors nested, left open': n => repeat('[', n) + '1',
   'maps nested, left open': n => repeat('{:a ', n) + '1',
   'declarations nested, bodies on the next line': n => repeat(':vec/f\n  (', n) + '1' + repeat(')', n),
@@ -89,7 +94,7 @@ if (process.argv[2] === '--one') {
       for (let n = 4; n <= 8192; n *= 2) {
         const run = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--one', kind, shape, String(n)], { cwd: root, encoding: 'utf8', timeout: LIMIT_MS });
         if (run.error || run.status !== 0) {
-          row.push(`${n}:${run.error ? `>${LIMIT_MS / 1000}s` : (run.stderr.split('\n').find(line => line.includes('Error')) ?? 'failed').trim().slice(0, 40)}`);
+          row.push(`${n}:${run.error ? `>${LIMIT_MS / 1000}s` : (run.stderr.split('\n').find(line => /^\w*Error:/.test(line)) ?? 'failed').trim().slice(0, 40)}`);
           break;
         }
         const ms = Number(run.stdout.trim());

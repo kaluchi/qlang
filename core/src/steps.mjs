@@ -127,13 +127,12 @@ function laterStepMessage(step, written) {
   return 'a step is a command: a value stands at the head, where it is the subject, or as what a verb takes';
 }
 
-// The message of a value after a chain written on the line of its name [QSSYN#line].
+// The message of a value after a chain written on the line of its name [D403].
 function chainMessage(payload, index, written) {
   const bind = payload[payload.slice(0, index).findLastIndex(step => !isCallStep(step))];
   if (!isBindStep(bind) || !isTag(bind.get('body'))) return null;
   const [name, body] = [written.of(bind.get('name')), written.of(bind.get('body'))];
-  const ofItsLine = bind.get('name').name.includes('/') || bind.has('docs') ? ', or begins on a line of its own' : '';
-  return `the body of \`${name}\` on the line of its name is one step, \`${body}\`, and the commands after it are steps of the query: a chain stands in parentheses, \`${name} (${body} | …)\`${ofItsLine}`;
+  return `the body of \`${name}\` on the line of its name is one step, \`${body}\`, and the commands after it are steps of the query: a chain stands in parentheses, \`${name} (${body} | …)\``;
 }
 
 function nameMessage(name, written) {

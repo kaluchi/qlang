@@ -281,4 +281,4 @@ QSQUO#parse, QSSLF#manifest, QSSLF#page и QSNAM#root по D397, QSWRK#measure
 раздела, которые он назвал вне Overrides.
 
 [D38]: ../../D38.md
-[D397]: ../../D397.md
+[D397]: ../../replaced/D397.md

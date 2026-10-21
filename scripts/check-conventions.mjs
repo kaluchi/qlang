@@ -113,6 +113,10 @@
 //       `:expected`: the refusals the code declares, read as (2) reads them,
 //       and those the pages of the catalog write, read by the parser [QSERR#site].
 //
+//   (21) A test names first in its title the one rule it holds, the section
+//       of a chapter or a record in force of a domain its tests hold, and
+//       second the record in transit over that section that brought it [D409].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -130,6 +134,7 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
+import { problemOfTitle, testsOfTree } from './test-titles.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -881,6 +886,27 @@ function exportsNoHostReads() {
     .map(finding => ({ file: rootPath.split(sep).join('/'), ...finding }));
 }
 
+// ── (21) A test names the rule it holds ────────────────────────
+//
+// A test is held by its own title alone: it opens with the one rule the test
+// holds, the section of a chapter, or the record in force of a domain whose
+// tests hold it where no chapter states the rule, and second, while a record
+// in transit brought it, that record, which overrides its section or its
+// chapter whole [D409].
+
+function testsNamingNoRule() {
+  const records = readDecisionRecords(repoRoot);
+  const transit = recordsInTransit(repoRoot);
+  const heldByItsTests = name => {
+    const record = records.get(name);
+    return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
+  };
+  return testsOfTree(repoRoot).flatMap(test => {
+    const problem = problemOfTitle(test, { heldByItsTests, overridesOf: name => transit.get(name) });
+    return problem === null ? [] : [{ file: test.file, line: test.line, problem, title: (test.title ?? '').slice(0, 80) }];
+  });
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -903,7 +929,8 @@ const { text, failed } = verdictOf({
   takenOutNamed: namesOfTakenOut(),
   retired: retiredWordsWritten(),
   commandKinds: kindsOfCommands(),
-  unreadExports: exportsNoHostReads()
+  unreadExports: exportsNoHostReads(),
+  testsNamingNoRule: testsNamingNoRule()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

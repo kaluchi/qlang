@@ -1,35 +1,8 @@
-// The view of a value within a budget of characters of its print [QSPRN#elide]:
-// while the print exceeds the budget, the largest part, or a part within it
-// that prints more than half of it, gives way to an elision, a value of the
-// kind `::elision`. A vector, a set and a map keep their first parts and an
-// elision of the rest, a map's under the key `:"…"`, halving until they give
-// way whole, the top keeping its first part at the least; a value under a tag
-// halves as its payload, its tag kept over what it keeps, and gives way whole
-// with its tags; a string, a doc, a quote and a part a kind prints its own way
-// give way whole, their elision keeping the first characters of their text, or
-// of that print, under `:head`; and an atom stands. A part gives way only where
-// the least it gives way to prints shorter than it. An elision holds `:read`
-// and `:size`, the elements or the entries of a container its `:read`, applied
-// to the value taken, answers, or the characters of a text or of a print; an
-// elision the value taken holds counts as one element, the views of one answer
-// telling the rest by the elisions they made.
-//
-// A failure a host prints is an alert [QSHST#answer]: its tag and its facts, the data
-// it carries cut to what places the failure. The subject of the first frame
-// of its trace, where the failure arose, and every other fact print within an
-// excerpt each; the subject of every later frame, which the failure only
-// passed, gives way whole. Past a budget its trace keeps its first frames
-// within an excerpt of its own, and then its facts give way within the
-// budget, the failure keeping its tag and the names of its facts. Every
-// `:read` reads its part beneath `!|`.
-//
-//   elide(value, budget, printedOf?) → the value within the budget
-//   alertOf(error, printedOf?) → the error as an alert
-//   alertWithin(error, budget, printedOf?) → the alert within the budget
-//   headOfAnswer(answer, printedOf?) → the head of an answer past the budget
-//
-// where `printedOf(part)` answers the print a kind declared under it gives a
-// part, or undefined where the forms of the core write it.
+// The view of a value within a budget of characters of its print, each part
+// it leaves out an `::elision` whose `:read` reaches it [QSPRN#elide], and the
+// alert of a failure a host prints [QSHST#answer]: `elide`, `alertOf`,
+// `alertWithin` and `headOfAnswer`, `printedOf(part)` answering the print a
+// kind declared under it gives a part.
 
 import {
   isVec, isSet, isQuote, isDoc, isMap, isErrorValue, isValueClass, isFrame, isTrace,
@@ -283,18 +256,14 @@ export function elide(value, budget, printedOf = printedByTheCore) {
   return elideWithin(value, budget, OF_THE_VALUE, printedOf);
 }
 
-// A fact of an alert within its excerpt, beneath the read that reaches it,
-// cut as `elide` cuts it; a value whose cut still passes the excerpt gives
-// way whole as a subject the failure passed does, so the excerpt holds
-// whatever data the failure arose over.
+// A fact of an alert within its excerpt, cut as `elide` cuts it, or given way
+// whole where the cut still passes the excerpt.
 function excerptOf(value, read, printedOf, oneLine, rests) {
   const cut = elideWithin(value, EXCERPT_CHARACTERS, read, printedOf, oneLine, rests);
   return measureBy(printedOf, oneLine)(cut) > EXCERPT_CHARACTERS ? passedOver(value, read, printedOf, oneLine, rests) : cut;
 }
 
-// A subject the failure only passed, given way whole where its elision is the
-// shorter print: what it stands for counted as a part given way whole counts
-// it, and the read that reaches it.
+// A subject the failure only passed, given way whole where its elision prints shorter.
 function passedOver(value, read, printedOf, oneLine, rests) {
   const view = viewOf(read, printedOf, oneLine, rests);
   const text = textOf(value, view);
@@ -322,12 +291,9 @@ export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet
   return makeErrorValue(error.tag, facts);
 }
 
-// Within a budget an alert that fits stands; past it, its trace keeps its
-// first frames within an excerpt of its own, ending with the elision of the
-// rest, and then its facts give way within the budget, the failure keeping
-// its tag and the names of its facts. The views of one answer share the rests
-// they made, so every `:size` counts what its `:read` answers beneath `!|`
-// [QSHST#answer].
+// An alert within a budget: one that fits stands, and past it its trace keeps
+// its first frames and its facts give way, the views of one answer sharing the
+// rests they made [QSHST#answer].
 export function alertWithin(error, budget, printedOf = printedByTheCore) {
   const rests = new WeakSet();
   const alert = alertOf(error, printedOf, rests);

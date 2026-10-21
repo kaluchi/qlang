@@ -7,17 +7,15 @@ import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
 const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
 
-// A cell is a view at the boundary: a String prints bare, null as an
-// empty cell, and every other value as its literal on one line by the
-// printer's own form, a doc with its prose on its line [D397].
+// A cell is a view at the boundary: a string bare, null empty, and any other
+// value its literal on the printer's one line [D397].
 function cellTextOf(cellValue) {
   if (cellValue === null) return '';
   if (typeof cellValue === 'string') return cellValue;
   return printValue(cellValue, 0, docOnOneLine, true);
 }
 
-// The prose of a doc on one line, each line break with the space around it
-// written as one space, its quotes on one line.
+// A doc on one line, each line break of its prose and the space around it one space.
 const LINE_BREAK = /\s*\n\s*/g;
 
 function docOnOneLine(part) {

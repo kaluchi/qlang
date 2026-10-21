@@ -27,8 +27,7 @@ export function streamPrimitives(ioContext) {
     'any/in':  async () => ioContext.stdinReader(),
     'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectKindNotTakenError),
     'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
-    // `tap` writes its subject as a host prints an answer, within the budget
-    // of every answer and past it as the refusal in its place [D397].
+    // `tap` writes its subject as a host prints an answer [D397].
     'any/tap': readingState(async (subject, label, state) => {
       const shown = await printAnswer(await boundAnswer(subject, state.scope), state.scope);
       ioContext.stderrWrite(`[tap ${label.name}] ${shown}\n`);

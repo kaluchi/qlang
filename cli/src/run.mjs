@@ -25,10 +25,8 @@ const ERROR_KIND = 'error';
 // below the failure, null for a site with no page [QSHST#answer], [QSSLF#doc].
 const PROSE_OF_THE_PAGE = '!| type | doc | prose !| null';
 
-// proseOfThePage(failure, scope) → the prose the command line writes below a
-// failure, read over the scope the query left, the refusal of an answer past
-// the budget among them [D397]; null for an error of the kind of errors and
-// a site with no page.
+// proseOfThePage(failure, scope) → the prose of the page of a failure's site
+// over the scope the query left, or null [D397].
 export async function proseOfThePage(failure, scope) {
   if (failure.tag.name === ERROR_KIND) return null;
   const explained = await (await createSession({ scope })).evalCell(PROSE_OF_THE_PAGE, { initialPipeValue: failure });

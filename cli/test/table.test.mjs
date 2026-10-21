@@ -66,6 +66,11 @@ describe('table — a view for a terminal', () => {
     expect(cellEntry.result).toContain('| |~~ one two ~~| |');
   });
 
+  it('writes a doc on one line with the quotes it holds on one line too [D397]', async () => {
+    const cellEntry = await runQuery('[{:d |~~ see\n  ~(:a 1\n| :b 2) ~~|}] | table', silentStreams);
+    expect(cellEntry.result).toContain('| |~~ see ~(:a 1 | :b 2) ~~| |');
+  });
+
   it('yields the marker (empty) for an empty Vec', async () => {
     const cellEntry = await runQuery('[] | table', silentStreams);
     expect(cellEntry.result).toBe('(empty)');

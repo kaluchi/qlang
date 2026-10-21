@@ -250,6 +250,14 @@ describe('renderCellOutcome — the bound of the answer [D397]', () => {
     expect([failing.exitCode, failing.stdoutText.includes('::qlang/AnswerBeyondBudgetError')]).toEqual([1, true]);
   });
 
+  it('paints a string past the budget as the alert of its refusal, which is code', async () => {
+    const scope = await langRuntime();
+    const cellEntry = { ...makeCellEntry({ result: 'x'.repeat(16001) }), scopeAfterCell: scope };
+    const painted = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: true });
+    // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
+    expect(painted.stdoutText).toMatch(/\x1b\[/);
+  });
+
   it('writes nothing and raises no refusal for a query that wrote by out, its code the one its answer exits with', async () => {
     const scope = await langRuntime();
     const cellEntry = { ...makeCellEntry({ result: await evalQuery(past, scope) }), scopeAfterCell: scope };

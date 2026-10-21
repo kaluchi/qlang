@@ -333,6 +333,10 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 
+  it('refuses a nest left open of groups, quotes and maps reading each depth once [D403]', () => {
+    for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
+  });
+
   it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', () => {
     expect(thrownBy(nestOf(20000))).toBeInstanceOf(RangeError);
     for (let depth = 1000; depth < 4000; depth += 50) expect(thrownBy(nestOf(depth)), String(depth)).not.toBeInstanceOf(TypeError);

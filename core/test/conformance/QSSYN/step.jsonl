@@ -19,3 +19,7 @@
 {"name":"a-quote-of-a-path-with-a-leading-pipe-is-refused","query":"\"[{:n 1}] | map ~(| /n)\" | parse !| get /message","expect":"\"the quote of a path answers the path, which no verb wants: give the path bare, `/n`\""}
 {"name":"a-literal-of-paths-written-after-the-catch-names-get","query":"\"!{:k 1 :j 2} | raise !| [/k /j]\" | parse !| get /message","expect":"\"a literal that holds a path or a quote is the template `get` reads: write `get [/k /j]`\""}
 {"name":"a-quote-written-after-the-catch-names-apply","query":"\"\\\"x\\\" | add 1 !| ~(get /message)\" | parse !| get /message","expect":"\"code runs on the value in the pipe by `apply`: write `apply ~(…)`\""}
+{"decision":"D403","name":"a-dot-before-a-key-is-refused-naming-the-read-by-get-and-a-path","query":"\"{:users 1} | .users\" | parse !| get /message","expect":"\"`.users` is no path: a part is read by `get` and a path, which opens with a slash, `get /users`\""}
+{"decision":"D403","name":"a-run-of-dotted-keys-a-verb-takes-is-refused-naming-the-path-of-its-keys","query":"\"get .a.b\" | parse !| get /message","expect":"\"`.a.b` is no path: a part is read by `get` and a path, which opens with a slash, `get /a/b`\""}
+{"decision":"D403","name":"a-dot-alone-is-refused-naming-the-value-itself","query":"\".\" | parse !| get /message","expect":"\"`.` is no value: the value itself is `it`\""}
+{"decision":"D403","name":"a-question-mark-inside-a-quoted-key-is-a-letter-of-the-key","query":"{:\"?a\" 1} | get /\"?a\"","expect":"1"}

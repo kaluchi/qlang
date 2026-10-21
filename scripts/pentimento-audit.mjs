@@ -17,8 +17,9 @@
 // prompt go its group, the cycles of the imports of the core and the first
 // line of every open record.
 //
-// Usage: node scripts/pentimento-audit.mjs --for Dnn [--why "…"] [--groups N] [--dry]
-// `--dry` prints the groups and the cycles and runs no reader.
+// Usage: node scripts/pentimento-audit.mjs --for Dnn [--why "…"] [--groups N] [--effort LEVEL] [--dry]
+// `--dry` prints the groups and the cycles and runs no reader; `--effort`
+// names the effort of the readers, `max` where it names none.
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
@@ -26,7 +27,7 @@ import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './baseline-wa
 import { importsOfCore, cyclesOf } from './core-imports.mjs';
 import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
 import {
-  allowedReading, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoRecordInForce,
+  allowedReading, effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoRecordInForce,
   runLine, startReaders, stillTheTree, treeOfTheRun
 } from './research-runs.mjs';
 
@@ -39,6 +40,7 @@ const valueAfter = flag => {
 const calledFor = valueAfter('--for');
 const why = valueAfter('--why');
 const groupCount = Number(valueAfter('--groups') ?? 6);
+const effort = effortOfTheRun(process.argv);
 const auditsDir = join(repoRoot, RESEARCH, 'pentimento-audit');
 const promptPath = join(repoRoot, 'scripts', 'pentimento-audit-prompt.txt');
 const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
@@ -114,7 +116,8 @@ const firstStarted = new Date();
 const answers = await startReaders(repoRoot, {
   prompts: groups.map(group => ({ name: nameOf(group), text: prompt.replace('{{group}}', listed(group)) })),
   allowed: allowedReading(repoPath),
-  workPrefix: 'qlang-pentimento-audit-'
+  workPrefix: 'qlang-pentimento-audit-',
+  effort
 });
 if (!stillTheTree(repoRoot, tree)) process.exit(1);
 
@@ -124,7 +127,7 @@ for (const { name, answer, started, ended } of answers) {
   const report = join(run, `${name.replaceAll('/', '-')}.md`);
   mkdirSync(dirname(report), { recursive: true });
   const what = `A pentimento audit of ${name} for ${calledFor} by a clean Opus answering \`${shown(promptPath)}\`.`;
-  writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`' })}\n\n${answer}\n`);
+  writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`', effort })}\n\n${answer}\n`);
   console.log(`${name}: ${shown(report)}`);
 }
 if (answers.some(({ answer }) => answer !== null)) {

@@ -7,19 +7,19 @@ section are the cases of its file under `core/test/conformance/QSORD/`.
 ## order
 
 Values order first by kind: null, boolean, number, string, regex,
-keyword, tag name, path, vector, set, map, quote, doc, elision and desc,
-and after them every other tag by its name, the labels, the errors and
-the kinds of hosts among them. Within a kind, numbers order by value,
+keyword, tag name, path, vector, set, map, quote and doc, and after them
+every value under another tag by the name of its tag, an elision, a desc,
+a label, an error at rest and a kind of a host among them. Within a kind,
+numbers order by value,
 `false` before `true`, and a text by its code points, the characters a
 string counts [QSTXT#string]: a string, the name of a keyword and of a
 tag, a key of a map, a regex by its text and then its flags, and a
 path segment by segment, an index among them, so `/10` ranks before
 `/9`; vectors element by element, a shorter before a longer it begins, a set
 as its vector, maps by their keys and then their values, a quote by its
-steps, a doc by its segments in turn, a run of prose before a quote, an
-elision by its payload, a desc by the reverse of its payload's rank, an
-error by its tag and then its facts, and a value under another tag by
-its payload. Two values are equal where the order ranks them alike:
+steps, a doc by its segments in turn, a run of prose before a quote, and
+a value under another tag by its payload, which a desc reverses. Two
+values are equal where the order ranks them alike:
 `eq` answers by that tie, as `has` of a vector and of a set, the
 elements a set keeps, the algebra of sets, the keys `groupBy` and
 `indexBy` file under and the merge of a shape do.
@@ -39,6 +39,9 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 
 > [/b /a/c /a] | sort | map ~(print)
 ["/a" "/a/c" "/b"]
+
+> get [~([::aaa#1 ::elision{:size 1}] | sort | map ~type) ~([::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type)]
+[[::aaa ::elision] [::map ::quote ::doc ::desc ::elision]]
 ```
 
 ## set
@@ -125,9 +128,11 @@ compare within one kind [QSCND#compare].
 
 ## desc
 
-`::desc` is a kind whose order is the reverse of its payload's, written
-by `desc` or by its literal, `::desc#5`, and a desc of a desc stands
-twice, its reversals undoing each other, so it ranks as the value does.
+`::desc` is a tag whose values rank among the other tags by its name and
+within it by the reverse of their payloads' rank, under another tag as
+well, written by `desc` or by its literal, `::desc#5`, and a desc of a
+desc stands twice, its reversals undoing each other, so it ranks as the
+value does.
 The comparisons compare two values under `::desc` by the reverse of their
 payloads of any kinds, as `sort` ranks them, so `min`, `max` and `sort`
 read it alike, and one element of a vector key descends whatever the
@@ -152,4 +157,7 @@ true
 
 > [1 3 2] | sort ~(desc | desc)
 [1 2 3]
+
+> get [~(1 | desc | tag ::Box) ~(2 | desc | tag ::Box)] | sort
+[::Box::desc#2 ::Box::desc#1]
 ```

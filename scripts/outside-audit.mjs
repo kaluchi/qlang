@@ -12,13 +12,14 @@
 // it [QSWRK#baseline]. The start of the reader, the refusals, the number and
 // the head are the ones every run of the research shares [QSWRK#review].
 //
-// Usage: node scripts/outside-audit.mjs --for Dnn [--why "…"]
+// Usage: node scripts/outside-audit.mjs --for Dnn [--why "…"] [--effort LEVEL]
+// `--effort` names the effort of the reader, `max` where it names none.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { RESEARCH } from './decision-records.mjs';
 import {
-  headOf, holdTheRun, minuteOf, nextRunOf, refuseASecondRun, refuseNoRecordInForce, runLine, startReaders, stillTheTree, treeOfTheRun
+  effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, refuseASecondRun, refuseNoRecordInForce, runLine, startReaders, stillTheTree, treeOfTheRun
 } from './research-runs.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
@@ -32,6 +33,7 @@ const valueAfter = flag => {
 };
 const calledFor = valueAfter('--for');
 const why = valueAfter('--why');
+const effort = effortOfTheRun(process.argv);
 
 refuseNoRecordInForce(repoRoot, calledFor, 'an outside audit');
 const { tree, baseline, date, onTheBaseline } = treeOfTheRun(repoRoot);
@@ -44,13 +46,14 @@ console.log(`a clean Opus reads ${tree}`);
 const [{ answer, started, ended }] = await startReaders(repoRoot, {
   prompts: [{ name: 'the audit', text: readFileSync(promptPath, 'utf8').replaceAll('{{repo}}', repoPath) }],
   allowed: ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)'],
-  workPrefix: 'qlang-outside-audit-'
+  workPrefix: 'qlang-outside-audit-',
+  effort
 });
 if (answer === null || !stillTheTree(repoRoot, tree)) process.exit(1);
 
 mkdirSync(auditsDir, { recursive: true });
 const what = `An outside audit of qlang for ${calledFor} by a clean Opus answering \`${shown(promptPath)}\`.`;
-writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`' })}\n\n${answer}\n`);
+writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`', effort })}\n\n${answer}\n`);
 holdTheRun(repoRoot, calledFor, runLine({
   report: shown(report), kind: 'an outside audit of the tree by a clean reader with no instructions',
   tree, baseline, date, from: minuteOf(started), to: minuteOf(ended), why

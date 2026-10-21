@@ -529,23 +529,29 @@
   |~~ Answers the subject within a budget of characters of its print,
       what does not fit given way to elisions, values of `::elision`, and
       a value whose print fits as it is. The largest part gives way first,
-      or in its place a part within it that prints more than half of it:
-      a string, a doc, a quote or a map beneath the top gives way whole,
-      the elision of a text keeping its first characters under `:head`; a
-      vector or a set keeps the first half of its elements, and half of
-      those until it fits, ending with an elision of the rest, a set
-      standing in the one order; a value under a tag keeps its tag, its
-      parts giving way within; and a part a kind prints its own way
-      stands as that kind prints it, the budget counting that print. The
-      top keeps its shape: a vector or a set there keeps its first
-      element, a map gives way within, and a string, a doc, a quote or an
-      atom alone is answered whole. A part gives way only where the least
-      it gives way to prints shorter than it, `[]` or `{:n 1}` staying. An
-      elision's `:size` counts what it stands for, a text by its
-      characters as `count` counts them, and its `:read`, continued from
-      the value `elide` took, reads the part left out. The call gives the budget, a number; a
-      host applies `elide` to every answer it prints when a reader asks
-      it for a budget.
+      or in its place a part within it that prints more than half of it,
+      each by its kind, at the top as beneath it. A vector, a set and a
+      map keep the first half of their parts, and half of those until it
+      fits, ending with an elision of the rest, a map's under the key
+      `:"…"`, which a map whose kept entries hold that key keeps the
+      entries before, giving way whole where it is the first, and a set
+      standing in the one order; beneath the top they give way whole at
+      the last, and the top keeps its first part. A value under a tag
+      halves as its payload, its tag kept over what it keeps, and gives
+      way whole with its tags. A string, a doc, a quote and a part a kind
+      prints its own way give way whole, the elision keeping under
+      `:head` the first characters of their text or of that print, the
+      top read back by `~()`, and an atom stands. A part gives way only
+      where the least it gives way to prints shorter than it, `[]` or
+      `{:n 1}` staying. An elision's `:size` counts the elements or the
+      entries its `:read`, continued from the value `elide` took,
+      answers, or the characters of a text, as `count` counts them, or
+      of a print, and an elision the subject holds counts as one element.
+      A view prints and reads back as itself, but under a kind that
+      checks its parts, as `::trace` takes frames alone, which refuses
+      the elision it holds. The call gives the budget, a number; a host
+      applies `elide` to every answer it prints when a reader asks it for
+      a budget.
       ::link~(::elision | doc) ::link~(::any/print | doc)
   ~~|
   ::fn
@@ -594,10 +600,20 @@
         ~(["alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel" "india" "juliet"]
           | elide 80
           | eq ["alpha" "bravo" "charlie" "delta" "echo" ::elision{:size 5 :read ~(drop 5)}])
-    | proves :keepsATag
-        |~~ A value under a tag keeps its tag. ~~|
-        ~(::Box{:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}
-          | elide 10 | type | eq ::Box)
+    | proves :keepsTheTagOverTheCut
+        |~~ A value under a tag halves as its payload, its tag kept. ~~|
+        ~(300 | range | tag ::Box | elide 100 | get [~(type) ~(payload | last | type)] | eq [::Box ::elision])
+    | proves :givesAValueUnderATagWayWithItsTags
+        |~~ A value under a tag given way whole gives way with its tags. ~~|
+        ~(get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b | type | eq ::elision)
+    | proves :readsBackRefusedWhereAKindChecksItsParts
+        |~~ The print of a cut trace reads back refused, a trace taking
+            frames alone.
+        ~~|
+        ~([{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| type | eq ::trace/ElementKindNotTakenError)
+    | proves :keepsTheRestOfAMapUnderAnEllipsis
+        |~~ A map keeps its first entries and its rest under `:"…"`. ~~|
+        ~({:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8} | elide 40 | keys | eq #[:a :"…"])
     | proves :keepsTheFirstElementOfTheTop
         |~~ The top keeps its first element, the part within it giving way.
         ~~|
@@ -613,16 +629,18 @@
         ~~|
         ~(get [~(::vec/sort | doc)] | elide 100 | get /0/head | type | eq ::string)
     | proves :countsThePrintAKindGives
-        |~~ A part a kind prints its own way stands as that kind prints it.
-        ~~|
+        |~~ The budget counts the print a kind gives a part. ~~|
         ~(:Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count | eq 15)
     | proves :readsTheElidedPartBack
         |~~ An elision holds the query that reads its part back. ~~|
         ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
           | :v it | elide 40 | get /s/read | :r it | v | apply r | eq (v | get /s))
-    | proves :answersAStringWhole
-        |~~ A string alone is answered whole. ~~|
-        ~("a long line of text" | elide 4 | eq "a long line of text")
+    | proves :givesAStringAtTheTopWayWithItsHead
+        |~~ A string alone gives way whole, read back by the empty quote. ~~|
+        ~(200 | range | map ~("a") | join "" | elide 50 | get [~(type) /read] | eq [::elision ~()])
+    | proves :countsAnElisionItHoldsAsOneElement
+        |~~ An elision the subject holds counts as one element. ~~|
+        ~([1 2 3 4 5 6 7 8 9 10 11 12 ::elision{:size 1000 :read ~(drop 12)}] | elide 30 | last | get /size | eq 12)
     | proves :budget/KindNotTakenError/refusesAString
         |~~ A budget that is no number is refused under the input. ~~|
         ~([1 2] | elide "x" !| type | eq ::any/elide/budget/KindNotTakenError)

@@ -5,7 +5,7 @@
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,
-  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, ELISION_TAG, DESC_TAG, CORE_KIND
+  TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
 // The kinds in their order.
@@ -23,13 +23,13 @@ const SET_KIND      = 9;
 const MAP_KIND      = 10;
 const QUOTE_KIND    = 11;
 const DOC_KIND      = 12;
-const ELISION_KIND  = 13;
-const DESC_KIND     = 14;
-const TAGGED_KIND   = 15;
+// Every other value under a tag ranks by the name of its tag, then by its
+// payload, a desc reversing its own [QSORD#order], [QSORD#desc].
+const TAGGED_KIND   = 13;
 // A failure raised, which no value holds, ranks after every value by its tag
 // and then its facts, so the tools that hold an answer to the one they expect
 // tell it from every value [QSWRK#cases].
-const RAISED_KIND   = 16;
+const RAISED_KIND   = 14;
 
 // The kind of a value as the order ranks it, a value of no kind refused as
 // `typeOf` refuses it [QSHST#source].
@@ -49,8 +49,6 @@ function kindOf(value) {
   if (kind === CORE_KIND.map) return MAP_KIND;
   if (kind.name === SET_TAG_NAME) return SET_KIND;
   if (kind.name === QUOTE_TAG_NAME) return QUOTE_KIND;
-  if (kind.name === ELISION_TAG.name) return ELISION_KIND;
-  if (kind.name === DESC_TAG.name) return DESC_KIND;
   return TAGGED_KIND;
 }
 
@@ -114,6 +112,9 @@ export function kindsExpected(...kindNames) {
   return makeSet(kindNames.map(makeTag));
 }
 
+// Two values rank kind before kind, and two of one kind by value, a value
+// under another tag by the name of its tag and then its payload, which a
+// desc reverses [QSORD#order], [QSORD#desc].
 function compareKinded(leftKind, left, rightKind, right) {
   if (leftKind !== rightKind) return leftKind < rightKind ? -1 : 1;
   switch (leftKind) {
@@ -142,17 +143,14 @@ function compareKinded(leftKind, left, rightKind, right) {
       return compareMaps(left, right);
     case DOC_KIND:
       return compareSequences(left, right);
-    case ELISION_KIND:
-      return comparePayloads(left, right);
-    case DESC_KIND:
-      return comparePayloads(right, left);
     case RAISED_KIND: {
       const byTag = compareText(left.tag.name, right.tag.name);
       return byTag !== 0 ? byTag : compareMaps(left.facts, right.facts);
     }
     default: {
       const byTag = compareText(left[TAG_HEADER_SYMBOL].name, right[TAG_HEADER_SYMBOL].name);
-      return byTag !== 0 ? byTag : comparePayloads(left, right);
+      if (byTag !== 0) return byTag;
+      return left[TAG_HEADER_SYMBOL].name === DESC_TAG.name ? comparePayloads(right, left) : comparePayloads(left, right);
     }
   }
 }

@@ -9,7 +9,7 @@
 {"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]"}
 {"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]"}
 {"name":"sort-orders-errors-at-rest-by-tag-then-fields","query":"[::B::error{} ::error{:k 2} ::error{:k 1}] | sort","expect":"[::B::error{} ::error{:k 1} ::error{:k 2}]"}
-{"name":"sort-puts-elisions-before-other-tags","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::elision{:size 1} ::elision{:size 2} ::Z[1]]"}
+{"name":"sort-ranks-an-elision-among-the-tags-by-its-name","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::Z[1] ::elision{:size 1} ::elision{:size 2}]"}
 {"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]"}
 {"name":"sort-orders-tagged-atoms-by-payload","query":"[::A#2 ::A#1] | sort","expect":"[::A#1 ::A#2]"}
 {"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]"}
@@ -23,7 +23,7 @@
 {"name":"paths-rank-segment-by-segment-an-index-as-its-text","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
 {"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
-{"name":"a-quote-a-doc-an-elision-and-a-desc-rank-after-a-map-in-that-order","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::elision ::desc]"}
+{"name":"a-desc-and-an-elision-rank-after-a-doc-by-the-names-of-their-tags","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::desc ::elision]"}
 {"name":"quotes-rank-by-their-steps","query":"[~(b) ~(a | b) ~(a)] | sort","expect":"[~(a) ~(a | b) ~(b)]"}
 {"name":"strings-order-by-their-code-points-as-they-count","query":"[\"😀\" \"ﬁ\" \"a\" \"👍\"] | sort","expect":"[\"a\" \"ﬁ\" \"👍\" \"😀\"]"}
 {"name":"a-comparison-of-strings-reads-their-code-points","query":"get [~(\"😀\" | gt \"ﬁ\") ~(\"ﬁ\" | lt \"😀\") ~(\"😀\" | gt \"a\")]","expect":"[true true true]"}

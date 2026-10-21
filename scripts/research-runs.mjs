@@ -106,27 +106,54 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 // The start of a clean reader: a clean Opus from an empty directory of its
 // own, with no instruction file, memory or server, the tree's `qlang` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
-// allows, and no git command but the listing of the files a caller gives it.
+// allows and the commands that only read, which the harness passes unasked,
+// and no git command but the listing of the files a caller gives it [QSWRK#review].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
 export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
-// headOf({ what, tree, onTheBaseline, date, started, ended, allowed }) → the
-// head of a report: what it is and what called for it, the tree it read and
-// the baseline that tree stood on, when it ran, and how.
-export const headOf = ({ what, tree, onTheBaseline, date, started, ended, allowed }) => [
+// The effort a clean reader runs at, `max` unless its run names another of
+// the efforts by `--effort`, which `CLAUDE_CODE_EFFORT_LEVEL` sets in the
+// environment of its start, where no flag and no settings file overrides it,
+// so the effort of the session that starts it reaches no reader [QSWRK#review].
+export const READER_EFFORT = 'max';
+const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'];
+
+// effortOfTheRun(argv) → the effort `--effort` names, `max` where it names
+// none; a level that is none of the efforts stops the run.
+export function effortOfTheRun(argv) {
+  const at = argv.indexOf('--effort');
+  if (at === -1) return READER_EFFORT;
+  if (EFFORTS.includes(argv[at + 1])) return argv[at + 1];
+  console.error(`--effort names one of ${EFFORTS.slice(0, -1).join(', ')} and ${EFFORTS.at(-1)}: ${argv[at + 1] ?? 'nothing'} is none of them`);
+  process.exit(1);
+}
+
+// readerEnvironment(env, effort) → the environment a reader starts in: the
+// session's, the conversion of paths off, its effort set and no `FORCE_COLOR`.
+export function readerEnvironment(env, effort) {
+  const started = { ...env, ...CHILD_ENVIRONMENT, CLAUDE_CODE_EFFORT_LEVEL: effort };
+  delete started.FORCE_COLOR;
+  return started;
+}
+
+// headOf({ what, tree, onTheBaseline, date, started, ended, allowed, effort })
+// → the head of a report: what it is and what called for it, the tree it read
+// and the baseline that tree stood on, when it ran, how, and at what effort.
+export const headOf = ({ what, tree, onTheBaseline, date, started, ended, allowed, effort }) => [
   `> ${what}`,
   `> Tree \`${tree}\`, ${onTheBaseline}; run ${date}, ${minuteOf(started)}–${minuteOf(ended)} UTC. A path it names reads as \`git show ${tree}:<path>\`.`,
-  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${READER_TOOLS.join(' ')}\`, ${allowed} allowed, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`
+  `> Run as \`claude -p --model opus\` from an empty directory with \`--restricted\` and \`--strict-mcp-config\`, tools \`${READER_TOOLS.join(' ')}\`, ${allowed} allowed and the commands of Bash that only read, which the harness passes unasked, no CLAUDE.md, memory or MCP server, no \`FORCE_COLOR\`.`,
+  `> At the effort \`${effort}\`, set by \`CLAUDE_CODE_EFFORT_LEVEL\` in the environment of its start, which no flag and no settings file overrides.`
 ].join('\n');
 
-// startReaders(repoRoot, { prompts, allowed, workPrefix }) → the answers of
-// clean readers started at once, one for each prompt `{ name, text }`, each
-// `{ name, answer, started, ended }`, an answer null where its reader failed.
-export async function startReaders(repoRoot, { prompts, allowed, workPrefix }) {
+// startReaders(repoRoot, { prompts, allowed, workPrefix, effort }) → the
+// answers of clean readers started at once at the effort, one for each prompt
+// `{ name, text }`, each `{ name, answer, started, ended }`, an answer null
+// where its reader failed.
+export async function startReaders(repoRoot, { prompts, allowed, workPrefix, effort }) {
   const repoPath = repoRoot.replaceAll('\\', '/');
   const flags = ['-p', '--model', 'opus', '--restricted', '--strict-mcp-config', '--tools', ...READER_TOOLS, '--add-dir', repoPath, '--allowedTools', ...allowed];
-  const env = withTheLanguageOf(repoRoot, { ...process.env, ...CHILD_ENVIRONMENT });
-  delete env.FORCE_COLOR;
+  const env = withTheLanguageOf(repoRoot, readerEnvironment(process.env, effort));
   return await Promise.all(prompts.map(({ name, text }) => new Promise(resolve => {
     const started = new Date();
     const child = spawn('claude', flags, { cwd: mkdtempSync(join(tmpdir(), workPrefix)), env });

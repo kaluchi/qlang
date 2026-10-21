@@ -12,6 +12,29 @@ import { compareValues } from '../../src/ordering.mjs';
 // Long enough that the elision standing for it prints shorter than it.
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
 const readBack = async (value, elision) => evalQuery(`${printValue(value)} | apply ${printValue(elision.get('read'))}`);
+const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
+
+// The elisions a view holds, the facts of a failure among it.
+function elisionsOf(value, found = []) {
+  if (isErrorValue(value)) for (const fact of value.facts.values()) elisionsOf(fact, found);
+  else if (value instanceof Map && value[TAG_HEADER_SYMBOL]?.name === 'elision') found.push(value);
+  else if (value instanceof Map) for (const part of value.values()) elisionsOf(part, found);
+  else if (Array.isArray(value)) for (const part of value) elisionsOf(part, found);
+  else if (value !== null && typeof value === 'object' && 'payload' in value) elisionsOf(value.payload, found);
+  return found;
+}
+
+// Every elision of the views of the alert of a query counts the elements, the
+// entries or the characters its read, continued from the query beneath `!|`,
+// answers, the query run once for them all.
+async function sizesHold(query, budgets) {
+  const failing = await evalQuery(query);
+  const elisions = budgets.flatMap(budget => elisionsOf(elideAnswer(failing, budget)));
+  expect(elisions.length).toBeGreaterThan(0);
+  const reads = elisions.map(elision => printValue(elision.get('read')).slice(2, -1).replace(/^!\| /, ''));
+  const counts = await evalQuery(`${query} !| get [${reads.map(read => `~(${read} | count)`).join(' ')}]`);
+  expect(elisions.map((elision, at) => [reads[at], elision.get('size')])).toEqual(reads.map((read, at) => [read, counts[at]]));
+}
 
 describe('elide [QSPRN#elide]', () => {
   it('answers a value whose print fits as it is', () => {
@@ -103,13 +126,52 @@ describe('elideAnswer [QSPRN#elide]', () => {
     expect(printValue(view)).toContain(':read ~(!| get /trace/');
   });
 
-  it('keeps the steps and the place of every frame within a budget, its subject alone giving way [QSHST#answer]', async () => {
+  it('cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts [QSHST#answer]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
-    const trace = elideAnswer(failing, 60).facts.get('trace');
-    expect(trace.map(([, steps, place = null]) => [printValue(steps), place === null ? null : printValue(place)]))
-      .toEqual([['~(nope)', null], [`~(filter ~(nope) | ${skipped})`, '/0']]);
-    expect(trace.map(([subject]) => printValue(subject).startsWith('::elision{'))).toEqual([false, true]);
+    const view = elideAnswer(failing, 60);
+    expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
+    expect(printValue(view.facts.get('trace').get('read'))).toBe('~(!| get /trace)');
+    expect(view.facts.get('trace').get('size')).toBe(failing.facts.get('trace').length);
+  });
+
+  it('keeps the facts of a failure whose first fact is named as the rest of a map is [QSHST#answer]', async () => {
+    const forty = Array.from({ length: 40 }, (_, index) => index).join(' ');
+    const failing = await evalQuery(`!{:"…" 1 :b "${'a'.repeat(134)}" :c [${forty}]} | raise`);
+    const view = elideAnswer(failing, 60);
+    expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
+    expect([view.facts.get('…'), view.facts.get('b').get('size'), view.facts.get('c').get('size')]).toEqual([1, 134, 40]);
+  });
+
+  it('counts what each read answers where the views of an alert cut a part again [QSHST#answer]', async () => {
+    await sizesHold(':number/inf ~(add 1 | inf) | 0 | inf', [150, 250, 2000]);
+    await sizesHold(':vec/inf ~(append 1 | inf) | [] | inf', [2000]);
+    await sizesHold('1000 | range | add 1', [150]);
+    await sizesHold('40 | range | map ~(tag ::zeta) | toSet | add 1', [150]);
+  });
+
+  it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [QSHST#answer]', async () => {
+    const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
+    const trace = elideAnswer(failing, 2000).facts.get('trace');
+    const rest = trace[trace.length - 1];
+    expect(trace[TAG_HEADER_SYMBOL].name).toBe('trace');
+    expect(printValue(trace[0][1])).toBe('~(add 1 | inf)');
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace | drop ${trace.length - 1})`);
+    expect(rest.get('size')).toBe(failing.facts.get('trace').length - (trace.length - 1));
+    expect(printValue(trace).length).toBeLessThanOrEqual(300);
+  });
+
+  it('cuts an alert that holds no trace past a budget, the refusal of a text among them [QSHST#answer]', async () => {
+    const refused = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`);
+    const view = elideAnswer(refused, 80);
+    expect(view.facts.has('trace')).toBe(false);
+    expect([...view.facts.keys()]).toEqual([...refused.facts.keys()]);
+    expect(view.facts.get('source').get('size')).toBe(refused.facts.get('source').length);
+  });
+
+  it('keeps every frame of an alert within its budget [QSHST#answer]', async () => {
+    const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
+    expect(elideAnswer(failing, 100000).facts.get('trace').length).toBe(failing.facts.get('trace').length);
   });
 
   it('elides a value that is no error as elide does', () => {
@@ -131,7 +193,6 @@ describe('elideAnswer [QSPRN#elide]', () => {
 // shown once, and the read of every elision continuing the query beneath `!|`.
 describe('alertOf [QSHST#answer]', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
-  const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
 
   it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
     const query = `${records} | filter ~(nope)`;
@@ -147,6 +208,20 @@ describe('alertOf [QSHST#answer]', () => {
     expect(passed.get('size')).toBe(100);
   });
 
+  it('gives a subject way whole where its cut still passes the excerpt, an atom counted by its print', async () => {
+    const name = 'k'.repeat(400);
+    const query = `:${name} | add 1`;
+    const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
+    expect([elision.get('size'), printValue(elision.get('read'))]).toEqual([name.length + 1, '~(!| get /trace/0/0)']);
+    expect(await continued(query, elision)).toEqual(await evalQuery(`:${name}`));
+  });
+
+  it('counts a vector it passed by its elements, through the tags over it', async () => {
+    const query = '300 | range | tag ::B | tag ::A | map ~(add "x")';
+    const passed = alertOf(await evalQuery(query)).facts.get('trace')[1][0];
+    expect(passed.get('size')).toBe(300);
+  });
+
   it('cuts a vector where the failure arose to its first elements, the rest read beneath !|', async () => {
     const many = `[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const query = `${many} | add 1`;
@@ -155,13 +230,15 @@ describe('alertOf [QSHST#answer]', () => {
     expect(compareValues(await continued(query, rest), (await evalQuery(many)).slice(subject.length - 1)) === 0).toBe(true);
   });
 
-  it('gives a wide map where the failure arose way whole, so the excerpt holds, its read answering the map', async () => {
+  it('keeps the first entries of a wide map where the failure arose, the rest under :"…" read beneath !| [QSHST#answer]', async () => {
     const wide = `{${Array.from({ length: 200 }, (_, index) => `:k${index} ${index}`).join(' ')}}`;
     const query = `${wide} | add 1`;
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
-    expect(subject.get('size')).toBe(200);
-    expect(printValue(subject.get('read'))).toBe('~(!| get /trace/0/0)');
-    expect(compareValues(await continued(query, subject), await evalQuery(wide)) === 0).toBe(true);
+    const kept = subject.size - 1;
+    const rest = subject.get('…');
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace/0/0 | drop ${kept})`);
+    expect(rest.get('size')).toBe(200 - kept);
+    expect((await continued(query, rest)).size).toBe(200 - kept);
   });
 
   it('cuts a long string where the failure arose to its head', async () => {

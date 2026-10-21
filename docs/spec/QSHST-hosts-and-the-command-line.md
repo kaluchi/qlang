@@ -198,12 +198,12 @@ whole vector and bounds its own calls.
 ## answer
 
 The command line writes every answer as the language prints it,
-whatever data standard input held, a string as its text, and whole: a
-budget is asked for, `| elide N` in the query or `--budget=N` before it,
-a whole count of characters above zero on either road: the step `elide`
-cuts the value the query answers, which a failure passes by, and the
-flag prints every answer as `elide` cuts it, a failure's alert among
-them [QSPRN#elide], a part giving way where its elision prints shorter. A
+whatever data standard input held, a string as its text, and whole unless
+a budget is asked for, `| elide N` in the query or `--budget=N` before
+it, a whole count of characters above zero on either road: the step
+`elide` cuts the value the query answers, which a failure passes by, and
+the flag prints every answer as `elide` cuts it, a failure's alert among
+them [QSPRN#elide]. A
 reader who wants JSON converts the answer in the query, `| json`. A
 query that wrote to standard output by `out` holds the channel: its
 answer and its failure stay unwritten, and the code is the one its
@@ -223,14 +223,25 @@ three hundred characters, a string past the excerpt giving way whole
 with its `:head`, and the subject of each later frame giving way to an
 elision where the elision prints shorter, each subject measured on the
 one line its frame prints on, every frame keeping its steps and its
-place; each elision's `:read` continues the query beneath `!|`. Below
+place; each elision's `:read` continues the query beneath `!|`, the
+record a word's code failed on standing in the subject of its frame at
+the place the frame names, `!| get /trace/1/0/1`. An alert within the
+budget asked for stands as it prints. Past it the failure keeps its tag
+and the names of its facts: its trace keeps its first frames within an
+excerpt of its own, three hundred characters, and ends with the elision
+of the rest, `~(!| get /trace | drop k)`, and then each fact gives way
+within the budget, the trace among them, which gives way whole where the
+budget holds not even its first frame. The excerpts of an alert and its
+cut tell the rest of a part by the elisions they made, so each `:size`
+counts what its `:read` answers. Below
 the alert stands the prose of its refusal's page as line comments, the
 repair it tells, a refusal with no page of its own reading the page of
 what refused; an error of the kind of errors, which no site refused, and
 one whose tag no declaration names are written without prose, and the
 REPL prints its cells without it. A query that does not parse answers
-`::quote/ParseError`, the line the reading stopped in and a caret under
-the place its `:location` names drawn below the alert [QSERR#print], and
+`::quote/ParseError`, the line the reading stopped in, within an excerpt
+around the place its `:location` names, and a caret under that place
+drawn below the alert [QSERR#print], and
 a text of standard input that does not read as the JSON it is taken for
 answers as `parseJson` refuses it [QSHST#stdin].
 
@@ -252,6 +263,20 @@ failed
 
 $ qlang '"x" | add 1' > /dev/null && echo answered
 answered
+
+$ qlang --budget=2000 ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -c "~(!| get /trace | drop"
+1
+
+$ qlang --budget=250 ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| get /trace | drop [0-9]*)'
+:size 997 :read ~(!| get /trace | drop 4)
+
+$ qlang --budget=60 '[{:n 1} {:n 2} {:n 3}] | filter ~(nope)' < /dev/null | grep -c -E '^  :(name|addresses|nearest|trace) '
+4
+```
+
+```qlang
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gte 18) !| get /trace/1/0/1
+{:name "Bo" :age "15"}
 ```
 
 ## stdin

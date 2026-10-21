@@ -27,15 +27,16 @@
 // there as it writes the report, with why it ran where `--why` says it, so
 // the journal tells what was run for what and when [QSWRK#journal].
 //
-// Usage: node scripts/spec-check.mjs --for Dnn [--why "…"] [--groups N] [--dry]
-//        node scripts/spec-check.mjs --records D326 D327 [--why "…"] [--dry]
-// `--dry` prints the groups and runs no reader.
+// Usage: node scripts/spec-check.mjs --for Dnn [--why "…"] [--groups N] [--effort LEVEL] [--dry]
+//        node scripts/spec-check.mjs --records D326 D327 [--why "…"] [--effort LEVEL] [--dry]
+// `--dry` prints the groups and runs no reader; `--effort` names the effort
+// of the readers, `max` where it names none.
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { RESEARCH } from './decision-records.mjs';
 import {
-  allowedReading, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoOpenRecord,
+  allowedReading, effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoOpenRecord,
   refuseNoRecordInForce, runLine, startReaders, stillTheTree, treeOfTheRun
 } from './research-runs.mjs';
 
@@ -51,6 +52,7 @@ const valuesAfter = flag => {
 const records = valuesAfter('--records');
 const calledFor = valuesAfter('--for')?.[0] ?? null;
 const why = valuesAfter('--why')?.join(' ') ?? null;
+const effort = effortOfTheRun(process.argv);
 const form = records === null ? 'run' : 'report';
 const checksDir = join(repoRoot, RESEARCH, records === null ? 'spec-check' : 'design-check');
 const promptPath = join(repoRoot, 'scripts', records === null ? 'spec-check-prompt.txt' : 'design-check-prompt.txt');
@@ -110,7 +112,8 @@ const codesOf = group => (records === null ? group.map(file => file.slice(0, 5))
 const answers = await startReaders(repoRoot, {
   prompts: groups.map(group => ({ name: codesOf(group), group, text: prompt.replace(records === null ? '{{group}}' : '{{record}}', listed(group)) })),
   allowed: allowedReading(repoPath),
-  workPrefix: 'qlang-spec-check-'
+  workPrefix: 'qlang-spec-check-',
+  effort
 });
 if (!stillTheTree(repoRoot, tree)) process.exit(1);
 
@@ -118,7 +121,7 @@ mkdirSync(run, { recursive: true });
 for (const [at, { name, answer, started, ended }] of answers.entries()) {
   if (answer === null) continue;
   const report = join(run, records === null ? `${name}.md` : reportOf.get(name));
-  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`' });
+  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`', effort });
   writeFileSync(report, `${head}\n\n${linkedFromTheRun(answer)}\n`);
   if (records !== null) held(name, report, started, ended);
   console.log(`${name}: ${shown(report)}${records === null ? '' : `, its reading to stand beside it as ${shown(report).replace(/\.md$/, '~reading.md')}`}`);

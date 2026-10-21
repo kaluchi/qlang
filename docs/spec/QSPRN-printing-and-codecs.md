@@ -91,22 +91,30 @@ out giving way to an elision, a value of the kind `::elision`.
 The largest part gives way first, or in its place a part within it that
 prints more than half of it, and a part gives way only where the least it
 gives way to prints shorter than it, so where no part's least is shorter
-the answer stands over the budget. A string, a doc, a quote or a map
-beneath the top gives way whole to an elision, and a vector or a set to
-its first half and an elision of the rest, halving until it gives way
-whole, a set standing in the one order; the top keeps its shape, a vector
-or a set there halving to its first element at the least, and a
-container under a tag keeps its shape, its parts giving way within. A
-part a kind prints its own way stands as that kind prints it, the budget
-counting the print a host writes. An elision holds `:size`, what it
-stands for, a part that already gave way whole counting as one element
-and a text its characters as `count` counts them, through the tags over
-it, `:read`, the query that, continued from the value `elide` took,
-reads the part left out, and for a string, a doc and a quote `:head`,
-the first characters of its text; it prints on one line and reads back
-as the value it is, the printer of the core writing it, since a view is
-cut before the print a kind declares is asked for, so the budget goes to
-the parts the view shows. A value whose print fits is answered as it is.
+the answer stands over the budget. Each part gives way by its kind, at
+the top as beneath it. A vector, a set and a map keep their first half
+and an elision of the rest, which its `:read` reads by `drop`, halving
+until they give way whole beneath the top, while the top keeps its first
+part at the least. A map's rest stands under the key `:"…"`: a map whose
+kept entries hold that key of the data keeps the entries before it, and
+gives way whole where it is the first. A set stands in the one order, its
+elision where `::elision` ranks, and the parts a vector and a map keep
+stand at the paths that read them in the value. A value under a tag
+halves as its payload, its tag kept over what it keeps, and gives way
+whole with its tags. A string, a doc, a quote and a part a kind prints
+its own way give way whole, their elision holding under `:head` the first
+characters of their text or of that print, the top read back by the empty
+quote, `~()`; a frame keeps its steps and its place, its subject alone
+giving way, and an atom stands. An elision holds `:read`, the query that,
+continued from the value `elide` took, reads the part left out, and
+`:size`, the elements or the entries of a container its `:read` answers,
+or the characters of a text, as `count` counts them, or of a print, an
+elision the value holds counting as one element. An elision prints on one
+line, the printer of the core writing it, since a view is cut before the
+print a kind declares is asked for, so the budget goes to the parts the
+view shows. The print of a view reads back as the view, but under a kind
+that checks its parts, as `::trace` takes frames alone, which refuses the
+elision it holds. A value whose print fits is answered as it is.
 
 ```qlang
 > 1000 | range | elide 120 | print
@@ -126,6 +134,27 @@ the parts the view shows. A value whose print fits is answered as it is.
 
 > [1 2] | elide 0 !| type
 ::any/elide/budget/NotCountError
+
+> 1000 | range | map ~(get [~(it) ~(it)]) | toMap | get [~(print | count) ~(elide 2000 | print | count | lte 2000)]
+[12783 true]
+
+> 300 | range | tag ::Box | elide 100 | get [~(type) ~(print | count | lte 100)]
+[::Box true]
+
+> 200 | range | map ~("a") | join "" | elide 50 | get [~(type) /size /read]
+[::elision 200 ~()]
+
+> get [~({"a": 1, "…": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7} | elide 34 | get /"…"/size) ~({"…": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6} | elide 20 | get /read)]
+[6 ~()]
+
+> get [~(1000 | range | elide 120 | elide 40) ~([1 2 3 4 5 6 7 8 9 10 11 12 ::elision{:size 1000 :read ~(drop 12)}] | elide 30)]
+[[0 ::elision{:size 16 :read ~(drop 1)}] [1 ::elision{:size 12 :read ~(drop 1)}]]
+
+> get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b
+::elision{:size 300 :read ~(get /b)}
+
+> [{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| type
+::trace/ElementKindNotTakenError
 ```
 
 ## span

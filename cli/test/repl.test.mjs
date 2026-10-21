@@ -260,11 +260,11 @@ describe('runRepl — the budget of an answer', () => {
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
   });
 
-  it('draws no caret where the budget left the line of a refused text out of its alert [QSHST#answer]', async () => {
+  it('draws the caret below a refused text a budget left out of its alert, the line within an excerpt [QSERR#print]', async () => {
     const replHarness = captureRepl(`${forty} x\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain(':source ::elision{');
-    expect(printed).not.toContain('|~| [1 2');
+    expect(printed).toContain(`|~| ${forty} x`);
   });
 });

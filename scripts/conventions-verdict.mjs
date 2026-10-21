@@ -55,6 +55,7 @@ const SECTIONS = {
     'a command of a chain is named by its act and what it writes by the noun of the thing, as `holds` writes an `::invariant` and `proves` a `::law`: the kind takes a noun of its own [QSBLD#fn].'),
   unreadExports: found => section('Exports of the root of the package beyond what a host builds on', found, ({ file, line, name, problem }) => `  ${file}${line === undefined ? '' : `:${line}`}  ${name === undefined ? '' : `\`${name}\` `}${problem}\n`,
     'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSWRK#tooling].'),
-  testsNamingNoRule: found => section('Tests that name no rule they hold', found, ({ file, line, problem, title }) => `  ${file}:${line}  ${problem}  “${title}”\n`,
-    'a test opens its title with the one rule it holds, `[QSCLI#answer] reads …`, the section of a chapter or a record in force of a domain its tests hold, and second the record in transit that brought it, `[QSCOL#image] [Dnn] …` [QSWRK#marks].')
+  testsOffTheirSection: found => section('Tests that stand at no section of their rule', found, ({ file, line, problem }) => `  ${file}:${line}  ${problem}
+`,
+    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, and the title of its test says the rule in words, citing none [QSWRK#marks].')
 };

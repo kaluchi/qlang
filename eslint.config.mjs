@@ -96,9 +96,10 @@ export default [
     files: [
       'cli/src/line-editor.mjs',
       'cli/src/highlight-ansi.mjs',
-      'cli/test/highlight-ansi.test.mjs',
-      'cli/test/line-editor.test.mjs',
-      'cli/test/repl.test.mjs'
+      'cli/test/QSCLI/colour.test.mjs',
+      'cli/test/QSCLI/line-editor.test.mjs',
+      'cli/test/QSCLI/repl.test.mjs',
+      'cli/test/helpers/scripted-repl.mjs'
     ],
     rules: {
       'no-control-regex': 'off'

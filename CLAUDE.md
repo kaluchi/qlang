@@ -113,8 +113,10 @@ Tier 2, by topic, only the files the topic names:
 - host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,
   `cli/src/main.mjs`, `cli/src/stdin.mjs`, `cli/src/render.mjs`,
   `cli/src/cli-sources.mjs`, `cli/src/streams.mjs`
-- tests: `core/test/unit/conformance.test.mjs` for the runner, then
-  only the conformance or unit file of the topic
+- tests: `core/test/unit/QSWRK/cases.test.mjs` for the runner, then
+  only the files of the section of the topic, its cases
+  `core/test/conformance/<chapter>/<section>.jsonl` and its tests
+  `<chapter>/<section>.test.mjs` under the tests of each workspace
 
 Never wholesale: `core/test/`, `docs/journal/replaced/`,
 `docs/journal/research/`, the memory directory. Open a record out of
@@ -211,8 +213,9 @@ on an export of the root of the core that no workspace beside it reads
 from the package and its README does not write [QSWRK#tooling],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [QSWRK#journal],
-on the title of a test that does not open with the one rule it holds, the
-section of a chapter or a record its tests hold [QSWRK#marks], and
+on a test file whose path names no section of a chapter and no record its
+tests hold, on a line of it that cites the rule its path names and on the
+title of a test that cites a rule [QSWRK#marks], and
 on a path this file, the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that

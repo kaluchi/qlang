@@ -1,0 +1,136 @@
+import { describe, it, expect } from 'vitest';
+import { parse, ParseError } from '../../../src/parse.mjs';
+import { isBindStep } from '../../../src/steps.mjs';
+import { stepOf, refusalOf, rootOf } from '../../helpers/read-text.mjs';
+
+describe('parse — comments and whitespace', () => {
+  it('keeps a line comment on the side', () => {
+    const source = `|~| this is a comment
+      | [1 2 3] | count`;
+    expect(rootOf(source).comments.map(comment => [comment.type, comment.content]))
+      .toEqual([['LinePlainComment', ' this is a comment']]);
+  });
+
+  it('reads a comment where a word would touch another as no pipe', () => {
+    expect(() => parse('[1] |~ note ~| count')).toThrow('steps are joined by `|`: write `a | b`');
+  });
+
+  it('reads a declaration after a comment on its line with its doc in its slot and its body on the next line', () => {
+    const declaration = stepOf('|~ note ~| :x |~~| about x\n1');
+    expect(isBindStep(declaration)).toBe(true);
+    expect([declaration.get('docs').map(doc => [...doc]), declaration.get('body')]).toEqual([[[' about x']], 1]);
+  });
+
+  it('keeps the comment of a source of comments alone on the side', () => {
+    expect(rootOf('|~ only a note ~|').comments).toHaveLength(1);
+  });
+});
+
+// The nesting of block comments. A block comment and a block doc open and
+// close with forms of their own, `|~`/`~|` and `|~~`/`~~|`, so the parser
+// descends into a nested pair with no escape: where the content of a block
+// meets the opener of another, it reads the whole pair, its own closer
+// among it, as content of the outer one. A line marker, `|~|` or `|~~|`,
+// inside a block is read as its own characters and hides no closer on its
+// line.
+//
+// The tests below pin: (1) a nested pair round-trips the outer `.content`
+// as the source between the delimiters; (2) a bare `~~|` inside a block
+// comment is content; (3) the closer of the container ends its body; (4) a
+// block doc left open is refused naming where it opened, and a block comment
+// left open is refused at its opener.
+describe('parse — block comment nesting', () => {
+  const blockStep = (src) => rootOf(src).comments[0];
+
+  describe('positive — content captured verbatim', () => {
+    it('a block comment holds adjacent nested pairs', () => {
+      const step = blockStep('|~ |~ a ~| middle |~ b ~| ~|\n| 1');
+      expect(step.content).toBe(' |~ a ~| middle |~ b ~| ');
+    });
+
+    it('a block comment holds a nested doc pair as its content', () => {
+      const step = blockStep('|~ wraps |~~ inner doc ~~| inside ~|\n| 1');
+      expect(step.content).toBe(' wraps |~~ inner doc ~~| inside ');
+    });
+
+    it('a block comment holds a bare ~~| as its content', () => {
+      const step = blockStep('|~ doc-close marker ~~| mentioned ~|\n| 1');
+      expect(step.content).toBe(' doc-close marker ~~| mentioned ');
+    });
+
+    it('a |~| inside a block comment hides no closer on its line', () => {
+      const step = blockStep('|~ holds a |~| line mention here ~|\n| 7');
+      expect(step.content).toBe(' holds a |~| line mention here ');
+    });
+
+    it('a |~~| inside a block comment hides no closer on its line', () => {
+      const step = blockStep('|~ holds a |~~| line-doc mention here ~|\n| 7');
+      expect(step.content).toBe(' holds a |~~| line-doc mention here ');
+    });
+
+    it('a block comment keeps a quote span that holds a bare ~|', () => {
+      const step = blockStep('|~ keeps ~( literal ~| close ) afterward ~|\n| 1');
+      expect(step.content).toBe(' keeps ~( literal ~| close ) afterward ');
+    });
+
+    it('a block comment holds an empty nested pair', () => {
+      const step = blockStep('|~ before |~ ~| after ~|\n| 1');
+      expect(step.content).toBe(' before |~ ~| after ');
+    });
+  });
+
+  describe('positive — a block comment that holds a doc marker and code', () => {
+    it('reads the comment whole', () => {
+      const src = [
+        '|~ The refusals the guards of this source raise. Each is a tag',
+        '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
+        '   `::AssertionFailedError | doc`, `| source` and `| doc | laws`,',
+        '   and `result !| type` reads the tag of a failure back. ~|',
+        '| 42'
+      ].join('\n');
+      const step = blockStep(src);
+      expect(step.type).toBe('BlockPlainComment');
+      expect(step.content).toContain('|~~ ~~|');
+      expect(step.content).toContain('::AssertionFailedError | doc');
+    });
+  });
+
+  describe('negative — unbalanced or malformed nesting raises ParseError', () => {
+    const expectRefusedAt = (src, offset, found) => {
+      const refused = refusalOf(src);
+      expect(refused, src).toBeInstanceOf(ParseError);
+      expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
+    };
+
+    it('a block comment with no closing ~| at all is refused at its opener', () => {
+      expectRefusedAt('|~ unterminated block\n| 1', 0, '|');
+    });
+
+    it('a block comment whose inner nested comment swallows the outer close is refused at its opener', () => {
+      // The inner opener of `|~ A |~ B ~|` takes the one closer, and none is left for the outer.
+      expectRefusedAt('|~ A |~ B ~|\n| 1', 0, '|');
+    });
+
+    it('bare ~| in pipeline position (no opening) is a parse error', () => {
+      expectRefusedAt('42 | ~|', 6, '|');
+    });
+
+    it('a block comment that holds a bare ~~| and no ~| of its own is refused at its opener', () => {
+      expectRefusedAt('|~ stuff ~~|\n| 1', 0, '|');
+    });
+  });
+
+  describe('round-trip — outer .content is the exact source slice between delimiters', () => {
+    const cases = [
+      '|~ a ~|',
+      '|~ outer |~ inner ~| tail ~|',
+      '|~ A |~ B |~ C ~| D ~| E ~|',
+      '|~ wraps ~( inner |~ q ~| ) closing ~|',
+      '|~ multi\n  line\n  with |~ nested ~| inside ~|'
+    ];
+
+    it.each(cases)('reproduces .content from source slice — %s', (src) => {
+      expect(blockStep(src + '\n| count').content).toBe(src.slice('|~'.length, src.length - '~|'.length));
+    });
+  });
+});

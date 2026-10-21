@@ -189,10 +189,15 @@ export function walkOfBaseline(repoRoot) {
 // chapter under `docs/spec/` and a section it holds as a heading of its
 // own, `## scope` [QSWRK#spec].
 const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
-export function unresolvedSections(repoRoot) {
+// chaptersOfSpec(repoRoot) → the sections each chapter holds, by its name.
+export function chaptersOfSpec(repoRoot) {
   const specDir = join(repoRoot, 'docs', 'spec');
-  const chapters = new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
+  return new Map((existsSync(specDir) ? readdirSync(specDir) : []).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name))
     .map(name => [name.slice(0, 5), new Set(readText(join(specDir, name)).split(/\r?\n/).filter(line => line.startsWith('## ')).map(line => line.slice(3).trim()))]));
+}
+
+export function unresolvedSections(repoRoot) {
+  const chapters = chaptersOfSpec(repoRoot);
   const citing = [...citingCodeOf(repoRoot), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
     ...CITING_DOCUMENTS, ...filesUnder(repoRoot, JOURNAL, /\.md$/).filter(path => !path.includes('/replaced/') && !path.startsWith(`${RESEARCH}/`)), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
   const unresolved = [];

@@ -23,7 +23,7 @@ qlang -V | --version
 A query runs on what stdin holds, JSON as values and any other text as
 a string, and its answer is printed as the language prints it, a
 string as its text, so a query that ends in `| json` writes JSON. Every
-answer prints within sixteen thousand characters, and one past them as
+answer prints within the budget `qlang -h` names, and one past it as
 `::qlang/AnswerBeyondBudgetError` with its head; `| print | out` and
 `| json | out` write the whole. A query that reads no subject,
 `[1 2 3] | sum`, reads no stdin. `qlang -h` tells the flags.

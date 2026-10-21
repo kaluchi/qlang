@@ -66,6 +66,12 @@ describe('table — a view for a terminal', () => {
     expect(cellEntry.result).toContain('| |~~ one two ~~| |');
   });
 
+  it('writes every part of a quote on one line, the modifiers of a call, the docs and the body of a declaration, a chain with its pages, the step after !| and the parts of a literal [D397]', async () => {
+    const declarations = '~(:a 1\n| :b 2)';
+    const cellEntry = await runQuery(`get [{:s ~(::vec/sort | source) :q ~(~(map ~(:x |~~ one\n  two ~~| 1\n| :b 2))) :f ~(~(get /a !| map ${declarations})) :v ~(~([${declarations}] | count)) :e ~(~(#[${declarations}] | count)) :m ~(~({:k ${declarations}} | count)) :t ~(~(::T[${declarations}] | count))}] | table | lines | count`, silentStreams);
+    expect(cellEntry.result).toBe(5);
+  });
+
   it('writes a doc on one line with the quotes it holds on one line too [D397]', async () => {
     const cellEntry = await runQuery('[{:d |~~ see\n  ~(:a 1\n| :b 2) ~~|}] | table', silentStreams);
     expect(cellEntry.result).toContain('| |~~ see ~(:a 1 | :b 2) ~~| |');

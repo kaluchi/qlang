@@ -58,19 +58,17 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
 }
 
 // answerText(value, scope, page) → the text the command line writes for an
-// answer within the budget of every answer [D397]: a string as it is, so
-// `| json` writes JSON text and `| table` a table, any other value as its
-// print, an answer past the budget as its refusal and an error as its alert,
-// a refused text with its caret below the alert, its line within an excerpt
-// around the place, and a failure with the prose of its refusal's page last,
-// line comments a reading of the literal passes over [QSHST#answer].
+// answer [D397]: a string within the budget as it is, so `| json` writes JSON
+// text and `| table` a table, any other answer as `boundAnswer` shows it, a
+// refused text with its caret below, and a failure with the prose of its page
+// last, line comments a reading of the literal passes over [QSHST#answer].
 export async function answerText(value, scope, page = null) {
   return await shownText(await boundAnswer(value, scope, typeof value === 'string' ? value : null), value, scope, page);
 }
 
 async function shownText(shown, value, scope, page) {
   if (shown === value && typeof value === 'string') return value;
-  const refused = isErrorValue(shown) && !isErrorValue(value);
+  const refused = isErrorValue(shown) && shown.tag.name !== (isErrorValue(value) ? value.tag.name : null);
   const prose = refused ? await proseOfThePage(shown, scope) : page;
   return [await printAnswer(shown, scope), caretOf(value), prose === null ? null : commentLinesOf(prose)].filter(part => part !== null).join('\n');
 }

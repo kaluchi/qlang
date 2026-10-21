@@ -74,17 +74,15 @@ const PRINT_HANDLERS = {
   vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine),
   map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
   set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
-  quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine),
+  quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine ? { oneLine, printedOf } : AS_WRITTEN),
   doc:     d => '|~~' + docText(d) + '~~|',
   underTag: printUnderTag
 };
 
 // A quote writes its steps in `~(…)`, and one whose code is a path alone,
-// which `~(…)` refuses where it is written, under its tag [QSPTH#value]; on
-// one line its steps stand on one line, which read back as the same steps
-// [D397].
-function printQuote(quote, oneLine = false) {
-  return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printSteps(quote, oneLine) + ')';
+// which `~(…)` refuses where it is written, under its tag [QSPTH#value].
+function printQuote(quote, view) {
+  return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote, view) + ')';
 }
 
 const printedByNoKind = () => undefined;
@@ -153,12 +151,6 @@ function printMapLike(open, m, indent, printedOf, oneLine = false) {
   return `${open}\n${lines.join('\n')}\n${'  '.repeat(indent)}}`;
 }
 
-// printQuoteSource(quote) → the text between `~(` and `)`, in the command
-// form, which reads back as the steps printed [QSQUO#parse].
-export function printQuoteSource(quote) {
-  return printSteps(quote);
-}
-
 // docText(doc) → its prose with each quote written where it stands as
 // `print` writes it, a quote under tags with its stack before it, the text
 // a doc's `content` answers [QSSLF#doc].
@@ -171,14 +163,17 @@ export function docText(doc) {
 // part of it that computes written as its quote [QSQUO#step].
 export const asPrinted = { of: value => printValue(value), quoting: literal => printStep(literal, true), computesWithin };
 
-// A quote of declarations alone, the story `source` reads, prints one
-// declaration a line, each after the first led by its pipe, as the
-// catalog writes it [QSQUO#parse], and so does a quote of several steps one of
-// which takes several lines, the commands of a chain among them; on one line
-// its steps stand on one line [D397].
-function printSteps(steps, oneLine = false) {
-  const printed = steps.map(step => (isFailStep(step) ? { fail: printSteps(step.payload, oneLine) } : { step: printStep(step, false, oneLine) }));
-  const lined = !oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
+// printQuoteSource(steps, view?) → the text between `~(` and `)`, in the
+// command form, which reads back as the steps printed: a quote of declarations
+// alone, the story `source` reads, one declaration a line, each after the
+// first led by its pipe, as the catalog writes it, and so a quote of several
+// steps one of which takes several lines [QSQUO#parse]; on one line every part
+// of every step stands on it [D397].
+const AS_WRITTEN = { oneLine: false, printedOf: printedByNoKind };
+
+export function printQuoteSource(steps, view = AS_WRITTEN) {
+  const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view) }));
+  const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
   return printed.map(({ fail, step }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
@@ -186,33 +181,33 @@ function printSteps(steps, oneLine = false) {
   }).join('');
 }
 
-function printStep(step, quoting = false, oneLine = false) {
-  if (quoting && computes(step)) return `~(${isCallStep(step) ? printCall(step) : printSteps(step.payload)})`;
-  if (isCallStep(step)) return printCall(step);
-  if (isGroupStep(step)) return `(${printSteps(step.payload, oneLine)})`;
-  if (isBindStep(step)) return printBind(step);
-  if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting));
+function printStep(step, quoting = false, view = AS_WRITTEN) {
+  if (quoting && computes(step)) return `~(${isCallStep(step) ? printCall(step) : printQuoteSource(step.payload)})`;
+  if (isCallStep(step)) return printCall(step, view);
+  if (isGroupStep(step)) return `(${printQuoteSource(step.payload, view)})`;
+  if (isBindStep(step)) return printBind(step, view);
+  if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting, view));
   const errorFields = errorFieldsOf(step);
-  if (errorFields !== null) return `!{${printEntries([...errorFields], quoting)}}`;
-  if (isQuote(step)) return `~(${printSteps(step, oneLine)})`;
-  if (isDoc(step)) return printValue(step);
-  if (isSet(step)) return `#[${step.map(part => printStep(part, quoting)).join(' ')}]`;
-  if (isVec(step)) return `[${step.map(part => printStep(part, quoting)).join(' ')}]`;
-  if (isMap(step)) return `{${printEntries([...step], quoting)}}`;
+  if (errorFields !== null) return `!{${printEntries([...errorFields], quoting, view)}}`;
+  if (isQuote(step)) return `~(${printQuoteSource(step, view)})`;
+  if (isDoc(step)) return printValue(step, 0, view.printedOf, view.oneLine);
+  if (isSet(step)) return `#[${step.map(part => printStep(part, quoting, view)).join(' ')}]`;
+  if (isVec(step)) return `[${step.map(part => printStep(part, quoting, view)).join(' ')}]`;
+  if (isMap(step)) return `{${printEntries([...step], quoting, view)}}`;
   return printValue(step);
 }
 
-function printEntries(entries, quoting) {
-  return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printStep(value, quoting)}`).join(' ');
+function printEntries(entries, quoting, view = AS_WRITTEN) {
+  return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printStep(value, quoting, view)}`).join(' ');
 }
 
-function printCall(call) {
-  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(modifier => printStep(modifier))].join(' ');
+function printCall(call, view = AS_WRITTEN) {
+  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(modifier => printStep(modifier, false, view))].join(' ');
 }
 
-function printBind(bind) {
+function printBind(bind, view) {
   const parts = [bind.get('name').literal];
-  if (bind.has('docs')) parts.push(...bind.get('docs').map(doc => printStep(doc)));
-  if (bind.has('body')) parts.push(printStep(bind.get('body')));
+  if (bind.has('docs')) parts.push(...bind.get('docs').map(doc => printStep(doc, false, view)));
+  if (bind.has('body')) parts.push(printStep(bind.get('body'), false, view));
   return parts.join(' ');
 }

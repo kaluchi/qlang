@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
-import { elide, alertOf, elideAnswer } from '../../src/elide.mjs';
+import { elide, alertOf, alertWithin } from '../../src/elide.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { compareValues } from '../../src/ordering.mjs';
@@ -29,7 +29,7 @@ function elisionsOf(value, found = []) {
 // answers, the query run once for them all.
 async function sizesHold(query, budgets) {
   const failing = await evalQuery(query);
-  const elisions = budgets.flatMap(budget => elisionsOf(elideAnswer(failing, budget)));
+  const elisions = budgets.flatMap(budget => elisionsOf(alertWithin(failing, budget)));
   expect(elisions.length).toBeGreaterThan(0);
   const reads = elisions.map(elision => printValue(elision.get('read')).slice(2, -1).replace(/^!\| /, ''));
   const counts = await evalQuery(`${query} !| get [${reads.map(read => `~(${read} | count)`).join(' ')}]`);
@@ -113,14 +113,14 @@ describe('elide [QSPRN#elide]', () => {
     const value = await evalQuery('[[] {:n 1} "short"]');
     expect(elide(value, 3)).toBe(value);
     const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    expect(printValue(elideAnswer(failing, 200)).length).toBeLessThanOrEqual(printValue(elideAnswer(failing)).length);
+    expect(printValue(alertWithin(failing, 200)).length).toBeLessThanOrEqual(printValue(alertOf(failing)).length);
   });
 });
 
-describe('elideAnswer [QSPRN#elide]', () => {
+describe('alertWithin [QSPRN#elide]', () => {
   it('gives the facts of a raised error way beneath !|, its trace a trace [QSHST#answer]', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    const view = elideAnswer(failing, 300);
+    const view = alertWithin(failing, 300);
     expect(isErrorValue(view)).toBe(true);
     expect(view.tag).toBe(failing.tag);
     expect(printValue(view)).toContain(':read ~(!| get /trace/');
@@ -129,7 +129,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
   it('cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts [QSHST#answer]', async () => {
     const skipped = Array.from({ length: 12 }, (_, index) => `add ${index}`).join(' | ');
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope) | ${skipped}`);
-    const view = elideAnswer(failing, 60);
+    const view = alertWithin(failing, 60);
     expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
     expect(printValue(view.facts.get('trace').get('read'))).toBe('~(!| get /trace)');
     expect(view.facts.get('trace').get('size')).toBe(failing.facts.get('trace').length);
@@ -138,7 +138,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
   it('keeps the facts of a failure whose first fact is named as the rest of a map is [QSHST#answer]', async () => {
     const forty = Array.from({ length: 40 }, (_, index) => index).join(' ');
     const failing = await evalQuery(`!{:"…" 1 :b "${'a'.repeat(134)}" :c [${forty}]} | raise`);
-    const view = elideAnswer(failing, 60);
+    const view = alertWithin(failing, 60);
     expect([...view.facts.keys()]).toEqual([...failing.facts.keys()]);
     expect([view.facts.get('…'), view.facts.get('b').get('size'), view.facts.get('c').get('size')]).toEqual([1, 134, 40]);
   });
@@ -152,7 +152,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
 
   it('keeps the first frames of a trace past the budget within an excerpt, each with its steps, and the rest read beneath !| [QSHST#answer]', async () => {
     const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
-    const trace = elideAnswer(failing, 2000).facts.get('trace');
+    const trace = alertWithin(failing, 2000).facts.get('trace');
     const rest = trace[trace.length - 1];
     expect(trace[TAG_HEADER_SYMBOL].name).toBe('trace');
     expect(printValue(trace[0][1])).toBe('~(add 1 | inf)');
@@ -163,7 +163,7 @@ describe('elideAnswer [QSPRN#elide]', () => {
 
   it('cuts an alert that holds no trace past a budget, the refusal of a text among them [QSHST#answer]', async () => {
     const refused = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`);
-    const view = elideAnswer(refused, 80);
+    const view = alertWithin(refused, 80);
     expect(view.facts.has('trace')).toBe(false);
     expect([...view.facts.keys()]).toEqual([...refused.facts.keys()]);
     expect(view.facts.get('source').get('size')).toBe(refused.facts.get('source').length);
@@ -171,19 +171,12 @@ describe('elideAnswer [QSPRN#elide]', () => {
 
   it('keeps every frame of an alert within its budget [QSHST#answer]', async () => {
     const failing = await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf');
-    expect(elideAnswer(failing, 100000).facts.get('trace').length).toBe(failing.facts.get('trace').length);
+    expect(alertWithin(failing, 100000).facts.get('trace').length).toBe(failing.facts.get('trace').length);
   });
 
-  it('elides a value that is no error as elide does', () => {
-    const forty = Array.from({ length: 40 }, (_, index) => index + 1);
-    expect(elideAnswer(forty, 80)).toEqual(elide(forty, 80));
-  });
-
-  it('answers a value whole and an error as its alert when no budget is asked for [QSHST#answer]', async () => {
-    const forty = Array.from({ length: 40 }, (_, index) => index + 1);
-    expect(elideAnswer(forty)).toBe(forty);
-    const failing = await evalQuery(`[${forty.join(' ')}] | filter ~(nope)`);
-    expect(printValue(elideAnswer(failing))).toBe(printValue(alertOf(failing)));
+  it('answers an alert that fits its budget as the alert itself [QSHST#answer]', async () => {
+    const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] | filter ~(nope)`);
+    expect(printValue(alertWithin(failing, 100000))).toBe(printValue(alertOf(failing)));
   });
 });
 

@@ -25,16 +25,15 @@
 //
 //   elide(value, budget, printedOf?) → the value within the budget
 //   alertOf(error, printedOf?) → the error as an alert
-//   elideAnswer(answer, budget, printedOf?) → an answer as a host prints it: a
-//     value whole, or within the budget asked for; an error an alert, within
-//     the budget when one is asked for
+//   alertWithin(error, budget, printedOf?) → the alert within the budget
+//   headOfAnswer(answer, printedOf?) → the head of an answer past the budget
 //
 // where `printedOf(part)` answers the print a kind declared under it gives a
 // part, or undefined where the forms of the core write it.
 
 import {
   isVec, isSet, isQuote, isDoc, isMap, isErrorValue, isValueClass, isFrame, isTrace,
-  makeTagged, beneathTags, makeErrorValue, makeFrame, partsOfFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
+  makeTagged, beneathTags, makeErrorValue, errorAtRest, makeFrame, partsOfFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
   SUBJECT_INDEX_OF_A_FRAME,
   ELISION_TAG
 } from './types.mjs';
@@ -45,8 +44,7 @@ import { commandStep, FAIL_TAG } from './steps.mjs';
 const HEAD_CHARACTERS = 40;
 export const EXCERPT_CHARACTERS = 300;
 
-// The characters every host prints an answer within, never fewer than the
-// first screen prints [D397].
+// The characters a host prints an answer within, above the first screen [D397].
 export const ANSWER_BUDGET = 16000;
 const printedByTheCore = () => undefined;
 
@@ -69,7 +67,7 @@ const isContainer = value => isVec(value) || isMap(value);
 
 // A text counts and cuts by its code points, as `count` and `take` do
 // [QSTXT#string].
-const lengthOf = text => Array.from(text).length;
+export const lengthOf = text => Array.from(text).length;
 const headOf = (text, length) => Array.from(text).slice(0, length).join('');
 
 // Where the reads of a value start: the value itself, or beneath `!|` the
@@ -87,7 +85,7 @@ function readOf(start, path, kept = null) {
   const segments = [...start.from, ...path].map(String);
   const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
   if (kept !== null) steps.push(commandStep('drop', [kept]));
-  if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0]]));
+  if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0] ?? commandStep('it', [])]));
   return makeQuote(steps);
 }
 
@@ -330,13 +328,20 @@ export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet
 // its tag and the names of its facts. The views of one answer share the rests
 // they made, so every `:size` counts what its `:read` answers beneath `!|`
 // [QSHST#answer].
-export function elideAnswer(answer, budget = null, printedOf = printedByTheCore) {
-  if (!isErrorValue(answer)) return budget === null ? answer : elide(answer, budget, printedOf);
+export function alertWithin(error, budget, printedOf = printedByTheCore) {
   const rests = new WeakSet();
-  const alert = alertOf(answer, printedOf, rests);
-  if (budget === null || measureBy(printedOf)(alert) <= budget) return alert;
+  const alert = alertOf(error, printedOf, rests);
+  if (measureBy(printedOf)(alert) <= budget) return alert;
   const trace = alert.facts.get('trace');
   const excerpted = trace === undefined ? alert
     : makeErrorValue(alert.tag, new Map(alert.facts).set('trace', elideWithin(trace, EXCERPT_CHARACTERS, readBelow(OF_THE_FACTS, ['trace']), printedOf, false, rests)));
   return elideWithin(excerpted, budget, OF_THE_FACTS, printedOf, false, rests);
+}
+
+// The head of an answer past the budget within the excerpt of an alert, each
+// `:read` continuing the query from the answer, and of a failure its error at
+// rest so, each `:read` beneath `!|` [D397].
+export function headOfAnswer(answer, printedOf = printedByTheCore) {
+  if (!isErrorValue(answer)) return excerptOf(answer, OF_THE_VALUE, printedOf, false, new WeakSet());
+  return excerptOf(errorAtRest(answer.tag, answer.facts), OF_THE_FACTS, printedOf, false, new WeakSet());
 }

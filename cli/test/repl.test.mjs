@@ -249,6 +249,15 @@ describe('runRepl — the bound of an answer', () => {
     expect(printed).not.toContain('print | out');
   });
 
+  it('prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {
+    const replHarness = captureRepl('5000 | range | print | out\n"x" | out | add 1\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain('4998 4999]\n');
+    expect(printed).not.toContain('::qlang/AnswerBeyondBudgetError');
+    expect(printed).toContain('::number/add/SubjectNotNumberError');
+  });
+
   it('prints an error as its alert', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);

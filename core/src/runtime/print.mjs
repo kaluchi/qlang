@@ -5,7 +5,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { TAG_HEADER_SYMBOL, isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
-import { elide, elideAnswer as answerWithin, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
+import { elide, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
@@ -38,20 +38,18 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 }
 
 // boundAnswer(answer, scope, written?) → what a host prints for an answer
-// [D397]: the answer whose print, or the text `written` a host writes for it,
-// fits the budget, as it is; past the budget the refusal
-// `::qlang/AnswerBeyondBudgetError` in its place as its alert, which holds the
-// kind of the answer and the answer cut to the excerpt of an alert, read from
-// the answer, since no `!|` reaches a refusal the host raises after the last
-// step; and a failure as its alert within the budget [QSHST#answer].
+// [D397]: the answer, a failure as its alert within the budget, where its
+// print, or the text `written` a host writes for it, fits the budget, and else
+// the refusal `::qlang/AnswerBeyondBudgetError` as its alert, which holds the
+// kind of the answer and its head [QSHST#answer].
 export async function boundAnswer(answer, scope, written = null) {
   const printedOf = await printsOfKinds(answer, scope);
-  if (isErrorValue(answer)) return answerWithin(answer, ANSWER_BUDGET, printedOf);
-  const characters = (written ?? printValue(answer, 0, printedOf)).length;
-  if (characters <= ANSWER_BUDGET) return answer;
-  const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: answer }), undefined, scope);
-  const excerpted = makeErrorValue(refused.tag, new Map(refused.facts).set('actualValue', elide(answer, EXCERPT_CHARACTERS, printedOf)));
-  return answerWithin(excerpted, ANSWER_BUDGET, printedOf);
+  const failed = isErrorValue(answer);
+  const shown = failed ? alertWithin(answer, ANSWER_BUDGET, printedOf) : answer;
+  const characters = lengthOf(written ?? printValue(shown, 0, printedOf));
+  if (characters <= ANSWER_BUDGET) return shown;
+  const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: headOfAnswer(answer, printedOf) }), undefined, scope);
+  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualType', failed ? answer.tag : typeOf(answer))), ANSWER_BUDGET, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';

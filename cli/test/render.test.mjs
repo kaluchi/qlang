@@ -6,8 +6,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderCellOutcome, answerText } from '../src/render.mjs';
+import { runQuery } from '../src/run.mjs';
 import { liftStdinToPipeValue } from '../src/stdin.mjs';
-import { makeErrorValue, keyword, makeTag, langRuntime, evalQuery } from '@kaluchi/qlang-core';
+import { silentStreams } from './helpers/silent-streams.mjs';
+import { makeErrorValue, keyword, makeTag, langRuntime, evalQuery, boundAnswer } from '@kaluchi/qlang-core';
 
 function makeCellEntry({ result = null, defect = null } = {}) {
   return {
@@ -218,6 +220,11 @@ describe('answerText — the bound of the answer', () => {
     expect(await answerText(forty, await langRuntime())).toBe(`[${forty.join(' ')}]`);
   });
 
+  it('writes the first screen whole, the budget never smaller than it', async () => {
+    const cellEntry = await runQuery('[::qlang ::cli] | map ~(get [~(it) ~(doc)])', silentStreams);
+    expect(await boundAnswer(cellEntry.result, cellEntry.scopeAfterCell)).toBe(cellEntry.result);
+  });
+
   it('writes an answer past the budget as the refusal, its head read from the answer, above the prose of its page', async () => {
     const scope = await langRuntime();
     const text = await answerText(await evalQuery(past, scope), scope);
@@ -236,6 +243,13 @@ describe('answerText — the bound of the answer', () => {
     const scope = await langRuntime();
     const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);
     expect(text).toContain(':read ~(!| get /trace | drop ');
+  });
+
+  it('writes a failure whose alert passes the budget as the refusal above the prose of the refusal\'s page', async () => {
+    const scope = await langRuntime();
+    const failure = await evalQuery('3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise', scope);
+    const text = await answerText(failure, scope, 'The page of the failure.');
+    expect([text.includes('::qlang/AnswerBeyondBudgetError!{'), text.includes('print | out'), text.includes('The page of the failure.')]).toEqual([true, true, false]);
   });
 });
 

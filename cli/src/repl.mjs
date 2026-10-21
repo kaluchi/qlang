@@ -11,6 +11,7 @@ import {
   printAnswer,
   boundAnswer,
   caretOf,
+  isErrorValue,
   langRuntime,
   verbNames
 } from '@kaluchi/qlang-core';
@@ -65,11 +66,15 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
+  // A cell that wrote to stdout by `out` holds the channel: no value of its
+  // answer prints after it, while a failure does [D397].
+  let wroteByOut = false;
   const session = await createSession({
     sources: cliSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
-      stderrWrite: writeDiagnostic
+      stderrWrite: writeDiagnostic,
+      recordStdoutEffect: () => { wroteByOut = true; }
     })
   });
 
@@ -116,24 +121,24 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
         return;
       }
 
+      wroteByOut = false;
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
       lineEditor.prompt();
     }
   });
 }
 
-// An answer prints within the budget of every answer, one past it as the
-// refusal in its place and an error as its alert, on stdout: a failed cell,
-// one that does not parse among them with its caret, is an answer as every
-// failure is, without the prose of its page [QSHST#answer], [D397],
-// and a defect raised past the fail track as the cell ran or as its answer
-// printed is written on stderr [QSHST#repl].
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite) {
+// An answer prints on stdout as `boundAnswer` shows it, but a value of a cell
+// that wrote by `out`, and a failure, one that does not parse with its caret,
+// without the prose of its page [QSHST#answer], [D397]; a defect raised past
+// the fail track as the cell ran or as its answer printed on stderr [QSHST#repl].
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
+    if (wroteByOut && !isErrorValue(result)) return null;
     const shown = await boundAnswer(result, scope);
     return [await printAnswer(shown, scope), caretOf(result)].filter(part => part !== null).join('\n');
   });
   if (stderrText !== undefined) stderrWrite(stderrText);
-  else stdoutWrite(highlightAnsi(stdoutText, rootVerbNames) + '\n');
+  else if (stdoutText !== null) stdoutWrite(highlightAnsi(stdoutText, rootVerbNames) + '\n');
 }

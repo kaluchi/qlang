@@ -1,7 +1,7 @@
 |~ `::qlang`, the topic of the language, and what is declared under it:
-   its page, the first screen a session reads, its chapters, and their
-   laws.
-   The rules it holds: [QSDSP#residence], [QSSLF#page]. ~|
+   its page, the first screen a session reads, the refusal of an answer
+   past the budget, its chapters, and their laws.
+   The rules it holds: [QSDSP#residence], [QSSLF#page], [D397]. ~|
 
 :qlang
   |~~ qlang is a pipeline query language over values. A query starts
@@ -172,7 +172,7 @@
       page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `x | type | doc`
       answers the page of the kind of any value. An answer prints within
-      sixteen thousand characters, one past them as
+      the budget of every answer, one past it as
       ::qlang/AnswerBeyondBudgetError with its head, and `print | out`
       writes it whole; `x | elide 4000` cuts it to four thousand
       characters of its print, each part left out
@@ -200,14 +200,16 @@
   ~~|
   ::kind
     | throws :AnswerBeyondBudgetError
-        |~~ A host printed an answer past the budget of every answer,
-            sixteen thousand characters of its print, and prints this in
-            its place: `:characters` and `:budget` tell the two, and
+        |~~ A host printed an answer past the budget of every answer, the
+            characters of its print `:budget` names, and prints this in its
+            place: `:characters` tells the characters of the print, and
             `:actualValue` the head of the answer, each `::elision` in it a
             `:read` that continues the query to the part. Narrow the answer
-            by `get`, `take`, `keys`, `count` or `shape`, or write it whole
-            through the door the query opens itself, `print | out` or
-            `json | out`. No step raises it and no `!|` reaches it.
+            by `get`, `take`, `keys`, `count` or `shape`, or, where the host
+            has streams, write it whole through the door the query opens
+            itself: `out` a text, `print | out` the literal of a value and
+            `json | out` its JSON. No step raises it and no `!|` reaches it.
+            ::link~(::qlang/hosts | doc)
         ~~|
     | carries :AnswerBeyondBudgetError/characters
         |~~ The characters of the print of the answer. ~~|
@@ -915,8 +917,8 @@
             and brings verbs of its own, each a name whose value is
             `::builtin{}`; the command line is one. A value is whole in
             the language, and a host prints every answer within one
-            budget, sixteen thousand characters of its print: an answer
-            that fits prints whole, and one past it prints as the failure
+            budget of characters of its print: an answer that fits prints
+            whole, and one past it prints as the failure
             `::qlang/AnswerBeyondBudgetError` in its place, its head an
             excerpt where each part left out is an `::elision`, whose
             `:read` continues the query to the part; `print | out` writes
@@ -924,9 +926,10 @@
             the host prints is an alert within the budget: its tag and its
             facts, the subject where it arose within an excerpt, and an
             elision for each subject it passed, the failure keeping its tag
-            and the names of its facts; the command line writes below it
-            the prose of its refusal's page, as `!| explain` reads it, so
-            the reader repairs the call where it failed. The command line
+            and the names of its facts, and an alert past the budget prints
+            as the same refusal; the command line writes below it the prose
+            of its refusal's page, as `!| explain` reads it, so the reader
+            repairs the call where it failed. The command line
             reads JSON from stdin as values and other text as a string,
             and prints its answer as the language prints it, a string as
             its text, so `| json` writes JSON; its page, `::cli | doc`,

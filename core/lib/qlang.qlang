@@ -172,9 +172,9 @@
       page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `x | type | doc`
       answers the page of the kind of any value. An answer prints within
-      the budget of every answer, one past it as
-      ::qlang/AnswerBeyondBudgetError with its head, and `print | out`
-      writes it whole; `x | elide 4000` cuts it to four thousand
+      the budget of every answer, and whole in the REPL of the command
+      line; one past it prints as ::qlang/AnswerBeyondBudgetError with its
+      head, and `print | out` writes it whole; `x | elide 4000` cuts it to four thousand
       characters of its print, each part left out
       an ::elision whose `:read` continues the query to it.
 
@@ -917,7 +917,8 @@
             and brings verbs of its own, each a name whose value is
             `::builtin{}`; the command line is one. A value is whole in
             the language, and a host prints every answer within one
-            budget of characters of its print: an answer that fits prints
+            budget of characters of its print, but the REPL of the command
+            line, which prints it whole: an answer that fits prints
             whole, and one past it prints as the failure
             `::qlang/AnswerBeyondBudgetError` in its place, its head an
             excerpt where each part left out is an `::elision`, whose

@@ -3,7 +3,7 @@
    the streams under `::any`. Their primitives take the values alone, the
    served subject and the values of their inputs, but that of `tap`, which
    reads the state of its call.
-   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#answer],
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [D406],
    [QSHST#stdin]. ~|
 
 :cli
@@ -53,8 +53,9 @@
       message with the code 1, and a call that names no query or a flag
       the command line takes not goes there with its usage and the code 2.
 
-      Every answer prints within one budget of characters, and one past
-      it prints as `::qlang/AnswerBeyondBudgetError`, whose `:budget`
+      Every answer prints within one budget of characters, but in the
+      REPL, which prints it whole, and one past it prints as
+      `::qlang/AnswerBeyondBudgetError`, whose `:budget`
       names the budget, with its head, each `::elision` in it a `:read`
       that continues the query to the part;
       `print | out` or `json | out` writes the whole, and `| elide N` cuts

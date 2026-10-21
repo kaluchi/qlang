@@ -9,11 +9,11 @@ import { makeSet } from '../../src/ordering.mjs';
 import { evalQuery } from '../../src/session.mjs';
 
 describe('the chain of `filter` as a query reads it', () => {
-  it('filter of maps lists under its address its predicate, its answer and the refusal of a verdict that is no boolean [QSSLF#catalog]', async () => {
+  it('[QSSLF#manifest] filter of maps lists under its address its predicate, its answer and the refusal of a verdict that is no boolean', async () => {
     expect(await evalQuery('::map/filter | manifest')).toEqual(makeSet([makeTag('map/filter/ConditionKindNotTakenError'), makeTag('map/filter/answer'), makeTag('map/filter/predicate')]));
   });
 
-  it('filter takes its predicate as code, a quote or a path, on each kind that declares it [QSBLD#fn]', async () => {
+  it('[QSCOL#filter] filter takes its predicate as code, a quote or a path, on each kind that declares it', async () => {
     expect(await evalQuery('[::vec/filter ::map/filter] | map ~(binding | get /value | inputs | map /kinds) | print')).toBe('[[#[::path ::quote]] [#[::path ::quote]]]');
   });
 });
@@ -21,13 +21,13 @@ describe('the chain of `filter` as a query reads it', () => {
 // A call that leaves the place of an input empty is refused under the input
 // [QSBLD#fn].
 describe('a call that leaves an input empty', () => {
-  it('mul given no multiplier is refused under its input', async () => {
+  it('[QSBLD#fn] mul given no multiplier is refused under its input', async () => {
     expect(await evalQuery('5 | mul !| type')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
   });
 });
 
 describe('the root of the language', () => {
-  it('every kind of the root is built by the chain of a kind [QSBLD#label]', async () => {
+  it('[QSBLD#label] every kind of the root is built by the chain of a kind', async () => {
     expect(await evalQuery('kinds | map ~(binding | get /value | type) | distinct')).toEqual(await evalQuery('#[::kind]'));
   });
 });
@@ -35,7 +35,7 @@ describe('the root of the language', () => {
 // `apply` takes a quote, a path or a function as its code, and text once
 // `parse` reads it [QSQUO#apply].
 describe('the code `apply` takes', () => {
-  it('apply refuses text as its code, which parse reads first', async () => {
+  it('[QSQUO#apply] apply refuses text as its code, which parse reads first', async () => {
     expect(await evalQuery('"not-a-quote" | apply it !| type')).toEqual(makeTag('any/apply/code/KindNotTakenError'));
   });
 });

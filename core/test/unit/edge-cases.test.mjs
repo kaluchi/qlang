@@ -20,7 +20,7 @@ import {
 import { makeSet } from '../../src/ordering.mjs';
 
 describe('types.mjs', () => {
-  it('formOf names the form of every value', () => {
+  it('[QSLIT#kind] formOf names the form of every value', () => {
     expect(formOf(null)).toBe('null');
     expect(formOf(undefined)).toBe('null');
     expect(formOf(true)).toBe('boolean');
@@ -39,7 +39,7 @@ describe('types.mjs', () => {
     expect(formOf(makeErrorValue(makeTag('T'), new Map()))).toBe('error');
   });
 
-  it('isSet tells a set from a vector', () => {
+  it('[QSORD#set] isSet tells a set from a vector', () => {
     expect(isSet(makeSet([]))).toBe(true);
     expect(isSet([])).toBe(false);
   });
@@ -47,14 +47,14 @@ describe('types.mjs', () => {
 
 describe('source on a declaration of it', () => {
   // `source` reads the declaration of `it` under the name it declares, as written [QSSLF#axis].
-  it('source on a declaration of it answers the declaration', async () => {
+  it('[QSSLF#axis] source on a declaration of it answers the declaration', async () => {
     const source = await evalQuery('42 | :snap it | ::snap | source | toString');
     expect(source).toBe(':snap it');
   });
 });
 
 describe('runtime/control.mjs coalesce', () => {
-  it('coalesce leaves the alternatives after the first value unrun [QSCND#coalesce]', async () => {
+  it('[QSCND#coalesce] coalesce leaves the alternatives after the first value unrun', async () => {
     // A verb of the host counts its runs: the walk ends at `/a`, a value,
     // and reaches the verb where `/b` fails.
     let runs = 0;

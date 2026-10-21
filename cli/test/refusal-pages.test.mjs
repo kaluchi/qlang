@@ -35,23 +35,23 @@ const ruleBorn = new Set(addresses
 // The pages of the refusals under a noun, `number/add/SubjectNotNumberError`.
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && kindAt(address) === 'doc');
 
-describe('every refusal a site of the core or of the command line declares has its page under its noun [QSERR#site]', () => {
+describe('every refusal a site of the core or of the command line declares has its page under its noun', () => {
   for (const address of declared) {
-    it(`${address} is paged under the noun it guards`, () => {
+    it(`[QSERR#site] ${address} is paged under the noun it guards`, () => {
       expect(kindAt(address), `${address} is declared by a site and no source pages it under its noun`).toBe('doc');
       if (!ofTheCore.has(address)) expect(nodeOf(session.scope, address).get('origin').name, `${address} is declared by the command line and paged outside its source`).toBe('cli');
     });
   }
 });
 
-describe('every page of a refusal is declared by a site or raised by rule [QSERR#site]', () => {
+describe('every page of a refusal is declared by a site or raised by rule', () => {
   for (const address of refusalPages) {
-    it(`${address} is declared by its site or raised by rule`, () => {
+    it(`[QSERR#site] ${address} is declared by its site or raised by rule`, () => {
       expect(declared.has(address) || ruleBorn.has(address), `${address} has a page, and no site declares it and no rule raises it`).toBe(true);
     });
   }
 
-  it('holds the pages of the core and of the command line in one root', () => {
+  it('[QSERR#site] holds the pages of the core and of the command line in one root', () => {
     expect(['call/UnknownNameError', 'any/out/SubjectKindNotTakenError', 'vec/table/RowKindNotTakenError'].every(address => declared.has(address) && refusalPages.includes(address))).toBe(true);
     expect(['any/out/SubjectKindNotTakenError', 'vec/table/RowKindNotTakenError'].every(address => !ofTheCore.has(address))).toBe(true);
   });

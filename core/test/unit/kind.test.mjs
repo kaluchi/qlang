@@ -14,8 +14,8 @@ import { isTag } from '../../src/types.mjs';
 
 const answers = async query => printValue(await evalQuery(query));
 
-describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
-  it('names the payload of none of its kinds, each field left out and of none of its kinds, and a field of no kinds left out alone', async () => {
+describe('the refusals a kind raises by rule', () => {
+  it('[QSERR#site] names the payload of none of its kinds, each field left out and of none of its kinds, and a field of no kinds left out alone', async () => {
     const own = await createSession();
     await own.evalCell([
       ':Box',
@@ -37,13 +37,13 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
     ]);
   });
 
-  it('names a payload that is no vector where it names the kinds of each element', async () => {
+  it('[QSERR#site] names a payload that is no vector where it names the kinds of each element', async () => {
     const own = await createSession();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
   });
 
-  it('names no refusal of a kind of no payload and no field', async () => {
+  it('[QSERR#site] names no refusal of a kind of no payload and no field', async () => {
     const own = await createSession();
     await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true)');
     expect(ruleRefusalsOf(own.scope, 'Mark')).toEqual([]);
@@ -51,65 +51,65 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
 });
 
 describe('a field of a kind', () => {
-  it('refuses a value that is no vector where it names the kinds of each element', async () => {
+  it('[QSBLD#value] refuses a value that is no vector where it names the kinds of each element', async () => {
     expect(await answers(':Box |~~ A parcel. ~~| (::kind | reads :xs |~~ Values. ~~| /xs [::number]) | ::Box{:xs 5} !| type'))
       .toBe('::Box/xs/KindNotTakenError');
   });
 
-  it('answers the failure of a quote that reads it, past a place it leaves out', async () => {
+  it('[QSBLD#value] answers the failure of a quote that reads it, past a place it leaves out', async () => {
     expect(await answers(':Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| type'))
       .toBe('::number/add/addend/KindNotTakenError');
   });
 
-  it('refuses a place a quote reads that the payload leaves out as left out', async () => {
+  it('[QSBLD#value] refuses a place a quote reads that the payload leaves out as left out', async () => {
     expect(await answers(':Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w)) | ::Box{} !| type'))
       .toBe('::Box/w/NotGivenError');
   });
 });
 
-describe('the chain of a kind as the body of a bare name [QSBLD#kind]', () => {
+describe('the chain of a kind as the body of a bare name', () => {
   const bodyOf = source => parse(source)[0].get('body');
 
-  it('reads the chain of a bare name with its page begun on a later line, the group of its steps', () => {
+  it('[QSSYN#line] reads the chain of a bare name with its page begun on a later line, the group of its steps', () => {
     const body = bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map');
     expect(isGroupStep(body)).toBe(true);
     expect(body.payload.length).toBe(2);
   });
 
-  it('reads one step on the line of the name', () => {
+  it('[QSSYN#line] reads one step on the line of the name', () => {
     expect(isTag(bodyOf(':Box |~~ A parcel. ~~| ::kind | wraps |~~ The sizes. ~~| ::map'))).toBe(true);
   });
 
-  it('reads one step of a bare name with no page', () => {
+  it('[QSSYN#line] reads one step of a bare name with no page', () => {
     expect(isTag(bodyOf(':s\n::vec\n| s'))).toBe(true);
   });
 
-  it('reads a literal of a kind as the body, which no chain heads', () => {
+  it('[QSBLD#kind] reads a literal of a kind as the body, which no chain heads', () => {
     expect(isConstructStep(bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind[~() null]'))).toBe(true);
   });
 
-  it('builds a body from the noun its literal names, in a group or not, and a group of another step from none', () => {
+  it('[QSBLD#kind] builds a body from the noun its literal names, in a group or not, and a group of another step from none', () => {
     expect(builtFrom(bodyOf(':Box |~~ A parcel. ~~| (::kind[~() null])'))).toBe('kind');
     expect(builtFrom(bodyOf(':Box |~~ A parcel. ~~| ::kind[~() null]'))).toBe('kind');
     expect(builtFrom(bodyOf(':x (count)'))).toBe(null);
   });
 
-  it('declares a word of a literal by the chain of a kind, and refuses it any other body', () => {
+  it('[QSBLD#label] declares a word of a literal by the chain of a kind, and refuses it any other body', () => {
     expect(() => parse(':null\n  |~~ Nothing. ~~|\n  ::kind\n    | wraps |~~ Null. ~~|')).not.toThrow();
     expect(() => parse(':null\n  |~~ Nothing. ~~|\n  ::kind[~() null]')).not.toThrow();
     expect(() => parse(':null |~~ Nothing. ~~| 5')).toThrow(/word of a literal/);
   });
 });
 
-describe('a declaration under a label that the chain of its kind holds alone [QSBLD#chain]', () => {
-  it('refuses a constructor declared by a name under a kind its chain built', async () => {
+describe('a declaration under a label that the chain of its kind holds alone', () => {
+  it('[QSBLD#chain] refuses a constructor declared by a name under a kind its chain built', async () => {
     const kind = ':Pos |~~ A positive number. ~~| (::kind | wraps |~~ The number. ~~| ::number)';
     expect(await answers(`${kind} | :Pos/construct ~(add 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
   });
 });
 
 describe('the constructor a host hands a kind', () => {
-  it('lays the tag over the payload as it is until the host hands the constructor, and runs it after', async () => {
+  it('[QSHST#source] lays the tag over the payload as it is until the host hands the constructor, and runs it after', async () => {
     // `seen` is computed while the source is read, before its host hands the constructor.
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',
@@ -122,7 +122,7 @@ describe('the constructor a host hands a kind', () => {
 });
 
 describe('a command a function and a kind share, called on another tag', () => {
-  it('meets the verbs of both nouns, each reached by its address', async () => {
+  it('[QSBLD#chain] meets the verbs of both nouns, each reached by its address', async () => {
     expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| get [~(type) /addresses]'))
       .toBe('[::call/KindAnswersNoVerbError #[::fn/holds ::kind/holds]]');
   });

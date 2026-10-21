@@ -20,25 +20,25 @@ const BOX = lines(
 );
 
 describe('a kind built from ::kind', () => {
-  it('answers the error the recipe of its verb answers', async () => {
+  it('[QSBLD#answer] answers the error the recipe of its verb answers', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | past !| type')).toEqual(makeTag('path/IndexOutOfBoundsError'));
   });
 });
 
 describe('the args of a call', () => {
-  it('refuses under the input a place the args do not hold', async () => {
+  it('[QSBLD#input] refuses under the input a place the args do not hold', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
-  it('hands on the error a modifier answers', async () => {
+  it('[QSQUO#modifier] hands on the error a modifier answers', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put (get /missing) !| type')).toEqual(makeTag('path/IndexNotIntegerError'));
   });
 
-  it('reads a place softly by query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {
+  it('[QSBLD#input] reads a place softly by query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null ::Box/tally[]] [1 ::Box/tally[2 3]]]'));
   });
 
-  it('reads the page of the invariant that refused, named by its refusal', async () => {
+  it('[QSSLF#axis] reads the page of the invariant that refused, named by its refusal', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
       .toBe(' The weight is a number. ');
   });
@@ -66,19 +66,19 @@ const gaugeSession = () => createSession({
 });
 
 describe('a host\'s primitive under a label', () => {
-  it('builds the payload of its kind by the constructor its host hands, a value it answers under the kind taken as it is', async () => {
+  it('[QSHST#source] builds the payload of its kind by the constructor its host hands, a value it answers under the kind taken as it is', async () => {
     const session = await gaugeSession();
     expect((await session.evalCell('::Gauge#5 | payload')).result).toBe(10);
     expect((await session.evalCell('::Dial#1 | payload')).result).toBe(2);
   });
 
-  it('runs over the served value and the values of its inputs, a quote closed at the call where the input is run', async () => {
+  it('[QSHST#source] runs over the served value and the values of its inputs, a quote closed at the call where the input is run', async () => {
     const session = await gaugeSession();
     expect((await session.evalCell('::Gauge#5 | over ~(payload | gt 9)')).result).toBe(true);
     expect((await session.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
   });
 
-  it('computes the modifiers of a call up to the first that answers an error, and runs none after it [QSQUO#modifier]', async () => {
+  it('[QSQUO#modifier] computes the modifiers of a call up to the first that answers an error, and runs none after it', async () => {
     let noted = 0;
     const session = await createSession({
       sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
@@ -87,7 +87,7 @@ describe('a host\'s primitive under a label', () => {
     expect(noted).toBe(0);
   });
 
-  it('reads the values after a primitive\'s lead by code over the args', async () => {
+  it('[QSBLD#input] reads the values after a primitive\'s lead by code over the args', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/zap',
@@ -98,7 +98,7 @@ describe('a host\'s primitive under a label', () => {
     expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
   });
 
-  it('hands a primitive its inputs in the order its chain takes them, whatever their places', async () => {
+  it('[QSHST#source] hands a primitive its inputs in the order its chain takes them, whatever their places', async () => {
     const session = await createSession({
       sources: [{
         uri: 'probe/pair',

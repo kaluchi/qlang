@@ -14,7 +14,7 @@ import { problemOfTitle, rulesOfTitle, titlesOfSource } from '../../../scripts/t
 // A command of a chain is named by its act and what it writes by the noun of
 // the thing, which the check of the conventions holds over the catalog [QSBLD#fn].
 describe('no kind of the catalog bears the name of a command of a chain', () => {
-  it('finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
+  it('[QSBLD#fn] finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
     const planted = [
       { path: 'holds.qlang', text: ':Holds\n  |~~ A name of another case. ~~|\n:holds\n  |~~ An invariant. ~~|\n  ::kind\n    | wraps |~~ The condition. ~~| ::quote\n' },
       { path: 'wraps.qlang', text: ':wraps\n  |~~ A payload. ~~|\n' },
@@ -27,7 +27,7 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
     ]);
   });
 
-  it('leaves a name of data, a label named for a verb that is no command, a declaration inside a law and a source of no declaration', () => {
+  it('[QSBLD#fn] leaves a name of data, a label named for a verb that is no command, a declaration inside a law and a source of no declaration', () => {
     const planted = [
       { path: 'takes.qlang', text: ':takes\n  5\n' },
       { path: 'fill.qlang', text: ':fill\n  |~~ A fill. ~~|\n:inputs\n  |~~ The inputs. ~~|\n' },
@@ -37,12 +37,12 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
     expect(kindsNamedForCommands(planted)).toEqual([]);
   });
 
-  it('finds none among the sources of the language', async () => {
+  it('[QSBLD#fn] finds none among the sources of the language', async () => {
     const sources = await Promise.all(LANGUAGE_SOURCES.map(async uri => ({ path: uri, text: (await platformLocator(uri)).source })));
     expect(kindsNamedForCommands(sources)).toEqual([]);
   });
 
-  it('fails the check of the conventions on such a kind and names it, and passes on none [QSWRK#tooling]', () => {
+  it('[QSWRK#tooling] fails the check of the conventions on such a kind and names it, and passes on none', () => {
     expect(verdictOf({ commandKinds: [] })).toEqual({ text: 'check:conventions — OK\n', failed: false });
     const { text, failed } = verdictOf({ commandKinds: [{ path: 'holds.qlang', line: 3, name: 'holds' }] });
     expect(failed).toBe(true);
@@ -57,7 +57,7 @@ describe('a refusal names a kind only where its address names it', () => {
   const nouns = new Set(['boolean', 'keyword', 'map', 'number', 'set', 'string', 'vec']);
   const named = addresses => kindsNamedOffTheirAddress(addresses.map(address => ({ address })), nouns);
 
-  it('finds a kind after `Not`, a list of them however joined, a plural and one after a word of no kind', () => {
+  it('[QSERR#site] finds a kind after `Not`, a list of them however joined, a plural and one after a word of no kind', () => {
     expect(named(['vec/join/ElementNotStringOrKeywordError', 'vec/join/ElementNotStringNorKeywordError', 'vec/sum/ElementNotANumberError', 'point/PayloadNotThreeNumbersError'])).toEqual([
       { address: 'vec/join/ElementNotStringOrKeywordError', kinds: ['string', 'keyword'] },
       { address: 'vec/join/ElementNotStringNorKeywordError', kinds: ['string', 'keyword'] },
@@ -66,7 +66,7 @@ describe('a refusal names a kind only where its address names it', () => {
     ]);
   });
 
-  it('finds the label of the address named by a role other than the subject, and a verb of the address that names a kind', () => {
+  it('[QSERR#site] finds the label of the address named by a role other than the subject, and a verb of the address that names a kind', () => {
     expect(named(['vec/zip/ElementNotVecError', 'string/replace/with/AnswerNotStringError', 'set/zip/SubjectNotVecError'])).toEqual([
       { address: 'vec/zip/ElementNotVecError', kinds: ['vec'] },
       { address: 'string/replace/with/AnswerNotStringError', kinds: ['string'] },
@@ -74,11 +74,11 @@ describe('a refusal names a kind only where its address names it', () => {
     ]);
   });
 
-  it('leaves the label of a subject, the kind a conversion reads, a place a key is missing from, a word of no kind and a name by the role', () => {
+  it('[QSERR#site] leaves the label of a subject, the kind a conversion reads, a place a key is missing from, a word of no kind and a name by the role', () => {
     expect(named(['number/add/SubjectNotNumberError', 'string/toNumber/TextNotNumberError', 'path/KeyNotInMapError', 'vec/toMap/ElementNotPairError', 'vec/sum/ElementKindNotTakenError'])).toEqual([]);
   });
 
-  it('reads what `throws` and `holds` write in a chain and in the quote of a literal, and leaves a law, a doc and a command of no name', () => {
+  it('[QSERR#site] reads what `throws` and `holds` write in a chain and in the quote of a literal, and leaves a law, a doc and a command of no name', () => {
     const planted = [{ path: 'box.qlang', text: [
       ':Box', '  |~~ A box. ~~|', '  ::kind', '    | holds :NotWideError |~~ Wide. ~~| ~(gt 0)',
       '    | proves :x |~~ An x. ~~| ~(:Pos |~~ P. ~~| (::kind | holds :NotPositiveError |~~ P. ~~| ~(gt 0)) | true)',
@@ -92,14 +92,14 @@ describe('a refusal names a kind only where its address names it', () => {
     ]);
   });
 
-  it('reads the kinds a source declares, by the page alone and by the chain, and no node under one and no value', () => {
+  it('[QSERR#site] reads the kinds a source declares, by the page alone and by the chain, and no node under one and no value', () => {
     const planted = [{ path: 'kinds.qlang', text: [
       ':Holds', '  |~~ A page alone. ~~|', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | wraps |~~ The payload. ~~| ::vec',
       ':Box/w', '  |~~ A node. ~~|', ':limit 5', ':double ~(mul 2)', ''].join('\n') }];
     expect(kindsDeclaredBy(planted)).toEqual(new Set(['Holds', 'Box']));
   });
 
-  it('fails the check of the conventions on such a refusal and names it, and passes on none [QSWRK#tooling]', () => {
+  it('[QSWRK#tooling] fails the check of the conventions on such a refusal and names it, and passes on none', () => {
     expect(verdictOf({ kindNames: [] })).toEqual({ text: 'check:conventions — OK\n', failed: false });
     const { text, failed } = verdictOf({ kindNames: [{ file: 'core/src/runtime/sequence.mjs', line: 9, address: 'vec/sum/ElementNotNumberError', kinds: ['number'] }] });
     expect(failed).toBe(true);
@@ -120,10 +120,15 @@ describe('a test names first the one rule it holds and second the record that br
   });
 
   it('[QSWRK#marks] [D409] reads the title of a test from its string, its template and the call of a table, and none from a name', () => {
-    const source = ["describe('a group', () => {", "  it('[QSNUM#arith] adds', () => {});", '  test(`[QSNUM#arith] adds ${1}`, () => {});',
-      "  it.each([[1], [2]])('[QSNUM#arith] adds %s', () => {});", '  it(name, () => {});', '});'].join('\n');
-    expect(titlesOfSource(source)).toEqual([{ line: 2, title: '[QSNUM#arith] adds' }, { line: 3, title: '[QSNUM#arith] adds ${…}' },
-      { line: 4, title: '[QSNUM#arith] adds %s' }, { line: 5, title: null }]);
+    const source = ["describe('a group', () => {", "  it('[QSNUM#arithmetic] adds', () => {});", '  test(`[QSNUM#arithmetic] adds ${1}`, () => {});',
+      "  it.each([[1], [2]])('[QSNUM#arithmetic] adds %s', () => {});", '  it(name, () => {});', '});'].join('\n');
+    expect(titlesOfSource(source)).toEqual([{ line: 2, title: '[QSNUM#arithmetic] adds' }, { line: 3, title: '[QSNUM#arithmetic] adds ${…}' },
+      { line: 4, title: '[QSNUM#arithmetic] adds %s' }, { line: 5, title: null }]);
+  });
+
+  it('[QSWRK#marks] [D409] reads no test from a call that hands no body after its title, nor from a member of a value named test', () => {
+    const source = ["const run = async (reading, test) => test(reading);", "const words = test => test.name.split('-');", "it.todo('[QSNUM#arithmetic] adds');"].join('\n');
+    expect(titlesOfSource(source)).toEqual([{ line: 3, title: '[QSNUM#arithmetic] adds' }]);
   });
 
   it('[QSWRK#marks] [D409] passes a title that opens with a section, a record its tests hold, and a record in transit over the section or its chapter', () => {

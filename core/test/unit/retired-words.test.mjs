@@ -14,8 +14,8 @@ import { RETIRED_WORDS } from '../../../scripts/retired-words.mjs';
 
 const refused = text => RETIRED_WORDS.some(({ regex }) => regex.test(text));
 
-describe('the lexicon of retired terms [QSWRK#documents]', () => {
-  it('refuses each retired term of the chain, of the slot of a kind and of the node where it is written', () => {
+describe('the lexicon of retired terms', () => {
+  it('[QSWRK#documents] refuses each retired term of the chain, of the slot of a kind and of the node where it is written', () => {
     for (const text of [
       'a-name-of-a-signature-declared-twice-is-refused', 'the signature of a function', 'readSignature', 'readKindSignature',
       'EMPTY_SIGNATURE', 'core/src/runtime/signature.mjs',
@@ -29,7 +29,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses each retired term of the trace, of the step that failed and of the evaluation depth where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each retired term of the trace, of the step that failed and of the evaluation depth where it is written', () => {
     for (const text of [
       'the trail of a failure', 'Trails are read by trail', '`:trail` among the facts', '`::trail[]`', '`!| get /trail/1/0`',
       'core/src/eval-trail.mjs', 'a-raised-error-holds-its-trail', 'quote-with-leading-combinator-trail-style',
@@ -57,13 +57,13 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses a frame for the scope of a source where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses a frame for the scope of a source where it is written', () => {
     for (const text of ['no frame of its source before them', 'each source a cell run in a frame over the root', 'the frames of the sources']) {
       expect(refused(text), text).toBe(true);
     }
   });
 
-  it('leaves the words of another sense, the help of the language server and the series of the benchmark among them', () => {
+  it('[QSWRK#documents] leaves the words of another sense, the help of the language server and the series of the benchmark among them', () => {
     for (const text of [
       'signature help', 'signatureHelpAtOffset', 'SignatureInformation', 'activeSignature', 'deliberately wide signatures',
       'a member of a series', 'the members of each series past its two latest', 'the recipe of a verb',
@@ -71,7 +71,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('leaves the words of another sense beside the trace: a frame of a trace, the budget of a print, and a case, a law, a tag and a stream that broke [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the words of another sense beside the trace: a frame of a trace, the budget of a print, and a case, a law, a tag and a stream that broke', () => {
     for (const text of [
       'a frame of the trace holds the subject its step met', 'the frame of `map`', 'a frame a line', 'the frame of its step',
       'trim_trailing_whitespace', 'a trailing newline', 'trailing-separator-leaves-empty', 'Trailing',
@@ -93,7 +93,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each retired term of a refusal, of a conversion, of an empty subject and of the error a catch holds where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each retired term of a refusal, of a conversion, of an empty subject and of the error a catch holds where it is written', () => {
     for (const text of [
       '::keyword/toTag/NameNotNameError', '::string/toTag/TextNotNameError', 'KeywordToTagNameNotNameError', 'StringToTagTextNotNameError', ':NameNotNameError/refusesASpace',
       '::vec/toPath/EmptyError', 'VecToPathEmptyError', ':EmptyError/refusesTheEmptyVector',
@@ -113,7 +113,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('refuses the position of an element named as a place where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses the position of an element named as a place where it is written', () => {
     for (const text of [
       'get-refuses-a-place-past-the-end', 'A vector grows by `append`, not by a place past its end.', 'A negative place past the start is refused as it was written.',
       '`/-1`, a negative place counting from the end', ':readsTuplesPlaceByPlace', 'a vector key place by place', 'two tuples of one length place by place',
@@ -148,7 +148,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source', () => {
     for (const text of [
       'The place of the args the input reads, a path or a quote.', 'An input whose place the args leave out is refused.', 'A place read by `query` gives a default.',
       'a modifier that failed is refused by its place', 'The input `multiplier` reads the first place of the args', 'How many places the inputs of the verb read', 'Args past the places its inputs read are refused.',
@@ -171,7 +171,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each retired term of the boundary of a host where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each retired term of the boundary of a host where it is written', () => {
     for (const text of [
       'A source is `{ uri, source, impls? }`', 'the `impls` of its sources', 'Object.keys(cliSource.impls)', 'const impls = {};', 'impls: {}',
       '`impls?` names what a source hands', 'the source { uri, source, impls } a host hands',
@@ -213,7 +213,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words of another sense beside the boundary of a host: the code of the language, the command impl and its plural, a builtin and its plural, the environment, a plain value, the host\'s uri and the codec of JSON [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the words of another sense beside the boundary of a host: the code of the language, the command impl and its plural, a builtin and its plural, the environment, a plain value, the host\'s uri and the codec of JSON', () => {
     for (const text of [
       'Reference implementation of the qlang pipeline query language', 'its reference implementation lives in the repository',
       'the one key the implementation and its page in the catalog share', 'implementation spells a target it met',
@@ -234,7 +234,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
       'isBuiltinDescriptor', 'A builtin marks a verb a host answers by a primitive', 'streamPrimitives', 'tablePrimitives', 'the current scope', 'the environment of the process'
     ]) expect(refused(text), text).toBe(false);
   });
-  it('refuses each retired term of the read of text into code and back, of the elision, of the regex, of the template and of the read of a print where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each retired term of the read of text into code and back, of the elision, of the regex, of the template and of the read of a print where it is written', () => {
     for (const text of [
       '::quote/parse', '`::quote/parse` reads text into a quote and prints a quote as its text', 'quote/parse',
       'what does not fit given way to markers under `::elision`', 'the marker of a text keeping its first characters under `:head`', 'ending with a marker of the rest',
@@ -365,7 +365,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject', () => {
     for (const text of [
       'the comment markers `|~`, `|~|`, `|~~`', 'Longer markers are tried first', 'Inside a block comment the line markers are bare tokens',
       'a-parse-error-names-no-marker-of-a-comment-among-its-continuations', '|~ doc-close marker ~~| mentioned here ~|', 'holds a |~| line marker mention here', 'plain-close marker', 'line-doc marker',
@@ -398,7 +398,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses in every sense where it is written a generic word the texts that state what holds write in no sense [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses in every sense where it is written a generic word the texts that state what holds write in no sense', () => {
     for (const text of [
       'Answers the outline of a value, the set of its leaves', '`paths` answers the outline of a value and `shape` its schema',
       ':answersTheOutline', 'The outline holds the path and the kind of every leaf.', 'and of a failure and the outline of a value among them',
@@ -406,7 +406,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words written in its place: the shape, the leaves, the symbols of a document and the schema of a step [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the words written in its place: the shape, the leaves, the symbols of a document and the schema of a step', () => {
     for (const text of [
       'Answers the shape of a value, its structure beneath its tags', '`paths` answers the leaves of a value', ':answersTheLeaves',
       '// ── Document Symbols ──', '4. Ctrl+Shift+O — Document Symbols', 'the fields a record of a step holds against its schema',
@@ -414,7 +414,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name the shape and its other senses gave way to where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each name the shape and its other senses gave way to where it is written', () => {
     for (const text of [
       'shapeKindOf', 'foldersShaped', ':any/intoShape', ':readsByThePathsOfTheData', ':readsThePathsOfTheDataThroughIt',
       ':readsThePathThroughTheKeyItShows', ':standsOverTheSchemaShapeAnswers', 'the-paths-of-the-data-read-its-shape',
@@ -423,7 +423,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words written in their place and the shape of a value: the read every value takes, the schema of a step, the kind of the core, the form of a folder and of code, the template of the atoms and the kinds of the codec [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the words written in their place and the shape of a value: the read every value takes, the schema of a step, the kind of the core, the form of a folder and of code, the template of the atoms and the kinds of the codec', () => {
     for (const text of [
       'A shape is read as every value is: a path reads it beneath the tags over each part it meets, its marks among them', ':readsAPartBeneathItsTag',
       ':answersAPartBeneathItWithoutTheMark', ':readsByTheKeyItShows', ':readsAListByItsOneElement', 'a-shape-reads-a-list-by-its-one-element',
@@ -445,7 +445,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name and phrase in which the code called a tag over a payload and the steps of the fail track and of a group a wrapper, or the tag `within` lays back over the payload it edits by another word, where it is written [QSCOL#within]', () => {
+  it('[QSWRK#documents] refuses each name and phrase in which the code called a tag over a payload and the steps of the fail track and of a group a wrapper, or the tag `within` lays back over the payload it edits by another word, where it is written', () => {
     for (const text of [
       'wrapperConstructor', 'the wrappers a step takes on the fail track or in parentheses',
       'any other payload, a tagged one among them, is held by a wrapper, which `payload` opens',
@@ -461,7 +461,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place [QSCOL#within]', () => {
+  it('[QSWRK#documents] leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place', () => {
     for (const text of [
       'newer code reaching older code through a conversion, a wrapper, a second table', 'a wrapper a query lays over its answer',
       'the wrapper the host would take off before it prints', '`wraps` names its payload and its kinds', '::kind | wraps |~~ The sizes. ~~| ::map',
@@ -473,7 +473,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each name in which the code called the scope an environment, a pipeline a body and the parts the parser read a tree of nodes, where it is written [QSNAM#scope]', () => {
+  it('[QSWRK#documents] refuses each name in which the code called the scope an environment, a pipeline a body and the parts the parser read a tree of nodes, where it is written', () => {
     for (const text of [
       'state.env', 'withEnv', 'envSet', 'envHas', 'envMerge', 'nextEnv', 'bodyEnv', 'core/src/env-keys.mjs',
       'evalBody', 'answerOfBody', 'quoteOfBody', 'stepsOfBody', 'CALL_BINDS_KEY', 'capturedState', 'resolveBinaryReducer',
@@ -485,7 +485,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names [QSNAM#scope]', () => {
+  it('[QSWRK#documents] leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names', () => {
     for (const text of [
       'state.scope', 'withScope', 'scopeSet', 'scopeHas', 'recipeScope', 'core/src/scope-keys.mjs', 'RECIPE_KEY', 'evalPipeline', 'closeQuote',
       'foldingCodeOf', 'walkParts', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',
@@ -494,7 +494,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(false);
   });
 
-  it('refuses each spelling in which the work named the defect of the runtime an invariant, a check by drift, the data of a task its input and the facts of an error a descriptor, where it is written [QSWRK#documents]', () => {
+  it('[QSWRK#documents] refuses each spelling in which the work named the defect of the runtime an invariant, a check by drift, the data of a task its input and the facts of an error a descriptor, where it is written', () => {
     for (const text of [
       'QlangInvariantError', 'declareInvariantError', 'refusalDeclarationDrift', 'baselineDrift', 'cli/test/error-tag-catalog-drift.test.mjs', 'the catalog\'s drift test',
       'scripts/benchmark/inputs/users.json', 'sets/V/inputs/orders.json', 'the files of `inputs/`', 'inputsDir', 'task.input', 'the input files of the current directory',
@@ -504,7 +504,7 @@ describe('the lexicon of retired terms [QSWRK#documents]', () => {
     ]) expect(refused(text), text).toBe(true);
   });
 
-  it('leaves the defect, the drift that names a kind of finding, the input of a function and the descriptor of a primitive [QSWRK#documents]', () => {
+  it('[QSWRK#documents] leaves the defect, the drift that names a kind of finding, the input of a function and the descriptor of a primitive', () => {
     for (const text of [
       'QlangDefect', 'declareDefect', 'the kind of an invariant, `::invariant`', 'a quote that breaks an invariant of its role',
       'a pentimento and a drift', 'the drift read both ways', 'for a drift, one thing named by two words',

@@ -9,27 +9,27 @@ const PACKAGE = '@pkg/core';
 const readBy = text => [...namesReadFrom(PACKAGE, text)].sort();
 
 describe('the names a host reads from the package', () => {
-  it('reads an import by the name the package exports it under, an alias aside, and a re-export by the name it takes', () => {
+  it('[QSWRK#tooling] reads an import by the name the package exports it under, an alias aside, and a re-export by the name it takes', () => {
     expect(readBy(`import { a, b as c } from '${PACKAGE}'; export { d, e as f } from '${PACKAGE}';`)).toEqual(['a', 'b', 'd', 'e']);
   });
 
-  it('reads the members a namespace of the package reads, imported or dynamic', () => {
+  it('[QSWRK#tooling] reads the members a namespace of the package reads, imported or dynamic', () => {
     expect(readBy(`import * as core from '${PACKAGE}'; core.a(); other.b();`)).toEqual(['a']);
     expect(readBy(`const core = await import('${PACKAGE}'); core.c;`)).toEqual(['c']);
   });
 
-  it('reads the names a dynamic import takes apart, awaited or in its `then`, the rest taking every name', () => {
+  it('[QSWRK#tooling] reads the names a dynamic import takes apart, awaited or in its `then`, the rest taking every name', () => {
     expect(readBy(`const { a } = await import('${PACKAGE}'); import('${PACKAGE}').then(({ b, c: d }) => d);`)).toEqual(['a', 'b', 'c']);
     expect(readBy(`const { a, ...rest } = await import('${PACKAGE}');`)).toEqual(['*', 'a']);
   });
 
-  it('takes every name from a re-export of the whole package, and none from another package, a source that names the package alone parsed', () => {
+  it('[QSWRK#tooling] takes every name from a re-export of the whole package, and none from another package, a source that names the package alone parsed', () => {
     expect(readBy(`export * from '${PACKAGE}';`)).toEqual(['*']);
     expect(readBy(`import { a } from '@pkg/other'; import('${PACKAGE}');`)).toEqual([]);
     expect(readBy('interface Props { a: string }')).toEqual([]);
   });
 
-  it('reads a source that requires as a module does, and the frontmatter of an Astro page', () => {
+  it('[QSWRK#tooling] reads a source that requires as a module does, and the frontmatter of an Astro page', () => {
     expect(readBy(`const path = require('path'); import('${PACKAGE}').then(({ a }) => a);`)).toEqual(['a']);
     expect([...namesReadFrom(PACKAGE, codeOf('page.astro', `---\nimport { a } from '${PACKAGE}'\n---\n<p>{a}</p>`))]).toEqual(['a']);
     expect(codeOf('page.astro', '<p>no frontmatter</p>')).toBe('');
@@ -39,11 +39,11 @@ describe('the names a host reads from the package', () => {
 describe('the surface of the root', () => {
   const rootText = "export { a, b } from './one.mjs';\nexport { c } from './door.mjs';\nexport const d = 1;\nexport * from './two.mjs';\n";
 
-  it('reads each export by name with its module, and the line of every other export', () => {
+  it('[QSWRK#tooling] reads each export by name with its module, and the line of every other export', () => {
     expect(exportsOf(rootText)).toEqual({ named: [{ name: 'a', from: './one.mjs' }, { name: 'b', from: './one.mjs' }, { name: 'c', from: './door.mjs' }], otherwise: [3, 4] });
   });
 
-  it('refuses an export otherwise than by name, a name of a module another door opens, and a name no host reads and no page writes', () => {
+  it('[QSWRK#tooling] refuses an export otherwise than by name, a name of a module another door opens, and a name no host reads and no page writes', () => {
     const found = unreadExports({ rootText, doorModules: new Set(['./door.mjs']), read: new Set(['a', 'c']), written: namesWrittenBy('`b(x)` and `::qlang`') });
     expect(found).toEqual([
       { line: 3, problem: 'exports otherwise than by name from a module of the core' },

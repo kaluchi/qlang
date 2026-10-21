@@ -6,21 +6,21 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
 import { makeTag } from '../../src/types.mjs';
 
-describe('the steps a quote holds, each a record or a literal [QSQUO#step]', () => {
-  it('takes literals, containers of steps, docs, quotes and error literals, each a step at the head', async () => {
+describe('the steps a quote holds, each a record or a literal', () => {
+  it('[QSQUO#step] takes literals, containers of steps, docs, quotes and error literals, each a step at the head', async () => {
     for (const element of [':k', '::T', '|~~ d ~~|', '~(x)', '::error{:k 1}', '[1]', '#[2]', '{:a 3}', '[1, 2]', '{"j": 4}', '/a/0']) {
       expect(await evalQuery(`[${element}] | tag ::quote | count`), element).toBe(1);
     }
   });
 
-  it('refuses a container holding a value with no reading as code', async () => {
+  it('[QSQUO#step] refuses a container holding a value with no reading as code', async () => {
     for (const container of ['{:a ::Box[1]}', '#[::Box[1]]', '{"j": ::Box[1]}']) {
       expect(await evalQuery(`[${container}] | tag(::quote) !| type`))
         .toEqual(await evalQuery('::quote/ElementNotStepError'));
     }
   });
 
-  it('refuses an error literal holding a fact with no reading as code [QSQUO#step]', async () => {
+  it('[QSQUO#step] refuses an error literal holding a fact with no reading as code', async () => {
     expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [~(it)] | tag ::quote !| get [~(type) /index]'))
       .toEqual(await evalQuery('[::quote/ElementNotStepError 0]'));
   });
@@ -30,49 +30,49 @@ describe('assembling steps by hand', () => {
   const refusal = source => evalQuery(`${source} !| type`);
   const tagOf = name => evalQuery(name);
 
-  it('a step of the fail track stands in the quote itself and in no container', async () => {
+  it('[QSQUO#step] a step of the fail track stands in the quote itself and in no container', async () => {
     expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
   });
 
-  it('a declaration stands in a pipeline and in no container or modifier', async () => {
+  it('[QSQUO#step] a declaration stands in a pipeline and in no container or modifier', async () => {
     expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
     expect(await refusal('::call{:name :f :modifiers [::bind{:name :x :body 1}]}'))
       .toEqual(await tagOf('::call/PayloadNotSchemaError'));
   });
 
-  it('a keyword or a tag name is the body of its declaration [QSSYN#line]', async () => {
+  it('[QSSYN#line] a keyword or a tag name is the body of its declaration', async () => {
     expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | toString')).toBe(':s :active');
     expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | toString')).toBe(':s ::vec');
   });
 
-  it('a number payload touches its tag by `#` [QSLIT#tag]', async () => {
+  it('[QSLIT#tag] a number payload touches its tag by `#`', async () => {
     expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | toString')).toBe('::T#42');
   });
 
-  it('a value of another tag is no step', async () => {
+  it('[QSQUO#step] a value of another tag is no step', async () => {
     expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| get [~(type) /field]'))
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
-  it('an error at rest under the tag of its site is a value under a tag, which no text writes as a step [QSQUO#step]', async () => {
+  it('[QSQUO#step] an error at rest under the tag of its site is a value under a tag, which no text writes as a step', async () => {
     expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote !| type')).toEqual(await evalQuery('::quote/ElementNotStepError'));
     expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ~("x" | add 1 !| minus #[:trace] | payload)} | tag ::construct | get [~(it)] | tag ::quote | toString'))
       .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
   });
 
-  it('a required field left out does not fit the schema', async () => {
+  it('[QSQUO#step] a required field left out does not fit the schema', async () => {
     expect(await evalQuery('::call{:modifiers []} !| get [~(type) /field /actualType]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name ::null]'));
   });
 
-  it('an index, a tag name and calls and paths inside a container are steps', async () => {
+  it('[QSQUO#step] an index, a tag name and calls and paths inside a container are steps', async () => {
     expect(await evalQuery('[[/items/0]] | tag ::quote | toString')).toBe('[/items/0]');
     expect(await evalQuery('[[::T]] | tag ::quote | toString')).toBe('[::T]');
     expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | toString')).toBe(':point {:x 0}');
     expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | toString')).toBe('get [~(count) /a]');
   });
 
-  it('a literal that computes writes its template as the printer writes it, each part that computes as its quote [QSQUO#step]', async () => {
+  it('[QSQUO#step] a literal that computes writes its template as the printer writes it, each part that computes as its quote', async () => {
     const messageOf = async query => await evalQuery(`${query} | get [~(it)] | tag ::quote !| get /message`);
     expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
     expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
@@ -80,17 +80,17 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| get /message')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
   });
 
-  it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing [QSQUO#step]', async () => {
+  it('[QSQUO#step] searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {
     for (const literal of ['[|~~ ::group~(x) ~~|]', '{:k |~~ ::fail~(x) ~~|}', '#[|~~ ::group~(x) ~~|]', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
       expect(await evalQuery(`"${literal}" | parse | :q it | first | get [~(it)] | tag ::quote | eq q`), literal).toBe(true);
     }
   });
 
-  it('holds a literal assembled from data to the rules of a step at any depth, its parts walked by a stack of their own [QSQUO#step]', async () => {
+  it('[QSQUO#step] holds a literal assembled from data to the rules of a step at any depth, its parts walked by a stack of their own', async () => {
     expect(await evalQuery('6000 | range | reduce [] ~(get [/0]) | get [~(it)] | tag ::quote | count')).toBe(1);
   });
 
-  it('each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from [QSLIT#closed], [QSQUO#step]', async () => {
+  it('[QSQUO#step] each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from', async () => {
     const refusals = [
       ['1 | tag ::quote', 'quote/PayloadKindNotTakenError'], ['[{:a ::Box[1]}] | tag ::quote', 'quote/ElementNotStepError'],
       ['[[1] [2]] | tag ::quote', 'quote/StepNotCommandError'], ['[[::call{:name :count}]] | tag ::quote', 'quote/LiteralComputesError'],
@@ -111,7 +111,7 @@ describe('assembling steps by hand', () => {
     expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| get /actualValue | type')).toEqual(makeTag('map'));
   });
 
-  it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own [QSQUO#step]', async () => {
+  it('[QSQUO#step] a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own', async () => {
     expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [~(type) /field]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
     expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [~(type) /field]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :modifiers]'));
@@ -119,11 +119,11 @@ describe('assembling steps by hand', () => {
 });
 
 describe('printing steps read from text', () => {
-  it('a doc in the slot of a declaration prints in its slot', async () => {
+  it('[QSPRN#print] a doc in the slot of a declaration prints in its slot', async () => {
     expect(await evalQuery('~(:x |~~ note ~~| it) | toString')).toBe(':x |~~ note ~~| it');
   });
 
-  it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {
+  it('[QSPRN#print] a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {
     expect(await evalQuery('~(get /"a b") | toString')).toBe('get /"a b"');
     expect(await evalQuery('~(get /:ns/name) | toString')).toBe('get /:ns/name');
   });

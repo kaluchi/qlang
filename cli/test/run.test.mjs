@@ -26,21 +26,21 @@ function captureIoContext() {
 }
 
 describe('runQuery', () => {
-  it('materialises a cell entry from a freshly seeded session', async () => {
+  it('[QSHST#source] materialises a cell entry from a freshly seeded session', async () => {
     const cellEntry = await runQuery('[1 2 3] | sum', captureIoContext());
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(6);
     expect(cellEntry.source).toBe('[1 2 3] | sum');
   });
 
-  it('answers a query that does not parse by its failure, the cell no defect [QSHST#source]', async () => {
+  it('[QSHST#source] answers a query that does not parse by its failure, the cell no defect', async () => {
     const cellEntry = await runQuery('[1 2', captureIoContext());
     expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.tag.name).toBe('quote/ParseError');
   });
 
-  it('binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
+  it('[QSHST#effect] binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('"qlang" | out', io);
     expect(cellEntry.defect).toBeNull();
@@ -48,12 +48,12 @@ describe('runQuery', () => {
     expect(io.stdoutEffectCount()).toBe(1);
   });
 
-  it('lifts the text of standard input it is handed to the first value of the query', async () => {
+  it('[QSHST#stdin] lifts the text of standard input it is handed to the first value of the query', async () => {
     const cellEntry = await runQuery('get /k', captureIoContext(), { stdinText: '{"k": "v"}' });
     expect(cellEntry.result).toBe('v');
   });
 
-  it('answers a defect the lift raised as the cell of the lift, the query unrun', async () => {
+  it('[QSHST#stdin] answers a defect the lift raised as the cell of the lift, the query unrun', async () => {
     const cellEntry = await runQuery('count', captureIoContext(), { stdinText: { length: 1 } });
     expect([cellEntry.source, cellEntry.result, cellEntry.defect.message]).toEqual(['parseJson', null, 'the core met object Object, a value of no kind of the language']);
   });

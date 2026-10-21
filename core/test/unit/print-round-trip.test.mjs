@@ -125,8 +125,8 @@ function literalsOf(count, seed) {
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }
 
-describe('the round trip of the print [QSPRN#print]', () => {
-  it('reads every value back from its print as itself', async () => {
+describe('the round trip of the print', () => {
+  it('[QSPRN#print] reads every value back from its print as itself', async () => {
     const failing = [];
     for (const source of literalsOf(300, 7)) {
       const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);

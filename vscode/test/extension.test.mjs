@@ -17,15 +17,15 @@ const { blockHtml } = require('../src/markdown-block.js');
 const loaded = async () => ({ tokenize, verbNames: verbNames(await langRuntime()) });
 
 describe('a block of qlang in a preview of markdown', () => {
-  it('is written plain while the core\'s painter has not loaded', () => {
+  it('[QSHST#tools] is written plain while the core\'s painter has not loaded', () => {
     expect(blockHtml('[1] | count', { tokenize: null, verbNames: new Set() })).toBe('');
   });
 
-  it('paints every call as a name until the root hands over the names of its words', () => {
+  it('[QSHST#tools] paints every call as a name until the root hands over the names of its words', () => {
     expect(blockHtml('count', { tokenize, verbNames: new Set() })).toBe('<span class="hljs-variable">count</span>');
   });
 
-  it('coats each kind of the core\'s tokens by a class of highlight.js, a token inside a quote leaning and whitespace plain', async () => {
+  it('[QSHST#tools] coats each kind of the core\'s tokens by a class of highlight.js, a token inside a quote leaning and whitespace plain', async () => {
     expect(blockHtml(':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{}] | filter ~(gt 1) !| count | x', await loaded())).toBe([
       '<span class="hljs-keyword">:x</span> <span class="hljs-comment">|~~ d ~~|</span> ',
       '<span class="hljs-punctuation">[</span><span class="hljs-literal">null</span> <span class="hljs-literal">true</span> <span class="hljs-number">1</span> ',
@@ -38,7 +38,7 @@ describe('a block of qlang in a preview of markdown', () => {
     ].join(''));
   });
 
-  it('paints each query after its prompt with the indented lines that continue it, and the answer below it, a blank line between them', async () => {
+  it('[QSHST#tools] paints each query after its prompt with the indented lines that continue it, and the answer below it, a blank line between them', async () => {
     const block = '> [3 1 2]\n  | sort\n[1 2 3]\n\n> "a<b"\n"a<b"\n';
     expect(blockHtml(block, await loaded()).split('\n')).toEqual([
       '<span class="hljs-meta">&gt; </span><span class="hljs-punctuation">[</span><span class="hljs-number">3</span> <span class="hljs-number">1</span> <span class="hljs-number">2</span><span class="hljs-punctuation">]</span>',
@@ -51,7 +51,7 @@ describe('a block of qlang in a preview of markdown', () => {
     ]);
   });
 
-  it('reads the lines of an answer as one source, and a prompt alone as a query of nothing', async () => {
+  it('[QSHST#tools] reads the lines of an answer as one source, and a prompt alone as a query of nothing', async () => {
     expect(blockHtml('> 1\n|~| a note\n2\n>', await loaded()).split('\n')).toEqual([
       '<span class="hljs-meta">&gt; </span><span class="hljs-number">1</span>',
       '<span class="hljs-comment">|~| a note</span>',
@@ -60,7 +60,7 @@ describe('a block of qlang in a preview of markdown', () => {
     ]);
   });
 
-  it('ends a query at a line of whitespace alone, the lines after it an answer', async () => {
+  it('[QSHST#tools] ends a query at a line of whitespace alone, the lines after it an answer', async () => {
     expect(blockHtml('> 1\n  \n  "a"', await loaded()).split('\n')).toEqual([
       '<span class="hljs-meta">&gt; </span><span class="hljs-number">1</span>',
       '  ',
@@ -68,7 +68,7 @@ describe('a block of qlang in a preview of markdown', () => {
     ]);
   });
 
-  it('ends an answer at a blank line, the lines after it another', async () => {
+  it('[QSHST#tools] ends an answer at a blank line, the lines after it another', async () => {
     expect(blockHtml('> 1\n"a\n\n"b"', await loaded()).split('\n')).toEqual([
       '<span class="hljs-meta">&gt; </span><span class="hljs-number">1</span>',
       '<span class="hljs-string">"a</span>',
@@ -77,7 +77,7 @@ describe('a block of qlang in a preview of markdown', () => {
     ]);
   });
 
-  it('reads a block that holds no prompt as one source, across its blank lines', async () => {
+  it('[QSHST#tools] reads a block that holds no prompt as one source, across its blank lines', async () => {
     expect(blockHtml(':x |~~ a\n\nb ~~| 1', await loaded())).toBe('<span class="hljs-keyword">:x</span> <span class="hljs-comment">|~~ a\n\nb ~~|</span> <span class="hljs-number">1</span>');
   });
 });
@@ -104,7 +104,7 @@ function activated() {
 }
 
 describe('the extension', () => {
-  it('paints a block of qlang plain until the core loads and by its tokens after, leaves a block of another language to the highlighter before it, and selects a word by the regex of a name the core exports', async () => {
+  it('[QSHST#tools] paints a block of qlang plain until the core loads and by its tokens after, leaves a block of another language to the highlighter before it, and selects a word by the regex of a name the core exports', async () => {
     const { extension, context, configured, plugin } = activated();
     const md = plugin.extendMarkdownIt({ options: { highlight: (code, lang) => `${lang}: ${code}` } });
     expect(md.options.highlight('count', 'qlang')).toBe('');
@@ -116,7 +116,7 @@ describe('the extension', () => {
     await extension.deactivate();
   }, 60_000);
 
-  it('keeps in the configuration of the language neither a regex of a word nor a marker of a fold, the core and the language server answering them', () => {
+  it('[QSHST#tools] keeps in the configuration of the language neither a regex of a word nor a marker of a fold, the core and the language server answering them', () => {
     const configuration = JSON.parse(readFileSync(new URL('../language-configuration.json', import.meta.url), 'utf8'));
     expect([configuration.wordPattern, configuration.folding]).toEqual([undefined, undefined]);
   });

@@ -13,12 +13,12 @@ beforeAll(async () => {
   ringSessionOfFile = await ringSession();
 }, RING_TIMEOUT);
 
-describe('the ring of atoms [QSLIT#atoms]', () => {
-  it('keeps the examples of its own verbs true', async () => {
+describe('the ring of atoms', () => {
+  it('[QSLIT#atoms] keeps the examples of its own verbs true', async () => {
     expect((await ringSessionOfFile.evalCell('::any/apart | runLaws | map /ok')).result).toEqual([true]);
   });
 
-  it('builds every literal of the conformance cases back from its atoms', async () => {
+  it('[QSLIT#atoms] builds every literal of the conformance cases back from its atoms', async () => {
     expect(await unbuiltOf(ringSessionOfFile, await conformanceLiterals())).toEqual([]);
   }, RING_TIMEOUT);
 });

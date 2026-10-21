@@ -10,11 +10,19 @@ import { join } from 'node:path';
 import { parse } from 'acorn';
 
 // A call that states a test: `it` or `test`, under a modifier of vitest,
-// `it.skip`, or of a table, `it.each([…])`.
+// `it.skip`, or of a table or a condition, `it.each([…])`, `it.skipIf(…)`,
+// whose call makes the function that states it.
+const MODIFIERS = new Set(['skip', 'only', 'todo', 'fails', 'concurrent', 'sequential', 'each', 'for', 'runIf', 'skipIf']);
+const MAKERS = new Set(['each', 'for', 'runIf', 'skipIf']);
 const statesATest = callee => callee.type === 'Identifier' ? callee.name === 'it' || callee.name === 'test'
-  : callee.type === 'MemberExpression' ? statesATest(callee.object)
+  : callee.type === 'MemberExpression' ? !callee.computed && MODIFIERS.has(callee.property.name) && statesATest(callee.object)
     : callee.type === 'CallExpression' && statesATest(callee.callee);
-const isTable = callee => callee.type === 'MemberExpression' && callee.property.name === 'each';
+const isTable = callee => callee.type === 'MemberExpression' && MAKERS.has(callee.property.name);
+// A test hands its body after its title, its options standing between them
+// where it gives any, `it.todo` alone stating a title with no body.
+const isFunction = node => node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression';
+const handsABody = ({ callee, arguments: [, second, third] }) => isFunction(second) || isFunction(third)
+  || (callee.type === 'MemberExpression' && callee.property.name === 'todo');
 
 // titlesOfSource(text) → [{ line, title }]: the title of each test the
 // source states, the text of its string, the literal parts of its template
@@ -24,7 +32,7 @@ export function titlesOfSource(text) {
   const visit = node => {
     if (node === null || typeof node !== 'object') return;
     if (Array.isArray(node)) return node.forEach(visit);
-    if (node.type === 'CallExpression' && statesATest(node.callee) && !isTable(node.callee)) {
+    if (node.type === 'CallExpression' && statesATest(node.callee) && !isTable(node.callee) && handsABody(node)) {
       const [first] = node.arguments;
       const title = first?.type === 'Literal' && typeof first.value === 'string' ? first.value
         : first?.type === 'TemplateLiteral' ? first.quasis.map(quasi => quasi.value.cooked).join('${…}') : null;

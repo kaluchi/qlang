@@ -48,7 +48,7 @@ function answerOf(serverProcess, id) {
 }
 
 describe('the language server process', () => {
-  it('starts over stdio and answers initialize with its capabilities', async () => {
+  it('[QSHST#tools] starts over stdio and answers initialize with its capabilities', async () => {
     const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
     try {
       const answer = answerOf(serverProcess, 1);
@@ -63,7 +63,7 @@ describe('the language server process', () => {
     }
   }, 30_000);
 
-  it('names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol [QSHST#tools]', async () => {
+  it('[QSHST#tools] names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol', async () => {
     const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
     try {
       const initialized = answerOf(serverProcess, 1);
@@ -84,7 +84,7 @@ describe('the language server process', () => {
     }
   }, 30_000);
 
-  it('answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
+  it('[QSHST#tools] answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
     // A copy of the server outside the repository, which reaches the
     // packages it depends on and no workspace beside it.
     const outside = mkdtempSync(join(tmpdir(), 'qlang-lsp-'));

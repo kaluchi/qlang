@@ -1,0 +1,338 @@
+{
+ "set": "X",
+ "decision": "D395",
+ "screen": "D395",
+ "screenHash": "d31137ab94ca",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-21",
+ "commit": "cb5e275f",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1",
+  "CLAUDE_CODE_EFFORT_LEVEL": "high"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "All 14 queries ran against the data files and gave sensible answers. I checked X3 and X8 by hand. X9, X10, X11 and X14 need `qlang --raw '<query>' < file`, because those files are plain text. The other file-based tasks run as `qlang '<query>' < file.json`.\n\nResults are keyed by keywords such as `:apple`. Where a task asks for string keys or values, I converted them with `toString`.\n\nX1: [\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"cherry\",\"apple\"] | map ~(lower) | groupBy | map ~(count) | filter ~(gt 1)\nX2: get /data/users | filter ~(allOf (query /active | eq true) (query /address/country | ne null)) | map ~(get /address/country | upper) | distinct | sort\nX3: filter ~(get /status | lower | eq \"paid\") | map ~(get {:v ~(get /items | map ~(mulOf /qty /price) | sum) :d ~(coalesce /discount 0)} | subOf /v /d) | sum | round 2\nX4: filter ~(get /status | lower | eq \"paid\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total ~(get /1 | round 2)}) | sort ~(get [~(get /total | desc) /customer]) | take 3\nX5: get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort\nX6: get {:dependencies ~(query /dependencies {} | count) :devDependencies ~(query /devDependencies {} | count) :peerDependencies ~(query /peerDependencies {} | count) :optionalDependencies ~(query /optionalDependencies {} | count)}\nX7: filter ~(get /state | eq \"open\") | groupBy ~(coalesce ~(get /assignee/login | lower) \"unassigned\") | map ~(count)\nX8: filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(get /name | lower) | contains \"bug\")) | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get /number | toString) | join \",\"\nX9: lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | groupBy /2 | map ~(map ~(get /5 | match #\"(\\d+)ms\" | get /1 | toNumber) | avg | round 1)\nX10: lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /4 | toNumber | gte 500) | map ~(get /3 | split \"?\" | first) | distinct | sort\nX11: lines | drop 1 | map ~(trim) | filter ~(ne \"\") | map ~(split \",\") | filter ~(allOf (get /4 | eq \"up\") (get /2 | ne \"\")) | groupBy ~(get /1 | lower) | map ~(map ~(get /2 | toNumber) | avg | round 1)\nX12: :d (get /defaults/features) | get /environments | map ~(:f (query /features {} | filter ~(ne null)) | d | merge f | filter ~(eq true) | keys | map ~(toString) | sort)\nX13: filter ~(query /salary | ne null) | groupBy /dept | entries | map ~(get {:dept ~(get /0 | toString) :avg ~(get /1 | map /salary | avg | round) :count ~(get /1 | count)}) | sort ~(get [~(get /avg | desc) /dept])\nX14: :p (lines | map ~(trim) | filter ~(allOf (ne \"\") ~(startsWith \"#\" | eq false)) | map ~(match #\"^([^=]+)=(.*)$\" | drop 1 | map ~(replace #\"^([\\\"'])(.*)\\1$\" \"$2\")) ) | p | get {:db ~(filter ~(get /0 | startsWith \"DB_\") | map ~(get [~(get /0 | drop 3 | lower | toKeyword) /1]) | toMap) :debug ~(filter ~(get /0 | eq \"APP_DEBUG\") | map ~(get /1 | lower | anyOf (eq \"true\") (eq \"1\") (eq \"yes\")) | contains true)}",
+ "failed": false,
+ "requests": 25,
+ "turns": 26,
+ "inputTokens": 464689,
+ "outputTokens": 8180,
+ "calls": [
+  {
+   "command": "ls; qlang '[\"Apple\",\"banana\",\"apple\"] | map ~(lower) | groupBy | map ~(count)'",
+   "answered": "value",
+   "head": "access.log config.json deploy.env employees.json issues.json metrics.csv orders.json pkg.json users.json {:apple 2 :banana 1}"
+  },
+  {
+   "command": "qlang '[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"cherry\",\"apple\"] | map ~(lower) | groupBy | map ~(count) | filter ~(gt 1)'; head -c 1500 users.json; echo; head -c 1000 orders.json",
+   "answered": "value",
+   "head": "{ :apple 3 :banana 2 :cherry 2 } { \"status\": \"ok\", \"page\": 1, \"total\": 10, \"data\": { \"users\": [ { \"id\": 1, \"name\": \"Ana Ruiz\", \"email\": \"ana@example.com\", \"active\": true, \"address\": { \"city\": \"Madrid\", \"country\": \"es\" }, \"roles\": [ \"admin\","
+  },
+  {
+   "command": "qlang 'get /data/users | map ~(get [/active /address])' < users.json | tr -d '\\n ' ; echo; qlang '::vec | manifest' | head -100",
+   "answered": "path/KeyNotInMapError",
+   "head": "|~|raised,andno!|caughtit::path/KeyNotInMapError!{:key:address:nearest[]:path/address:actualType::map:trace::trace[::frame[{:id9:name\"IvyChen\":email\"ivy@example.com\":activefalse:roles[\"qa\"]}~(get[/active/address])]::frame[::elision{:size10:"
+  },
+  {
+   "command": "qlang '::any | manifest' | head -150; qlang '::map | manifest' | head -100",
+   "answered": "value",
+   "head": "#[::any/allOf ::any/anyOf ::any/apply ::any/binding ::any/coalesce ::any/cond ::any/delete ::any/desc ::any/divOf ::any/doc ::any/elide ::any/env ::any/eq ::any/err ::any/explain ::any/get ::any/gt ::any/gte ::any/if ::any/in ::any/is ::any"
+  },
+  {
+   "command": "qlang 'get /data/users | map ~(query [/active /address/country])' < users.json | tr -d '\\n' ; echo;  qlang 'get /data/users | filter ~(allOf (query /active | eq true) (query /address/country | ne null)) | map ~(get /address/country | upper) | distinct | sort' < users.json",
+   "answered": "value",
+   "head": "[[true \"es\"] [true \"DE\"] [false \"KR\"] [true null] [true \"NO\"] [true \"de\"] [true null] [true \"jp\"] [false null] [true \"ES\"]] [\"DE\" \"ES\" \"JP\" \"NO\"]"
+  },
+  {
+   "command": "qlang 'map ~(query [/status /discount /items])' < orders.json | tr -d '\\n' | tr -s ' '; echo; qlang '::number | manifest' ",
+   "answered": "value",
+   "head": "[ [ \"paid\" 5 [ { :sku \"A1\" :qty 2 :price 9.99 } { :sku \"B2\" :qty 1 :price 24.5 } ] ] [ \"Paid\" null [ { :sku \"C3\" :qty 3 :price 4.25 } ] ] [ \"pending\" null [ { :sku \"A1\" :qty 1 :price 9.99 } ] ] [ \"PAID\" 10.5 [ { :sku \"B2\" :qty 2 :price 24.5"
+  },
+  {
+   "command": "::=1; qlang '::number/round | doc'; qlang '::vec/sum | doc'; qlang '::any/mulOf | doc'",
+   "answered": "denied",
+   "head": "This Bash command contains multiple operations. The following part requires approval: ::=1"
+  },
+  {
+   "command": "qlang '::number/round | doc'; qlang '::vec/sum | doc'; qlang '::any/mulOf | doc'",
+   "answered": "value",
+   "head": "|~~ Answers the subject rounded to the digits after the point the call gives, none when it gives none: `3.14159 | round 2` answers `3.14` and `2.5 | round` answers `3`. A half rounds away from zero, as the digits are written, `1.005 | round"
+  },
+  {
+   "command": "qlang '::any/coalesce | doc'; qlang 'filter ~(get /status | lower | eq \"paid\") | map ~(sumOf /items/0/qty 0) ' < orders.json | head -5",
+   "answered": "path/IndexOutOfBoundsError",
+   "head": "|~~ Answers the first of the alternatives the call gives that answers a value, each in its place: code, a quote or a path, runs against the subject, and a value answers itself, `{:nickname null :name \"alice\"} | coalesce /nickname /name` ans"
+  },
+  {
+   "command": "qlang 'filter ~(get /status | lower | eq \"paid\") | map ~(get {:v ~(get /items | map ~(mulOf /qty /price) | sum) :d ~(coalesce /discount 0)} | subOf /v /d) | sum | round 2' < orders.json",
+   "answered": "value",
+   "head": "371.18"
+  },
+  {
+   "command": "qlang 'filter ~(get /status | lower | eq \"paid\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total ~(get /1 | round 2)}) | sort ~(get [~(get /total | desc) /customer]) | take 3' < orders.json",
+   "answered": "value",
+   "head": "[{:customer \"carol\" :total 198.95} {:customer \"alice\" :total 144.48} {:customer \"bob\" :total 45.75}]"
+  },
+  {
+   "command": "cat pkg.json | head -60; qlang 'shape' < pkg.json | head -40",
+   "answered": "value",
+   "head": "{ \"name\": \"webshop-api\", \"version\": \"2.3.1\", \"private\": true, \"scripts\": { \"start\": \"node server.js\", \"test\": \"jest --coverage\", \"lint\": \"eslint src\" }, \"dependencies\": { \"express\": \"^4.18.2\", \"lodash\": \"~4.17.21\", \"axios\": \"^1.6.0\", \"doten"
+  },
+  {
+   "command": "qlang 'get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort' < pkg.json; qlang 'get {:dependencies ~(query /dependencies | count) :devDependencies ~(query /devDependencies | count) :peerDependencies ~(query /peerDependencies | count) :optionalDependencies ~(query /optionalDependencies | count)}' < pkg.json",
+   "answered": "call/KindAnswersNoVerbError",
+   "head": "[\"@types/node\" \"axios\" \"express\" \"jest\" \"lodash\" \"typescript\" \"zod\"] |~| raised, and no !| caught it ::call/KindAnswersNoVerbError!{ :name :count :addresses #[::map/count ::string/count ::vec/count] :actualType ::null :trace ::trace[ ::fram"
+  },
+  {
+   "command": "qlang 'get {:dependencies ~(query /dependencies {} | count) :devDependencies ~(query /devDependencies {} | count) :peerDependencies ~(query /peerDependencies {} | count) :optionalDependencies ~(query /optionalDependencies {} | count)}' < pkg.json; head -c 700 issues.json; qlang 'shape' < issues.json | head -40",
+   "answered": "value",
+   "head": "{ :dependencies 5 :devDependencies 5 :peerDependencies 1 :optionalDependencies 0 } [ { \"number\": 1, \"title\": \"Crash on login\", \"state\": \"open\", \"labels\": [ { \"name\": \"bug\" }, { \"name\": \"P1\" } ], \"assignee\": { \"login\": \"Mara\" }, \"comments\": "
+  },
+  {
+   "command": "qlang 'filter ~(get /state | eq \"open\") | groupBy ~(coalesce ~(get /assignee/login | lower) \"unassigned\") | map ~(count)' < issues.json; qlang 'filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(get /name | lower) | contains \"bug\")) | sort ~(get [~(get /comments | desc) /number]) | take 3 | map /number | join \",\"' < issues.json",
+   "answered": "vec/join/ElementKindNotTakenError",
+   "head": "{ :mara 3 :tom 2 :unassigned 3 :lena 2 } |~| raised, and no !| caught it ::vec/join/ElementKindNotTakenError!{ :expected #[::keyword ::string] :actualType ::number :actualValue 4 :trace ::trace[::frame[[4 10 1] ~(join \",\") /0]] } |~| Every "
+  },
+  {
+   "command": "qlang 'filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(get /name | lower) | contains \"bug\")) | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get /number | toString) | join \",\"' < issues.json; qlang 'map ~(get [/number /state /comments ~(get /labels | map /name)])' < issues.json | tr -d '\\n' | tr -s ' '; echo; head -5 access.log | cat -A | head",
+   "answered": "value",
+   "head": "4,10,1 [[1 \"open\" 7 [\"bug\" \"P1\"]] [2 \"open\" 3 [\"Feature\"]] [3 \"closed\" 0 [\"docs\"]] [4 \"open\" 12 [\"Bug\" \"performance\"]] [5 \"open\" 1 []] [6 \"open\" 7 [\"BUG\"]] [7 \"open\" 5 [\"feature\"]] [8 \"closed\" 9 [\"bug\"]] [9 \"open\" 2 [\"testing\"]] [10 \"open\" "
+  },
+  {
+   "command": "qlang --raw 'lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | groupBy /2 | map ~(map ~(get /5 | match #\"(\\d+)ms\" | get /1 | toNumber) | avg | round 1)' < access.log; qlang --raw 'lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /4 | toNumber | gte 500) | map ~(get /3 | split \"?\" | first) | distinct | sort' < access.log",
+   "answered": "value",
+   "head": "{ :GET 498.1 :POST 850 :DELETE 60 } [\"/api/orders\" \"/api/orders/42\" \"/api/search\"]"
+  },
+  {
+   "command": "cat -A access.log | cut -c1-110; echo; cat -A metrics.csv; cat -A deploy.env",
+   "answered": "value",
+   "head": "2026-03-01T10:15:32Z INFO GET /api/users 200 123ms$ 2026-03-01T10:15:40Z INFO POST /api/orders 201 250ms$ 2026-03-01T10:16:02Z WARN GET /api/search?q=shoes 200 980ms$ 2026-03-01T10:16:10Z ERROR GET /api/orders/42 500 45ms$ 2026-03-01T10:17:"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 | map ~(trim) | filter ~(ne \"\") | map ~(split \",\") | filter ~(allOf (get /4 | eq \"up\") (get /2 | ne \"\")) | groupBy ~(get /1 | lower) | map ~(map ~(get /2 | toNumber) | avg | round 1)' < metrics.csv; cat config.json | head -60",
+   "answered": "value",
+   "head": "{ :eu-west 35 :us-east 63 :ap-south 10 } { \"app\": \"shop\", \"defaults\": { \"features\": { \"search\": true, \"checkout\": true, \"beta_ui\": false, \"chat\": false }, \"db\": { \"port\": 5432 } }, \"environments\": { \"dev\": { \"features\": { \"beta_ui\": true, \""
+  },
+  {
+   "command": "qlang '::map/merge | doc' | head -20; qlang ':d (get /defaults/features) | get /environments | map ~(:f (query /features {} | filter ~(ne null)) | d | merge f | filter ~(eq true) | keys | map ~(toString) | sort)' < config.json",
+   "answered": "value",
+   "head": "|~~ The name other languages give `union` over maps: answers the entries of the subject together with those of the map the call gives, which wins a key both hold, as `union` does, `{:a 1 :b 2} | merge {:b 3 :c 4}` answering `{:a 1 :b 3 :c 4"
+  },
+  {
+   "command": "qlang 'map ~(query [/dept /salary])' < employees.json | tr -d '\\n' | tr -s ' '; echo; qlang 'filter ~(query /salary | ne null) | groupBy /dept | entries | map ~(get {:dept ~(get /0 | toString) :avg ~(get /1 | map /salary | avg | round) :count ~(get /1 | count)}) | sort ~(get [~(get /avg | desc) /dept])' < employees.json",
+   "answered": "value",
+   "head": "[[\"Engineering\" 120000] [\"Engineering\" 100000] [\"Engineering\" 90000] [\"Engineering\" null] [\"Sales\" 70000] [\"Sales\" 80000] [\"Sales\" null] [\"Support\" 50000] [\"HR\" 65000] [\"HR\" 66000] [\"Legal\" null]] [ { :dept \"Engineering\" :avg 103333 :count "
+  },
+  {
+   "command": "qlang '::string | manifest'; qlang --raw 'lines | map ~(trim) | filter ~(allOf (ne \"\") ~(startsWith \"#\" | eq false)) | map ~(match #\"^([^=]+)=(.*)$\" | drop 1)' < deploy.env | tr -d '\\n' | tr -s ' '",
+   "answered": "value",
+   "head": "#[::string/PayloadKindNotTakenError ::string/append ::string/capture ::string/construct ::string/contains ::string/count ::string/drop ::string/endsWith ::string/length ::string/lines ::string/lower ::string/match ::string/parse ::string/pa"
+  },
+  {
+   "command": "qlang '::string/replace | doc'",
+   "answered": "value",
+   "head": "|~~ Answers the text with the replacement the call gives in the place of every match of the needle: `\"a-b-c\" | replace \"-\" \"+\"` answers `\"a+b+c\"`. The needle is a regex, `#\"…\"`, or a text looked for as it is. The replacement is a string, in"
+  },
+  {
+   "command": "qlang --raw ':p (lines | map ~(trim) | filter ~(allOf (ne \"\") ~(startsWith \"#\" | eq false)) | map ~(match #\"^([^=]+)=(.*)$\" | drop 1 | map ~(replace #\"^([\\\"'\"'\"'])(.*)\\1$\" \"$2\")) ) | p | get {:db ~(filter ~(get /0 | startsWith \"DB_\") | map ~(get [~(get /0 | drop 3 | lower | toKeyword) /1]) | toMap) :debug ~(filter ~(get /0 | eq \"APP_DEBUG\") | map ~(get /1 | lower | anyOf (eq \"true\") (eq \"1\") (eq \"yes\")) | anyOf (it) ~(eq true)) }' < deploy.env",
+   "answered": "any/anyOf/conditions/ElementKindNotTakenError",
+   "head": "|~| raised, and no !| caught it ::any/anyOf/conditions/ElementKindNotTakenError!{ :index 0 :expected #[::boolean ::path ::quote] :actualType ::vec :actualValue [true] :trace ::trace[ ::frame[[true] ~(anyOf (it) ~(eq true))] ::frame[::elisio"
+  },
+  {
+   "command": "qlang --raw ':p (lines | map ~(trim) | filter ~(allOf (ne \"\") ~(startsWith \"#\" | eq false)) | map ~(match #\"^([^=]+)=(.*)$\" | drop 1 | map ~(replace #\"^([\\\"'\"'\"'])(.*)\\1$\" \"$2\")) ) | p | get {:db ~(filter ~(get /0 | startsWith \"DB_\") | map ~(get [~(get /0 | drop 3 | lower | toKeyword) /1]) | toMap) :debug ~(filter ~(get /0 | eq \"APP_DEBUG\") | map ~(get /1 | lower | anyOf (eq \"true\") (eq \"1\") (eq \"yes\")) | contains true) }' < deploy.env",
+   "answered": "value",
+   "head": "{ :db { :host \"db.internal\" :port \"5432\" :name \"shop\" :password \"s3cr=t\" } :debug true }"
+  }
+ ],
+ "score": [
+  {
+   "task": "X1",
+   "query": "[\"Apple\",\"banana\",\"apple\",\"Cherry\",\"BANANA\",\"date\",\"cherry\",\"apple\"] | map ~(lower) | groupBy | map ~(count) | filter ~(gt 1)",
+   "answer": {
+    "apple": 3,
+    "banana": 2,
+    "cherry": 2
+   },
+   "solved": true
+  },
+  {
+   "task": "X2",
+   "query": "get /data/users | filter ~(allOf (query /active | eq true) (query /address/country | ne null)) | map ~(get /address/country | upper) | distinct | sort",
+   "answer": [
+    "DE",
+    "ES",
+    "JP",
+    "NO"
+   ],
+   "solved": true
+  },
+  {
+   "task": "X3",
+   "query": "filter ~(get /status | lower | eq \"paid\") | map ~(get {:v ~(get /items | map ~(mulOf /qty /price) | sum) :d ~(coalesce /discount 0)} | subOf /v /d) | sum | round 2",
+   "answer": 371.18,
+   "solved": true
+  },
+  {
+   "task": "X4",
+   "query": "filter ~(get /status | lower | eq \"paid\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total ~(get /1 | round 2)}) | sort ~(get [~(get /total | desc) /customer]) | take 3",
+   "answer": [
+    {
+     "customer": "carol",
+     "total": 198.95
+    },
+    {
+     "customer": "alice",
+     "total": 144.48
+    },
+    {
+     "customer": "bob",
+     "total": 45.75
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "X5",
+   "query": "get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort",
+   "answer": [
+    "@types/node",
+    "axios",
+    "express",
+    "jest",
+    "lodash",
+    "typescript",
+    "zod"
+   ],
+   "solved": true
+  },
+  {
+   "task": "X6",
+   "query": "get {:dependencies ~(query /dependencies {} | count) :devDependencies ~(query /devDependencies {} | count) :peerDependencies ~(query /peerDependencies {} | count) :optionalDependencies ~(query /optionalDependencies {} | count)}",
+   "answer": {
+    "dependencies": 5,
+    "devDependencies": 5,
+    "peerDependencies": 1,
+    "optionalDependencies": 0
+   },
+   "solved": true
+  },
+  {
+   "task": "X7",
+   "query": "filter ~(get /state | eq \"open\") | groupBy ~(coalesce ~(get /assignee/login | lower) \"unassigned\") | map ~(count)",
+   "answer": {
+    "mara": 3,
+    "tom": 2,
+    "unassigned": 3,
+    "lena": 2
+   },
+   "solved": true
+  },
+  {
+   "task": "X8",
+   "query": "filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(get /name | lower) | contains \"bug\")) | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get /number | toString) | join \",\"",
+   "answer": "4,10,1",
+   "solved": true
+  },
+  {
+   "task": "X9",
+   "query": "lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | groupBy /2 | map ~(map ~(get /5 | match #\"(\\d+)ms\" | get /1 | toNumber) | avg | round 1)",
+   "answer": {
+    "GET": 498.1,
+    "POST": 850,
+    "DELETE": 60
+   },
+   "solved": true
+  },
+  {
+   "task": "X10",
+   "query": "lines | map ~(trim) | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /4 | toNumber | gte 500) | map ~(get /3 | split \"?\" | first) | distinct | sort",
+   "answer": [
+    "/api/orders",
+    "/api/orders/42",
+    "/api/search"
+   ],
+   "solved": true
+  },
+  {
+   "task": "X11",
+   "query": "lines | drop 1 | map ~(trim) | filter ~(ne \"\") | map ~(split \",\") | filter ~(allOf (get /4 | eq \"up\") (get /2 | ne \"\")) | groupBy ~(get /1 | lower) | map ~(map ~(get /2 | toNumber) | avg | round 1)",
+   "answer": {
+    "eu-west": 35,
+    "us-east": 63,
+    "ap-south": 10
+   },
+   "solved": true
+  },
+  {
+   "task": "X12",
+   "query": ":d (get /defaults/features) | get /environments | map ~(:f (query /features {} | filter ~(ne null)) | d | merge f | filter ~(eq true) | keys | map ~(toString) | sort)",
+   "answer": {
+    "dev": [
+     "beta_ui",
+     "chat",
+     "checkout",
+     "search"
+    ],
+    "staging": [
+     "beta_ui",
+     "checkout",
+     "search"
+    ],
+    "prod": [
+     "audit",
+     "chat",
+     "checkout"
+    ],
+    "test": [
+     "checkout",
+     "search"
+    ]
+   },
+   "solved": true
+  },
+  {
+   "task": "X13",
+   "query": "filter ~(query /salary | ne null) | groupBy /dept | entries | map ~(get {:dept ~(get /0 | toString) :avg ~(get /1 | map /salary | avg | round) :count ~(get /1 | count)}) | sort ~(get [~(get /avg | desc) /dept])",
+   "answer": [
+    {
+     "dept": "Engineering",
+     "avg": 103333,
+     "count": 3
+    },
+    {
+     "dept": "Sales",
+     "avg": 75000,
+     "count": 2
+    },
+    {
+     "dept": "HR",
+     "avg": 65500,
+     "count": 2
+    },
+    {
+     "dept": "Support",
+     "avg": 50000,
+     "count": 1
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "X14",
+   "query": ":p (lines | map ~(trim) | filter ~(allOf (ne \"\") ~(startsWith \"#\" | eq false)) | map ~(match #\"^([^=]+)=(.*)$\" | drop 1 | map ~(replace #\"^([\\\"'])(.*)\\1$\" \"$2\")) ) | p | get {:db ~(filter ~(get /0 | startsWith \"DB_\") | map ~(get [~(get /0 | drop 3 | lower | toKeyword) /1]) | toMap) :debug ~(filter ~(get /0 | eq \"APP_DEBUG\") | map ~(get /1 | lower | anyOf (eq \"true\") (eq \"1\") (eq \"yes\")) | contains true)}",
+   "answer": {
+    "db": {
+     "host": "db.internal",
+     "port": "5432",
+     "name": "shop",
+     "password": "s3cr=t"
+    },
+    "debug": true
+   },
+   "solved": true
+  }
+ ]
+}

@@ -92,12 +92,10 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
-// fromJsonText(text) → the value a JSON text writes, read as a literal
-// reads it: each object the map of its keys in the order the text writes
-// them, which an object of JavaScript moves for a key that reads as an
-// index, a key written twice standing in its first place with its last
-// value, and a number past the doubles refused at its path [QSLIT#json]. The
-// text is one `JSON.parse` has read.
+// fromJsonText(text) → the value a text `JSON.parse` has read writes, read as
+// a literal reads it: each object the map of its keys in the order the text
+// writes them, a key written twice in its first place with its last value,
+// and a number past the doubles refused at its path [QSLIT#json].
 export function fromJsonText(text) {
   let at = 0;
   const skipSpace = () => {
@@ -150,7 +148,7 @@ export function fromJsonText(text) {
 
 // `json` resides on `::any` and `parseJson` on `::string`, each taking the
 // value the walk served alone [QSQUO#modifier].
-const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
+export const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 registerPrimitive('any/json', subject => JSON.stringify(toPlain(subject)));
 registerPrimitive('string/parseJson', subject => {

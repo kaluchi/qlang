@@ -21,10 +21,13 @@ function makeWriter(writer, recordEffect, SubjectError) {
   };
 }
 
+// The address of `in`, which reads no subject [D402].
+export const IN_ADDRESS = 'any/in';
+
 export function streamPrimitives(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   return {
-    'any/in':  async () => ioContext.stdinReader(),
+    [IN_ADDRESS]: async () => ioContext.stdinReader(),
     'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectKindNotTakenError),
     'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
     // `tap` writes its subject as a host prints an answer [QSHST#effect].

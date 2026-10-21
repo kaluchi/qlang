@@ -13,48 +13,38 @@ Provides two binaries — `qlang` and its short alias `ql`.
 
 ## Usage
 
-```
-qlang [--raw] [--color=MODE] [--fail] <query>
-qlang -i | --repl [<query>]
-qlang -h | --help
-qlang -V | --version
-```
+`qlang -h` prints the page of the command line, what
+`qlang '::cli | doc'` answers: its flags, how it reads stdin and the
+codes it exits with.
 
 A query runs on what stdin holds, JSON as values and any other text as
 a string, and its answer is printed as the language prints it, a
 string as its text, so a query that ends in `| json` writes JSON. Every
-answer prints within the budget `qlang -h` names, and one past it as
+answer prints within one budget of characters, and one past it as
 `::qlang/AnswerBeyondBudgetError` with its head; `| print | out` and
 `| json | out` write the whole. A query that reads no subject,
-`[1 2 3] | sum`, reads no stdin. `qlang -h` tells the flags.
+`[1 2 3] | sum`, reads no stdin, and one headed by `in` reads the text
+as it came.
 
 ```
 curl -s api/users | qlang 'get /data | map /name'
 qlang 'get /users | filter /active | json' < data.json
-printf hi         | qlang --raw 'append " world"'
+printf hi         | qlang 'in | append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
 qlang -i '::qlang | doc :pipeline'
 ```
 
 The language documents itself: `qlang '::qlang | doc'` reads the
-language, and `qlang '::cli | doc'` this command line, its verbs
-`in`, `out`, `err`, `tap` and `table` among them.
+language, and `qlang -h` this command line, its verbs `in`, `out`,
+`err`, `tap` and `table` among them.
 
 A value one query hands another over a pipe keeps its kinds as its
 literal:
 
 ```
-qlang '#[:admin :user] | print | out' | qlang --raw 'parse | open | count'
+qlang '#[:admin :user] | print | out' | qlang 'in | parse | open | count'
 2
 ```
-
-## Exit codes
-
-| Code | Meaning |
-|---|---|
-| `0` | every answer, a failure among them |
-| `1` | a defect raised past the fail track; under `--fail`, an answer that is a failure, written as without the flag |
-| `2` | a usage error |
 
 ## REPL
 

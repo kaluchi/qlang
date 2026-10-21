@@ -70,15 +70,10 @@ describe('liftOfInput — the first value standard input lifts to by parseJson [
     expect(await liftOfInput(await createSession(), '{"a":1}', true)).toEqual({ initialPipeValue: '{"a":1}' });
   });
 
-  it('hands on the cell of parseJson where it refuses the text otherwise than as no JSON, the session numbering no cell for it', async () => {
+  it('lifts a JSON text parseJson refuses to the failure it answered, the session numbering no cell for the lift', async () => {
     const session = await createSession();
-    const { refused } = await liftOfInput(session, '[1e400]', false);
-    expect([refused.uri, refused.result.tag.name]).toEqual(['stdin', 'string/parseJson/NumberNotFiniteError']);
+    const { initialPipeValue } = await liftOfInput(session, '[1e400]', false);
+    expect(initialPipeValue.tag.name).toBe('string/parseJson/NumberNotFiniteError');
     expect((await session.evalCell('1')).uri).toBe('cell-1');
-  });
-
-  it('hands on the cell of parseJson where its run raised a defect', async () => {
-    const raised = { result: null, defect: new Error('the runtime broke') };
-    expect(await liftOfInput({ evalCell: async () => raised }, '[1]', false)).toEqual({ refused: raised });
   });
 });

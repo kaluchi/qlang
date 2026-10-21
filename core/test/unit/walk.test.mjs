@@ -402,11 +402,23 @@ describe('readsItsSubject', () => {
     for (const query of ['get [/a 1]', 'get {:a /b}', '(get /a)', '((get /a) | count)']) expect(readsOf(query), query).toBe(true);
   });
 
-  it('reads none where its first step that declares nothing calls a word of the host that reads none, by the name the host gives [D402]', () => {
-    const words = new Set(['in', 'any/in']);
-    for (const query of ['in | count', 'any/in', '(in) | count', ':x 1 | in']) expect(readsItsSubject(parse(query), words), query).toBe(false);
-    for (const query of ['count | in', ':x (get /a) | in', 'vec/in']) expect(readsItsSubject(parse(query), words), query).toBe(true);
+  it('reads none where its first step that declares nothing calls a verb of the host that reads none, by its name or its address [D402]', () => {
+    const verbs = new Set(['in', 'any/in']);
+    for (const query of ['in | count', 'any/in', '(in) | count', ':x 1 | in']) expect(readsItsSubject(parse(query), verbs), query).toBe(false);
+    for (const query of ['count | in', ':x (get /a) | in', 'vec/in']) expect(readsItsSubject(parse(query), verbs), query).toBe(true);
     expect(readsOf('in')).toBe(true);
+  });
+
+  it('reads such a verb called by its name as reading the subject where a declaration before it shadows the name, its address left the host\'s [D402]', () => {
+    const verbs = new Set(['in', 'any/in']);
+    for (const query of [':vec/in ~(count) | in', ':in ~(count) | in', '(:string/in ~(count) | in)']) expect(readsItsSubject(parse(query), verbs), query).toBe(true);
+    expect(readsItsSubject(parse(':vec/in ~(count) | any/in'), verbs)).toBe(false);
+  });
+
+  it('reads past a step of the fail track at its head, which runs on a failure alone, a declaration under it among them [D402]', () => {
+    for (const query of ['!| 5 | count', '!| :x 1 | count', '!| 5']) expect(readsOf(query), query).toBe(true);
+    expect(readsItsSubject(parse('!| in | count'), new Set(['in']))).toBe(true);
+    for (const query of ['!| count | (1)', '!| :x (get /a) | [1]']) expect(readsOf(query), query).toBe(false);
   });
 
   it('holds that a call and a blank query read it', () => {
@@ -426,10 +438,5 @@ describe('readsItsSubject', () => {
     expect(readsOf(':two 2')).toBe(true);
     expect(readsOf(':a 1 | :b 2')).toBe(true);
     expect(readsOf(':Box |~~ A box. ~~| | [1]')).toBe(false);
-  });
-
-  it('reads a step of the fail track by the step it holds', () => {
-    expect(readsOf('!| :x 1 | [1]')).toBe(false);
-    expect(readsOf('!| :x (get /a) | [1]')).toBe(true);
   });
 });

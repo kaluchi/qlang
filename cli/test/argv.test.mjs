@@ -1,9 +1,9 @@
 // parseArgv, what the arguments of the command line ask for: a test for each
-// kind it answers, each flag and each refusal, the short and the long name of
-// a flag each, and the help text the command line writes [QSHST#answer].
+// kind it answers, each flag and each refusal, and the short and the long
+// name of a flag each [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
-import { parseArgv, HELP_TEXT } from '../src/argv.mjs';
+import { parseArgv } from '../src/argv.mjs';
 
 describe('parseArgv', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
@@ -12,12 +12,12 @@ describe('parseArgv', () => {
     expect(cliInvocation.message).toMatch(/missing query/);
   });
 
-  it('recognises -h as the short help flag', () => {
-    expect(parseArgv(['-h'])).toEqual({ kind: 'help' });
+  it('reads -h as the query of the page of the command line [D402]', () => {
+    expect(parseArgv(['-h'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'auto', failureExitCode: 0 });
   });
 
-  it('recognises --help as the long help flag', () => {
-    expect(parseArgv(['--help'])).toEqual({ kind: 'help' });
+  it('reads --help as -h, the flags before it holding', () => {
+    expect(parseArgv(['--color=never', '--help'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'never', failureExitCode: 0 });
   });
 
   it('recognises -V as the short version flag', () => {
@@ -125,20 +125,5 @@ describe('parseArgv', () => {
     const cliInvocation = parseArgv(['--raw']);
     expect(cliInvocation.kind).toBe('usageError');
     expect(cliInvocation.message).toMatch(/missing query/);
-  });
-});
-
-describe('HELP_TEXT', () => {
-  it('tells a query headed by in, which reads the text as it came, and the read of JSON alone [D402]', () => {
-    const defaultMode = HELP_TEXT.slice(HELP_TEXT.indexOf('(default)   JSON'), HELP_TEXT.indexOf('--raw  '));
-    expect(defaultMode).toContain("query headed by 'in' reads the text as it came");
-    expect(defaultMode).toContain("'in | parseJson' reads it as JSON alone");
-  });
-
-  it('tells the code every answer exits with and the one --fail gives a failure [QSHST#answer]', () => {
-    const exitCodes = HELP_TEXT.slice(HELP_TEXT.indexOf('Exit code:'), HELP_TEXT.indexOf('Examples:'));
-    expect(exitCodes).toContain('0 for every answer, a failure among them');
-    expect(exitCodes).toContain('--fail      1 where the answer is a failure');
-    expect(HELP_TEXT).toContain('[--color=MODE] [--fail] <query>');
   });
 });

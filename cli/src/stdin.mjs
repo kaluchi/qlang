@@ -1,10 +1,8 @@
-// Standard input of the command line [QSHST#stdin]: the text it holds, read to
-// its end, or the empty string where it is a terminal, which `main` reads before
-// a query that reads its subject runs, and the first value it lifts to by the
-// word `parseJson`, a JSON document as its value and any other text as a
-// string [D402].
+// Standard input of the command line [QSHST#stdin]: its text, read to its end,
+// the empty string from a terminal, and the first value a query that reads its
+// subject starts from, which `parseJson` lifts the text to.
 
-import { isErrorValue, makeTag } from '@kaluchi/qlang-core';
+import { isErrorValue, makeTag, StringParseJsonTextNotJsonError } from '@kaluchi/qlang-core';
 
 export function readStdinToString(stdin) {
   if (stdin.isTTY) {
@@ -19,8 +17,7 @@ export function readStdinToString(stdin) {
   });
 }
 
-// Memoise a stdinReader thunk so repeated `in` calls within a
-// single query share one read of the underlying stream.
+// One read of the stream for every `in` of a query and for its subject.
 export function memoiseStdinReader(stdinReader) {
   let cachedPromise = null;
   return () => {
@@ -31,22 +28,19 @@ export function memoiseStdinReader(stdinReader) {
   };
 }
 
-// The noun the command line starts from when standard input carries no
-// bytes.
+// The noun the command line starts from where stdin carries no bytes.
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
-// liftOfInput(session, text, raw) → the first value of a query that reads its
-// subject, `{ initialPipeValue }`, or the cell of the word that refused the
-// text, `{ refused }`: the noun of the language where the text is empty, the
-// text under `--raw`, and otherwise what `parseJson` answers run on it as a
-// cell the session numbers not, a text that is no JSON staying the string it
-// is [D402].
-const TEXT_NOT_JSON = 'string/parseJson/TextNotJsonError';
-
+// liftOfInput(session, text, raw) → `{ initialPipeValue }`, the noun of the
+// language for no text, the text under `--raw`, and else what `parseJson`
+// answers in a cell the session numbers not, a text that is no JSON staying
+// the string and any other refusal the failure the query starts from; or
+// `{ raised }`, the cell of a defect of the lift [D402].
 export async function liftOfInput(session, stdinText, raw) {
   if (stdinText.length === 0) return { initialPipeValue: DEFAULT_SUBJECT };
   if (raw) return { initialPipeValue: stdinText };
   const read = await session.evalCell('parseJson', { initialPipeValue: stdinText, uri: 'stdin' });
-  if (read.defect !== null || (isErrorValue(read.result) && read.result.tag.name !== TEXT_NOT_JSON)) return { refused: read };
-  return { initialPipeValue: isErrorValue(read.result) ? stdinText : read.result };
+  if (read.defect !== null) return { raised: read };
+  const notJson = isErrorValue(read.result) && read.result.tag.name === StringParseJsonTextNotJsonError.prototype.address;
+  return { initialPipeValue: notJson ? stdinText : read.result };
 }

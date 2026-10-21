@@ -3,13 +3,22 @@
    the streams under `::any`. Their primitives take the values alone, the
    served subject and the values of their inputs, but that of `tap`, which
    reads the state of its call.
-   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#answer]. ~|
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#answer],
+   [D402]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints
       the answer: `qlang 'get /users | count' < data.json` in a script, and
       `qlang -i` a session of cells. It is the host a reader meets first,
       and the verbs it adds read and write the streams of the process.
+
+      Usage: `qlang [--raw] [--color=MODE] [--fail] '<query>'` runs a
+      query, `qlang -i ['<query>']` opens a session of cells, the query
+      its first, `qlang -h` prints this page and `qlang -V` the version.
+      The flags stand before the query, one argument the shell quotes
+      whole. `--color=auto`, the default, paints where stdout is a
+      terminal, `always` and `never` whatever it is, and `NO_COLOR=1`
+      and `FORCE_COLOR=1` turn `auto` to never and to always.
 
       A query runs on what stdin holds. JSON is read as values, an object
       a map whose keys are keywords, `{"name": "Ann"}` arriving as
@@ -39,11 +48,15 @@
       that does not parse answering `::quote/ParseError`, so calls run side
       by side never stop each other. A script that tests the code
       writes `--fail` before the query, `qlang --fail 'get /id' < a.json
-      && next`: a failure exits with 1, written as without it.
+      && next`: a failure exits with 1, written as without it. A defect
+      raised past the fail track goes to stderr as `qlang:` and its
+      message with the code 1, and a call that names no query or a flag
+      the command line takes not goes there with its usage and the code 2.
 
-      Every answer prints within the budget `qlang -h` names, and one past
-      it prints as `::qlang/AnswerBeyondBudgetError` with its head, each
-      `::elision` in it a `:read` that continues the query to the part;
+      Every answer prints within one budget of characters, and one past
+      it prints as `::qlang/AnswerBeyondBudgetError`, whose `:budget`
+      names the budget, with its head, each `::elision` in it a `:read`
+      that continues the query to the part;
       `print | out` or `json | out` writes the whole, and `| elide N` cuts
       an answer on purpose. `in`, `out`, `err` and `tap` read and write the
       streams, `tap` showing a value halfway through a query on stderr as
@@ -68,9 +81,9 @@
       the text the command line also lifts into the subject of a query
       that reads one; a terminal with nothing piped answers the empty
       string. It heads a query that reads the text as it came, for which
-      the command line lifts nothing: ::snippet~(in | lines | count)
-      counts the lines piped in, and `in | parseJson` reads the text as
-      JSON alone. It takes no value.
+      the command line lifts nothing, `in | lines | count` counting the
+      lines piped in and `in | parseJson` reading the text as JSON alone.
+      It takes no value.
   ~~|
   ::fn
     | returns

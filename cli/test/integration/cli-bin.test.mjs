@@ -34,10 +34,10 @@ function runCli(args, opts = {}) {
 }
 
 describe('CLI: --help', () => {
-  it('prints help text and exits 0', async () => {
+  it('prints the page of the command line and exits 0', async () => {
     const { stdout, exitCode } = await runCli(['--help']);
     expect(exitCode).toBe(0);
-    expect(stdout).toMatch(/qlang/);
+    expect(stdout).toMatch(/^\|~~ The command line runs a query/);
     expect(stdout).toMatch(/Usage:/);
   });
 });

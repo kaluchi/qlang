@@ -1,10 +1,10 @@
 // Standard input of the command line. readStdinToString sits at the boundary
-// between Node's Readable stream protocol and the qlang `in` verb contract —
-// every branch (a terminal answering at once, data accumulation, end
-// resolution, error rejection) is exercised through synthetic streams.
-// memoiseStdinReader's caching behaviour is tested with a counting stub, and
-// `liftStdinToPipeValue` resolves the `auto` / `json` / `raw` flag into the
-// query's first value.
+// between Node's Readable stream protocol and the text the command line reads
+// before a query that reads its subject and `in` answers — every branch (a
+// terminal answering at once, data accumulation, end resolution, error
+// rejection) is exercised through synthetic streams. memoiseStdinReader's
+// caching behaviour is tested with a counting stub, and `liftStdinToPipeValue`
+// resolves the format `auto`, `json` or `raw` into the query's first value.
 // The rules it holds: [QSHST#stdin].
 
 import { describe, it, expect } from 'vitest';
@@ -64,7 +64,7 @@ describe('liftStdinToPipeValue — auto detection', () => {
     expect([...liftStdinToPipeValue('{"b": 1, "2": 2, "a": 3}', 'auto').pipeValue.keys()]).toEqual(['b', '2', 'a']);
   });
 
-  it('falls back to raw String when stdin is not valid JSON', () => {
+  it('reads a text that is no JSON as one string', () => {
     expect(liftStdinToPipeValue('plain text', 'auto')).toEqual({ pipeValue: 'plain text' });
   });
 });

@@ -680,6 +680,7 @@ function unreadReports() {
 
 const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
+const KEYWORD = /(?<![:\w]):[A-Za-z][\w/.-]*\w/g;
 const tokensIn = text => [...text.matchAll(TOKEN)].map(match => match[0])
   .filter(token => token.length >= 3 && !/^[DE]\d+$/.test(token) && (token.startsWith('::') || /[a-z]/.test(token) || /[_\d]/.test(token)));
 
@@ -790,6 +791,8 @@ function namesOfTakenOut() {
       const line = lines[index];
       if (chapter !== undefined && line.startsWith('## ')) section = line.slice(3).trim();
       for (const token of tokensIn(holds)) held.add(token);
+      // A keyword holds the address of the name it names [QSNAM#address].
+      for (const [keyword] of holds.matchAll(KEYWORD)) held.add(`:${keyword}`);
       const waits = chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`));
       if (names !== '' && !waits) naming.push({ file, line: index + 1, names, text: line.trim() });
     });

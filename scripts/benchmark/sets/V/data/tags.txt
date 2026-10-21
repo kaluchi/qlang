@@ -1,6 +1,0 @@
-a.js: Util, core, Parser
-b.js: core,  io
-c.js: parser, UTIL
-d.js: 
-e.js: io, Net, core
-f.js: net

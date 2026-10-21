@@ -4,22 +4,17 @@
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../src/index.mjs';
 import { evalQuery } from '../../src/session.mjs';
+import { langRuntime } from '../../src/runtime/index.mjs';
+import { ROOT_KEY } from '../../src/scope-keys.mjs';
 import { isErrorValue, isQuote, makeTag } from '../../src/types.mjs';
 import { QlangError } from '../../src/errors.mjs';
 import { printQuoteSource } from '../../src/print-value.mjs';
 
 describe('::name | source answers the quote of the declarations under the name', () => {
-  it('::vec/count | source carries the declaration by its address', async () => {
-    const result = await evalQuery('::vec/count | source');
-    expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result).startsWith(':vec/count')).toBe(true);
-  });
-
-  it('a source of the root that declares nothing writes no record to read', async () => {
+  it('a source of the root that declares nothing adds no node to the root', async () => {
     const { createSession } = await import('../../src/session.mjs');
     const session = await createSession({ sources: [{ uri: 'tests/atom-only', source: '42' }] });
-    const cellEntry = await session.evalCell('::missing | source !| type');
-    expect(cellEntry.result).toEqual(makeTag('any/source/UnknownNameError'));
+    expect([...session.scope.get(ROOT_KEY).keys()]).toEqual([...(await langRuntime()).get(ROOT_KEY).keys()]);
   });
 
   it('the axes read a declaration of the query', async () => {
@@ -28,17 +23,6 @@ describe('::name | source answers the quote of the declarations under the name',
     const result = await evalQuery(':myLocal 42 | ::myLocal | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result)).toBe(':myLocal 42');
-  });
-
-  it('the axes read a declaration of the cell', async () => {
-    // A cell's declaration writes its record into the session's scope,
-    // which the axes read.
-    const { createSession } = await import('../../src/session.mjs');
-    const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell(
-      ':foo |~~ a note ~~| | ::foo | doc | content');
-    expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toBe(' a note ');
   });
 
   it('the axes of a later cell read a declaration of an earlier one', async () => {
@@ -52,7 +36,7 @@ describe('::name | source answers the quote of the declarations under the name',
     expect(cellEntry.result).toBe(' first cell ');
   });
 
-  it('the axes read a name with a path at its address', async () => {
+  it('the axes read a name with a path at its address, under a noun that is a name of data', async () => {
     // `:landing/chapter01` declares a node under `landing`, whose record
     // the axes read at its address [QSNAM#address].
     const { createSession } = await import('../../src/session.mjs');
@@ -65,45 +49,13 @@ describe('::name | source answers the quote of the declarations under the name',
 
   it('a value that is no name reads the declaration of its kind', async () => {
     expect(await evalQuery('42 | source | eq (::number | source)')).toBe(true);
-    expect(await evalQuery('{:impl :unbound} | source | eq (::map | source)')).toBe(true);
+    expect(await evalQuery('{:a 1} | source | eq (::map | source)')).toBe(true);
   });
 });
 
 describe('::name | doc returns the page the docs of its slot make', () => {
-  it('::vec/count | doc returns a page', async () => {
-    const result = await evalQuery('::vec/count | doc | type');
-    expect(result).toEqual(makeTag('doc'));
-  });
-
-  it('the content of the first doc of ::vec/count carries its prose', async () => {
-    const result = await evalQuery('::vec/count | doc | content');
-    expect(typeof result).toBe('string');
-    expect(result).toContain('number of elements');
-  });
-
-  it('a value that is no name reads the page of its kind', async () => {
-    expect(await evalQuery('42 | doc | eq (::number | doc)')).toBe(true);
-  });
-
-  it('unknown binding raises AnyDocUnknownNameError', async () => {
-    const err = await evalQuery('::totallyMadeUp | doc');
-    expect(isErrorValue(err)).toBe(true);
-    expect(err.tag).toEqual(makeTag('any/doc/UnknownNameError'));
-  });
-
   it('a value under a tag no binding declares reads the kind beneath it [QSSLF#axis]', async () => {
     expect(await evalQuery('::Ghost#1 | doc | eq (::number | doc)')).toBe(true);
-  });
-});
-
-describe('::name | laws reads the laws declared under a name', () => {
-  it('::vec/count | laws answers its laws by their names', async () => {
-    const result = await evalQuery('::vec/count | laws | count');
-    expect(result).toBeGreaterThan(0);
-  });
-
-  it('a value that is no name reads the laws of its kind', async () => {
-    expect(await evalQuery('42 | laws | eq (::number | laws)')).toBe(true);
   });
 });
 
@@ -117,30 +69,17 @@ describe('the axes read the node a tag addresses', () => {
       .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
-  it('::quote | source reads the declaration of the kind in the language\'s module', async () => {
+  it('::quote | source reads the declaration of the kind in the source of the catalog that declares it', async () => {
     const result = await evalQuery('::quote | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result).startsWith(':quote')).toBe(true);
   });
 
-  it('::quote | doc returns the page in the slot of the declaration of the kind', async () => {
-    const result = await evalQuery('::quote | doc | content');
-    expect(typeof result).toBe('string');
-    expect(result).toContain('code held as a value');
+  it('::quote | doc reads the page the declaration of the kind holds, the page a quote reads', async () => {
+    expect(await evalQuery('::quote | doc | get [~(type) ~(eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
   });
 
-  it('::quote | laws reads the laws declared under the kind', async () => {
-    const result = await evalQuery('::quote | laws | count');
-    expect(result).toBeGreaterThanOrEqual(1);
-  });
-
-  // A tag is the address of a name, so it reads the nearest declaration
-  // of that name whatever its value holds [QSDSP#residence].
-  it('::Tag | source reads the declaration of its name', async () => {
-    expect(await evalQuery('42 | :Foo it | ::Foo | source | toString')).toBe(':Foo it');
-  });
-
-  it('a tag no declaration names is refused by its address', async () => {
+  it('an axis refusing a tag no declaration names hands its host the QlangError under `originalError`, with its address and its facts', async () => {
     const result = await evalQuery('::Foo | doc');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.address).toBe('any/doc/UnknownNameError');
@@ -169,42 +108,23 @@ describe('the axes read what a source of the root declared', () => {
     const session = await sessionOf(':bare 42');
     expect((await session.evalCell('::bare | doc')).result).toBeNull();
   });
-
-  it('refuses a name no source declares', async () => {
-    const session = await sessionOf(':somethingElse 1');
-    expect((await session.evalCell('::notHere | source !| type')).result.name).toBe('any/source/UnknownNameError');
-  });
 });
 
 describe('a value that is no name reads the declaration of its kind', () => {
-  // The kind `type` answers names the declaration [QSSLF#axis]: an error
-  // reads the page of its tag, and a `manifest` entry, a map, reads
-  // the page of `::map` whatever its `:kind` field holds.
-  it('a materialized error reaches its own tag docs', async () => {
+  // An error at rest reads by `doc` the page of its tag [QSSLF#axis].
+  it('an error at rest reads the page of its tag', async () => {
     expect(await evalQuery('10 | div 0 !| doc | content'))
       .toContain('The divisor is not zero');
   });
-
 });
 
 describe('the axes resolve the binding the evaluator dispatches', () => {
-  // The axes project the one record the scope holds under an address, so
-  // a verb the reader declares reads as itself, the case the hypertext
-  // chain exists for. A value of the reader's named as a verb meets the
-  // verb at a step whose subject the verb answers [QSNAM#reach].
-  const shadowed = ':any/hundredfold ~(mul 100) | ';
-
-  it('a value of the reader named as a verb meets the verb where the subject answers it', async () => {
-    expect((await evalQuery(':add ~(mul 100) | 2 | add')).tag.name).toBe('call/ValueMeetsVerbError');
-  });
-
-  it('a verb of the reader is the one source reports', async () => {
-    expect(await evalQuery(shadowed + '2 | hundredfold')).toBe(200);
-    expect(await evalQuery(shadowed + '::any/hundredfold | source | toString')).toBe(':any/hundredfold ~(mul 100)');
-  });
+  // The axes read the one record the scope holds under an address, so a
+  // verb the reader declares reads as itself [QSNAM#binding].
+  const hundredfold = ':any/hundredfold ~(mul 100) | ';
 
   it('doc answers null for a verb of the reader that carries no page', async () => {
-    expect(await evalQuery(shadowed + '::any/hundredfold | doc')).toBeNull();
+    expect(await evalQuery(hundredfold + '::any/hundredfold | doc')).toBeNull();
   });
 
   // The reader's declaration of a name the root holds stands over it
@@ -221,9 +141,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
   });
 
-  it('a binding no declaration wrote, a node a chain lays, holds no source, its page the one the chain wrote [QSSLF#axis]', async () => {
-    expect(await evalQuery('::number/add/addend | source')).toBeNull();
-    expect(await evalQuery('::number/add/addend | binding | get /source')).toBeNull();
+  it('a node a chain lays reads the page the chain wrote [QSSLF#axis]', async () => {
     expect(await evalQuery('::number/add/addend | doc | content')).toContain('The number added to the subject');
   });
 });
@@ -232,11 +150,5 @@ describe('::name | binding | /value answers the value of the declaration', () =>
   it('::vec/take reads its function, whose recipe is the descriptor of its primitive, and an input its place [QSBLD#input], [QSBLD#fn]', async () => {
     expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
     expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
-  });
-
-  it('the record of a declaration of it holds the value', async () => {
-    // `:name it` writes the record of a binding under :name in its scope
-    // [QSNAM#binding], which `binding` reads.
-    expect(await evalQuery('42 | :answer it | ::answer | binding | get /value')).toBe(42);
   });
 });

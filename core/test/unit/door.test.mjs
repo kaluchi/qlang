@@ -113,8 +113,11 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('passes back unwalked a value the call handed in', async () => {
+    // The door of a cell walks the subject it takes once, and the door of an
+    // answer walks no value the call handed in.
     const { vector, reads } = counted(1);
     expect((await session.evalCell('same', { initialPipeValue: vector })).result).toBe(vector);
+    expect(reads.count).toBe(1);
     expect((await session.evalCell('twice | count', { initialPipeValue: vector })).result).toBe(2);
     expect(reads.count).toBe(2);
   });
@@ -204,7 +207,7 @@ describe('the second door: what a host hands where the core takes it [QSHST#sour
     }
   });
 
-  it('reads a value JavaScript leaves undefined as null wherever the language reads it, and refuses a hole of a vector, which is no element', async () => {
+  it('reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
     expect((await session.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
     expect((await session.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });

@@ -1,9 +1,0 @@
-region,rep,product,units,price
-north,amy,widget,10,2.50
-south,ben,gadget,3,19.99
-north,cat,gadget,,19.99
-east,dan,widget,20,2.50
-south,eve,widget,7,2.50
-east,fil,gizmo,2,45.00
-west,gus,gizmo,1,45.00
-north,amy,gizmo,1,45.00

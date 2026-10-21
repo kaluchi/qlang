@@ -7,6 +7,11 @@ gen/
 .claude/settings.local.json
 .claude/*.lock
 
+# The editor's agent Kilo keeps its state and its worktrees here, no part
+# of the tree.
+.kilo/
+.kilocode/
+
 # npm workspaces — only the root package-lock.json is authoritative
 # under the workspaces layout; per-workspace lockfiles drift stale and
 # are ignored here so they do not get re-committed by accident.

@@ -4,6 +4,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // A test that makes no assertion fails [QSWRK#tooling].
+    expect: { requireAssertions: true },
     include: ['test/**/*.test.mjs'],
     // The tests of integration under `test/integration/`, which run the
     // command line in processes of their own, run by

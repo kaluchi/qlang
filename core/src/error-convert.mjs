@@ -19,9 +19,8 @@ const SPAN_TAG = makeTag('span');
 // spanOfLocation(loc, source) → the stretch of the source a location names
 // as a span, the offset from zero, the line and the column from one of its
 // start and of the point after its end, each counted in code points as a
-// string counts, `::span[0 1 1 1 1 2]` [QSPRN#span], or null for none.
+// string counts, `::span[0 1 1 1 1 2]` [QSPRN#span].
 export function spanOfLocation(loc, source) {
-  if (!loc) return null;
   const point = ({ offset, line, column }) => {
     const lineStart = offset - (column - 1);
     return [codePointsIn(source, 0, offset), line, codePointsIn(source, lineStart, offset) + 1];
@@ -49,15 +48,15 @@ export function factsInOrder(tag, facts, scope) {
   return ordered;
 }
 
-// The error a refusal of the runtime raised at the span of its step, or at
-// none: the facts its site handed with the kind of the value refused, of the
-// subject a step was served the kind alone [QSERR#site].
-export function errorFromQlang(qlangError, subject, scope, location = null) {
+// The error a refusal of the runtime raised: the facts its site handed with
+// the kind of the value refused, of the subject a step was served the kind
+// alone [QSERR#site].
+export function errorFromQlang(qlangError, subject, scope) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
   if (facts.has('actualValue')) facts.set('actualType', typeOf(facts.get('actualValue')));
   if (qlangError.refusesTheSubject === true && subject !== undefined) facts.delete('actualValue');
-  return makeErrorValue(tag, factsInOrder(tag, facts, scope), { location, originalError: qlangError });
+  return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
 // The error of a text the parser refused: the line where it stopped, what it
@@ -76,10 +75,7 @@ export function errorFromParse(parseError, scope, uri = parseError.uri) {
   if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
   if (uri) d.set('origin', keyword(uri));
   const tag = makeTag('quote/ParseError');
-  return makeErrorValue(tag, factsInOrder(tag, d, scope), {
-    location: parseError.location,
-    originalError: parseError
-  });
+  return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });
 }
 
 // The continuations a parse failure lists, each once: a literal as its text,
@@ -106,11 +102,10 @@ const CAUSES_RECOUNTED = 8;
 
 // A JavaScript error escaping a primitive is a failure of the host: a tag of
 // the language, its account and the accounts of the failures beneath it
-// [QSERR#site], at the span of the step that ran it. The step that failed
-// stands in the trace; the stack, the class and the fields of the error stay
-// with the host in `originalError`, and a host that has facts to hand
-// declares a refusal of its own.
-export function errorFromForeign(jsError, location, scope) {
+// [QSERR#site]. The step that failed stands in the trace; the stack, the
+// class and the fields of the error stay with the host in `originalError`,
+// and a host that has facts to hand declares a refusal of its own.
+export function errorFromForeign(jsError, scope) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);
   const causes = [];
@@ -118,10 +113,7 @@ export function errorFromForeign(jsError, location, scope) {
     causes.push(accountOf(cause));
   }
   if (causes.length > 0) facts.set('causes', Object.freeze(causes));
-  return makeErrorValue(tag, factsInOrder(tag, facts, scope), {
-    location,
-    originalError: jsError
-  });
+  return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: jsError });
 }
 
 // What a thrown value says of itself: an error's message, and any other

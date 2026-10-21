@@ -68,7 +68,8 @@ address, which the axis `source` reads, null for a binding no
 declaration wrote, a node a chain lays among them. Where a text came from
 is its `:origin`, a keyword naming the source, the cell or the verb that
 read it: a binding holds the source or the cell it was read from, a cell
-the session numbers among them, `:cell-1`, and a failure to parse and a
+the session numbers among them, `:cell-1`, and a declaration of code
+assembled from data, which no text wrote, `:quote`; a failure to parse and a
 refusal of the root the source a host named or the verb that read the
 text, a cell the session numbers naming none; the root records the `uri`
 a host hands as that origin. The
@@ -81,7 +82,10 @@ and `::builtin{}`, whose pages the catalog holds, runs a primitive, and
 a failure inside one is `::call/HostFailureError` [QSERR#site]. A
 primitive that reads the state of its call, `doc`, `env`, `get`, `apply`
 and their kin, takes it after the values of its inputs, and every other
-takes the values alone. A call waits on an answer that has a `then`, a
+takes the values alone; a host marks its own so by `readingState`, the
+mark the root of the package hands it, while the marks of the inputs a
+primitive runs as code stay the core's, so a host's primitive takes a
+quote as the data it is. A call waits on an answer that has a `then`, a
 host's thenable and its promise of another realm among them. The engine
 a host runs on bounds the length of a vector and runs a regex alike on
 every platform. A host's setting is the first value of its pipe, the
@@ -145,6 +149,9 @@ names into the scope by its sources alone, and a reader by a declaration.
 > ::vec | binding | get /origin
 :qlang/vec
 
+> get [~(~((:x 1 | env | get /x | get /origin)) | first)] | tag ::quote | apply it
+:quote
+
 > ::vec/count | source | toString | contains "::builtin{}"
 true
 
@@ -168,6 +175,8 @@ $ node --input-type=module -e "const { createSession } = await import('./core/sr
 builtin/ForeignValueError function hello
 $ node --input-type=module -e "const { createSession, evalQuery } = await import('./core/src/index.mjs'); const s = await createSession(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | get /origin')).name)"
 source uri result defect scopeAfterCell quote/ParseError null cell-1
+$ node --input-type=module -e "const { createSession, readingState } = await import('./core/src/index.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('x')) } }] }); console.log((await s.evalCell(':x 1 | named')).result)"
+true
 ```
 
 ## effect
@@ -176,8 +185,13 @@ A query reads, and writes only by a host's verbs for the streams of its
 process, each an explicit step performed when it runs: the command
 line's `in` reads standard input when it is called, the empty string in
 the REPL, whose prompt holds it, `out` writes a string as a line of
-standard output, `err` as a line of standard error, and `tap` shows a
-value on standard error halfway through a query. What changes the world
+standard output and `err` as a line of standard error, each whole, and
+`tap` writes `[tap <label>]` and its subject on standard error halfway
+through a query as a host prints an answer, the print a kind declares
+among it, within the budget of every answer and past it as the refusal
+in its place, whose reads continue the query from the subject at the
+`tap`; the query goes on with the subject as it came, and `err print`
+writes a look whole. What changes the world
 is a verb of its host, addressing the same names the queries read, and
 its result a noun that queries read. A verb of a host has one output, a
 value under its tag, and the kinds of its refusals; what it answers is
@@ -195,27 +209,48 @@ whole vector and bounds its own calls.
 1
 ```
 
+```sh
+$ qlang ':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count' < /dev/null 2>&1
+[tap x] [box]
+1
+
+$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|::elision\{:size [0-9]+ :read ~\(drop [0-9]+\)\}|^5000$'
+[tap big] |~| raised, and no !| caught it
+::elision{:size 4921 :read ~(drop 79)}
+5000
+```
+
 ## answer
 
 The command line writes every answer as the language prints it,
-whatever data standard input held, a string as its text, and whole unless
-a budget is asked for, `| elide N` in the query or `--budget=N` before
-it, a whole count of characters above zero on either road: the step
-`elide` cuts the value the query answers, which a failure passes by, and
-the flag prints every answer as `elide` cuts it, a failure's alert among
-them [QSPRN#elide]. A
-reader who wants JSON converts the answer in the query, `| json`. A
-query that wrote to standard output by `out` holds the channel: its
-answer and its failure stay unwritten, and the code is the one its
-answer exits with. `-i` or `--repl` opens the REPL, a query after it its
-first cell, and `-h` or `--help` and `-V` or `--version` print the usage
-and the version.
+whatever data standard input held, a string as its text, within the one
+budget every host prints an answer within, `ANSWER_BUDGET` of the core,
+the characters of the print counted as `count` counts a string, which
+`qlang -h` names and which is never smaller than the first screen,
+`[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
+prints whole, and one past the budget prints as the failure
+`::qlang/AnswerBeyondBudgetError` in its place, whose facts are
+`:characters`, the characters of the print, `:budget`, `:actualType`,
+the kind of the answer, and `:actualValue`, its head, the answer cut to
+the excerpt of an alert, or given way whole where no cut fits it, the
+`:read` of each elision there continuing the query from the answer,
+`~(drop 12)` [QSERR#site]. No flag sets or cuts the budget: a query cuts
+a value by `elide` [QSPRN#elide], and writes it whole through the door
+it opens itself, `out` a text, `print | out` the literal of a value and
+`json | out` its JSON. A reader who wants JSON converts the answer in
+the query, `| json`. A query that wrote to standard output by `out`
+holds the channel: its answer and its failure stay unwritten, no refusal
+of its print is raised, and the code is the one its answer exits with.
+`-i` or `--repl` opens the REPL, a query after it its first cell, and
+`-h` or `--help` and `-V` or `--version` print the usage and the
+version.
 
 A failure is an answer, written to standard output with the exit code 0,
 so calls run side by side never stop each other; `--fail` before the
 query gives it the code 1, for a script that tests the code, the failure
-written as without the flag and one a query that wrote by `out` left
-unwritten among them, while a failure caught is a value and every value
+written as without the flag, the refusal of an answer past the budget
+and one a query that wrote by `out` left unwritten among them, while a
+failure caught is a value and every value
 exits with 0. A failure is written as its alert: its tag and its facts
 in the order the catalog declares them, the subject of the first frame
 of its trace, where it arose, and every other fact cut to an excerpt of
@@ -226,14 +261,18 @@ one line its frame prints on, every frame keeping its steps and its
 place; each elision's `:read` continues the query beneath `!|`, the
 record a word's code failed on standing in the subject of its frame at
 the place the frame names, `!| get /trace/1/0/1`. An alert within the
-budget asked for stands as it prints. Past it the failure keeps its tag
+budget stands as it prints. Past it the failure keeps its tag
 and the names of its facts: its trace keeps its first frames within an
 excerpt of its own, three hundred characters, and ends with the elision
 of the rest, `~(!| get /trace | drop k)`, and then each fact gives way
 within the budget, the trace among them, which gives way whole where the
 budget holds not even its first frame. The excerpts of an alert and its
 cut tell the rest of a part by the elisions they made, so each `:size`
-counts what its `:read` answers. Below
+counts what its `:read` answers. A failure whose alert passes the
+budget, the names of its facts kept, prints as the refusal of an answer
+past it, its `:actualType` the tag of the failure and its head the
+error at rest, each `:read` there beneath `!|`. The line of the raise,
+the caret and the prose stand beside the budget. Below
 the alert stands the prose of its refusal's page as line comments, the
 repair it tells, a refusal with no page of its own reading the page of
 what refused; an error of the kind of errors, which no site refused, and
@@ -247,9 +286,10 @@ answers as `parseJson` refuses it [QSHST#stdin].
 
 Standard error and a nonzero code are for what is no answer: a defect
 raised past the fail track is written as `qlang:` and its message with
-the code 1; a call with no query, an argument after the query, a
-`--budget` that is no positive count and a `--color` other than `auto`,
-`always` and `never` are refused with a usage line and the code 2; any
+the code 1; a call with no query, an argument after the query, an
+argument before it that opens with two dashes and names no flag, since
+no query opens so, and a `--color` other than `auto`, `always` and
+`never` are refused with a usage line and the code 2; any
 other argument before the query, but for the flags above, is read as the
 query. The note on a query the shell made a path of goes to standard
 error beside the answer.
@@ -264,14 +304,24 @@ failed
 $ qlang '"x" | add 1' > /dev/null && echo answered
 answered
 
-$ qlang --budget=2000 ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -c "~(!| get /trace | drop"
-1
+$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|::elision\{:size [0-9]+ :read ~\(drop [0-9]+\)\}'
+:characters 70891
+:budget 16000
+::elision{:size 2988 :read ~(drop 12)}
 
-$ qlang --budget=250 ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| get /trace | drop [0-9]*)'
-:size 997 :read ~(!| get /trace | drop 4)
+$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"}) | json | out' < /dev/null | wc -c
+76892
 
-$ qlang --budget=60 '[{:n 1} {:n 2} {:n 3}] | filter ~(nope)' < /dev/null | grep -c -E '^  :(name|addresses|nearest|trace) '
-4
+$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| get /trace | drop [0-9]*)'
+:size 993 :read ~(!| get /trace | drop 8)
+
+$ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise' < /dev/null | grep -o -E '::qlang/AnswerBeyondBudgetError|:actualType ::error'
+::qlang/AnswerBeyondBudgetError
+:actualType ::error
+
+$ qlang --width=80 '1' < /dev/null 2>&1; echo "exit $?"
+qlang: --width=80 is no flag of the command line, which `qlang --help` lists
+exit 2
 ```
 
 ```qlang
@@ -331,9 +381,13 @@ where the shell hands its arguments.
 ## repl
 
 The REPL runs a cell at a time in one session, each cell a scope of its
-own [QSNAM#scope], and prints each answer as its literal, a string among
-them, and a failure as its alert, painted whether or not standard output
-is a terminal; a defect raised past the fail track, as a cell ran or as
+own [QSNAM#scope], and prints each answer within the budget of every
+answer [QSHST#answer] as its literal, a string among them, a failure as
+its alert without the prose of its page and an answer past the budget as
+the refusal in its place, painted whether or not standard output is a
+terminal; a cell that wrote by `out` holds the channel, no value of its
+answer printed after it, while its failure prints; a defect raised past
+the fail track, as a cell ran or as
 its answer printed, it writes on standard error as `qlang:` and its
 message, and runs the next cell. The colour of script mode follows
 `--color`, `NO_COLOR` and `FORCE_COLOR`. Its line editor reads a chunk of one character, or
@@ -431,7 +485,10 @@ lsp/src/server.mjs:2
 The site is built by Astro; its
 REPL keeps one session across its cells, a name one cell declares staying
 for the cells after it, and its playground runs the cells of one run in
-one session, each showing a defect as `qlang:` and its message. The words
+one session, each printing its answer within the budget of every answer
+[QSHST#answer], a failure as its alert under the line that says it was
+raised, and showing a defect as `qlang:` and its message. The language
+server prints no answer. The words
 of the streams of a process, `in`, `out`, `err` and `tap`, are the
 command line's, beside `table`, and a host that runs as a command takes
 them with their source from `./cli-sources` of the command line's

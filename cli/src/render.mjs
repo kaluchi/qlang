@@ -1,12 +1,11 @@
-// What the command line writes for a cell and its exit code: a defect raised
-// past the fail track as the cell ran or as its answer printed, no answer, as
-// its line on stderr with exit 1, nothing once the query wrote to stdout by
-// `out`, and any other answer, a failure among them and a query that does not
-// parse among those, as the language prints it with exit 0, a failure with
-// `outcomeOpts.failureExitCode`, which `--fail` makes 1 [QSHST#answer], [QSPRN#print].
+// What the command line writes for a cell and the code it exits with: a
+// defect on stderr with 1, nothing after `out`, and any other answer as the
+// one print of a host prints it, a failure with the code `--fail` sets
+// [QSHST#answer].
 
-import { isErrorValue, langRuntime, verbNames, printAnswer, elideAnswer, caretOf } from '@kaluchi/qlang-core';
+import { isErrorValue, langRuntime, verbNames, printAnswer, boundAnswer, caretOf } from '@kaluchi/qlang-core';
 import { highlightAnsi } from './highlight-ansi.mjs';
+import { proseOfThePage } from './run.mjs';
 
 // The names of the verbs the highlighter marks, read once.
 let _rootVerbNamesPromise = null;
@@ -37,27 +36,36 @@ export async function cellText(cellEntry, print) {
 }
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
-  const { didExplicitStdoutEffect, shouldColorize, budget = null, failureExitCode = 0 } = outcomeOpts;
-  const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => (didExplicitStdoutEffect ? null : await answerText(result, scope, budget, cellEntry.page ?? null)));
+  const { didExplicitStdoutEffect, shouldColorize, failureExitCode = 0 } = outcomeOpts;
+  // A query that wrote by `out` holds the channel: no print of its answer and
+  // no refusal of one, its code the one its answer exits with [QSHST#answer].
+  let failed = isErrorValue(cellEntry.result);
+  const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
+    if (didExplicitStdoutEffect) return null;
+    const shown = await boundAnswer(result, scope, typeof result === 'string' ? result : null);
+    failed = isErrorValue(shown);
+    return await shownText(shown, result, scope, cellEntry.page ?? null);
+  });
   if (stderrText !== undefined) return { stdoutText: '', stderrText, exitCode: 1 };
-  // A failure the query wrote by `out` and left unwritten exits so too.
-  const exitCode = isErrorValue(cellEntry.result) ? failureExitCode : 0;
+  const exitCode = failed ? failureExitCode : 0;
   if (stdoutText === null) return { stdoutText: '', stderrText: '', exitCode };
   // A string is written as its text, which no colour paints as code.
-  const painted = typeof cellEntry.result === 'string' ? stdoutText : await maybePaint(stdoutText, shouldColorize);
+  const painted = typeof cellEntry.result === 'string' && !failed ? stdoutText : await maybePaint(stdoutText, shouldColorize);
   return { stdoutText: painted + '\n', stderrText: '', exitCode };
 }
 
-// answerText(value, scope, budget, page) → the text the command line writes for
-// an answer: a string as it is, so `| json` writes JSON text and `| table` a
-// table, and any other value as its print, whole unless the caller asked for a
-// budget, an error as its alert, a refused text with its caret below the alert,
-// its line within an excerpt around the place, and a failure with the prose of its refusal's
-// page last, line comments a reading of the literal passes over [QSHST#answer].
-export async function answerText(value, scope, budget = null, page = null) {
-  if (typeof value === 'string') return value;
-  const shown = await elideAnswer(value, budget, scope);
-  return [await printAnswer(shown, scope), caretOf(value), page === null ? null : commentLinesOf(page)].filter(part => part !== null).join('\n');
+// answerText(value, scope, page) → the text the command line writes for an
+// answer: a string within the budget as it is, any other answer as
+// `boundAnswer` shows it, with the caret and the prose of its page below [QSHST#answer].
+export async function answerText(value, scope, page = null) {
+  return await shownText(await boundAnswer(value, scope, typeof value === 'string' ? value : null), value, scope, page);
+}
+
+async function shownText(shown, value, scope, page) {
+  if (shown === value && typeof value === 'string') return value;
+  const refused = isErrorValue(shown) && shown.tag.name !== (isErrorValue(value) ? value.tag.name : null);
+  const prose = refused ? await proseOfThePage(shown, scope) : page;
+  return [await printAnswer(shown, scope), caretOf(value), prose === null ? null : commentLinesOf(prose)].filter(part => part !== null).join('\n');
 }
 
 const oneLine = text => text.replace(/\s+/g, ' ').trim();

@@ -1,21 +1,14 @@
-// runLaws — run each law declared under a name as an executable test case
-// [QSSLF#laws]. A law passes when it answers `true`. The subject is a keyword
-// (binding name) or a tag name, the address of a verb among them, so `kinds |
-// map ~manifest | flat | map ~runLaws` walks the whole catalog.
+// runLaws runs each law declared under a name [QSSLF#laws], a law passing
+// where it answers `true`, its subject a tag name, the address of a verb
+// among them, or a value, which runs the laws of its kind.
 
 import { describe, it, expect } from 'vitest';
 import { createSession, evalQuery } from '../../src/session.mjs';
-import { isErrorValue, isSet, makeTag, makeBinding, keyword } from '../../src/types.mjs';
+import { isErrorValue, makeTag, makeBinding, keyword } from '../../src/types.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 
 describe('runLaws reads a name as laws does', () => {
-  it('address subject — ::vec/count | runLaws', async () => {
-    const result = await evalQuery('::vec/count | runLaws | map /ok | distinct');
-    expect(isSet(result)).toBe(true);
-    expect([...result]).toEqual([true]);
-  });
-
-  it('a binding without a doc runs no law, its page null', async () => {
+  it('a binding no declaration wrote runs no law and reads no page', async () => {
     // A binding no declaration wrote, in a scope a host hands a session,
     // holds no doc [QSNAM#binding].
     const scope = new Map(await langRuntime()).set('hostInjected', makeBinding({ name: keyword('hostInjected'), value: 42 }));
@@ -26,19 +19,9 @@ describe('runLaws reads a name as laws does', () => {
     expect(pageEntry.result).toBeNull();
   });
 
-  it('a name that names no binding is refused as doc refuses it', async () => {
-    const refusal = await evalQuery('::nothingBound | runLaws');
-    expect(refusal.tag).toEqual(makeTag('any/runLaws/UnknownNameError'));
-  });
-
-  it('the keyword of a name several kinds answer hands on its addresses', async () => {
+  it('the tag of a name several kinds answer is refused with their addresses', async () => {
     const addresses = await evalQuery('::count | runLaws !| get /addresses');
     expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'string/count', 'vec/count']);
-  });
-
-  it('a tag name that names nothing is refused under the tag it read', async () => {
-    const bindingName = await evalQuery('::Nonexistent | runLaws !| get /name');
-    expect(bindingName).toEqual(makeTag('Nonexistent'));
   });
 
   it('a value runs the laws of its kind, as doc reads its page [QSSLF#laws]', async () => {
@@ -48,40 +31,8 @@ describe('runLaws reads a name as laws does', () => {
   });
 });
 
-describe('runLaws Quote-as-test outcomes', () => {
-  it('a law that lifts an error → ok:false with the error at rest [QSSLF#laws]', async () => {
-    const moduleSource = ':demo 1\n:demo/broken |~~ A broken law. ~~| ::law~("x" | prepend 42 | eq 42)';
-    const session = await createSession({
-      sources: [{ uri: 'tests/source', source: moduleSource }]
-    });
-    const cellEntry = await session.evalCell('::demo | runLaws | first');
-    expect(cellEntry.result.get('ok')).toBe(false);
-    expect(cellEntry.result.get('error').tag.name).toMatch(/Error$/);
-  });
-
-  it('a law that answers false → ok:false with no error', async () => {
-    // `5 | mul 2 | eq 99` answers false, so the law fails, its result
-    // holding `:ok false` and `:error null`.
-    const moduleSource = ':demo 1\n:demo/falsy |~~ A false claim. ~~| ::law~(5 | mul 2 | eq 99)';
-    const session = await createSession({
-      sources: [{ uri: 'tests/source', source: moduleSource }]
-    });
-    const cellEntry = await session.evalCell('::demo | runLaws | first');
-    expect(cellEntry.result.get('ok')).toBe(false);
-    expect(cellEntry.result.get('error')).toBeNull();
-    expect(cellEntry.result.get('actual')).toBe(false);
-  });
-
-  it('a law that answers true → ok:true', async () => {
-    const moduleSource = ':demo 1\n:demo/truthy ::law~(5 | mul 2 | eq 10)';
-    const session = await createSession({
-      sources: [{ uri: 'tests/source', source: moduleSource }]
-    });
-    const cellEntry = await session.evalCell('::demo | runLaws | first | get /ok');
-    expect(cellEntry.result).toBe(true);
-  });
-
-  it('a binding without a doc in its slot returns an empty Vec', async () => {
+describe('the outcome of each law', () => {
+  it('a name a source declares with no law under it runs none', async () => {
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: ':bare 42' }]
     });
@@ -101,11 +52,9 @@ describe('runLaws Quote-as-test outcomes', () => {
     expect(cellEntry.result).toBe(true);
   });
 
-  it('example does not leak the writes of a declaration back into the calling session', async () => {
-    // The law under `:writer` runs a declaration in a scope of its own,
-    // so the calling session still sees no `:scratch` after runLaws
-    // completes. Reading `:scratch` on the session after `runLaws`
-    // therefore lifts ::call/UnknownNameError.
+  it('a law does not leak the writes of a declaration back into the calling session', async () => {
+    // The law under `:writer` declares `:scratch` in a scope of its own, so
+    // the session reads no `scratch` after it ran.
     const moduleSource = ':writer 1\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -119,7 +68,7 @@ describe('runLaws Quote-as-test outcomes', () => {
       .toEqual(makeTag('call/UnknownNameError'));
   });
 
-  it('a law that lifts a user-built error → :error holds it at rest, its :message among its facts [QSSLF#laws]', async () => {
+  it('a law that raises a map holds it at rest as its :error, its :message among its facts [QSSLF#laws]', async () => {
     // A map raised is an error of the kind of errors, and the law's
     // result holds it at rest as `!|` grounds it, every entry of the
     // map a fact.

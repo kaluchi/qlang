@@ -41,7 +41,6 @@ describe('the refusals a kind raises by rule [QSBLD#kind]', () => {
     const own = await createSession();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
-    expect(printValue((await own.evalCell('::Nums#5 !| type')).result)).toBe('::Nums/PayloadKindNotTakenError');
   });
 
   it('names no refusal of a kind of no payload and no field', async () => {
@@ -103,28 +102,22 @@ describe('the chain of a kind as the body of a bare name [QSBLD#kind]', () => {
 });
 
 describe('a declaration under a label that the chain of its kind holds alone [QSBLD#chain]', () => {
-  it('refuses an invariant and a constructor and takes a page and a law', async () => {
+  it('refuses a constructor declared by a name under a kind its chain built', async () => {
     const kind = ':Pos |~~ A positive number. ~~| (::kind | wraps |~~ The number. ~~| ::number)';
-    expect(await answers(`${kind} | :Pos/NotPositiveError ::invariant~(gt 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
     expect(await answers(`${kind} | :Pos/construct ~(add 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
-    expect(await answers(`${kind} | :Pos/note |~~ A note. ~~| | ::Pos/note | doc | content | trim`)).toBe('"A note."');
-  });
-
-  it('refuses an invariant and a constructor under a label declared by its page, a kind of no commands', async () => {
-    expect(await answers(':Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::invariant~(gt 0) !| type')).toBe('::bind/WrittenOutsideItsChainError');
-    expect(await answers(':Pos |~~ A positive number. ~~| | :Pos/construct ~(add 0) !| type')).toBe('::bind/WrittenOutsideItsChainError');
   });
 });
 
 describe('the constructor a host hands a kind', () => {
   it('lays the tag over the payload as it is until the host hands the constructor, and runs it after', async () => {
+    // `seen` is computed while the source is read, before its host hands the constructor.
     const hosted = await createSession({ sources: [{
       uri: 'test/hosted-kind',
-      source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/early ::law~(::Hk#1 | payload | eq 1)',
+      source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
       primitives: { 'Hk/construct': payload => payload + 1 }
     }] });
+    expect(printValue((await hosted.evalCell('seen')).result)).toBe('1');
     expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
-    expect(printValue((await hosted.evalCell('::Hk | runLaws | map /ok')).result)).toBe('[false]');
   });
 });
 

@@ -12,24 +12,18 @@ describe('cliSources', () => {
   });
 });
 
-describe('the verbs of the command line [QSDSP#residence]', () => {
+describe('the topic of the command line and the residence of its verbs [QSDSP#residence]', () => {
   const evalInCli = async (query) => {
     const session = await createSession({ sources: cliSources(silentStreams) });
     return (await session.evalCell(query)).result;
   };
-
-  it('lets a query call the verbs of the command line by their names', async () => {
-    expect(await evalInCli('[{:a 1}] | table')).toContain('| a |');
-  });
 
   it('declares its topic beside the names a reader declares', async () => {
     expect(await evalInCli(':x 1 | env | get [~(has :x) ~(has :cli) ~(has :table)]')).toEqual([true, false, false]);
     expect(await evalInCli('::cli | doc | type')).toEqual(await evalInCli('::doc'));
   });
 
-  it('declares its verbs under the kinds of their subjects', async () => {
+  it('declares the page of the command line under its topic', async () => {
     expect(await evalInCli('::cli | doc | content | contains "command line"')).toBe(true);
-    expect(await evalInCli('::vec | manifest | has ::vec/table')).toBe(true);
-    expect(await evalInCli('::any | manifest | has ::any/out')).toBe(true);
   });
 });

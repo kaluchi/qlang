@@ -14,7 +14,7 @@ import {
   findNameOccurrences,
   visibleAt,
   bindingNamesVisibleAt, readsItsSubject, repeatsDeclarationAt, TAG_SPELLING } from '../../src/walk.mjs';
-import { isCallStep, isBindStep, isConstructStep, commandStep } from '../../src/steps.mjs';
+import { isCallStep, isBindStep, isConstructStep, isGroupStep, commandStep } from '../../src/steps.mjs';
 import { isPath, isTag, isVec, isQuote, makeQuote } from '../../src/types.mjs';
 
 const rootOf = source => partOf(parse(source));
@@ -30,21 +30,24 @@ describe('the parts of a text', () => {
     expect(isCallStep(root.parts[1].value)).toBe(true);
   });
 
-  it('holds a part for each key and each value of a map', () => {
-    const [map] = rootOf('{:name "Alice" :age 30}').parts;
-    expect(valuesOf(map.parts).map(value => value?.name ?? value)).toEqual(['name', 'Alice', 'age', 30]);
+  it('holds a part for each key and each value of a map, each entry of a key written again among them', () => {
+    const keysAndValues = source => valuesOf(rootOf(source).parts[0].parts).map(value => value?.name ?? value);
+    expect(keysAndValues('{:name "Alice" :age 30}')).toEqual(['name', 'Alice', 'age', 30]);
+    expect(keysAndValues('{:a 1 :a 2}')).toEqual(['a', 1, 'a', 2]);
   });
 
   it('holds the name and the body of a declaration, and the modifiers of a call', () => {
     const [bind] = rootOf(':double mul 2').parts;
+    expect(kindOf(bind)).toBe('bind');
     expect(bind.parts.map(kindOf)).toEqual(['literal', 'call']);
-    expect(bind.parts[0].value.name).toBe('double');
+    expect([bind.parts[0].value.name, bind.parts[1].value.get('name').name]).toEqual(['double', 'mul']);
     expect(valuesOf(bind.parts[1].parts)).toEqual([2]);
   });
 
   it('holds the steps of a group, its content the pipeline its parentheses hold', () => {
     const source = '(mul 2 | add 1)';
     const [group] = rootOf(source).parts;
+    expect(isGroupStep(group.value)).toBe(true);
     expect(group.parts.map(kindOf)).toEqual(['call', 'call']);
     expect(source.slice(group.content.start.offset, group.content.end.offset)).toBe('mul 2 | add 1');
   });
@@ -59,7 +62,6 @@ describe('the parts of a text', () => {
     expect(partOf(quote[1]).value).toBe(quote[1]);
     expect(partOf(quote[0]).parts).toHaveLength(2);
     expect(partOf(commandStep('count', []))).toBeUndefined();
-    expect(partOf(42)).toBeUndefined();
   });
 
   it('keeps the steps of a group and of a step of the fail track by the part of the step', () => {
@@ -226,7 +228,7 @@ describe('findNameOccurrences', () => {
     expect(refs.map(({ value }) => isTag(value) && value.name)).toEqual(['Box']);
   });
 
-  it('finds the declaration of a kind written as a tag, and no declaration of another name', () => {
+  it('finds the declaration of a kind written as a tag, and no declaration of a value of that name', () => {
     expect(findNameOccurrences(rootOf(':Box |~~ Box. ~~|'), 'Box', TAG_SPELLING).map(kindOf)).toEqual(['bind']);
     expect(findNameOccurrences(rootOf(':Box 1'), 'Box', TAG_SPELLING)).toEqual([]);
   });
@@ -245,7 +247,7 @@ describe('bindingNamesVisibleAt', () => {
     expect(visibleIn(':any/twice ~(mul 2) | 5').has('twice')).toBe(true);
   });
 
-  it('does not include bindings that are still ahead of the cursor', () => {
+  it('does not include bindings ahead of the cursor', () => {
     const source = ':early 1 | here | :late 2';
     const visible = visibleIn(source, source.indexOf('here'));
     expect(visible.has('early')).toBe(true);
@@ -261,12 +263,12 @@ describe('bindingNamesVisibleAt', () => {
     expect(visibleIn(source, source.indexOf('here')).size).toBe(0);
   });
 
-  it('hides bindings whose enclosing group has already closed', () => {
+  it('hides bindings whose enclosing group closes before the cursor', () => {
     const source = '(:local 1 | local) | here';
     expect(visibleIn(source, source.indexOf('here')).has('local')).toBe(false);
   });
 
-  it('still sees a binding while inside its enclosing group', () => {
+  it('sees a binding inside its enclosing group', () => {
     const source = '(:local 1 | local | other)';
     expect(visibleIn(source, source.indexOf('other')).has('local')).toBe(true);
   });
@@ -281,7 +283,7 @@ describe('bindingNamesVisibleAt', () => {
     expect(visibleIn(source, source.lastIndexOf('x')).has('x')).toBe(false);
   });
 
-  it('top-level binding remains visible inside any number of nested forks', () => {
+  it('sees a binding of the query inside nested groups, literals and quotes', () => {
     const source = ':outer 1 | ((get [{:k ~(outer)}]))';
     expect(visibleIn(source, source.lastIndexOf('outer')).has('outer')).toBe(true);
   });
@@ -314,13 +316,33 @@ describe('bindingNamesVisibleAt', () => {
     expect([...visibleIn(source, source.indexOf('here'), TAG_SPELLING).keys()]).toEqual(['Box', 'Box/In']);
   });
 
-  it('sees in the body of a verb `declaresAVerb` holds of the declarations of the body before the offset and, outside the body, the nodes and the labels wherever they stand, the verb among them, and no value, and in its docs the declarations before the offset [QSNAM#verb], [QSHST#tools]', () => {
+  // The declarations a predicate `declaresAVerb` holds of are verbs, here a
+  // name with a path.
+  describe('in the body of a verb, around it and in its docs [QSNAM#verb], [QSHST#tools]', () => {
     const source = ':k 1 | :map/walk |~~ see ~(walk) ~~| ~(:j 2 | get /kids | map ~walk) | here | :vec/f ~(f) | :Late |~~ L ~~| | :n 3';
     const verbs = read => read.value.get('name').name.includes('/');
     const namesAt = (offset, spelling, declaresAVerb) => [...bindingNamesVisibleAt(rootOf(source), offset, spelling, declaresAVerb).keys()];
     const inTheBody = source.indexOf('~walk') + 1;
-    expect([namesAt(inTheBody, undefined, verbs), namesAt(inTheBody, TAG_SPELLING, verbs), namesAt(inTheBody), namesAt(source.indexOf('here'), undefined, verbs), namesAt(source.indexOf('(walk)') + 1, undefined, verbs)])
-      .toEqual([['map/walk', 'walk', 'j', 'vec/f', 'f', 'Late'], ['Late'], ['k', 'j'], ['k', 'map/walk', 'walk'], ['k']]);
+
+    it('sees in the body of a verb the declarations of the body before the offset and, outside the body, the verbs and the labels wherever they stand, and no value', () => {
+      expect(namesAt(inTheBody, undefined, verbs)).toEqual(['map/walk', 'walk', 'j', 'vec/f', 'f', 'Late']);
+    });
+
+    it('sees in the body of a verb the labels alone under the spelling of a tag', () => {
+      expect(namesAt(inTheBody, TAG_SPELLING, verbs)).toEqual(['Late']);
+    });
+
+    it('sees in the body of a verb the declarations before the offset alone where no predicate tells a verb', () => {
+      expect(namesAt(inTheBody)).toEqual(['k', 'j']);
+    });
+
+    it('sees after the body of a verb the declarations before the offset', () => {
+      expect(namesAt(source.indexOf('here'), undefined, verbs)).toEqual(['k', 'map/walk', 'walk']);
+    });
+
+    it('sees in the docs of a verb the declarations before the offset', () => {
+      expect(namesAt(source.indexOf('(walk)') + 1, undefined, verbs)).toEqual(['k']);
+    });
   });
 
   it('answers a name in the body of a verb with its nearest declaration, one in a pipeline nearer the verb before one written later farther out [QSNAM#verb], [QSHST#tools]', () => {
@@ -366,7 +388,7 @@ describe('readsItsSubject', () => {
   const readsOf = query => readsItsSubject(parse(query));
 
   it('holds that a literal of no parts reads no subject, a path among them [QSPTH#value]', () => {
-    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec', '/a', '/a/0 | segments']) expect(readsOf(query), query).toBe(false);
+    for (const query of ['1', '"s"', 'true', 'null', ':k', '::vec', '/a']) expect(readsOf(query), query).toBe(false);
   });
 
   it('holds that a quote reads none, its code not run', () => {
@@ -386,6 +408,7 @@ describe('readsItsSubject', () => {
 
   it('reads a pipeline by its first step that declares nothing', () => {
     expect(readsOf('1 | add 1')).toBe(false);
+    expect(readsOf('/a/0 | segments')).toBe(false);
     expect(readsOf('::vec | doc')).toBe(false);
     expect(readsOf('doc | get [1]')).toBe(true);
     expect(readsOf(':two 2 | [1]')).toBe(false);

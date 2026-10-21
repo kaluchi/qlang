@@ -1,7 +1,7 @@
-// REPL coverage. Driving readline through synthetic Readable input
-// confirms every meta-command branch, the auto-print contract for
-// success/error/JS-throw cell outcomes, and the persistence of
-// bindings across cells inside one session.
+// The REPL driven through its line editor by scripted input, piped and as a
+// terminal: its commands `.help` and `.exit`, the answer of each cell printed
+// painted on stdout, a failure among them and a defect on stderr, and the
+// names a cell declares kept for the cells after it [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
@@ -32,39 +32,27 @@ function captureRepl(scriptedInput) {
 }
 
 describe('runRepl — meta commands', () => {
-  it('closes on `.exit` and resolves to exit code 0', async () => {
-    const replHarness = captureRepl('.exit\n');
+  it('lists the commands of the REPL on `.help`, runs the cell after it and closes at the end of its input', async () => {
+    const replHarness = captureRepl('.help\n[1 2] | count\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/^qlang> Meta commands:[\s\S]*\.exit[\s\S]*\nqlang> 2\nqlang> $/);
   });
 
-  it('writes the help banner on `.help` and stays open until EOF', async () => {
-    const replHarness = captureRepl('.help\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(exitCode).toBe(0);
-    expect(replHarness.stdoutText()).toMatch(/Meta commands:/);
-    expect(replHarness.stdoutText()).toMatch(/\.exit/);
-  });
-
-  it('skips empty lines and reprompts without evaluating', async () => {
+  it('prompts again on an empty line, which runs no cell', async () => {
     const replHarness = captureRepl('\n\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
+    expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> qlang> qlang> ');
     expect(replHarness.stderrText()).toBe('');
   });
 });
 
 describe('runRepl — query evaluation', () => {
-  it('auto-prints the success-track value of a single cell', async () => {
-    const replHarness = captureRepl('[1 2 3] | count\n.exit\n');
+  it('starts every cell from the noun of the language, `::qlang`', async () => {
+    const replHarness = captureRepl('42\neq ::qlang\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/3/);
-  });
-
-  it('starts every cell from the default subject', async () => {
-    const replHarness = captureRepl('type\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::tag/);
+    expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> 42\nqlang> true\nqlang> ');
   });
 
   it('preserves bindings between cells within the same session', async () => {
@@ -118,7 +106,7 @@ describe('runRepl — output highlighting', () => {
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
-  it('paints the prompt with bright-white name + bold-cyan angle on every line', async () => {
+  it('paints the prompt, the name of the language bright white and its angle bold cyan', async () => {
     const replHarness = captureRepl('.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
@@ -147,40 +135,25 @@ describe('runRepl — output highlighting', () => {
     ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
     await replPromise;
 
-    const stdoutText = stdoutChunks.join('');
-    expect(stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('::quote/ParseError!{');
-    expect(stdoutText).toMatch(/\r\n/);
+    expect(stdoutChunks.join('').replace(/\x1b\[[0-9;]*m/g, '')).toContain('caught it\r\n::quote/ParseError!{');
     expect(stderrChunks.join('')).toContain('one\r\ntwo');
   });
 
-  it('exercises the per-keystroke render callback in TTY mode', async () => {
-    // Drive the editor in TTY mode so its raw-mode redraw path
-    // calls into the REPL's render callback (which paints the
-    // current buffer through highlightAnsi). Every visible
-    // keystroke should leave a yellow-number escape behind in
-    // stdout — the only way that escape can appear before Enter
-    // is via the live-render hook.
+  it('paints the line as it is typed', async () => {
+    // A line typed and discarded by Ctrl+C runs no cell, so the paint of its number is the line editor's alone.
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
 
     const stdoutChunks = [];
-    const stderrChunks = [];
-    const stdoutWrite = (text) => stdoutChunks.push(text);
-    const stderrWrite = (text) => stderrChunks.push(text);
-
-    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
-    // Type "42", which should redraw with the yellow escape, then
-    // submit with Enter (CR), then close on Ctrl+D from an empty
-    // buffer.
+    const replPromise = runRepl(ttyStdin, (text) => stdoutChunks.push(text), () => {}, { terminal: ttyStdin });
     ttyStdin.write(Buffer.from('42'));
-    ttyStdin.write(Buffer.from('\r'));
+    ttyStdin.write(Buffer.from([0x03]));   // Ctrl+C discards the line
     await new Promise((resolveTick) => setImmediate(resolveTick));
-    ttyStdin.write(Buffer.from([0x04])); // Ctrl+D on empty buffer
+    ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on the empty line closes the REPL
     await replPromise;
 
-    const stdoutText = stdoutChunks.join('');
-    expect(stdoutText).toMatch(/\x1b\[33m4/);
+    expect(stdoutChunks.join('')).toMatch(/\x1b\[33m42/);
   });
 });
 
@@ -196,11 +169,9 @@ describe('runRepl — a defect of a cell', () => {
   });
 });
 
-describe('runRepl — error rendering', () => {
-  it('renders an error value with its trace through the same printValue path as success values', async () => {
-    // The trace of an error is written as it flows [QSERR#trace], so the value
-    // the cell answers already holds every frame and every skipped
-    // step. The REPL renders the value verbatim through `printValue`.
+describe('runRepl — the trace of a failure', () => {
+  it('prints a failure with the steps its trace holds, the steps it skipped among them', async () => {
+    // The trace of an error is written as it flows [QSERR#trace], so the failure a cell answers holds every frame and every step it skipped.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
@@ -213,13 +184,10 @@ describe('runRepl — error rendering', () => {
 });
 
 describe('runRepl — in / out behaviour', () => {
-  it('binds `in` to return the empty String so the cell does not deadlock against the prompt', async () => {
+  it('answers `in` with the empty string, the prompt holding standard input', async () => {
     const replHarness = captureRepl('in | print | out\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    // `in` resolves to ''. print renders it as the qlang String
-    // literal `""`. out writes that to stdout, then the REPL
-    // auto-prints the cell's success-track value (also `""`). The
-    // captured output therefore contains the empty-String literal.
+    // `in` answers the empty string, whose literal `""` `print` makes and `out` writes on stdout.
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
   });
 });
@@ -236,35 +204,47 @@ describe('runRepl — the first cell given on the command line', () => {
   });
 });
 
-// A cell prints within the budget a caller asked for, an error among
-// them, and an error as its alert when none is [QSHST#answer].
-describe('runRepl — the budget of an answer', () => {
-  const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
-
-  it('prints a value past its budget with an elision that reads the rest', async () => {
-    const replHarness = captureRepl(`${forty}\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
+// A cell prints within the one budget of every answer, an answer past it as
+// the refusal in its place, and an error as its alert within it, without the
+// prose of its page [QSHST#repl].
+describe('runRepl — the bound of an answer', () => {
+  it('prints an answer past the budget as the refusal, without the prose of its page', async () => {
+    const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain('::qlang/AnswerBeyondBudgetError!{');
+    expect(printed).toContain(':read ~(drop ');
+    expect(printed).not.toContain('print | out');
   });
 
-  it('prints an error as its alert when no budget was asked for', async () => {
+  it('prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {
+    const replHarness = captureRepl('5000 | range | print | out\n"x" | out | add 1\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain('4998 4999]\n');
+    expect(printed).not.toContain('::qlang/AnswerBeyondBudgetError');
+    expect(printed).toContain('::number/add/SubjectNotNumberError');
+  });
+
+  it('prints a failure as its alert, the subject of a frame of its trace cut to an elision whose `:read` reaches it', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/1/0)');
   });
 
-  it('prints an error within the budget', async () => {
-    const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
+  it('prints the alert of a runaway recursion within the budget', async () => {
+    const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace | drop ');
   });
 
-  it('draws the caret below a refused text a budget left out of its alert, the line within an excerpt [QSERR#print]', async () => {
-    const replHarness = captureRepl(`${forty} x\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
+  it('draws the caret below a refused text its alert left out, the line within an excerpt [QSERR#print]', async () => {
+    const refused = `[${Array.from({ length: 120 }, (_, index) => index + 1).join(' ')}] x`;
+    const replHarness = captureRepl(`${refused}\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain(':source ::elision{');
-    expect(printed).toContain(`|~| ${forty} x`);
+    expect(printed).toMatch(/\|~\| …[\d ]*\] x\n\|~\| +\^/);
   });
 });

@@ -21,3 +21,4 @@
 {"name":"a-place-of-several-kinds-lists-their-refusal","query":"get [~(::vec/sort | binding | get /value | inputs | map /kinds) ~(::vec/sort/key | manifest)]","expect":"[[#[::null ::path ::quote]] #[::vec/sort/key/KindNotTakenError]]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
+{"name":"the-topic-lists-the-refusal-of-an-answer-past-the-budget","query":"::qlang | manifest | has ::qlang/AnswerBeyondBudgetError","expect":"true"}

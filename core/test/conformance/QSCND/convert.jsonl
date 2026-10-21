@@ -1,5 +1,6 @@
 {"name":"a-string-turns-into-the-number-it-writes","query":"\"42\" | toNumber","expect":"42"}
 {"name":"a-text-that-is-no-number-is-refused-whole","query":"[\"4x\" \"\" \" 42\"] | map ~(toNumber !| type)","expect":"[::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]"}
+{"name":"a-text-that-writes-a-number-followed-by-whitespace-is-refused-whole","query":"\"42 \" | toNumber !| type","expect":"::string/toNumber/TextNotNumberError"}
 {"name":"an-atom-turns-into-its-string","query":"[42 :a ::vec true \"s\"] | map ~toString","expect":"[\"42\" \"a\" \"vec\" \"true\" \"s\"]"}
 {"name":"an-atom-turns-into-the-keyword-groupBy-files-it-under","query":"[\"a\" 1 true null ::Box :k] | map ~toKeyword","expect":"[:a :\"1\" :true :null :Box :k]"}
 {"name":"a-name-turns-into-its-tag","query":"[\"vec\" :Box] | map ~toTag","expect":"[::vec ::Box]"}

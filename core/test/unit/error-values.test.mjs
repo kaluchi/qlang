@@ -2,14 +2,15 @@
 // error-convert.mjs, and the trace of a failure a host hands [QSERR#trace].
 
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
+import { keyword, isErrorValue, makeBinding, makeErrorValue, formOf, makeTag, makeTagged, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../src/types.mjs';
 import { makeSet, compareValues } from '../../src/ordering.mjs';
 import { parse } from '../../src/parse.mjs';
+import { printValue } from '../../src/print-value.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
-import { elideAnswer } from '../../src/runtime/print.mjs';
-import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
+import { boundAnswer } from '../../src/runtime/print.mjs';
+import { CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
 
@@ -25,9 +26,7 @@ describe('makeErrorValue', () => {
 
   it('keeps a trace it is handed as it is [QSERR#trace]', () => {
     const trace = makeTrace([makeFrame('x', parse('add 1 | mul 2 | count'))]);
-    const facts = new Map([['trace', trace]]);
-    const errorVal = makeErrorValue(makeTag('Oops'), facts);
-    expect(errorVal.facts).toBe(facts);
+    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['trace', trace]]));
     expect(errorVal.facts.get('trace')).toBe(trace);
   });
 });
@@ -74,7 +73,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
       const session = await hostHanding(trace);
       const failure = await answerIn(session, '1 | answered');
       expect(failure.tag).toEqual(makeTag(refused));
-      expect((await elideAnswer(failure, null, session.scope)).tag).toEqual(makeTag(refused));
+      expect((await boundAnswer(failure, session.scope)).tag).toEqual(makeTag(refused));
       expect(await answerIn(session, '1 | answered !| 0')).toBe(0);
     }
   });
@@ -100,6 +99,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
+    // `raise` raises the value under `::Built`, the catch lays its error at rest under that kind, whose constructor refuses it with a `:trace` of text, and the second catch reads the tag of the refusal of the kind of a trace.
     const session = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(session, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
@@ -152,7 +152,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('the refusal of a trace a host hands names the trace it refused, whatever the subject of its step', async () => {
-    expect(await answerIn(await hostHanding(5), '5 | answered !| get [~(type) /actualValue] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
+    expect(await answerIn(await hostHanding(5), '7 | answered !| get [~(type) /actualValue] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
   });
 });
 
@@ -182,7 +182,6 @@ describe('the one order ranks a failure raised after every value, by its tag and
   });
 
   it('ranks a failure raised after its error at rest, a value under its tag and every value', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
     const raised = await evalQuery('::Foo!{:a 1} | raise');
     for (const value of [null, 42, keyword('oops'), new Map([['a', 1]])]) expect(compareValues(raised, value)).toBe(1);
     for (const query of ['::Foo!{:a 1} | raise !| it', '::Foo{:a 1}', '!{:a 1}', '1 | desc']) expect(compareValues(raised, await evalQuery(query))).toBe(1);
@@ -197,9 +196,6 @@ describe('the literal reads back error values and values under a tag', () => {
   // the host builds survives the trip; each kind of payload exercises a
   // distinct branch of the printer.
   it('reads back an error value raised, and a tag over each kind of payload', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
-    const { printValue } = await import('../../src/print-value.mjs');
-    const { evalQuery } = await import('../../src/session.mjs');
     const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
     const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
     expect(isErrorValue(restoredError)).toBe(true);
@@ -220,20 +216,17 @@ describe('the literal reads back error values and values under a tag', () => {
 describe('the one order tells an Array, a Map and a Set under a tag from one under none', () => {
   // Collections that hold their tag on themselves, of one content under
   // another tag or none, are not equal.
-  it('rejects tagged Array vs untagged Array with same elements', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
+  it('rejects tagged Array vs untagged Array with same elements', () => {
     const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
     expect(compareValues(tagged, [1, 2, 3]) === 0).toBe(false);
   });
 
-  it('rejects tagged Map vs untagged Map with same entries', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
+  it('rejects tagged Map vs untagged Map with same entries', () => {
     const tagged = makeTagged(makeTag('U'), new Map([['k', 1]]));
     expect(compareValues(tagged, new Map([['k', 1]])) === 0).toBe(false);
   });
 
-  it('rejects a tag over a set vs the set of the same elements', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
+  it('rejects a tag over a set vs the set of the same elements', () => {
     const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(compareValues(tagged, makeSet([1, 2])) === 0).toBe(false);
   });
@@ -254,8 +247,6 @@ describe('errorFromQlang', () => {
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.facts;
-    expect(typeErr).toBeInstanceOf(QlangError);
-    expect(typeErr.name).toBe('ProbeTypeError');
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
     expect(desc.get('actualType')).toEqual(makeTag('string'));
@@ -288,7 +279,7 @@ describe('errorFromForeign', () => {
   // and the accounts of the failures beneath it [QSHST#answer], [QSERR#site].
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
-    const errorVal = errorFromForeign(jsErr, { location: null }, await langRuntime());
+    const errorVal = errorFromForeign(jsErr, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
     expect(errorVal.tag).toEqual(makeTag('call/HostFailureError'));
     expect([...errorVal.facts.keys()]).toEqual(['message']);
@@ -305,31 +296,31 @@ describe('errorFromForeign', () => {
         this.code = 'NOT_FOUND';
       }
     }
-    const errorVal = errorFromForeign(new AppError(), null, await langRuntime());
+    const errorVal = errorFromForeign(new AppError(), await langRuntime());
     expect([...errorVal.facts.keys()]).toEqual(['message']);
     expect(errorVal.originalError.code).toBe('NOT_FOUND');
   });
 
   it('recounts the accounts of the failures beneath it, outermost first', async () => {
     const top = new Error('top error', { cause: new Error('intermediate', { cause: 'root cause' }) });
-    const errorVal = errorFromForeign(top, null, await langRuntime());
+    const errorVal = errorFromForeign(top, await langRuntime());
     expect(errorVal.facts.get('causes')).toEqual(['intermediate', 'root cause']);
   });
 
   it('recounts eight failures beneath it at most', async () => {
     let current = new Error('leaf');
     for (let i = 0; i < 12; i++) current = new Error(`level-${i}`, { cause: current });
-    expect(errorFromForeign(current, null, await langRuntime()).facts.get('causes')).toHaveLength(8);
+    expect(errorFromForeign(current, await langRuntime()).facts.get('causes')).toHaveLength(8);
   });
 
   it('gives no causes where none stands beneath it', async () => {
     const scope = await langRuntime();
-    expect(errorFromForeign(new Error('no cause'), null, scope).facts.has('causes')).toBe(false);
-    expect(errorFromForeign(new Error('a null cause', { cause: null }), null, scope).facts.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('no cause'), scope).facts.has('causes')).toBe(false);
+    expect(errorFromForeign(new Error('a null cause', { cause: null }), scope).facts.has('causes')).toBe(false);
   });
 
   it('takes a thrown value that is no error by its text', async () => {
-    expect(errorFromForeign('a bare string', null, await langRuntime()).facts.get('message')).toBe('a bare string');
+    expect(errorFromForeign('a bare string', await langRuntime()).facts.get('message')).toBe('a bare string');
   });
 });
 

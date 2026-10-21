@@ -3,7 +3,7 @@
 {"name":"a-keyword-of-a-name-opening-with-a-digit-is-written-in-quotes","query":":\"123\"","expect":":\"123\""}
 {"name":"a-name-with-a-leading-dollar-is-a-keyword-in-quotes","query":":\"$ref\"","expect":":\"$ref\""}
 {"name":"quoted-keyword-equals-bare-form","query":":\"name\" | eq :name","expect":"true"}
-{"name":"a-keyword-in-quotes-written-with-an-escape-equals-itself","query":":\"line1\\nline2\" | eq :\"line1\\nline2\"","expect":"true"}
+{"name":"an-escape-in-a-quoted-keyword-writes-its-character-into-the-name","query":":\"line1\\nline2\" | toString | lines | count","expect":"2"}
 {"name":"a-word-of-the-literals-stands-among-the-names-of-a-keyword","query":":qlang/type/null","expect":":qlang/type/null"}
 {"name":"names-joined-by-a-slash-make-one-keyword","query":":qlang/error","expect":":qlang/error"}
 {"name":"three-names-joined-by-slashes-make-one-keyword","query":":qlang/core/strings","expect":":qlang/core/strings"}
@@ -12,7 +12,7 @@
 {"name":"keywords-of-names-joined-by-a-slash-differ-by-their-last-name","query":":qlang/error | eq :qlang/http","expect":"false"}
 {"name":"keywords-that-share-the-name-before-the-slash-are-two-elements-of-a-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
 {"name":"has-finds-a-keyword-of-names-joined-by-a-slash-in-a-set","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
-{"name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null","expect":":null"}
-{"name":"the-word-false-after-a-colon-is-a-keyword","query":":false","expect":":false"}
-{"name":"the-word-true-after-a-colon-is-a-keyword","query":":true","expect":":true"}
+{"name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null | type","expect":"::keyword"}
+{"name":"the-word-false-after-a-colon-is-a-keyword","query":":false | type","expect":"::keyword"}
+{"name":"the-word-true-after-a-colon-is-a-keyword","query":":true | type","expect":"::keyword"}
 {"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}

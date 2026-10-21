@@ -32,6 +32,12 @@ describe('the refusals a verb that is a function raises by rule [QSERR#site]', (
   it('names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
     expect(ruleRefusalsOf(session.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
+
+  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
+    const own = await createSession();
+    await own.evalCell(':number/v ~(1)');
+    expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
+  });
 });
 
 describe('the refusals by rule of an input that names the kinds of each element [QSBLD#fn]', () => {
@@ -88,12 +94,6 @@ describe('a host\'s verb written as the chain of its function [QSHST#source]', (
     expect((await hosted.evalCell('{:x 3} | both /x')).result).toEqual([3, 3]);
     expect((await hosted.evalCell('5 | pair 3')).result).toEqual([5, 3]);
     expect((await hosted.evalCell('5 | each ~(add 1) 7')).result).toEqual([6, 7]);
-  });
-
-  it('names the refusals of a verb written as its recipe alone, the function of no commands it is [QSBLD#recipe]', async () => {
-    const own = await createSession();
-    await own.evalCell(':number/v ~(1)');
-    expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
 

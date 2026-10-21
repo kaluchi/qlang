@@ -11,7 +11,7 @@
 // Usage: node scripts/requirements.mjs [D<n> ...]
 
 import { join } from 'node:path';
-import { readDecisionRecords, replacedWhole, isBeingDecided, JOURNAL } from './decision-records.mjs';
+import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, JOURNAL } from './decision-records.mjs';
 
 const root = join(import.meta.dirname, '..');
 
@@ -46,11 +46,13 @@ if (askedDecisions.length > 0) {
   printList('being decided', decisionsWhere(isBeingDecided));
   printList('replaced', decisionsWhere(replacedWhole));
   // A decision in force of any other domain, a host, the command line or
-  // the tooling, is held by the tests of that domain.
-  const inForceOf = domain => record => record.domain === domain && !replacedWhole(record) && !record.open;
+  // the tooling, is held by the tests of that domain, and one of the
+  // benchmark by the runs and the screen of its measurement [QSWRK#measure].
+  const inForceOf = domain => record => record.domain === domain && !replacedWhole(record) && !record.open && isHeld(record);
   const otherDomains = new Set([...decisions.values()].map(record => record.domain)
     .filter(domain => domain !== 'language' && domain !== 'process' && domain !== 'principle'));
   for (const domain of otherDomains) printList(`held by the tests of the ${domain}`, decisionsWhere(inForceOf(domain)));
+  printList('measuring nothing the tree holds', decisionsWhere(record => record.domain === 'benchmark' && !replacedWhole(record) && !isHeld(record)));
   printList('rules of work', decisionsWhere(inForceOf('process')));
   printList('principles', decisionsWhere(inForceOf('principle')));
 }

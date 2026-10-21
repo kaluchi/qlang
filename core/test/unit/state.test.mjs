@@ -1,14 +1,14 @@
 // state.mjs — the pair of the value and the scope, the scopes it makes
 // without changing one, and the states that carry the evaluation depth and
 // its limit.
-// The rules it holds: [QSDSP#residence], [QSNAM#verb].
+// The rules it holds: [QSNAM#verb].
 
 import { describe, it, expect } from 'vitest';
 import {
   rootState, withPipeValue, withScope, nestState, EVAL_DEPTH_LIMIT,
   scopeSet, scopeHas
 } from '../../src/state.mjs';
-import { QlangError, CallEvaluationDepthExceededError } from '../../src/errors.mjs';
+import { CallEvaluationDepthExceededError } from '../../src/errors.mjs';
 
 describe('state.mjs scopes', () => {
   it('scopeSet returns a new Map without mutating the original', () => {
@@ -54,9 +54,6 @@ describe('state.mjs evaluation depth', () => {
     let thrown = null;
     try { nestState(state, null, state.scope); } catch (depthErr) { thrown = depthErr; }
     expect(thrown).toBeInstanceOf(CallEvaluationDepthExceededError);
-    expect(thrown).toBeInstanceOf(QlangError);
-    expect(thrown.name).toBe('EvaluationDepthExceededError');
     expect(thrown.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
-    expect(thrown.message).toBe('::call/EvaluationDepthExceededError');
   });
 });

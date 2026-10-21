@@ -29,7 +29,7 @@ host's sources declare the root beside the language's, each run as a
 cell before the first one a reader writes:
 
 ```js
-import { createSession, printValue } from '@kaluchi/qlang-core';
+import { createSession, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
 
 const session = await createSession({
   sources: [{
@@ -40,7 +40,8 @@ const session = await createSession({
 });
 
 const cell = await session.evalCell('"https://example.org" | fetch');
-printValue(cell.result);  // the answer as its literal; a failure, one to parse among them, is an error value
+const shown = await boundAnswer(cell.result, cell.scopeAfterCell);
+await printAnswer(shown, cell.scopeAfterCell);  // the answer as a host prints it, within the budget
 cell.defect;              // what was raised past the fail track, else null
 ```
 
@@ -54,7 +55,9 @@ cell.defect;              // what was raised past the fail track, else null
   the root, a verb declared under the label of its subject whose recipe
   is `::builtin{}`, `:string/fetch`, the inputs its function takes nodes
   under it, and each primitive takes the values alone, the subject and
-  the values of its inputs in the order `takes` names them; the
+  the values of its inputs in the order `takes` names them, but one
+  marked by `readingState(primitive)`, which takes the state of its call
+  after them, its `scope` the names the query reads; the
   constructor of a kind whose chain ends in `impl ::builtin{}` is handed
   under the address of its node, `<label>/construct`, a function of the
   payload that answers the value its tag is laid over or refuses the
@@ -89,8 +92,15 @@ cell.defect;              // what was raised past the fail track, else null
   the scope it is handed answers, by default over the scope of the root
   `langRuntime()` answers, a defect raised to its caller; a declaration
   it makes names its origin as every cell's does, `:cell-1`.
-- `printValue(value)` writes the literal of a value, which `evalQuery`
-  reads back; the literal is the one lossless form. `caretOf(answer)`
+- `boundAnswer(answer, scope, written?)` answers what a host prints for an
+  answer within `ANSWER_BUDGET` characters of its print or of the text
+  `written` the host writes for it: the answer that fits
+  as it is, one past the budget as `::qlang/AnswerBeyondBudgetError` with
+  its head, and a failure as its alert within the budget; `printAnswer(
+  value, scope)` writes a value as the language prints it, the print a
+  kind declares among it and a failure under the line that says it was
+  raised. `printValue(value)` writes the literal of a value, which
+  `evalQuery` reads back; the literal is the one lossless form. `caretOf(answer)`
   answers, for a refusal of a text, the line its `:source` holds within
   an excerpt around the column its `:location` names and a caret under
   that column, the two line comments a host that prints for a person's

@@ -19,10 +19,10 @@ const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)',
 // mangles a query that reads a part, and the conversion is off.
 export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
 
-// The effort a child and an author of the benchmark run at, `high`, which no
-// run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of their
+// The effort a child and an author of the benchmark run at, `medium`, which
+// no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of their
 // start, where no flag and no settings file overrides it [QSWRK#measure].
-export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'high' });
+export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'medium' });
 
 // The environment a child of the benchmark adds to the session's, which its
 // run fixes [QSWRK#measure].
@@ -106,13 +106,14 @@ function recordOfStream(streamText) {
 
 // runChild({ prompt, model, workDir }) → the record of the run;
 // `workDir` the directory the child starts in, which holds the data
-// files.
+// files, its `qlang` the command line of the tree the run measures
+// [QSWRK#measure].
 export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });
   const flags = ['-p', '--model', model, '--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS, '--strict-mcp-config', '--restricted',
     '--system-prompt', SYSTEM_PROMPT, '--output-format', 'stream-json', '--verbose'];
   return new Promise(resolve => {
-    const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...RUN_ENVIRONMENT } });
+    const child = spawn('claude', flags, { cwd: workDir, env: withTheLanguageOf(join(import.meta.dirname, '..', '..'), { ...process.env, ...RUN_ENVIRONMENT }) });
     let streamText = '';
     child.stdout.on('data', chunk => { streamText += chunk; });
     child.on('close', () => resolve(recordOfStream(streamText)));

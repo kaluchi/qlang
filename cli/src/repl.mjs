@@ -9,8 +9,9 @@
 import {
   createSession,
   printAnswer,
-  elideAnswer,
+  boundAnswer,
   caretOf,
+  isErrorValue,
   langRuntime,
   verbNames
 } from '@kaluchi/qlang-core';
@@ -52,7 +53,7 @@ Names a cell declares, \`:name body\` and \`:name it\` among them,
 persist across the cells of one REPL session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, terminal } = {}) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQuery = null, terminal } = {}) {
   const rootVerbNames = verbNames(await langRuntime());
 
   // A terminal in raw mode moves the cursor down at `\n` without
@@ -65,11 +66,15 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
+  // A cell that wrote to stdout by `out` holds the channel: no value of its
+  // answer prints after it, while a failure does [QSHST#repl].
+  let wroteByOut = false;
   const session = await createSession({
     sources: cliSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
-      stderrWrite: writeDiagnostic
+      stderrWrite: writeDiagnostic,
+      recordStdoutEffect: () => { wroteByOut = true; }
     })
   });
 
@@ -116,24 +121,24 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
         return;
       }
 
+      wroteByOut = false;
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, budget);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
       lineEditor.prompt();
     }
   });
 }
 
-// An answer prints whole, an error as an alert, or within the budget the
-// caller asked for, what does not fit given way to elisions that read it, on
-// stdout: a failed cell, one that does not parse among them with its caret,
-// is an answer as every failure is [QSHST#answer],
-// and a defect raised past the fail track as the cell ran or as its answer
-// printed is written on stderr [QSHST#repl].
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, budget) {
+// An answer prints on stdout as `boundAnswer` shows it, but a value of a cell
+// that wrote by `out`, and a failure, one that does not parse with its caret,
+// without the prose of its page [QSHST#answer], [QSHST#repl]; a defect raised past
+// the fail track as the cell ran or as its answer printed on stderr [QSHST#repl].
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
-    const shown = await elideAnswer(result, budget, scope);
+    if (wroteByOut && !isErrorValue(result)) return null;
+    const shown = await boundAnswer(result, scope);
     return [await printAnswer(shown, scope), caretOf(result)].filter(part => part !== null).join('\n');
   });
   if (stderrText !== undefined) stderrWrite(stderrText);
-  else stdoutWrite(highlightAnsi(stdoutText, rootVerbNames) + '\n');
+  else if (stdoutText !== null) stdoutWrite(highlightAnsi(stdoutText, rootVerbNames) + '\n');
 }

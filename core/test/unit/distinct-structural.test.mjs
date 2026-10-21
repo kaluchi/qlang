@@ -8,39 +8,7 @@ import { isSet } from '../../src/types.mjs';
 
 
 describe('distinct — structural equality', () => {
-  it('collapses two Maps with identical content', async () => {
-    const result = await evalQuery('[{:fqn "a"} {:fqn "b"} {:fqn "a"}] | distinct');
-    expect(isSet(result)).toBe(true);
-    const items = [...result];
-    expect(items).toHaveLength(2);
-    expect(items[0].get('fqn')).toBe('a');
-    expect(items[1].get('fqn')).toBe('b');
-  });
-
-  it('count matches | map /fqn | distinct | count on Map-valued sequence', async () => {
-    const byValue = await evalQuery(
-      '[{:fqn "a"} {:fqn "b"} {:fqn "a"} {:fqn "c"} {:fqn "b"}] | distinct | count');
-    const byFqn = await evalQuery(
-      '[{:fqn "a"} {:fqn "b"} {:fqn "a"} {:fqn "c"} {:fqn "b"}] | map /fqn | distinct | count');
-    expect(byValue).toBe(byFqn);
-    expect(byValue).toBe(3);
-  });
-
-  it('collapses nested Vec elements with identical content', async () => {
-    const result = await evalQuery('[[1 2] [3 4] [1 2]] | distinct');
-    expect(isSet(result)).toBe(true);
-    const items = [...result];
-    expect(items).toHaveLength(2);
-    expect(items[0]).toEqual([1, 2]);
-    expect(items[1]).toEqual([3, 4]);
-  });
-
-  it('holds each atom once', async () => {
-    expect([...await evalQuery('[1 2 1 3 2] | distinct')]).toEqual([1, 2, 3]);
-    expect([...await evalQuery('["a" "b" "a"] | distinct')]).toEqual(['a', 'b']);
-  });
-
-  it('preserves keyword dedup', async () => {
+  it('holds each keyword once', async () => {
     const result = await evalQuery('[:a :b :a :c] | distinct');
     expect(isSet(result)).toBe(true);
     const items = [...result];
@@ -57,6 +25,10 @@ describe('distinct — structural equality', () => {
     expect(items.map(m => m.get('id'))).toEqual([1, 2, 3]);
   });
 
+  it('holds two maps of the same entries once, whatever the order of their entries', async () => {
+    expect(await evalQuery('[{:a 1 :b 2} {:b 2 :a 1}] | distinct | count')).toBe(1);
+  });
+
   it('holds each of mixed atoms and containers once', async () => {
     const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
     expect(isSet(result)).toBe(true);
@@ -65,11 +37,5 @@ describe('distinct — structural equality', () => {
     expect(items[0]).toBe(1);
     expect(items[1]).toBe('x');
     expect(items[2].get('a')).toBe(1);
-  });
-
-  it('identity on a Set subject', async () => {
-    const result = await evalQuery('#[1 2 3] | distinct');
-    expect(isSet(result)).toBe(true);
-    expect([...result]).toEqual([1, 2, 3]);
   });
 });

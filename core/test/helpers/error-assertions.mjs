@@ -1,7 +1,7 @@
 // Shared test helpers for error value assertions.
 //
-// Runtime errors are error values (5th type). Tests call evalQuery
-// and check the result via isErrorValue + its facts.
+// A failure a query answers is an error value, which a test reads by
+// evalQuery and checks by isErrorValue, its tag and its facts.
 
 import { expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';

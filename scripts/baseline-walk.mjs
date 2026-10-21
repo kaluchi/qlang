@@ -82,6 +82,7 @@ function stateOf(record) {
   if (record.mergedInto.length > 0) return `merged into ${record.mergedInto.join(', ')}`;
   if (record.dissolvedInto.length > 0) return `dissolved into ${record.dissolvedInto.join(', ')}`;
   if (replacedWhole(record)) return `closed by ${record.replacedBy.join(', ')}`;
+  if (record.domain === 'benchmark') return 'which measures nothing the tree holds';
   return isBeingDecided(record) ? 'which no case holds' : 'which a target alone holds';
 }
 
@@ -125,6 +126,11 @@ export function walkOfBaseline(repoRoot) {
   for (const [name, record] of records) {
     if (atBaseline.has(name) && isBeingDecided(record) && !record.open) {
       walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `outlived the baseline ${baseline}: no case names it and no line gives its fate` });
+    }
+    // A record of a measurement leaves with the last of its runs and its
+    // screen, which its series gives to the history [QSWRK#measure].
+    if (atBaseline.has(name) && record.domain === 'benchmark' && !isHeld(record) && !replacedWhole(record)) {
+      walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `outlived its runs and its screen, which its series gave to the history: its line \`Replaced by\` names the measurement after it` });
     }
   }
   // The merge that landed a branch holds no record in transit: the tension

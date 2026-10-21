@@ -3,11 +3,11 @@
    The rules it holds: [QSDSP#residence], [QSPRN#elide]. ~|
 
 :elision
-  |~~ An elision stands for a part of an answer that a budget left out,
-      and keeps the way back to it. A reader's context only grows, so a
-      reader asks for a budget, `elide 4000` in a query or the host's
-      flag, and every part left out gives way to an elision; an answer
-      nobody bounded prints whole.
+  |~~ An elision stands for a part of a value that a budget left out,
+      and keeps the way back to it. A reader's context only grows, so
+      `elide 4000` cuts a value to a budget, a host cuts so the head of an
+      answer past the budget of every answer and the alert of a failure,
+      and every part left out gives way to an elision.
 
       It prints as a map under its tag,
       `::elision{:size 28 :read ~(!| get /trace/0/0 | drop 2)}`:

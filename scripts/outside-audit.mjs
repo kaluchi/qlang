@@ -1,13 +1,13 @@
 // The outside audit [QSWRK#review]: a clean Opus reads the tree at HEAD from a
 // directory of its own, with no CLAUDE.md, no memory and no MCP server,
 // runs `qlang`, and answers `scripts/outside-audit-prompt.txt`. An audit is
-// called for by a record in force, `--for D327`, and named after it,
+// called for by a record in force, `--for D395`, and named after it,
 // numbered in the order the audits of that record ran,
-// `outside-audit/D327~1.md`; the report opens with its head, what it is and
+// `outside-audit/D395~1.md`; the report opens with its head, what it is and
 // the record that called for it, the tree it read and the baseline that tree
 // stood on, when it ran and how, and the record holds the run under `Runs.`,
 // why it ran given by `--why`. The session writes its reading beside it,
-// `D327~1~reading.md`, the fate of each finding in it, and the audit leaves
+// `D395~1~reading.md`, the fate of each finding in it, and the audit leaves
 // with its record at the move of the baseline unless a text in force cites
 // it [QSWRK#baseline]. The start of the reader, the refusals, the number and
 // the head are the ones every run of the research shares [QSWRK#review].

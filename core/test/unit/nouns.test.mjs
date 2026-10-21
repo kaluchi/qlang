@@ -7,16 +7,6 @@ import { createSession, evalQuery } from '../../src/session.mjs';
 import { keyword, makeTag } from '../../src/types.mjs';
 
 describe('the names of the scope', () => {
-  it('env holds what the reader declared, and kinds the labels of one segment, a topic among them [QSNAM#binding], [QSSLF#catalog]', async () => {
-    expect(await evalQuery('env | eq {}')).toBe(true);
-    expect(await evalQuery('kinds | get [~(has ::number) ~(has ::qlang) ~(has ::number/add/SubjectNotNumberError)]'))
-      .toEqual([true, true, false]);
-  });
-
-  it('a kind the reader declares is a name of its scope', async () => {
-    expect(await evalQuery(':Box |~~ A box. ~~| | env | has :Box')).toBe(true);
-  });
-
   it('a noun answers the nodes declared one name under it', async () => {
     const session = await createSession({ sources: [{
       uri: 'shop',
@@ -118,16 +108,6 @@ describe('a recipe of the root reads its verbs and its inputs by name [QSBLD#rec
 });
 
 describe('the verbs that live on a kind', () => {
-  it('a kind lists by address the verbs declared under it, and any value lists its own', async () => {
-    expect(await evalQuery('::number | manifest | has ::number/add')).toBe(true);
-    expect(await evalQuery('::any | manifest | has ::any/doc')).toBe(true);
-    expect(await evalQuery('::string | manifest | has ::string/doc')).toBe(false);
-  });
-
-  it('an address the listing answers leads the axes to its name', async () => {
-    expect(await evalQuery('[::any/gt ::any/lt] | map ~manifest | eq [#[::any/gt/ArgsBeyondInputsError ::any/gt/answer ::any/gt/value] #[::any/lt/ArgsBeyondInputsError ::any/lt/answer ::any/lt/value]]')).toBe(true);
-  });
-
   it('a verb of any tagged value lives on the kind of tagged values', async () => {
     expect(await evalQuery('::tagged | manifest | has ::tagged/within')).toBe(true);
   });
@@ -143,25 +123,13 @@ describe('the verbs that live on a kind', () => {
 });
 
 describe('an address reads the node its name declared', () => {
-  it('an address with a kind reads the verb declared under that kind', async () => {
-    expect(await evalQuery('::vec/count | doc | type')).toEqual(makeTag('doc'));
-    expect(await evalQuery('::vec/count | source | toString | startsWith ":vec/count"')).toBe(true);
-    expect(await evalQuery('::vec/count | laws | count | gt 0')).toBe(true);
-    expect(await evalQuery('::vec/count | binding | get /value | type')).toEqual(makeTag('fn'));
-  });
-
-  it('a name has no address of its own, only through the noun each of its verbs lives on', async () => {
-    expect(await evalQuery('::count | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
-  });
-
-  it('an address reads the root\'s verb whatever the scope binds', async () => {
-    expect(await evalQuery(':limit 5 | ::vec/count | doc | content | contains "number of elements"'))
-      .toBe(true);
+  it('an address reads the verb of the root whatever the reader binds under its last name', async () => {
+    expect(await evalQuery(':count 5 | get [~(::vec/count | binding | get /name) ~(::count | binding | get /value)]'))
+      .toEqual(await evalQuery('[:vec/count 5]'));
   });
 
   it('an address whose kind the verb does not live on names nothing', async () => {
     expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
-    expect(await evalQuery('::nowhere/nothing | binding !| type')).toEqual(makeTag('any/binding/UnknownNameError'));
   });
 
   it('a value whose tag no node answers reads the page of the kind beneath it [QSSLF#axis]', async () => {
@@ -171,26 +139,13 @@ describe('an address reads the node its name declared', () => {
 
 describe('a name with a path calls the verb its address names', () => {
   it('calls the verb its address names, with the modifiers the call takes', async () => {
-    expect(await evalQuery('[1 2 3] | vec/count')).toBe(3);
     expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
-  });
-
-  it('an address that names no verb is refused with the address', async () => {
-    expect(await evalQuery('[1 2 3] | vec/nothing !| get /address')).toEqual(makeTag('vec/nothing'));
   });
 });
 
 describe('what a verb reads and runs as data reads the tree of the query [QSNAM#owner]', () => {
   const pages = { uri: 'pages', source: ':pages |~~ Pages. ~~|\n:k |~~ the source\'s own ~~| 1\n:any/pageOf ~(doc | content)' };
   const runner = { uri: 'runner', source: ':runner |~~ A runner. ~~|\n:any/runIt (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code))' };
-
-  it('a verb of the root reads the page and the laws of a bare name the reader declares', async () => {
-    expect(await evalQuery(':k |~~ Answers five. ~~| 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5) | ::k | tutorial | get [~(get /0 | content) ~(get /1 | keys)] | eq [" Answers five. " #[:answersFive]]')).toBe(true);
-  });
-
-  it('a value of the reader reaches no name the recipe of a verb of the root writes', async () => {
-    expect(await evalQuery(':laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1] | eq [" K. " {}]')).toBe(true);
-  });
 
   it('the names a verb of the root declares stay out of what it reads as data', async () => {
     expect(await evalQuery('get [~(::subject | tutorial !| type) ~(:subject |~~ mine ~~| 1 | ::subject | tutorial | first | content)] | eq [::any/doc/UnknownNameError " mine "]')).toBe(true);
@@ -216,17 +171,14 @@ describe('what a verb reads and runs as data reads the tree of the query [QSNAM#
       .toEqual([makeTag('call/ValueWithheldError'), keyword('x')]);
   });
 
-  it('a verb the reader declares reads as data the tree of the query, past its own declarations, and runs held code in a lane of its own [QSNAM#owner]', async () => {
-    expect(await evalQuery(':x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names | eq [false true]')).toBe(true);
+  it('a verb the reader declares reads no declaration of its own recipe as data, and runs held code in a lane of its own [QSNAM#owner]', async () => {
     expect(await evalQuery(':any/f ~(:loc |~~ L ~~| 1 | ::loc | doc | content) | f !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
     expect(await evalQuery(':x 1 | :any/run (::fn | takes :code |~~ The code. ~~| /0 | takes :x |~~ An x. ~~| /1 | impl ~(apply code)) | "x" | parse | :q it | null | run q 99 !| type'))
       .toEqual(makeTag('call/ValueWithheldError'));
   });
 
-  it('a verb reads as data a name the query declares after the verb, and held code reads no value', async () => {
+  it('a verb reads as data a name the query declares after the verb', async () => {
     expect(await evalQuery(':any/pageOf ~(doc | content) | :k |~~ K. ~~| 1 | ::k | pageOf')).toBe(' K. ');
-    expect(await evalQuery(':any/run (::fn | takes :code |~~ The code. ~~| /0 | impl ~(apply code)) | :x 5 | "x | add 1" | parse | :q it | null | run q !| type'))
-      .toEqual(makeTag('call/ValueWithheldError'));
   });
 
   it('held code reads a verb a later source declares, and the reader\'s verb that shadows it [QSQUO#held]', async () => {

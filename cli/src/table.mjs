@@ -2,20 +2,25 @@
 // source declares under `::vec` [QSDSP#residence], taking the vector the
 // walk served alone [QSQUO#modifier].
 
-import { kindsExpected, printValue } from '@kaluchi/qlang-core';
+import { kindsExpected, printValue, typeOf } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
 const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
 
-// A cell is a view at the boundary: a String prints bare, null as an
-// empty cell, and every other value as its literal on one line.
+// A cell is a view at the boundary: a string bare, null empty, and any other
+// value its literal on the printer's one line [QSPRN#print].
 function cellTextOf(cellValue) {
   if (cellValue === null) return '';
   if (typeof cellValue === 'string') return cellValue;
-  return printValue(cellValue)
-    .replace(/([[{(])\n\s*/g, '$1')
-    .replace(/\n\s*([\]})])/g, '$1')
-    .replace(/\n\s*/g, ' ');
+  return printValue(cellValue, 0, docOnOneLine, true);
+}
+
+// A doc on one line, each line break of its prose and the space around it one space.
+const LINE_BREAK = /\s*\n\s*/g;
+
+function docOnOneLine(part) {
+  if (typeOf(part).name !== 'doc') return undefined;
+  return `|~~${part.map(segment => (typeof segment === 'string' ? segment.replace(LINE_BREAK, ' ') : printValue(segment, 0, docOnOneLine, true))).join('')}~~|`;
 }
 
 // Columns follow the first occurrence of each key across the rows.

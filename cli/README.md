@@ -14,24 +14,26 @@ Provides two binaries — `qlang` and its short alias `ql`.
 ## Usage
 
 ```
-qlang [--json | --raw] [--color=MODE] [--budget=N] [--fail] <query>
-qlang [--budget=N] -i | --repl [<query>]
+qlang [--json | --raw] [--color=MODE] [--fail] <query>
+qlang -i | --repl [<query>]
 qlang -h | --help
 qlang -V | --version
 ```
 
 A query runs on what stdin holds, JSON as values and any other text as
 a string, and its answer is printed as the language prints it, a
-string as its text, so a query that ends in `| json` writes JSON. A
-query that reads no subject, `[1 2 3] | sum`, reads no stdin.
-`qlang -h` tells the flags.
+string as its text, so a query that ends in `| json` writes JSON. Every
+answer prints within the budget `qlang -h` names, and one past it as
+`::qlang/AnswerBeyondBudgetError` with its head; `| print | out` and
+`| json | out` write the whole. A query that reads no subject,
+`[1 2 3] | sum`, reads no stdin. `qlang -h` tells the flags.
 
 ```
 curl -s api/users | qlang 'get /data | map /name'
 qlang 'get /users | filter /active | json' < data.json
 printf hi         | qlang --raw 'append " world"'
 qlang '[1 2 3] | filter ~(gt 1) | count'
-qlang -i '::qlang | doc | links | map ~open'
+qlang -i '::qlang | doc :pipeline'
 ```
 
 The language documents itself: `qlang '::qlang | doc'` reads the

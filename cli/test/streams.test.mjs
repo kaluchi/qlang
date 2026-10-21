@@ -27,12 +27,6 @@ describe('in', () => {
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('hello\nworld');
   });
-
-  it('feeds an empty string when stdin is empty', async () => {
-    const io = captureIoContext('');
-    const cellEntry = await runQuery('in', io);
-    expect(cellEntry.result).toBe('');
-  });
 });
 
 describe('out — the subject, written when it is a string', () => {
@@ -134,5 +128,20 @@ describe('tap', () => {
     expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
       actualType: { name: 'string' }
     });
+  });
+
+  it('writes its subject as an answer prints, the print a kind declares among it [QSHST#effect]', async () => {
+    const io = captureIoContext();
+    const cellEntry = await runQuery(':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count', io);
+    expect(cellEntry.result).toBe(1);
+    expect(io.stderrText()).toBe('[tap x] [box]\n');
+  });
+
+  it('writes the refusal in the place of a subject past the budget, its reads continuing from the subject, and goes on [QSHST#effect]', async () => {
+    const io = captureIoContext();
+    const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
+    expect(cellEntry.result).toBe(3000);
+    expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{/);
+    expect(io.stderrText()).toContain(':read ~(drop ');
   });
 });

@@ -1,0 +1,105 @@
+{
+  "page": 1,
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@Example.com",
+        "active": true,
+        "profile": {
+          "country": "DE",
+          "age": 34
+        },
+        "roles": [
+          "admin",
+          "dev"
+        ]
+      },
+      {
+        "id": 2,
+        "name": "bob",
+        "email": null,
+        "active": true,
+        "profile": {
+          "country": "us",
+          "age": 28
+        },
+        "roles": [
+          "dev"
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Carla",
+        "email": "carla@mail.org",
+        "active": false,
+        "profile": {
+          "country": "de",
+          "age": null
+        },
+        "roles": []
+      },
+      {
+        "id": 4,
+        "name": "Dmitri",
+        "email": "dmitri@example.com",
+        "active": true,
+        "profile": null,
+        "roles": [
+          "ops"
+        ]
+      },
+      {
+        "id": 5,
+        "name": "Eve",
+        "email": "eve@MAIL.org",
+        "active": true,
+        "profile": {
+          "country": "De",
+          "age": 41
+        },
+        "roles": [
+          "dev",
+          "ops"
+        ]
+      },
+      {
+        "id": 6,
+        "name": "Frank",
+        "active": false,
+        "profile": {
+          "age": 52
+        },
+        "roles": [
+          "dev"
+        ]
+      },
+      {
+        "id": 7,
+        "name": "Grace",
+        "email": "grace@corp.io",
+        "active": true,
+        "profile": {
+          "country": "FR",
+          "age": 23
+        },
+        "roles": [
+          "admin"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "Heidi",
+        "email": "heidi@corp.io",
+        "active": true,
+        "profile": {
+          "country": "fr"
+        },
+        "roles": [
+          "dev"
+        ]
+      }
+    ]
+  }
+}

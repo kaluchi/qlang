@@ -65,7 +65,7 @@ function heldTrace(error, scope) {
 // The error with its frames given, a fresh value.
 function withTrace(error, frames) {
   const facts = new Map(error.facts).set('trace', makeTrace(frames));
-  return makeErrorValue(error.tag, facts, { location: error.location, originalError: error.originalError });
+  return makeErrorValue(error.tag, facts, { originalError: error.originalError });
 }
 
 function withFrame(error, stepQuote, subject, scope, place) {

@@ -1,8 +1,9 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
    the kinds of their subjects, `table` under `::vec` and the names of
    the streams under `::any`. Their primitives take the values alone, the
-   served subject and the values of their inputs.
-   The rules it holds: [QSHST#effect], [QSDSP#residence]. ~|
+   served subject and the values of their inputs, but that of `tap`, which
+   reads the state of its call.
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#answer]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints
@@ -38,14 +39,16 @@
       writes `--fail` before the query, `qlang --fail 'get /id' < a.json
       && next`: a failure exits with 1, written as without it.
 
-      An answer prints whole, and `--budget=N` or `| elide N` bounds it,
-      what is left out an `::elision` whose `:read` continues the query
-      to it. `in`, `out`, `err` and `tap` read and write the
-      streams, `tap` showing a value halfway through a query on stderr;
-      a query that writes to stdout by `out` holds the channel, and its
-      answer is left unwritten. A value one query hands another over a
-      pipe keeps its kinds as its literal, `print | out` writing it and
-      `in | parse | open` reading it back.
+      Every answer prints within the budget `qlang -h` names, and one past
+      it prints as `::qlang/AnswerBeyondBudgetError` with its head, each
+      `::elision` in it a `:read` that continues the query to the part;
+      `print | out` or `json | out` writes the whole, and `| elide N` cuts
+      an answer on purpose. `in`, `out`, `err` and `tap` read and write the
+      streams, `tap` showing a value halfway through a query on stderr as
+      an answer prints; a query that writes to stdout by `out` holds the
+      channel, and its answer is left unwritten. A value one query hands
+      another over a pipe keeps its kinds as its literal, `print | out`
+      writing it and `in | parse | open` reading it back.
       ::link~(::any/json | doc) ::link~(::vec/table | doc)
       ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
@@ -152,11 +155,15 @@
     | impl ::builtin{}
 
 :any/tap
-  |~~ Writes `[tap <label>]` and the literal of its subject to stderr and
-      answers the subject as it came, a look at a value halfway through a
-      query:
+  |~~ Writes `[tap <label>]` and its subject to stderr as an answer prints,
+      the print of its kind among it, within the budget of every answer,
+      and answers the subject as it came, a look at a value halfway
+      through a query:
       ::snippet~([{:on true} {:on false}] | tap :before | filter /on | tap :after | count)
-      shows both vectors and answers 1.
+      shows both vectors and answers 1. A subject past the budget is
+      written as `::qlang/AnswerBeyondBudgetError` with its head, each
+      `:read` in it continuing the query from the subject at the `tap`,
+      and `err print` writes a look whole.
   ~~|
   ::fn
     | takes :label
@@ -184,7 +191,8 @@
       text for a terminal. The columns are the keys in the order they
       first occur across the rows, and a key a row lacks draws an empty
       cell; a string cell prints bare, null as an empty cell, and every
-      other value as its literal on one line. The empty vector draws as
+      other value as its literal on one line, a doc with each line break
+      of its prose written as a space. The empty vector draws as
       `(empty)`. A single map goes in a vector first, `get [~(it)] | table`, and
       the call takes no value.
   ~~|

@@ -6,8 +6,8 @@
       page, written in the prose of a doc as a quote under this tag,
       `::link~(::vec | doc)`. Links make the pages a hypertext: a page
       names the pages that go deeper, and `open` runs the query a link
-      holds, so `::qlang | doc | links | map ~open` answers the pages
-      the first page names.
+      holds, so `::vec | doc | links | map ~open` answers the pages the
+      page of vectors names.
 
       A link opens a page, every link of the catalog among them; a query
       that lists or shows something is a snippet, and one that answers

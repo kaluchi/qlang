@@ -31,6 +31,8 @@ export async function inlineCatalogLocator(uri) {
 export {
   evalQuery,
   printValue,
+  printAnswer,
+  boundAnswer,
   caretOf,
   langRuntime,
   parse,

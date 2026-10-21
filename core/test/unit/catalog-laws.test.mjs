@@ -22,7 +22,7 @@ async function catalogReaders() {
 describe('the laws of the catalog, run by runLaws', () => {
   it('every law answers true', async () => {
     const failures = await failingLawsOf(evalQuery, await catalogReaders());
-    if (failures.length > 0) throw new Error(`${failures.length} law(s) of the catalog failed:\n${reportOfLaws(failures)}`);
+    expect(failures, `${failures.length} law(s) of the catalog failed:\n${reportOfLaws(failures)}`).toEqual([]);
   }, 30000);
 
   it('every law reads back from the text of its code as itself', async () => {

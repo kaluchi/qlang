@@ -62,5 +62,5 @@ Report in Russian, keeping queries, names and answers as they are: first a verdi
     6.
 
 [D324]: ../../replaced/D324.md
-[D327]: ../../D327.md
+[D327]: ../../replaced/D327.md
 [D332]: ../../replaced/D332.md

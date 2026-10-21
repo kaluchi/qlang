@@ -1,51 +1,54 @@
-// The primitives of `print`, the text that reads back as any value, the print
-// a kind answers of its own taken for each part of that kind [QSPRN#print],
-// and of `elide`, the value within a budget of its print [QSHST#answer].
+// The primitives of `print` [QSPRN#print] and `elide` [QSPRN#elide], and the
+// one print of an answer every host prints within the budget [QSHST#answer].
 
 import { registerStateReader } from '../primitives.mjs';
-import { TAG_HEADER_SYMBOL, isErrorValue, typeOf } from '../types.mjs';
-import { elide, elideAnswer as answerWithin, EXCERPT_CHARACTERS } from '../elide.mjs';
-import { rootState } from '../state.mjs';
+import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
+import { elide, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
+import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
+import { servesTheSubject } from '../dispatch.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { errorFromQlang } from '../error-convert.mjs';
 
-// printsOfKinds(value, scope, state?) → `printedOf(part)`: the print a kind
-// answers of its own for each part of the value whose kind declares one,
-// found by the walk of that part, a fact of an error among them, and
-// undefined for every other part, which the forms of the core write
-// [QSPRN#print].
+const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
+
+// printsOfKinds(value, scope, state?) → `printedOf(part)`, the print a kind
+// declares for each part of its kind, found as a verb of the root reads it,
+// and undefined where the forms of the core write the part [QSPRN#print].
 export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
   const printedByKind = new Map();
-  await collectPrintsOfKinds(value, scope, state, nodeOf(scope, 'any/print'), printedByKind);
+  await collectPrintsOfKinds(value, markRootVerbScope(new Map(scope)), state, nodeOf(scope, 'any/print'), printedByKind);
   return part => printedByKind.get(part);
 }
 
-// printAnswer(value, scope, state?) → the print of a value: a part under a
-// tag whose kind answers a `print` of its own prints through it, and the
-// forms of the core print the rest. An answer that is a failure, which a
-// host meets alone since a step skips it, prints as its error at rest
-// under a line comment that says it was raised, which a reading of the
-// literal passes over [QSERR#print].
+// printAnswer(value, scope, state?) → the print of a value through the prints
+// of its kinds, a failure under the line comment that says it was raised
+// [QSERR#print].
 export async function printAnswer(value, scope, state = rootState(value, scope)) {
   const printed = printValue(value, 0, await printsOfKinds(value, scope, state));
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
 
-// elideAnswer(answer, budget, scope) → an answer as a host prints it: a value
-// whole, or within the budget asked for, and an error its alert, each print
-// measured as the host writes it [QSHST#answer], [QSPRN#elide].
-export async function elideAnswer(answer, budget, scope) {
-  return answerWithin(answer, budget, await printsOfKinds(answer, scope));
+// boundAnswer(answer, scope, written?) → what a host prints for an answer, a
+// failure as its alert, where its print or the text `written` fits the
+// budget, and else the refusal of an answer past it in its place [QSHST#answer].
+export async function boundAnswer(answer, scope, written = null) {
+  const printedOf = await printsOfKinds(answer, scope);
+  const failed = isErrorValue(answer);
+  const shown = failed ? alertWithin(answer, ANSWER_BUDGET, printedOf) : answer;
+  const characters = lengthOf(written ?? printValue(shown, 0, printedOf));
+  if (characters <= ANSWER_BUDGET) return shown;
+  const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: headOfAnswer(answer, printedOf) }), undefined, scope);
+  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualType', failed ? answer.tag : typeOf(answer))), ANSWER_BUDGET, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
 
-// caretOf(answer) → for the refusal of a text, the line `:source` holds within
-// an excerpt around the column its `:location` names, an ellipsis where the
-// excerpt cuts it, and a caret under that column, the two line comments a host
-// that prints for a person's eye draws below it [QSERR#print]; null
-// otherwise.
+// caretOf(answer) → the two line comments a host draws below the refusal of
+// a text, its line within an excerpt around the place and a caret under it,
+// or null [QSERR#print].
 export function caretOf(answer) {
   if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
   const source = answer.facts.get('source');
@@ -65,15 +68,15 @@ export function caretOf(answer) {
 }
 
 async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKind) {
-  if (part === null || typeof part !== 'object') return;
-  if (part[TAG_HEADER_SYMBOL] !== undefined) {
+  if (!isErrorValue(part)) {
     const printOfKind = residenceOnSubject(scope, 'print', part);
-    if (printOfKind !== null && printOfKind !== printOfAny) {
+    if (printOfKind !== printOfAny && servesTheSubject(printOfKind, part)) {
       const printed = await callVerbOn(printOfKind, part, state);
       printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
       return;
     }
   }
+  if (part === null || typeof part !== 'object') return;
   const parts = part instanceof Map ? part.values()
     : Array.isArray(part) ? part
     : isErrorValue(part) ? part.facts.values()

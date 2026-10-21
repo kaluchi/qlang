@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "hub",
+    "debug": false
+  },
+  "services": {
+    "web": {
+      "port": 3000,
+      "enabled": true
+    },
+    "api": {
+      "enabled": true
+    },
+    "worker": {
+      "port": 9100,
+      "enabled": false
+    },
+    "cache": {
+      "port": 6379
+    },
+    "metrics": {
+      "port": null,
+      "enabled": true
+    }
+  }
+}

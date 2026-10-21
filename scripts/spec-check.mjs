@@ -28,7 +28,7 @@
 // the journal tells what was run for what and when [QSWRK#journal].
 //
 // Usage: node scripts/spec-check.mjs --for Dnn [--why "…"] [--groups N] [--effort LEVEL] [--dry]
-//        node scripts/spec-check.mjs --records D326 D327 [--why "…"] [--effort LEVEL] [--dry]
+//        node scripts/spec-check.mjs --records D326 D329 [--why "…"] [--effort LEVEL] [--dry]
 // `--dry` prints the groups and runs no reader; `--effort` names the effort
 // of the readers, `max` where it names none.
 

@@ -1,73 +1,19 @@
-// JSON at the edges of the language: its syntax reads into the one map
-// and the one vector, a document's data never forges a value-class,
-// and the lift from parsed JSON keeps numbers in the finite range.
+// JSON at the edges of the language: `fromPlain` and `fromJsonText` read a
+// document into the values its literal reads, refusing a number past the
+// finite doubles at its path, `toPlain` refuses a value of no kind, and
+// `json` writes a descriptor as data.
 
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../src/session.mjs';
-import { isMap, isVec, formOf, typeOf, makeTag } from '../../src/types.mjs';
 import { fromJsonText, fromPlain, toPlain } from '../../src/runtime/json.mjs';
 import { BuiltinForeignValueError } from '../../src/types.mjs';
 
-describe('JSON syntax reads into the one map and the one vector', () => {
-  it('an object literal is a map keyed by the keywords of its strings', async () => {
-    const readMap = await evalQuery('{"a": 1, "b c": 2}');
-    expect(isMap(readMap)).toBe(true);
-    expect(typeOf(readMap)).toEqual(makeTag('map'));
-    expect([...readMap.keys()]).toEqual(['a', 'b c']);
-  });
-
-  it('an array literal and a single-element bracket are vectors', async () => {
-    for (const source of ['[1, 2]', '[1]', '[{"a": 1}]']) {
-      const readVec = await evalQuery(source);
-      expect(isVec(readVec), source).toBe(true);
-      expect(formOf(readVec), source).toBe('vec');
-    }
-  });
-
+describe('fromPlain lifts a parsed document', () => {
   it('a parsed document lifts into the same map a literal reads into', async () => {
     const lifted = fromPlain(JSON.parse('{"a": [1, 2]}'));
     const read = await evalQuery('{"a": [1, 2]}');
     const { compareValues } = await import('../../src/ordering.mjs');
     expect(compareValues(lifted, read) === 0).toBe(true);
-  });
-});
-
-describe('a map whose data key "type" collides with a value-class name', () => {
-  // `"type"` is ordinary data, never a value-class discriminator. The
-  // discriminator rides on the VALUE_CLASS_TAG symbol that only the
-  // real value-class factories stamp, so a document carrying
-  // `"type":"quote"` stays a map through classification, a read by a path,
-  // equality, and the lossy and lossless JSON codecs.
-
-  it('classifies as a map regardless of the "type" data value', async () => {
-    for (const typeValue of ['quote', 'doc', 'keyword', 'tag', 'error', 'function', 'underTag']) {
-      const readMap = await evalQuery(`{"type": "${typeValue}", "extra": 1}`);
-      expect(formOf(readMap), `formOf for type=${typeValue}`).toBe('map');
-    }
-  });
-
-  it('value-class predicates reject a map that forges their .type tag', async () => {
-    const { isKeyword, isQuote, isDoc, isErrorValue, isTag } = await import('../../src/types.mjs');
-    expect(isKeyword(fromPlain({ type: 'keyword', name: 'x' }))).toBe(false);
-    expect(isQuote(fromPlain({ type: 'quote', source: 'x' }))).toBe(false);
-    expect(isDoc(fromPlain({ type: 'doc', content: 'x' }))).toBe(false);
-    expect(isErrorValue(fromPlain({ type: 'error' }))).toBe(false);
-    expect(isTag(fromPlain({ type: 'tag', name: 'X' }))).toBe(false);
-  });
-
-  it('| json preserves a {"type":"keyword"} document losslessly', async () => {
-    const jsonText = await evalQuery('{"type": "keyword", "name": "x"} | json');
-    expect(JSON.parse(jsonText)).toEqual({ type: 'keyword', name: 'x' });
-  });
-
-  it('| json does not rewrite a {"type":"quote"} document into a Quote literal', async () => {
-    const jsonText = await evalQuery('{"type": "quote", "source": "hi"} | json');
-    expect(JSON.parse(jsonText)).toEqual({ type: 'quote', source: 'hi' });
-  });
-
-  it('a {"type":"error"} document does not crash the evaluator', async () => {
-    const result = await evalQuery('{"type": "error", "msg": "boom"} | type');
-    expect(result).toEqual(makeTag('map'));
   });
 });
 

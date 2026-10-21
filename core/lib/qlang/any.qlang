@@ -1,6 +1,6 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
    the verbs every value answers.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSPRN#print]. ~|
 
 :any
   |~~ Any is the kind beneath every kind, where the verbs every value
@@ -490,8 +490,10 @@
       A set prints in its one order, and the text reads back as the value
       by `parse` and `open`. A kind may answer a `print` of its own
       declared under it, `:Box/print`, and the print of a value takes it
-      for each part of that kind. The call takes no value: a print within
-      a budget is `elide 80 | print`.
+      for each part of that kind; a print the reader declares under a kind
+      of the language, `:number/print`, answers the reader's own calls
+      alone. The call takes no value: a print within a budget is
+      `elide 80 | print`.
       ::link~(::any/json | doc) ::link~(::any/elide | doc)
   ~~|
   ::fn
@@ -550,9 +552,10 @@
       A view prints and reads back as itself, but under a kind that
       checks its parts, as `::trace` takes frames alone, which refuses
       the elision it holds. The call gives the budget, a number; a host
-      applies `elide` to every answer it prints when a reader asks it for
-      a budget.
+      cuts so the head of an answer past the budget of every answer and
+      the alert of a failure.
       ::link~(::elision | doc) ::link~(::any/print | doc)
+      ::link~(::qlang/AnswerBeyondBudgetError | doc)
   ~~|
   ::fn
     | takes :budget
@@ -1480,7 +1483,8 @@
       subject reads, as `doc` reads it, each by its address:
       `::number | manifest` the verbs and the refusals of numbers,
       `::vec/take | manifest` the inputs and the answer of `take`,
-      `::qlang | manifest` the chapters of the language, and a value the
+      `::qlang | manifest` the chapters of the language and the refusal of
+      an answer past the budget, and a value the
       names under the kind it shows, `5 | manifest` those of numbers. A
       name nothing declares is refused under the verb,
       `::any/manifest/UnknownNameError`. The laws of a

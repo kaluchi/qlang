@@ -31,10 +31,9 @@ describe('BootstrapSourceMissingError', () => {
   });
 
   it('fires from buildLangRuntime when the locator serves no source, naming the first as its origin', async () => {
-    await expect(buildLangRuntime(async () => null)).rejects.toMatchObject({
-      name: 'BootstrapSourceMissingError', facts: { origin: keyword('qlang/builtin') }
-    });
-    await expect(buildLangRuntime(async () => null)).rejects.toBeInstanceOf(BuiltinBootstrapSourceMissingError);
+    const refused = await buildLangRuntime(async () => null).catch(error => error);
+    expect(refused).toBeInstanceOf(BuiltinBootstrapSourceMissingError);
+    expect(refused).toMatchObject({ name: 'BootstrapSourceMissingError', facts: { origin: keyword('qlang/builtin') } });
   });
 });
 
@@ -47,11 +46,10 @@ describe('a source of the language the parser refuses', () => {
   });
 });
 
-describe('SourceLoadError, which every loader raises alike [QSHST#source]', () => {
-  // Both loaders (`host/load-source-node.mjs`, `src/load-source-web.mjs`)
-  // raise the same `SourceLoadError` class imported from
-  // `src/source-load-error.mjs`, its facts the origin of the source, where
-  // it was looked for and the host's account of the failure.
+describe('the facts and the message of SourceLoadError [QSHST#source]', () => {
+  // The class a loader raises for a source that does not read, built here by
+  // hand, its facts the origin of the source, where it was looked for and the
+  // host's account of the failure.
 
   it('carries the origin, the location and the cause, and names no platform', async () => {
     const { BuiltinSourceLoadError } = await import('../../src/source-load-error.mjs');

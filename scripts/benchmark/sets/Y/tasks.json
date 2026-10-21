@@ -1,0 +1,150 @@
+[
+  {
+    "id": "Y1",
+    "data": "users.json",
+    "text": "The file is an API response; the user records are in data.users. Return a number: how many users have profile.country equal to \"de\", compared case-insensitively. A null profile or a missing country does not match.",
+    "expected": 3
+  },
+  {
+    "id": "Y2",
+    "data": "users.json",
+    "text": "In data.users, take users whose email is not null and not missing. Extract the domain (the part after '@'), lowercase it, and return an array of the distinct domains sorted alphabetically ascending.",
+    "expected": [
+      "corp.io",
+      "example.com",
+      "mail.org"
+    ]
+  },
+  {
+    "id": "Y3",
+    "data": "users.json",
+    "text": "Return a number: the average of profile.age over users in data.users that have active equal to true and a numeric profile.age (ignore null/missing profile or age). Round to 1 decimal place.",
+    "expected": 31.5
+  },
+  {
+    "id": "Y4",
+    "data": "issues.json",
+    "text": "The file is an array of issues. Considering only issues with status \"open\", return an object mapping assignee to the number of such issues. Issues whose assignee is null are counted under the key \"unassigned\".",
+    "expected": {
+      "ann": 2,
+      "unassigned": 2,
+      "bob": 1,
+      "cy": 1
+    }
+  },
+  {
+    "id": "Y5",
+    "data": "issues.json",
+    "text": "Each issue may have a comments array (missing means 0 comments). Return an array of the ids of the 3 issues with the most comments, ordered by comment count descending, ties broken by id ascending.",
+    "expected": [
+      106,
+      101,
+      104
+    ]
+  },
+  {
+    "id": "Y6",
+    "data": "manifest.json",
+    "text": "Look at both dependencies and devDependencies of this package manifest. Return an array of distinct package names whose version string starts with \"^\", sorted alphabetically ascending.",
+    "expected": [
+      "express",
+      "jest",
+      "typescript",
+      "zod"
+    ]
+  },
+  {
+    "id": "Y7",
+    "data": "manifest.json",
+    "text": "Return an object with keys: \"name\" (the package name), \"major\" (the major part of the package version as a number), \"depCount\" (the number of distinct package names across dependencies and devDependencies combined), \"hasTest\" (boolean: whether scripts contains a key \"test\").",
+    "expected": {
+      "name": "demo-app",
+      "major": 2,
+      "depCount": 7,
+      "hasTest": true
+    }
+  },
+  {
+    "id": "Y8",
+    "data": "logs.txt",
+    "text": "Each line of this plain-text log has the form \"<timestamp> <LEVEL> <service> <message...>\", separated by single spaces. Return an object mapping service to the number of ERROR lines for that service; omit services with no errors.",
+    "expected": {
+      "db": 3,
+      "api": 1,
+      "auth": 1
+    }
+  },
+  {
+    "id": "Y9",
+    "data": "logs.txt",
+    "text": "Each line has the form \"<timestamp> <LEVEL> <service> <message...>\". Return an array of distinct services that have at least one WARN or ERROR line, sorted alphabetically ascending.",
+    "expected": [
+      "api",
+      "auth",
+      "cache",
+      "db"
+    ]
+  },
+  {
+    "id": "Y10",
+    "data": "orders.csv",
+    "text": "This is CSV text with a header row (id,customer,item,qty,price,status). Return a number: the sum of qty*price over rows whose status is \"paid\" compared case-insensitively, rounded to 2 decimal places.",
+    "expected": 333.77
+  },
+  {
+    "id": "Y11",
+    "data": "orders.csv",
+    "text": "CSV text with a header row. Ignoring rows whose status is \"cancelled\" (case-insensitive), sum qty per customer and return the top 2 customers as an array of objects {\"customer\": string, \"total\": number}, ordered by total descending, ties by customer name ascending.",
+    "expected": [
+      {
+        "customer": "Beta",
+        "total": 23
+      },
+      {
+        "customer": "Acme",
+        "total": 15
+      }
+    ]
+  },
+  {
+    "id": "Y12",
+    "data": "config.json",
+    "text": "For each entry in services, skip those whose enabled is exactly false (a missing enabled counts as enabled). Return an object mapping service name to its port; if port is missing or null use 8080.",
+    "expected": {
+      "web": 3000,
+      "api": 8080,
+      "cache": 6379,
+      "metrics": 8080
+    }
+  },
+  {
+    "id": "Y13",
+    "data": "env.txt",
+    "text": "This is a dotenv-style text file: KEY=value lines, blank lines, and comment lines starting with '#'. Keys are case-sensitive. Take only keys that start with the exact prefix \"DB_\" (uppercase), strip the prefix, lowercase the rest, and trim whitespace around keys and values. Return an object of these keys to their string values.",
+    "expected": {
+      "host": "localhost",
+      "port": "5432",
+      "user": "admin",
+      "ssl": "true"
+    }
+  },
+  {
+    "id": "Y14",
+    "data": null,
+    "text": "Given the text \"the Quick brown fox jumps over the quick Dog and the lazy dog Fox\", split it on single spaces, lowercase each word, and count occurrences. Return the top 3 words as an array of objects {\"word\": string, \"count\": number}, ordered by count descending, ties by word ascending.",
+    "expected": [
+      {
+        "word": "the",
+        "count": 3
+      },
+      {
+        "word": "dog",
+        "count": 2
+      },
+      {
+        "word": "fox",
+        "count": 2
+      }
+    ]
+  }
+]

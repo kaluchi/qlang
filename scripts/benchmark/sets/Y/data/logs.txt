@@ -1,0 +1,10 @@
+2026-03-01T10:00:01Z INFO auth user login ok
+2026-03-01T10:00:05Z ERROR db connection timeout
+2026-03-01T10:01:10Z WARN auth token near expiry
+2026-03-01T10:02:00Z ERROR api upstream 502
+2026-03-01T10:02:30Z INFO api request served
+2026-03-01T10:03:44Z ERROR db deadlock detected
+2026-03-01T10:04:00Z ERROR db connection timeout
+2026-03-01T10:05:12Z WARN cache eviction rate high
+2026-03-01T10:06:00Z INFO cache warmed
+2026-03-01T10:07:00Z ERROR auth invalid signature

@@ -236,35 +236,38 @@ describe('runRepl — the first cell given on the command line', () => {
   });
 });
 
-// A cell prints within the budget a caller asked for, an error among
-// them, and an error as its alert when none is [QSHST#answer].
-describe('runRepl — the budget of an answer', () => {
-  const forty = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}]`;
-
-  it('prints a value past its budget with an elision that reads the rest', async () => {
-    const replHarness = captureRepl(`${forty}\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain('::elision{');
+// A cell prints within the one budget of every answer, an answer past it as
+// the refusal in its place, and an error as its alert within it, without the
+// prose of its page [D397].
+describe('runRepl — the bound of an answer', () => {
+  it('prints an answer past the budget as the refusal, without the prose of its page', async () => {
+    const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const printed = stripAnsi(replHarness.stdoutText());
+    expect(printed).toContain('::qlang/AnswerBeyondBudgetError!{');
+    expect(printed).toContain(':read ~(drop ');
+    expect(printed).not.toContain('print | out');
   });
 
-  it('prints an error as its alert when no budget was asked for', async () => {
+  it('prints an error as its alert', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/1/0)');
   });
 
-  it('prints an error within the budget', async () => {
-    const replHarness = captureRepl(`${forty} | filter ~(nope)\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 200, terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/');
+  it('prints the alert of a runaway recursion within the budget', async () => {
+    const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace | drop ');
   });
 
-  it('draws the caret below a refused text a budget left out of its alert, the line within an excerpt [QSERR#print]', async () => {
-    const replHarness = captureRepl(`${forty} x\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { budget: 80, terminal: replHarness.stdinStream });
+  it('draws the caret below a refused text its alert left out, the line within an excerpt [QSERR#print]', async () => {
+    const refused = `[${Array.from({ length: 120 }, (_, index) => index + 1).join(' ')}] x`;
+    const replHarness = captureRepl(`${refused}\n.exit\n`);
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain(':source ::elision{');
-    expect(printed).toContain(`|~| ${forty} x`);
+    expect(printed).toMatch(/\|~\| …[\d ]*\] x\n\|~\| +\^/);
   });
 });

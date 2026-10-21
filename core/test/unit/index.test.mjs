@@ -24,11 +24,46 @@ describe('the package root', () => {
     expect(await core.evalQuery(core.printValue(value))).toEqual(value);
   });
 
-  it('bounds an answer within a budget, a part a kind prints its own way counted as it prints', async () => {
+  it('answers an answer whose print fits the budget as it is, a part a kind prints its own way counted as it prints [D397]', async () => {
     const session = await core.createSession();
-    const cell = await session.evalCell(':Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7]');
-    const shown = await core.elideAnswer(cell.result, 10, cell.scopeAfterCell);
-    expect(await core.printAnswer(shown, cell.scopeAfterCell)).toBe('[b b b b b b b]');
+    const cell = await session.evalCell(`:Box |~~ B ~~| | :Box/print ~("b") | ${core.ANSWER_BUDGET} | range | map ~(tag ::Box) | take ${core.ANSWER_BUDGET / 2 - 1}`);
+    const shown = await core.boundAnswer(cell.result, cell.scopeAfterCell);
+    expect(shown).toBe(cell.result);
+    expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
+  });
+
+  it('answers an answer past the budget as the refusal in its place, its answer cut to an excerpt read from the answer [D397]', async () => {
+    const scope = await core.langRuntime();
+    const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
+    const shown = await core.boundAnswer(answer, scope);
+    expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
+    expect([...shown.facts.keys()]).toEqual(['characters', 'budget', 'actualType', 'actualValue']);
+    expect(shown.facts.get('characters')).toBe((await core.printAnswer(answer, scope)).length);
+    expect([shown.facts.get('budget'), shown.facts.get('actualType')]).toEqual([core.ANSWER_BUDGET, core.makeTag('vec')]);
+    expect(await core.printAnswer(shown.facts.get('actualValue'), scope)).toMatch(/^\[\{:id 0 :name "user"\} [\s\S]*::elision\{:size \d+ :read ~\(drop \d+\)\}\]$/);
+  });
+
+  it('measures the text a host writes for a string, as the host hands it [D397]', async () => {
+    const scope = await core.langRuntime();
+    const text = 'x'.repeat(core.ANSWER_BUDGET);
+    expect(await core.boundAnswer(text, scope, text)).toBe(text);
+    expect((await core.boundAnswer(`${text}x`, scope, `${text}x`)).tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
+  });
+
+  it('answers a failure as its alert within the budget [D397]', async () => {
+    const scope = await core.langRuntime();
+    const failure = await core.evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope);
+    const shown = await core.boundAnswer(failure, scope);
+    expect(shown.tag).toEqual(failure.tag);
+    expect(core.printValue(shown).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
+    expect(core.printValue(failure).length).toBeGreaterThan(core.ANSWER_BUDGET);
+  });
+
+  it('hands a word of a host the state of its call where it marks its primitive as a reader of it [D397]', async () => {
+    const primitive = core.readingState((subject, state) => state.scope.has('k'));
+    const session = await core.createSession({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
+    expect((await session.evalCell('1 | where')).result).toBe(false);
+    expect((await session.evalCell(':k 5 | 1 | where')).result).toBe(true);
   });
 
   it('crosses the JSON boundary both ways', () => {

@@ -1,14 +1,19 @@
 // The primitives of `print`, the text that reads back as any value, the print
 // a kind answers of its own taken for each part of that kind [QSPRN#print],
-// and of `elide`, the value within a budget of its print [QSHST#answer].
+// and of `elide`, the value within a budget of its print, and the one print
+// of an answer every host prints within the budget [D397].
 
 import { registerStateReader } from '../primitives.mjs';
-import { TAG_HEADER_SYMBOL, isErrorValue, typeOf } from '../types.mjs';
-import { elide, elideAnswer as answerWithin, EXCERPT_CHARACTERS } from '../elide.mjs';
+import { TAG_HEADER_SYMBOL, isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
+import { elide, elideAnswer as answerWithin, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
+import { declareRefusal } from '../errors.mjs';
+import { errorFromQlang } from '../error-convert.mjs';
+
+const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
 
 // printsOfKinds(value, scope, state?) → `printedOf(part)`: the print a kind
 // answers of its own for each part of the value whose kind declares one,
@@ -32,11 +37,21 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
 
-// elideAnswer(answer, budget, scope) → an answer as a host prints it: a value
-// whole, or within the budget asked for, and an error its alert, each print
-// measured as the host writes it [QSHST#answer], [QSPRN#elide].
-export async function elideAnswer(answer, budget, scope) {
-  return answerWithin(answer, budget, await printsOfKinds(answer, scope));
+// boundAnswer(answer, scope, written?) → what a host prints for an answer
+// [D397]: the answer whose print, or the text `written` a host writes for it,
+// fits the budget, as it is; past the budget the refusal
+// `::qlang/AnswerBeyondBudgetError` in its place as its alert, which holds the
+// kind of the answer and the answer cut to the excerpt of an alert, read from
+// the answer, since no `!|` reaches a refusal the host raises after the last
+// step; and a failure as its alert within the budget [QSHST#answer].
+export async function boundAnswer(answer, scope, written = null) {
+  const printedOf = await printsOfKinds(answer, scope);
+  if (isErrorValue(answer)) return answerWithin(answer, ANSWER_BUDGET, printedOf);
+  const characters = (written ?? printValue(answer, 0, printedOf)).length;
+  if (characters <= ANSWER_BUDGET) return answer;
+  const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: answer }), undefined, scope);
+  const excerpted = makeErrorValue(refused.tag, new Map(refused.facts).set('actualValue', elide(answer, EXCERPT_CHARACTERS, printedOf)));
+  return answerWithin(excerpted, ANSWER_BUDGET, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';

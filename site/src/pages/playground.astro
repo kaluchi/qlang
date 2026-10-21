@@ -237,7 +237,7 @@ import Base from "../layouts/Base.astro"
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const { text: printed, failed } = cellShown(await session.evalCell(cell.trim()));
+        const { text: printed, failed } = await cellShown(await session.evalCell(cell.trim()));
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
         const highlighted = highlightQlang(cell.trim(), rootVerbNames)

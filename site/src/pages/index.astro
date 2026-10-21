@@ -210,8 +210,8 @@ const features = [
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
 
-    function makeEntry(src: string, cellEntry: any) {
-      const printed = cellShown(cellEntry).text;
+    async function makeEntry(src: string, cellEntry: any) {
+      const printed = (await cellShown(cellEntry)).text;
       const entry = document.createElement('div');
       entry.className = 'repl-entry';
       entry.innerHTML = `
@@ -255,7 +255,7 @@ const features = [
       '{:name "alice" :age 30} | get /age | mul 2',
     ];
     for (const src of demos) {
-      history.appendChild(makeEntry(src, await session.evalCell(src)));
+      history.appendChild(await makeEntry(src, await session.evalCell(src)));
       cmdHistory.unshift(src);   // oldest demo ends up deepest in history
     }
 
@@ -276,7 +276,7 @@ const features = [
         cmdHistory.unshift(source);   // newest first
         histIdx = -1;
         savedDraft = '';
-        history.appendChild(makeEntry(source, await session.evalCell(source)));
+        history.appendChild(await makeEntry(source, await session.evalCell(source)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
         updateReplHighlight();

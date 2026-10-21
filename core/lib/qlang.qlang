@@ -171,10 +171,12 @@
       lists the verbs most queries use. `::vec/sort | doc` answers the
       page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `x | type | doc`
-      answers the page of the kind of any value. An answer prints whole;
-      `x | elide 4000` bounds it to four thousand characters of its
-      print, each part left out an ::elision whose `:read` continues the
-      query to it.
+      answers the page of the kind of any value. An answer prints within
+      sixteen thousand characters, one past them as
+      ::qlang/AnswerBeyondBudgetError with its head, and `print | out`
+      writes it whole; `x | elide 4000` cuts it to four thousand
+      characters of its print, each part left out
+      an ::elision whose `:read` continues the query to it.
 
       13. A task. Over
       `{"users": [{"name": "Ann", "age": 30, "tags": ["a", "b"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
@@ -197,6 +199,22 @@
       budget of an answer.
   ~~|
   ::kind
+    | throws :AnswerBeyondBudgetError
+        |~~ A host printed an answer past the budget of every answer,
+            sixteen thousand characters of its print, and prints this in
+            its place: `:characters` and `:budget` tell the two, and
+            `:actualValue` the head of the answer, each `::elision` in it a
+            `:read` that continues the query to the part. Narrow the answer
+            by `get`, `take`, `keys`, `count` or `shape`, or write it whole
+            through the door the query opens itself, `print | out` or
+            `json | out`. No step raises it and no `!|` reaches it.
+        ~~|
+    | carries :AnswerBeyondBudgetError/characters
+        |~~ The characters of the print of the answer. ~~|
+        ::number
+    | carries :AnswerBeyondBudgetError/budget
+        |~~ The budget every host prints an answer within. ~~|
+        ::number
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)
@@ -896,21 +914,25 @@
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is
             `::builtin{}`; the command line is one. A value is whole in
-            the language, and the host prints a value whole unless a
-            reader asks for a budget, by `elide` in the query or by the
-            host's flag, the command line's `--budget=N`: an answer whose
-            print fits the budget stays whole, and what a budget left out
-            is an `::elision`, whose `:read` continues the query to the
-            part. A failure the host prints is an alert: its tag and its
+            the language, and a host prints every answer within one
+            budget, sixteen thousand characters of its print: an answer
+            that fits prints whole, and one past it prints as the failure
+            `::qlang/AnswerBeyondBudgetError` in its place, its head an
+            excerpt where each part left out is an `::elision`, whose
+            `:read` continues the query to the part; `print | out` writes
+            an answer whole, and `elide` cuts a value on purpose. A failure
+            the host prints is an alert within the budget: its tag and its
             facts, the subject where it arose within an excerpt, and an
-            elision for each subject it passed, the failure itself staying
-            whole; the command line writes below it the prose of its
-            refusal's page, as `!| explain` reads it, so the reader
-            repairs the call where it failed. The command line reads JSON
-            from stdin as values and other text as a string, and prints
-            its answer as the language prints it, a string as its text, so
-            `| json` writes JSON; its page, `::cli | doc`, tells the rest.
+            elision for each subject it passed, the failure keeping its tag
+            and the names of its facts; the command line writes below it
+            the prose of its refusal's page, as `!| explain` reads it, so
+            the reader repairs the call where it failed. The command line
+            reads JSON from stdin as values and other text as a string,
+            and prints its answer as the language prints it, a string as
+            its text, so `| json` writes JSON; its page, `::cli | doc`,
+            tells the rest.
             Rests on values and the hypertext.
+            ::link~(::qlang/AnswerBeyondBudgetError | doc)
             ::link~(::elision | doc) ::link~(::any/elide | doc)
             ::link~(::builtin | doc)
         ~~|

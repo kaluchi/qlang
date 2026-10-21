@@ -170,12 +170,13 @@ function finalQueriesOf(setId, reply) {
 }
 
 // What the tree answers for a query over the data of its task, as JSON,
-// or null when it fails.
+// which `| json | out` writes whole past the budget of every answer
+// [D397], or null when it fails.
 function answerOf(setId, task, query) {
   try {
     const flags = isTextData(task.data) ? ['--raw'] : [];
     const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
-    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json | out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed) };
   } catch {
     return null;

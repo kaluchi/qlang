@@ -69,7 +69,7 @@
     по нему языковой сервер показывает вид ответа. Открыта: в цене части 4.
 
 [D307]: ../../replaced/D307.md
-[D327]: ../../D327.md
+[D327]: ../../replaced/D327.md
 [D338]: ../../replaced/D338.md
 [D339]: ../../D339.md
 [QSCOL#sequence]: ../../../spec/QSCOL-collections.md#sequence

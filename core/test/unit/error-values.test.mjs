@@ -8,7 +8,7 @@ import { parse } from '../../src/parse.mjs';
 import { errorFromQlang, errorFromForeign } from '../../src/error-convert.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
-import { elideAnswer } from '../../src/runtime/print.mjs';
+import { boundAnswer } from '../../src/runtime/print.mjs';
 import { QlangError, CallUnknownNameError, declareRefusal } from '../../src/errors.mjs';
 
 // ── makeErrorValue ──────────────────────────────────────────────
@@ -74,7 +74,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
       const session = await hostHanding(trace);
       const failure = await answerIn(session, '1 | answered');
       expect(failure.tag).toEqual(makeTag(refused));
-      expect((await elideAnswer(failure, null, session.scope)).tag).toEqual(makeTag(refused));
+      expect((await boundAnswer(failure, session.scope)).tag).toEqual(makeTag(refused));
       expect(await answerIn(session, '1 | answered !| 0')).toBe(0);
     }
   });

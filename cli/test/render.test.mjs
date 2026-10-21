@@ -188,50 +188,71 @@ describe('answerText — the answer as the language prints it', () => {
   });
 });
 
+
 // The command line draws the caret of a refused text below its alert, the
 // line within an excerpt around the place, above the prose of the page
 // [QSERR#print].
 describe('answerText — the caret of a refused text', () => {
-  const refused = `[${Array.from({ length: 40 }, (_, index) => index + 1).join(' ')}] x`;
+  const refused = `[${Array.from({ length: 120 }, (_, index) => index + 1).join(' ')}] x`;
 
   it('writes the caret between the alert and the prose of the page', async () => {
-    const text = await answerText(await evalQuery('[1 2'), await langRuntime(), null, 'The page.');
+    const text = await answerText(await evalQuery('[1 2'), await langRuntime(), 'The page.');
     expect(text).toMatch(/\}\n\|~\| \[1 2\n\|~\| {5}\^\n\|~\| The page\.$/);
   });
 
-  it('draws the caret under the line of a refused text, the line within an excerpt where a budget left it out of the alert [QSERR#print]', async () => {
-    const failure = await evalQuery(refused);
-    expect(await answerText(failure, await langRuntime())).toContain(`}\n|~| ${refused}\n|~| ${' '.repeat(113)}^`);
-    const bounded = await answerText(failure, await langRuntime(), 80);
-    expect(bounded).toContain(':source ::elision{');
-    expect(bounded).toContain(`|~| ${refused}\n|~| ${' '.repeat(113)}^`);
+  it('draws the caret under the line of a refused text, the line within an excerpt where the alert left it out [QSERR#print]', async () => {
+    const text = await answerText(await evalQuery(refused), await langRuntime());
+    expect(text).toContain(':source ::elision{');
+    expect(text).toMatch(/\n\|~\| …[\d ]*\] x\n\|~\| +\^$/);
   });
 });
 
-// An answer prints within the budget a caller asked for; an error prints as
-// its alert [QSHST#answer].
-describe('answerText — the budget of the answer', () => {
-  const budget = 200;
+// Every answer prints within one budget: an answer whose print fits prints
+// whole, one past it as the refusal in its place, and a failure as its alert
+// within the budget [D397].
+describe('answerText — the bound of the answer', () => {
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);
+  const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
 
-  it('prints a value past its budget with an elision that reads the rest', async () => {
-    const text = await answerText(forty, await langRuntime(), 80);
-    expect(text).toContain('::elision{');
-    expect(text).toContain(':read ~(drop ');
+  it('writes an answer whose print fits the budget whole', async () => {
+    expect(await answerText(forty, await langRuntime())).toBe(`[${forty.join(' ')}]`);
   });
 
-  it('cuts an error within the budget, the largest of its facts giving way beneath !| [QSHST#answer]', async () => {
-    const failing = await evalQuery(`[{:n 1 :text "${'x'.repeat(200)}"} {:n 2}] | filter ~(nope)`);
-    expect(await answerText(failing, await langRuntime(), budget)).toContain(':trace ::elision{:size 2 :read ~(!| get /trace)}');
+  it('writes an answer past the budget as the refusal, its head read from the answer, above the prose of its page', async () => {
+    const scope = await langRuntime();
+    const text = await answerText(await evalQuery(past, scope), scope);
+    expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:actualType ::vec\n {2}:actualValue \[\{:id 0 :name "user"\}/);
+    expect(text).toMatch(/::elision\{:size \d+ :read ~\(drop \d+\)\}\]\n\}\n\|~\| /);
+    expect(text).toContain('print | out');
   });
 
-  it('writes the answer whole when no budget was asked for', async () => {
-    const text = await answerText(forty, await langRuntime(), null);
-    expect(text).not.toContain('::elision');
+  it('writes a string past the budget as the refusal, the text it writes measured', async () => {
+    const scope = await langRuntime();
+    expect(await answerText('x'.repeat(16000), scope)).toBe('x'.repeat(16000));
+    expect(await answerText('x'.repeat(16001), scope)).toContain(':characters 16001');
   });
 
-  it('writes an error as its alert when no budget was asked for', async () => {
-    const failing = await evalQuery(`[${forty.map(index => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    expect(await answerText(failing, await langRuntime(), null)).toContain(':read ~(!| get /trace/1/0)');
+  it('cuts the alert of a failure within the budget, its trace kept to its first frames', async () => {
+    const scope = await langRuntime();
+    const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);
+    expect(text).toContain(':read ~(!| get /trace | drop ');
+  });
+});
+
+describe('renderCellOutcome — the bound of the answer [D397]', () => {
+  const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
+
+  it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {
+    const scope = await langRuntime();
+    const cellEntry = { ...makeCellEntry({ result: await evalQuery(past, scope) }), scopeAfterCell: scope };
+    expect((await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false })).exitCode).toBe(0);
+    const failing = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false, failureExitCode: 1 });
+    expect([failing.exitCode, failing.stdoutText.includes('::qlang/AnswerBeyondBudgetError')]).toEqual([1, true]);
+  });
+
+  it('writes nothing and raises no refusal for a query that wrote by out, its code the one its answer exits with', async () => {
+    const scope = await langRuntime();
+    const cellEntry = { ...makeCellEntry({ result: await evalQuery(past, scope) }), scopeAfterCell: scope };
+    expect(await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: true, shouldColorize: false, failureExitCode: 1 })).toEqual({ stdoutText: '', stderrText: '', exitCode: 0 });
   });
 });

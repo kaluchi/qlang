@@ -74,15 +74,17 @@ const PRINT_HANDLERS = {
   vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine),
   map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
   set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
-  quote:   printQuote,
+  quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine),
   doc:     d => '|~~' + docText(d) + '~~|',
   underTag: printUnderTag
 };
 
 // A quote writes its steps in `~(…)`, and one whose code is a path alone,
-// which `~(…)` refuses where it is written, under its tag [QSPTH#value].
-function printQuote(quote) {
-  return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote) + ')';
+// which `~(…)` refuses where it is written, under its tag [QSPTH#value]; on
+// one line its steps stand on one line, which read back as the same steps
+// [D397].
+function printQuote(quote, oneLine = false) {
+  return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printSteps(quote, oneLine) + ')';
 }
 
 const printedByNoKind = () => undefined;
@@ -172,10 +174,11 @@ export const asPrinted = { of: value => printValue(value), quoting: literal => p
 // A quote of declarations alone, the story `source` reads, prints one
 // declaration a line, each after the first led by its pipe, as the
 // catalog writes it [QSQUO#parse], and so does a quote of several steps one of
-// which takes several lines, the commands of a chain among them.
-function printSteps(steps) {
-  const printed = steps.map(step => (isFailStep(step) ? { fail: printSteps(step.payload) } : { step: printStep(step) }));
-  const lined = steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
+// which takes several lines, the commands of a chain among them; on one line
+// its steps stand on one line [D397].
+function printSteps(steps, oneLine = false) {
+  const printed = steps.map(step => (isFailStep(step) ? { fail: printSteps(step.payload, oneLine) } : { step: printStep(step, false, oneLine) }));
+  const lined = !oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
   return printed.map(({ fail, step }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
@@ -183,15 +186,15 @@ function printSteps(steps) {
   }).join('');
 }
 
-function printStep(step, quoting = false) {
+function printStep(step, quoting = false, oneLine = false) {
   if (quoting && computes(step)) return `~(${isCallStep(step) ? printCall(step) : printSteps(step.payload)})`;
   if (isCallStep(step)) return printCall(step);
-  if (isGroupStep(step)) return `(${printSteps(step.payload)})`;
+  if (isGroupStep(step)) return `(${printSteps(step.payload, oneLine)})`;
   if (isBindStep(step)) return printBind(step);
   if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting));
   const errorFields = errorFieldsOf(step);
   if (errorFields !== null) return `!{${printEntries([...errorFields], quoting)}}`;
-  if (isQuote(step)) return `~(${printSteps(step)})`;
+  if (isQuote(step)) return `~(${printSteps(step, oneLine)})`;
   if (isDoc(step)) return printValue(step);
   if (isSet(step)) return `#[${step.map(part => printStep(part, quoting)).join(' ')}]`;
   if (isVec(step)) return `[${step.map(part => printStep(part, quoting)).join(' ')}]`;

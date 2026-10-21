@@ -81,7 +81,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   }
   if (cliInvocation.kind === 'repl') {
     return await runRepl(stdinStream, stdoutWrite, stderrWrite, {
-      budget: cliInvocation.budget,
       initialQuery: queryAsWritten(cliInvocation.initialQuery, env),
       terminal: stdoutStream
     });
@@ -114,7 +113,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const cliOutcome = await renderCellOutcome(cellEntry, {
     didExplicitStdoutEffect,
     shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
-    budget: cliInvocation.budget,
     failureExitCode: cliInvocation.failureExitCode
   });
 

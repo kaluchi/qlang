@@ -19,8 +19,8 @@
 
       `content` answers its text, `prose` its prose alone, `segments` its
       prose and its quotes in order, `links` its links and `snippets` its
-      snippets, so `::qlang | doc | links | map ~open` opens every page the
-      first page names.
+      snippets, so `::vec | doc | links | map ~open` opens every page the
+      page of vectors names.
       ::snippet~(::doc | manifest) lists its verbs and refusals.
       ::link~(::link | doc) ::link~(::snippet | doc)
       ::link~(::qlang/hypertext | doc)

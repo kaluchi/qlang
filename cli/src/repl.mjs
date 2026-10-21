@@ -9,7 +9,7 @@
 import {
   createSession,
   printAnswer,
-  elideAnswer,
+  boundAnswer,
   caretOf,
   langRuntime,
   verbNames
@@ -52,7 +52,7 @@ Names a cell declares, \`:name body\` and \`:name it\` among them,
 persist across the cells of one REPL session.
 `;
 
-export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = null, initialQuery = null, terminal } = {}) {
+export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQuery = null, terminal } = {}) {
   const rootVerbNames = verbNames(await langRuntime());
 
   // A terminal in raw mode moves the cursor down at `\n` without
@@ -117,21 +117,21 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { budget = 
       }
 
       const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, budget);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic);
       lineEditor.prompt();
     }
   });
 }
 
-// An answer prints whole, an error as an alert, or within the budget the
-// caller asked for, what does not fit given way to elisions that read it, on
-// stdout: a failed cell, one that does not parse among them with its caret,
-// is an answer as every failure is [QSHST#answer],
+// An answer prints within the budget of every answer, one past it as the
+// refusal in its place and an error as its alert, on stdout: a failed cell,
+// one that does not parse among them with its caret, is an answer as every
+// failure is, without the prose of its page [QSHST#answer], [D397],
 // and a defect raised past the fail track as the cell ran or as its answer
 // printed is written on stderr [QSHST#repl].
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, budget) {
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
-    const shown = await elideAnswer(result, budget, scope);
+    const shown = await boundAnswer(result, scope);
     return [await printAnswer(shown, scope), caretOf(result)].filter(part => part !== null).join('\n');
   });
   if (stderrText !== undefined) stderrWrite(stderrText);

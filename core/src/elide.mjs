@@ -44,6 +44,10 @@ import { commandStep, FAIL_TAG } from './steps.mjs';
 
 const HEAD_CHARACTERS = 40;
 export const EXCERPT_CHARACTERS = 300;
+
+// The characters every host prints an answer within, never fewer than the
+// first screen prints [D397].
+export const ANSWER_BUDGET = 16000;
 const printedByTheCore = () => undefined;
 
 // The key a map's elision of its rest stands under.

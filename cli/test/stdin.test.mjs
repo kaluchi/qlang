@@ -3,13 +3,15 @@
 // before a query that reads its subject and `in` answers — every branch (a
 // terminal answering at once, data accumulation, end resolution, error
 // rejection) is exercised through synthetic streams. memoiseStdinReader's
-// caching behaviour is tested with a counting stub, and `liftStdinToPipeValue`
-// resolves the format `auto`, `json` or `raw` into the query's first value.
+// caching behaviour is tested with a counting stub, and `liftOfInput` lifts
+// the text to the query's first value by `parseJson`, or as it came under
+// `--raw`.
 // The rules it holds: [QSHST#stdin].
 
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
-import { readStdinToString, memoiseStdinReader, DEFAULT_SUBJECT, liftStdinToPipeValue } from '../src/stdin.mjs';
+import { createSession } from '@kaluchi/qlang-core';
+import { readStdinToString, memoiseStdinReader, DEFAULT_SUBJECT, liftOfInput } from '../src/stdin.mjs';
 
 describe('readStdinToString', () => {
   it('returns the empty string when the stream reports isTTY', async () => {
@@ -48,39 +50,30 @@ describe('memoiseStdinReader', () => {
   });
 });
 
-describe('liftStdinToPipeValue — auto detection', () => {
-  it('starts from the default subject when stdin carries no bytes, in every mode', () => {
-    for (const stdinFormat of ['auto', 'json', 'raw']) {
-      expect(liftStdinToPipeValue('', stdinFormat)).toEqual({ pipeValue: DEFAULT_SUBJECT });
-    }
+describe('liftOfInput — the first value standard input lifts to by parseJson [QSHST#stdin]', () => {
+  it('starts from the noun of the language when stdin carries no bytes, raw or not', async () => {
+    const session = await createSession();
+    expect([await liftOfInput(session, '', false), await liftOfInput(session, '', true)]).toEqual([{ initialPipeValue: DEFAULT_SUBJECT }, { initialPipeValue: DEFAULT_SUBJECT }]);
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
 
-  it('parses JSON stdin into the values of qlang when auto succeeds', () => {
-    expect(liftStdinToPipeValue('{"a": 1}', 'auto').pipeValue.get('a')).toBe(1);
+  it('reads a JSON text as its value, the keys of an object in the order the text writes them', async () => {
+    const { initialPipeValue } = await liftOfInput(await createSession(), '{"b": 1, "2": 2, "a": 3}', false);
+    expect([...initialPipeValue.keys()]).toEqual(['b', '2', 'a']);
   });
 
-  it('keeps the keys of a JSON stdin in the order the text writes them, as a literal does', () => {
-    expect([...liftStdinToPipeValue('{"b": 1, "2": 2, "a": 3}', 'auto').pipeValue.keys()]).toEqual(['b', '2', 'a']);
+  it('reads a text that is no JSON as one string', async () => {
+    expect(await liftOfInput(await createSession(), 'plain text', false)).toEqual({ initialPipeValue: 'plain text' });
   });
 
-  it('reads a text that is no JSON as one string', () => {
-    expect(liftStdinToPipeValue('plain text', 'auto')).toEqual({ pipeValue: 'plain text' });
-  });
-});
-
-describe('liftStdinToPipeValue — explicit formats', () => {
-  it('parses strictly under --json', () => {
-    expect(liftStdinToPipeValue('[1, 2, 3]', 'json').pipeValue).toEqual([1, 2, 3]);
+  it('reads the text as it came under --raw', async () => {
+    expect(await liftOfInput(await createSession(), '{"a":1}', true)).toEqual({ initialPipeValue: '{"a":1}' });
   });
 
-  it('surfaces parseError on a text --json cannot read', () => {
-    const lifted = liftStdinToPipeValue('not-json', 'json');
-    expect(lifted.parseError).toBeInstanceOf(Error);
-    expect(lifted.parseError.message).toMatch(/JSON/);
-  });
-
-  it('skips parsing entirely under --raw', () => {
-    expect(liftStdinToPipeValue('{"a":1}', 'raw')).toEqual({ pipeValue: '{"a":1}' });
+  it('lifts a JSON text parseJson refuses to the failure it answered, the session numbering no cell for the lift', async () => {
+    const session = await createSession();
+    const { initialPipeValue } = await liftOfInput(session, '[1e400]', false);
+    expect(initialPipeValue.tag.name).toBe('string/parseJson/NumberNotFiniteError');
+    expect((await session.evalCell('1')).uri).toBe('cell-1');
   });
 });

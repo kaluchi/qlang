@@ -141,22 +141,23 @@ export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, de
 // names the scope a call opens keeps [QSNAM#verb].
 const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
-// readsItsSubject(quote) → whether a query reads the subject it is handed,
-// which a host that lifts the subject from a stream waits on only then
-// [QSHST#stdin]: where its first step that declares nothing reads it, or a
-// declaration before that step runs a body that does; a group where its
-// code reads it, a literal never, a call always, and so does a query of
-// declarations alone.
-export function readsItsSubject(steps) {
+// readsItsSubject(quote, verbsOfNoSubject?) → whether a query reads the subject
+// it is handed, which a host lifting it from a stream waits on only then
+// [QSHST#stdin]: by its first step on the success track that declares nothing,
+// a group as its code, a literal and a verb `verbsOfNoSubject` names reading
+// none, a bare name of one a declaration before it shadows, or by the body of
+// such a declaration; a query of declarations alone reads it.
+export function readsItsSubject(steps, verbsOfNoSubject = new Set()) {
+  let unread = verbsOfNoSubject;
+  const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload, unread) : !holdsALiteral(step) && !unread.has(step.get('name').name));
   for (const step of steps) {
-    const held = isFailStep(step) ? step.payload[0] : step;
-    if (!isBindStep(held)) return readsBy(held);
-    if (held.has('body') && readsBy(held.get('body'))) return true;
+    if (isFailStep(step)) continue;
+    if (!isBindStep(step)) return readsBy(step);
+    if (step.has('body') && readsBy(step.get('body'))) return true;
+    unread = new Set([...unread].filter(name => name !== splitAddress(step.get('name').name)[1]));
   }
   return true;
 }
-
-const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !holdsALiteral(step));
 
 // Whether a declaration repeats a name an earlier step of its quote
 // declared, the steps sharing one scope [QSNAM#scope].

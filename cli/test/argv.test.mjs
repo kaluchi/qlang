@@ -1,9 +1,9 @@
 // parseArgv, what the arguments of the command line ask for: a test for each
-// kind it answers, each flag and each refusal, the short and the long name of
-// a flag each, and the help text the command line writes [QSHST#answer].
+// kind it answers, each flag and each refusal, and the short and the long
+// name of a flag each [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
-import { parseArgv, HELP_TEXT } from '../src/argv.mjs';
+import { parseArgv } from '../src/argv.mjs';
 
 describe('parseArgv', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
@@ -12,12 +12,12 @@ describe('parseArgv', () => {
     expect(cliInvocation.message).toMatch(/missing query/);
   });
 
-  it('recognises -h as the short help flag', () => {
-    expect(parseArgv(['-h'])).toEqual({ kind: 'help' });
+  it('reads -h as the query of the page of the command line [QSHST#answer]', () => {
+    expect(parseArgv(['-h'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'auto', failureExitCode: 0 });
   });
 
-  it('recognises --help as the long help flag', () => {
-    expect(parseArgv(['--help'])).toEqual({ kind: 'help' });
+  it('reads --help as -h, the flags before it holding', () => {
+    expect(parseArgv(['--color=never', '--help'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'never', failureExitCode: 0 });
   });
 
   it('recognises -V as the short version flag', () => {
@@ -53,16 +53,6 @@ describe('parseArgv', () => {
       message: "qlang: '--fail' after the query is read by nothing: the flags stand before the query, which is one argument, `qlang [flags] '<query>'`\n"
     });
     expect(parseArgv(['-i', '1 | add 2', '2']).kind).toBe('usageError');
-  });
-
-  it('parses --json as the reading of stdin as JSON preceding the query', () => {
-    expect(parseArgv(['--json', '/key'])).toEqual({
-      kind: 'evalQuery',
-      queryText: '/key',
-      stdinFormat: 'json',
-      colorMode: 'auto',
-      failureExitCode: 0
-    });
   });
 
   it('parses --raw, stdin read as one string, before the query', () => {
@@ -109,6 +99,10 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '--budget=500']).kind).toBe('usageError');
   });
 
+  it('refuses --json, JSON read by `in | parseJson` [QSHST#stdin]', () => {
+    expect(parseArgv(['--json', 'get /a']).message).toBe('qlang: --json is no flag of the command line, which `qlang --help` lists\n');
+  });
+
   it('parses --fail as the code 1 a failure exits with [QSHST#answer]', () => {
     expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
       kind: 'evalQuery',
@@ -128,23 +122,8 @@ describe('parseArgv', () => {
   });
 
   it('reports a usageError when only a flag of the reading of stdin is supplied without a query', () => {
-    const cliInvocation = parseArgv(['--json']);
+    const cliInvocation = parseArgv(['--raw']);
     expect(cliInvocation.kind).toBe('usageError');
     expect(cliInvocation.message).toMatch(/missing query/);
-  });
-});
-
-describe('HELP_TEXT', () => {
-  it('tells a text --json reads that does not parse as the refusal it answers, exit 0 as every answer [QSHST#answer]', () => {
-    const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
-    expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');
-    expect(jsonMode).toContain('exit 0 as every answer');
-  });
-
-  it('tells the code every answer exits with and the one --fail gives a failure [QSHST#answer]', () => {
-    const exitCodes = HELP_TEXT.slice(HELP_TEXT.indexOf('Exit code:'), HELP_TEXT.indexOf('Examples:'));
-    expect(exitCodes).toContain('0 for every answer, a failure among them');
-    expect(exitCodes).toContain('--fail      1 where the answer is a failure');
-    expect(HELP_TEXT).toContain('[--color=MODE] [--fail] <query>');
   });
 });

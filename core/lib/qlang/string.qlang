@@ -811,9 +811,9 @@
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
-            holds, so reading it is refused. It is met where JSON text is
-            read, by `parseJson` and by a host reading the data a query
-            starts from, its `:path` the path to the number in the text,
+            holds, so reading it is refused. It is met where `parseJson`
+            reads JSON text, the text a host lifts for a query to start
+            from among it, its `:path` the path to the number in the text,
             none where the number is the whole text; a literal of qlang past
             the range is the parser's own refusal.
         ~~|

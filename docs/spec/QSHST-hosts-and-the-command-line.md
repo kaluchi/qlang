@@ -89,8 +89,8 @@ quote as the data it is. A call waits on an answer that has a `then`, a
 host's thenable and its promise of another realm among them. The engine
 a host runs on bounds the length of a vector and runs a regex alike on
 every platform. A host's setting is the first value of its pipe, the
-subject its query starts from, the command line's the noun of the
-language where standard input gives it no text [QSHST#stdin].
+subject its query starts from, the command line's what standard input
+lifts to, or the noun of the language [QSHST#stdin].
 
 The sources of the language are read where `core/package.json` maps
 them, by the road each platform asks for: the files on Node, read by the
@@ -226,7 +226,7 @@ The command line writes every answer as the language prints it,
 whatever data standard input held, a string as its text, within the one
 budget every host prints an answer within, `ANSWER_BUDGET` of the core,
 the characters of the print counted as `count` counts a string, which
-`qlang -h` names and which is never smaller than the first screen,
+is never smaller than the first screen,
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` in its place, whose facts are
@@ -241,9 +241,10 @@ it opens itself, `out` a text, `print | out` the literal of a value and
 the query, `| json`. A query that wrote to standard output by `out`
 holds the channel: its answer and its failure stay unwritten, no refusal
 of its print is raised, and the code is the one its answer exits with.
-`-i` or `--repl` opens the REPL, a query after it its first cell, and
-`-h` or `--help` and `-V` or `--version` print the usage and the
-version.
+`-i` or `--repl` opens the REPL, a query after it its first cell,
+`-h` or `--help` prints the page of `::cli`, what `qlang '::cli | doc'`
+answers, which tells the usage and names the budget by its refusal, and
+`-V` or `--version` the version.
 
 A failure is an answer, written to standard output with the exit code 0,
 so calls run side by side never stop each other; `--fail` before the
@@ -281,8 +282,8 @@ REPL prints its cells without it. A query that does not parse answers
 `::quote/ParseError`, the line the reading stopped in, within an excerpt
 around the place its `:location` names, and a caret under that place
 drawn below the alert [QSERR#print], and
-a text of standard input that does not read as the JSON it is taken for
-answers as `parseJson` refuses it [QSHST#stdin].
+a JSON text of standard input that `parseJson` refuses is the failure
+the query starts from, which its steps pass by [QSHST#stdin].
 
 Standard error and a nonzero code are for what is no answer: a defect
 raised past the fail track is written as `qlang:` and its message with
@@ -322,6 +323,9 @@ $ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) 
 $ qlang --width=80 '1' < /dev/null 2>&1; echo "exit $?"
 qlang: --width=80 is no flag of the command line, which `qlang --help` lists
 exit 2
+
+$ qlang -h < /dev/null | head -1
+|~~ The command line runs a query on what a shell hands it and prints
 ```
 
 ```qlang
@@ -334,16 +338,21 @@ exit 2
 A query starts from its subject, the value it is given, which the
 command line reads from standard input where the query reads its subject
 and standard input holds bytes, and which is otherwise `::qlang`, the
-noun of the language. The command line reads the text as JSON and, where
-the text is no JSON, as the string it is, a JSON text that holds a
-number past the doubles answering as `parseJson` refuses it; `--json`
-reads it as JSON alone, refused as `parseJson` refuses it, and `--raw`
-as text alone. A query reads its subject unless its first step that
-declares nothing is a literal, or a group whose code reads none, and no
-declaration before that step has a body that reads the subject; a query
-of declarations alone reads it. A query that reads its
-subject reads standard input to its end, waiting on a slow producer, and
-`< /dev/null` ends the wait; a terminal gives no text.
+noun of the language. The command line lifts the text by the verb
+`parseJson`, run on it before the query: a JSON text lifts to its value,
+a text that is no JSON to the string it is, and a JSON text `parseJson`
+refuses, one that holds a number past the doubles, to the failure it
+answers, which the steps of the query pass by and `!|` catches; `--raw`
+reads the text as text alone. A query reads its subject unless its first
+step on the success track that declares nothing is a literal, a group
+whose code reads none, or `in`, the verb that reads standard input as it
+came, called by its address, `any/in`, or by its name where no
+declaration before it declares a verb of that name, and no declaration
+before that step has a body that reads the subject; a query of
+declarations alone reads it. So `in | count` counts the characters of
+any text, and `in | parseJson` reads it as JSON alone. A query that
+reads its subject reads standard input to its end, waiting on a slow
+producer, and `< /dev/null` ends the wait; a terminal gives no text.
 
 ```sh
 $ echo '{"a": [1, 2]}' | qlang 'get /a | count'
@@ -361,7 +370,22 @@ true
 $ printf '[1e400]' | qlang 'count' | grep -o '::string/parseJson/NumberNotFiniteError'
 ::string/parseJson/NumberNotFiniteError
 
-$ printf 'x' | qlang --json 'count' | grep -o '::string/parseJson/TextNotJsonError'
+$ printf '[1e400]' | qlang 'count !| get /trace/0/0'
+[1e400]
+
+$ printf '[1e400]' | qlang 'in | count'
+7
+
+$ printf '[1e400]' | qlang 'any/in | count'
+7
+
+$ printf '[1,2,3]' | qlang '!| in | count'
+3
+
+$ printf '[1,2,3]' | qlang ':vec/in ~(count) | in'
+3
+
+$ printf 'x' | qlang 'in | parseJson' | grep -o '::string/parseJson/TextNotJsonError'
 ::string/parseJson/TextNotJsonError
 ```
 

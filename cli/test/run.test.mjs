@@ -1,10 +1,9 @@
 // run.mjs is the seam between cli-level intent (a query string, an
-// ioContext, and an optional initial pipeValue) and core-level
-// evaluation (a cell entry). Tests exercise the success path, the
-// parse-failure path, the `out` writer reaching the captured
-// stdout, and the `initialPipeValue` seed that lets the CLI script
-// mode deliver parsed stdin as the query's implicit subject.
-// The rules it holds: [QSHST#answer].
+// ioContext, and the text of standard input) and core-level evaluation (a
+// cell entry). Tests exercise the success path, the parse-failure path, the
+// `out` writer reaching the captured stdout, and the text lifted to the
+// query's first value.
+// The rules it holds: [QSHST#answer], [QSHST#stdin].
 
 import { describe, it, expect } from 'vitest';
 import { isErrorValue } from '@kaluchi/qlang-core';
@@ -49,11 +48,13 @@ describe('runQuery', () => {
     expect(io.stdoutEffectCount()).toBe(1);
   });
 
-  it('seeds the cell pipeValue from runOpts.initialPipeValue', async () => {
-    const io = captureIoContext();
-    const seeded = new Map([['k', 'v']]);
-    const cellEntry = await runQuery('get /k', io, { initialPipeValue: seeded });
-    expect(cellEntry.defect).toBeNull();
+  it('lifts the text of standard input it is handed to the first value of the query', async () => {
+    const cellEntry = await runQuery('get /k', captureIoContext(), { stdinText: '{"k": "v"}' });
     expect(cellEntry.result).toBe('v');
+  });
+
+  it('answers a defect the lift raised as the cell of the lift, the query unrun', async () => {
+    const cellEntry = await runQuery('count', captureIoContext(), { stdinText: { length: 1 } });
+    expect([cellEntry.source, cellEntry.result, cellEntry.defect.message]).toEqual(['parseJson', null, 'the core met object Object, a value of no kind of the language']);
   });
 });

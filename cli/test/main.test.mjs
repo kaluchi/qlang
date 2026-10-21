@@ -73,12 +73,12 @@ function captureStreams(stdinPayload = '') {
 }
 
 describe('main — flag dispatch', () => {
-  it('returns exit 0 and writes the help banner on --help', async () => {
-    const s = captureStreams();
-    const exitCode = await main(['--help'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toMatch(/Usage:/);
-    expect(s.stderrText()).toBe('');
+  it('prints on --help the page of the command line as `::cli | doc` answers it, exit 0 [QSHST#answer]', async () => {
+    const [help, page] = [captureStreams(), captureStreams()];
+    const exitCode = await main(['--help'], help.stdinStream, help.stdoutStream, help.stderrStream, {});
+    await main(['::cli | doc'], page.stdinStream, page.stdoutStream, page.stderrStream, {});
+    expect([exitCode, help.stdoutText(), help.stderrText()]).toEqual([0, page.stdoutText(), '']);
+    expect(help.stdoutText()).toContain('Usage:');
   });
 
   it('returns exit 0 and writes the version line on --version', async () => {
@@ -126,6 +126,34 @@ describe('main — standard input read for a query that reads its subject', () =
     expect(s.stdoutText()).toBe('piped text\n');
   });
 
+  it('lifts nothing for a query headed by `in`, called by its name or its address, which reads the text as it came [QSHST#stdin]', async () => {
+    for (const query of ['in | count', 'any/in | count']) {
+      const s = captureStreams('[1e400]');
+      await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+      expect(s.stdoutText(), query).toBe('7\n');
+    }
+  });
+
+  it('lifts the subject for a query headed by a step of the fail track, which runs on a failure alone [QSHST#stdin]', async () => {
+    for (const query of ['!| in | count', '!| 5 | count']) {
+      const s = captureStreams('[1,2,3]');
+      await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+      expect(s.stdoutText(), query).toBe('3\n');
+    }
+  });
+
+  it('lifts the subject for `in` called by its name where the query declared a verb of that name before it [QSHST#stdin]', async () => {
+    const s = captureStreams('[1,2,3]');
+    await main([':vec/in ~(count) | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('3\n');
+  });
+
+  it('reads stdin once for the subject and for `in`', async () => {
+    const s = captureStreams('hello world');
+    await main(['count | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('hello world\n');
+  });
+
   it('refuses a query that does not parse without reading stdin', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], openStdin(), s.stdoutStream, s.stderrStream, {});
@@ -143,13 +171,6 @@ describe('main — the code a failure exits with under --fail', () => {
     expect(exitCode).toBe(1);
     expect(s.stdoutText()).toContain('::number/add/SubjectNotNumberError!{');
     expect(s.stderrText()).toBe('');
-  });
-
-  it('exits a text --json cannot read with 1, the refusal of parseJson its answer', async () => {
-    const s = captureStreams('{"a":1');
-    const exitCode = await main(['--fail', '--json', 'get /a'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(1);
-    expect(s.stdoutText()).toContain('::string/parseJson/TextNotJsonError!{');
   });
 
   it('exits a value with 0', async () => {
@@ -231,17 +252,6 @@ describe('main — the subject standard input lifts to', () => {
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toBe('{"a":1} done\n');
   });
-
-  it('answers --json over malformed stdin with the refusal of parseJson, on stdout with exit 0 [QSHST#answer]', async () => {
-    const s = captureStreams('not-json');
-    const exitCode = await main(
-      ['--json', 'get /x'],
-      s.stdinStream, s.stdoutStream, s.stderrStream, {}
-    );
-    expect(exitCode).toBe(0);
-    expect(s.stderrText()).toBe('');
-    expect(s.stdoutText()).toContain('::string/parseJson/TextNotJsonError!{');
-  });
 });
 
 describe('main — `out` holding the channel', () => {
@@ -255,16 +265,6 @@ describe('main — `out` holding the channel', () => {
     // `out` writes `3`, and the answer, the string `print` made, is not written after it.
     expect(s.stdoutText()).toBe('3\n');
     expect(s.stderrText()).toBe('');
-  });
-
-  it('answers `in` with the text standard input held, read once for the subject and for `in`', async () => {
-    const s = captureStreams('hello world');
-    const exitCode = await main(
-      ['in | out'],
-      s.stdinStream, s.stdoutStream, s.stderrStream, {}
-    );
-    expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toBe('hello world\n');
   });
 });
 
@@ -299,20 +299,18 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain(':path /big');
   });
 
+  it('hands the query a refusal of the lift as the failure it starts from, which its steps pass by and `!|` catches [QSHST#stdin]', async () => {
+    const s = captureStreams('[1e400]');
+    await main(['count !| get /trace/0/0'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('[1e400]\n');
+  });
+
   it('answers a bare out-of-range magnitude with no path', async () => {
     const s = captureStreams('1e400');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
     expect(s.stdoutText()).not.toMatch(/^ +:path /m);
-  });
-
-  it('answers a number past the doubles under --json as parseJson refuses it, naming the path', async () => {
-    const s = captureStreams('{"deep": [0, 1e400]}');
-    const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
-    expect(s.stdoutText()).toContain(':path /deep/1');
   });
 
   it('writes a failure on stdout as every answer, exit 0', async () => {

@@ -1,0 +1,235 @@
+{
+ "set": "Y",
+ "decision": "D395",
+ "screen": "D395",
+ "screenHash": "d31137ab94ca",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-21",
+ "commit": "86b0bcdb",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1",
+  "CLAUDE_CODE_EFFORT_LEVEL": "medium"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran every query against its data file. Each answered what the task asks, except that I didn't check the Y5 tie-breaking by hand.\n\n- **Keys as keywords:** The maps in Y4, Y8, Y12 and Y13 print their keys as keywords (`:ann`, `:db`), since qlang maps only take keyword keys. The names inside the arrays in Y6, Y11 and Y14 are real strings.\n- **Y13:** A value containing a second `=` would be cut short. The file has none.\n\nY1: get /data/users | filter ~(query /profile/country \"\" | lower | eq \"de\") | count\nY2: get /data/users | filter ~(query /email null | ne null) | map ~(get /email | split \"@\" | last | lower) | distinct | sort\nY3: get /data/users | filter ~(query /active false | eq true) | map ~(query /profile/age null) | filter ~(type | eq ::number) | avg | round 1\nY4: filter ~(get /status | eq \"open\") | map ~(query /assignee null | if (eq null) ~(\"unassigned\") ~(it)) | groupBy | map ~(count)\nY5: map ~(get {:id /id :c ~(query /comments [] | count)}) | sort ~(get [~(get /c | desc) /id]) | take 3 | map ~(get /id)\nY6: get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort\nY7: get {:name /name :major ~(get /version | split \".\" | first | toNumber) :depCount ~(get [/dependencies /devDependencies] | map ~(keys) | flat | distinct | count) :hasTest ~(get /scripts | has /test)}\nY8: lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | eq \"ERROR\") | map ~(get /2) | groupBy | map ~(count)\nY9: lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | anyOf ~(eq \"WARN\") ~(eq \"ERROR\")) | map ~(get /2) | distinct | sort\nY10: lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :p ~(get /4 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | eq \"paid\") | map ~(mulOf /q /p) | sum | mul 100 | round | div 100\nY11: lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | ne \"cancelled\") | groupBy /c | map ~(map ~(get /q) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get [~(get /total | desc) /customer]) | take 2\nY12: get /services | entries | filter ~(get /1 | query /enabled true | ne false) | map ~(get [~(get /0) ~(get /1 | query /port null | if (eq null) ~(8080) ~(it))]) | toMap\nY13: lines | map ~(trim) | filter ~(startsWith \"DB_\") | map ~(split \"=\") | map ~(get [~(get /0 | trim | drop 3 | lower | toKeyword) ~(get /1 | trim)]) | toMap\nY14: \"the Quick brown fox jumps over the quick Dog and the lazy dog Fox\" | split \" \" | map ~(lower) | groupBy | map ~(count) | entries | map ~(get {:word ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /word]) | take 3",
+ "failed": false,
+ "requests": 12,
+ "turns": 13,
+ "inputTokens": 160760,
+ "outputTokens": 4397,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 400 issues.json; echo; cat manifest.json; head -5 logs.txt; head -5 orders.csv; cat config.json; cat env.txt",
+   "answered": "value",
+   "head": "config.json env.txt issues.json logs.txt manifest.json orders.csv users.json { \"page\": 1, \"data\": { \"users\": [ { \"id\": 1, \"name\": \"Alice\", \"email\": \"alice@Example.com\", \"active\": true, \"profile\": { \"country\": \"DE\", \"age\": 34 }, \"roles\": [ \""
+  },
+  {
+   "command": "qlang 'get /data/users | filter ~(query /profile/country \"\" | ne null | allOf ~(query /profile/country \"\" | lower | eq \"de\")) | count' < users.json; qlang '::string | manifest' ; qlang '::vec | manifest'",
+   "answered": "path/SubjectHasNoPartsError",
+   "head": "|~| raised, and no !| caught it ::path/SubjectHasNoPartsError!{ :segment :profile :path /profile/country :actualType ::boolean :trace ::trace[ ::frame[true ~(query /profile/country \"\" | lower | eq \"de\")] ::frame[true ~(allOf ~(query /profil"
+  },
+  {
+   "command": "qlang 'get /data/users | filter ~(query /profile/country \"\" | lower | eq \"de\") | count' < users.json; qlang 'get /data/users | map ~(get {:e /email :p /profile})' < users.json | head -30",
+   "answered": "path/KeyNotInMapError",
+   "head": "3 |~| raised, and no !| caught it ::path/KeyNotInMapError!{ :key :email :nearest [] :path /email :actualType ::map :trace ::trace[ ::frame[{:id 6 :name \"Frank\" :active false :profile {:age 52} :roles [\"dev\"]} ~(get {:e /email :p /profile})]"
+  },
+  {
+   "command": "qlang '\"a@B.com\" | split \"@\" | last | lower'; qlang '[1 2 4] | avg | round 1'; qlang '1.25 | round'",
+   "answered": "value",
+   "head": "b.com 2.3 1"
+  },
+  {
+   "command": "qlang 'get /data/users | filter ~(query /email null | ne null) | map ~(get /email | split \"@\" | last | lower) | distinct | sort' < users.json; qlang 'get /data/users | filter ~(query /active false | eq true) | map ~(query /profile/age null) | filter ~(type | eq ::number) | avg | round 1' < users.json; qlang 'get /data/users | map ~(get {:a /active :g /profile})' < users.json | tail -30",
+   "answered": "value",
+   "head": "[\"corp.io\" \"example.com\" \"mail.org\"] 31.5 { :a true :g {:country \"DE\" :age 34} } { :a true :g {:country \"us\" :age 28} } { :a false :g {:country \"de\" :age null} } {:a true :g null} { :a true :g {:country \"De\" :age 41} } { :a false :g {:age 5"
+  },
+  {
+   "command": "qlang 'filter ~(get /status | eq \"open\") | map ~(query /assignee null | if (eq null) ~(\"unassigned\") ~(it)) | groupBy | map ~(count)' < issues.json; qlang 'map ~(get {:id /id :c ~(query /comments [] | count)}) | sort ~(get [~(get /c | desc) /id]) | take 3 | map ~(get /id)' < issues.json",
+   "answered": "value",
+   "head": "{ :ann 2 :unassigned 2 :bob 1 :cy 1 } [106 101 104]"
+  },
+  {
+   "command": "qlang 'get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0) | distinct | sort' < manifest.json; qlang 'get {:name /name :major ~(get /version | split \".\" | first | toNumber) :depCount ~(get [/dependencies /devDependencies] | map ~(keys) | flat | distinct | count) :hasTest ~(get /scripts | has /test)}' < manifest.json",
+   "answered": "value",
+   "head": "[:express :jest :typescript :zod] { :name \"demo-app\" :major 2 :depCount 7 :hasTest true }"
+  },
+  {
+   "command": "qlang 'get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort' < manifest.json; qlang --raw 'lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | eq \"ERROR\") | map ~(get /2) | groupBy | map ~(count)' < logs.txt;  qlang --raw 'lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | anyOf ~(eq \"WARN\") ~(eq \"ERROR\")) | map ~(get /2) | distinct | sort' < logs.txt",
+   "answered": "value",
+   "head": "[\"express\" \"jest\" \"typescript\" \"zod\"] { :db 3 :api 1 :auth 1 } [\"api\" \"auth\" \"cache\" \"db\"]"
+  },
+  {
+   "command": "cat orders.csv; qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :p ~(get /4 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | eq \"paid\") | map ~(mulOf /q /p) | sum | mul 100 | round | div 100' < orders.csv",
+   "answered": "value",
+   "head": "id,customer,item,qty,price,status 1,Acme,widget,10,2.50,paid 2,Beta,gadget,3,19.99,PAID 3,Acme,gizmo,1,100.00,cancelled 4,Cyan,widget,7,2.50,pending 5,Beta,widget,20,2.45,Paid 6,Cyan,gizmo,2,99.90,paid 7,Acme,gadget,5,19.99,pending 8,Dune,w"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | ne \"cancelled\") | groupBy /c | map ~(sumOf /0/q /1/q) ' < orders.csv | head -5; qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | ne \"cancelled\") | groupBy /c | map ~(map ~(get /q) | sum) | entries | map ~(get {:customer /0 :total /1}) | sort ~(get [~(get /total | desc) /customer]) | take 2' < orders.csv",
+   "answered": "value",
+   "head": "{ :Acme 15 :Beta 23 :Cyan 9 } [{:customer :Beta :total 23} {:customer :Acme :total 15}]"
+  },
+  {
+   "command": "qlang --raw 'lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | ne \"cancelled\") | groupBy /c | map ~(map ~(get /q) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get [~(get /total | desc) /customer]) | take 2' < orders.csv\nqlang 'get /services | entries | filter ~(get /1 | query /enabled true | ne false) | map ~(get [~(get /0) ~(get /1 | query /port null | if (eq null) ~(8080) ~(it))]) | toMap' < config.json",
+   "answered": "value",
+   "head": "[{:customer \"Beta\" :total 23} {:customer \"Acme\" :total 15}] { :web 3000 :api 8080 :cache 6379 :metrics 8080 }"
+  },
+  {
+   "command": "qlang --raw 'lines | map ~(trim) | filter ~(startsWith \"DB_\") | map ~(split \"=\") | map ~(get [~(get /0 | trim | drop 3 | lower | toKeyword) ~(get /1 | trim)]) | toMap' < env.txt\nqlang '\"the Quick brown fox jumps over the quick Dog and the lazy dog Fox\" | split \" \" | map ~(lower) | groupBy | map ~(count) | entries | map ~(get {:word ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /word]) | take 3'",
+   "answered": "value",
+   "head": "{ :host \"localhost\" :port \"5432\" :user \"admin\" :ssl \"true\" } [{:word \"the\" :count 3} {:word \"dog\" :count 2} {:word \"fox\" :count 2}]"
+  }
+ ],
+ "score": [
+  {
+   "task": "Y1",
+   "query": "get /data/users | filter ~(query /profile/country \"\" | lower | eq \"de\") | count",
+   "answer": 3,
+   "solved": true
+  },
+  {
+   "task": "Y2",
+   "query": "get /data/users | filter ~(query /email null | ne null) | map ~(get /email | split \"@\" | last | lower) | distinct | sort",
+   "answer": [
+    "corp.io",
+    "example.com",
+    "mail.org"
+   ],
+   "solved": true
+  },
+  {
+   "task": "Y3",
+   "query": "get /data/users | filter ~(query /active false | eq true) | map ~(query /profile/age null) | filter ~(type | eq ::number) | avg | round 1",
+   "answer": 31.5,
+   "solved": true
+  },
+  {
+   "task": "Y4",
+   "query": "filter ~(get /status | eq \"open\") | map ~(query /assignee null | if (eq null) ~(\"unassigned\") ~(it)) | groupBy | map ~(count)",
+   "answer": {
+    "ann": 2,
+    "unassigned": 2,
+    "bob": 1,
+    "cy": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "Y5",
+   "query": "map ~(get {:id /id :c ~(query /comments [] | count)}) | sort ~(get [~(get /c | desc) /id]) | take 3 | map ~(get /id)",
+   "answer": [
+    106,
+    101,
+    104
+   ],
+   "solved": true
+  },
+  {
+   "task": "Y6",
+   "query": "get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | distinct | sort",
+   "answer": [
+    "express",
+    "jest",
+    "typescript",
+    "zod"
+   ],
+   "solved": true
+  },
+  {
+   "task": "Y7",
+   "query": "get {:name /name :major ~(get /version | split \".\" | first | toNumber) :depCount ~(get [/dependencies /devDependencies] | map ~(keys) | flat | distinct | count) :hasTest ~(get /scripts | has /test)}",
+   "answer": {
+    "name": "demo-app",
+    "major": 2,
+    "depCount": 7,
+    "hasTest": true
+   },
+   "solved": true
+  },
+  {
+   "task": "Y8",
+   "query": "lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | eq \"ERROR\") | map ~(get /2) | groupBy | map ~(count)",
+   "answer": {
+    "db": 3,
+    "api": 1,
+    "auth": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "Y9",
+   "query": "lines | filter ~(ne \"\") | map ~(split \" \") | filter ~(get /1 | anyOf ~(eq \"WARN\") ~(eq \"ERROR\")) | map ~(get /2) | distinct | sort",
+   "answer": [
+    "api",
+    "auth",
+    "cache",
+    "db"
+   ],
+   "solved": true
+  },
+  {
+   "task": "Y10",
+   "query": "lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :p ~(get /4 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | eq \"paid\") | map ~(mulOf /q /p) | sum | mul 100 | round | div 100",
+   "answer": 333.77,
+   "solved": true
+  },
+  {
+   "task": "Y11",
+   "query": "lines | drop 1 | filter ~(ne \"\") | map ~(split \",\") | map ~(get {:c /1 :q ~(get /3 | toNumber) :s ~(get /5 | trim | lower)}) | filter ~(get /s | ne \"cancelled\") | groupBy /c | map ~(map ~(get /q) | sum) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get [~(get /total | desc) /customer]) | take 2",
+   "answer": [
+    {
+     "customer": "Beta",
+     "total": 23
+    },
+    {
+     "customer": "Acme",
+     "total": 15
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "Y12",
+   "query": "get /services | entries | filter ~(get /1 | query /enabled true | ne false) | map ~(get [~(get /0) ~(get /1 | query /port null | if (eq null) ~(8080) ~(it))]) | toMap",
+   "answer": {
+    "web": 3000,
+    "api": 8080,
+    "cache": 6379,
+    "metrics": 8080
+   },
+   "solved": true
+  },
+  {
+   "task": "Y13",
+   "query": "lines | map ~(trim) | filter ~(startsWith \"DB_\") | map ~(split \"=\") | map ~(get [~(get /0 | trim | drop 3 | lower | toKeyword) ~(get /1 | trim)]) | toMap",
+   "answer": {
+    "host": "localhost",
+    "port": "5432",
+    "user": "admin",
+    "ssl": "true"
+   },
+   "solved": true
+  },
+  {
+   "task": "Y14",
+   "query": "\"the Quick brown fox jumps over the quick Dog and the lazy dog Fox\" | split \" \" | map ~(lower) | groupBy | map ~(count) | entries | map ~(get {:word ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /word]) | take 3",
+   "answer": [
+    {
+     "word": "the",
+     "count": 3
+    },
+    {
+     "word": "dog",
+     "count": 2
+    },
+    {
+     "word": "fox",
+     "count": 2
+    }
+   ],
+   "solved": true
+  }
+ ]
+}

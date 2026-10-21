@@ -141,13 +141,16 @@ export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, de
 // names the scope a call opens keeps [QSNAM#verb].
 const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
-// readsItsSubject(quote) → whether a query reads the subject it is handed,
-// which a host that lifts the subject from a stream waits on only then
-// [QSHST#stdin]: where its first step that declares nothing reads it, or a
-// declaration before that step runs a body that does; a group where its
-// code reads it, a literal never, a call always, and so does a query of
-// declarations alone.
-export function readsItsSubject(steps) {
+// readsItsSubject(quote, wordsOfNoSubject?) → whether a query reads the
+// subject it is handed, which a host that lifts the subject from a stream
+// waits on only then [QSHST#stdin]: where its first step that declares nothing
+// reads it, or a declaration before that step runs a body that does; a group
+// where its code reads it, a literal never, a call of a word of the host that
+// reads no subject, named in `wordsOfNoSubject`, never, any other call always,
+// and so does a query of declarations alone [D402].
+export function readsItsSubject(steps, wordsOfNoSubject = NO_WORDS) {
+  const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload, wordsOfNoSubject)
+    : !holdsALiteral(step) && !wordsOfNoSubject.has(step.get('name').name));
   for (const step of steps) {
     const held = isFailStep(step) ? step.payload[0] : step;
     if (!isBindStep(held)) return readsBy(held);
@@ -156,7 +159,7 @@ export function readsItsSubject(steps) {
   return true;
 }
 
-const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload) : !holdsALiteral(step));
+const NO_WORDS = new Set();
 
 // Whether a declaration repeats a name an earlier step of its quote
 // declared, the steps sharing one scope [QSNAM#scope].

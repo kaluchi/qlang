@@ -1,18 +1,18 @@
 // runQuery(queryText, ioContext, runOpts) → the cell of a session seeded
 // with the command line's sources, whose verbs of the streams read and
 // write through `ioContext`, the query's first value the one
-// `runOpts.initialPipeValue` gives, and a failure's cell with the prose of
-// the page that explains it.
+// `runOpts.initialPipeValue` gives or the text `runOpts.stdinText` lifts to,
+// raw under `runOpts.raw`, a refusal of the lift the cell [D402], and a
+// failure's cell with the prose of the page that explains it.
 
 import { isErrorValue, createSession } from '@kaluchi/qlang-core';
 import { cliSources } from './cli-sources.mjs';
+import { liftOfInput } from './stdin.mjs';
 
 export async function runQuery(queryText, ioContext, runOpts = {}) {
   const session = await createSession({ sources: cliSources(ioContext) });
-  const evalOpts = 'initialPipeValue' in runOpts
-    ? { initialPipeValue: runOpts.initialPipeValue }
-    : {};
-  const cellEntry = await session.evalCell(queryText, evalOpts);
+  const lifted = 'stdinText' in runOpts ? await liftOfInput(session, runOpts.stdinText, runOpts.raw === true) : runOpts;
+  const cellEntry = lifted.refused ?? await session.evalCell(queryText, lifted);
   if (!isErrorValue(cellEntry.result)) return cellEntry;
   return { ...cellEntry, page: await proseOfThePage(cellEntry.result, cellEntry.scopeAfterCell) };
 }

@@ -10,7 +10,7 @@ import { parseArgv, HELP_TEXT, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
 import { runRepl } from './repl.mjs';
-import { readStdinToString, memoiseStdinReader, liftStdinToPipeValue } from './stdin.mjs';
+import { readStdinToString, memoiseStdinReader } from './stdin.mjs';
 
 // Whether the answer is painted: as `--color` says, and under `auto` as
 // `FORCE_COLOR`, then `NO_COLOR` say, and otherwise where stdout is a
@@ -49,6 +49,11 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
+// The words of the command line that read no subject, `in` reading the
+// text of standard input as it came, called by its name or its address
+// [D402].
+const WORDS_OF_NO_SUBJECT = new Set(['in', 'any/in']);
+
 // Whether a query reads the subject standard input lifts to [QSHST#stdin]; a
 // query that does not parse reads none, its refusal written at once.
 function queryReadsStdin(queryText) {
@@ -58,7 +63,7 @@ function queryReadsStdin(queryText) {
   } catch {
     return false;
   }
-  return readsItsSubject(quote);
+  return readsItsSubject(quote, WORDS_OF_NO_SUBJECT);
 }
 
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env) {
@@ -92,11 +97,6 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const queryText = queryAsWritten(cliInvocation.queryText, env);
   const readsStdin = queryReadsStdin(queryText);
   const stdinText = readsStdin ? await readStdinToString(stdinStream) : '';
-  const lifted = liftStdinToPipeValue(stdinText, cliInvocation.stdinFormat);
-  // A text of standard input that does not read as the JSON it is taken
-  // for answers as `parseJson` refuses it, a failure like every other
-  // [QSHST#answer].
-  const unreadable = lifted.parseError !== undefined || lifted.codecError !== undefined;
 
   // `in` reads the text standard input already gave, or reads it then.
   const stdinReader = memoiseStdinReader(() => (readsStdin ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
@@ -105,9 +105,9 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
 
   const cellEntry = await runQuery(
-    unreadable ? 'parseJson' : queryText,
+    queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
-    { initialPipeValue: unreadable ? stdinText : lifted.pipeValue }
+    { stdinText, raw: cliInvocation.stdinFormat === 'raw' }
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {

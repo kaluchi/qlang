@@ -108,15 +108,6 @@ describe('CLI: piped stdin — the readings of stdin', () => {
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('hello world');
   });
-
-  it('--json over malformed input answers the refusal of parseJson with exit 0 [QSHST#answer]', async () => {
-    const { exitCode, stdout, stderr } = await runCli(['--json', 'get /name'], {
-      stdin: 'not-json-at-all{'
-    });
-    expect(exitCode).toBe(0);
-    expect(stdout).toContain('::string/parseJson/TextNotJsonError!{');
-    expect(stderr).toBe('');
-  });
 });
 
 describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `.exit`', () => {

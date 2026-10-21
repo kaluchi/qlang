@@ -14,7 +14,7 @@ Provides two binaries — `qlang` and its short alias `ql`.
 ## Usage
 
 ```
-qlang [--json | --raw] [--color=MODE] [--fail] <query>
+qlang [--raw] [--color=MODE] [--fail] <query>
 qlang -i | --repl [<query>]
 qlang -h | --help
 qlang -V | --version

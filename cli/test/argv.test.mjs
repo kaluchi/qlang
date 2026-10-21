@@ -55,16 +55,6 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '1 | add 2', '2']).kind).toBe('usageError');
   });
 
-  it('parses --json as the reading of stdin as JSON preceding the query', () => {
-    expect(parseArgv(['--json', '/key'])).toEqual({
-      kind: 'evalQuery',
-      queryText: '/key',
-      stdinFormat: 'json',
-      colorMode: 'auto',
-      failureExitCode: 0
-    });
-  });
-
   it('parses --raw, stdin read as one string, before the query', () => {
     expect(parseArgv(['--raw', 'append " world"'])).toEqual({
       kind: 'evalQuery',
@@ -109,6 +99,10 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '--budget=500']).kind).toBe('usageError');
   });
 
+  it('refuses --json, JSON read by `in | parseJson` [D402]', () => {
+    expect(parseArgv(['--json', 'get /a']).message).toBe('qlang: --json is no flag of the command line, which `qlang --help` lists\n');
+  });
+
   it('parses --fail as the code 1 a failure exits with [QSHST#answer]', () => {
     expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
       kind: 'evalQuery',
@@ -128,17 +122,17 @@ describe('parseArgv', () => {
   });
 
   it('reports a usageError when only a flag of the reading of stdin is supplied without a query', () => {
-    const cliInvocation = parseArgv(['--json']);
+    const cliInvocation = parseArgv(['--raw']);
     expect(cliInvocation.kind).toBe('usageError');
     expect(cliInvocation.message).toMatch(/missing query/);
   });
 });
 
 describe('HELP_TEXT', () => {
-  it('tells a text --json reads that does not parse as the refusal it answers, exit 0 as every answer [QSHST#answer]', () => {
-    const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
-    expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');
-    expect(jsonMode).toContain('exit 0 as every answer');
+  it('tells a query headed by in, which reads the text as it came, and the read of JSON alone [D402]', () => {
+    const defaultMode = HELP_TEXT.slice(HELP_TEXT.indexOf('(default)   JSON'), HELP_TEXT.indexOf('--raw  '));
+    expect(defaultMode).toContain("query headed by 'in' reads the text as it came");
+    expect(defaultMode).toContain("'in | parseJson' reads it as JSON alone");
   });
 
   it('tells the code every answer exits with and the one --fail gives a failure [QSHST#answer]', () => {

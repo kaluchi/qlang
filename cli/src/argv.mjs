@@ -5,7 +5,7 @@ const _cliPackage = createRequire(import.meta.url)('../package.json');
 
 export const HELP_TEXT = `qlang \u2014 pipeline query language
 
-Usage:  qlang [--json | --raw] [--color=MODE] [--fail] <query>
+Usage:  qlang [--raw] [--color=MODE] [--fail] <query>
         qlang -i | --repl [<query>]
         qlang -h | --help
         qlang -V | --version
@@ -24,9 +24,9 @@ pipe characters. qlang '::cli | doc' reads this command line, and
 qlang '::qlang | doc' the language.
 
 Reading stdin (script):
-  (default)   JSON is read as values, any other text as one string
-  --json      stdin must be JSON; a text that does not parse answers
-              ::string/parseJson/TextNotJsonError, exit 0 as every answer
+  (default)   JSON is read as values, any other text as one string; a
+              query headed by 'in' reads the text as it came, and
+              'in | parseJson' reads it as JSON alone
   --raw       stdin is one string, JSON text too
 
 Output budget:
@@ -87,7 +87,7 @@ const noFlag = argument => ({
 //   { kind: 'evalQuery', queryText, stdinFormat, colorMode, failureExitCode }
 //   { kind: 'repl', initialQuery }
 //   { kind: 'help' }, { kind: 'version' }, { kind: 'usageError', message }
-// the format standard input is read in, `auto`, `json` or `raw`, the
+// the format standard input is read in, `auto` or `raw`, the
 // colour `auto`, `always` or `never`, and the code a failure exits with, 0,
 // or 1 under `--fail` [QSHST#answer].
 export function parseArgv(argvSlice) {
@@ -102,7 +102,6 @@ export function parseArgv(argvSlice) {
     if (head === '-h' || head === '--help')    return { kind: 'help' };
     if (head === '-V' || head === '--version') return { kind: 'version' };
     if (head === '-i' || head === '--repl') { isRepl = true; cursor += 1; continue; }
-    if (head === '--json') { stdinFormat = 'json'; cursor += 1; continue; }
     if (head === '--raw')  { stdinFormat = 'raw';  cursor += 1; continue; }
     if (head === '--fail') { failureExitCode = 1; cursor += 1; continue; }
     if (head.startsWith('--color=')) {

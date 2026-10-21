@@ -402,6 +402,13 @@ describe('readsItsSubject', () => {
     for (const query of ['get [/a 1]', 'get {:a /b}', '(get /a)', '((get /a) | count)']) expect(readsOf(query), query).toBe(true);
   });
 
+  it('reads none where its first step that declares nothing calls a word of the host that reads none, by the name the host gives [D402]', () => {
+    const words = new Set(['in', 'any/in']);
+    for (const query of ['in | count', 'any/in', '(in) | count', ':x 1 | in']) expect(readsItsSubject(parse(query), words), query).toBe(false);
+    for (const query of ['count | in', ':x (get /a) | in', 'vec/in']) expect(readsItsSubject(parse(query), words), query).toBe(true);
+    expect(readsOf('in')).toBe(true);
+  });
+
   it('holds that a call and a blank query read it', () => {
     for (const query of ['get /a', 'doc', '']) expect(readsOf(query), query).toBe(true);
   });

@@ -307,6 +307,9 @@
   // line break [QSSYN#doc].
   let spanOfALine = false;
 
+  // The docs a span between backquotes opened and did not close [D408].
+  let docsInASpan = 0;
+
   // Whether the parser reads the last line of the source, where the quote of a
   // line doc names its continuations [QSSYN#doc].
   const onTheLastLine = () => offset() >= lineStarts[lineStarts.length - 1];
@@ -881,7 +884,7 @@ LineDocPart
 BlockDocPart
   = ProseRunOfABlock { return text(); }
   / DocQuote
-  / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
+  / open:$("`"+) &{ docsInASpan = 0; return true; } (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / DocInASpan / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / QuoteSpan
   / NestedLineDocSpan
@@ -905,6 +908,12 @@ ProseRunOfABlock "character of prose"
 
 ProseOfABlock "character of prose"
   = [^`]
+
+// A doc nested in a span between backquotes of a block is its prose [D408].
+DocInASpan "character of prose"
+  = "|~~|"
+  / "|~~" &{ docsInASpan += 1; return true; }
+  / "~~|" &{ return docsInASpan > 0; } &{ docsInASpan -= 1; return true; }
 
 ProseOfAString "character of prose"
   = !["\\] @QuoteSpanChar

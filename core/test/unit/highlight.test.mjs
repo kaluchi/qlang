@@ -334,6 +334,12 @@ describe('tokenize — the code a doc holds', () => {
     ]);
   });
 
+  it('paints a span between backquotes that holds a doc nested in it as the code it spells, the spans after it as written [D408]', async () => {
+    expect(await painted('|~~ a `:f |~~ b ~~| 1` then `count` ~~|')).toEqual([
+      ['|~~ a `', 'doc'], [':f', 'declaration'], ['|~~ b ~~|', 'doc'], ['1', 'number'], ['` then `', 'doc'], ['count', 'verb'], ['` ~~|', 'doc']
+    ]);
+  });
+
   it('closes a doc inside a quote of a doc at its own marker', async () => {
     const tokens = await painted('|~~ ~(|~~ a ~~| | count) after ~~|');
     expect(tokens.at(-1)).toEqual([' after ~~|', 'doc']);

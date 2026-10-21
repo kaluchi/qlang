@@ -307,7 +307,7 @@
   // line break [QSSYN#doc].
   let spanOfALine = false;
 
-  // The docs a span between backquotes opened and did not close [D408].
+  // The docs a span between backquotes opened and did not close [QSSYN#doc].
   let docsInASpan = 0;
 
   // Whether the parser reads the last line of the source, where the quote of a
@@ -909,7 +909,7 @@ ProseRunOfABlock "character of prose"
 ProseOfABlock "character of prose"
   = [^`]
 
-// A doc nested in a span between backquotes of a block is its prose [D408].
+// A doc nested in a span between backquotes of a block is its prose [QSSYN#doc].
 DocInASpan "character of prose"
   = "|~~|"
   / "|~~" &{ docsInASpan += 1; return true; }

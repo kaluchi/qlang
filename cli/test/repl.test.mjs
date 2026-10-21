@@ -205,7 +205,7 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints its answer whole, past the budget of every answer as well,
-// and an error as its alert within it, without the prose of its page [D406].
+// and an error as its alert within it, without the prose of its page [QSHST#repl].
 describe('runRepl — the bound of an answer', () => {
   it('prints an answer past the budget whole, its last element among it', async () => {
     const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');

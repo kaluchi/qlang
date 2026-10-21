@@ -334,7 +334,7 @@ describe('tokenize — the code a doc holds', () => {
     ]);
   });
 
-  it('paints a span between backquotes that holds a doc nested in it as the code it spells, the spans after it as written [D408]', async () => {
+  it('paints a span between backquotes that holds a doc nested in it as the code it spells, the spans after it as written [QSSYN#doc]', async () => {
     expect(await painted('|~~ a `:f |~~ b ~~| 1` then `count` ~~|')).toEqual([
       ['|~~ a `', 'doc'], [':f', 'declaration'], ['|~~ b ~~|', 'doc'], ['1', 'number'], ['` then `', 'doc'], ['count', 'verb'], ['` ~~|', 'doc']
     ]);

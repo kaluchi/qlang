@@ -131,7 +131,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
 
 // An answer prints on stdout whole and a failure as `boundAnswer` shows it, but
 // a value of a cell that wrote by `out`, a failure, one that does not parse with
-// its caret, without the prose of its page [D406]; a defect raised past the
+// its caret, without the prose of its page; a defect raised past the
 // fail track as the cell ran or as its answer printed on stderr [QSHST#repl].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {

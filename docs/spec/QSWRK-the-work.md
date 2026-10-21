@@ -437,8 +437,9 @@ chapters. The journal, `docs/journal/`, holds the aim,
 `docs/journal/AIM.md`, the yardstick a choice is weighed by, the records
 in force at its root, those out of force under `replaced/`, and the
 research under `research/`, the reviews, the critiques of the records,
-the outside audits, the checks of the chapters and the pentimento
-audits, each folder with a README that says what it holds. The screen of
+the studies of the prior art, the outside audits, the checks of the
+chapters and the pentimento audits, each folder with a README that says
+what it holds. The screen of
 the work, `npm run desk`, and the sensors under `scripts/sensors/`, which
 read the transcripts, the history and the files, compute what a session
 starts from. The sensors that read the transcripts read every
@@ -667,7 +668,11 @@ A report of the research is named after the record that called for it and
 numbered in the order the reports of that record ran, as the runs of the
 benchmark are named after the record they measure: a review of the work
 a record did, `docs/journal/research/reviews/D324~4.md`; a critique of an
-open record, `docs/journal/research/design-check/D329~2.md`; an outside
+open record, `docs/journal/research/design-check/D329~2.md`; a study of
+the prior art of a question a record holds, by a reader the session starts
+who searches the work outside the tree, the documentation, the code, the
+issues and the papers of others, each finding with its source,
+`docs/journal/research/prior-art/D404~1.md`; an outside
 audit, `docs/journal/research/outside-audit/D327~1.md`; and a check of
 the chapters and a pentimento audit, whose readers write into the folder
 of the run, `docs/journal/research/spec-check/D323~1/` and
@@ -676,10 +681,12 @@ of the run, `docs/journal/research/spec-check/D323~1/` and
 of the research and the form of what it holds, a report or a run, and
 the walk and the conventions build their regexes from it. Every report
 opens with its head, what it is and the record that called for it, the
-tree it read and the baseline that tree stood on, when it ran and how, a
-path it names read as `git show <tree>:<path>`; the record holds each run
-under `Runs.`, a line the script writes as it writes the report, why it
-ran given by `--why`; and beside each report stands the session's
+tree it read and the baseline that tree stood on, when it ran and how,
+the tools that search and fetch the web among them for a study of the
+prior art, a path it names read as `git show <tree>:<path>`; the record
+holds each run under `Runs.`, a line the script writes as it writes the
+report, why it ran given by `--why`, or the session for a study it
+started; and beside each report stands the session's
 reading, `D329~2~reading.md`, or the `reading.md` of a run, every finding
 with its probe and its fate, a record in transit, a target, an open
 record, a record that holds it already, or none with the probe that sets
@@ -687,6 +694,11 @@ it aside. No run trims the reports a branch made, and the move of the
 baseline cleans them [QSWRK#baseline]. The README of the research,
 `docs/journal/research/README.md`, tells its folders, what calls each
 report into being, how each is named and how long it stays.
+
+```sh
+$ node -e "import('./scripts/decision-records.mjs').then(m=>console.log(m.foldersOfForm('report')))"
+design-check|reviews|outside-audit|prior-art
+```
 
 The scripts of the research start their readers alike, through
 `scripts/research-runs.mjs`, which holds the start of a clean reader and

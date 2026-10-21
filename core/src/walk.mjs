@@ -146,7 +146,7 @@ const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !==
 // [QSHST#stdin]: by its first step on the success track that declares nothing,
 // a group as its code, a literal and a verb `verbsOfNoSubject` names reading
 // none, a bare name of one a declaration before it shadows, or by the body of
-// such a declaration; a query of declarations alone reads it [D402].
+// such a declaration; a query of declarations alone reads it.
 export function readsItsSubject(steps, verbsOfNoSubject = new Set()) {
   let unread = verbsOfNoSubject;
   const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload, unread) : !holdsALiteral(step) && !unread.has(step.get('name').name));

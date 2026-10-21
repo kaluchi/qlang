@@ -4,7 +4,7 @@
    served subject and the values of their inputs, but that of `tap`, which
    reads the state of its call.
    The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#answer],
-   [D402]. ~|
+   [QSHST#stdin]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints

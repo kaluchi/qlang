@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 
 const _cliPackage = createRequire(import.meta.url)('../package.json');
 
-// The query `-h` runs, the page of the command line [D402].
+// The query `-h` runs, the page of the command line [QSHST#answer].
 const HELP_QUERY = '::cli | doc';
 
 export const VERSION_LINE = `@kaluchi/qlang-cli ${_cliPackage.version}\n`;

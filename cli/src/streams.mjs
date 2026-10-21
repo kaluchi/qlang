@@ -21,7 +21,7 @@ function makeWriter(writer, recordEffect, SubjectError) {
   };
 }
 
-// The address of `in`, which reads no subject [D402].
+// The address of `in`, which reads no subject [QSHST#stdin].
 export const IN_ADDRESS = 'any/in';
 
 export function streamPrimitives(ioContext) {

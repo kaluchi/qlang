@@ -45,7 +45,7 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// `in`, which reads no subject, by its address and its name [D402].
+// `in`, which reads no subject, by its address and its name [QSHST#stdin].
 const VERBS_OF_NO_SUBJECT = new Set([IN_ADDRESS, splitAddress(IN_ADDRESS)[1]]);
 
 // Whether a query that parses reads the subject stdin lifts to [QSHST#stdin].

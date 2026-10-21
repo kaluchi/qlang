@@ -50,7 +50,7 @@ describe('memoiseStdinReader', () => {
   });
 });
 
-describe('liftOfInput — the first value standard input lifts to by parseJson [D402]', () => {
+describe('liftOfInput — the first value standard input lifts to by parseJson [QSHST#stdin]', () => {
   it('starts from the noun of the language when stdin carries no bytes, raw or not', async () => {
     const session = await createSession();
     expect([await liftOfInput(session, '', false), await liftOfInput(session, '', true)]).toEqual([{ initialPipeValue: DEFAULT_SUBJECT }, { initialPipeValue: DEFAULT_SUBJECT }]);

@@ -35,7 +35,7 @@ export const DEFAULT_SUBJECT = makeTag('qlang');
 // language for no text, the text under `--raw`, and else what `parseJson`
 // answers in a cell the session numbers not, a text that is no JSON staying
 // the string and any other refusal the failure the query starts from; or
-// `{ raised }`, the cell of a defect of the lift [D402].
+// `{ raised }`, the cell of a defect of the lift.
 export async function liftOfInput(session, stdinText, raw) {
   if (stdinText.length === 0) return { initialPipeValue: DEFAULT_SUBJECT };
   if (raw) return { initialPipeValue: stdinText };

@@ -39,7 +39,7 @@
    написан заново, проба `--json` заменена пробами D402.
    ```sh
    $ node scripts/sensors/run-probes.mjs docs/spec/QSHST-hosts-and-the-command-line.md | grep -c '^ok'
-   34
+   38
    ```
 
 2. **Справка отложена мейнтейнеру по снятому доводу.** Подтвердилось.
@@ -211,7 +211,7 @@
 
 [D295]: ../../D295.md
 [D340]: ../../D340.md
-[D402]: ../../D402.md
+[D402]: ../../replaced/D402.md
 [QSLIT#json]: ../../../spec/QSLIT-values-and-literals.md#json
 [QSHST#stdin]: ../../../spec/QSHST-hosts-and-the-command-line.md#stdin
 [QSHST#answer]: ../../../spec/QSHST-hosts-and-the-command-line.md#answer

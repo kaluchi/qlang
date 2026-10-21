@@ -73,7 +73,7 @@ function captureStreams(stdinPayload = '') {
 }
 
 describe('main — flag dispatch', () => {
-  it('prints on --help the page of the command line as `::cli | doc` answers it, exit 0 [D402]', async () => {
+  it('prints on --help the page of the command line as `::cli | doc` answers it, exit 0 [QSHST#answer]', async () => {
     const [help, page] = [captureStreams(), captureStreams()];
     const exitCode = await main(['--help'], help.stdinStream, help.stdoutStream, help.stderrStream, {});
     await main(['::cli | doc'], page.stdinStream, page.stdoutStream, page.stderrStream, {});
@@ -126,7 +126,7 @@ describe('main — standard input read for a query that reads its subject', () =
     expect(s.stdoutText()).toBe('piped text\n');
   });
 
-  it('lifts nothing for a query headed by `in`, called by its name or its address, which reads the text as it came [D402]', async () => {
+  it('lifts nothing for a query headed by `in`, called by its name or its address, which reads the text as it came [QSHST#stdin]', async () => {
     for (const query of ['in | count', 'any/in | count']) {
       const s = captureStreams('[1e400]');
       await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
@@ -134,7 +134,7 @@ describe('main — standard input read for a query that reads its subject', () =
     }
   });
 
-  it('lifts the subject for a query headed by a step of the fail track, which runs on a failure alone [D402]', async () => {
+  it('lifts the subject for a query headed by a step of the fail track, which runs on a failure alone [QSHST#stdin]', async () => {
     for (const query of ['!| in | count', '!| 5 | count']) {
       const s = captureStreams('[1,2,3]');
       await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
@@ -142,7 +142,7 @@ describe('main — standard input read for a query that reads its subject', () =
     }
   });
 
-  it('lifts the subject for `in` called by its name where the query declared a verb of that name before it [D402]', async () => {
+  it('lifts the subject for `in` called by its name where the query declared a verb of that name before it [QSHST#stdin]', async () => {
     const s = captureStreams('[1,2,3]');
     await main([':vec/in ~(count) | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('3\n');
@@ -299,7 +299,7 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).toContain(':path /big');
   });
 
-  it('hands the query a refusal of the lift as the failure it starts from, which its steps pass by and `!|` catches [D402]', async () => {
+  it('hands the query a refusal of the lift as the failure it starts from, which its steps pass by and `!|` catches [QSHST#stdin]', async () => {
     const s = captureStreams('[1e400]');
     await main(['count !| get /trace/0/0'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('[1e400]\n');

@@ -402,20 +402,20 @@ describe('readsItsSubject', () => {
     for (const query of ['get [/a 1]', 'get {:a /b}', '(get /a)', '((get /a) | count)']) expect(readsOf(query), query).toBe(true);
   });
 
-  it('reads none where its first step that declares nothing calls a verb of the host that reads none, by its name or its address [D402]', () => {
+  it('reads none where its first step that declares nothing calls a verb of the host that reads none, by its name or its address [QSHST#stdin]', () => {
     const verbs = new Set(['in', 'any/in']);
     for (const query of ['in | count', 'any/in', '(in) | count', ':x 1 | in']) expect(readsItsSubject(parse(query), verbs), query).toBe(false);
     for (const query of ['count | in', ':x (get /a) | in', 'vec/in']) expect(readsItsSubject(parse(query), verbs), query).toBe(true);
     expect(readsOf('in')).toBe(true);
   });
 
-  it('reads such a verb called by its name as reading the subject where a declaration before it shadows the name, its address left the host\'s [D402]', () => {
+  it('reads such a verb called by its name as reading the subject where a declaration before it shadows the name, its address left the host\'s [QSHST#stdin]', () => {
     const verbs = new Set(['in', 'any/in']);
     for (const query of [':vec/in ~(count) | in', ':in ~(count) | in', '(:string/in ~(count) | in)']) expect(readsItsSubject(parse(query), verbs), query).toBe(true);
     expect(readsItsSubject(parse(':vec/in ~(count) | any/in'), verbs)).toBe(false);
   });
 
-  it('reads past a step of the fail track at its head, which runs on a failure alone, a declaration under it among them [D402]', () => {
+  it('reads past a step of the fail track at its head, which runs on a failure alone, a declaration under it among them [QSHST#stdin]', () => {
     for (const query of ['!| 5 | count', '!| :x 1 | count', '!| 5']) expect(readsOf(query), query).toBe(true);
     expect(readsItsSubject(parse('!| in | count'), new Set(['in']))).toBe(true);
     for (const query of ['!| count | (1)', '!| :x (get /a) | [1]']) expect(readsOf(query), query).toBe(false);

@@ -12,7 +12,7 @@ describe('parseArgv', () => {
     expect(cliInvocation.message).toMatch(/missing query/);
   });
 
-  it('reads -h as the query of the page of the command line [D402]', () => {
+  it('reads -h as the query of the page of the command line [QSHST#answer]', () => {
     expect(parseArgv(['-h'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'auto', failureExitCode: 0 });
   });
 
@@ -99,7 +99,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '--budget=500']).kind).toBe('usageError');
   });
 
-  it('refuses --json, JSON read by `in | parseJson` [D402]', () => {
+  it('refuses --json, JSON read by `in | parseJson` [QSHST#stdin]', () => {
     expect(parseArgv(['--json', 'get /a']).message).toBe('qlang: --json is no flag of the command line, which `qlang --help` lists\n');
   });
 

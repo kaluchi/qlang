@@ -1,6 +1,6 @@
 // runQuery(queryText, ioContext, input) → the cell of the query in a session
 // of the command line's sources, its streams those of `ioContext`, run on what
-// `input.stdinText` lifts to, a defect of the lift the cell [D402], and a
+// `input.stdinText` lifts to, a defect of the lift the cell [QSHST#stdin], and a
 // failure's cell with the prose of the page that explains it.
 
 import { isErrorValue, createSession } from '@kaluchi/qlang-core';

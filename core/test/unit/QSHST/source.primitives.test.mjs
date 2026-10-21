@@ -1,7 +1,6 @@
 // Tests for src/primitives.mjs — the table of the primitives of the
 // language by the address of the verb or the kind each serves, which the
-// bootstrap hands each source of the language and seals [QSDSP#residence],
-// [QSHST#source].
+// bootstrap hands each source of the language and seals [QSDSP#residence].
 //
 // The table is one: the tests register into it before this file loads the
 // runtime, then read what the runtime registered, and last meet its seal.

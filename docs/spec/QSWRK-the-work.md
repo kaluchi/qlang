@@ -162,7 +162,7 @@ data as JSON. The tie is the order the cases hold, so the unit tests of
 the order hold its sign over a ladder of values of every kind, which no
 tie judges.
 
-The runner, `core/test/unit/conformance.test.mjs`, refuses a file that
+The runner, `core/test/unit/QSWRK/cases.test.mjs`, refuses a file that
 is no section of a chapter, a case that names a record and does not open
 with one record in force, a target that names no record, two cases that
 hold one query to two answers, and a case whose name holds fewer than
@@ -210,39 +210,42 @@ The review reads them first.
 
 An artifact names the rules it holds by a citation in a comment, a
 section at the baseline, `[QSNAM#scope]`, and a record while its change
-is in transit, `[Dnn]`: a module of code, a script, a test file and a
-workflow under `.github/workflows/` in the comment at their head or above
-the block that holds the rule, and a source of the catalog in the comment
-above its pages, `The rules it holds: [QSDSP#residence]`. A file of the
-conformance suite marks its section by its path, and a case the record in
-transit over that section by its `decision` [QSWRK#cases]; a test, an
-`it` or a `test` of a suite of any workspace, names first in its title,
-in brackets, the one rule it holds, the section of a chapter or, where no
-chapter states the rule, the record in force of a domain its tests hold,
-and second, while the change of a record in transit brought it, that
-record, as a case names it by its `decision`, its rule following in
-words with no citation inside,
-`it('[QSCLI#answer] reads -h as the query of the page of the command line', …)`,
-a test written in a loop or a table writing its rule as a literal of its
-title and the test the runner of the conformance suite makes of each case
-opening with `[QSWRK#cases]`, while a `describe` groups tests and names
-no rule and the mark at the head of a test file holds none; the sister
-project names a record of qlang with the repository, `(qlang Dnn)`; and a
-screen and a run of a set of the benchmark name the record they measure
-in the name of their file, `screens/D395.txt` and
-`sets/Y/runs/D395~cli~sonnet~1.json`. A mark covers its block,
-from its comment to the next comment that holds one, the first block
-reaching up to the head of the file, so a search answers what governs a
-file and what a record left behind: `node scripts/marks.mjs` answers the
-scope of a record or a section, `--touched` the records whose marked
-blocks a diff touched and `--reread Dnn` what to read again. An artifact
-that names nothing, a tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside
-`docs/` or a workflow, is an orphan, which `check:conventions` refuses and
+is in transit, `[Dnn]`: a module of code, a script and a workflow under
+`.github/workflows/` in the comment at their head or above the block that
+holds the rule, and a source of the catalog in the comment above its
+pages, `The rules it holds: [QSDSP#residence]`. A file of the conformance
+suite marks its section by its path, and a case the record in transit over
+that section by its `decision` [QSWRK#cases]; a test file marks by its
+path the section whose rule its tests hold, `<chapter>/<section>.test.mjs`
+under the tests of its workspace, `core/test/unit/`, `cli/test/`,
+`cli/test/integration/` for the tests that run the command line in a
+process of its own, `lsp/test/`, `site/test/` and `vscode/test/`, or,
+where no chapter states the rule, the record in force of a domain its
+tests hold, `core/test/unit/D404.test.mjs`. A section holds one test file
+in each folder, and a part that cannot run beside the rest, a module of
+Node it mocks, a table it meets before the bootstrap seals it or a share
+of a walk one worker runs too long, runs in a file of its own,
+`<section>.<part>.test.mjs`. The title of a test says its rule in words
+and cites none, no line of a test file cites the section its path names,
+and a helper the tests of several files share stands under `test/helpers/`
+of its workspace, a module that marks its rule; the sister project names a
+record of qlang with the repository, `(qlang Dnn)`; and a screen and a run
+of a set of the benchmark name the record they measure in the name of
+their file, `screens/D395.txt` and `sets/Y/runs/D395~cli~sonnet~1.json`.
+A mark covers its block, from its comment to the next comment that holds
+one, the first block reaching up to the head of the file, and a path its
+whole file, so a search answers what governs a file and what a record left
+behind: `node scripts/marks.mjs` answers the scope of a record or a
+section, `--touched` the records whose marked blocks a diff touched and
+`--reread Dnn` what to read again. An artifact that names nothing, a
+tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside `docs/` that no path
+marks or a workflow, is an orphan, which `check:conventions` refuses and
 the desk counts; the files of a set of the benchmark, the data its runs
 wrote and the generator its author wrote, are no artifacts and carry no
 mark inside them. A regression is no kind of its own: a defect met is a
-requirement the cases left unsaid, whose repair brings a case, or a test
-where no case can state it, under the record that repairs it. A page of
+requirement the cases left unsaid, whose repair brings a case under the
+record that repairs it, or a test where no case can state it, at the
+section of its rule. A page of
 the catalog, the public interface of the
 language, cites the sections and pages a reader follows, a record only
 in the comment at the head of its source.
@@ -267,8 +270,7 @@ At the move:
 - Every record in transit that the maintainer and the tree accept
   dissolves into the sections it overrides: they are written anew in
   the present, and `node scripts/dissolve-records.mjs Dnn` takes the
-  record off every case that names it and off the title of every test
-  that names it second, names its section in each
+  record off every case that names it, names its section in each
   citation of it where it overrides one and lists the citations for the
   author where it overrides several, writes its line `Dissolved into` and
   moves it out. It refuses a record that overrides nothing. Records in
@@ -864,9 +866,10 @@ version. The core exports its root, `core/src/index.mjs`, beside
 walks and no runtime, and the sources of its catalog, each function of
 the package at one door, the root re-exporting by name from a module of
 the core what a workspace beside it reads from the package or the page
-of the package, `core/README.md`, writes. One test,
-`cli/test/refusal-pages.test.mjs`, holds the page of every refusal the
-core and the command line declare and of every one a rule raises. The
+of the package, `core/README.md`, writes. The test file of the refusals
+of the command line, `cli/test/QSERR/site.test.mjs`, holds the page of
+every refusal the core and the command line declare and of every one a
+rule raises. The
 modules of `core/src` import in the order of
 the concepts, from the bottom: the letters of a name, the address, the
 keys of the scope and the declaration of a refusal; the values and their
@@ -882,8 +885,9 @@ keeps, and the root that boots them; and above them the session and the
 root of the package. No module of the core imports a module that imports
 it, the parser and the loaders among its imports, and none outside
 `runtime/` imports one inside it but the session and the root of the
-package, which `core/test/unit/imports.test.mjs` holds by the strong
-components `scripts/core-imports.mjs` computes. Each module is named for
+package, which the tests of this section,
+`core/test/unit/QSWRK/tooling.test.mjs`, hold by the strong components
+`scripts/core-imports.mjs` computes. Each module is named for
 what it holds and its head says so: the codec of JSON in
 `core/src/runtime/json.mjs`, which exports no print; the words a sequence
 answers across its kinds in `core/src/runtime/sequence.mjs`; the
@@ -944,10 +948,9 @@ reads [QSERR#site]; an export of the root of the core no host reads and no page
 writes; a report of the research without the session's reading
 beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
 of the prose that name a token the branch took out [QSWRK#documents];
-the title of a test that no literal states, that opens with no section of
-a chapter and no record its tests hold, that opens with two sections, or
-that names second a record out of transit or one that overrides neither
-its section nor its chapter; and the form of a record from `D155` on,
+a test file at a path that names no section of a chapter and no record
+its tests hold, a line of it that cites the rule its path names and the
+title of a test that cites a rule; and the form of a record from `D155` on,
 its `Domain.`, its decider and the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a

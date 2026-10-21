@@ -229,7 +229,7 @@ describe('parse — error handling', () => {
       '| | f', '|f', '::Box f', '::Box |~~ d ~~|', 'f |~ c', 'f | ', 'f | !| | g', 'f | | g', 'f| g', 'f |g', 'f(a)(b)', 'f a, b', '5 f', '5\nf',
       '5 |~~ d ~~|', '/ne ""', '::T(1)', '::T([1])', '::T(add 1)', '(f a, b)', '~(/a)', '~(f a, b)', '~/a', '~[1]',
       '{:a 1 "b": 2}', '{"a": 1, :b 2}', '{:k f x}', '#"("', '#{1}', '[1[2]]', 'get /a?', 'get /', 'f 01', 'f [x]', ':x [y]', ':true 1', '5 | 6', '[x]',
-      'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}'
+      'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}', '.a', 'get .a', '.', 'f; g'
     ]) {
       expect(refusalOf(text), text).toBeInstanceOf(ParseError);
       expect([...stepOf(`|~~ a ~(${text}) b ~~|`)], text).toEqual([` a ~(${text}) b `]);
@@ -332,6 +332,16 @@ describe('parse.mjs — input guards and the depth of a nest', () => {
 
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
+
+  it('refuses a bare nest left open of groups, quotes and maps reading each depth once [QSSYN#refusal]', () => {
+    for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
+  });
+
+  it('reads the quote of a line doc on the last line of the source once, line docs nested thirteen deep in the quotes of line docs read within two seconds [QSSYN#doc]', () => {
+    const started = Date.now();
+    expect(stepOf('|~~| ' + '~(|~~| '.repeat(13) + 'x')).toHaveLength(1);
+    expect(Date.now() - started).toBeLessThan(2000);
+  });
 
   it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it [QSQUO#step]', () => {
     expect(thrownBy(nestOf(20000))).toBeInstanceOf(RangeError);

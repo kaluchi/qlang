@@ -30,3 +30,4 @@
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
 {"name":"a-map-that-writes-its-keys-both-ways-names-the-two","query":"\"{:a 1 \\\"b\\\": 2}\" | parse !| get /message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}
 {"name":"a-comma-written-twice-or-last-or-missing-is-refused","query":"[\"[1,,2]\" \"[1,]\" \"{\\\"a\\\": 1 \\\"b\\\": 2}\" \"{:a 1, :b 2}\" \"#[1, 2]\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
+{"name":"a-json-map-that-goes-on-with-a-keyword-key-names-the-two-spellings","query":"\"{\\\"a\\\": 1, :b 2}\" | parse !| get /message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}

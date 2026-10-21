@@ -127,6 +127,14 @@ function laterStepMessage(step, written) {
   return 'a step is a command: a value stands at the head, where it is the subject, or as what a verb takes';
 }
 
+// The message of a value after a chain written on the line of its name [QSSYN#line].
+function chainMessage(payload, index, written) {
+  const bind = payload[payload.slice(0, index).findLastIndex(step => !isCallStep(step))];
+  if (!isBindStep(bind) || !isTag(bind.get('body'))) return null;
+  const [name, body] = [written.of(bind.get('name')), written.of(bind.get('body'))];
+  return `the body of \`${name}\` on the line of its name is one step, \`${body}\`, and the commands after it are steps of the query: a chain stands in parentheses, \`${name} (${body} | …)\``;
+}
+
 function nameMessage(name, written) {
   return readsAsBareKeyword(name.name)
     ? `\`${written.of(name)}\` is the word of a literal, which a step reads as the value: declare another name`
@@ -257,7 +265,7 @@ export function quoteOf(payload, written) {
   });
   payload.forEach((step, index) => {
     if (index > 0 && !standsAsCommand(step) && !isFailStep(step) && !declaresAName(payload[index - 1])) {
-      throw new QuoteStepNotCommandError({ index, message: laterStepMessage(step, written), actualValue: step });
+      throw new QuoteStepNotCommandError({ index, message: chainMessage(payload, index, written) ?? laterStepMessage(step, written), actualValue: step });
     }
   });
   return makeQuote(payload);

@@ -30,12 +30,18 @@ regex, an error literal and a doc refused as a value standing where a
 command stands; after `!|` a value is the recovery the catch answers, a
 path and a quote are refused there as after `|`, and a literal that
 holds a path or a quote at any depth, the template `get` reads, naming
-`get`. A question mark after a segment of a
-path is refused, naming `query`. A quote whose code is a path alone, a
+`get`. A question mark after a segment of a path is refused naming
+`query` and the path with its keys as written, and one inside a quoted
+key is a letter of the key. A quote whose code is a path alone, a
 leading `|` before it among it, is refused, the path given bare in its
 place, and a path followed by a word is refused naming the verb it
-meant, `/ne ""` naming `ne`. A tag name in the place of a declaration's
-name is refused.
+meant, `/ne ""` naming `ne`. The path of jq, a dot before a key, a
+quoted key or an index, is refused naming the path of its keys and its
+indices, which a step reads by `get`, `.users[0]` naming
+`get /users/0`, and a modifier writes bare, `sort .age` naming `/age`,
+and a dot alone before whitespace, a closing bracket, a pipe or the end
+of the source is refused naming `it`. A tag name in the place of a
+declaration's name is refused.
 
 ```qlang
 > "{:a 1} | /a" | parse !| get /message
@@ -55,6 +61,15 @@ name is refused.
 
 > "add(1, 2)" | parse !| get /message
 "modifiers are separated by spaces, not by commas: `f a b`"
+
+> "{:users 1} | .users[0]" | parse !| get /message
+"`.users[0]` is no path: a part is read by `get` and a path, which opens with a slash, `get /users/0`"
+
+> "[{:age 2} {:age 1}] | sort .age" | parse !| get /message
+"`.age` is no path: a path opens with a slash, `/age`"
+
+> get [~({:"?a" 1} | get /"?a") ~("{:\"a?\" 1} | get /\"a?\"?" | parse !| get /message | contains "`query /\"a?\"`")]
+[1 true]
 ```
 
 ## combinator
@@ -72,7 +87,9 @@ as after `!|`, one written against its neighbour with a message that
 names the space; a combinator at the end of a pipeline, a group or a
 quote is refused naming the step it misses. An unclosed `|~` after a
 step is refused naming the verb that runs code on the value in the
-pipe, `| apply ~(…)`. A pipeline, a group and a quote may open with a
+pipe, `| apply ~(…)`, and a semicolon after a step where it stands,
+naming the template that asks several things in one query,
+`get [~(…) ~(…)]`. A pipeline, a group and a quote may open with a
 combinator: a leading `|` is the head's combinator, and a leading `!|`
 opens a step of the fail track.
 
@@ -82,6 +99,12 @@ opens a step of the fail track.
 
 > "[1 2] |~(add)" | parse !| get /message | contains "| apply ~("
 true
+
+> "::vec | doc; ::map | doc" | parse !| get /message | contains "one query asks several by a template"
+true
+
+> "[1 2] | count ; count" | parse !| get /location
+::span[14 1 15 15 1 16]
 ```
 
 ## line
@@ -98,7 +121,10 @@ begun on a later line, and the body of a bare name with its page begun
 on a later line with a tag name, is a sentence: its steps run on, joined
 by a combinator, to the next declaration or a value written after `|`;
 any other body is one step, and a tag name on a later line is the body
-of the declaration above. A declaration joins a value or a group before
+of the declaration above. A value after the commands that follow a
+declaration whose body is a tag name, a chain written on the line of its
+name, is refused naming the body of one step it read and the
+parentheses that hold a chain. A declaration joins a value or a group before
 it on its own line with no combinator, `[1 2] :y 2 | y` answering `2`,
 but for a tag name and a path, refused by the habits they meet
 [QSSYN#step], while a keyword on the line of a command is a modifier of
@@ -113,6 +139,9 @@ it, and any other step is joined by a combinator.
 
 > "[1] | :vec/f\n  ~(first) !| 0\n:y 2 | y" | parse
 ~([1] | :vec/f (~(first) !| 0) | :y 2 | y)
+
+> ":x ::Box | count | 5" | parse !| get /message | contains "is one step, `::Box`, and the commands after it are steps of the query: a chain stands in parentheses"
+true
 ```
 
 ## comment
@@ -160,7 +189,12 @@ of code where it reads as code, and prose where it does not, its steps
 breaking a rule of a step or its text a rule the grammar holds there, a
 number written with a leading zero among them; a `~(` that reads as no
 code reads to the `)` that pairs it, in a line doc on its line as in a
-block doc, as in a comment.
+block doc, as in a comment. The quote of a line doc is tried as code
+within its line, so a source that fails after a line doc fails where its
+reading stopped, and a source cut short in the quote of a line doc on
+its last line names the continuations of the quote beside those of the
+prose. The prose of a line doc ends at its line break, a carriage return
+alone staying in it.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content
@@ -174,6 +208,15 @@ block doc, as in a comment.
 
 > "|~~ note ~~| :x 42" | parse !| get /message | contains "the slot of the declaration"
 true
+
+> "[|~~| x ~(a\n 1 2 | f" | parse !| get /location
+::span[17 2 6 18 2 7]
+
+> "[|~~| x ~(a" | parse !| get /expected | filter ~(eq ")") | count
+1
+
+> "|~~| x\r\n" | parse | first | content
+" x"
 ```
 
 ## refusal
@@ -197,12 +240,14 @@ complete it, names it and where it opened, its `:message` naming the
 closers that complete the source and its `:expected` the one closer the
 next character must be; one that ends with a combinator names the step
 it misses beside its continuations, where no refusal the grammar writes
-stood before the end. A refusal the grammar writes looks ahead before
-it reads, so the continuations of another error stand as they are. A
-form another language writes is refused by the grammar with the form of
-this one: a set written with braces names `#[`, a quote written with
-braces names its parentheses, and a comma between modifiers names the
-space.
+stood before the end. A refusal the grammar writes reads no further
+than the forms beside it until a look ahead found the form it refuses
+whole, so the continuations of another error stand as they are and a
+form left open is refused where its reading stopped. A form another
+language writes is refused by the grammar with the form of this one: a
+set written with braces names `#[`, a quote written with braces names
+its parentheses, a comma between modifiers names the space, the path of
+jq names a slash, and a semicolon between two queries names a template.
 
 ```qlang
 > "[1 2 3] | filter ~(gt 1" | parse !| get [/expected /message]
@@ -216,4 +261,10 @@ true
 
 > "[1 2 x" | parse !| get /expected
 [:"letters of a name" "/" :whitespace "]"]
+
+> "(::Box ]" | parse !| get /expected
+[:whitespace ":" "!|" "|" ")"]
+
+> "::Box(1 ]" | parse !| get /location
+::span[5 1 6 6 1 7]
 ```

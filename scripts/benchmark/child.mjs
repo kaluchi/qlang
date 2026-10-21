@@ -106,13 +106,14 @@ function recordOfStream(streamText) {
 
 // runChild({ prompt, model, workDir }) → the record of the run;
 // `workDir` the directory the child starts in, which holds the data
-// files.
+// files, its `qlang` the command line of the tree the run measures
+// [QSWRK#measure].
 export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });
   const flags = ['-p', '--model', model, '--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS, '--strict-mcp-config', '--restricted',
     '--system-prompt', SYSTEM_PROMPT, '--output-format', 'stream-json', '--verbose'];
   return new Promise(resolve => {
-    const child = spawn('claude', flags, { cwd: workDir, env: { ...process.env, ...RUN_ENVIRONMENT } });
+    const child = spawn('claude', flags, { cwd: workDir, env: withTheLanguageOf(join(import.meta.dirname, '..', '..'), { ...process.env, ...RUN_ENVIRONMENT }) });
     let streamText = '';
     child.stdout.on('data', chunk => { streamText += chunk; });
     child.on('close', () => resolve(recordOfStream(streamText)));

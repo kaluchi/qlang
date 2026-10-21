@@ -17,6 +17,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // A test that makes no assertion fails [D401].
+    expect: { requireAssertions: true },
     include: ['test/integration/**/*.test.mjs'],
     testTimeout: 15000
   }

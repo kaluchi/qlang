@@ -30,3 +30,4 @@
 {"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| type) ~(::nothere | runLaws !| type)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}
 {"name":"a-law-is-a-quote-under-its-kind","query":"get [~(::law#3 !| type) ~(::law~(true) | payload)]","expect":"[::law/PayloadKindNotTakenError ~(true)]"}
 {"name":"a-law-runs-the-query-beneath-the-tags-it-is-given-under","query":":three 3 | :three/x |~~ x ~~| ::law::Foo~(3 | eq 3) | ::three | runLaws | map /ok","expect":"[true]"}
+{"decision":"D399","name":"a-law-that-answers-false-holds-false-as-its-answer-and-no-error","query":":Box |~~ A box. ~~| | :Box/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::Box | runLaws | first | get [/ok /actual /error]","expect":"[false false null]"}

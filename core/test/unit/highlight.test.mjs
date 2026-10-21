@@ -166,9 +166,12 @@ describe('tokenize — the name of a call by its name, a word of the root a verb
 
 describe('tokenize — comments and docs', () => {
   it('paints a comment to the end of its line as a comment', async () => {
-    const src = '|~| short note |~|';
-    const tokens = tokenize(src, await rootVerbNames());
-    expect(tokens[0].kind).toBe('comment');
+    expect(tokenize('|~| short note |~|', await rootVerbNames())).toEqual([{ start: 0, end: 18, kind: 'comment' }]);
+    expect(tokenize('|~| note\ncount', await rootVerbNames())).toEqual([
+      { start: 0, end: 8, kind: 'comment' },
+      { start: 8, end: 9, kind: 'whitespace' },
+      { start: 9, end: 14, kind: 'verb' }
+    ]);
   });
 
   it('paints a doc as a doc, apart from a comment', async () => {
@@ -178,8 +181,7 @@ describe('tokenize — comments and docs', () => {
 
   it('paints a block comment as a comment', async () => {
     const src = '|~ block ~|';
-    const tokens = tokenize(src, await rootVerbNames());
-    expect(tokens[0].kind).toBe('comment');
+    expect(tokenize(src, await rootVerbNames())).toEqual([{ start: 0, end: src.length, kind: 'comment' }]);
   });
 
   it('paints a block comment that nests another as one comment', async () => {

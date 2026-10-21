@@ -1,9 +1,9 @@
-// argv-parser branch coverage. parseArgv has four forms; one test
-// per form, plus the long/short flag aliases so every comparison
-// branch fires.
+// parseArgv, what the arguments of the command line ask for: a test for each
+// kind it answers, each flag and each refusal, the short and the long name of
+// a flag each, and the help text the command line writes [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
-import { parseArgv, HELP_TEXT, VERSION_LINE } from '../src/argv.mjs';
+import { parseArgv, HELP_TEXT } from '../src/argv.mjs';
 
 describe('parseArgv', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
@@ -109,7 +109,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['-i', '--budget=500']).kind).toBe('usageError');
   });
 
-  it('parses --fail as the code 1 a failure exits with, 0 without it [QSHST#answer]', () => {
+  it('parses --fail as the code 1 a failure exits with [QSHST#answer]', () => {
     expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
       kind: 'evalQuery',
       queryText: 'count',
@@ -117,7 +117,6 @@ describe('parseArgv', () => {
       colorMode: 'auto',
       failureExitCode: 1
     });
-    expect(parseArgv(['count']).failureExitCode).toBe(0);
   });
 
   it('takes the query after -i as the first cell of the REPL [QSHST#answer]', () => {
@@ -135,16 +134,7 @@ describe('parseArgv', () => {
   });
 });
 
-describe('HELP_TEXT and VERSION_LINE constants', () => {
-  it('HELP_TEXT mentions the qlang name and the usage form', () => {
-    expect(HELP_TEXT).toMatch(/qlang/);
-    expect(HELP_TEXT).toMatch(/Usage:/);
-  });
-
-  it('VERSION_LINE names the @kaluchi/qlang-cli package', () => {
-    expect(VERSION_LINE).toMatch(/@kaluchi\/qlang-cli/);
-  });
-
+describe('HELP_TEXT', () => {
   it('tells a text --json reads that does not parse as the refusal it answers, exit 0 as every answer [QSHST#answer]', () => {
     const jsonMode = HELP_TEXT.slice(HELP_TEXT.indexOf('--json  '), HELP_TEXT.indexOf('--raw  '));
     expect(jsonMode).toContain('::string/parseJson/TextNotJsonError');

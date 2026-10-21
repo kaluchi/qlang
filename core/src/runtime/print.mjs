@@ -4,12 +4,13 @@
 // of an answer every host prints within the budget [D397].
 
 import { registerStateReader } from '../primitives.mjs';
-import { TAG_HEADER_SYMBOL, isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
+import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
 import { elide, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
-import { rootState } from '../state.mjs';
+import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
+import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 
@@ -17,18 +18,18 @@ const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetErr
 
 // printsOfKinds(value, scope, state?) → `printedOf(part)`: the print a kind
 // answers of its own for each part of the value whose kind declares one,
-// found by the walk of that part, a fact of an error among them, and
-// undefined for every other part, which the forms of the core write
-// [QSPRN#print].
+// found by the walk of that part as a verb of the root reads it, a fact of an
+// error among them, and undefined for every other part, which the forms of
+// the core write [QSPRN#print], [D400].
 export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
   const printedByKind = new Map();
-  await collectPrintsOfKinds(value, scope, state, nodeOf(scope, 'any/print'), printedByKind);
+  await collectPrintsOfKinds(value, markRootVerbScope(new Map(scope)), state, nodeOf(scope, 'any/print'), printedByKind);
   return part => printedByKind.get(part);
 }
 
-// printAnswer(value, scope, state?) → the print of a value: a part under a
-// tag whose kind answers a `print` of its own prints through it, and the
-// forms of the core print the rest. An answer that is a failure, which a
+// printAnswer(value, scope, state?) → the print of a value: a part whose
+// kind answers a `print` of its own prints through it, and the forms of the
+// core print the rest. An answer that is a failure, which a
 // host meets alone since a step skips it, prints as its error at rest
 // under a line comment that says it was raised, which a reading of the
 // literal passes over [QSERR#print].
@@ -78,15 +79,15 @@ export function caretOf(answer) {
 }
 
 async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKind) {
-  if (part === null || typeof part !== 'object') return;
-  if (part[TAG_HEADER_SYMBOL] !== undefined) {
+  if (!isErrorValue(part)) {
     const printOfKind = residenceOnSubject(scope, 'print', part);
-    if (printOfKind !== null && printOfKind !== printOfAny) {
+    if (printOfKind !== printOfAny && servesTheSubject(printOfKind, part)) {
       const printed = await callVerbOn(printOfKind, part, state);
       printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
       return;
     }
   }
+  if (part === null || typeof part !== 'object') return;
   const parts = part instanceof Map ? part.values()
     : Array.isArray(part) ? part
     : isErrorValue(part) ? part.facts.values()

@@ -13,7 +13,6 @@ import {
   declaredRefusals
 } from '../../src/errors.mjs';
 import { keyword } from '../../src/types.mjs';
-import { catchOriginalError, expectErrorResult } from '../helpers/error-assertions.mjs';
 
 describe('QlangError base class', () => {
   it('carries its facts', () => {
@@ -47,6 +46,11 @@ describe('a refusal declared by its address [QSERR#site]', () => {
     expect(probeErr.name).toBe('ProbeError');
     expect(probeErr.facts).toEqual({});
   });
+
+  it('names the class of a refusal by the last name of its address', () => {
+    expect(CallUnknownNameError.name).toBe('UnknownNameError');
+    expect(TestsProbeError.name).toBe('ProbeError');
+  });
 });
 
 describe('QlangDefect', () => {
@@ -59,41 +63,6 @@ describe('QlangDefect', () => {
   });
 });
 
-describe('the location of a refusal of the runtime, the span of the step that raised it [QSQUO#step]', () => {
-  it('locates a refusal at the call that raised it', async () => {
-    const source = '[1 2 3] | filter ~(gt 0) | count | filter ~(gt 0)';
-    expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('filter', 25));
-  });
-
-  it('locates a refusal inside a quote a step hands a verb in the source of the query', async () => {
-    const source = '[1 2] | map ~(add 1 | nope 2)';
-    expect((await expectErrorResult(source)).location.start.offset).toBe(source.indexOf('nope'));
-  });
-
-  it('keeps the location of the step that raised it past the steps it skips', async () => {
-    expect((await expectErrorResult('42 | count | mul 2')).location.start.offset).toBe(5);
-  });
-
-  it('per-site name is set on the refusals the runtime raises', async () => {
-    const originalErr = await catchOriginalError('1 | get /name');
-    expect(originalErr.name).toBe('SubjectHasNoPartsError');
-  });
-});
-
-describe('error class branding survives Object.defineProperty (minification proxy)', () => {
-  // A refusal's class is minification-resilient because its `.name` is
-  // set via Object.defineProperty in `brand`, which writes a string
-  // literal that bundlers do not mangle. We verify the contract here:
-  // even if we artificially shadow the class identifier, the runtime
-  // `.name` survives.
-  it('class.name set by brand() persists across reassignment', async () => {
-    const originalErr = await catchOriginalError('1 | get /name');
-    expect(originalErr.name).toBe('SubjectHasNoPartsError');
-    // Constructor.name is the same string regardless of caller-side
-    // identifier mangling.
-    expect(originalErr.constructor.name).toBe('SubjectHasNoPartsError');
-  });
-});
 
 describe('one address, one site', () => {
   // The address is the tag a refusal answers by and the name of its
@@ -122,13 +91,14 @@ describe('declareForeignError — a failure of the embedding', () => {
   // The class stays off the QlangError hierarchy and carries the address
   // every other declaration stamps.
   it('declares a class outside the QlangError hierarchy that still names its site', () => {
-    const HostBridgeUnreachableError = declareForeignError('HostBridgeUnreachableError',
+    const TestsBridgeUnreachableError = declareForeignError('tests/BridgeUnreachableError',
       ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
-    const foreignErr = new HostBridgeUnreachableError({ endpoint: 'ipc://bridge' });
+    const foreignErr = new TestsBridgeUnreachableError({ endpoint: 'ipc://bridge' });
 
     expect(foreignErr).toBeInstanceOf(Error);
     expect(foreignErr).not.toBeInstanceOf(QlangError);
-    expect(foreignErr.name).toBe('HostBridgeUnreachableError');
+    expect(foreignErr.name).toBe('BridgeUnreachableError');
+    expect(foreignErr.address).toBe('tests/BridgeUnreachableError');
     expect(foreignErr.facts.endpoint).toBe('ipc://bridge');
     expect(foreignErr.message).toContain('ipc://bridge');
   });

@@ -1,6 +1,7 @@
-// The colour of the REPL, a layer over the core's `tokenize`: each kind of
-// token in the escape of its colour, a token inside a quote in italics, and
-// whitespace and the source past the parse written plain [QSHST#repl].
+// The colour of a terminal, the line of the REPL and an answer painted under
+// `--color`, a layer over the core's `tokenize`: each kind of token in the
+// escape of its colour, a token inside a quote in italics, and whitespace and
+// the source past the parse written plain [QSHST#repl].
 // The rules it holds: [QSWRK#tooling], [QSHST#repl].
 
 import { describe, it, expect } from 'vitest';
@@ -90,11 +91,6 @@ describe('highlightAnsi', () => {
     expect(out).toMatch('\x1b[92m]\x1b[0m');
   });
 
-  it('wraps `[` / `]` vec brackets in bright yellow', () => {
-    const out = highlightAnsi('[1]', new Set());
-    expect(out).toBe('\x1b[93m[\x1b[0m\x1b[33m1\x1b[0m\x1b[93m]\x1b[0m');
-  });
-
   it('keeps the braces of a map, the parentheses of a group and the pipe in the grey escape', () => {
     expect(highlightAnsi('{:a 1}', new Set())).toBe('\x1b[90m{\x1b[0m\x1b[36m:a\x1b[0m \x1b[33m1\x1b[0m\x1b[90m}\x1b[0m');
     expect(highlightAnsi('(1) | count', new Set())).toBe('\x1b[90m(\x1b[0m\x1b[33m1\x1b[0m\x1b[90m)\x1b[0m \x1b[90m|\x1b[0m \x1b[36mcount\x1b[0m');
@@ -104,6 +100,7 @@ describe('highlightAnsi', () => {
     const out = highlightAnsi('[1 2 3] | count', new Set(['count']));
     const opens = out.match(/\x1b\[[0-9;]*m/g) ?? [];
     const resets = opens.filter((s) => s === ANSI_RESET);
+    expect(opens.length).toBeGreaterThan(0);
     expect(resets.length * 2).toBe(opens.length);
   });
 

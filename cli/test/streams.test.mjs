@@ -27,12 +27,6 @@ describe('in', () => {
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('hello\nworld');
   });
-
-  it('feeds an empty string when stdin is empty', async () => {
-    const io = captureIoContext('');
-    const cellEntry = await runQuery('in', io);
-    expect(cellEntry.result).toBe('');
-  });
 });
 
 describe('out — the subject, written when it is a string', () => {

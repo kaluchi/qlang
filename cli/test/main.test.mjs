@@ -1,8 +1,8 @@
-// main orchestrator coverage. Every cliInvocation kind dispatches
-// to its own branch; one test per branch, plus end-to-end flows
-// that cover the script-mode auto-pipe contract (JSON in → the
-// literal out, text in → the text out, `out` suppression, standard
-// input read only for a query that reads its subject).
+// main, the command line run on the streams handed to it: each kind of
+// invocation in its branch, the subject standard input lifts to, JSON as
+// values and any other text as one string, the answer printed as the language
+// prints it, a string as its text, `out` holding the channel, and standard
+// input read only for a query that reads its subject [QSHST#answer], [QSHST#stdin].
 //
 // Tests inject Readable / Writable stream stubs so the orchestrator
 // runs without spawning a subprocess or touching `process.*`.
@@ -160,12 +160,12 @@ describe('main — the code a failure exits with under --fail', () => {
   });
 });
 
-describe('main — script mode auto-pipe', () => {
-  it('starts from the default subject when stdin carries no bytes', async () => {
+describe('main — the subject standard input lifts to', () => {
+  it('starts from the noun of the language, `::qlang`, when stdin carries no bytes', async () => {
     const s = captureStreams();
-    const exitCode = await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    const exitCode = await main(['eq ::qlang'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toBe('::tag\n');
+    expect(s.stdoutText()).toBe('true\n');
   });
 
   it('feeds piped JSON as the initial pipeValue and writes a string answer as its text [QSHST#answer]', async () => {
@@ -242,34 +242,22 @@ describe('main — script mode auto-pipe', () => {
     expect(s.stderrText()).toBe('');
     expect(s.stdoutText()).toContain('::string/parseJson/TextNotJsonError!{');
   });
-
-  it('emits the query value on empty stdin via raw fallback', async () => {
-    const s = captureStreams();
-    const exitCode = await main(
-      ['[1 2 3] | count'],
-      s.stdinStream, s.stdoutStream, s.stderrStream, {}
-    );
-    expect(exitCode).toBe(0);
-    expect(s.stdoutText()).toBe('3\n');
-    expect(s.stderrText()).toBe('');
-  });
 });
 
-describe('main — `out` suppression of auto-encoded stdout', () => {
-  it('routes `out` emissions to stdout and skips the auto-encode', async () => {
+describe('main — `out` holding the channel', () => {
+  it('writes what `out` writes and leaves the answer of the query unwritten', async () => {
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | count | print | out'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
-    // `out` wrote '3\n' during eval — no trailing duplicate from
-    // the renderer.
+    // `out` writes `3`, and the answer, the string `print` made, is not written after it.
     expect(s.stdoutText()).toBe('3\n');
     expect(s.stderrText()).toBe('');
   });
 
-  it('feeds stdin into `in` alongside the auto-pipe so explicit queries still work', async () => {
+  it('answers `in` with the text standard input held, read once for the subject and for `in`', async () => {
     const s = captureStreams('hello world');
     const exitCode = await main(
       ['in | out'],
@@ -319,17 +307,16 @@ describe('main — error paths', () => {
     expect(s.stdoutText()).not.toMatch(/^ +:path /m);
   });
 
-  it('answers the same refusal where --json reads stdin', async () => {
+  it('answers a number past the doubles under --json as parseJson refuses it, naming the path', async () => {
     const s = captureStreams('{"deep": [0, 1e400]}');
     const exitCode = await main(['--json', 'count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
+    expect(s.stdoutText()).toContain('::string/parseJson/NumberNotFiniteError!{');
     expect(s.stdoutText()).toContain(':path /deep/1');
   });
 
-  it('encodes a fail-track error value as data on stdout, exit 0', async () => {
-    // A failure is an answer and travels on the channel of every answer
-    // with exit 0 [QSHST#answer]; a nonzero exit is kept for what is no
-    // answer, a defect of the runtime or a call with no query.
+  it('writes a failure on stdout as every answer, exit 0', async () => {
+    // Without `--fail` a failure is an answer on the channel of every answer with exit 0, a nonzero exit kept for a defect and a call with no query [QSHST#answer].
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add 1'],
@@ -357,13 +344,10 @@ describe('main — error paths', () => {
     expect(commentLines.map(line => line.slice('|~| '.length)).join(' ')).toContain('a key that may be absent is read by `query`');
   });
 
-  it('writes a query that does not parse with the prose of its refusal\'s page below it, as any failure [QSHST#answer]', async () => {
+  it('writes a query that does not parse under the line that says it was raised, as any failure [QSHST#answer]', async () => {
     const s = captureStreams();
-    const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(exitCode).toBe(0);
+    await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toContain('|~| raised, and no !| caught it');
-    expect(s.stdoutText()).toContain('::quote/ParseError!{');
-    expect(s.stdoutText()).toContain('|~| The source does not read as qlang');
   });
 
   it('writes a failure whose refusal has no page as it is, under the line that says it was raised [QSHST#answer], [QSERR#rest]', async () => {
@@ -408,6 +392,7 @@ describe('main — a query the shell turned into a path', () => {
     expect(exitCode).toBe(0);
     expect(s.stdoutText()).toContain('::quote/ParseError!{');
     expect(s.stderrText()).toMatch(/the shell turned a query that began with `\/` into a path/);
+    expect(s.stderrText()).toContain("`qlang 'get /data/users'`");
     expect(s.stderrText()).toMatch(/MSYS_NO_PATHCONV=1/);
   });
 

@@ -71,12 +71,24 @@ export function recordPathOf(root, name) {
   return recordFolders(root).map(folder => join(folder, `${name}.md`)).find(path => existsSync(path)) ?? null;
 }
 
+// The records the runs and the screens of the benchmark the tree holds are
+// named after, `D395~cli~sonnet~1.json` and `D395.txt`, the hash of another
+// screen beside the number where a run read one [QSWRK#measure].
+function measuredIn(root) {
+  const benchmark = join(root, 'scripts', 'benchmark');
+  const filesOf = dir => (existsSync(dir) ? readdirSync(dir) : []);
+  const runs = filesOf(join(benchmark, 'sets')).flatMap(set => filesOf(join(benchmark, 'sets', set, 'runs')));
+  return new Set([...runs, ...filesOf(join(benchmark, 'screens'))].map(name => /^(D\d+)[.~]/.exec(name)?.[1]).filter(Boolean));
+}
+
 // readDecisionRecords(root) → the records by name, D1 onward and then E1
 // onward, those of the environment of the work, each
-// `{ path, domain, replacedBy, mergedInto, met, targets }`;
-// a record merged into the earliest record of its axis is closed whole
+// `{ path, domain, replacedBy, mergedInto, met, targets, measured }`,
+// `measured` whether the tree holds a run or the screen of the measurement it
+// is; a record merged into the earliest record of its axis is closed whole
 // as one replaced is [QSWRK#journal].
 export function readDecisionRecords(root) {
+  const measured = measuredIn(root);
   const records = new Map(recordFolders(root)
     .flatMap(folder => (existsSync(folder) ? readdirSync(folder) : [])
       .map(fileName => fileName.match(/^([DE]\d+)\.md$/)?.[1])
@@ -102,6 +114,7 @@ export function readDecisionRecords(root) {
         // dissolved into, its change made the order of the baseline [QSWRK#spec].
         dissolvedInto: [...recordText.matchAll(/^Dissolved into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/QS[A-Z]{3}(?:#[a-z-]+)?/g)].map(match => match[0])),
         open: isOpenText(recordText),
+        measured: measured.has(name),
         met: [],
         targets: [],
       }];
@@ -135,7 +148,8 @@ export const isBeingDecided = record => !replacedWhole(record)
   && (record.open || (record.domain === 'language' && record.met.length + record.targets.length === 0));
 
 // Whether the tree holds a record: one of the language a case it meets
-// names, or one of another domain, which the tests of its domain hold,
-// and neither replaced whole [QSWRK#baseline].
+// names, one of the benchmark a run or the screen of its measurement, or
+// one of another domain, which the tests of its domain hold, and neither
+// replaced whole [QSWRK#baseline], [QSWRK#measure].
 export const isHeld = record => !replacedWhole(record)
-  && (record.domain === 'language' ? record.met.length > 0 : true);
+  && (record.domain === 'language' ? record.met.length > 0 : record.domain !== 'benchmark' || record.measured);

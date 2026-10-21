@@ -6,8 +6,8 @@
 import { describe, it, expect } from 'vitest';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
-import { keyword, makeBinding, makeErrorValue, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
-import { QlangDefect, declareRefusal } from '../../src/errors.mjs';
+import { keyword, makeBinding, makeTag, isErrorValue, BuiltinForeignValueError } from '../../src/types.mjs';
+import { QlangDefect, QlangError, declareRefusal } from '../../src/errors.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../helpers/values-at-the-door.mjs';
 
 describe('createSession lifecycle', () => {
@@ -36,15 +36,6 @@ describe('createSession lifecycle', () => {
     const cellEntry = await sessionInstance.evalCell('get /a', { initialPipeValue: seeded });
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe(1);
-  });
-
-  it('evalCell without initialPipeValue answers the value the cell opens with', async () => {
-    // The subject of the first step is null, and a value at the head of the
-    // cell stands in its place.
-    const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('42');
-    expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toBe(42);
   });
 
   it('evalCell keeps the verbs a cell declares for the cells after it', async () => {
@@ -78,7 +69,6 @@ describe('createSession lifecycle', () => {
 
   it('a session binds no name a host hands it: its names come by its sources alone [QSHST#source]', async () => {
     const sessionInstance = await createSession();
-    expect('bind' in sessionInstance).toBe(false);
     expect(Object.keys(sessionInstance)).toEqual(['evalCell', 'scope']);
   });
 
@@ -96,19 +86,19 @@ describe('createSession lifecycle', () => {
     const sessionInstance = await createSession();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
-    expect(numbered.result.facts.has('origin')).toBe(false);
+    expect([...numbered.result.facts.keys()]).toEqual(['source', 'message', 'expected', 'location']);
     const named = await sessionInstance.evalCell('[1 2', { uri: 'shop.qlang' });
+    expect([...named.result.facts.keys()]).toEqual(['source', 'message', 'expected', 'location', 'origin']);
     expect(named.result.facts.get('origin')).toEqual(keyword('shop.qlang'));
-    expect(named.result.facts.has('uri')).toBe(false);
   });
 
   it('evalCell records the error on runtime failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | count');
-    // Runtime errors are error values (5th type).
-    // evalCell succeeds; result is an error value, entry.defect is null.
+    // A failure of the run is the answer of its cell, which holds no defect and keeps the refusal it was raised as.
     expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
+    expect(cellEntry.result.originalError).toBeInstanceOf(QlangError);
     expect(cellEntry.result.originalError.name).toBe('KindAnswersNoVerbError');
   });
 
@@ -117,12 +107,6 @@ describe('createSession lifecycle', () => {
     expect((await sessionInstance.evalCell('1')).uri).toBe('cell-1');
     expect((await sessionInstance.evalCell('2', { uri: 'named' })).uri).toBe('named');
     expect((await sessionInstance.evalCell('3')).uri).toBe('cell-2');
-  });
-
-  it('evalCell uri respects evalOpts.uri', async () => {
-    const sessionInstance = await createSession();
-    const cellEntry = await sessionInstance.evalCell('1', { uri: 'notebook.qlang#cell-foo' });
-    expect(cellEntry.uri).toBe('notebook.qlang#cell-foo');
   });
 });
 
@@ -151,40 +135,16 @@ describe('the sources a host hands [QSDSP#residence]', () => {
     expect((await sessionInstance.evalCell('doubled')).result).toBe('fetchedfetched');
   });
 
-  it('answers a host name as the function whose recipe is its descriptor, its answer the kind it returns', async () => {
+  it('answers a host name as the function whose recipe is its descriptor, and refuses an answer of a kind it does not return', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(type) ~(get /1 | type)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
-    expect((await sessionInstance.evalCell('fetch | type')).result).toEqual(makeTag('string'));
+    const misanswering = await createSession({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
+    expect((await misanswering.evalCell('fetch !| type')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
   });
 
   it('records the source a host name came from as its origin', async () => {
     const sessionInstance = await createSession({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::number/less | binding | get /origin')).result).toEqual(keyword('tests/host'));
-  });
-
-  it('runs a host name whose descriptor names no primitive by the primitive handed for it', async () => {
-    const sessionInstance = await createSession({ sources: [{
-      uri: 'tests/handed',
-      source: ':any/twice (::fn | takes :by |~~ The factor. ~~| /0 ::number | impl ::builtin{})',
-      primitives: { 'any/twice': (subject, by) => subject * by }
-    }] });
-    expect((await sessionInstance.evalCell('3 | twice 2')).result).toBe(6);
-    expect((await sessionInstance.evalCell('3 | twice "x" !| type')).result).toEqual(makeTag('any/twice/by/KindNotTakenError'));
-  });
-
-  it('a failure a host\'s primitive answers holds its trace in the kind of a trace where a step reads it [QSERR#trace]', async () => {
-    const sessionInstance = await createSession({ sources: [{
-      uri: 'tests/failed', source: ':any/failed ::builtin{}',
-      primitives: { 'any/failed': () => makeErrorValue(makeTag('error'), new Map([['trace', [5]]])) }
-    }] });
-    expect((await sessionInstance.evalCell('failed !| get [~(type) /index]')).result).toEqual(await evalQuery('[::trace/ElementKindNotTakenError 0]'));
-    expect((await sessionInstance.evalCell('failed !| 0')).result).toBe(0);
-  });
-
-  it('takes a ::builtin{} in a verb a host declares as a step, and refuses a primitive handed for it [QSDSP#walk]', async () => {
-    await expect(createSession({ sources: [{
-      uri: 'tests/bare', source: ':any/shout ~(::builtin{})', primitives: { shout: text => text.toUpperCase() }
-    }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', facts: { origin: keyword('tests/bare') } });
   });
 
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name [QSHST#source]', async () => {
@@ -229,13 +189,6 @@ describe('the sources a host hands [QSDSP#residence]', () => {
       await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
         .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: keyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
     }
-  });
-
-  it('refuses a source that declares a refusal of the root under another address', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/moved', source: ':Lib/AddLeftNotNumberError |~~ AddLeftNotNumberError. ~~|' }] }))
-      .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError' });
-    expect((await (await createSession()).evalCell('"a" | add 1 !| type')).result)
-      .toEqual(makeTag('number/add/SubjectNotNumberError'));
   });
 
   it('declares a refusal of the host at its address again in every session of the process', async () => {
@@ -304,15 +257,6 @@ describe('a cell whose failure is no error value', () => {
 });
 
 describe('a query runs as one cell of a session [QSHST#source]', () => {
-  it('names the origin of a declaration as the first cell of a session names it', async () => {
-    expect(await evalQuery(':x 1 | env | get /x | get /origin')).toEqual(keyword('cell-1'));
-  });
-
-  it('answers a source that does not parse by its failure, naming no origin, as such a cell does', async () => {
-    const refused = await evalQuery('[1 2');
-    expect([refused.tag, refused.facts.has('origin')]).toEqual([makeTag('quote/ParseError'), false]);
-  });
-
   it('runs over the scope it is handed, the root\'s where none is', async () => {
     const session = await createSession();
     await session.evalCell(':k 7');

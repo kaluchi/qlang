@@ -35,10 +35,10 @@ export function keepParts(root) {
 
 // partOf(value) → the part a value was read at, undefined for a value no
 // text wrote.
-export const partOf = value => (typeof value === 'object' && value !== null ? PARTS.get(value) : undefined);
+export const partOf = value => PARTS.get(value);
 
 // originOf(quote) — the source a quote was read from, the name its reader
-// gave it, `quote` for one assembled from data [QSDSP#residence].
+// gave it, `quote` for one assembled from data [D399].
 export const originOf = quote => partOf(quote)?.span.source ?? 'quote';
 
 // walkParts(part, visit) → a walk of the parts, each before the parts it

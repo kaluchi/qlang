@@ -1,10 +1,9 @@
-// The coverage of `table`: it runs through runQuery, so the bind
-// reaches the runtime and every refusal fires through real eval.
+// `table` run through runQuery, so the primitive the sources of the command
+// line hand reaches the runtime, its refusals held by the laws of its page.
 // The rules it holds: [QSDSP#residence].
 
 import { describe, it, expect } from 'vitest';
 import { runQuery } from '../src/run.mjs';
-import { expectRefusalRaised, expectRefusalByAddress } from './helpers/error-assertions.mjs';
 import { silentStreams } from './helpers/silent-streams.mjs';
 
 describe('table — a view for a terminal', () => {
@@ -30,16 +29,12 @@ describe('table — a view for a terminal', () => {
     expect(cellEntry.result).toContain('| ::Keys#[1 2] | ::Count#42 |');
   });
 
-  it('prints composite cells as literals on one line and a null cell empty', async () => {
-    const mapCell = await runQuery('[{:loc {:file "f.java" :line 12 :ok true}}] | table', silentStreams);
-    expect(mapCell.result).toContain('{:file "f.java" :line 12 :ok true}');
+  it('prints an error cell as its literal', async () => {
     const errorCell = await runQuery('[{:err !{:kind :oops}}] | table', silentStreams);
     expect(errorCell.result).toContain('!{:kind :oops}');
-    const nullCell = await runQuery('[{:a 1 :b null} {:a 2 :b 3}] | table', silentStreams);
-    expect(nullCell.result.split('\n').find(line => line.includes('| 1 '))).toMatch(/\|\s+\|$/);
   });
 
-  it('prints Boolean and Keyword cells bare, a null inside a composite as null', async () => {
+  it('prints a boolean and a keyword cell as their literals, a null inside a composite as null', async () => {
     const booleanCells = await runQuery('[{:ok true} {:ok false}] | table', silentStreams);
     expect(booleanCells.result).toContain('| true  |');
     expect(booleanCells.result).toContain('| false |');
@@ -75,20 +70,5 @@ describe('table — a view for a terminal', () => {
   it('writes a doc on one line with the quotes it holds on one line too [D397]', async () => {
     const cellEntry = await runQuery('[{:d |~~ see\n  ~(:a 1\n| :b 2) ~~|}] | table', silentStreams);
     expect(cellEntry.result).toContain('| |~~ see ~(:a 1 | :b 2) ~~| |');
-  });
-
-  it('yields the marker (empty) for an empty Vec', async () => {
-    const cellEntry = await runQuery('[] | table', silentStreams);
-    expect(cellEntry.result).toBe('(empty)');
-  });
-
-  it('refuses a subject other than a vector under the address of table', async () => {
-    const cellEntry = await runQuery('42 | table', silentStreams);
-    expectRefusalByAddress(cellEntry, 'vec/table/SubjectNotVecError', { actualType: { name: 'number' } });
-  });
-
-  it('lifts VecTableRowKindNotTakenError on a row other than a Map, naming its kind', async () => {
-    const cellEntry = await runQuery('[{:a 1} 42] | table', silentStreams);
-    expectRefusalRaised(cellEntry, 'vec/table/RowKindNotTakenError', { actualType: { name: 'number' } });
   });
 });

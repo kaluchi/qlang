@@ -408,8 +408,8 @@ export function makeTrace(frames) {
 // An error carries its tag, the kind of errors for a literal that names
 // none, and the facts of its site, and once a step raised it or handed it on
 // its trace, `:trace`, the frames `eval-trace.mjs` writes [QSERR#trace].
-export function makeErrorValue(tag, facts, { location = null, originalError = null } = {}) {
-  return Object.freeze(brandValueClass({ tag, facts, location, originalError }, 'error'));
+export function makeErrorValue(tag, facts, { originalError = null } = {}) {
+  return Object.freeze(brandValueClass({ tag, facts, originalError }, 'error'));
 }
 
 // formOf(v) → the form a writer of the core reads a value by: `error`,

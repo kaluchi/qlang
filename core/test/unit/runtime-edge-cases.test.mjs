@@ -2,23 +2,19 @@
 // of the printer that the laws of the catalog leave out, a `describe` for each.
 
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../src/session.mjs';
-import { compareValues, makeSet } from '../../src/ordering.mjs';
+import { createSession, evalQuery } from '../../src/session.mjs';
+import { compareValues } from '../../src/ordering.mjs';
 import {
   formOf,
   typeOf,
   keyword,
   makeTag,
   makeBinding,
-  makeErrorValue,
-  isErrorValue
+  makeErrorValue
 } from '../../src/types.mjs';
-import { parse } from '../../src/parse.mjs';
-import { partOf } from '../../src/walk.mjs';
-import { errorFromParse, spanOfLocation } from '../../src/error-convert.mjs';
 import { printValue } from '../../src/print-value.mjs';
 
-describe('formOf of a binding record and of a vector under a tag', async () => {
+describe('a binding record, a vector under a tag and a descriptor are values under a tag', async () => {
   it('formOf reads a binding record as a value under a tag, underTag', async () => {
     const record = makeBinding({ name: keyword('x'), value: 42 });
     expect(formOf(record)).toBe('underTag');
@@ -44,254 +40,103 @@ describe('formOf of a binding record and of a vector under a tag', async () => {
     expect(isTagged(await evalQuery('::builtin{:a 1}'))).toBe(true);
     expect(isTagged(await evalQuery('{:kind ::builtin}'))).toBe(false);
   });
-
-  it('typeOf reads identity off the JS header, not off a `:kind` field', async () => {
-    const { makeTag, isTag, stampTagHeader } = await import('../../src/types.mjs');
-    const carriesKindField = new Map([
-      ['kind', makeTag('Box')],
-      ['payload', [42, 'inner']]
-    ]);
-    expect(typeOf(carriesKindField).name).toBe('map');
-
-    const stamped = new Map([['payload', [42, 'inner']]]);
-    stampTagHeader(stamped, makeTag('Box'));
-    const kind = typeOf(stamped);
-    expect(isTag(kind)).toBe(true);
-    expect(kind.name).toBe('Box');
-  });
 });
 
-describe('typeOf covers all value kinds', () => {
-
+describe('typeOf refuses a value of no kind', () => {
   it('typeOf refuses an object of JavaScript, a value of no kind of the language [QSHST#source]', () => {
     expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
   });
+});
 
-  it('typeOf returns ::binding for a binding record', () => {
-    const record = makeBinding({ name: keyword('x'), value: 42 });
-    expect(typeOf(record).name).toBe('binding');
+describe('a source a host hands that is no string [QSHST#source]', () => {
+  it('is refused by the parser with its message alone, naming no origin and no place', async () => {
+    const { result } = await (await createSession()).evalCell(42);
+    const refusal = makeErrorValue(makeTag('quote/ParseError'), new Map([['message', 'parse() expects a string source']]));
+    expect(compareValues(result, refusal)).toBe(0);
   });
 });
 
-describe('error-convert.mjs — errorFromParse and the origin of a text [QSHST#source]', async () => {
-  it('names no origin where the text came from no source a host named', async () => {
-    const parseError = Object.assign(new Error('unexpected token'), { location: null });
-    // no .uri property — tests the false arm of `if (uri)`
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const errVal = errorFromParse(parseError, await langRuntime());
-    expect(isErrorValue(errVal)).toBe(true);
-    expect(errVal.facts.has('origin')).toBe(false);
-  });
-
-  it('names as its origin, a keyword, the uri of the source the text came from', async () => {
-    const parseError = Object.assign(new Error('unexpected token'), { location: null, uri: 'shop.qlang' });
-    const { langRuntime } = await import('../../src/runtime/index.mjs');
-    const errVal = errorFromParse(parseError, await langRuntime());
-    expect(errVal.facts.get('origin')).toEqual(keyword('shop.qlang'));
-  });
-});
-
-describe('an input takes no modifiers', async () => {
-  it('an input holding a value refuses modifiers as any value does', async () => {
-    // Inside the recipe, `n` is the record of an input holding a value, so
-    // a modifier handed to it is refused with CallValueTakesNoModifiersError.
-    const result = await evalQuery(':any/f (::fn | takes :n |~~ N. ~~| /0 | impl ~(n 42)) | 0 | f 5');
-    expect(isErrorValue(result)).toBe(true);
-    const e = result.originalError;
-    expect(e.name).toBe('ValueTakesNoModifiersError');
-    expect(e.facts.name.name).toBe('n');
-  });
-});
-
-
-describe('error-convert.mjs — spanOfLocation [QSPRN#span]', async () => {
-  it('answers null for a location that is none', async () => {
-    expect(spanOfLocation(null)).toBe(null);
-  });
-
-  it('writes the start and the end of a location as the six numbers of a span', async () => {
-    const span = spanOfLocation(partOf(parse('42')).span, '42');
-    expect(typeOf(span).name).toBe('span');
-    expect([...span]).toEqual([0, 1, 1, 2, 1, 3]);
-  });
-});
-
-describe('printValue — qlang literal serialization', async () => {
-  it('prints atoms', async () => {
-    expect(printValue(null)).toBe('null');
+describe('the printer writes the literal of a value', () => {
+  it('prints undefined as null, and a fraction and a negative number as their literals', () => {
     expect(printValue(undefined)).toBe('null');
-    expect(printValue(true)).toBe('true');
-    expect(printValue(false)).toBe('false');
-    expect(printValue(42)).toBe('42');
     expect(printValue(3.14)).toBe('3.14');
     expect(printValue(-1)).toBe('-1');
   });
 
-  it('prints strings with escapes', async () => {
-    expect(printValue('hello')).toBe('"hello"');
-    expect(printValue('a"b')).toBe('"a\\"b"');
-    expect(printValue('a\nb')).toBe('"a\\nb"');
-    expect(printValue('a\\b')).toBe('"a\\\\b"');
-    expect(printValue('a\bb')).toBe('"a\\bb"');
-    expect(printValue('a\fb')).toBe('"a\\fb"');
-  });
-
-  it('prints keywords', async () => {
-    expect(printValue(keyword('name'))).toBe(':name');
+  it('prints a keyword of names joined by a slash bare', () => {
     expect(printValue(keyword('qlang/error'))).toBe(':qlang/error');
   });
 
-  it('prints Vec', async () => {
-    expect(printValue([1, 2, 3])).toBe('[1 2 3]');
+  it('prints the empty vector', () => {
     expect(printValue([])).toBe('[]');
-    expect(printValue(['a', 'b'])).toBe('["a" "b"]');
   });
 
-  it('prints Set', async () => {
-    expect(printValue(makeSet([2, 1]))).toBe('#[1 2]');
+  it('prints a failure of one fact on one line, its tag before the bang', () => {
+    expect(printValue(makeErrorValue(makeTag('Test'), new Map([['index', 1]])))).toBe('::Test!{:index 1}');
   });
 
-  it('prints small Map inline', async () => {
-    const m = new Map([['a', 1], ['b', 2]]);
-    expect(printValue(m)).toBe('{:a 1 :b 2}');
-  });
-
-  it('pretty-prints Map with more than 2 entries', async () => {
-    const m = new Map([
-      ['a', 1],
-      ['b', 2],
-      ['c', 3]
-    ]);
-    const out = printValue(m);
-    expect(out).toContain('\n');
-    expect(out).toMatch(/^\{/);
-    expect(out).toMatch(/\}$/);
-    expect(out).toContain(':a 1');
-    expect(out).toContain(':b 2');
-    expect(out).toContain(':c 3');
-  });
-
-  it('prints error value with tag head and facts', async () => {
-    const err = makeErrorValue(makeTag('Test'), new Map([['index', 1]]));
-    const out = printValue(err);
-    expect(out).toMatch(/^::Test!\{/);
-    expect(out).toContain(':index 1');
-  });
-
-  it('pretty-prints error with many facts', async () => {
+  it('prints a failure of three facts a fact a line', () => {
     const err = makeErrorValue(makeTag('Test'), new Map([
       ['actualType', makeTag('number')],
       ['message', 'boom'],
       ['index', 1]
     ]));
-    const out = printValue(err);
-    expect(out).toMatch(/^::Test!\{/);
-    expect(out).toContain('\n');
-    expect(out).toContain(':actualType ::number');
-    expect(out).toContain(':message "boom"');
+    expect(printValue(err)).toBe('::Test!{\n  :actualType ::number\n  :message "boom"\n  :index 1\n}');
   });
 
-  it('refuses a value of no kind of the language where it reads its kind [QSHST#source]', async () => {
+  it('refuses a value of no kind of the language where it reads its kind [QSHST#source]', () => {
     expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
   });
 });
 
-
-describe('printValue keyword round-trip', async () => {
-  it('quoted keywords round-trip through printValue → parse → eval', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
-    const { printValue } = await import('../../src/print-value.mjs');
-
-    const cases = [':"1"', ':"foo bar"', ':"$ref"', ':""', ':"123"', ':foo', ':qlang/error'];
-    for (const src of cases) {
-      const original = await evalQuery(src);
-      const printed = printValue(original);
-      const reparsed = await evalQuery(printed);
-      expect(compareValues(original, reparsed) === 0, `a quoted keyword read back as another value: ${src} → ${printed}`).toBe(true);
-    }
-  });
-
-  it('Map with quoted-keyword keys round-trips through printValue', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
-    const { printValue } = await import('../../src/print-value.mjs');
-
-    const original = await evalQuery('{:"$ref" 1 :"foo bar" 2}');
+describe('the print of a value reads back as the value', () => {
+  async function readsBack(source) {
+    const original = await evalQuery(source);
     const printed = printValue(original);
-    const reparsed = await evalQuery(printed);
-    expect(compareValues(original, reparsed) === 0).toBe(true);
-  });
-});
-
-describe('printValue round-trip — all composite types', async () => {
-  const { evalQuery } = await import('../../src/session.mjs');
-  const { printValue } = await import('../../src/print-value.mjs');
-
-  async function assertRoundTrip(src, label) {
-    const original = await evalQuery(src);
-    const printed = printValue(original);
-    const reparsed = await evalQuery(printed);
-    expect(compareValues(original, reparsed) === 0, `${label}: ${src} → ${printed}`).toBe(true);
+    expect(compareValues(original, await evalQuery(printed)) === 0, `${source} → ${printed}`).toBe(true);
   }
 
-  it('Vec of mixed types', async () => {
-    await assertRoundTrip('[1 "two" :three true null]', 'mixed Vec');
+  it('a keyword written in quotes, and one of names joined by a slash, reads back from its print', async () => {
+    for (const source of [':"1"', ':"foo bar"', ':"$ref"', ':""', ':"123"', ':qlang/error']) await readsBack(source);
   });
 
-  it('Vec with quoted keywords', async () => {
-    await assertRoundTrip('[:"$ref" :"foo bar" :normal]', 'quoted kw Vec');
+  it('a vector of a number, a string, a keyword, a boolean and null reads back from its print', async () => {
+    await readsBack('[1 "two" :three true null]');
   });
 
-  it('Set of keywords', async () => {
-    await assertRoundTrip('#[:a :b :c]', 'keyword Set');
+  it('a vector of keywords written in quotes reads back from its print', async () => {
+    await readsBack('[:"$ref" :"foo bar" :normal]');
   });
 
-  it('Set with quoted keywords', async () => {
-    await assertRoundTrip('#[:"$ref" :normal]', 'quoted kw Set');
+  it('a set of keywords reads back from its print', async () => {
+    await readsBack('#[:a :b :c]');
   });
 
-  it('Set of numbers', async () => {
-    await assertRoundTrip('#[1 2 3]', 'number Set');
+  it('a set of keywords written in quotes reads back from its print', async () => {
+    await readsBack('#[:"$ref" :normal]');
   });
 
-  it('Map with bare keys', async () => {
-    await assertRoundTrip('{:name "alice" :age 30}', 'bare key Map');
+  it('a map of keys written in quotes reads back from its print', async () => {
+    await readsBack('{:"$ref" 1 :"foo bar" 2}');
   });
 
-  it('Map with quoted keys', async () => {
-    await assertRoundTrip('{:"$ref" 1 :"foo bar" 2}', 'quoted key Map');
+  it('a map of keyword values, one of names joined by a slash, reads back from its print', async () => {
+    await readsBack('{:kind :typeError :origin :qlang/eval}');
   });
 
-  it('Map with keyword values', async () => {
-    await assertRoundTrip('{:kind :typeError :origin :qlang/eval}', 'keyword val Map');
+  it('a map within a map within a map reads back from its print', async () => {
+    await readsBack('{:a {:b {:c 42}}}');
   });
 
-  it('nested Map', async () => {
-    await assertRoundTrip('{:a {:b {:c 42}}}', 'nested Map');
+  it('an error at rest with a :kind fact reads back from its print', async () => {
+    await readsBack('!{:kind ::Foo :message "boom"}');
   });
 
-  it('Error value of its own tag', async () => {
-    // The print form writes the tag before the bang and re-parse
-    // recovers the same value [QSERR#rest].
-    await assertRoundTrip('::Foo!{:message "boom"}', 'Error');
+  it('an error at rest whose trace is a quote reads back from its print', async () => {
+    await readsBack('!{:message "boom" :trace ~(count)}');
   });
 
-  it('Error value with a :kind fact under the kind of errors', async () => {
-    await assertRoundTrip('!{:kind ::Foo :message "boom"}', 'Error');
-  });
-
-  it('Error with a trace of another shape', async () => {
-    await assertRoundTrip('!{:message "boom" :trace ~(| count)}', 'Error trace');
-  });
-
-  it('deeply nested composite', async () => {
-    await assertRoundTrip('{:data [{:id 1 :tags #[:a :b]} {:id 2 :tags #[:c]}]}', 'deep composite');
-  });
-});
-
-describe('string/toNumber — the number a text writes whole [QSCND#convert]', () => {
-  it('refuses a text that writes a number beside whitespace', async () => {
-    for (const text of ['"5 "', '" 5"']) {
-      expect(await evalQuery(`${text} | toNumber !| type`), text).toEqual(await evalQuery('::string/toNumber/TextNotNumberError'));
-    }
+  it('a map of vectors of maps of sets reads back from its print', async () => {
+    await readsBack('{:data [{:id 1 :tags #[:a :b]} {:id 2 :tags #[:c]}]}');
   });
 });

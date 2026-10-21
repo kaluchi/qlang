@@ -10,3 +10,4 @@
 {"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(type) /name]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}
 {"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | type","expect":"::builtin"}
 {"name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | type","expect":"::builtin"}
+{"decision":"D399","name":"an-input-holding-a-value-refuses-modifiers-under-the-name-of-the-input","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| get [~(type) /name]","expect":"[::call/ValueTakesNoModifiersError :n]"}

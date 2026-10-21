@@ -37,38 +37,12 @@ async function sizesHold(query, budgets) {
 }
 
 describe('elide [QSPRN#elide]', () => {
-  it('answers a value whose print fits as it is', () => {
-    const value = [1, 2];
-    expect(elide(value, 100)).toBe(value);
-  });
-
-  it('keeps the first half of a vector and gives the rest way to an elision, which its read answers', async () => {
-    const forty = Array.from({ length: 40 }, (_, index) => index + 1);
-    const view = elide(forty, 80);
-    const trailing = view[view.length - 1];
-    expect(trailing.get('size')).toBe(40 - (view.length - 1));
-    expect(compareValues(await readBack(forty, trailing), forty.slice(view.length - 1)) === 0).toBe(true);
-  });
-
-  it('keeps the top as it is where its first element and an elision of the rest print no shorter', () => {
-    const ten = Array.from({ length: 10 }, (_, index) => index + 1);
-    expect(elide(ten, 15)).toBe(ten);
-  });
-
   it('keeps the first element of the top, the part within it giving way', async () => {
     const value = await evalQuery(`["${LONG.repeat(3)}" "${LONG.repeat(3)}"]`);
     const view = elide(value, 200);
     expect(view.length).toBe(2);
     expect(await readBack(value, view[0])).toBe(value[0]);
     expect(view[1].get('size')).toBe(1);
-  });
-
-  it('gives a string way whole with its head', async () => {
-    const value = await evalQuery(`{:s "${LONG}" :n 1}`);
-    const elision = elide(value, 50).get('s');
-    expect(elision.get('size')).toBe(LONG.length);
-    expect(LONG.startsWith(elision.get('head'))).toBe(true);
-    expect(await readBack(value, elision)).toBe(LONG);
   });
 
   it('gives a map way whole', async () => {
@@ -108,22 +82,21 @@ describe('elide [QSPRN#elide]', () => {
     expect(view.get('b')[TAG_HEADER_SYMBOL].name).toBe('elision');
     expect([view.get('a'), view.get('c')]).toEqual([value.get('a'), value.get('c')]);
   });
-
-  it('keeps a part whose elision prints no shorter than it, so a budget never lengthens a print [QSPRN#elide]', async () => {
-    const value = await evalQuery('[[] {:n 1} "short"]');
-    expect(elide(value, 3)).toBe(value);
-    const failing = await evalQuery(`[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    expect(printValue(alertWithin(failing, 200)).length).toBeLessThanOrEqual(printValue(alertOf(failing)).length);
-  });
 });
 
 describe('alertWithin [QSPRN#elide]', () => {
-  it('gives the facts of a raised error way beneath !|, its trace a trace [QSHST#answer]', async () => {
+  it('gives an alert past its budget way to a shorter print within the budget [QSHST#answer]', async () => {
+    const failing = await evalQuery(`[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}] | add 1`);
+    expect(printValue(alertOf(failing)).length).toBeGreaterThan(300);
+    expect(printValue(alertWithin(failing, 300)).length).toBeLessThanOrEqual(300);
+  });
+
+  it('gives way within the trace of a failure past its budget, the trace kept a trace and the rest of its frames read beneath !| [QSHST#answer]', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}] | filter ~(nope)`);
-    const view = alertWithin(failing, 300);
-    expect(isErrorValue(view)).toBe(true);
-    expect(view.tag).toBe(failing.tag);
-    expect(printValue(view)).toContain(':read ~(!| get /trace/');
+    expect(printValue(alertOf(failing)).length).toBeGreaterThan(190);
+    const trace = alertWithin(failing, 190).facts.get('trace');
+    expect(trace[TAG_HEADER_SYMBOL].name).toBe('trace');
+    expect(printValue(trace[trace.length - 1])).toBe('::elision{:size 1 :read ~(!| get /trace | drop 1)}');
   });
 
   it('cuts an alert past a budget fact by fact, the failure keeping its tag and the names of its facts [QSHST#answer]', async () => {

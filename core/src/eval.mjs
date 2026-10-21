@@ -18,7 +18,7 @@ import {
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
-import { partOf, originOf, repeatsDeclarationAt } from './walk.mjs';
+import { originOf, repeatsDeclarationAt } from './walk.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
   commandStep, groupStep
@@ -67,7 +67,7 @@ async function evalStep(step, state, at) {
   try {
     return await evaluatorOf(step)(step, state, at);
   } catch (caughtError) {
-    return withFlight(withPipeValue(state, errorOfThrow(caughtError, step, state.pipeValue, state.scope)), flightOfThrow(caughtError));
+    return withFlight(withPipeValue(state, errorOfThrow(caughtError, state.pipeValue, state.scope)), flightOfThrow(caughtError));
   }
 }
 
@@ -84,12 +84,11 @@ function evaluatorOf(step) {
   return isMap(step) ? evalMap : evalItself;
 }
 
-// The failure a throw at a step raised against the subject it met, located
-// at the step's span, a defect of the runtime riding past the fail track.
-function errorOfThrow(caughtError, step, subject, scope) {
+// The failure a throw at a step raised against the subject it met, a defect
+// of the runtime riding past the fail track.
+function errorOfThrow(caughtError, subject, scope) {
   if (caughtError instanceof QlangDefect) throw caughtError;
-  const span = partOf(step)?.span ?? null;
-  return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, scope, span) : errorFromForeign(caughtError, span, scope);
+  return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, scope) : errorFromForeign(caughtError, scope);
 }
 
 // factsWithTheirTrace(facts, state) → the facts with the `:trace` they write
@@ -137,7 +136,7 @@ async function applyFailTrack(state, step, at) {
   try {
     atRest = raised.tag.name === ERROR_TAG.name ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
   } catch (caughtError) {
-    atRest = errorOfThrow(caughtError, step, errorOfKind, state.scope);
+    atRest = errorOfThrow(caughtError, errorOfKind, state.scope);
   }
   if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => makeQuote([step]), errorOfKind, state.scope));
   const answered = await evalStep(step, withPipeValue(state, atRest), at);
@@ -386,7 +385,7 @@ function withRepairOfPath(state, call, subject, scope) {
   const repair = repairOfRefusedPath(refused, call, subject);
   if (repair === null) return state;
   const facts = factsInOrder(refused.tag, new Map(refused.facts).set('repair', repair), scope);
-  return withPipeValue(state, makeErrorValue(refused.tag, facts, { location: refused.location, originalError: refused.originalError }));
+  return withPipeValue(state, makeErrorValue(refused.tag, facts, { originalError: refused.originalError }));
 }
 
 // A bare name calls what it reaches for the subject; a name whose verbs no
@@ -850,7 +849,7 @@ function foldingCodeOf(value, originOfQuote, state) {
     try {
       answered = await invoke([() => element], withPipeValue(callerState, acc));
     } catch (caughtError) {
-      answered = withFlight(withPipeValue(callerState, errorOfThrow(caughtError, call, acc, callerState.scope)), flightOfThrow(caughtError));
+      answered = withFlight(withPipeValue(callerState, errorOfThrow(caughtError, acc, callerState.scope)), flightOfThrow(caughtError));
     }
     return answerOfStep(answered.pipeValue, () => makeQuote([call]), acc, callerState.scope, answered.flight);
   };

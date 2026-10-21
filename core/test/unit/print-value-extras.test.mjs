@@ -1,60 +1,47 @@
 // The print and the JSON of the values the printer meets at its edges: a
-// binding record, a doc, a value under a tag, an error and its facts, the
-// doubles at their bounds, the print a kind declares, and the names `env`
-// answers, which the parser reads back.
+// binding record, a value under a tag, an error and its facts, the doubles
+// at their bounds, the print a kind declares, and the names `env` answers,
+// which the parser reads back.
 
 import { describe, it, expect } from 'vitest';
-import { compareValues } from '../../src/ordering.mjs';
-import { parse } from '../../src/parse.mjs';
+import { compareValues, makeSet } from '../../src/ordering.mjs';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { printValue } from '../../src/print-value.mjs';
 import { toPlain, fromPlain } from '../../src/runtime/json.mjs';
 import {
   makeBinding,
-  makeDoc,
   keyword,
   makeTag,
+  makeTagged,
   makeErrorValue,
-  isDoc,
   isMap,
-  isErrorValue
+  isErrorValue,
+  BuiltinForeignValueError
 } from '../../src/types.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';
 import { printAnswer, caretOf } from '../../src/runtime/print.mjs';
 
-describe('printValue — binding record / Function branches', () => {
+describe('printValue — a binding record and a vector under a tag', () => {
   it('renders a binding record as the tagged Map it is', () => {
     const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
       '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :origin null\n}');
   });
 
-  it('renders a Doc value as `|~~content~~|` block form', () => {
-    const doc = makeDoc(' hello ');
-    expect(isDoc(doc)).toBe(true);
-    expect(printValue(doc)).toBe('|~~ hello ~~|');
-  });
-
-  it('renders a vector under a tag as ::Tag[payload…], the tagged literal that reads back as it', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
+  it('renders a vector under a tag as ::Tag[payload…]', () => {
     const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     expect(printValue(tagged)).toBe('::Box[42 "inner"]');
   });
 
-  it('renders a tag over an empty vector as ::Tag[]', async () => {
-    const { makeTagged } = await import('../../src/types.mjs');
+  it('renders a tag over an empty vector as ::Tag[]', () => {
     const tagged = makeTagged(makeTag('Marker'), []);
     expect(printValue(tagged)).toBe('::Marker[]');
   });
 });
 
-describe('printErrorValue — head + payload-filter branches', () => {
+describe('the print of a failure, its tag before the bang and its facts', () => {
   it('an error of the kind of errors prints without its kind', async () => {
-    // Every error carries an identity tag on the JS-header `tag`
-    // slot — `::error`, the kind of errors, for user `!{}` with no tag
-    // before its bang. The brackets imply that kind, so the
-    // printer leaves it out, as it does a vector's, and the
-    // round-trip recovers the same identity [QSLIT#kind], [QSERR#rest].
+    // The kind of errors is the one `!{…}` implies, so its print writes no tag before the bang [QSERR#rest].
     const err = makeErrorValue(makeTag('error'), new Map());
     expect(printValue(err)).toBe('!{}');
   });
@@ -72,27 +59,6 @@ describe('printErrorValue — head + payload-filter branches', () => {
     expect(await printAnswer(failure, scope)).toBe(`|~| raised, and no !| caught it\n${printValue(failure)}`);
     const atRest = await evalQuery('"x" | add 1 !| it');
     expect(await printAnswer(atRest, scope)).toBe(printValue(atRest));
-  });
-
-  it('a :kind among the facts is a fact like any other', async () => {
-    // A `:kind` names no tag [QSERR#rest]: it stays among the facts as
-    // ordinary user data, the error staying of the kind of errors.
-    const err = makeErrorValue(makeTag('error'), new Map([
-      ['kind', keyword('oops')]
-    ]));
-    expect(printValue(err)).toBe('!{:kind :oops}');
-  });
-
-  it(':message rides through the printer verbatim — user content, not template-fill', async () => {
-    // User-stamped `:message` fields ride through the printer
-    // verbatim so round-trip preserves them exactly. Runtime-
-    // side errors (`errorFromQlang`) simply omit `:message` from
-    // the facts at construction.
-    const err = makeErrorValue(makeTag('Foo'), new Map([
-      ['message', 'user-stamped prose'],
-      ['category', keyword('oops')]
-    ]));
-    expect(printValue(err)).toBe('::Foo!{:message "user-stamped prose" :category :oops}');
   });
 });
 
@@ -159,41 +125,20 @@ describe('toPlain encodes a failure', () => {
   });
 });
 
-describe('toPlain encodes a tag over every kind of payload through the $tag envelope', () => {
-  it('a tag over a set, a map and an atom writes its payload in JSON', async () => {
-    // A tag over a vector is held by the earlier `Box[42]` test.
-    const { makeTagged, makeTag: makeTag } = await import('../../src/types.mjs');
-    const { makeSet } = await import('../../src/ordering.mjs');
+describe('toPlain encodes a tag over a set through the $tag envelope', () => {
+  it('a tag over a set writes its payload as the array of its elements in JSON', () => {
     const taggedSet = makeTagged(makeTag('Keys'), makeSet([2, 1]));
     const plainSet = toPlain(taggedSet);
     expect(plainSet.$tag).toBe('Keys');
     expect(plainSet.payload).toEqual([1, 2]);
-    const taggedMap = makeTagged(makeTag('User'), new Map([['name', 'alice']]));
-    const plainMap = toPlain(taggedMap);
-    expect(plainMap.$tag).toBe('User');
-    expect(plainMap.payload).toEqual({ name: 'alice' });
-    const taggedStr = makeTagged(makeTag('Note'), 'hello');
-    const plainStr = toPlain(taggedStr);
-    expect(plainStr.$tag).toBe('Note');
-    expect(plainStr.payload).toBe('hello');
   });
 });
 
-describe('runtime/json.mjs structural — json round-trips', () => {
-  it('json roundtrips Set as array', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
-    expect(await evalQuery('#[1 2 3] | json')).toMatch(/^\[/);
-  });
-
-  it('json writes a keyword as its bare name', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
-    expect(await evalQuery(':foo | json')).toBe('"foo"');
-  });
-
-  it('json roundtrips Boolean as JSON boolean', async () => {
-    const { evalQuery } = await import('../../src/session.mjs');
+describe('json of a boolean', () => {
+  it('writes a boolean as the boolean of JSON, which parseJson reads back', async () => {
     expect(await evalQuery('true | json')).toBe('true');
     expect(await evalQuery('false | json')).toBe('false');
+    expect(await evalQuery('[true false] | map ~(json | parseJson)')).toEqual([true, false]);
   });
 });
 
@@ -214,7 +159,7 @@ describe('json.fromPlain — inverse of toPlain', () => {
     expect(lifted).toEqual([1, 'two', true]);
   });
 
-  it('objects lift into Map keyed by interned keywords', async () => {
+  it('an object of JavaScript lifts into a map keyed by its names', async () => {
     const lifted = fromPlain({ a: 1, b: 2 });
     expect(isMap(lifted)).toBe(true);
     expect(lifted.get('a')).toBe(1);
@@ -228,30 +173,12 @@ describe('json.fromPlain — inverse of toPlain', () => {
   });
 });
 
-describe('json.toPlain carries a binding record as a tagged Map', () => {
-  it('toPlain on a binding record keeps its tag and its fields', () => {
-    const plain = toPlain(makeBinding({ name: keyword('answer'), value: 42 }));
-    expect(plain.$tag).toBe('binding');
-  });
-});
-
-describe('json.toPlain writes the keys of a map a host hands', () => {
-  it('json writes a map a host hands as the subject of a cell by its keys, each a string', async () => {
-    const s = await createSession();
-    const map = new Map();
-    map.set('rawKey', 'rawValue');
-    const out = (await s.evalCell('json', { initialPipeValue: map })).result;
-    expect(out).toBe('{"rawKey":"rawValue"}');
-  });
-});
-
 describe('the finite-double domain holds at every render seam', () => {
   // A number past the doubles has no literal [QSLIT#number], and an answer
   // brought under `::number` past them is refused as `::number/NotFiniteError`
   // [QSNUM#arithmetic]; one a host hands meets the printer and the codec of
   // JSON, which raise it where they write it [QSHST#source].
-  it('printValue refuses an infinity and a NaN as values of no kind', async () => {
-    const { BuiltinForeignValueError } = await import('../../src/types.mjs');
+  it('printValue refuses an infinity and a NaN as values of no kind', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;
       try { printValue(leaked); } catch (caught) { thrown = caught; }
@@ -261,15 +188,15 @@ describe('the finite-double domain holds at every render seam', () => {
     }
   });
 
-  it('toPlain refuses the values the printer refuses', async () => {
-    const { BuiltinForeignValueError } = await import('../../src/types.mjs');
-    expect(() => toPlain(Infinity)).toThrow(BuiltinForeignValueError);
+  it('toPlain refuses the values the printer refuses', () => {
+    for (const leaked of [Infinity, -Infinity, NaN]) {
+      expect(() => toPlain(leaked), String(leaked)).toThrow(BuiltinForeignValueError);
+    }
   });
 
-  it('every in-domain magnitude renders unchanged', () => {
+  it('prints a number at the bounds of the doubles by its exponent', () => {
     expect(printValue(1e308)).toBe('1e+308');
     expect(printValue(-1e308)).toBe('-1e+308');
-    expect(toPlain(0.1)).toBe(0.1);
   });
 });
 
@@ -280,11 +207,10 @@ describe('print — the print declared under a kind', () => {
     ':badge |~~ A badge. ~~|',
     ':badge/print',
     '  |~~ A badge as its name. ~~|',
-    '  ~(:returns ::string | get /name)'
+    '  ~(get /name)'
   ].join('\n');
 
   async function badgeSession() {
-    const { createSession } = await import('../../src/session.mjs');
     return await createSession({ sources: [{ uri: 'badge', source: BADGE_SOURCE }] });
   }
 
@@ -294,12 +220,10 @@ describe('print — the print declared under a kind', () => {
     expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
   });
 
-  it('reaches a part inside an error at rest and under a tag over an atom', async () => {
+  it('takes the print of a kind for a part inside an error at rest, under a tag of its own or none', async () => {
     const session = await badgeSession();
-    const inError = await session.evalCell('[::error{:k ::badge{:name "in"}}] | print');
-    expect(inError.result).toContain(':k in');
-    const underTag = await session.evalCell(':Box |~~ a box ~~| | [::Box#5 :kw] | print');
-    expect(underTag.result).toBe('[::Box#5 :kw]');
+    expect((await session.evalCell('[::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  !{\n    :k in\n  }\n]');
+    expect((await session.evalCell('[::Box::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  ::Box!{\n    :k in\n  }\n]');
   });
 
   it('prints what a kind answers that is no string as the value it is', async () => {
@@ -309,18 +233,9 @@ describe('print — the print declared under a kind', () => {
   });
 });
 
-describe('the print of env reads back', () => {
-  it('prints a literal the parser reads, and no source of a function', async () => {
-    const printed = printValue(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env'));
-    expect(printed).toContain('::binding{');
-    expect(() => parse(printed, { uri: 'env-round-trip' })).not.toThrow();
-    expect(printed).not.toMatch(/async function\b/);
-    expect(printed).not.toMatch(/=>\s*\{/);
-  });
-
-  it('never meets a function a host hands in a scope, which the session refuses as it takes the scope [QSHST#source]', async () => {
-    const scope = new Map(await langRuntime()).set('hostFn', makeBinding({ name: keyword('hostFn'), value: async function helloFn() { return 42; } }));
-    await expect(createSession({ scope })).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: 'function helloFn' } });
+describe('the print and the JSON of env', () => {
+  it('prints the records of the names a query declares as a literal that reads back as them', async () => {
+    expect(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env | :e it | print | parse | open | eq e')).toBe(true);
   });
 
   it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {

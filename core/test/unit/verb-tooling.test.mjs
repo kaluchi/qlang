@@ -22,10 +22,10 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('shows the first verb of a name several kinds answer, and the inputs of its function', async () => {
-    const shown = shownFor(await langRuntime(), 'gt');
-    expect(shown.address.name.endsWith('/gt')).toBe(true);
-    expect(shown.inputs).toEqual(['value']);
+  it('shows one of the verbs of a name several kinds answer, and the inputs of its function', async () => {
+    const shown = shownFor(await langRuntime(), 'take');
+    expect(['map/take', 'string/take', 'vec/take']).toContain(shown.address.name);
+    expect(shown.inputs).toEqual(['count']);
   });
 
   it('shows the name any value answers', async () => {
@@ -130,7 +130,7 @@ describe('the verbs a value of a kind reaches [QSDSP#walk]', () => {
     expect(reached.get('toString').address.name).toBe('tag/toString');
   });
 
-  it('reaches only the verbs of any value for a kind no module declares', async () => {
+  it('reaches only the verbs of any value for a kind no source declares', async () => {
     const reached = verbsReaching(await langRuntime(), ['Width']);
     expect(reached.has('type')).toBe(true);
     expect(reached.has('add')).toBe(false);

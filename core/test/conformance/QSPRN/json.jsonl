@@ -14,7 +14,11 @@
 {"name":"json-writes-a-value-under-a-tag-beside-its-payload","query":"::Box#1 | json","expect":"\"{\\\"$tag\\\":\\\"Box\\\",\\\"payload\\\":1}\""}
 {"name":"json-answers-a-string","query":"{:a 1} | json | type","expect":"::string"}
 {"name":"parseJson-refuses-a-text-that-is-no-json","query":"\"[1, 2\" | parseJson !| type","expect":"::string/parseJson/TextNotJsonError"}
+{"decision":"D399","name":"parseJson-refuses-a-text-that-is-no-json-with-the-reason-as-its-message","query":"\"{not json\" | parseJson !| get /message | type","expect":"::string"}
+{"decision":"D399","name":"parseJson-reads-objects-and-arrays-nested-at-any-depth","query":"\"{\\\"items\\\":[{\\\"k\\\":1},{\\\"k\\\":2}]}\" | parseJson | get /items | map /k","expect":"[1 2]"}
 {"name":"a-value-under-a-tag-reads-back-from-json-as-the-plain-map","query":"::Box#1 | json | parseJson","expect":"{:\"$tag\" \"Box\" :payload 1}"}
 {"name":"a-number-past-the-doubles-is-refused-with-its-path","query":"\"{\\\"a\\\": {\\\"b c\\\": [1, 1e400]}}\" | parseJson !| get /path","expect":"/a/\"b c\"/1"}
 {"name":"json-writes-a-quote-as-its-print-a-quote-of-a-path-among-them","query":"get [~([/age] | tag ::quote | json) ~(~(get /a) | json)]","expect":"[\"\\\"::quote[/age]\\\"\" \"\\\"~(get /a)\\\"\"]"}
 {"name":"a-number-that-is-the-whole-text-is-refused-with-no-path","query":"\"1e400\" | parseJson !| keys","expect":"#[:trace]"}
+{"decision":"D399","name":"json-writes-an-error-at-rest-in-a-vector-as-the-value-under-its-tags","query":"get [11 ~(\"x\" | add 10 !| it) 13] | json","expect":"\"[11,{\\\"$tag\\\":\\\"number/add/SubjectNotNumberError\\\",\\\"payload\\\":{\\\"$tag\\\":\\\"error\\\",\\\"payload\\\":{\\\"actualType\\\":\\\"::string\\\",\\\"trace\\\":{\\\"$tag\\\":\\\"trace\\\",\\\"payload\\\":[{\\\"$tag\\\":\\\"frame\\\",\\\"payload\\\":[\\\"x\\\",\\\"~(add 10)\\\"]}]}}}},13]\""}
+{"decision":"D399","name":"json-writes-a-key-in-quotes-as-the-name-it-spells","query":"{:\"foo bar\" 1 :\"$ref\" \"x\"} | json","expect":"\"{\\\"foo bar\\\":1,\\\"$ref\\\":\\\"x\\\"}\""}

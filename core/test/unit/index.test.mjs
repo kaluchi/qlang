@@ -50,7 +50,7 @@ describe('the package root', () => {
     expect((await core.boundAnswer(`${text}x`, scope, `${text}x`)).tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
   });
 
-  it('gives the head of an answer past the budget way whole where no cut fits its excerpt, read from the answer, and of a failure beneath !| [D397]', async () => {
+  it('lets an answer past the budget give way whole as its head where no cut fits the excerpt, read beneath !| for a failure [D397]', async () => {
     const scope = await core.langRuntime();
     const query = '400 | range | map ~("k") | join "" | :long it | 3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | :m it | get [[~(long | toKeyword) 1]] | toMap | union m';
     const headOf = async written => (await core.boundAnswer(await core.evalQuery(written, scope), scope)).facts.get('actualValue');
@@ -90,6 +90,11 @@ describe('the package root', () => {
     expect((await session.evalCell(':k 5 | 1 | where')).result).toBe(true);
   });
 
+  it('prints every part of a kind of the root by the print a host source declares under its label, bare or under a tag [D400]', async () => {
+    const session = await core.createSession({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
+    expect((await session.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
+  });
+
   it('crosses the JSON boundary both ways', () => {
     const lifted = core.fromPlain({ name: 'alice' });
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
@@ -97,7 +102,7 @@ describe('the package root', () => {
 
   it('hands the tools the parts of a text and the letters of a name', () => {
     const root = core.partOf(core.parse(':x 1 | x'));
-    expect(core.findNameOccurrences(root, 'x').length).toBeGreaterThan(0);
+    expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
   });
 

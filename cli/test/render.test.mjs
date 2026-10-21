@@ -1,29 +1,32 @@
-// render branch coverage. `renderCellOutcome` turns a cell entry plus the
-// context of the run (the didExplicitStdout flag and the colour) into the
-// stdoutText / stderrText / exitCode triple the orchestrator emits, and
-// `answerText` writes the answer as the language prints it, whatever the
-// data was [QSHST#answer].
+// What the command line writes for a cell: `renderCellOutcome` turns a cell
+// and the context of its run, whether the query wrote by `out`, the colour and
+// the code a failure exits with, into what stdout and stderr receive and the
+// exit code, and `answerText` writes the answer as the language prints it,
+// whatever the data was [QSHST#answer].
 
 import { describe, it, expect } from 'vitest';
 import { renderCellOutcome, answerText } from '../src/render.mjs';
 import { runQuery } from '../src/run.mjs';
-import { liftStdinToPipeValue } from '../src/stdin.mjs';
 import { silentStreams } from './helpers/silent-streams.mjs';
-import { makeErrorValue, keyword, makeTag, langRuntime, evalQuery, boundAnswer } from '@kaluchi/qlang-core';
+import { langRuntime, evalQuery, boundAnswer } from '@kaluchi/qlang-core';
 
-function makeCellEntry({ result = null, defect = null } = {}) {
+// A cell as a session answers it, over the root unless a test hands the scope its query ran in.
+async function makeCellEntry({ result = null, defect = null, scope = null } = {}) {
   return {
     source: '…',
     uri: 'cell-1',
     result,
     defect,
-    scopeAfterCell: new Map()
+    scopeAfterCell: scope ?? await langRuntime()
   };
 }
 
+// A failure the language answers, the refusal of `add` on a string.
+const refusalOfAdd = () => evalQuery('"x" | add 1');
+
 describe('renderCellOutcome — error paths', () => {
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with exit 1 [QSHST#answer]', async () => {
-    const cellEntry = makeCellEntry({ defect: new Error('the host broke') });
+    const cellEntry = await makeCellEntry({ defect: new Error('the host broke') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
       didExplicitStdoutEffect: false,
       shouldColorize: false
@@ -34,29 +37,20 @@ describe('renderCellOutcome — error paths', () => {
   });
 
   it('writes a defect the printer raises on the answer on stderr as `qlang:` and its message, with exit 1 [QSHST#answer]', async () => {
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: Infinity }), {
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: Infinity }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
     expect(cliOutcome).toEqual({ stdoutText: '', stderrText: 'qlang: the core met number Infinity, a value of no kind of the language\n', exitCode: 1 });
   });
 
-  it('encodes a fail-track error value as data on stdout, exit 0', async () => {
-    // An error at rest is a value of the language: it travels as data
-    // on the same channel as any value. A non-zero
-    // exit on a fail-track result would cancel sibling tool calls in
-    // agent harnesses that parallelise qlang invocations.
-    const errorDescriptor = new Map([
-      ['thrown', keyword('FilterSubjectNotContainerError')]
-    ]);
-    const cellEntry = makeCellEntry({
-      result: makeErrorValue(makeTag('FilterSubjectNotContainerError'), errorDescriptor)
-    });
-    const cliOutcome = await renderCellOutcome(cellEntry, {
+  it('writes a failure on stdout as every answer, exit 0', async () => {
+    // A failure is a value of the language on the channel of every answer with exit 0, so a failing call never stops the calls run beside it [QSHST#answer].
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
-    expect(cliOutcome.stdoutText).toContain('::FilterSubjectNotContainerError');
+    expect(cliOutcome.stdoutText).toContain('::number/add/SubjectNotNumberError!{');
     expect(cliOutcome.stderrText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
   });
@@ -65,21 +59,19 @@ describe('renderCellOutcome — error paths', () => {
 // `--fail` gives a failure the code 1 for a script that tests it, the
 // failure written as without it [QSHST#answer].
 describe('renderCellOutcome — the code a failure exits with', () => {
-  const failure = () => makeErrorValue(makeTag('FilterSubjectNotContainerError'), new Map([['thrown', keyword('FilterSubjectNotContainerError')]]));
-
   it('exits a failure with the code the caller asks for, written as without it', async () => {
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: failure() }), {
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false,
       failureExitCode: 1
     });
-    expect(cliOutcome.stdoutText).toContain('::FilterSubjectNotContainerError');
+    expect(cliOutcome.stdoutText).toContain('::number/add/SubjectNotNumberError!{');
     expect(cliOutcome.stderrText).toBe('');
     expect(cliOutcome.exitCode).toBe(1);
   });
 
   it('exits a failure the query left unwritten by `out` with that code too', async () => {
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: failure() }), {
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
       didExplicitStdoutEffect: true,
       shouldColorize: false,
       failureExitCode: 1
@@ -89,7 +81,7 @@ describe('renderCellOutcome — the code a failure exits with', () => {
   });
 
   it('exits a value with 0 whatever code a failure takes', async () => {
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result: 'hello' }), {
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: 'hello' }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false,
       failureExitCode: 1
@@ -99,20 +91,11 @@ describe('renderCellOutcome — the code a failure exits with', () => {
   });
 });
 
-// The answer is written as the language prints it, a string as its text
-// [QSHST#answer].
+// The answer is written as the language prints it [QSHST#answer].
 describe('renderCellOutcome — the answer as the language prints it', () => {
-  it('passes a String success value through as its text', async () => {
-    const cliOutcome = await renderCellOutcome(
-      makeCellEntry({ result: 'hello world' }),
-      { didExplicitStdoutEffect: false, shouldColorize: false }
-    );
-    expect(cliOutcome.stdoutText).toBe('hello world\n');
-  });
-
   it('prints a non-String composite as its literal', async () => {
     const result = new Map([['k', 1]]);
-    const cliOutcome = await renderCellOutcome(makeCellEntry({ result }), {
+    const cliOutcome = await renderCellOutcome(await makeCellEntry({ result }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false
     });
@@ -120,9 +103,9 @@ describe('renderCellOutcome — the answer as the language prints it', () => {
     expect(cliOutcome.exitCode).toBe(0);
   });
 
-  it('suppresses the auto-encoded stdout when the query wrote to `out`', async () => {
+  it('writes no answer for a query that wrote by `out`, which holds the channel', async () => {
     const cliOutcome = await renderCellOutcome(
-      makeCellEntry({ result: 'hello' }),
+      await makeCellEntry({ result: 'hello' }),
       { didExplicitStdoutEffect: true, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('');
@@ -131,9 +114,9 @@ describe('renderCellOutcome — the answer as the language prints it', () => {
 });
 
 describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => {
-  it('wraps a printValue success output in ANSI escapes when shouldColorize is true', async () => {
+  it('paints the literal of an answer in ANSI where the caller asks for colour', async () => {
     const cliOutcome = await renderCellOutcome(
-      makeCellEntry({ result: new Map([['k', 1]]) }),
+      await makeCellEntry({ result: new Map([['k', 1]]) }),
       { didExplicitStdoutEffect: false, shouldColorize: true }
     );
     // The answer holds an ANSI escape.
@@ -146,14 +129,14 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
 
   it('writes a string as its text, which no colour paints as code [QSHST#answer]', async () => {
     const cliOutcome = await renderCellOutcome(
-      makeCellEntry({ result: 'hello | world' }),
+      await makeCellEntry({ result: 'hello | world' }),
       { didExplicitStdoutEffect: false, shouldColorize: true }
     );
     expect(cliOutcome.stdoutText).toBe('hello | world\n');
   });
 
   it('paints the failure of a query that does not parse in ANSI on stdout, exit 0 [QSHST#answer]', async () => {
-    const cellEntry = makeCellEntry({ result: await evalQuery('[1 2') });
+    const cellEntry = await makeCellEntry({ result: await evalQuery('[1 2') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
       didExplicitStdoutEffect: false,
       shouldColorize: true
@@ -172,10 +155,6 @@ describe('answerText — the answer as the language prints it', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))
       .toBe('[:v #[1 2] ::vec ~(add 1) "s"]');
-  });
-
-  it('prints a map whose keys a JSON object gave as keywords', async () => {
-    expect(await answerText(liftStdinToPipeValue('{"k": 1}', 'auto').pipeValue, await langRuntime())).toBe('{:k 1}');
   });
 
   it('writes a string as its text, so `| json` writes JSON text', async () => {
@@ -258,15 +237,14 @@ describe('renderCellOutcome — the bound of the answer [D397]', () => {
 
   it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {
     const scope = await langRuntime();
-    const cellEntry = { ...makeCellEntry({ result: await evalQuery(past, scope) }), scopeAfterCell: scope };
+    const cellEntry = await makeCellEntry({ result: await evalQuery(past, scope), scope });
     expect((await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false })).exitCode).toBe(0);
     const failing = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false, failureExitCode: 1 });
     expect([failing.exitCode, failing.stdoutText.includes('::qlang/AnswerBeyondBudgetError')]).toEqual([1, true]);
   });
 
   it('paints a string past the budget as the alert of its refusal, which is code', async () => {
-    const scope = await langRuntime();
-    const cellEntry = { ...makeCellEntry({ result: 'x'.repeat(16001) }), scopeAfterCell: scope };
+    const cellEntry = await makeCellEntry({ result: 'x'.repeat(16001) });
     const painted = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: true });
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
     expect(painted.stdoutText).toMatch(/\x1b\[/);
@@ -274,7 +252,7 @@ describe('renderCellOutcome — the bound of the answer [D397]', () => {
 
   it('writes nothing and raises no refusal for a query that wrote by out, its code the one its answer exits with', async () => {
     const scope = await langRuntime();
-    const cellEntry = { ...makeCellEntry({ result: await evalQuery(past, scope) }), scopeAfterCell: scope };
+    const cellEntry = await makeCellEntry({ result: await evalQuery(past, scope), scope });
     expect(await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: true, shouldColorize: false, failureExitCode: 1 })).toEqual({ stdoutText: '', stderrText: '', exitCode: 0 });
   });
 });

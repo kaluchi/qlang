@@ -75,8 +75,8 @@
 [D340]: ../../D340.md
 [D342]: ../../replaced/D342.md
 [QSERR#site]: ../../../spec/QSERR-errors.md#site
-[QSHST#input]: ../../../spec/QSHST-hosts-and-the-command-line.md#input
-[QSHST#source]: ../../../spec/QSHST-hosts-and-the-command-line.md#source
+[QSHST#input]: ../../../spec/QSCLI-the-command-line.md#stdin
+[QSHST#source]: ../../../spec/QSHST-hosts.md#source
 [QSNAM#root]: ../../../spec/QSNAM-names-and-scope.md#root
 [QSWRK#baseline]: ../../../spec/QSWRK-the-work.md#baseline
 [QSWRK#tooling]: ../../../spec/QSWRK-the-work.md#tooling

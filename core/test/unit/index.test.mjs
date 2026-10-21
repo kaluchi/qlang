@@ -24,7 +24,7 @@ describe('the package root', () => {
     expect(await core.evalQuery(core.printValue(value))).toEqual(value);
   });
 
-  it('[QSHST#answer] answers an answer whose print fits the budget as it is, a part a kind prints its own way counted as it prints', async () => {
+  it('[QSPRN#budget] answers an answer whose print fits the budget as it is, a part a kind prints its own way counted as it prints', async () => {
     const session = await core.createSession();
     const cell = await session.evalCell(`:Box |~~ B ~~| | :Box/print ~("b") | ${core.ANSWER_BUDGET} | range | map ~(tag ::Box) | take ${core.ANSWER_BUDGET / 2 - 1}`);
     const shown = await core.boundAnswer(cell.result, cell.scopeAfterCell);
@@ -32,7 +32,7 @@ describe('the package root', () => {
     expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
   });
 
-  it('[QSHST#answer] answers an answer past the budget as the refusal in its place, its answer cut to an excerpt read from the answer', async () => {
+  it('[QSPRN#budget] answers an answer past the budget as the refusal in its place, its answer cut to an excerpt read from the answer', async () => {
     const scope = await core.langRuntime();
     const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
     const shown = await core.boundAnswer(answer, scope);
@@ -43,14 +43,14 @@ describe('the package root', () => {
     expect(await core.printAnswer(shown.facts.get('actualValue'), scope)).toMatch(/^\[\{:id 0 :name "user"\} [\s\S]*::elision\{:size \d+ :read ~\(drop \d+\)\}\]$/);
   });
 
-  it('[QSHST#answer] measures the text a host writes for a string, as the host hands it', async () => {
+  it('[QSPRN#budget] measures the text a host writes for a string, as the host hands it', async () => {
     const scope = await core.langRuntime();
     const text = 'x'.repeat(core.ANSWER_BUDGET);
     expect(await core.boundAnswer(text, scope, text)).toBe(text);
     expect((await core.boundAnswer(`${text}x`, scope, `${text}x`)).tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
   });
 
-  it('[QSHST#answer] lets an answer past the budget give way whole as its head where no cut fits the excerpt, read beneath !| for a failure', async () => {
+  it('[QSPRN#budget] lets an answer past the budget give way whole as its head where no cut fits the excerpt, read beneath !| for a failure', async () => {
     const scope = await core.langRuntime();
     const query = '400 | range | map ~("k") | join "" | :long it | 3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | :m it | get [[~(long | toKeyword) 1]] | toMap | union m';
     const headOf = async written => (await core.boundAnswer(await core.evalQuery(written, scope), scope)).facts.get('actualValue');
@@ -58,7 +58,7 @@ describe('the package root', () => {
     expect([ofTheAnswer.get('size'), core.printValue(ofTheAnswer.get('read')), core.printValue(ofTheFailure.get('read'))]).toEqual([3001, '~()', '~(!| it)']);
   });
 
-  it('[QSHST#answer] answers a failure whose alert passes the budget as the refusal, its kind the tag of the failure and its head read beneath !|', async () => {
+  it('[QSERR#alert] answers a failure whose alert passes the budget as the refusal, its kind the tag of the failure and its head read beneath !|', async () => {
     const scope = await core.langRuntime();
     const failure = await core.evalQuery('3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise', scope);
     const shown = await core.boundAnswer(failure, scope);
@@ -67,14 +67,14 @@ describe('the package root', () => {
     expect(core.printValue(shown).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
   });
 
-  it('[QSHST#answer] counts the characters of a print as count counts a string', async () => {
+  it('[QSPRN#budget] counts the characters of a print as count counts a string', async () => {
     const scope = await core.langRuntime();
     const faces = count => '\u{1F600}'.repeat(count);
     expect(await core.boundAnswer(faces(core.ANSWER_BUDGET), scope, faces(core.ANSWER_BUDGET))).toBe(faces(core.ANSWER_BUDGET));
     expect((await core.boundAnswer(faces(core.ANSWER_BUDGET + 1), scope, faces(core.ANSWER_BUDGET + 1))).facts.get('characters')).toBe(core.ANSWER_BUDGET + 1);
   });
 
-  it('[QSHST#answer] answers a failure as its alert within the budget', async () => {
+  it('[QSERR#alert] answers a failure as its alert within the budget', async () => {
     const scope = await core.langRuntime();
     const failure = await core.evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope);
     const shown = await core.boundAnswer(failure, scope);
@@ -100,7 +100,7 @@ describe('the package root', () => {
     expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
   });
 
-  it('[QSHST#tools] hands the tools the parts of a text and the letters of a name', () => {
+  it('[QSLSP#server] hands the tools the parts of a text and the letters of a name', () => {
     const root = core.partOf(core.parse(':x 1 | x'));
     expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
     expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);

@@ -276,8 +276,8 @@ describe('errorFromQlang', () => {
 
 describe('errorFromForeign', () => {
   // A host's failure carries the facts every host can give, its account
-  // and the accounts of the failures beneath it [QSHST#answer], [QSERR#site].
-  it('[QSHST#source] lifts a JavaScript error to its account under the tag of the language', async () => {
+  // and the accounts of the failures beneath it [QSHST#door], [QSERR#site].
+  it('[QSHST#door] lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, await langRuntime());
     expect(isErrorValue(errorVal)).toBe(true);
@@ -287,7 +287,7 @@ describe('errorFromForeign', () => {
     expect(errorVal.originalError).toBe(jsErr);
   });
 
-  it('[QSHST#source] leaves the stack, the class and the fields of the host error with the host', async () => {
+  it('[QSHST#door] leaves the stack, the class and the fields of the host error with the host', async () => {
     class AppError extends Error {
       constructor() {
         super('app error');
@@ -301,31 +301,31 @@ describe('errorFromForeign', () => {
     expect(errorVal.originalError.code).toBe('NOT_FOUND');
   });
 
-  it('[QSHST#source] recounts the accounts of the failures beneath it, outermost first', async () => {
+  it('[QSHST#door] recounts the accounts of the failures beneath it, outermost first', async () => {
     const top = new Error('top error', { cause: new Error('intermediate', { cause: 'root cause' }) });
     const errorVal = errorFromForeign(top, await langRuntime());
     expect(errorVal.facts.get('causes')).toEqual(['intermediate', 'root cause']);
   });
 
-  it('[QSHST#source] recounts eight failures beneath it at most', async () => {
+  it('[QSHST#door] recounts eight failures beneath it at most', async () => {
     let current = new Error('leaf');
     for (let i = 0; i < 12; i++) current = new Error(`level-${i}`, { cause: current });
     expect(errorFromForeign(current, await langRuntime()).facts.get('causes')).toHaveLength(8);
   });
 
-  it('[QSHST#source] gives no causes where none stands beneath it', async () => {
+  it('[QSHST#door] gives no causes where none stands beneath it', async () => {
     const scope = await langRuntime();
     expect(errorFromForeign(new Error('no cause'), scope).facts.has('causes')).toBe(false);
     expect(errorFromForeign(new Error('a null cause', { cause: null }), scope).facts.has('causes')).toBe(false);
   });
 
-  it('[QSHST#source] takes a thrown value that is no error by its text', async () => {
+  it('[QSHST#door] takes a thrown value that is no error by its text', async () => {
     expect(errorFromForeign('a bare string', await langRuntime()).facts.get('message')).toBe('a bare string');
   });
 });
 
 describe('error-convert coercion edge cases', () => {
-  it('[QSHST#source] leaves out a fact its site hands as undefined', async () => {
+  it('[QSHST#door] leaves out a fact its site hands as undefined', async () => {
     const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
     const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
     expect(errorVal.facts.has('index')).toBe(false);

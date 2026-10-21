@@ -145,28 +145,28 @@ describe('json of a boolean', () => {
 describe('json.fromPlain — inverse of toPlain', () => {
   // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
   // object of JavaScript into a map keyed by its names, an array into a
-  // vector, and an atom as it is [QSHST#source].
+  // vector, and an atom as it is [QSHST#door].
 
-  it('[QSHST#source] atoms pass through unchanged', async () => {
+  it('[QSHST#door] atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
     expect(fromPlain('hi')).toBe('hi');
     expect(fromPlain(true)).toBe(true);
     expect(fromPlain(null)).toBe(null);
   });
 
-  it('[QSHST#source] an array of JavaScript lifts into a vector element by element', async () => {
+  it('[QSHST#door] an array of JavaScript lifts into a vector element by element', async () => {
     const lifted = fromPlain([1, 'two', true]);
     expect(lifted).toEqual([1, 'two', true]);
   });
 
-  it('[QSHST#source] an object of JavaScript lifts into a map keyed by its names', async () => {
+  it('[QSHST#door] an object of JavaScript lifts into a map keyed by its names', async () => {
     const lifted = fromPlain({ a: 1, b: 2 });
     expect(isMap(lifted)).toBe(true);
     expect(lifted.get('a')).toBe(1);
     expect(lifted.get('b')).toBe(2);
   });
 
-  it('[QSHST#source] round-trips nested data of JSON through toPlain and back', async () => {
+  it('[QSHST#door] round-trips nested data of JSON through toPlain and back', async () => {
     const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
     const roundtrip = toPlain(fromPlain(plain));
     expect(roundtrip).toEqual(plain);
@@ -177,8 +177,8 @@ describe('the finite-double domain holds at every render seam', () => {
   // A number past the doubles has no literal [QSLIT#number], and an answer
   // brought under `::number` past them is refused as `::number/NotFiniteError`
   // [QSNUM#arithmetic]; one a host hands meets the printer and the codec of
-  // JSON, which raise it where they write it [QSHST#source].
-  it('[QSHST#source] printValue refuses an infinity and a NaN as values of no kind', () => {
+  // JSON, which raise it where they write it [QSHST#door].
+  it('[QSHST#door] printValue refuses an infinity and a NaN as values of no kind', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;
       try { printValue(leaked); } catch (caught) { thrown = caught; }
@@ -188,7 +188,7 @@ describe('the finite-double domain holds at every render seam', () => {
     }
   });
 
-  it('[QSHST#source] toPlain refuses the values the printer refuses', () => {
+  it('[QSHST#door] toPlain refuses the values the printer refuses', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       expect(() => toPlain(leaked), String(leaked)).toThrow(BuiltinForeignValueError);
     }

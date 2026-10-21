@@ -138,7 +138,7 @@ export function walkOfBaseline(repoRoot) {
   const landedInTransit = recordsInTransitAt(repoRoot, baseline);
   for (const name of landedInTransit) walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit at the merge ${baseline} that landed it: dissolve it into its sections or set it aside before the merge` });
   // Master holds no record in transit between two moves: a record in transit
-  // lives on the branch of its shift [D410].
+  // lives on the branch of its shift [QSWRK#baseline].
   const mainline = mainlineOf(repoRoot);
   for (const name of recordsInTransitAt(repoRoot, mainline).filter(name => !landedInTransit.includes(name))) {
     walk.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit on ${mainline} past the baseline ${baseline}: a record in transit lives on the branch of its shift, and master takes without a branch a change of the journal that overrides no section` });

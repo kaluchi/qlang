@@ -1,7 +1,7 @@
 // Tests for session.mjs — REPL/notebook session lifecycle: a session
 // keeps the scope its cells write, a host puts its names into it by its
 // sources alone, and the scope and the subject a host hands are taken by
-// the walk of the door [QSNAM#root], [QSHST#source].
+// the walk of the door [QSNAM#root], [QSHST#session], [QSHST#door].
 
 import { describe, it, expect } from 'vitest';
 import { createSession, evalQuery } from '../../src/session.mjs';
@@ -17,7 +17,7 @@ describe('createSession lifecycle', () => {
     expect((await sessionInstance.evalCell('[1 2 3] | filter ~(gt 1) | count')).result).toBe(2);
   });
 
-  it('[QSHST#source] evalCell returns an entry with its result and the scope after the cell', async () => {
+  it('[QSHST#session] evalCell returns an entry with its result and the scope after the cell', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | :n it');
     expect(cellEntry.result).toBe(42);
@@ -26,11 +26,11 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.scopeAfterCell.has('n')).toBe(true);
   });
 
-  it('[QSHST#source] answers the entry of a cell, its source, its name, its result, its defect and the scope after it', async () => {
+  it('[QSHST#session] answers the entry of a cell, its source, its name, its result, its defect and the scope after it', async () => {
     expect(Object.keys(await (await createSession()).evalCell('1'))).toEqual(['source', 'uri', 'result', 'defect', 'scopeAfterCell']);
   });
 
-  it('[QSHST#source] evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
+  it('[QSHST#session] evalCell seeds the cell pipeValue from evalOpts.initialPipeValue', async () => {
     const sessionInstance = await createSession();
     const seeded = new Map([['a', 1], ['b', 2]]);
     const cellEntry = await sessionInstance.evalCell('get /a', { initialPipeValue: seeded });
@@ -38,14 +38,14 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(1);
   });
 
-  it('[QSHST#source] evalCell keeps the verbs a cell declares for the cells after it', async () => {
+  it('[QSHST#session] evalCell keeps the verbs a cell declares for the cells after it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':any/double ~(mul 2)');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
 
-  it('[QSHST#source] evalCell keeps the names a cell declares for the cells after it', async () => {
+  it('[QSHST#session] evalCell keeps the names a cell declares for the cells after it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell('42 | :answer it');
     const cellEntry = await sessionInstance.evalCell('answer | mul 2');
@@ -59,7 +59,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result).toBe(2);
   });
 
-  it('[QSHST#source] a session starts from the scope a host hands it, the record a cell wrote among it', async () => {
+  it('[QSHST#session] a session starts from the scope a host hands it, the record a cell wrote among it', async () => {
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
     const other = await createSession({ scope: sessionInstance.scope });
@@ -67,22 +67,22 @@ describe('createSession lifecycle', () => {
     expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
   });
 
-  it('[QSHST#source] a session binds no name a host hands it: its names come by its sources alone', async () => {
+  it('[QSHST#session] a session binds no name a host hands it: its names come by its sources alone', async () => {
     const sessionInstance = await createSession();
     expect(Object.keys(sessionInstance)).toEqual(['evalCell', 'scope']);
   });
 
-  it('[QSHST#source] a cell handed no subject starts from null', async () => {
+  it('[QSHST#session] a cell handed no subject starts from null', async () => {
     expect((await (await createSession()).evalCell('type')).result).toEqual(makeTag('null'));
   });
 
-  it('[QSHST#source] answers a cell that does not parse by its failure, the cell no defect', async () => {
+  it('[QSHST#session] answers a cell that does not parse by its failure, the cell no defect', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('[1 2');
     expect([cellEntry.result.tag, cellEntry.defect]).toEqual([makeTag('quote/ParseError'), null]);
   });
 
-  it('[QSHST#source] a parse failure names as its origin the source a host named, and a cell the session numbers names none', async () => {
+  it('[QSHST#session] a parse failure names as its origin the source a host named, and a cell the session numbers names none', async () => {
     const sessionInstance = await createSession();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
@@ -92,7 +92,7 @@ describe('createSession lifecycle', () => {
     expect(named.result.facts.get('origin')).toEqual(keyword('shop.qlang'));
   });
 
-  it('[QSHST#source] evalCell records the error on runtime failure', async () => {
+  it('[QSHST#session] evalCell records the error on runtime failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | count');
     // A failure of the run is the answer of its cell, which holds no defect and keeps the refusal it was raised as.
@@ -102,7 +102,7 @@ describe('createSession lifecycle', () => {
     expect(cellEntry.result.originalError.name).toBe('KindAnswersNoVerbError');
   });
 
-  it('[QSHST#source] evalCell uri defaults to cell-N', async () => {
+  it('[QSHST#session] evalCell uri defaults to cell-N', async () => {
     const sessionInstance = await createSession();
     expect((await sessionInstance.evalCell('1')).uri).toBe('cell-1');
     expect((await sessionInstance.evalCell('2', { uri: 'named' })).uri).toBe('named');
@@ -207,7 +207,7 @@ describe('the sources a host hands', () => {
 describe('a session takes what its host hands by the walk of the door', () => {
   const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
 
-  it('[QSHST#source] takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {
+  it('[QSHST#door] takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {
     const sessionInstance = await createSession();
     for (const value of await valuesOfTheLanguage()) {
       expect((await sessionInstance.evalCell('it', { initialPipeValue: value })).result).toBe(value);
@@ -215,7 +215,7 @@ describe('a session takes what its host hands by the walk of the door', () => {
     }
   });
 
-  it('[QSHST#source] answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
+  it('[QSHST#door] answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
     const sessionInstance = await createSession();
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await sessionInstance.evalCell(':late 1 | type', { initialPipeValue: value });
@@ -225,7 +225,7 @@ describe('a session takes what its host hands by the walk of the door', () => {
     expect((await sessionInstance.evalCell('1 | add 1')).result).toBe(2);
   });
 
-  it('[QSHST#source] refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
+  it('[QSHST#door] refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       await expect(createSession({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
         .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
@@ -235,7 +235,7 @@ describe('a session takes what its host hands by the walk of the door', () => {
 
 describe('a cell whose failure is no error value', () => {
   // A defect of the host, raised past the fail track, is what a cell answers
-  // with no result, and what a query raises to its caller [QSHST#source].
+  // with no result, and what a query raises to its caller [QSHST#session].
   const collapsing = () => createSession({
     sources: [{
       uri: 'tests/collapse',
@@ -244,20 +244,20 @@ describe('a cell whose failure is no error value', () => {
     }]
   });
 
-  it('[QSHST#source] answers a defect as the defect of its cell, with no result', async () => {
+  it('[QSHST#session] answers a defect as the defect of its cell, with no result', async () => {
     const cellEntry = await (await collapsing()).evalCell('42 | collapse');
     expect(cellEntry.result).toBeNull();
     expect(cellEntry.defect).toBeInstanceOf(QlangDefect);
     expect(cellEntry.defect.name).toBe('QlangDefect');
   });
 
-  it('[QSHST#source] raises the defect of the cell a query runs as to its caller', async () => {
+  it('[QSHST#session] raises the defect of the cell a query runs as to its caller', async () => {
     await expect(evalQuery('42 | collapse', (await collapsing()).scope)).rejects.toBeInstanceOf(QlangDefect);
   });
 });
 
 describe('a query runs as one cell of a session', () => {
-  it('[QSHST#source] runs over the scope it is handed, the root\'s where none is', async () => {
+  it('[QSHST#session] runs over the scope it is handed, the root\'s where none is', async () => {
     const session = await createSession();
     await session.evalCell(':k 7');
     expect([await evalQuery('k', session.scope), (await evalQuery('k')).tag]).toEqual([7, makeTag('call/UnknownNameError')]);

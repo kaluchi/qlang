@@ -43,7 +43,7 @@ describe('a binding record, a vector under a tag and a descriptor are values und
 });
 
 describe('typeOf refuses a value of no kind', () => {
-  it('[QSHST#source] typeOf refuses an object of JavaScript, a value of no kind of the language', () => {
+  it('[QSHST#door] typeOf refuses an object of JavaScript, a value of no kind of the language', () => {
     expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
   });
 });
@@ -84,7 +84,7 @@ describe('the printer writes the literal of a value', () => {
     expect(printValue(err)).toBe('::Test!{\n  :actualType ::number\n  :message "boom"\n  :index 1\n}');
   });
 
-  it('[QSHST#source] refuses a value of no kind of the language where it reads its kind', () => {
+  it('[QSHST#door] refuses a value of no kind of the language where it reads its kind', () => {
     expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
   });
 });

@@ -1,7 +1,7 @@
 // The examples of the landing page: a comment line, a prompt and its query,
 // the lines that continue it and an answer, each query painted by the core's
-// tokens with the context of its lines [QSHST#tools].
-// The rules it holds: [QSWRK#tooling], [QSHST#tools].
+// tokens with the context of its lines [QSHST#tokens].
+// The rules it holds: [QSWRK#tooling], [QSHST#tokens].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
@@ -18,12 +18,12 @@ const fmt = code => formatExample(code, rootVerbNames);
 // ── Line classification ───────────────────────────────────────
 
 describe('comment lines', () => {
-  it('[QSHST#tools] |~| line becomes comment span', () => {
+  it('[QSHST#tokens] |~| line becomes comment span', () => {
     const out = fmt('|~| Vec → filter');
     expect(out).toBe('<span class="comment">|~| Vec → filter</span>');
   });
 
-  it('[QSHST#tools] HTML-escapes content inside comment', () => {
+  it('[QSHST#tokens] HTML-escapes content inside comment', () => {
     const out = fmt('|~| a<b>c');
     expect(out).toContain('&lt;');
     expect(out).toContain('&gt;');
@@ -32,13 +32,13 @@ describe('comment lines', () => {
 });
 
 describe('prompt lines', () => {
-  it('[QSHST#tools] ">" prefix becomes a span of the prompt, the class of no kind of a token, the query is highlighted', () => {
+  it('[QSHST#tokens] ">" prefix becomes a span of the prompt, the class of no kind of a token, the query is highlighted', () => {
     const out = fmt('> count');
     expect(out).toContain('<span class="prompt">&gt; </span>');
     expect(out).toContain('<span class="verb">count</span>');
   });
 
-  it('[QSHST#tools] strips "> " before passing to highlighter', () => {
+  it('[QSHST#tokens] strips "> " before passing to highlighter', () => {
     // If "> " were not stripped, the > would confuse the parser.
     const out = fmt('> 42');
     expect(out).toContain('<span class="number">42</span>');
@@ -47,7 +47,7 @@ describe('prompt lines', () => {
 });
 
 describe('continuation lines', () => {
-  it('[QSHST#tools] two-space indent preserved, the query highlighted', () => {
+  it('[QSHST#tokens] two-space indent preserved, the query highlighted', () => {
     const out = fmt('  add 1');
     expect(out.startsWith('  ')).toBe(true);
     expect(out).toContain('<span class="verb">add</span>');
@@ -55,12 +55,12 @@ describe('continuation lines', () => {
 });
 
 describe('result lines', () => {
-  it('[QSHST#tools] plain result line is highlighted as qlang', () => {
+  it('[QSHST#tokens] plain result line is highlighted as qlang', () => {
     const out = fmt('42');
     expect(out).toContain('<span class="number">42</span>');
   });
 
-  it('[QSHST#tools] string result is wrapped in string span', () => {
+  it('[QSHST#tokens] string result is wrapped in string span', () => {
     const out = fmt('"hello"');
     expect(out).toContain('<span class="string">"hello"</span>');
   });
@@ -69,7 +69,7 @@ describe('result lines', () => {
 // ── Multi-line blocks ─────────────────────────────────────────
 
 describe('multi-line blocks', () => {
-  it('[QSHST#tools] all four line types render in correct order', () => {
+  it('[QSHST#tokens] all four line types render in correct order', () => {
     const src = [
       '|~| label',
       '> [1 2 3] | count',
@@ -81,7 +81,7 @@ describe('multi-line blocks', () => {
     expect(lines[2]).toContain('<span class="number">3</span>');
   });
 
-  it('[QSHST#tools] a query of several lines: prompt + continuation share highlighting context', () => {
+  it('[QSHST#tokens] a query of several lines: prompt + continuation share highlighting context', () => {
     const src = [
       '> :double mul 2',
       '  | [10 20] | map ~double'
@@ -95,7 +95,7 @@ describe('multi-line blocks', () => {
     expect(lines[1]).toContain('<span class="name italic">double</span>');
   });
 
-  it('[QSHST#tools] multiple prompt lines each get their own > prefix', () => {
+  it('[QSHST#tokens] multiple prompt lines each get their own > prefix', () => {
     const src = '> count\n> add 1';
     const lines = fmt(src).split('\n');
     expect(lines[0]).toContain('&gt; ');
@@ -106,7 +106,7 @@ describe('multi-line blocks', () => {
 // ── Real example block ────────────────────────────────────────
 
 describe('real landing page example', () => {
-  it('[QSHST#tools] pipeline example renders without throwing', () => {
+  it('[QSHST#tokens] pipeline example renders without throwing', () => {
     const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2';
     expect(() => fmt(src)).not.toThrow();
     const out = fmt(src);

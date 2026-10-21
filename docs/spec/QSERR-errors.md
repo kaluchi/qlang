@@ -306,15 +306,15 @@ bootstrap and the loaders, and a value of no kind a host handed, whose
 addresses and pages a query reads as it reads any name's. The refusal of
 an answer past the budget of every host's print,
 `::qlang/AnswerBeyondBudgetError`, stands under `::qlang`, the topic
-whose chapter of hosts tells the budget, with its facts `:characters`
+of the language, with its facts `:characters`
 and `:budget` before those of `::error`: no step raises it and no `!|`
 reaches it, since a host raises it after the last step of the query
-[QSHST#answer]. A failure
+[QSPRN#budget]. A failure
 inside a primitive a host hands is
 `::call/HostFailureError`, with its `:message` and `:causes`, and so is
 an answer of such a primitive, or a fact of a refusal it throws, that is
 or holds a value of no kind of the language, its `:message` naming the
-verb and the path where that value stands [QSHST#source]. A refusal of
+verb and the path where that value stands [QSHST#door]. A refusal of
 the runtime holds its facts in the order the catalog declares them, the
 label's own first, the facts `::error` declares after them, `:expected`,
 `:actualType` and `:actualValue` among them, and the trace last: the
@@ -368,7 +368,7 @@ its facts alone. The answer of a host that is a failure prints as its
 alert under the line comment `|~| raised, and no !| caught it`, which a
 reading of the literal passes over, and so does the refusal a host
 prints in the place of an answer past its budget, which was no failure
-[QSHST#answer]; the command line writes the prose of the refusal's page
+[QSPRN#budget]; the command line writes the prose of the refusal's page
 below, and the REPL prints without it. An error at rest an answer gives
 prints as the value it is. A host that prints for a person's eye draws below the
 refusal of a text of one line that line within an excerpt of three
@@ -401,4 +401,44 @@ $ qlang '[01' < /dev/null | sed -n '1,8p'
 
 $ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^|~| …x' -e '\^$'
 2
+```
+
+## alert
+
+A host prints a failure as its alert: its tag and its facts in the order
+the catalog declares them, the subject of the first frame of its trace,
+where it arose, and every other fact cut to an excerpt of three hundred
+characters, a string past the excerpt giving way whole with its `:head`,
+and the subject of each later frame giving way to an elision where the
+elision prints shorter, each subject measured on the one line its frame
+prints on, every frame keeping its steps and its place; each elision's
+`:read` continues the query beneath `!|`, the record a word's code
+failed on standing in the subject of its frame at the place the frame
+names, `!| get /trace/1/0/1`. An alert within the budget stands as it
+prints. Past it the failure keeps its tag and the names of its facts:
+its trace keeps its first frames within an excerpt of its own, three
+hundred characters, and ends with the elision of the rest,
+`~(!| get /trace | drop k)`, and then each fact gives way within the
+budget, the trace among them, which gives way whole where the budget
+holds not even its first frame. The excerpts of an alert and its cut
+tell the rest of a part by the elisions they made, so each `:size`
+counts what its `:read` answers. A failure whose alert passes the
+budget, the names of its facts kept, prints as the refusal of an answer
+past it, its `:actualType` the tag of the failure and its head the error
+at rest, each `:read` there beneath `!|`. The line of the raise and the
+caret [QSERR#print] and the prose of a page stand beside the budget
+[QSPRN#budget].
+
+```sh
+$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| get /trace | drop [0-9]*)'
+:size 993 :read ~(!| get /trace | drop 8)
+
+$ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise' < /dev/null | grep -o -E '::qlang/AnswerBeyondBudgetError|:actualType ::error'
+::qlang/AnswerBeyondBudgetError
+:actualType ::error
+```
+
+```qlang
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gte 18) !| get /trace/1/0/1
+{:name "Bo" :age "15"}
 ```

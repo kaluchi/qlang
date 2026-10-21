@@ -3,7 +3,7 @@
 // the line paints as it is typed and a paste of several lines is one cell,
 // through the line editor; `in` reads the empty string, since the prompt holds
 // standard input; a query given after `-i` runs as the first cell
-// [QSHST#answer]; `.help` lists the commands of the REPL, and `.exit` or
+// [QSCLI#repl]; `.help` lists the commands of the REPL, and `.exit` or
 // Ctrl+D on an empty line closes it.
 
 import {
@@ -67,7 +67,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     : stderrWrite;
 
   // A cell that wrote to stdout by `out` holds the channel: no value of its
-  // answer prints after it, while a failure does [QSHST#repl].
+  // answer prints after it, while a failure does [QSCLI#repl].
   let wroteByOut = false;
   const session = await createSession({
     sources: cliSources({
@@ -132,7 +132,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
 // An answer prints on stdout whole and a failure as `boundAnswer` shows it, but
 // a value of a cell that wrote by `out`, a failure, one that does not parse with
 // its caret, without the prose of its page; a defect raised past the
-// fail track as the cell ran or as its answer printed on stderr [QSHST#repl].
+// fail track as the cell ran or as its answer printed on stderr [QSCLI#repl].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (wroteByOut && !isErrorValue(result)) return null;

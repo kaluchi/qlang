@@ -1,7 +1,7 @@
 // The REPL driven through its line editor by scripted input, piped and as a
 // terminal: its commands `.help` and `.exit`, the answer of each cell printed
 // painted on stdout, a failure among them and a defect on stderr, and the
-// names a cell declares kept for the cells after it [QSHST#repl].
+// names a cell declares kept for the cells after it [QSCLI#repl].
 
 import { describe, it, expect } from 'vitest';
 import { Readable } from 'node:stream';
@@ -32,14 +32,14 @@ function captureRepl(scriptedInput) {
 }
 
 describe('runRepl — meta commands', () => {
-  it('[QSHST#repl] lists the commands of the REPL on `.help`, runs the cell after it and closes at the end of its input', async () => {
+  it('[QSCLI#repl] lists the commands of the REPL on `.help`, runs the cell after it and closes at the end of its input', async () => {
     const replHarness = captureRepl('.help\n[1 2] | count\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/^qlang> Meta commands:[\s\S]*\.exit[\s\S]*\nqlang> 2\nqlang> $/);
   });
 
-  it('[QSHST#repl] prompts again on an empty line, which runs no cell', async () => {
+  it('[QSCLI#repl] prompts again on an empty line, which runs no cell', async () => {
     const replHarness = captureRepl('\n\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
@@ -49,19 +49,19 @@ describe('runRepl — meta commands', () => {
 });
 
 describe('runRepl — query evaluation', () => {
-  it('[QSHST#repl] starts every cell from the noun of the language, `::qlang`', async () => {
+  it('[QSCLI#repl] starts every cell from the noun of the language, `::qlang`', async () => {
     const replHarness = captureRepl('42\neq ::qlang\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> 42\nqlang> true\nqlang> ');
   });
 
-  it('[QSHST#repl] preserves bindings between cells within the same session', async () => {
+  it('[QSCLI#repl] preserves bindings between cells within the same session', async () => {
     const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
 
-  it('[QSHST#repl] prints a failed cell on stdout as every answer, exit 0 on close', async () => {
+  it('[QSCLI#repl] prints a failed cell on stdout as every answer, exit 0 on close', async () => {
     const replHarness = captureRepl('[1 2 3] | add 1\n.exit\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(exitCode).toBe(0);
@@ -69,7 +69,7 @@ describe('runRepl — query evaluation', () => {
     expect(replHarness.stderrText()).toBe('');
   });
 
-  it('[QSHST#repl] prints the trace of an error in its display without explicit !|', async () => {
+  it('[QSCLI#repl] prints the trace of an error in its display without explicit !|', async () => {
     const replHarness = captureRepl('"hello" | add 1 | mul 2 | sub 3\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const text = stripAnsi(replHarness.stdoutText());
@@ -85,7 +85,7 @@ describe('runRepl — query evaluation', () => {
     expect(replHarness.stderrText()).toBe('');
   });
 
-  it('[QSHST#repl] prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it', async () => {
+  it('[QSCLI#repl] prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // REPL paints output with ANSI colour codes — strip before
@@ -99,21 +99,21 @@ describe('runRepl — query evaluation', () => {
 });
 
 describe('runRepl — output highlighting', () => {
-  it('[QSHST#repl] paints the printed result with ANSI escape sequences', async () => {
+  it('[QSCLI#colour] paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     // Numbers render under the yellow escape.
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
-  it('[QSHST#repl] paints the prompt, the name of the language bright white and its angle bold cyan', async () => {
+  it('[QSCLI#colour] paints the prompt, the name of the language bright white and its angle bold cyan', async () => {
     const replHarness = captureRepl('.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;97mqlang/);
     expect(replHarness.stdoutText()).toMatch(/\x1b\[1;36m>/);
   });
 
-  it('[QSHST#repl] translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell on stdout and `err` on stderr', async () => {
+  it('[QSCLI#repl] translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell on stdout and `err` on stderr', async () => {
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
@@ -139,7 +139,7 @@ describe('runRepl — output highlighting', () => {
     expect(stderrChunks.join('')).toContain('one\r\ntwo');
   });
 
-  it('[QSHST#repl] paints the line as it is typed', async () => {
+  it('[QSCLI#colour] paints the line as it is typed', async () => {
     // A line typed and discarded by Ctrl+C runs no cell, so the paint of its number is the line editor's alone.
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
@@ -158,9 +158,9 @@ describe('runRepl — output highlighting', () => {
 });
 
 // A defect raised past the fail track is no answer: the REPL writes it on
-// stderr and runs the next cell [QSHST#repl].
+// stderr and runs the next cell [QSCLI#repl].
 describe('runRepl — a defect of a cell', () => {
-  it('[QSHST#repl] writes the defect on stderr as `qlang:` and its message, and runs the next cell', async () => {
+  it('[QSCLI#repl] writes the defect on stderr as `qlang:` and its message, and runs the next cell', async () => {
     const deep = '['.repeat(20000) + ']'.repeat(20000);
     const replHarness = captureRepl(`${deep}\n[1 2] | count\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
@@ -170,7 +170,7 @@ describe('runRepl — a defect of a cell', () => {
 });
 
 describe('runRepl — the trace of a failure', () => {
-  it('[QSHST#repl] prints a failure with the steps its trace holds, the steps it skipped among them', async () => {
+  it('[QSCLI#repl] prints a failure with the steps its trace holds, the steps it skipped among them', async () => {
     // The trace of an error is written as it flows [QSERR#trace], so the failure a cell answers holds every frame and every step it skipped.
     const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
     const replHarness = captureRepl(query + '\n.exit\n');
@@ -193,9 +193,9 @@ describe('runRepl — in / out behaviour', () => {
 });
 
 // A query given after `-i` runs as the first cell, its bindings staying
-// for the cells after it [QSHST#answer].
+// for the cells after it [QSCLI#repl].
 describe('runRepl — the first cell given on the command line', () => {
-  it('[QSHST#answer] runs the query before the typed cells, in the same session', async () => {
+  it('[QSCLI#repl] runs the query before the typed cells, in the same session', async () => {
     const replHarness = captureRepl('x | add 1\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
@@ -205,9 +205,9 @@ describe('runRepl — the first cell given on the command line', () => {
 });
 
 // A cell prints its answer whole, past the budget of every answer as well,
-// and an error as its alert within it, without the prose of its page [QSHST#repl].
+// and an error as its alert within it, without the prose of its page [QSCLI#repl].
 describe('runRepl — the bound of an answer', () => {
-  it('[QSHST#repl] prints an answer past the budget whole, its last element among it', async () => {
+  it('[QSCLI#repl] prints an answer past the budget whole, its last element among it', async () => {
     const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
@@ -215,7 +215,7 @@ describe('runRepl — the bound of an answer', () => {
     expect(printed).not.toContain('::qlang/AnswerBeyondBudgetError');
   });
 
-  it('[QSHST#repl] prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {
+  it('[QSCLI#repl] prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {
     const replHarness = captureRepl('5000 | range | print | out\n"x" | out | add 1\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
@@ -224,14 +224,14 @@ describe('runRepl — the bound of an answer', () => {
     expect(printed).toContain('::number/add/SubjectNotNumberError');
   });
 
-  it('[QSHST#repl] prints a failure as its alert, the subject of a frame of its trace cut to an elision whose `:read` reaches it', async () => {
+  it('[QSCLI#repl] prints a failure as its alert, the subject of a frame of its trace cut to an elision whose `:read` reaches it', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace/1/0)');
   });
 
-  it('[QSHST#repl] prints the alert of a runaway recursion within the budget', async () => {
+  it('[QSCLI#repl] prints the alert of a runaway recursion within the budget', async () => {
     const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| get /trace | drop ');

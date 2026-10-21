@@ -36,7 +36,7 @@ const MSYS_RUNTIME = 'usr/bin/msys-2.0.dll';
 // queryAsWritten(queryText, env, exists?) → the query as the reader wrote it:
 // under MSYS, whose `MSYSTEM` names it, one that begins with the root of the
 // shell, the nearest directory of its path that holds the runtime, read from
-// the slash after it [QSHST#shell]; any other query as it came.
+// the slash after it [QSCLI#shell]; any other query as it came.
 export function queryAsWritten(queryText, env, exists = existsSync) {
   if (env.MSYSTEM === undefined || !SHELL_PATH_OF_A_QUERY.test(queryText)) return queryText;
   for (let slash = queryText.indexOf('/'); slash !== -1; slash = queryText.indexOf('/', slash + 1)) {
@@ -45,10 +45,10 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// `in`, which reads no subject, by its address and its name [QSHST#stdin].
+// `in`, which reads no subject, by its address and its name [QSCLI#stdin].
 const VERBS_OF_NO_SUBJECT = new Set([IN_ADDRESS, splitAddress(IN_ADDRESS)[1]]);
 
-// Whether a query that parses reads the subject stdin lifts to [QSHST#stdin].
+// Whether a query that parses reads the subject stdin lifts to [QSCLI#stdin].
 function queryReadsStdin(queryText) {
   let quote;
   try {

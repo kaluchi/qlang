@@ -115,7 +115,7 @@
 //
 //   (21) A test names first in its title the one rule it holds, the section
 //       of a chapter or a record in force of a domain its tests hold, and
-//       second the record in transit over that section that brought it [D409].
+//       second the record in transit over that section that brought it [QSWRK#marks].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -892,7 +892,7 @@ function exportsNoHostReads() {
 // holds, the section of a chapter, or the record in force of a domain whose
 // tests hold it where no chapter states the rule, and second, while a record
 // in transit brought it, that record, which overrides its section or its
-// chapter whole [D409].
+// chapter whole [QSWRK#marks].
 
 function testsNamingNoRule() {
   const records = readDecisionRecords(repoRoot);

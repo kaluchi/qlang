@@ -32,7 +32,7 @@ const TAGGED_KIND   = 13;
 const RAISED_KIND   = 14;
 
 // The kind of a value as the order ranks it, a value of no kind refused as
-// `typeOf` refuses it [QSHST#source].
+// `typeOf` refuses it [QSHST#door].
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;

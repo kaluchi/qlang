@@ -1,4 +1,4 @@
-// A verb as the tooling reads it [QSHST#tools]: what a tool shows for a name,
+// A verb as the tooling reads it [QSLSP#offer]: what a tool shows for a name,
 // and the verbs a value of a kind reaches.
 
 import { describe, it, expect } from 'vitest';
@@ -12,45 +12,45 @@ import { holdsALiteral } from '../../src/steps.mjs';
 import { makeTag } from '../../src/types.mjs';
 
 describe('a verb as the tooling reads it', () => {
-  it('[QSHST#tools] shows a name under a label by its address and the inputs of its function', async () => {
+  it('[QSLSP#offer] shows a name under a label by its address and the inputs of its function', async () => {
     const shown = shownFor(await langRuntime(), 'add');
     expect(shown.address.name).toBe('number/add');
     expect(shown.inputs).toEqual(['addend']);
   });
 
-  it('[QSHST#tools] shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
+  it('[QSLSP#offer] shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
   });
 
-  it('[QSHST#tools] shows one of the verbs of a name several kinds answer, and the inputs of its function', async () => {
+  it('[QSLSP#offer] shows one of the verbs of a name several kinds answer, and the inputs of its function', async () => {
     const shown = shownFor(await langRuntime(), 'take');
     expect(['map/take', 'string/take', 'vec/take']).toContain(shown.address.name);
     expect(shown.inputs).toEqual(['count']);
   });
 
-  it('[QSHST#tools] shows the name any value answers', async () => {
+  it('[QSLSP#offer] shows the name any value answers', async () => {
     expect(shownFor(await langRuntime(), 'type').address.name).toBe('any/type');
   });
 
-  it('[QSHST#tools] shows the verb a subject of the kinds reaches, and the inputs of its function', async () => {
+  it('[QSLSP#offer] shows the verb a subject of the kinds reaches, and the inputs of its function', async () => {
     const scope = await langRuntime();
     expect(shownFor(scope, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(scope, 'count', ['map']).address.name).toBe('map/count');
     expect(shownFor(scope, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
   });
 
-  it('[QSHST#tools] shows the verb a name reaches with no subject where the kinds reach none', async () => {
+  it('[QSLSP#offer] shows the verb a name reaches with no subject where the kinds reach none', async () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });
 
-  it('[QSHST#tools] reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label', async () => {
+  it('[QSLSP#offer] reads the kinds of the answer of a name from the kinds its returns names, the subject\'s own where that is the verb\'s own label', async () => {
     const scope = await langRuntime();
     expect(answerKindsOf(scope, nodeOf(scope, 'vec/filter'), ['set'])).toEqual(['set']);
     expect(answerKindsOf(scope, nodeOf(scope, 'vec/count'), ['vec'])).toEqual(['number']);
     expect(answerKindsOf(scope, nodeOf(scope, 'any/coalesce'), ['vec'])).toBeNull();
   });
 
-  it('[QSHST#tools] reads the kinds of the answer of a call as the evaluator lays it: the walk of the subject through the verb\'s own label where the walk reaches it, the noun a tag name names reached by no label and left out, and the kinds its returns names elsewhere', async () => {
+  it('[QSLSP#offer] reads the kinds of the answer of a call as the evaluator lays it: the walk of the subject through the verb\'s own label where the walk reaches it, the noun a tag name names reached by no label and left out, and the kinds its returns names elsewhere', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f ~(1)');
     const { scope } = session;
@@ -60,7 +60,7 @@ describe('a verb as the tooling reads it', () => {
     expect(verbsReaching(scope, kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])).get('f').address.name).toBe('Box/f');
   });
 
-  it('[QSHST#tools] keeps of the walk the kinds up to its label and the kind `::tagged` of the value the label reached, none of the kinds beneath it, which the answer may change, and beside them the other kinds its returns names', async () => {
+  it('[QSLSP#offer] keeps of the walk the kinds up to its label and the kind `::tagged` of the value the label reached, none of the kinds beneath it, which the answer may change, and beside them the other kinds its returns names', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/g (::fn | returns |~~ A box. ~~| ::Box | impl ~(it)) | :vec/h (::fn | returns |~~ A count or a vector. ~~| #[::vec ::number] | impl ~(count))');
     const { scope } = session;
@@ -71,19 +71,19 @@ describe('a verb as the tooling reads it', () => {
     expect(answers.map(cell => cell.result.name)).toEqual(['Box', 'number', 'number']);
   });
 
-  it('[QSHST#tools] reads the kinds of an answer its returns names as a set', async () => {
+  it('[QSLSP#offer] reads the kinds of an answer its returns names as a set', async () => {
     const session = await createSession();
     await session.evalCell(':Box |~~ A box. ~~| | :Box/f (::fn | returns |~~ The value. ~~| #[::number ::string] | impl ~(eq 1))');
     expect(answerKindsOf(session.scope, nodeOf(session.scope, 'Box/f'), ['Box'])).toEqual(['number', 'string']);
   });
 
-  it('[QSHST#tools] shows a verb written as its recipe alone, the function of no commands it is, with no inputs', async () => {
+  it('[QSLSP#offer] shows a verb written as its recipe alone, the function of no commands it is, with no inputs', async () => {
     const session = await createSession();
     await session.evalCell(':number/double ~(mul 2)');
     expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 
-  it('[QSHST#tools] reads whether the body of a declaration is the value of a verb as it is written: a quote, a `::builtin{}`, and a function built from `::fn` whatever recipe it holds', () => {
+  it('[QSLSP#offer] reads whether the body of a declaration is the value of a verb as it is written: a quote, a `::builtin{}`, and a function built from `::fn` whatever recipe it holds', () => {
     const bodyOf = source => parse(source)[0].get('body');
     const bodies = [
       ':v/f ~(add 1)', ':v/f (::fn | takes :x |~~ x ~~| /0 | impl ~(add x))', ':v/f ::fn[~() ~(add 1)]', ':v/f ::builtin{}',
@@ -92,16 +92,16 @@ describe('a verb as the tooling reads it', () => {
     expect(bodies.map(source => isVerbBody(bodyOf(source)))).toEqual([true, true, true, true, true, true, true, false, false]);
   });
 
-  it('[QSHST#tools] reads a literal step, a tagged literal among them, apart from a step that computes or declares', () => {
+  it('[QSLSP#offer] reads a literal step, a tagged literal among them, apart from a step that computes or declares', () => {
     expect(['[1 2]', '::Box{:a 1}', '1', '~(a)', '(add 1)', ':x 1', 'count'].map(source => holdsALiteral(parse(source)[0]))).toEqual([true, true, true, true, false, false, false]);
   });
 
-  it('[QSHST#tools] names the verbs of the root by their last names and their addresses, an address no verb stands at among none', async () => {
+  it('[QSLSP#offer] names the verbs of the root by their last names and their addresses, an address no verb stands at among none', async () => {
     const names = verbNames(await langRuntime());
     expect(['sort', 'vec/sort', 'count', 'map/count', 'string/sort', 'vec', 'number/NotFiniteError'].map(name => names.has(name))).toEqual([true, true, true, true, false, false, false]);
   });
 
-  it('[QSHST#tools] holds whether a verb serves a subject as its call does, a tag name served by a verb of its noun whose `on` names `::tag` alone', async () => {
+  it('[QSLSP#offer] holds whether a verb serves a subject as its call does, a tag name served by a verb of its noun whose `on` names `::tag` alone', async () => {
     const session = await createSession();
     await session.evalCell(':Desk |~~ A help desk. ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~("9 to 5")) | :Desk/size ~(count)');
     const serves = (address, subject) => servesTheSubject(nodeOf(session.scope, address), subject);

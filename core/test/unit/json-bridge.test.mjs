@@ -9,7 +9,7 @@ import { fromJsonText, fromPlain, toPlain } from '../../src/runtime/json.mjs';
 import { BuiltinForeignValueError } from '../../src/types.mjs';
 
 describe('fromPlain lifts a parsed document', () => {
-  it('[QSHST#source] a parsed document lifts into the same map a literal reads into', async () => {
+  it('[QSHST#door] a parsed document lifts into the same map a literal reads into', async () => {
     const lifted = fromPlain(JSON.parse('{"a": [1, 2]}'));
     const read = await evalQuery('{"a": [1, 2]}');
     const { compareValues } = await import('../../src/ordering.mjs');
@@ -45,11 +45,11 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
 });
 
 describe('toPlain refuses a value of no kind of the language where it reads its kind', () => {
-  it('[QSHST#source] refuses an object of JavaScript a host handed', () => {
+  it('[QSHST#door] refuses an object of JavaScript a host handed', () => {
     expect(() => toPlain(new Date())).toThrow(BuiltinForeignValueError);
   });
 
-  it('[QSHST#source] names what it refused as JavaScript holds it, and no kind of it', () => {
+  it('[QSHST#door] names what it refused as JavaScript holds it, and no kind of it', () => {
     let refused;
     try { toPlain([Symbol('s')]); } catch (error) { refused = error; }
     expect(refused.facts).toEqual({ actualValue: 'symbol Symbol(s)' });

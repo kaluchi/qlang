@@ -1,6 +1,6 @@
 // The walk of a value's tags to a kind a name serves [QSDSP#walk], and the
 // primitive a host handed run over the value the walk served, what it answers
-// held at the door by the walk that holds what a host hands a session [QSHST#source].
+// held at the door by the walk that holds what a host hands a session [QSHST#door].
 
 import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
@@ -58,7 +58,7 @@ export function subjectOfCall(chain, labelName, subject) {
 }
 
 // servesTheSubject(record, subject) → whether the verb a record holds serves
-// the subject, as its call would [QSNAM#reach], [QSHST#tools].
+// the subject, as its call would [QSNAM#reach], [QSLSP#server].
 export function servesTheSubject(record, subject) {
   const value = bindingValueOf(record);
   const fn = isFn(value) ? value : functionOfRecipe(value);
@@ -84,7 +84,7 @@ export function runPrimitive(primitive, served, passedTags, inputValues, state, 
 // the core's table unheld, one a host handed beside its source held to the
 // kinds of the language at any depth with the facts of a refusal it throws, a
 // value of no kind failing the call as `::call/HostFailureError` naming the
-// address and the path where it stands, a value the call handed in as it is [QSHST#source].
+// address and the path where it stands, a value the call handed in as it is [QSHST#door].
 export function heldAtTheDoor(primitive, run, address, handed) {
   if (PRIMITIVE_REGISTRY.holds(primitive)) return run();
   let answer;
@@ -122,7 +122,7 @@ const NOTHING_HANDED = new Set();
 // path where it stands, or null, by one walk of a stack of its own at any depth,
 // a part the call handed in passed over, a container met twice walked once, one
 // met again within its own walk holding itself, and a hole of a vector no
-// element [QSHST#source].
+// element [QSHST#door].
 export function foreignPartOf(value, handed = NOTHING_HANDED) {
   const opened = new Set();
   const walked = new Set();

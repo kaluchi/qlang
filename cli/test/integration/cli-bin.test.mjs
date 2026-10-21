@@ -1,7 +1,7 @@
 // The command line run as a process of its own, `cli/src/bin.mjs`: what it
 // writes to standard output and standard error and the code it exits with,
 // for a query, its flags and its piped input, and in the REPL
-// [QSHST#answer], [QSHST#stdin], [QSHST#repl].
+// [QSCLI#answer], [QSCLI#stdin], [QSCLI#repl].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -34,7 +34,7 @@ function runCli(args, opts = {}) {
 }
 
 describe('CLI: --help', () => {
-  it('[QSHST#answer] prints the page of the command line and exits 0', async () => {
+  it('[QSCLI#answer] prints the page of the command line and exits 0', async () => {
     const { stdout, exitCode } = await runCli(['--help']);
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/^\|~~ The command line runs a query/);
@@ -43,7 +43,7 @@ describe('CLI: --help', () => {
 });
 
 describe('CLI: --version', () => {
-  it('[QSHST#answer] prints version line and exits 0', async () => {
+  it('[QSCLI#answer] prints version line and exits 0', async () => {
     const { stdout, exitCode } = await runCli(['--version']);
     expect(exitCode).toBe(0);
     expect(stdout).toMatch(/qlang-cli/);
@@ -51,33 +51,33 @@ describe('CLI: --version', () => {
 });
 
 describe('CLI: script mode — query argument', () => {
-  it('[QSHST#answer] evaluates `42 | mul 2` and writes `84`', async () => {
+  it('[QSCLI#answer] evaluates `42 | mul 2` and writes `84`', async () => {
     const { stdout, exitCode } = await runCli(['42 | mul 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('84');
   });
 
-  it('[QSHST#answer] evaluates `[1 2 3] | count` and writes `3`', async () => {
+  it('[QSCLI#answer] evaluates `[1 2 3] | count` and writes `3`', async () => {
     const { stdout, exitCode } = await runCli(['[1 2 3] | count'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout.trim()).toBe('3');
   });
 
-  it('[QSHST#answer] writes a query that does not parse as its failure on stdout, with exit code 0', async () => {
+  it('[QSCLI#answer] writes a query that does not parse as its failure on stdout, with exit code 0', async () => {
     const { stdout, stderr, exitCode } = await runCli(['[1 2'], { stdin: '' });
     expect(exitCode).toBe(0);
     expect(stdout).toContain('::quote/ParseError!{');
     expect(stderr).toBe('');
   });
 
-  it('[QSHST#answer] exits a failure with 1 under --fail, written on stdout as without it', async () => {
+  it('[QSCLI#answer] exits a failure with 1 under --fail, written on stdout as without it', async () => {
     const { stdout, stderr, exitCode } = await runCli(['--fail', '"x" | add 1'], { stdin: '' });
     expect(exitCode).toBe(1);
     expect(stdout).toContain('::number/add/SubjectNotNumberError!{');
     expect(stderr).toBe('');
   });
 
-  it('[QSHST#answer] errors on usage failure with exit code 2', async () => {
+  it('[QSCLI#answer] errors on usage failure with exit code 2', async () => {
     const { exitCode, stderr } = await runCli([]);
     expect(exitCode).toBe(2);
     expect(stderr).toMatch(/missing query/);
@@ -93,7 +93,7 @@ describe('CLI: script mode — query argument', () => {
 });
 
 describe('CLI: piped stdin — the readings of stdin', () => {
-  it('[QSHST#stdin] reads piped JSON as values, which `get /name` reads', async () => {
+  it('[QSCLI#stdin] reads piped JSON as values, which `get /name` reads', async () => {
     const { stdout, exitCode } = await runCli(['get /name'], {
       stdin: '{"name": "alice", "age": 30}'
     });
@@ -101,7 +101,7 @@ describe('CLI: piped stdin — the readings of stdin', () => {
     expect(stdout.trim()).toBe('alice');
   });
 
-  it('[QSHST#stdin] --raw reads standard input as a string', async () => {
+  it('[QSCLI#stdin] --raw reads standard input as a string', async () => {
     const { stdout, exitCode } = await runCli(['--raw', 'append " world"'], {
       stdin: 'hello'
     });
@@ -112,7 +112,7 @@ describe('CLI: piped stdin — the readings of stdin', () => {
 
 describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `.exit`', () => {
   // `.exit\n` sent at once closes the child after the REPL boots.
-  it('[QSHST#repl] starts up, prints prompt, accepts .exit, returns code 0', async () => {
+  it('[QSCLI#repl] starts up, prints prompt, accepts .exit, returns code 0', async () => {
     const { exitCode, stderr } = await runCli(['-i'], { stdin: '.exit\n' });
     // A syntax error inside repl.mjs would surface on stderr and
     // produce a non-zero exit code BEFORE the prompt is drawn.
@@ -120,7 +120,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(exitCode).toBe(0);
   });
 
-  it('[QSHST#repl] evaluates a query in REPL mode and prints the result', async () => {
+  it('[QSCLI#repl] evaluates a query in REPL mode and prints the result', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: '42 | mul 2\n.exit\n'
     });
@@ -128,7 +128,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(stdout).toMatch(/84/);
   });
 
-  it('[QSHST#repl] REPL keeps the verbs a cell declares for the cells after it', async () => {
+  it('[QSCLI#repl] REPL keeps the verbs a cell declares for the cells after it', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
     });
@@ -136,7 +136,7 @@ describe('CLI: the REPL (`-i`) loads its modules, runs its cells and closes on `
     expect(stdout).toMatch(/42/);
   });
 
-  it('[QSHST#repl] REPL .help command prints meta-commands and stays open', async () => {
+  it('[QSCLI#repl] REPL .help command prints meta-commands and stays open', async () => {
     const { stdout, exitCode } = await runCli(['-i'], {
       stdin: '.help\n.exit\n'
     });

@@ -3,8 +3,8 @@
 // features alone never reaches, since those import `features.mjs` and
 // leave the server's own imports unread, it reads each source of the
 // language where the core's package exports it [QSHST#source], and it maps
-// the role of a declaration to the kinds of the protocol [QSHST#tools].
-// The rules it holds: [QSWRK#tooling], [QSHST#tools].
+// the role of a declaration to the kinds of the protocol [QSLSP#server].
+// The rules it holds: [QSWRK#tooling], [QSLSP#server].
 
 import { describe, it, expect } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -48,7 +48,7 @@ function answerOf(serverProcess, id) {
 }
 
 describe('the language server process', () => {
-  it('[QSHST#tools] starts over stdio and answers initialize with its capabilities', async () => {
+  it('[QSLSP#server] starts over stdio and answers initialize with its capabilities', async () => {
     const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
     try {
       const answer = answerOf(serverProcess, 1);
@@ -63,7 +63,7 @@ describe('the language server process', () => {
     }
   }, 30_000);
 
-  it('[QSHST#tools] names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol', async () => {
+  it('[QSLSP#symbols] names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol', async () => {
     const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
     try {
       const initialized = answerOf(serverProcess, 1);
@@ -84,7 +84,7 @@ describe('the language server process', () => {
     }
   }, 30_000);
 
-  it('[QSHST#tools] answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
+  it('[QSLSP#reach] answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
     // A copy of the server outside the repository, which reaches the
     // packages it depends on and no workspace beside it.
     const outside = mkdtempSync(join(tmpdir(), 'qlang-lsp-'));

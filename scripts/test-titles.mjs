@@ -2,7 +2,7 @@
 // JavaScript from the call of `it` or `test` that states it, and the rules a
 // title names at its head: first the one rule its test holds, the section of
 // a chapter or a record in force of a domain its tests hold, and second the
-// record in transit that brought it [D409].
+// record in transit that brought it [QSWRK#marks].
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -44,7 +44,7 @@ export function titlesOfSource(text) {
   return titles;
 }
 
-// The rules at the head of a title, `[QSHST#answer] [D409] reads …`.
+// The rules at the head of a title, `[QSCLI#answer] [Dnn] reads …`.
 const HEAD = /^((?:\[(?:QS[A-Z]{3}(?:#[a-z][a-z-]*)?|[DE]\d+)\] )*)/;
 
 // rulesOfTitle(title) → the rules its head names, in their order.

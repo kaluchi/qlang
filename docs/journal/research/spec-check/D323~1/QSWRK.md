@@ -219,7 +219,7 @@ $ grep -nE '^//   node scripts/measure' scripts/measure.mjs
 «a chapter of the language shows its rules by probes, and this chapter by the checks each section names».
 
 ```sh
-$ qlang --raw 'split "\n## " | drop 1 | filter ~(contains "```" | not) | map ~(lines | first)' < D:/git/qlang/docs/spec/QSHST-hosts-and-the-command-line.md
+$ qlang --raw 'split "\n## " | drop 1 | filter ~(contains "```" | not) | map ~(lines | first)' < D:/git/qlang/docs/spec/QSHST-hosts.md
 ["input" "shell" "repl" "tools"]
 
 $ qlang --raw 'split "\n## " | drop 1 | filter ~(contains "```" | not) | map ~(lines | first)' < D:/git/qlang/docs/spec/QSSLF-the-language-describes-itself.md

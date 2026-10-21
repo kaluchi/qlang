@@ -108,41 +108,42 @@ describe('a refusal names a kind only where its address names it', () => {
 });
 
 // A test is held by its own title, which opens with the one rule it holds and
-// names second the record in transit that brought it [D409].
+// names second the record in transit that brought it [QSWRK#marks]. The
+// records the titles name are planted, D9999 a record in transit no journal holds.
 describe('a test names first the one rule it holds and second the record that brings it', () => {
-  const context = { heldByItsTests: name => name === 'D404', overridesOf: name => ({ D409: ['QSWRK#marks', 'QSCOL'] })[name] };
+  const context = { heldByItsTests: name => name === 'D404', overridesOf: name => ({ D9999: ['QSWRK#marks', 'QSCOL'] })[name] };
   const problemOf = title => problemOfTitle({ title, rules: title === null ? [] : rulesOfTitle(title) }, context);
 
-  it('[QSWRK#marks] [D409] reads the rules at the head of a title, a section, a chapter and a record, and none past its words', () => {
-    expect(rulesOfTitle('[QSHST#answer] [D409] reads -h [QSHST#tools]')).toEqual(['QSHST#answer', 'D409']);
+  it('[QSWRK#marks] reads the rules at the head of a title, a section, a chapter and a record, and none past its words', () => {
+    expect(rulesOfTitle('[QSCLI#answer] [D9999] reads -h [QSCLI#shell]')).toEqual(['QSCLI#answer', 'D9999']);
     expect(rulesOfTitle('[QSWRK] [D404] a rule')).toEqual(['QSWRK', 'D404']);
-    expect(rulesOfTitle('reads -h [QSHST#answer]')).toEqual([]);
+    expect(rulesOfTitle('reads -h [QSCLI#answer]')).toEqual([]);
   });
 
-  it('[QSWRK#marks] [D409] reads the title of a test from its string, its template and the call of a table, and none from a name', () => {
+  it('[QSWRK#marks] reads the title of a test from its string, its template and the call of a table, and none from a name', () => {
     const source = ["describe('a group', () => {", "  it('[QSNUM#arithmetic] adds', () => {});", '  test(`[QSNUM#arithmetic] adds ${1}`, () => {});',
       "  it.each([[1], [2]])('[QSNUM#arithmetic] adds %s', () => {});", '  it(name, () => {});', '});'].join('\n');
     expect(titlesOfSource(source)).toEqual([{ line: 2, title: '[QSNUM#arithmetic] adds' }, { line: 3, title: '[QSNUM#arithmetic] adds ${…}' },
       { line: 4, title: '[QSNUM#arithmetic] adds %s' }, { line: 5, title: null }]);
   });
 
-  it('[QSWRK#marks] [D409] reads no test from a call that hands no body after its title, nor from a member of a value named test', () => {
+  it('[QSWRK#marks] reads no test from a call that hands no body after its title, nor from a member of a value named test', () => {
     const source = ["const run = async (reading, test) => test(reading);", "const words = test => test.name.split('-');", "it.todo('[QSNUM#arithmetic] adds');"].join('\n');
     expect(titlesOfSource(source)).toEqual([{ line: 3, title: '[QSNUM#arithmetic] adds' }]);
   });
 
-  it('[QSWRK#marks] [D409] passes a title that opens with a section, a record its tests hold, and a record in transit over the section or its chapter', () => {
-    for (const title of ['[QSHST#answer] reads -h', '[D404] reads a nest at once', '[QSWRK#marks] [D409] refuses', '[QSCOL#image] [D409] maps']) expect(problemOf(title), title).toBeNull();
+  it('[QSWRK#marks] passes a title that opens with a section, a record its tests hold, and a record in transit over the section or its chapter', () => {
+    for (const title of ['[QSCLI#answer] reads -h', '[D404] reads a nest at once', '[QSWRK#marks] [D9999] refuses', '[QSCOL#image] [D9999] maps']) expect(problemOf(title), title).toBeNull();
   });
 
-  it('[QSWRK#marks] [D409] refuses a title of no literal, of no rule, of a chapter, of a record no test holds, of two sections and of a record out of transit or over another section', () => {
+  it('[QSWRK#marks] refuses a title of no literal, of no rule, of a chapter, of a record no test holds, of two sections and of a record out of transit or over another section', () => {
     expect(problemOf(null)).toContain('by no literal');
-    expect(problemOf('reads -h [QSHST#answer]')).toBe('opens with no rule it holds');
+    expect(problemOf('reads -h [QSCLI#answer]')).toBe('opens with no rule it holds');
     expect(problemOf('[QSHST] reads -h')).toContain('a chapter and not the section');
-    expect(problemOf('[D409] refuses')).toContain('no record in force of a domain its tests hold');
-    expect(problemOf('[QSHST#answer] [QSHST#repl] reads -h')).toContain('opens with two rules');
-    expect(problemOf('[QSHST#answer] [D404] reads -h')).toContain('no record in transit');
-    expect(problemOf('[QSHST#answer] [D409] reads -h')).toContain('overrides neither QSHST#answer nor its chapter');
-    expect(problemOf('[QSWRK#marks] [D409] [D404] refuses')).toContain('past its rule and its record');
+    expect(problemOf('[D9999] refuses')).toContain('no record in force of a domain its tests hold');
+    expect(problemOf('[QSCLI#answer] [QSCLI#repl] reads -h')).toContain('opens with two rules');
+    expect(problemOf('[QSCLI#answer] [D404] reads -h')).toContain('no record in transit');
+    expect(problemOf('[QSCLI#answer] [D9999] reads -h')).toContain('overrides neither QSCLI#answer nor its chapter');
+    expect(problemOf('[QSWRK#marks] [D9999] [D404] refuses')).toContain('past its rule and its record');
   });
 });

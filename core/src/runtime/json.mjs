@@ -13,7 +13,7 @@ function dispatchPlainValue(v, handlers, path) {
 }
 
 // `toPlain` writes a value in the kinds of JSON, for `json` and a host, a number
-// past the doubles raised [QSHST#source], and `fromPlain` reads them back as
+// past the doubles raised [QSHST#door], and `fromPlain` reads them back as
 // maps, vectors and the atoms, for a host.
 const TO_PLAIN_HANDLERS = {
   null:    () => null,

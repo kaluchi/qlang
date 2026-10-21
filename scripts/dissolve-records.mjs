@@ -3,7 +3,7 @@
 // in the present, and the run does the rest. A case that names the record
 // drops the name, every case standing in the section of a chapter
 // [QSWRK#cases], and a test that names it second in its title drops it, its
-// title opening with its rule alone [D409]; a citation of the record in the code,
+// title opening with its rule alone [QSWRK#baseline]; a citation of the record in the code,
 // the tests and the documents of the work names its section where the
 // record overrides one, once in a run, and is listed for the author where
 // it overrides several; the record gains its line `Dissolved into` the

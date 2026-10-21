@@ -56,5 +56,5 @@ const SECTIONS = {
   unreadExports: found => section('Exports of the root of the package beyond what a host builds on', found, ({ file, line, name, problem }) => `  ${file}${line === undefined ? '' : `:${line}`}  ${name === undefined ? '' : `\`${name}\` `}${problem}\n`,
     'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSWRK#tooling].'),
   testsNamingNoRule: found => section('Tests that name no rule they hold', found, ({ file, line, problem, title }) => `  ${file}:${line}  ${problem}  “${title}”\n`,
-    'a test opens its title with the one rule it holds, `[QSHST#answer] reads …`, the section of a chapter or a record in force of a domain its tests hold, and second the record in transit that brought it, `[QSCOL#image] [D409] …` [D409].')
+    'a test opens its title with the one rule it holds, `[QSCLI#answer] reads …`, the section of a chapter or a record in force of a domain its tests hold, and second the record in transit that brought it, `[QSCOL#image] [Dnn] …` [QSWRK#marks].')
 };

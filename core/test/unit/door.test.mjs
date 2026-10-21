@@ -1,4 +1,4 @@
-// The doors of a host [QSHST#source]: the answer of a primitive a host hands beside
+// The doors of a host [QSHST#door]: the answer of a primitive a host hands beside
 // its source, and the facts of a refusal it throws, are held to the kinds of
 // the language at any depth by one walk, a value of no kind failing the call
 // as `::call/HostFailureError` naming the verb and the path where it stands;
@@ -81,28 +81,28 @@ function counted(element) {
 }
 
 describe('the first door: the answer of a primitive a host hands beside its source', () => {
-  it('[QSHST#source] passes each kind of value of the language back as it is', async () => {
+  it('[QSHST#door] passes each kind of value of the language back as it is', async () => {
     for (const value of lawful) expect(await answerOf(value)).toBe(value);
   });
 
-  it('[QSHST#source] passes a failure the primitive answers, whose facts are values', async () => {
+  it('[QSHST#door] passes a failure the primitive answers, whose facts are values', async () => {
     const failure = makeErrorValue(makeTag('error'), new Map([['a', 1]]));
     expect((await answerOf(failure)).facts.get('a')).toBe(1);
     expect((await session.evalCell(`${answering(failure)} | answer !| get /a`)).result).toBe(1);
   });
 
-  it('[QSHST#source] refuses each value of no kind as a failure of the host, naming the verb and the path where it stands', async () => {
+  it('[QSHST#door] refuses each value of no kind as a failure of the host, naming the verb and the path where it stands', async () => {
     for (const [value, path, account] of valuesOfNoKind()) expect(await refusalOf(value), account).toEqual(doorRefusal('any/answer', path, account));
   });
 
-  it('[QSHST#source] walks a container met twice in one answer once', async () => {
+  it('[QSHST#door] walks a container met twice in one answer once', async () => {
     const { vector, reads } = counted(1);
     const pair = [vector, vector];
     expect(await answerOf(pair)).toBe(pair);
     expect(reads.count).toBe(1);
   });
 
-  it('[QSHST#source] walks the answer of every call again, so a container its host changed since is refused', async () => {
+  it('[QSHST#door] walks the answer of every call again, so a container its host changed since is refused', async () => {
     const cached = [1, 2];
     const index = answering(cached);
     expect((await session.evalCell(`${index} | answer | count`)).result).toBe(2);
@@ -112,7 +112,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     expect((await session.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
-  it('[QSHST#source] passes back unwalked a value the call handed in', async () => {
+  it('[QSHST#door] passes back unwalked a value the call handed in', async () => {
     // The door of a cell walks the subject it takes once, and the door of an
     // answer walks no value the call handed in.
     const { vector, reads } = counted(1);
@@ -122,7 +122,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     expect(reads.count).toBe(2);
   });
 
-  it('[QSHST#source] holds a value nested past the depth the engine recurses to', async () => {
+  it('[QSHST#door] holds a value nested past the depth the engine recurses to', async () => {
     let nested = [0];
     let deepest = [function deepest() {}];
     for (let depth = 0; depth < 20000; depth += 1) {
@@ -133,29 +133,29 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     expect((await session.evalCell(`${answering(deepest)} | answer !| type`)).result).toEqual(HOST_FAILURE);
   });
 
-  it('[QSHST#source] holds an answer a primitive waits on as it holds any', async () => {
+  it('[QSHST#door] holds an answer a primitive waits on as it holds any', async () => {
     expect(await answerOf(5, 'later')).toBe(5);
     expect(await refusalOf({ a: 1 }, 'later')).toEqual(doorRefusal('any/later', '', 'object Object'));
   });
 
-  it('[QSHST#source] holds the primitive a host hands under every name that runs it, a name that holds its ::builtin{} among them', async () => {
+  it('[QSHST#door] holds the primitive a host hands under every name that runs it, a name that holds its ::builtin{} among them', async () => {
     expect(await answerOf(5, 'again')).toBe(5);
     expect(await refusalOf(function hello() {}, 'again')).toEqual(doorRefusal('any/again', '', 'function hello'));
   });
 
-  it('[QSHST#source] holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
+  it('[QSHST#door] holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
     expect((await session.evalCell(`${answering('late')} | refuse !| get [~(type) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
     expect((await session.evalCell(`${answering(undefined)} | refuse !| type`)).result).toEqual(makeTag('any/refuse/RefusedError'));
     expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/actualValue', 'object Object'));
     expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/actualValue', 'object Object'));
   });
 
-  it('[QSHST#source] raises past the fail track a defect a host\'s primitive throws, whatever its facts hold', async () => {
+  it('[QSHST#door] raises past the fail track a defect a host\'s primitive throws, whatever its facts hold', async () => {
     const cell = await session.evalCell(`${answering({ status: 404 })} | break !| 0`);
     expect([cell.result, cell.defect]).toEqual([null, expect.any(AnyBreakBrokenError)]);
   });
 
-  it('[QSHST#source] holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
+  it('[QSHST#door] holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
     expect((await session.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw/construct', '', 'object Object'));
     expect((await session.evalCell('::Kept[1] | payload')).result).toEqual([1]);
     expect((await session.evalCell('::Counted[7] | payload')).result).toBe(1);
@@ -165,13 +165,13 @@ describe('the first door: the answer of a primitive a host hands beside its sour
 describe('a primitive of the core runs within the function its host handed it with', () => {
   const overAdd = returns => `(::fn | takes :x |~~ An x. ~~| /0${returns} | impl (::number/add | binding | get /value | get /1))`;
 
-  it('[QSHST#source] refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
+  it('[QSHST#door] refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
     for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
       expect((await session.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('fn/RecipeMissingError'));
     }
   });
 
-  it('[QSHST#source] brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
+  it('[QSHST#door] brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
     for (const fn of ['(::number/add | binding | get /value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
       expect((await session.evalCell(`1e308 | apply ${fn} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
@@ -181,7 +181,7 @@ describe('a primitive of the core runs within the function its host handed it wi
 describe('the second door: what a host hands where the core takes it', () => {
   const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
 
-  it('[QSHST#source] takes each kind of value of the language as the subject of a cell and as what a name of a scope holds', async () => {
+  it('[QSHST#door] takes each kind of value of the language as the subject of a cell and as what a name of a scope holds', async () => {
     for (const value of lawful) {
       expect((await session.evalCell('it', { initialPipeValue: value })).result).toBe(value);
       expect(await evalQuery('held', await scopeHolding(value))).toBe(value);
@@ -189,7 +189,7 @@ describe('the second door: what a host hands where the core takes it', () => {
     }
   });
 
-  it('[QSHST#source] raises each value of no kind as the subject of a cell, naming it as JavaScript holds it', async () => {
+  it('[QSHST#door] raises each value of no kind as the subject of a cell, naming it as JavaScript holds it', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await session.evalCell('type', { initialPipeValue: value });
       expect([cell.result, cell.defect], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
@@ -198,7 +198,7 @@ describe('the second door: what a host hands where the core takes it', () => {
     }
   });
 
-  it('[QSHST#source] raises each value of no kind a name of a scope holds, as a record or as it lies, where a query or a session takes the scope', async () => {
+  it('[QSHST#door] raises each value of no kind a name of a scope holds, as a record or as it lies, where a query or a session takes the scope', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       for (const scope of [await scopeHolding(value), new Map(await langRuntime()).set('held', value)]) {
         await expect(evalQuery('1', scope), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
@@ -207,7 +207,7 @@ describe('the second door: what a host hands where the core takes it', () => {
     }
   });
 
-  it('[QSHST#source] reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
+  it('[QSHST#door] reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
     expect((await session.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
     expect((await session.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
@@ -216,21 +216,21 @@ describe('the second door: what a host hands where the core takes it', () => {
     expect(await evalQuery('held | print', await scopeHolding(makeTagged(ERROR_TAG, 5)))).toBe('::error#5');
   });
 
-  it('[QSHST#source] leaves the keys of the runtime\'s own out of the walk of a scope', async () => {
+  it('[QSHST#door] leaves the keys of the runtime\'s own out of the walk of a scope', async () => {
     const scope = new Map(await langRuntime()).set(WITHHELD_KEY, new Set(['x']));
     expect(await evalQuery('1 | add 1', scope)).toBe(2);
   });
 });
 
 describe('a value of no kind the core meets where it reads a kind or writes a number', () => {
-  it('[QSHST#source] raises an object of no kind of the core where its kind is read, and reads every number of JavaScript as a number', () => {
+  it('[QSHST#door] raises an object of no kind of the core where its kind is read, and reads every number of JavaScript as a number', () => {
     for (const value of [function named() {}, { a: 1 }, new Date(0), 5n, Symbol('s')]) {
       expect(() => typeOf(value)).toThrow(BuiltinForeignValueError);
     }
     expect([Infinity, NaN, -0].map(typeOf)).toEqual([makeTag('number'), makeTag('number'), makeTag('number')]);
   });
 
-  it('[QSHST#source] raises a number past the finite doubles where the printer and the codec of JSON write it, and ranks it in the one order', () => {
+  it('[QSHST#door] raises a number past the finite doubles where the printer and the codec of JSON write it, and ranks it in the one order', () => {
     for (const number of [Infinity, -Infinity, NaN]) {
       expect(() => printValue([number])).toThrow(BuiltinForeignValueError);
       expect(() => toPlain([number])).toThrow(BuiltinForeignValueError);
@@ -238,7 +238,7 @@ describe('a value of no kind the core meets where it reads a kind or writes a nu
     expect([compareValues(1, Infinity), compareValues(-Infinity, 1)]).toEqual([-1, -1]);
   });
 
-  it('[QSHST#source] names a value as JavaScript holds it', () => {
+  it('[QSHST#door] names a value as JavaScript holds it', () => {
     expect([function named() {}, [() => 0][0], 3n, Symbol('s'), Infinity, new Date(0), Object.create(null), undefined, null].map(accountOfForeign))
       .toEqual(['function named', 'function', 'bigint 3', 'symbol Symbol(s)', 'number Infinity', 'object Date', 'object null', 'undefined', 'null']);
   });

@@ -1,5 +1,5 @@
 // The primitives of `print` [QSPRN#print] and `elide` [QSPRN#elide], and the
-// one print of an answer every host prints within the budget [D397].
+// one print of an answer every host prints within the budget [QSHST#answer].
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
@@ -16,7 +16,7 @@ const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetErr
 
 // printsOfKinds(value, scope, state?) → `printedOf(part)`, the print a kind
 // declares for each part of its kind, found as a verb of the root reads it,
-// and undefined where the forms of the core write the part [D400].
+// and undefined where the forms of the core write the part [QSPRN#print].
 export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
   const printedByKind = new Map();
   await collectPrintsOfKinds(value, markRootVerbScope(new Map(scope)), state, nodeOf(scope, 'any/print'), printedByKind);
@@ -33,7 +33,7 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 
 // boundAnswer(answer, scope, written?) → what a host prints for an answer, a
 // failure as its alert, where its print or the text `written` fits the
-// budget, and else the refusal of an answer past it in its place [D397].
+// budget, and else the refusal of an answer past it in its place [QSHST#answer].
 export async function boundAnswer(answer, scope, written = null) {
   const printedOf = await printsOfKinds(answer, scope);
   const failed = isErrorValue(answer);

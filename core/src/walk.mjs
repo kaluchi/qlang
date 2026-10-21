@@ -38,7 +38,7 @@ export function keepParts(root) {
 export const partOf = value => PARTS.get(value);
 
 // originOf(quote) — the source a quote was read from, the name its reader
-// gave it, `quote` for one assembled from data [D399].
+// gave it, `quote` for one assembled from data [QSHST#source].
 export const originOf = quote => partOf(quote)?.span.source ?? 'quote';
 
 // walkParts(part, visit) → a walk of the parts, each before the parts it

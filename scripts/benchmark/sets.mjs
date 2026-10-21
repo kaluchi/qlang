@@ -171,7 +171,7 @@ function finalQueriesOf(setId, reply) {
 
 // What the tree answers for a query over the data of its task, as JSON,
 // which `| json | out` writes whole past the budget of every answer on the
-// last line, whatever the query wrote by `out` before it [D397], or null when
+// last line, whatever the query wrote by `out` before it [QSHST#answer], or null when
 // it fails.
 function answerOf(setId, task, query) {
   try {

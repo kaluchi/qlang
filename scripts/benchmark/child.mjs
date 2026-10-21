@@ -21,7 +21,7 @@ export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
 
 // The effort a child and an author of the benchmark run at, `medium`, which
 // no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of their
-// start, where no flag and no settings file overrides it [D396].
+// start, where no flag and no settings file overrides it [QSWRK#measure].
 export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'medium' });
 
 // The environment a child of the benchmark adds to the session's, which its

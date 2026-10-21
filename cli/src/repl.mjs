@@ -67,7 +67,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     : stderrWrite;
 
   // A cell that wrote to stdout by `out` holds the channel: no value of its
-  // answer prints after it, while a failure does [D397].
+  // answer prints after it, while a failure does [QSHST#repl].
   let wroteByOut = false;
   const session = await createSession({
     sources: cliSources({
@@ -131,7 +131,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
 
 // An answer prints on stdout as `boundAnswer` shows it, but a value of a cell
 // that wrote by `out`, and a failure, one that does not parse with its caret,
-// without the prose of its page [QSHST#answer], [D397]; a defect raised past
+// without the prose of its page [QSHST#answer], [QSHST#repl]; a defect raised past
 // the fail track as the cell ran or as its answer printed on stderr [QSHST#repl].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {

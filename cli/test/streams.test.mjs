@@ -130,14 +130,14 @@ describe('tap', () => {
     });
   });
 
-  it('writes its subject as an answer prints, the print a kind declares among it [D397]', async () => {
+  it('writes its subject as an answer prints, the print a kind declares among it [QSHST#effect]', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery(':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count', io);
     expect(cellEntry.result).toBe(1);
     expect(io.stderrText()).toBe('[tap x] [box]\n');
   });
 
-  it('writes the refusal in the place of a subject past the budget, its reads continuing from the subject, and goes on [D397]', async () => {
+  it('writes the refusal in the place of a subject past the budget, its reads continuing from the subject, and goes on [QSHST#effect]', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
     expect(cellEntry.result).toBe(3000);

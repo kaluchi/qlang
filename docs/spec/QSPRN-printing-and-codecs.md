@@ -20,15 +20,28 @@ of its own, indented by two. An elision stands on one line whatever it
 holds, so a container that holds one keeps the layout its other parts
 give it, and a value of `::frame` stands on one line whatever it holds as
 well, a value of `::trace` of two frames or more putting each frame on a
-line of its own. A kind answers `print` under
-its own label, and the print of a value finds the `print` of each part
-by the walk of that part, an answer that is no string printed in its
-place; a kind's own `print` gives the text it chooses, which reads back
-where it writes the kind's literal. What a host leaves out of an answer
-stands as an `::elision` before the print, so the print holds all it is
-given. The print of a failure finds the print of each part of its facts as the
-print of every value does. Every host prints an answer through `print`,
-the command line a string as its text and the REPL as its literal.
+line of its own. On one line every part stands on one line, every part of
+a quote among it, the modifiers of its calls, the docs and the body of
+its declarations and the parts of its literals, which read back as the
+same steps, so a frame lays the quote it holds on one line; a host that
+writes a value on one line, a cell of the command line's `table` among
+them, whose view writes the prose of a doc with each line break as a
+space, asks the printer for that form and lays no print on one line by a
+regex over its text. A kind answers `print` under
+its own label, and the print of a value finds the `print` of each part,
+a bare value among them, by the walk of that part as a verb of the root
+reads it [QSNAM#owner], an answer that is no string printed in its place:
+a print a reader declares under a label of the root answers the reader's
+own calls alone, and a print a label declares serves its values and no
+tag name of it. A kind's own `print` gives the text it chooses, which
+reads back where it writes the kind's literal. What the alert of a failure and the
+head of an answer past the budget leave out stands as an `::elision`
+before the print, so the print holds all it is given. The print of a
+failure finds the print of each part of its facts as the print of every
+value does. Every host prints an answer through the one print of the
+core, `boundAnswer`, within the budget of every answer [QSHST#answer],
+the command line a string as its text and the REPL and the site as its
+literal.
 
 ```qlang
 > {:a [1 "x" :k]} | :v it | print | parse | open | eq v
@@ -37,14 +50,20 @@ true
 > #[2 1] | print
 "#[1 2]"
 
-> :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | print
-"[box]"
+> :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1 ::Box] | print
+"[box ::Box]"
+
+> :number/print ~("n") | get [~([::Box#5 7] | print) ~(7 | print)]
+["[::Box#5 7]" "n"]
 
 > {:a {:b [1 2]}} | get /c !| trace
 ::trace[::frame[{:a {:b [1 2]}} ~(get /c)]]
 
 > [1 "x" 3] | map ~(mul 2) !| trace | print | lines | count
 4
+
+> "[1] | map ~(:a (\"x\" | add 1)\n| :b 2)" | parse | open !| trace | map ~(print | lines | count)
+[1 1 1 1]
 ```
 
 ## json

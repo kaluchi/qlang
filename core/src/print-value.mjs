@@ -168,7 +168,7 @@ export const asPrinted = { of: value => printValue(value), quoting: literal => p
 // alone, the story `source` reads, one declaration a line, each after the
 // first led by its pipe, as the catalog writes it, and so a quote of several
 // steps one of which takes several lines [QSQUO#parse]; on one line every part
-// of every step stands on it [D397].
+// of every step stands on it [QSPRN#print].
 const AS_WRITTEN = { oneLine: false, printedOf: printedByNoKind };
 
 export function printQuoteSource(steps, view = AS_WRITTEN) {

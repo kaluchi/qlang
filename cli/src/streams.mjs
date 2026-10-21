@@ -1,7 +1,7 @@
 // The primitives of the streams of the command line, `in`, `out`,
 // `err` and `tap`, names its source declares under `::any` [QSDSP#residence],
 // each taking the values alone, the subject and the inputs of its call
-// [QSBLD#fn], but `tap`, which reads the state of its call [D397].
+// [QSBLD#fn], but `tap`, which reads the state of its call [QSHST#source].
 
 import { kindsExpected, readingState, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
@@ -27,7 +27,7 @@ export function streamPrimitives(ioContext) {
     'any/in':  async () => ioContext.stdinReader(),
     'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectKindNotTakenError),
     'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
-    // `tap` writes its subject as a host prints an answer [D397].
+    // `tap` writes its subject as a host prints an answer [QSHST#effect].
     'any/tap': readingState(async (subject, label, state) => {
       const shown = await printAnswer(await boundAnswer(subject, state.scope), state.scope);
       ioContext.stderrWrite(`[tap ${label.name}] ${shown}\n`);

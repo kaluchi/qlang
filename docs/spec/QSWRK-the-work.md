@@ -80,7 +80,8 @@ again in place, its `Question.` and `Alternatives.` giving way to
 it set aside. `node scripts/requirements.mjs` shows where every record
 stands: the records being decided, the open ones and those of the
 language no case names, and those carried out, replaced, held by the
-tests of their domain and the rules of the work.
+tests of their domain, a measurement by its runs, and the rules of the
+work, and a measurement whose runs and screen the tree lacks.
 
 A record changes the rules of the specification while it is in transit:
 a line that opens with `Overrides` names the sections it overrides,
@@ -217,8 +218,8 @@ conformance suite marks its section by its path, and a case the record in
 transit over that section by its `decision` [QSWRK#cases]; the sister
 project names a record of qlang with the repository, `(qlang Dnn)`; and a
 screen and a run of a set of the benchmark name the record they measure
-in the name of their file, `screens/D270.txt` and
-`sets/V/runs/D270~cli~sonnet~1.json`. A mark covers its block,
+in the name of their file, `screens/D395.txt` and
+`sets/Y/runs/D395~cli~sonnet~1.json`. A mark covers its block,
 from its comment to the next comment that holds one, the first block
 reaching up to the head of the file, so a search answers what governs a
 file and what a record left behind: `node scripts/marks.mjs` answers the
@@ -286,7 +287,9 @@ At the move:
 
 `check:conventions` holds the walk: a record of the language the
 baseline's tree holds that no case names and no line of fate closes,
-unless it is open; a citation of a section its chapter lacks; a section
+unless it is open; a record of a measurement the baseline's tree holds
+whose runs and screen the tree lacks and no line of fate closes; a
+citation of a section its chapter lacks; a section
 of a chapter written since the baseline that no record dissolved into
 since, and a section or a chapter gone that none names; a case of
 a chapter the baseline held, added, rewritten or taken away since, that
@@ -603,7 +606,7 @@ of its own, and its value on the line after them.
 The mission's measure is the first attempt of a fresh model, which the
 benchmark takes by its sets. A child of the benchmark, `claude -p` from
 a directory of its own with no settings, memory or server, at the effort
-`high`, which no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the
+`medium`, which no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the
 environment of its start, runs the
 command line on the tasks of a set, handed one first screen, the pages
 of the language and of the command line as
@@ -617,7 +620,11 @@ set. A sentence of the first page stays by what it carries to a clean
 reader on tasks its author never saw.
 
 A measurement belongs to a record in force, which says what it measures
-and why, and carries its number, `run --decision Dnn`, its runs named
+and why, held by the runs and the screen named after it: it stays in
+force while the tree holds one of them, and once the move gives the last
+of them to the history with their series it leaves, replaced by the
+measurement after it, the one the series is read beside next
+[QSWRK#baseline]. It carries its number, `run --decision Dnn`, its runs named
 after it, `D<n>~cli~<model>~<k>`, a run on another screen than the one
 saved under its number carrying the hash of that screen beside the
 number; the numbers measured grow, `run` refusing a number below the
@@ -633,7 +640,7 @@ before it, or the one it names, as they fixed them.
 
 ```sh
 $ node -e "import('./scripts/benchmark/child.mjs').then(m=>console.log(JSON.stringify(m.RUN_ENVIRONMENT)))"
-{"MSYS_NO_PATHCONV":"1","CLAUDE_CODE_EFFORT_LEVEL":"high"}
+{"MSYS_NO_PATHCONV":"1","CLAUDE_CODE_EFFORT_LEVEL":"medium"}
 ```
 `scripts/benchmark/tasks.mjs` keeps each task with its question, the
 data it reads where it reads any, its answer and its reference, the
@@ -887,7 +894,8 @@ axis, the browser's loader and `cli/src/bin.mjs` aside, and the setup of
 vitest in the core, the command line and the language server registers
 an equality that compares a value of the language by the tie of the one
 order, which reads the tag a vector or a map holds on itself, leaving any
-other value to the equality of vitest. `scripts/fuzz-laws.mjs`
+other value to the equality of vitest; every suite of vitest fails a test
+that makes no assertion. `scripts/fuzz-laws.mjs`
 runs every law of the root again with its literals changed to edge
 values, failing on a host's failure, a throw past the fail track, or a
 print that reads back as another value. `check:conventions` holds,

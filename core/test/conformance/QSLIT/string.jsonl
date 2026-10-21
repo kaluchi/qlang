@@ -1,11 +1,11 @@
 {"name":"a-string-is-written-in-double-quotes","query":"\"hello\"","expect":"\"hello\""}
 {"name":"two-double-quotes-write-the-empty-string","query":"\"\"","expect":"\"\""}
 {"name":"a-unicode-escape-of-four-digits-writes-its-character","query":"\"\\u0041\"","expect":"\"A\""}
-{"decision":"D399","name":"a-unicode-escape-takes-a-hexadecimal-digit-that-is-a-letter","query":"\"\\u00e9\"","expect":"\"é\""}
+{"name":"a-unicode-escape-takes-a-hexadecimal-digit-that-is-a-letter","query":"\"\\u00e9\"","expect":"\"é\""}
 {"name":"a-unicode-escape-stands-among-the-characters-written-raw","query":"\"hello\\u0020world\"","expect":"\"hello world\""}
 {"name":"a-string-written-by-an-escape-equals-the-one-written-raw","query":"\"\\u0041\" | eq \"A\"","expect":"true"}
 {"name":"an-escaped-slash-writes-a-slash","query":"\"\\/\"","expect":"\"/\""}
-{"decision":"D399","name":"a-string-is-written-with-the-escape-of-a-backspace","query":"\"\\b\" | eq \"\\u0008\"","expect":"true"}
-{"decision":"D399","name":"a-string-is-written-with-the-escape-of-a-form-feed","query":"\"\\f\" | eq \"\\u000c\"","expect":"true"}
-{"decision":"D399","name":"each-escape-of-a-string-writes-one-character-beside-one-written-raw","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | count","expect":"9"}
+{"name":"a-string-is-written-with-the-escape-of-a-backspace","query":"\"\\b\" | eq \"\\u0008\"","expect":"true"}
+{"name":"a-string-is-written-with-the-escape-of-a-form-feed","query":"\"\\f\" | eq \"\\u000c\"","expect":"true"}
+{"name":"each-escape-of-a-string-writes-one-character-beside-one-written-raw","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | count","expect":"9"}
 {"name":"a-string-holds-a-tab-and-a-line-break-written-raw","query":"get [~(\"a\tb\" | eq \"a\\tb\") ~(\"a\nb\" | eq \"a\\nb\")]","expect":"[true true]"}

@@ -17,7 +17,7 @@ import { commandStep, FAIL_TAG } from './steps.mjs';
 const HEAD_CHARACTERS = 40;
 export const EXCERPT_CHARACTERS = 300;
 
-// The characters a host prints an answer within, above the first screen [D397].
+// The characters a host prints an answer within, above the first screen [QSHST#answer].
 export const ANSWER_BUDGET = 16000;
 const printedByTheCore = () => undefined;
 
@@ -306,7 +306,7 @@ export function alertWithin(error, budget, printedOf = printedByTheCore) {
 
 // The head of an answer past the budget within the excerpt of an alert, each
 // `:read` continuing the query from the answer, and of a failure its error at
-// rest so, each `:read` beneath `!|` [D397].
+// rest so, each `:read` beneath `!|` [QSHST#answer].
 export function headOfAnswer(answer, printedOf = printedByTheCore) {
   if (!isErrorValue(answer)) return excerptOf(answer, OF_THE_VALUE, printedOf, false, new WeakSet());
   return excerptOf(errorAtRest(answer.tag, answer.facts), OF_THE_FACTS, printedOf, false, new WeakSet());

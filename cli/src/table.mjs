@@ -8,7 +8,7 @@ import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
 
 // A cell is a view at the boundary: a string bare, null empty, and any other
-// value its literal on the printer's one line [D397].
+// value its literal on the printer's one line [QSPRN#print].
 function cellTextOf(cellValue) {
   if (cellValue === null) return '';
   if (typeof cellValue === 'string') return cellValue;

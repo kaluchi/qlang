@@ -3,7 +3,7 @@
 {"name":"count-after-filter-counts-the-elements-it-kept","query":"[1 2 3 4 5] | filter ~(gt 3) | count","expect":"2"}
 {"name":"filter-of-a-map-reads-its-values-and-keeps-their-keys","query":"{:a 1 :b 2 :c 3} | filter ~(gt 1)","expect":"{:b 2 :c 3}"}
 {"name":"filter-of-the-empty-map-answers-the-empty-map","query":"{} | filter ~(gt 0)","expect":"{}"}
-{"decision":"D399","name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1) | entries | map ~first","expect":"[:c :b]"}
+{"name":"filter-map-preserves-insertion-order","query":"{:c 3 :a 1 :b 2} | filter ~(gt 1) | entries | map ~first","expect":"[:c :b]"}
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
 {"name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| type","expect":"::vec/filter/predicate/KindNotTakenError"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
@@ -15,4 +15,4 @@
 {"name":"a-predicate-of-a-map-that-answers-no-boolean-is-refused-at-its-key","query":"{:a 1} | filter ~(5) !| get [~(type) ~(trace | last | place)]","expect":"[::map/filter/ConditionKindNotTakenError /a]"}
 {"name":"a-predicate-that-fails-hands-the-failure-on","query":"[1 2] | filter ~(div 0) !| type","expect":"::number/div/divisor/ZeroError"}
 {"name":"the-refused-verdict-and-the-failure-of-the-predicate-name-the-element-by-one-place","query":"get [~([1 2] | filter ~(add 1) !| trace | last | place) ~([1 \"x\"] | filter ~(add 1 | gt 1) !| trace | last | place)]","expect":"[/0 /1]"}
-{"decision":"D399","name":"filter-without-its-predicate-is-refused-under-its-input","query":"[1 2 3] | filter !| type","expect":"::vec/filter/predicate/NotGivenError"}
+{"name":"filter-without-its-predicate-is-refused-under-its-input","query":"[1 2 3] | filter !| type","expect":"::vec/filter/predicate/NotGivenError"}

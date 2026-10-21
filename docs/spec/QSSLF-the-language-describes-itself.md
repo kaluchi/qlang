@@ -96,14 +96,15 @@ holds under it, as `doc` reads one. A noun lists what is declared under
 it alone: the verbs a set answers as a vector lie under `::vec`, which
 the walk of its tags reaches, so `::vec | manifest` lists the verbs a
 set answers beside its own. The topic of the language lists its
-chapters, and a noun the refusals its source declares.
+chapters and the refusal of an answer past the budget, and a noun the
+refusals its source declares.
 
 ```qlang
 > ::vec | manifest | has ::vec/count
 true
 
-> ::qlang | manifest | has ::qlang/values
-true
+> ::qlang | manifest | get [~(has ::qlang/values) ~(has ::qlang/AnswerBeyondBudgetError)]
+[true true]
 
 > :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box | manifest
 #[::Box/w]
@@ -285,8 +286,9 @@ its anchor, `::qlang | doc :pipeline`, and listed by `manifest` of the
 topic. A chapter tells in prose what it rests on and what rests on it,
 with links to go deeper, and its value is the set of the kinds that are
 it, data, so a chapter is no label [QSNAM#root]. The first page tells
-how to bound an answer, `elide`, and what the `::elision` of a part left
-out reads. Every link of every page of the catalog opens a
+the budget every answer prints within and the refusal of an answer past
+it, how a query cuts an answer, `elide`, and what the `::elision` of a
+part left out reads. Every link of every page of the catalog opens a
 doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 
@@ -300,8 +302,8 @@ true
 > get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang/values[1] !| type) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
-> ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues")]
-[true true]
+> ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues") ~(contains "::qlang/AnswerBeyondBudgetError")]
+[true true true]
 
 > kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | type | eq ::doc))]
 [0 true]

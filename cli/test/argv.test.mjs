@@ -101,7 +101,7 @@ describe('parseArgv', () => {
     expect(result.message).toMatch(/--color expects auto \/ always \/ never/);
   });
 
-  it('refuses a flag the command line takes not, a budget among them, which no flag sets [D397]', () => {
+  it('refuses a flag the command line takes not, a budget among them, which no flag sets [QSHST#answer]', () => {
     expect(parseArgv(['--budget=4000', '42'])).toEqual({
       kind: 'usageError',
       message: 'qlang: --budget=4000 is no flag of the command line, which `qlang --help` lists\n'

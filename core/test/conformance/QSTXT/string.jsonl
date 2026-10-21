@@ -21,6 +21,6 @@
 {"name":"an-empty-text-has-no-lines","query":"\"\" | lines","expect":"[]"}
 {"name":"append-and-prepend-write-a-keyword-as-its-name","query":"\"x\" | get [~(prepend :a) ~(append :a)]","expect":"[\"ax\" \"xa\"]"}
 {"name":"size-and-length-answer-as-count-over-a-string","query":"\"привет\" | get [~(size) ~(length) ~(count)]","expect":"[6 6 6]"}
-{"decision":"D399","name":"an-empty-line-between-two-carriage-return-endings-stays-empty","query":"\"a\\r\\n\\r\\nb\" | lines","expect":"[\"a\" \"\" \"b\"]"}
-{"decision":"D399","name":"a-final-newline-closes-the-last-line-and-a-lone-one-closes-an-empty-line","query":"get [~(\"a\\n\\n\" | lines) ~(\"\\n\" | lines)]","expect":"[[\"a\" \"\"] [\"\"]]"}
-{"decision":"D399","name":"a-carriage-return-with-no-newline-stays-in-its-line","query":"\"a\\r\" | lines","expect":"[\"a\\r\"]"}
+{"name":"an-empty-line-between-two-carriage-return-endings-stays-empty","query":"\"a\\r\\n\\r\\nb\" | lines","expect":"[\"a\" \"\" \"b\"]"}
+{"name":"a-final-newline-closes-the-last-line-and-a-lone-one-closes-an-empty-line","query":"get [~(\"a\\n\\n\" | lines) ~(\"\\n\" | lines)]","expect":"[[\"a\" \"\"] [\"\"]]"}
+{"name":"a-carriage-return-with-no-newline-stays-in-its-line","query":"\"a\\r\" | lines","expect":"[\"a\\r\"]"}

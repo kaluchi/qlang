@@ -26,7 +26,7 @@ const ERROR_KIND = 'error';
 const PROSE_OF_THE_PAGE = '!| type | doc | prose !| null';
 
 // proseOfThePage(failure, scope) → the prose of the page of a failure's site
-// over the scope the query left, or null [D397].
+// over the scope the query left, or null [QSHST#answer].
 export async function proseOfThePage(failure, scope) {
   if (failure.tag.name === ERROR_KIND) return null;
   const explained = await (await createSession({ scope })).evalCell(PROSE_OF_THE_PAGE, { initialPipeValue: failure });

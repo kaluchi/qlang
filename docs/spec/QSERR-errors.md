@@ -303,7 +303,13 @@ what no query reaches is a defect of the runtime declared at its site
 under `::builtin`, the descriptor of a primitive: the table of
 primitives, the declarations of refusals and their facts, the root, the
 bootstrap and the loaders, and a value of no kind a host handed, whose
-addresses and pages a query reads as it reads any name's. A failure
+addresses and pages a query reads as it reads any name's. The refusal of
+an answer past the budget of every host's print,
+`::qlang/AnswerBeyondBudgetError`, stands under `::qlang`, the topic
+whose chapter of hosts tells the budget, with its facts `:characters`
+and `:budget` before those of `::error`: no step raises it and no `!|`
+reaches it, since a host raises it after the last step of the query
+[QSHST#answer]. A failure
 inside a primitive a host hands is
 `::call/HostFailureError`, with its `:message` and `:causes`, and so is
 an answer of such a primitive, or a fact of a refusal it throws, that is
@@ -348,6 +354,9 @@ true
 
 > ::builtin | manifest | filter ~(binding | get /name | toString | endsWith "Error") | count
 12
+
+> ::qlang/AnswerBeyondBudgetError | manifest
+#[::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters]
 ```
 
 ## print
@@ -355,10 +364,13 @@ true
 A failure prints as the error at rest a catch holds, the trace it left
 among its facts, and its print read back by `parse | open` and raised
 resumes that trace; a query that does not parse flew no step and prints
-its facts alone. The answer of a host that is a failure prints under the
-line comment `|~| raised, and no !| caught it`, which a reading of the
-literal passes over, and an error at rest an answer gives prints as the
-value it is. A host that prints for a person's eye draws below the
+its facts alone. The answer of a host that is a failure prints as its
+alert under the line comment `|~| raised, and no !| caught it`, which a
+reading of the literal passes over, and so does the refusal a host
+prints in the place of an answer past its budget, which was no failure
+[QSHST#answer]; the command line writes the prose of the refusal's page
+below, and the REPL prints without it. An error at rest an answer gives
+prints as the value it is. A host that prints for a person's eye draws below the
 refusal of a text of one line that line within an excerpt of three
 hundred characters around the place its `:location` names, an ellipsis
 where the excerpt cuts it, and a caret under that place as far as the

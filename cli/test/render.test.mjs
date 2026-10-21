@@ -190,7 +190,7 @@ describe('answerText — the caret of a refused text', () => {
 
 // Every answer prints within one budget: an answer whose print fits prints
 // whole, one past it as the refusal in its place, and a failure as its alert
-// within the budget [D397].
+// within the budget [QSHST#answer].
 describe('answerText — the bound of the answer', () => {
   const forty = Array.from({ length: 40 }, (_, index) => index + 1);
   const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
@@ -232,7 +232,7 @@ describe('answerText — the bound of the answer', () => {
   });
 });
 
-describe('renderCellOutcome — the bound of the answer [D397]', () => {
+describe('renderCellOutcome — the bound of the answer [QSHST#answer]', () => {
   const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
 
   it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {

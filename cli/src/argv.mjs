@@ -76,7 +76,7 @@ const argumentAfterTheQuery = argument => ({
 });
 
 // An argument before the query that opens with two dashes and names no flag
-// is refused, since no query opens so [D397].
+// is refused, since no query opens so [QSHST#answer].
 const noFlag = argument => ({
   kind: 'usageError',
   message: `qlang: ${argument} is no flag of the command line, which \`qlang --help\` lists\n`

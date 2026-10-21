@@ -3,7 +3,7 @@
 // place and a failure as its alert under the line that says it was raised,
 // the caret under the place a parse stopped below it, and a defect raised
 // past the fail track, as the cell ran or as its answer printed, written as
-// `qlang:` and its message [QSHST#tools], [QSERR#print], [D397].
+// `qlang:` and its message [QSHST#tools], [QSERR#print], [QSHST#answer].
 
 import { boundAnswer, printAnswer, caretOf, isErrorValue } from '@kaluchi/qlang-core';
 

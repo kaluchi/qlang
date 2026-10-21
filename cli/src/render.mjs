@@ -1,7 +1,7 @@
 // What the command line writes for a cell and the code it exits with: a
 // defect on stderr with 1, nothing after `out`, and any other answer as the
 // one print of a host prints it, a failure with the code `--fail` sets
-// [QSHST#answer], [D397].
+// [QSHST#answer].
 
 import { isErrorValue, langRuntime, verbNames, printAnswer, boundAnswer, caretOf } from '@kaluchi/qlang-core';
 import { highlightAnsi } from './highlight-ansi.mjs';
@@ -38,7 +38,7 @@ export async function cellText(cellEntry, print) {
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
   const { didExplicitStdoutEffect, shouldColorize, failureExitCode = 0 } = outcomeOpts;
   // A query that wrote by `out` holds the channel: no print of its answer and
-  // no refusal of one, its code the one its answer exits with [D397].
+  // no refusal of one, its code the one its answer exits with [QSHST#answer].
   let failed = isErrorValue(cellEntry.result);
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (didExplicitStdoutEffect) return null;
@@ -56,7 +56,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
 
 // answerText(value, scope, page) → the text the command line writes for an
 // answer: a string within the budget as it is, any other answer as
-// `boundAnswer` shows it, with the caret and the prose of its page below [D397].
+// `boundAnswer` shows it, with the caret and the prose of its page below [QSHST#answer].
 export async function answerText(value, scope, page = null) {
   return await shownText(await boundAnswer(value, scope, typeof value === 'string' ? value : null), value, scope, page);
 }

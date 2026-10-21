@@ -147,7 +147,9 @@ so a quote turned into text and read back is itself. A quote whose steps
 are all declarations, or of several steps one of which takes several
 lines, writes a step a line, each after the first led by its pipe, a
 step that takes several lines written on them, and any other quote
-writes its steps on one line. Every text a quote prints reads back as
+writes its steps on one line; on one line, as a frame of a trace and a
+cell of a table print it, every quote writes each step and each part of
+it on one line [QSPRN#print]. Every text a quote prints reads back as
 the same quote.
 
 ```qlang

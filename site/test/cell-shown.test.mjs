@@ -1,4 +1,4 @@
-// The rules it holds: [QSHST#tools], [QSERR#print], [D397].
+// The rules it holds: [QSHST#tools], [QSERR#print], [QSHST#answer].
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { createSession } from '@kaluchi/qlang-core';

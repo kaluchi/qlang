@@ -64,4 +64,4 @@
 {"name":"a-total-past-the-doubles-is-refused-before-its-tags-are-laid","query":"get [~([::W#1e308 ::W#1e308] | sum !| type) ~([::W#1 ::W#2] | avg)]","expect":"[::number/NotFiniteError ::W#1.5]"}
 {"name":"join-answers-under-the-tags-its-strings-share","query":"get [~([::T\"a\" ::T\"b\"] | join \",\") ~([::T\"a\" ::U\"b\"] | join \",\" !| get [~(type) ~(trace | last | place)]) ~([::K:a \"b\"] | join \",\")]","expect":"[::T\"a,b\" [::call/KindsMismatchedError /1] \"a,b\"]"}
 {"name":"flat-answers-under-the-tags-of-its-subject-alone","query":"get [~([::A[1] ::B[2]] | flat) ~(::Box[[1] [2]] | flat)]","expect":"[[1 2] ::Box[1 2]]"}
-{"decision":"D399","name":"min-and-max-of-a-vector-of-one-element-answer-that-element","query":"get [~([42] | min) ~([42] | max)]","expect":"[42 42]"}
+{"name":"min-and-max-of-a-vector-of-one-element-answer-that-element","query":"get [~([42] | min) ~([42] | max)]","expect":"[42 42]"}

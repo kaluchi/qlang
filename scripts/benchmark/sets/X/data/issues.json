@@ -1,0 +1,191 @@
+[
+  {
+    "number": 1,
+    "title": "Crash on login",
+    "state": "open",
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "P1"
+      }
+    ],
+    "assignee": {
+      "login": "Mara"
+    },
+    "comments": 7,
+    "milestone": {
+      "title": "v1.0"
+    }
+  },
+  {
+    "number": 2,
+    "title": "Add dark mode",
+    "state": "open",
+    "labels": [
+      {
+        "name": "Feature"
+      }
+    ],
+    "assignee": {
+      "login": "mara"
+    },
+    "comments": 3,
+    "milestone": null
+  },
+  {
+    "number": 3,
+    "title": "Typo in docs",
+    "state": "closed",
+    "labels": [
+      {
+        "name": "docs"
+      }
+    ],
+    "assignee": {
+      "login": "Tom"
+    },
+    "comments": 0,
+    "milestone": null
+  },
+  {
+    "number": 4,
+    "title": "Slow search",
+    "state": "open",
+    "labels": [
+      {
+        "name": "Bug"
+      },
+      {
+        "name": "performance"
+      }
+    ],
+    "assignee": {
+      "login": "tom"
+    },
+    "comments": 12,
+    "milestone": {
+      "title": "v1.0"
+    }
+  },
+  {
+    "number": 5,
+    "title": "Upgrade deps",
+    "state": "open",
+    "labels": [],
+    "assignee": null,
+    "comments": 1,
+    "milestone": null
+  },
+  {
+    "number": 6,
+    "title": "Memory leak",
+    "state": "open",
+    "labels": [
+      {
+        "name": "BUG"
+      }
+    ],
+    "assignee": {
+      "login": "Lena"
+    },
+    "comments": 7,
+    "milestone": {
+      "title": "v1.1"
+    }
+  },
+  {
+    "number": 7,
+    "title": "Export to CSV",
+    "state": "open",
+    "labels": [
+      {
+        "name": "feature"
+      }
+    ],
+    "assignee": null,
+    "comments": 5,
+    "milestone": null
+  },
+  {
+    "number": 8,
+    "title": "Null pointer in parser",
+    "state": "closed",
+    "labels": [
+      {
+        "name": "bug"
+      }
+    ],
+    "assignee": {
+      "login": "Lena"
+    },
+    "comments": 9,
+    "milestone": {
+      "title": "v1.0"
+    }
+  },
+  {
+    "number": 9,
+    "title": "Flaky tests",
+    "state": "open",
+    "labels": [
+      {
+        "name": "testing"
+      }
+    ],
+    "assignee": {
+      "login": "Tom"
+    },
+    "comments": 2,
+    "milestone": null
+  },
+  {
+    "number": 10,
+    "title": "Broken link",
+    "state": "open",
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "docs"
+      }
+    ],
+    "assignee": null,
+    "comments": 12,
+    "milestone": null
+  },
+  {
+    "number": 11,
+    "title": "Refactor auth",
+    "state": "open",
+    "labels": [
+      {
+        "name": "refactor"
+      }
+    ],
+    "assignee": {
+      "login": "LENA"
+    },
+    "comments": 4,
+    "milestone": {
+      "title": "v1.1"
+    }
+  },
+  {
+    "number": 12,
+    "title": "Bug in billing totals",
+    "state": "open",
+    "labels": [
+      {
+        "name": "billing"
+      }
+    ],
+    "assignee": {
+      "login": "Mara"
+    },
+    "comments": 8,
+    "milestone": null
+  }
+]

@@ -1,0 +1,9 @@
+host,region,cpu,mem,status
+web-1,eu-west,45,60,up
+web-2,EU-West,,55,up
+web-3,us-east,70,80,up
+web-4,us-east,30,40,down
+db-1,US-East,56,90,up
+db-2,eu-west,25,70,up
+cache-1,ap-south,,30,down
+cache-2,ap-south,10,20,up

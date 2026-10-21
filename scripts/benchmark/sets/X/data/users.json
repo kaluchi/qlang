@@ -1,0 +1,129 @@
+{
+  "status": "ok",
+  "page": 1,
+  "total": 10,
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Ana Ruiz",
+        "email": "ana@example.com",
+        "active": true,
+        "address": {
+          "city": "Madrid",
+          "country": "es"
+        },
+        "roles": [
+          "admin",
+          "dev"
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Bob Stone",
+        "email": "bob@example.com",
+        "active": true,
+        "address": {
+          "city": "Berlin",
+          "country": "DE"
+        },
+        "roles": [
+          "dev"
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Cleo Park",
+        "email": "cleo@example.com",
+        "active": false,
+        "address": {
+          "city": "Seoul",
+          "country": "KR"
+        },
+        "roles": []
+      },
+      {
+        "id": 4,
+        "name": "Dmitri Ivanov",
+        "email": "dmitri@example.com",
+        "active": true,
+        "address": null,
+        "roles": [
+          "ops"
+        ]
+      },
+      {
+        "id": 5,
+        "name": "Eve Larsen",
+        "email": "eve@example.com",
+        "active": true,
+        "address": {
+          "city": "Oslo",
+          "country": "NO"
+        },
+        "roles": [
+          "dev",
+          "ops"
+        ]
+      },
+      {
+        "id": 6,
+        "name": "Farid Aziz",
+        "email": "farid@example.com",
+        "active": true,
+        "address": {
+          "city": "Berlin",
+          "country": "de"
+        },
+        "roles": [
+          "dev"
+        ]
+      },
+      {
+        "id": 7,
+        "name": "Gina Rossi",
+        "email": "gina@example.com",
+        "active": true,
+        "address": {
+          "city": "Rome"
+        },
+        "roles": [
+          "qa"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "Hiro Tanaka",
+        "email": "hiro@example.com",
+        "active": true,
+        "address": {
+          "city": "Tokyo",
+          "country": "jp"
+        },
+        "roles": [
+          "admin"
+        ]
+      },
+      {
+        "id": 9,
+        "name": "Ivy Chen",
+        "email": "ivy@example.com",
+        "active": false,
+        "roles": [
+          "qa"
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Jon Doe",
+        "email": "jon@example.com",
+        "active": true,
+        "address": {
+          "city": "Madrid",
+          "country": "ES"
+        },
+        "roles": []
+      }
+    ]
+  }
+}

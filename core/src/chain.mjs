@@ -242,12 +242,12 @@ export function pageOfKindsRefusal(name, kinds, each) {
   const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
   const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
-  return makeDoc([` ${holder} holds a value of ${listed}. `]);
+  return makeDoc([`${holder} holds a value of ${listed}.`]);
 }
 
 // [QSBLD#kind], [QSHST#source]
 export function pageOfConstructor(address) {
-  return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed. `]);
+  return makeDoc([`The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed.`]);
 }
 
 export function invariantsOf(chain, name) {

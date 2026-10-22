@@ -18,7 +18,7 @@ describe('a comment read as whitespace', () => {
   it('reads a declaration after a comment on its line with its doc in its slot and its body on the next line', () => {
     const declaration = stepOf('|~ note ~| :x |~~| about x\n1');
     expect(isBindStep(declaration)).toBe(true);
-    expect([declaration.get('docs').map(doc => [...doc]), declaration.get('body')]).toEqual([[[' about x']], 1]);
+    expect([declaration.get('docs').map(doc => [...doc]), declaration.get('body')]).toEqual([[['about x']], 1]);
   });
 
   it('keeps the comment of a source of comments alone on the side', () => {
@@ -87,20 +87,26 @@ describe('a block comment that nests', () => {
       expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
     };
 
-    it('a block comment with no closing ~| at all is refused at its opener', () => {
-      expectRefusedAt('|~ unterminated block\n| 1', 0, '|');
+    const expectLeftOpen = (src, message) => {
+      const refused = refusalOf(src);
+      expect(refused, src).toBeInstanceOf(ParseError);
+      expect([refused.message, refused.location.start.offset, refused.found], src).toEqual([message, src.length, null]);
+    };
+
+    it('a block comment with no closing ~| at all is refused naming its opener', () => {
+      expectLeftOpen('|~ unterminated block\n| 1', '`|~` opened at line 1, column 1 is never closed; `~|` completes the source');
     });
 
-    it('a block comment whose inner nested comment swallows the outer close is refused at its opener', () => {
-      expectRefusedAt('|~ A |~ B ~|\n| 1', 0, '|');
+    it('a block comment whose inner nested comment swallows the outer close is refused naming the outer opener', () => {
+      expectLeftOpen('|~ A |~ B ~|\n| 1', '`|~` opened at line 1, column 1 is never closed; `~|` completes the source');
     });
 
     it('refuses a closer `~|` that stands where a step does, with no opener', () => {
       expectRefusedAt('42 | ~|', 6, '|');
     });
 
-    it('a block comment that holds a bare ~~| and no ~| of its own is refused at its opener', () => {
-      expectRefusedAt('|~ stuff ~~|\n| 1', 0, '|');
+    it('a block comment that holds a bare ~~| and no ~| of its own is refused naming its opener', () => {
+      expectLeftOpen('|~ stuff ~~|\n| 1', '`|~` opened at line 1, column 1 is never closed; `~|` completes the source');
     });
   });
 

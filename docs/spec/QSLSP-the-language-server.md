@@ -9,7 +9,7 @@ how the extension of the editor shows a source of qlang. The tests of
 
 The language server runs over stdio and reads the language from the core:
 the walks of the parts, the kinds of a value, the tokens of `tokenize`,
-the pages by `doc | prose`, and the grammar, which reads the steps before
+the pages by `doc | content`, and the grammar, which reads the steps before
 the cursor, a step the server writes at the cursor and drops before the
 steps run, and what stands as whitespace there, a comment among it; the
 characters it asks a completion and the help of a signature at are its
@@ -33,8 +33,8 @@ text alone, which reaches a node declared after the last call of the verb,
 where the language refuses the name, and misses one declared in a group
 around a call [QSNAM#verb]. A name the document declares nowhere goes to
 the catalog by the reach of a bare name [QSNAM#reach]. A verb of the root
-shows the inputs of its function and the prose of its page,
-`doc | prose`, and a reader's name the prose of the docs of its
+shows the inputs of its function and the content of its page,
+`doc | content`, and a reader's name the content of the docs of its
 declaration.
 
 ## offer
@@ -81,4 +81,7 @@ holds a prompt, `> `, is the queries after its prompts, each with the
 indented lines that follow it, and the answers below them. It selects a
 word by the regex of a name the core exports [QSNAM#letters], and its
 configuration of the language writes neither the regex of a word nor the
-markers of a fold, which the core and the server answer.
+markers of a fold, which the core and the server answer. Its grammar
+paints the spans of a source no other form reads inside alone, its
+comments, its docs, its strings and its regexes, each nesting where it
+nests, and the semantic tokens of the server paint the rest.

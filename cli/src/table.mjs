@@ -16,7 +16,7 @@ const LINE_BREAK = /\s*\n\s*/g;
 
 function docOnOneLine(part) {
   if (typeOf(part).name !== 'doc') return undefined;
-  return `|~~${part.map(segment => (typeof segment === 'string' ? segment.replace(LINE_BREAK, ' ') : printValue(segment, 0, docOnOneLine, true))).join('')}~~|`;
+  return `|~~ ${part.map(segment => (typeof segment === 'string' ? segment.replace(LINE_BREAK, ' ') : printValue(segment, 0, docOnOneLine, true))).join('')} ~~|`;
 }
 
 function columnOrderOf(rows) {

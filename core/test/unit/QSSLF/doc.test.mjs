@@ -40,6 +40,6 @@ it('reads the quote of a doc under the tag of a group or of the fail track as a 
   for (const source of ['[|~~ ::group~(add 1) ~~|]', '{:k |~~ ::group~(x) ~~|}', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
     expect(refusalOf(source), source).toBeNull();
   }
-  expect(readAs(stepOf('f |~~ ::fail~(x) ~~|').get('modifiers')[0])).toEqual([' ', 'code', ' ']);
-  expect(readAs(stepOf('|~~ ~([|~~ ::group~(x) ~~|]) ~~|'))).toEqual([' ', 'code', ' ']);
+  expect(readAs(stepOf('f |~~ ::fail~(x) ~~|').get('modifiers')[0])).toEqual(['code']);
+  expect(readAs(stepOf('|~~ ~([|~~ ::group~(x) ~~|]) ~~|'))).toEqual(['code']);
 });

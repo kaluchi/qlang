@@ -44,7 +44,7 @@ describe('the cells of a session', () => {
     await sessionInstance.evalCell(':answer |~~ The answer. ~~| 42');
     const other = await createSession({ scope: sessionInstance.scope });
     expect(other.scope.get('answer')).toBe(sessionInstance.scope.get('answer'));
-    expect((await other.evalCell('::answer | doc | content')).result).toBe(' The answer. ');
+    expect((await other.evalCell('::answer | doc | content')).result).toBe('The answer.');
   });
 
   it('a session binds no name a host hands it: its names come by its sources alone', async () => {

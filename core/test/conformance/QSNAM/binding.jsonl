@@ -4,7 +4,7 @@
 {"name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
 {"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | get [~(has :x) ~(has :vec) ~(has :count)]","expect":"[true false false]"}
 {"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | get /x | get /value","expect":"1"}
-{"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | get /x | doc | content","expect":"\" One. \""}
+{"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | get /x | doc | content","expect":"\"One.\""}
 {"name":"a-group-exposes-the-record-of-a-name-it-declares","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | type","expect":"::binding"}
 {"name":"a-group-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | get /value","expect":"2"}
 {"name":"a-value-is-held-in-its-record","query":"0.07 | :taxRate it | env | get /taxRate | get /value","expect":"0.07"}
@@ -13,7 +13,7 @@
 {"name":"env-answers-a-map","query":"env | type","expect":"::map"}
 {"name":"a-node-under-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | get /value","expect":"10"}
-{"name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\" New doc.\\n With second remark.\""}
-{"name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\" Captured value.\""}
+{"name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\"New doc.\\nWith second remark.\""}
+{"name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\"Captured value.\""}
 {"name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| type) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| type) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/docs/NotGivenError ::binding/name/KindNotTakenError true]"}
 {"name":"the-record-of-a-name-reads-back-from-its-print","query":":x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b","expect":"true"}

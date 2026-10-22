@@ -23,18 +23,18 @@
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
 {"name":"an-undeclared-tag-is-refused-and-a-value-under-it-reads-the-kind-beneath","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc | eq (::map | doc))]","expect":"[::any/doc/UnknownNameError true]"}
 {"name":"a-verb-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
-{"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\" A box. \""}
+{"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\"A box.\""}
 {"name":"a-refusal-of-a-name-leads-to-where-its-verbs-live","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::vec/reduce]"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
 {"name":"a-verb-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| type","expect":"::any/doc/UnknownNameError"}
 {"name":"the-page-of-a-kinds-verb-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc"}
-{"name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\" How many. \""}
-{"name":"the-page-of-an-input-is-reached-by-its-name","query":":number/f (::fn | takes :n |~~ how many ~~| /0 | impl ~(add n)) | ::number/f | doc :n | content","expect":"\" how many \""}
+{"name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\"How many.\""}
+{"name":"the-page-of-an-input-is-reached-by-its-name","query":":number/f (::fn | takes :n |~~ how many ~~| /0 | impl ~(add n)) | ::number/f | doc :n | content","expect":"\"how many\""}
 {"name":"a-name-a-reader-verb-declares-no-input-under-is-refused-with-no-addresses","query":":number/twice (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul x)) | ::twice | doc :nosuch !| get [~(type) /addresses]","expect":"[::any/doc/UnknownNameError #[]]"}
 {"name":"anchors-read-in-turn-reach-an-input-of-a-verb-under-a-label","query":":Box |~~ B ~~| | :Box/twice (::fn | takes :x |~~ The factor. ~~| /0 ::number | impl ~(mul x)) | ::Box | doc [:twice :x]","expect":"|~~ The factor. ~~|"}
 {"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| (::fn | takes :w |~~ The weight. ~~| /0 | impl ~(append w)) | ::Box | source | map /name","expect":"[:Box :Box/put]"}
-{"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\" A box. \""}
+{"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\"A box.\""}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}
 {"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
 {"name":"an-empty-vector-of-anchors-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}

@@ -368,7 +368,7 @@ its facts alone. The answer of a host that is a failure prints as its
 alert under the line comment `|~| raised, and no !| caught it`, which a
 reading of the literal passes over, and so does the refusal a host
 prints in the place of an answer past its budget, which was no failure
-[QSPRN#budget]; the command line writes the prose of the refusal's page
+[QSPRN#budget]; the command line writes the content of the refusal's page
 below, and the REPL prints without it. An error at rest an answer gives
 prints as the value it is. A host that prints for a person's eye draws below the
 refusal of a text of one line that line within an excerpt of three
@@ -426,7 +426,7 @@ counts what its `:read` answers. A failure whose alert passes the
 budget, the names of its facts kept, prints as the refusal of an answer
 past it, its `:actualType` the tag of the failure and its head the error
 at rest, each `:read` there beneath `!|`. The line of the raise and the
-caret [QSERR#print] and the prose of a page stand beside the budget
+caret [QSERR#print] and the content of a page stand beside the budget
 [QSPRN#budget].
 
 ```sh

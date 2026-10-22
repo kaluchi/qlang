@@ -4,285 +4,46 @@
   "scopeName": "source.qlang",
   "fileTypes": ["qlang"],
   "patterns": [
-    { "include": "#comment-line-doc" },
-    { "include": "#comment-block-doc" },
-    { "include": "#comment-line-plain" },
-    { "include": "#comment-block-plain" },
+    { "include": "#doc-line" },
+    { "include": "#doc-block" },
+    { "include": "#comment-line" },
+    { "include": "#comment-block" },
     { "include": "#regex" },
-    { "include": "#string" },
-    { "include": "#tag" },
-    { "include": "#map-key" },
-    { "include": "#keyword" },
-    { "include": "#number" },
-    { "include": "#constant" },
-    { "include": "#path" },
-    { "include": "#set-open" },
-    { "include": "#error-lit-brackets" },
-    { "include": "#quote" },
-    { "include": "#combinator" },
-    { "include": "#identifier" },
-    { "include": "#punctuation" }
+    { "include": "#string" }
   ],
   "repository": {
-
-    "comment-line-doc": {
-      "comment": "|~~| doc to end of line: prose, and the code it holds painted as code.",
+    "doc-line": {
       "name": "comment.line.documentation.qlang",
       "begin": "\\|~~\\|",
-      "end": "$",
-      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
-      "patterns": [{ "include": "#doc-code" }, { "include": "#doc-code-span-line" }]
+      "end": "$"
     },
-    "comment-block-doc": {
-      "comment": "|~~ ... ~~| block doc: prose, and the code it holds painted as code, so a doc inside a quote of it closes at its own ~~| and not at the outer one.",
+    "doc-block": {
       "name": "comment.block.documentation.qlang",
       "begin": "\\|~~(?!\\|)",
       "end": "~~\\|",
-      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } },
-      "patterns": [{ "include": "#doc-code" }, { "include": "#doc-code-span-block" }]
+      "patterns": [{ "include": "#doc-block" }]
     },
-    "doc-code": {
-      "comment": "The code a doc holds: a quote ~( ... ) and the short form ~name; each doc adds its span in backticks.",
-      "patterns": [
-        { "include": "#doc-quote" },
-        { "include": "#doc-quote-short" }
-      ]
-    },
-    "doc-quote": {
-      "comment": "A quote inside a doc, its parentheses balanced, its body painted as code.",
-      "begin": "~\\(",
-      "end": "\\)",
-      "beginCaptures": { "0": { "name": "keyword.operator.quote.qlang" } },
-      "endCaptures":   { "0": { "name": "keyword.operator.quote.qlang" } },
-      "patterns": [{ "include": "#group" }, { "include": "$self" }]
-    },
-    "doc-quote-short": {
-      "comment": "The short form of a quote inside a doc: ~name, ~::tag.",
-      "match": "(~)((?:::)?[_\\p{L}][\\p{L}\\p{N}_/-]*)",
-      "captures": {
-        "1": { "name": "keyword.operator.quote.qlang" },
-        "2": { "name": "entity.name.function.qlang" }
-      }
-    },
-    "doc-code-span-line": {
-      "comment": "A span in backticks inside a line doc names code and paints as code, a run of them closed by a run of as many or the end of the line.",
-      "begin": "(`+)",
-      "end": "(?<!`)\\1(?!`)|$",
-      "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
-      "patterns": [{ "include": "#span-code" }]
-    },
-    "doc-code-span-block": {
-      "comment": "A span in backticks inside a block doc names code and paints as code, a run of them closed by a run of as many on a later line too, as the language reads it, or at the end of the doc.",
-      "begin": "(`+)",
-      "end": "(?<!`)\\1(?!`)|(?=~~\\|)",
-      "beginCaptures": { "0": { "name": "punctuation.definition.code.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.code.qlang" } },
-      "patterns": [{ "include": "#span-code" }]
-    },
-    "span-code": {
-      "comment": "The code of a span in backticks: a string, a regex, a quoted keyword, a comment and a doc each close before the backtick that closes the span, so a mark the prose shows alone, a quote mark or the opening of a doc, opens nothing past it.",
-      "patterns": [
-        { "name": "comment.line.documentation.qlang", "match": "\\|~~\\|[^`]*" },
-        { "name": "comment.block.documentation.qlang", "match": "\\|~~(?!\\|)[^`]*?~~\\|" },
-        { "name": "comment.line.qlang", "match": "\\|~\\|[^`]*" },
-        { "name": "comment.block.qlang", "match": "\\|~(?![|~])[^`]*?~\\|" },
-        { "name": "string.regexp.qlang", "match": "#\"(?:[^\"\\\\`]|\\\\[^`])*\"[ims]*" },
-        { "name": "string.quoted.double.qlang", "match": "\"(?:[^\"\\\\`]|\\\\[^`])*\"" },
-        { "include": "#tag" },
-        { "include": "#map-key" },
-        { "name": "constant.other.symbol.qlang", "match": ":\"(?:[^\"\\\\`]|\\\\[^`])*\"" },
-        { "name": "constant.other.symbol.qlang", "match": ":[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*" },
-        { "include": "#number" },
-        { "include": "#constant" },
-        { "include": "#path" },
-        { "include": "#set-open" },
-        { "include": "#error-lit-brackets" },
-        { "include": "#quote" },
-        { "include": "#combinator" },
-        { "include": "#identifier" },
-        { "include": "#punctuation" }
-      ]
-    },
-    "group": {
-      "comment": "Parentheses inside a quote of a doc, balanced so the quote closes at its own parenthesis.",
-      "begin": "\\(",
-      "end": "\\)",
-      "beginCaptures": { "0": { "name": "punctuation.section.parens.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.section.parens.end.qlang" } },
-      "patterns": [{ "include": "#group" }, { "include": "$self" }]
-    },
-    "comment-line-plain": {
-      "comment": "|~| plain comment to end of line",
+    "comment-line": {
       "name": "comment.line.qlang",
-      "match": "\\|~\\|[^\\n]*"
+      "match": "\\|~\\|.*$"
     },
-    "comment-block-plain": {
-      "comment": "|~ ... ~| block plain",
+    "comment-block": {
       "name": "comment.block.qlang",
       "begin": "\\|~(?![|~])",
       "end": "~\\|",
-      "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.comment.end.qlang" } }
+      "patterns": [{ "include": "#comment-block" }]
     },
-
     "regex": {
-      "comment": "A regex `#\"…\"` read as written: a backslash keeps the character after it, and the flags follow the closing quote.",
       "name": "string.regexp.qlang",
       "begin": "#\"",
-      "end": "\"([ims]*)",
-      "beginCaptures": { "0": { "name": "punctuation.definition.string.regexp.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.string.regexp.end.qlang" }, "1": { "name": "keyword.other.flag.regexp.qlang" } },
-      "patterns": [
-        { "name": "constant.character.escape.regexp.qlang", "match": "\\\\." }
-      ]
+      "end": "\"[a-zA-Z]*",
+      "patterns": [{ "match": "\\\\." }]
     },
-
     "string": {
       "name": "string.quoted.double.qlang",
       "begin": "\"",
       "end": "\"",
-      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.qlang" } },
-      "endCaptures":   { "0": { "name": "punctuation.definition.string.end.qlang" } },
-      "patterns": [
-        { "name": "constant.character.escape.qlang", "match": "\\\\[\"\\\\ntr]" },
-        { "name": "invalid.illegal.escape.qlang",    "match": "\\\\." }
-      ]
-    },
-
-    "tag": {
-      "comment": "::tag — the address of a name, its segments joined by `/`: a TaggedLit head (`::Box{...}`, `::number/add/SubjectNotNumberError!{...}`, `::Width#5`, the `#` a literal takes after a tag where its first character would continue the name painted with it) and a TagLit reference (`::vec/count | doc`). Tried before map-key / keyword so leading `::` does not split into two keyword sigils.",
-      "match": "(::[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*)(#(?=-?[0-9]|(?:true|false|null)(?![\\p{L}\\p{N}_-])|/))?",
-      "captures": {
-        "1": { "name": "entity.name.type.qlang" },
-        "2": { "name": "punctuation.definition.literal-sign.qlang" }
-      }
-    },
-
-    "map-key": {
-      "comment": "Map key: bare or quoted keyword followed by required horizontal whitespace (MapEntry = key:Keyword __ value).",
-      "patterns": [
-        {
-          "comment": "quoted map key :\"...\" followed by whitespace",
-          "match": "(:\"(?:[^\\\\\"]|\\\\.)*\")(?=[ \\t])",
-          "captures": {
-            "1": { "name": "support.type.property-name.qlang" }
-          }
-        },
-        {
-          "comment": "bare map key :ident followed by whitespace",
-          "match": "(:[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*)(?=[ \\t])",
-          "captures": {
-            "1": { "name": "support.type.property-name.qlang" }
-          }
-        }
-      ]
-    },
-
-    "keyword": {
-      "comment": "Keyword literals, a name used as a value and a key of a map",
-      "patterns": [
-        {
-          "comment": "quoted keyword :\"...\"",
-          "name": "constant.other.symbol.qlang",
-          "begin": ":\"",
-          "end": "\"",
-          "beginCaptures": { "0": { "name": "punctuation.definition.constant.qlang" } },
-          "endCaptures":   { "0": { "name": "punctuation.definition.constant.qlang" } },
-          "patterns": [
-            { "name": "constant.character.escape.qlang", "match": "\\\\[\"\\\\ntr]" }
-          ]
-        },
-        {
-          "comment": "bare keyword :name",
-          "name": "constant.other.symbol.qlang",
-          "match": ":[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
-        }
-      ]
-    },
-
-    "number": {
-      "name": "constant.numeric.qlang",
-      "match": "(?<![\\p{L}\\p{N}_-])-?[0-9]+(?:\\.[0-9]+)?"
-    },
-
-    "constant": {
-      "patterns": [
-        {
-          "name": "constant.language.boolean.qlang",
-          "match": "\\b(true|false)(?![\\p{L}\\p{N}_-])"
-        },
-        {
-          "name": "constant.language.null.qlang",
-          "match": "\\bnull(?![\\p{L}\\p{N}_-])"
-        }
-      ]
-    },
-
-    "path": {
-      "comment": "A path: /field or /\"quoted key\", each segment matched apart.",
-      "patterns": [
-        {
-          "match": "(/)(\"(?:[^\\\\\"]|\\\\.)*\")",
-          "captures": {
-            "1": { "name": "keyword.operator.path.qlang" },
-            "2": { "name": "variable.other.member.qlang" }
-          }
-        },
-        {
-          "match": "(/)([_\\p{L}][\\p{L}\\p{N}_-]*)",
-          "captures": {
-            "1": { "name": "keyword.operator.path.qlang" },
-            "2": { "name": "variable.other.member.qlang" }
-          }
-        }
-      ]
-    },
-
-    "set-open": {
-      "comment": "Set literal opener #[",
-      "name": "punctuation.definition.set.qlang",
-      "match": "#\\["
-    },
-
-    "error-lit-brackets": {
-      "comment": "Error literal !{...} opener and the closing brace inside ErrorLit body. Carries the same fail-track palette as the !| combinator so the syntax of an error reads loud at a glance. Matched before the generic !| combinator so `!{` wins against the trailing `|` of an adjacent comment.",
-      "match": "!\\{",
-      "name": "keyword.operator.fail-apply.qlang"
-    },
-
-    "quote": {
-      "comment": "A quote: ~( opens one, and a ~ before a name or a tag name is its short form.",
-      "name": "keyword.operator.quote.qlang",
-      "match": "~(?=[(:_\\p{L}])"
-    },
-
-    "combinator": {
-      "comment": "The combinators: `!|` the fail track and `|` the pipe, `!|` matched first.",
-      "patterns": [
-        { "name": "keyword.operator.fail-apply.qlang", "match": "!\\|" },
-        { "name": "keyword.operator.pipe.qlang",       "match": "\\|(?!~)" }
-      ]
-    },
-
-    "identifier": {
-      "comment": "Names called as verbs, and addresses of verbs.",
-      "name": "entity.name.function.qlang",
-      "match": "[_\\p{L}][\\p{L}\\p{N}_-]*(?:/[_\\p{L}][\\p{L}\\p{N}_-]*)*"
-    },
-
-    "punctuation": {
-      "comment": "Structural brackets — enables rainbow bracket themes and punctuation-aware themes.",
-      "patterns": [
-        { "name": "punctuation.section.parens.begin.qlang",    "match": "\\(" },
-        { "name": "punctuation.section.parens.end.qlang",      "match": "\\)" },
-        { "name": "punctuation.section.brackets.begin.qlang",  "match": "\\[" },
-        { "name": "punctuation.section.brackets.end.qlang",    "match": "\\]" },
-        { "name": "punctuation.section.braces.begin.qlang",    "match": "\\{" },
-        { "name": "punctuation.section.braces.end.qlang",      "match": "\\}" },
-        { "name": "punctuation.separator.comma.qlang",         "match": "," }
-      ]
+      "patterns": [{ "name": "constant.character.escape.qlang", "match": "\\\\." }]
     }
   }
 }

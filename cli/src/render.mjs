@@ -2,7 +2,7 @@
 
 import { isErrorValue, langRuntime, verbNames, printAnswer, boundAnswer, caretOf } from '@kaluchi/qlang-core';
 import { highlightAnsi } from './highlight-ansi.mjs';
-import { proseOfThePage } from './run.mjs';
+import { contentOfThePage } from './run.mjs';
 
 let _rootVerbNamesPromise = null;
 async function rootVerbNames() {
@@ -54,8 +54,8 @@ export async function answerText(value, scope, page = null) {
 async function shownText(shown, value, scope, page) {
   if (shown === value && typeof value === 'string') return value;
   const refused = isErrorValue(shown) && shown.tag.name !== (isErrorValue(value) ? value.tag.name : null);
-  const prose = refused ? await proseOfThePage(shown, scope) : page;
-  return [await printAnswer(shown, scope), caretOf(value), prose === null ? null : commentLinesOf(prose)].filter(part => part !== null).join('\n');
+  const shownPage = refused ? await contentOfThePage(shown, scope) : page;
+  return [await printAnswer(shown, scope), caretOf(value), shownPage === null ? null : commentLinesOf(shownPage)].filter(part => part !== null).join('\n');
 }
 
 const oneLine = text => text.replace(/\s+/g, ' ').trim();

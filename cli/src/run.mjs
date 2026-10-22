@@ -9,17 +9,17 @@ export async function runQuery(queryText, ioContext, { stdinText = '' } = {}) {
   const lifted = await liftOfInput(session, stdinText);
   const cellEntry = lifted.raised ?? await session.evalCell(queryText, lifted);
   if (!isErrorValue(cellEntry.result)) return cellEntry;
-  return { ...cellEntry, page: await proseOfThePage(cellEntry.result, cellEntry.scopeAfterCell) };
+  return { ...cellEntry, page: await contentOfThePage(cellEntry.result, cellEntry.scopeAfterCell) };
 }
 
 const ERROR_KIND = 'error';
 
 // [QSCLI#answer], [QSSLF#doc]
-const PROSE_OF_THE_PAGE = '!| type | doc | prose !| null';
+const CONTENT_OF_THE_PAGE = '!| type | doc | content !| null';
 
 // [QSCLI#answer]
-export async function proseOfThePage(failure, scope) {
+export async function contentOfThePage(failure, scope) {
   if (failure.tag.name === ERROR_KIND) return null;
-  const explained = await (await createSession({ scope })).evalCell(PROSE_OF_THE_PAGE, { initialPipeValue: failure });
+  const explained = await (await createSession({ scope })).evalCell(CONTENT_OF_THE_PAGE, { initialPipeValue: failure });
   return typeof explained.result === 'string' ? explained.result : null;
 }

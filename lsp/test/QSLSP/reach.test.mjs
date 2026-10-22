@@ -124,11 +124,11 @@ describe('the hover', () => {
     expect(await hoverAtOffset(parseDocument(value, 'test.qlang').root, value, value.indexOf('(n') + 1)).toBeNull();
   });
 
-  it('shows the prose of each doc of a declaration of the document, its links left out', async () => {
+  it('shows the content of each doc of a declaration of the document, its links written as the code they run', async () => {
     const src = ':x |~~ see ::link~(::vec | doc) here ~~| |~~| and a line\n  1\n| x';
     const { root } = parseDocument(src, 'test.qlang');
     const { content } = await hoverAtOffset(root, src, src.lastIndexOf('x'));
-    expect([content.includes('see  here'), content.includes('and a line'), content.includes('::link')]).toEqual([true, true, false]);
+    expect([content.includes('see ::link~(::vec | doc) here'), content.includes('and a line')]).toEqual([true, true]);
   });
 
   it('shows nothing for a call that reaches no declaration of the document with docs, one a closed group holds among them', async () => {

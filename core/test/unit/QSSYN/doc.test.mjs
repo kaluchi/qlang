@@ -5,7 +5,7 @@ import { stepOf, refusalOf } from '../../helpers/read-text.mjs';
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('holds the docs of the slot as the record of the declaration holds any doc', () => {
     const [declaration] = parse(':x |~~ one ~~| |~~ two ~~| 42');
-    expect(declaration.get('docs').map(doc => [...doc])).toEqual([[' one '], [' two ']]);
+    expect(declaration.get('docs').map(doc => [...doc])).toEqual([['one'], ['two']]);
   });
 
   it('refuses a doc written before a declaration, on its line or the one above', () => {
@@ -18,7 +18,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
 
 describe('a quote of a doc tried as code', () => {
   it('reads a quote of a path alone in a doc as prose', () => {
-    expect([...stepOf('|~~ see ~(/a) ~~|')]).toEqual([' see ~(/a) ']);
+    expect([...stepOf('|~~ see ~(/a) ~~|')]).toEqual(['see ~(/a)']);
   });
 
   it('reads a number written with a leading zero in the quote of a doc as prose', () => {
@@ -31,7 +31,7 @@ describe('a quote of a doc tried as code', () => {
   });
 
   it('reads a `~(` of a block doc that reads as no code to the `)` that pairs it across its lines after a line doc whose `~(` pairs none on its line', () => {
-    expect(stepOf('[|~~| a ~(b\n |~~ ~(a,\n ~(add 1)) ~~|]').map(doc => [...doc])).toEqual([[' a ~(b'], [' ~(a,\n ~(add 1)) ']]);
+    expect(stepOf('[|~~| a ~(b\n |~~ ~(a,\n ~(add 1)) ~~|]').map(doc => [...doc])).toEqual([['a ~(b'], ['~(a,\n~(add 1))']]);
   });
 
   it('reads the span of a `~(` of a line doc no further than its line, through a doc or a comment nested in it', () => {
@@ -40,8 +40,8 @@ describe('a quote of a doc tried as code', () => {
 
   it('reads a `~(` of a line doc after a span of its line read as prose as it reads it with no span before it', () => {
     for (const quote of ['~(f |~~ ~(( ~~|) d', '~(f |~ ~(( ~|) d']) {
-      expect([...stepOf(`(|~~| ~(a,) ${quote}\n)`).payload[0]], quote).toEqual([` ~(a,) ${quote}`]);
-      expect([...stepOf(`(|~~| ${quote}\n)`).payload[0]], quote).toEqual([` ${quote}`]);
+      expect([...stepOf(`(|~~| ~(a,) ${quote}\n)`).payload[0]], quote).toEqual([`~(a,) ${quote}`]);
+      expect([...stepOf(`(|~~| ${quote}\n)`).payload[0]], quote).toEqual([quote]);
     }
   });
 
@@ -60,8 +60,8 @@ describe('a quote of a doc tried as code', () => {
       'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}', '.a', 'get .a', '.', 'f; g'
     ]) {
       expect(refusalOf(text), text).toBeInstanceOf(ParseError);
-      expect([...stepOf(`|~~ a ~(${text}) b ~~|`)], text).toEqual([` a ~(${text}) b `]);
-      if (!text.includes('\n')) expect([...stepOf(`|~~| a ~(${text}) b`)], text).toEqual([` a ~(${text}) b`]);
+      expect([...stepOf(`|~~ a ~(${text}) b ~~|`)], text).toEqual([`a ~(${text}) b`]);
+      if (!text.includes('\n')) expect([...stepOf(`|~~| a ~(${text}) b`)], text).toEqual([`a ~(${text}) b`]);
     }
     for (const text of ['/ne :x 1', '::Box :x 1', '|~~ note ~~| :x 1', ':true :x 1']) {
       expect(refusalOf(text), text).toBeInstanceOf(ParseError);

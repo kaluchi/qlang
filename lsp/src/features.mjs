@@ -63,10 +63,10 @@ function dedent(text) {
 }
 
 // [QSLSP#server]
-const proseOfPages = new Map();
-async function proseOfThePage(address) {
-  if (!proseOfPages.has(address)) proseOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | prose !| ""`)));
-  return proseOfPages.get(address);
+const contentOfPages = new Map();
+async function contentOfThePage(address) {
+  if (!contentOfPages.has(address)) contentOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | content !| ""`)));
+  return contentOfPages.get(address);
 }
 
 const callFormOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
@@ -160,7 +160,7 @@ async function nameCompletions() {
 async function verbCompletion(scope, name, kinds) {
   const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
-  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await proseOfThePage(shown.address.literal) };
+  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await contentOfThePage(shown.address.literal) };
 }
 
 async function tagCompletions() {
@@ -169,7 +169,7 @@ async function tagCompletions() {
   _tagCompletions = [];
   for (const address of nodeAddresses(scope)) {
     const label = makeTag(address).literal;
-    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await proseOfThePage(label) });
+    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await contentOfThePage(label) });
   }
   return _tagCompletions;
 }
@@ -311,18 +311,18 @@ async function hoverForCall(read, root, source) {
   const shown = shownFor(scope, name, await subjectKindsAt(source, read.span.start.offset));
   if (shown !== undefined) {
     const heading = `**${name}** — ${callFormOf(shown)}`;
-    return { content: markdownHardBreaks([heading, '', await proseOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
+    return { content: markdownHardBreaks([heading, '', await contentOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
   }
-  const docs = await proseOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
+  const docs = await contentOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
   if (docs.length === 0) return null;
   return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyProse(docs.join('\n'))].join('\n')), ...spanOf(read) };
 }
 
 // [QSLIT#closed], [QSLSP#server]
-async function proseOfTheDocs(declaration, source) {
+async function contentOfTheDocs(declaration, source) {
   return await Promise.all((declaration?.value.get('docs') ?? []).map(doc => {
     const { start, end } = partOf(doc).span;
-    return evalQuery(`${source.slice(start.offset, end.offset)}\n| prose !| ""`);
+    return evalQuery(`${source.slice(start.offset, end.offset)}\n| content !| ""`);
   }));
 }
 
@@ -335,12 +335,12 @@ async function hoverForTag(tag, head) {
   const scope = await langRuntime();
   if (nodeOf(scope, tag) === null) return null;
   const literal = makeTag(tag).literal;
-  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await proseOfThePage(literal)].join('\n')), ...head };
+  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await contentOfThePage(literal)].join('\n')), ...head };
 }
 
 async function hoverForPath(read, source) {
   const written = source.slice(read.span.start.offset, read.span.end.offset);
-  return { content: markdownHardBreaks([`path \`${written}\``, '', await proseOfThePage(typeOf(read.value).literal)].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`path \`${written}\``, '', await contentOfThePage(typeOf(read.value).literal)].join('\n')), ...spanOf(read) };
 }
 
 function nameAt(read, offset) {
@@ -448,7 +448,7 @@ export async function signatureHelpAtOffset(root, source, offset) {
 
   return {
     label: [name, ...inputs].join(' '),
-    documentation: await proseOfThePage(shown.address.literal),
+    documentation: await contentOfThePage(shown.address.literal),
     parameters: inputs.map(input => ({ label: input })),
     activeParameter
   };

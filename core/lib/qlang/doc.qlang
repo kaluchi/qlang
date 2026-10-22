@@ -59,7 +59,7 @@
 :doc/content
   |~~ Answers the text of the doc, a string: its prose with each quote
       written where it stands, `|~~ a ~(add 1) b ~~| | content` answering
-      `" a ~(add 1) b "`, and a link or a snippet with its tags,
+      `"a ~(add 1) b"`, and a link or a snippet with its tags,
       `::link~(::vec | doc)`. The subject is a doc, so the page of a
       name is read by `doc` first, `::vec/join | doc | content`; a name
       declared without a page has none, `doc` answering null, which
@@ -79,10 +79,10 @@
         ~~|
     | proves :writesEachQuoteWhereItStands
         |~~ The content writes each quote where it stands in the prose. ~~|
-        ~(|~~ a ~(add 1) b ~~| | content | eq " a ~(add 1) b ")
+        ~(|~~ a ~(add 1) b ~~| | content | eq "a ~(add 1) b")
     | proves :writesALinkWithItsTags
         |~~ A link is written with its tags. ~~|
-        ~(|~~ see ::link~(::vec | doc) ~~| | content | eq " see ::link~(::vec | doc) ")
+        ~(|~~ see ::link~(::vec | doc) ~~| | content | eq "see ::link~(::vec | doc)")
     | proves :readsThePageOfAVerb
         |~~ The content of a verb's page is its text. ~~|
         ~(::vec/join | doc | content | contains "separator")
@@ -100,7 +100,7 @@
       prose a string, and each span that reads as code a quote, bare or
       under the tags of its role, a link under `::link` and a snippet
       under `::snippet`, `|~~ a ~(add 1) b ~~| | segments` answering
-      `[" a " ~(add 1) " b "]`, each tag laid over the quote through its
+      `["a " ~(add 1) " b"]`, each tag laid over the quote through its
       label as a tagged literal lays it, so a tag that takes no quote for
       its payload refuses the doc, `::number~(…)` answering
       `::number/PayloadKindNotTakenError`. A doc of prose alone answers a
@@ -123,13 +123,13 @@
         ~~|
     | proves :alternatesProseAndCode
         |~~ Prose and code alternate in the segments. ~~|
-        ~(|~~ a ~(add 1) b ~~| | segments | eq [" a " ~(add 1) " b "])
+        ~(|~~ a ~(add 1) b ~~| | segments | eq ["a " ~(add 1) " b"])
     | proves :keepsTheTagsOfALink
         |~~ A link stands among the segments under its tag. ~~|
         ~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
     | proves :answersOneStringForProseAlone
         |~~ A doc of prose alone is one segment of prose. ~~|
-        ~(|~~ only prose ~~| | segments | eq [" only prose "])
+        ~(|~~ only prose ~~| | segments | eq ["only prose"])
     | proves :keepsABrokenQuoteInProse
         |~~ A span that does not read as code stays prose. ~~|
         ~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)

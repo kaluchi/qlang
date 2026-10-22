@@ -18,7 +18,7 @@ describe('a comment read as whitespace', () => {
   it('reads a declaration after a comment on its line with its doc in its slot and its body on the next line', () => {
     const declaration = stepOf('|~ note ~| :x |~~| about x\n1');
     expect(isBindStep(declaration)).toBe(true);
-    expect([declaration.get('docs').map(doc => [...doc]), declaration.get('body')]).toEqual([[[' about x']], 1]);
+    expect([declaration.get('docs').map(doc => [...doc]), declaration.get('body')]).toEqual([[['about x']], 1]);
   });
 
   it('keeps the comment of a source of comments alone on the side', () => {

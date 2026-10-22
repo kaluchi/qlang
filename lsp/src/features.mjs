@@ -44,28 +44,18 @@ import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 const kindOf = value => typeOf(value).name;
 
-function tidyProse(prose) {
-  return dedent(prose.replace(/\n{3,}/g, '\n\n').trim());
+function tidyPage(content) {
+  return content.replace(/\n{3,}/g, '\n\n');
 }
 
 function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
-function dedent(text) {
-  const lines = text.split('\n');
-  const continuationNonEmpty = lines.slice(1).filter(l => l.trim().length > 0);
-  const minIndent = continuationNonEmpty.length > 0
-    ? Math.min(...continuationNonEmpty.map(l => l.match(/^( *)/)[1].length))
-    : 0;
-  if (minIndent === 0) return text;
-  return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
-}
-
 // [QSLSP#server]
 const contentOfPages = new Map();
 async function contentOfThePage(address) {
-  if (!contentOfPages.has(address)) contentOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | content !| ""`)));
+  if (!contentOfPages.has(address)) contentOfPages.set(address, tidyPage(await evalQuery(`${address} | doc | content !| ""`)));
   return contentOfPages.get(address);
 }
 
@@ -315,7 +305,7 @@ async function hoverForCall(read, root, source) {
   }
   const docs = await contentOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
   if (docs.length === 0) return null;
-  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyProse(docs.join('\n'))].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyPage(docs.join('\n'))].join('\n')), ...spanOf(read) };
 }
 
 // [QSLIT#closed], [QSLSP#server]

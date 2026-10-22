@@ -5,8 +5,8 @@
 {"name":"the-steps-on-both-sides-of-a-line-comment-run-in-order","query":"5 | mul 2\n|~| this comment is identity\n| add 1","expect":"11"}
 {"name":"a-block-comment-stands-between-a-step-and-the-pipe-after-it","query":"5 | mul 2 |~ identity rationale ~| | add 1","expect":"11"}
 {"name":"a-comment-between-steps-is-whitespace","query":"[1 2 3]\n|~| this comment doesn't change pipeValue\n| count","expect":"3"}
-{"name":"a-comment-between-the-doc-and-the-body-stays-out-of-the-page","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\" doc\""}
-{"name":"a-comment-before-a-declaration-stays-out-of-its-page","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\" doc\""}
+{"decision":"D295","name":"a-comment-between-the-doc-and-the-body-stays-out-of-the-page","query":":foo |~~| doc\n|~ rationale ~| 42\n| ::foo | doc | content","expect":"\"doc\""}
+{"decision":"D295","name":"a-comment-before-a-declaration-stays-out-of-its-page","query":"|~ leading ~|\n:foo |~~| doc\n42\n| ::foo | doc | content","expect":"\"doc\""}
 {"name":"block-comments-on-the-lines-before-a-declaration-are-whitespace","query":"|~ one ~|\n|~ two ~|\n:foo 42\n| foo","expect":"42"}
 {"name":"a-comment-before-the-first-element-of-a-vector-is-whitespace","query":"[|~ section ~| 1 2 3]","expect":"[1 2 3]"}
 {"name":"a-comment-between-the-elements-of-a-vector-is-whitespace","query":"[1 |~ middle ~| 2 3]","expect":"[1 2 3]"}
@@ -20,7 +20,7 @@
 {"name":"a-line-comment-between-the-entries-of-a-map-is-whitespace","query":"{:a 1\n|~| section divider\n:b 2}","expect":"{:a 1 :b 2}"}
 {"name":"a-key-written-after-a-comment-in-a-map-is-read-by-its-path","query":"{|~ section ~| :k 1} | get /k","expect":"1"}
 {"name":"a-comment-after-the-last-entry-of-a-map-leaves-its-value","query":"{:k 1 |~ note ~|} | get /k","expect":"1"}
-{"name":"a-comment-inside-the-body-of-a-declaration-stays-out-of-its-page","query":":wrap |~~ module doc ~~| {:a {|~ inner section ~| :x 1}}\n| ::wrap | doc | content","expect":"\" module doc \""}
+{"decision":"D295","name":"a-comment-inside-the-body-of-a-declaration-stays-out-of-its-page","query":":wrap |~~ module doc ~~| {:a {|~ inner section ~| :x 1}}\n| ::wrap | doc | content","expect":"\"module doc\""}
 {"name":"a-block-comment-nests-a-block-comment","query":"|~ outer |~ inner ~| more ~|\n| 42","expect":"42"}
 {"name":"block-comments-nest-three-deep","query":"|~ A |~ B |~ C ~| D ~| E ~|\n| 1","expect":"1"}
 {"name":"the-closer-of-a-block-doc-closes-no-block-comment","query":"|~ doc-close marker ~~| mentioned here ~|\n| 99","expect":"99"}

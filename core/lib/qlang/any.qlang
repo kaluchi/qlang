@@ -1377,7 +1377,7 @@
         ~~|
         ~(:limit |~~ The cap. ~~| 5
           | get [~(:limit | doc) ~(::limit | doc | content)]
-          | eq (get [~(::keyword | doc) " The cap. "]))
+          | eq (get [~(::keyword | doc) "The cap."]))
     | proves :readsANodeByAnAnchor
         |~~ An anchor reads the page of a node. ~~|
         ~(::map | doc :minus | eq (::map/minus | doc))
@@ -1594,7 +1594,7 @@
         |~~ Each law is the pair of its page and its query. ~~|
         ~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5)
           | ::k | laws | get /answersFive | get [~(get /0 | content) /1]
-          | eq [" k answers five. " ~(k | eq 5)])
+          | eq ["k answers five." ~(k | eq 5)])
     | proves :readsTheLawsOfTheKindOfAValue
         |~~ A value reads the laws of its kind. ~~|
         ~(5 | laws | eq (::number | laws))

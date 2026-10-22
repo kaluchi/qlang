@@ -18,7 +18,7 @@ describe('::name | source answers the quote of the declarations under the name',
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
     const cellEntry = await sessionInstance.evalCell('::foo | doc | content');
     expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toBe(' first cell ');
+    expect(cellEntry.result).toBe('first cell');
   });
 
   it('the axes read a name with a path at its address, under a noun that is a name of data', async () => {
@@ -28,7 +28,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const cellEntry = await sessionInstance.evalCell(
       ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content');
     expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toBe(' Глава из лендинг пейджа ');
+    expect(cellEntry.result).toBe('Глава из лендинг пейджа');
   });
 
   it('a value that is no name reads the declaration of its kind', async () => {
@@ -78,7 +78,7 @@ describe('the axes read what a source of the root declared', () => {
 
   it('reads the page a source declared', async () => {
     const session = await sessionOf(':demo |~~ A short note. ~~|\n1');
-    expect((await session.evalCell('::demo | doc | content')).result).toBe(' A short note. ');
+    expect((await session.evalCell('::demo | doc | content')).result).toBe('A short note.');
   });
 
   it('answers null for the page of a declaration without one', async () => {
@@ -110,7 +110,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
       ':contested |~~ from the cell ~~| 222 | ' +
       'get [~(contested), ~(::contested | source | toString), ~(::contested | doc | content)]');
     expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', ' from the cell ']);
+    expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', 'from the cell']);
   });
 
   it('a node a chain lays reads the page the chain wrote', async () => {
@@ -145,7 +145,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
 
 it('reads the page of the invariant that refused, named by its refusal', async () => {
   expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
-    .toBe(' The weight is a number. ');
+    .toBe('The weight is a number.');
 });
 
 it('a value whose tag no node answers reads the page of the kind beneath it', async () => {

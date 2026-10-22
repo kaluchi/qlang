@@ -179,8 +179,38 @@ export function makeDoc(segments) {
     if (typeof piece === 'string' && typeof doc[doc.length - 1] === 'string') doc[doc.length - 1] += piece;
     else doc.push(piece);
   }
-  stampTagHeader(doc, DOC_TAG);
-  return Object.freeze(doc);
+  const prose = withoutEdges(withoutSharedIndentation(doc));
+  stampTagHeader(prose, DOC_TAG);
+  return Object.freeze(prose);
+}
+
+// [D295]
+function withoutEdges(doc) {
+  const last = doc.length - 1;
+  return doc.map((segment, at) => {
+    if (typeof segment !== 'string') return segment;
+    const opened = at === 0 ? segment.trimStart() : segment;
+    return at === last ? opened.trimEnd() : opened;
+  }).filter(segment => segment !== '');
+}
+
+const LINE_BREAK_AND_INDENTATION = /\n([ \t]*)/g;
+
+function linesAfterTheFirst(doc, visit) {
+  return doc.map((segment, at) => (typeof segment !== 'string' ? segment : segment.replace(LINE_BREAK_AND_INDENTATION, (whole, indentation, offset) => {
+    const end = offset + whole.length;
+    const blank = end === segment.length ? at === doc.length - 1 : segment[end] === '\n';
+    return visit(indentation, blank);
+  })));
+}
+
+function withoutSharedIndentation(doc) {
+  let shared = Infinity;
+  linesAfterTheFirst(doc, (indentation, blank) => {
+    if (!blank) shared = Math.min(shared, indentation.length);
+    return '';
+  });
+  return linesAfterTheFirst(doc, (indentation, blank) => '\n' + (blank ? '' : indentation.slice(shared)));
 }
 
 export const TAG_HEADER_SYMBOL = Symbol('qlang/tag');

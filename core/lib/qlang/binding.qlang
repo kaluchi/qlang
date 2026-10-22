@@ -41,7 +41,7 @@
         ~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
     | proves :holdsThePage
         |~~ The record of a name holds its page. ~~|
-        ~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq " One. ")
+        ~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq "One.")
     | proves :holdsTheName
         |~~ The record of a name holds the name. ~~|
         ~(:x 1 | env | get /x | get /name | eq :x)

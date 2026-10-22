@@ -65,7 +65,7 @@ const PRINT_HANDLERS = {
   map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
   set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
   quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine ? { oneLine, printedOf } : AS_WRITTEN),
-  doc:     d => '|~~' + docText(d) + '~~|',
+  doc:     (d, indent) => printDoc(d, indent),
   underTag: printUnderTag
 };
 
@@ -127,6 +127,12 @@ function printMapLike(open, m, indent, printedOf, oneLine = false) {
 // [QSSLF#doc]
 export function docText(doc) {
   return doc.map(segment => (typeof segment === 'string' ? segment : printValue(segment))).join('');
+}
+
+// [D295]
+function printDoc(doc, indent) {
+  const continued = `\n${'  '.repeat(indent)}  `;
+  return `|~~ ${doc.map(segment => (typeof segment === 'string' ? segment.replace(/\n(?!\n)/g, continued) : printValue(segment))).join('')} ~~|`;
 }
 
 // [QSQUO#step]

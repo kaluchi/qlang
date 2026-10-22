@@ -151,7 +151,7 @@
           !| get [~(type) /field] | eq [::bind/PayloadNotSchemaError :body])
     | proves :PayloadNotSchemaError/bindsADocInAGroup
         |~~ A doc in a group is the value a declaration binds. ~~|
-        ~(:k (|~~ x ~~|) | k | content | eq " x ")
+        ~(:k (|~~ x ~~|) | k | content | eq "x")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a declaration. ~~|
         ~(::bind[1] !| get [~(type) /expected] | eq [::bind/PayloadKindNotTakenError #[::map]])

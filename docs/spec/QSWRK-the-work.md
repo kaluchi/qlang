@@ -457,7 +457,11 @@ a tenth, so its answer changes when the sentence stops being true and
 only then. It reads what the sentence names in a way that fails when
 that is gone: the runner runs a shell probe with a pipeline that fails
 where any command fails, and a probe that lists files by `git ls-files`
-lists them with `--error-unmatch`. `npm run check:probes` runs every probe of
+lists them with `--error-unmatch`. A shell probe runs in one shell on every
+machine, bash, on Windows the bash of Git for Windows beside the git that
+reads the tree, with the node that runs the probes first on its path, and
+the runner refuses a shell whose node is another before any probe, so a
+probe answers alike wherever the probes are run. `npm run check:probes` runs every probe of
 the open records, the records in transit and the specification that reads
 the repository alone. A probe of a section a record in transit overrides
 is the record's while it is in transit: an answer the record's work

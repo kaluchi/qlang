@@ -125,7 +125,7 @@ const readsTheRepositoryAlone = command => !/\bjdt\b|scripts\/sensors|^env\b|\$[
 // The shell of a shell probe, one on every machine: bash, on Windows the bash
 // of Git for Windows beside the git that reads the tree, where the first bash
 // of the path may be another system's, with the node that runs the probes
-// first on its path [D420].
+// first on its path [QSWRK#probe].
 function bashOfGit() {
   const bash = resolve(execFileSync('git', ['--exec-path'], { encoding: 'utf8' }).trim(), '..', '..', '..', 'bin', 'bash.exe');
   return existsSync(bash) ? bash : 'bash';
@@ -135,11 +135,11 @@ const PATH_KEY = Object.keys(pipeEnv).find(key => key.toUpperCase() === 'PATH') 
 const shellEnv = { ...pipeEnv, MSYS_NO_PATHCONV: '1', [PATH_KEY]: [dirname(process.execPath), pipeEnv[PATH_KEY]].join(delimiter) };
 
 // A shell whose node is another than the one that runs the probes answers
-// them otherwise, so the run refuses it before any probe [D420].
+// them otherwise, so the run refuses it before any probe [QSWRK#probe].
 function refuseAnotherNode() {
   const nodeOfTheShell = execFileSync(SHELL, ['-c', 'node --version'], { env: shellEnv, encoding: 'utf8' }).trim();
   if (nodeOfTheShell === process.version) return;
-  console.log(`the shell of the probes, ${SHELL}, runs node ${nodeOfTheShell} where the probes run on node ${process.version}: run them where the two are one [D420]`);
+  console.log(`the shell of the probes, ${SHELL}, runs node ${nodeOfTheShell} where the probes run on node ${process.version}: run them where the two are one [QSWRK#probe]`);
   process.exit(1);
 }
 

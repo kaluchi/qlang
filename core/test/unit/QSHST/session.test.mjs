@@ -3,7 +3,7 @@ import { createSession, evalQuery } from '../../../src/session.mjs';
 import { keyword, makeTag, isErrorValue } from '../../../src/types.mjs';
 import { QlangDefect, QlangError } from '../../../src/errors.mjs';
 
-describe('createSession lifecycle', () => {
+describe('the cells of a session', () => {
   it('evalCell returns an entry with its result and the scope after the cell', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | :n it');
@@ -113,10 +113,8 @@ describe('a cell whose failure is no error value', () => {
   });
 });
 
-describe('a query runs as one cell of a session', () => {
-  it('runs over the scope it is handed, the root\'s where none is', async () => {
-    const session = await createSession();
-    await session.evalCell(':k 7');
-    expect([await evalQuery('k', session.scope), (await evalQuery('k')).tag]).toEqual([7, makeTag('call/UnknownNameError')]);
-  });
+it('a query runs as one cell of a session over the scope it is handed, the root\'s where none is', async () => {
+  const session = await createSession();
+  await session.evalCell(':k 7');
+  expect([await evalQuery('k', session.scope), (await evalQuery('k')).tag]).toEqual([7, makeTag('call/UnknownNameError')]);
 });

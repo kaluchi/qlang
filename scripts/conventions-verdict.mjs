@@ -57,5 +57,5 @@ const SECTIONS = {
     'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSWRK#tooling].'),
   testsOffTheirSection: found => section('Tests that stand at no section of their rule', found, ({ file, line, problem }) => `  ${file}:${line}  ${problem}
 `,
-    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, and the title of its test says the rule in words, citing none [QSWRK#marks].')
+    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSWRK#marks].')
 };

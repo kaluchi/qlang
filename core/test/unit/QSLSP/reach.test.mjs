@@ -45,7 +45,7 @@ describe('a verb as the tooling reads it', () => {
   });
 });
 
-describe('tagHeadEnd', () => {
+describe('where the head of a tag ends', () => {
   const headsOf = source => {
     const heads = [];
     walkParts(rootOf(source), read => { if (tagHeadEnd(read) !== null) heads.push(source.slice(read.span.start.offset, tagHeadEnd(read))); });
@@ -70,19 +70,17 @@ describe('tagHeadEnd', () => {
   });
 });
 
-describe('tagWrittenBy', () => {
-  it('names the tag a tagged literal writes, a tag written before an error literal among them, and the kind of errors written there a part of the literal', () => {
-    const [error, call] = rootOf('::Foo!{:k 1} | get [::Bar[1] !{:j 2} ::Baz]').parts;
-    const [vec] = call.parts;
-    expect(vec.parts.map(tagWrittenBy)).toEqual(['Bar', null, null]);
-    expect(tagWrittenBy(error)).toBe('Foo');
-    expect(error.parts[0].parts.map(({ value }) => value?.name ?? value)).toEqual(['k', 1]);
-    const [literal] = rootOf('::E::error!{}').parts[0].parts;
-    expect(literal.parts.map(({ value }) => value.name)).toEqual(['error']);
-  });
+it('names the tag a tagged literal writes, a tag written before an error literal among them, and the kind of errors written there a part of the literal', () => {
+  const [error, call] = rootOf('::Foo!{:k 1} | get [::Bar[1] !{:j 2} ::Baz]').parts;
+  const [vec] = call.parts;
+  expect(vec.parts.map(tagWrittenBy)).toEqual(['Bar', null, null]);
+  expect(tagWrittenBy(error)).toBe('Foo');
+  expect(error.parts[0].parts.map(({ value }) => value?.name ?? value)).toEqual(['k', 1]);
+  const [literal] = rootOf('::E::error!{}').parts[0].parts;
+  expect(literal.parts.map(({ value }) => value.name)).toEqual(['error']);
 });
 
-describe('findNameOccurrences', () => {
+describe('the places a name stands', () => {
   it('finds the calls of a name', () => {
     const refs = findNameOccurrences(rootOf('count | add count'), 'count');
     expect(refs.map(kindOf)).toEqual(['call', 'call']);
@@ -131,7 +129,7 @@ describe('findNameOccurrences', () => {
   });
 });
 
-describe('bindingNamesVisibleAt', () => {
+describe('the names visible at a place', () => {
   const visibleIn = (source, offset = source.length, spelling) => bindingNamesVisibleAt(rootOf(source), offset, spelling);
 
   it('returns the names declared before the cursor', () => {

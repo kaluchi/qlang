@@ -6,28 +6,24 @@ import { evalQuery } from '../../../src/session.mjs';
 import { langRuntime } from '../../../src/runtime/index.mjs';
 import { printAnswer, caretOf } from '../../../src/runtime/print.mjs';
 
-// ── the literal ─────────────────────────────────────────────────
-
-describe('the literal reads back error values and values under a tag', () => {
-  // `printValue` writes the literal the parser reads, so every value
-  // the host builds survives the trip; each kind of payload exercises a
-  // distinct branch of the printer.
-  it('reads back an error value raised, and a tag over each kind of payload', async () => {
-    const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
-    const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
-    expect(isErrorValue(restoredError)).toBe(true);
-    expect(restoredError.tag.name).toBe('Oops');
-    expect(restoredError.facts.get('message')).toBe('something went wrong');
-    const hostBuilt = [
-      makeTagged(makeTag('Box'), [1, 2, 3]),
-      makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
-      makeTagged(makeTag('User'), new Map([['name', 'alice']])),
-      makeTagged(makeTag('Count'), 42)
-    ];
-    for (const value of hostBuilt) {
-      expect(compareValues(await evalQuery(printValue(value)), value) === 0).toBe(true);
-    }
-  });
+// `printValue` writes the literal the parser reads, so every value
+// the host builds survives the trip; each kind of payload exercises a
+// distinct branch of the printer.
+it('reads back the literal of an error value raised and of a tag over each kind of payload', async () => {
+  const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
+  const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
+  expect(isErrorValue(restoredError)).toBe(true);
+  expect(restoredError.tag.name).toBe('Oops');
+  expect(restoredError.facts.get('message')).toBe('something went wrong');
+  const hostBuilt = [
+    makeTagged(makeTag('Box'), [1, 2, 3]),
+    makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
+    makeTagged(makeTag('User'), new Map([['name', 'alice']])),
+    makeTagged(makeTag('Count'), 42)
+  ];
+  for (const value of hostBuilt) {
+    expect(compareValues(await evalQuery(printValue(value)), value) === 0).toBe(true);
+  }
 });
 
 describe('the print of a failure, its tag before the bang and its facts', () => {
@@ -50,7 +46,7 @@ describe('the print of a failure, its tag before the bang and its facts', () => 
 // The refusal of a text holds where the reading stopped as its span, and a
 // host that prints for a person's eye draws the line and a caret under its
 // column below the alert, two line comments a reading passes over.
-describe('caretOf — the caret under the line where the reading stopped', () => {
+describe('the caret under the line where the reading stopped', () => {
   const caretOfQuery = async query => caretOf(await evalQuery(query));
   const refusalAt = (source, span) => `::quote/ParseError!{:source ${JSON.stringify(source)} :location ::span[${span}]} | raise`;
 

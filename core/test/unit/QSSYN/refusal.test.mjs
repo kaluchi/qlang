@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parse, ParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
 
-describe('parse — error handling', () => {
+describe('what a refusal of the parser says', () => {
   // A refusal lists its continuations as literals and as parts of the
   // grammar named in the words of the language, no class of characters
   // among them.
@@ -27,7 +27,7 @@ describe('parse — error handling', () => {
     expect(refusalOf('#"a")').message).toBe('Expected end-of-source, flag of a regex or whitespace but ")" found.');
   });
 
-  it('attaches the opts.uri to ParseError', () => {
+  it('names in the refusal the source its caller named', () => {
     try {
       parse('[1 2', { uri: 'cell-7' });
       throw new Error('expected throw');
@@ -38,8 +38,6 @@ describe('parse — error handling', () => {
   });
 });
 
-describe('parse.mjs — input guards and the depth of a nest', () => {
-  it('refuses a bare nest left open of groups, quotes and maps reading each depth once', () => {
-    for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
-  });
+it('refuses a bare nest left open of groups, quotes and maps reading each depth once', () => {
+  for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
 });

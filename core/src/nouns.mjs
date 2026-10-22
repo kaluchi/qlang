@@ -115,7 +115,7 @@ export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 // name under a label gives, for a tool, as the evaluator lays it: the walk of
 // the subject through the verb's own label where `returns` names that label
 // and the walk reaches it, beside the other kinds it names, the kinds it names
-// elsewhere, or null for a verb that answers any value [QSBLD#answer], [QSLSP#server].
+// elsewhere, or null for a verb that answers any value [QSBLD#answer], [QSLSP#offer].
 export function answerKindsOf(scope, record, subjectKinds) {
   const address = record.get('name').name;
   const answer = answerOf(scope, address);

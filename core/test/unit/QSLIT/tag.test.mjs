@@ -4,18 +4,14 @@ import { parse } from '../../../src/parse.mjs';
 import { isMap, makeTag } from '../../../src/types.mjs';
 import { isConstructStep } from '../../../src/steps.mjs';
 
-describe('assembling steps by hand', () => {
-  it('a number payload touches its tag by `#`', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | toString')).toBe('::T#42');
-  });
+it('a number payload touches its tag by `#`', async () => {
+  expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | toString')).toBe('::T#42');
 });
 
-describe('the parser reads a tag before a payload as a tagged literal', () => {
-  it('reads a map touching a tag as its payload', () => {
-    const [step] = parse('::Box{:k 1}');
-    expect(isConstructStep(step)).toBe(true);
-    expect(isMap(step.get('payload'))).toBe(true);
-  });
+it('the parser reads a map touching a tag as its payload', () => {
+  const [step] = parse('::Box{:k 1}');
+  expect(isConstructStep(step)).toBe(true);
+  expect(isMap(step.get('payload'))).toBe(true);
 });
 
 describe('a tag no declaration answers lays itself over any payload', () => {

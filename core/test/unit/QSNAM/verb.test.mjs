@@ -4,15 +4,13 @@ import { EVAL_DEPTH_LIMIT, rootState, withPipeValue, withScope, nestState, scope
 import { CallEvaluationDepthExceededError } from '../../../src/errors.mjs';
 import { catchOriginalError } from '../../helpers/error-assertions.mjs';
 
-describe('the limit of the evaluation depth — self-calling verb', () => {
-  it('answers ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
-    const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
-    expect(runaway.facts.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
-    expect(runaway.facts.get('limit')).toBe(EVAL_DEPTH_LIMIT);
-    const original = runaway.originalError;
-    expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
-    expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
-  });
+it('a verb that calls itself answers ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
+  const runaway = await evalQuery(':any/inf ~(add 1 | inf) | 0 | inf');
+  expect(runaway.facts.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
+  expect(runaway.facts.get('limit')).toBe(EVAL_DEPTH_LIMIT);
+  const original = runaway.originalError;
+  expect(original).toBeInstanceOf(CallEvaluationDepthExceededError);
+  expect(original.facts).toEqual({ depth: EVAL_DEPTH_LIMIT + 1, limit: EVAL_DEPTH_LIMIT });
 });
 
 describe('the limit of the evaluation depth — every re-entry seam', () => {
@@ -33,36 +31,32 @@ describe('the limit of the evaluation depth — every re-entry seam', () => {
   }
 });
 
-describe('the limit of the evaluation depth — host seams', () => {
-  it('runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
-    // The host's tally counts the depths whose `runLaws` step returned, the
-    // root and every depth below it up to the limit, the step at the depth
-    // refused answering the failure, which skips the tally.
-    let depthTally = 0;
-    const sessionInstance = await createSession({
-      sources: [{
-        uri: 'tests/tally',
-        source: ':any/tallyDepth ::builtin{}',
-        primitives: { 'any/tallyDepth': subject => { depthTally++; return subject; } }
-      }]
-    });
-    const cellEntry = await sessionInstance.evalCell(
-      ':X |~~ X. ~~| | :X/runsItself ::law~(::X | runLaws | tallyDepth | count | eq 1) | ::X | runLaws | tallyDepth'
-    );
-    expect(cellEntry.result).toHaveLength(1);
-    expect(cellEntry.result[0].get('ok')).toBe(true);
-    expect(depthTally).toBe(EVAL_DEPTH_LIMIT);
+it('runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
+  // The host's tally counts the depths whose `runLaws` step returned, the
+  // root and every depth below it up to the limit, the step at the depth
+  // refused answering the failure, which skips the tally.
+  let depthTally = 0;
+  const sessionInstance = await createSession({
+    sources: [{
+      uri: 'tests/tally',
+      source: ':any/tallyDepth ::builtin{}',
+      primitives: { 'any/tallyDepth': subject => { depthTally++; return subject; } }
+    }]
   });
+  const cellEntry = await sessionInstance.evalCell(
+    ':X |~~ X. ~~| | :X/runsItself ::law~(::X | runLaws | tallyDepth | count | eq 1) | ::X | runLaws | tallyDepth'
+  );
+  expect(cellEntry.result).toHaveLength(1);
+  expect(cellEntry.result[0].get('ok')).toBe(true);
+  expect(depthTally).toBe(EVAL_DEPTH_LIMIT);
 });
 
-describe('a name with a path calls the verb its address names', () => {
-  it('calls the verb its address names, with the modifiers the call takes', async () => {
-    expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
-  });
+it('a name with a path calls the verb its address names, with the modifiers the call takes', async () => {
+  expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
 });
 
-describe('state.mjs evaluation depth', () => {
-  it('rootState opens depth 0; withPipeValue and withScope stay at its depth', () => {
+describe('the evaluation depth of a state', () => {
+  it('the state of the root opens depth 0, and a state with a new value or scope stays at its depth', () => {
     const root = rootState(null, new Map());
     expect(root.depth).toBe(0);
     expect(Object.isFrozen(root)).toBe(true);
@@ -76,7 +70,7 @@ describe('state.mjs evaluation depth', () => {
     expect(nextScope.depth).toBe(0);
   });
 
-  it('nestState goes one deeper with the inner pair', () => {
+  it('a nested state goes one deeper with the inner pair', () => {
     const root = rootState(1, new Map());
     const inner = nestState(root, 2, scopeSet(root.scope, 'y', 2));
     expect(inner.depth).toBe(1);
@@ -86,7 +80,7 @@ describe('state.mjs evaluation depth', () => {
     expect(deeper.depth).toBe(2);
   });
 
-  it('nestState admits the depth EVAL_DEPTH_LIMIT and refuses the one past it', () => {
+  it('a nested state admits the limit of the depth and refuses the one past it', () => {
     let state = rootState(null, new Map());
     for (let level = 0; level < EVAL_DEPTH_LIMIT; level++) state = nestState(state, null, state.scope);
     expect(state.depth).toBe(EVAL_DEPTH_LIMIT);

@@ -5,12 +5,10 @@ import { isCallStep } from '../../../src/steps.mjs';
 import { isVec, isQuote } from '../../../src/types.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
-describe('the package root', () => {
-  it('hands the tools the parts of a text and the letters of a name', () => {
-    const root = core.partOf(core.parse(':x 1 | x'));
-    expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
-    expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
-  });
+it('hands the tools the parts of a text and the letters of a name', () => {
+  const root = core.partOf(core.parse(':x 1 | x'));
+  expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
+  expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
 });
 
 describe('the parts of a text', () => {
@@ -31,7 +29,7 @@ describe('the parts of a text', () => {
   });
 });
 
-describe('walkParts', () => {
+describe('the walk of the parts', () => {
   it('visits every part before the parts it holds', () => {
     const visited = [];
     walkParts(rootOf('[1 2] | add 3'), ({ value }) => visited.push(isQuote(value) ? 'quote' : isVec(value) ? 'vec' : isCallStep(value) ? 'call' : value));
@@ -56,7 +54,7 @@ describe('walkParts', () => {
   });
 });
 
-describe('partAtOffset', () => {
+describe('the part at a place', () => {
   it('returns null when the offset is outside any part', () => {
     expect(partAtOffset(rootOf('[1 2 3]'), 999)).toBeNull();
   });

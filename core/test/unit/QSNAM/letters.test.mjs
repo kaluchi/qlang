@@ -3,7 +3,7 @@ import * as core from '../../../src/index.mjs';
 import { parse, ParseError } from '../../../src/parse.mjs';
 import { stepOf } from '../../helpers/read-text.mjs';
 
-describe('the package root', () => {
+describe('the regex of a name', () => {
   it('hands an editor the regex of a name, which reads the letters of a name as the parser reads them', () => {
     const whole = new RegExp(`^(?:${core.NAME_REGEX.source})$`, 'u');
     const letters = Array.from({ length: 0x10000 }, (_, code) => String.fromCharCode(code)).filter(letter => !/[\ud800-\udfff]/.test(letter));
@@ -17,7 +17,7 @@ describe('the package root', () => {
   });
 });
 
-describe('parse — Unicode identifiers (UAX #31 ID_Start / ID_Continue)', () => {
+describe('the letters that begin a name', () => {
   it('refuses a digit at the start of a bare keyword', () => {
     for (const source of [':0', ':1name']) expect(() => parse(source), source).toThrow(ParseError);
   });

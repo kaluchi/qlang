@@ -32,7 +32,7 @@ async function sizesHold(query, budgets) {
   expect(elisions.map((elision, at) => [reads[at], elision.get('size')])).toEqual(reads.map((read, at) => [read, counts[at]]));
 }
 
-describe('alertWithin', () => {
+describe('an alert cut within its budget', () => {
   it('gives an alert past its budget way to a shorter print within the budget', async () => {
     const failing = await evalQuery(`[${Array.from({ length: 60 }, (_, index) => `{:n ${index}}`).join(' ')}] | add 1`);
     expect(printValue(alertOf(failing)).length).toBeGreaterThan(300);
@@ -105,7 +105,7 @@ describe('alertWithin', () => {
 // the failure arose within an excerpt, a subject it only passed given way whole,
 // an error at rest among its facts a value cut within its excerpt, a value
 // shown once, and the read of every elision continuing the query beneath `!|`.
-describe('alertOf', () => {
+describe('the subjects an alert prints, each within its excerpt', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
 
   it('keeps the subject where the failure arose and gives a vector it passed way whole', async () => {
@@ -194,7 +194,7 @@ describe('alertOf', () => {
   });
 });
 
-describe('the package root', () => {
+describe('the answer a host prints for a failure', () => {
   it('answers a failure whose alert passes the budget as the refusal, its kind the tag of the failure and its head read beneath !|', async () => {
     const scope = await core.langRuntime();
     const failure = await core.evalQuery('3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise', scope);

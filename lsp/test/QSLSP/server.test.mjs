@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { answerOf, framedMessage, serverPath } from '../helpers/server-process.mjs';
 import { decodeSemanticTokens } from '../helpers/semantic-tokens.mjs';
 
-describe('parseDocument', () => {
+describe('the diagnostics of a document', () => {
   it('parses valid qlang source without diagnostics', () => {
     const { root, diagnostics } = parseDocument('[1 2 3] | count', 'test.qlang');
     expect(root.parts).toHaveLength(2);
@@ -29,7 +29,7 @@ describe('parseDocument', () => {
   });
 });
 
-describe('semanticTokensFor', () => {
+describe('the semantic tokens', () => {
   // A source that writes every kind of token but the source past a parse, and
   // the kinds that send no token, a bracket and a gap.
   const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
@@ -83,19 +83,17 @@ describe('semanticTokensFor', () => {
   });
 });
 
-describe('the language server process', () => {
-  it('starts over stdio and answers initialize with its capabilities', async () => {
-    const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
-    try {
-      const answer = answerOf(serverProcess, 1);
-      serverProcess.stdin.write(framedMessage({
-        jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} }
-      }));
-      const response = await answer;
-      expect(response.result.capabilities.hoverProvider).toBe(true);
-      expect(response.result.capabilities.signatureHelpProvider.triggerCharacters).toEqual([' ']);
-    } finally {
-      serverProcess.kill();
-    }
-  }, 30_000);
-});
+it('starts over stdio and answers initialize with its capabilities', async () => {
+  const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  try {
+    const answer = answerOf(serverProcess, 1);
+    serverProcess.stdin.write(framedMessage({
+      jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} }
+    }));
+    const response = await answer;
+    expect(response.result.capabilities.hoverProvider).toBe(true);
+    expect(response.result.capabilities.signatureHelpProvider.triggerCharacters).toEqual([' ']);
+  } finally {
+    serverProcess.kill();
+  }
+}, 30_000);

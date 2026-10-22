@@ -8,21 +8,19 @@ import { createSession } from '@kaluchi/qlang-core';
 import { readStdinToString, memoiseStdinReader, DEFAULT_SUBJECT, liftOfInput } from '../../src/stdin.mjs';
 import { captureStreams } from '../helpers/main-streams.mjs';
 
-describe('parseArgv', () => {
-  it('parses --raw, stdin read as one string, before the query', () => {
-    expect(parseArgv(['--raw', 'append " world"'])).toEqual({
-      kind: 'evalQuery',
-      queryText: 'append " world"',
-      stdinFormat: 'raw',
-      colorMode: 'auto',
-      failureExitCode: 0
-    });
+it('reads --raw before the query, standard input read as one string', () => {
+  expect(parseArgv(['--raw', 'append " world"'])).toEqual({
+    kind: 'evalQuery',
+    queryText: 'append " world"',
+    stdinFormat: 'raw',
+    colorMode: 'auto',
+    failureExitCode: 0
   });
 });
 
 // A query that reads no subject runs without waiting on standard input,
 // which a shell may hand open with nothing piped.
-describe('main — standard input read for a query that reads its subject', () => {
+describe('standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 
   it('answers a query that reads no subject over a stdin that never ends', async () => {
@@ -74,7 +72,7 @@ describe('main — standard input read for a query that reads its subject', () =
   });
 });
 
-describe('main — the subject standard input lifts to', () => {
+describe('the subject standard input lifts to', () => {
   it('starts from the noun of the language, `::qlang`, when stdin carries no bytes', async () => {
     const s = captureStreams();
     const exitCode = await main(['eq ::qlang'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
@@ -104,7 +102,7 @@ describe('main — the subject standard input lifts to', () => {
   });
 });
 
-describe('main — error paths', () => {
+describe('a JSON text `parseJson` refuses', () => {
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path', async () => {
     // The answer is the refusal `parseJson` gives the text, its `:path` the path to the number [QSPRN#json].
     const s = captureStreams('{"big": 1e400, "n": 1}');
@@ -130,7 +128,7 @@ describe('main — error paths', () => {
   });
 });
 
-describe('runQuery', () => {
+describe('the lift run before the query', () => {
   it('lifts the text of standard input it is handed to the first value of the query', async () => {
     const cellEntry = await runQuery('get /k', captureIoContext(), { stdinText: '{"k": "v"}' });
     expect(cellEntry.result).toBe('v');
@@ -142,7 +140,7 @@ describe('runQuery', () => {
   });
 });
 
-describe('readStdinToString', () => {
+describe('the text of standard input read to its end', () => {
   it('returns the empty string when the stream reports isTTY', async () => {
     const ttyStub = { isTTY: true };
     const text = await readStdinToString(ttyStub);
@@ -164,22 +162,20 @@ describe('readStdinToString', () => {
   });
 });
 
-describe('memoiseStdinReader', () => {
-  it('calls the underlying reader at most once across repeated invocations', async () => {
-    let invocationCount = 0;
-    const memoised = memoiseStdinReader(() => {
-      invocationCount += 1;
-      return Promise.resolve('payload');
-    });
-    const first = await memoised();
-    const second = await memoised();
-    expect(first).toBe('payload');
-    expect(second).toBe('payload');
-    expect(invocationCount).toBe(1);
+it('reads standard input once however often the query reads it', async () => {
+  let invocationCount = 0;
+  const memoised = memoiseStdinReader(() => {
+    invocationCount += 1;
+    return Promise.resolve('payload');
   });
+  const first = await memoised();
+  const second = await memoised();
+  expect(first).toBe('payload');
+  expect(second).toBe('payload');
+  expect(invocationCount).toBe(1);
 });
 
-describe('liftOfInput — the first value standard input lifts to by parseJson', () => {
+describe('the lift of a text by `parseJson`', () => {
   it('starts from the noun of the language when stdin carries no bytes, raw or not', async () => {
     const session = await createSession();
     expect([await liftOfInput(session, '', false), await liftOfInput(session, '', true)]).toEqual([{ initialPipeValue: DEFAULT_SUBJECT }, { initialPipeValue: DEFAULT_SUBJECT }]);

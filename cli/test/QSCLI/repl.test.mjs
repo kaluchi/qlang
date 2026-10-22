@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { runRepl } from '../../src/repl.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
-describe('runRepl — meta commands', () => {
+describe('the commands of the REPL', () => {
   it('lists the commands of the REPL on `.help`, runs the cell after it and closes at the end of its input', async () => {
     const replHarness = captureRepl('.help\n[1 2] | count\n');
     const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
@@ -19,7 +19,7 @@ describe('runRepl — meta commands', () => {
   });
 });
 
-describe('runRepl — query evaluation', () => {
+describe('a cell run in one session', () => {
   it('starts every cell from the noun of the language, `::qlang`', async () => {
     const replHarness = captureRepl('42\neq ::qlang\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
@@ -62,75 +62,67 @@ describe('runRepl — query evaluation', () => {
   });
 });
 
-describe('runRepl — output highlighting', () => {
-  it('translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell on stdout and `err` on stderr', async () => {
-    const ttyStdin = new (await import('node:stream')).PassThrough();
-    ttyStdin.isTTY = true;
-    ttyStdin.setRawMode = () => {};
+it('translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell on stdout and `err` on stderr', async () => {
+  const ttyStdin = new (await import('node:stream')).PassThrough();
+  ttyStdin.isTTY = true;
+  ttyStdin.setRawMode = () => {};
 
-    const stdoutChunks = [];
-    const stderrChunks = [];
-    const stdoutWrite = (text) => stdoutChunks.push(text);
-    const stderrWrite = (text) => stderrChunks.push(text);
+  const stdoutChunks = [];
+  const stderrChunks = [];
+  const stdoutWrite = (text) => stdoutChunks.push(text);
+  const stderrWrite = (text) => stderrChunks.push(text);
 
-    const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
-    // A bare `[1 2` is a parse failure, an answer the REPL prints on
-    // stdout, and `err` writes its text on stderr. Enter (CR) is the
-    // submit keystroke in the multi-line editor; Ctrl+Enter (LF) would
-    // insert a soft newline.
-    ttyStdin.write(Buffer.from('[1 2\r'));
-    await new Promise((resolveTick) => setImmediate(resolveTick));
-    ttyStdin.write(Buffer.from('"one\\ntwo" | err\r'));
-    await new Promise((resolveTick) => setImmediate(resolveTick));
-    ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
-    await replPromise;
+  const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
+  // A bare `[1 2` is a parse failure, an answer the REPL prints on
+  // stdout, and `err` writes its text on stderr. Enter (CR) is the
+  // submit keystroke in the multi-line editor; Ctrl+Enter (LF) would
+  // insert a soft newline.
+  ttyStdin.write(Buffer.from('[1 2\r'));
+  await new Promise((resolveTick) => setImmediate(resolveTick));
+  ttyStdin.write(Buffer.from('"one\\ntwo" | err\r'));
+  await new Promise((resolveTick) => setImmediate(resolveTick));
+  ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on empty buffer
+  await replPromise;
 
-    expect(stdoutChunks.join('').replace(/\x1b\[[0-9;]*m/g, '')).toContain('caught it\r\n::quote/ParseError!{');
-    expect(stderrChunks.join('')).toContain('one\r\ntwo');
-  });
+  expect(stdoutChunks.join('').replace(/\x1b\[[0-9;]*m/g, '')).toContain('caught it\r\n::quote/ParseError!{');
+  expect(stderrChunks.join('')).toContain('one\r\ntwo');
 });
 
 // A defect raised past the fail track is no answer: the REPL writes it on
 // stderr and runs the next cell.
-describe('runRepl — a defect of a cell', () => {
-  it('writes the defect on stderr as `qlang:` and its message, and runs the next cell', async () => {
-    const deep = '['.repeat(20000) + ']'.repeat(20000);
-    const replHarness = captureRepl(`${deep}\n[1 2] | count\n.exit\n`);
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(replHarness.stderrText()).toBe('qlang: Maximum call stack size exceeded\n');
-    expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
-  });
+it('writes the defect of a cell on stderr as `qlang:` and its message, and runs the next cell', async () => {
+  const deep = '['.repeat(20000) + ']'.repeat(20000);
+  const replHarness = captureRepl(`${deep}\n[1 2] | count\n.exit\n`);
+  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+  expect(replHarness.stderrText()).toBe('qlang: Maximum call stack size exceeded\n');
+  expect(stripAnsi(replHarness.stdoutText())).toContain('2\n');
 });
 
-describe('runRepl — the trace of a failure', () => {
-  it('prints a failure with the steps its trace holds, the steps it skipped among them', async () => {
-    // The trace of an error is written as it flows [QSERR#trace], so the failure a cell answers holds every frame and every step it skipped.
-    const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
-    const replHarness = captureRepl(query + '\n.exit\n');
-    const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(exitCode).toBe(0);
-    const out = stripAnsi(replHarness.stdoutText());
-    expect(out).toMatch(/count/);
-    expect(out).toMatch(/add 1/);
-    expect(out).toMatch(/mul 2/);
-  });
+it('prints a failure with the steps its trace holds, the steps it skipped among them', async () => {
+  // The trace of an error is written as it flows [QSERR#trace], so the failure a cell answers holds every frame and every step it skipped.
+  const query = '!{:kind :first} | raise | count !| union {:k 1} | raise | add 1 | mul 2';
+  const replHarness = captureRepl(query + '\n.exit\n');
+  const exitCode = await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+  expect(exitCode).toBe(0);
+  const out = stripAnsi(replHarness.stdoutText());
+  expect(out).toMatch(/count/);
+  expect(out).toMatch(/add 1/);
+  expect(out).toMatch(/mul 2/);
 });
 
 // A query given after `-i` runs as the first cell, its bindings staying
 // for the cells after it.
-describe('runRepl — the first cell given on the command line', () => {
-  it('runs the query before the typed cells, in the same session', async () => {
-    const replHarness = captureRepl('x | add 1\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
-    const printed = stripAnsi(replHarness.stdoutText());
-    expect(printed).toContain('qlang> :x 41');
-    expect(printed).toContain('42');
-  });
+it('runs the query given on the command line before the typed cells, in the same session', async () => {
+  const replHarness = captureRepl('x | add 1\n.exit\n');
+  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
+  const printed = stripAnsi(replHarness.stdoutText());
+  expect(printed).toContain('qlang> :x 41');
+  expect(printed).toContain('42');
 });
 
 // A cell prints its answer whole, past the budget of every answer as well,
 // and an error as its alert within it, without the prose of its page.
-describe('runRepl — the bound of an answer', () => {
+describe('an answer printed whole and a failure as its alert', () => {
   it('prints an answer past the budget whole, its last element among it', async () => {
     const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });

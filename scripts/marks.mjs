@@ -36,25 +36,17 @@ const RUN_OUTPUT = /^scripts\/benchmark\/sets\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
-// A mark names a record or a section of the specification, `[QSNAM#scope]`
-// [QSWRK#marks].
+// A mark names a record or a section of the specification, and one written
+// in backquotes is the example of a mark, which names nothing [QSWRK#marks].
 const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
-
-// The data of the benchmark names the record it measures in the name of
-// its file, where no text of its own can bear a mark: a screen,
-// `screens/D395.txt`, and a run of a set, `sets/Y/runs/D395~cli~sonnet~1.json`
-// [QSWRK#measure].
-const PATH_MARKS = [
-  /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
-  /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/
-];
+const EXAMPLE = /`[^`]*`/g;
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;
 
 function marksOfText(text, regex) {
   const marks = [];
   const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
-    for (const match of line.matchAll(regex)) {
+    for (const match of line.replace(EXAMPLE, '').matchAll(regex)) {
       for (const name of match[1].split(/,\s*/)) marks.push({ name: /^(D|E|QS)/.test(name) ? name : `D${name}`, line: index + 1 });
     }
   });
@@ -69,6 +61,15 @@ function marksOfCases(text) {
   });
   return marks;
 }
+
+// The data of the benchmark names the record it measures in the name of
+// its file, where no text of its own can bear a mark: a screen,
+// `screens/D395.txt`, and a run of a set, `sets/Y/runs/D395~cli~sonnet~1.json`
+// [QSWRK#marks], [QSWRK#measure].
+const PATH_MARKS = [
+  /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
+  /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/
+];
 
 // The blocks a file's marks stand on: a mark covers the lines from the
 // comment that holds it to the next comment that holds one, the marks of

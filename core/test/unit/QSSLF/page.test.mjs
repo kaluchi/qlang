@@ -1,7 +1,7 @@
 // The first page: every example it states the answer of answers
 // it as the page writes it, the task over the input the page gives it.
 
-import { describe, it, expect } from 'vitest';
+import { it, expect } from 'vitest';
 import { evalQuery } from '../../../src/session.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
@@ -16,12 +16,10 @@ const examples = [...content.matchAll(EXAMPLE)].map(([, input, query, answer]) =
   answer
 }));
 
-describe('the first page', () => {
-  it('states the answers of its examples', () => {
-    expect(examples.length).toBeGreaterThan(20);
-  });
+it('the first page states the answers of its examples', () => {
+  expect(examples.length).toBeGreaterThan(20);
+});
 
-  it.each(examples)('$query answers $answer', async ({ query, answer }) => {
-    expect(compareValues(await evalQuery(query), await evalQuery(answer)) === 0).toBe(true);
-  });
+it.each(examples)('$query answers $answer', async ({ query, answer }) => {
+  expect(compareValues(await evalQuery(query), await evalQuery(answer)) === 0).toBe(true);
 });

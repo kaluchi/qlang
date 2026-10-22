@@ -16,7 +16,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
   });
 });
 
-describe('parse — error handling', () => {
+describe('a quote of a doc tried as code', () => {
   it('reads a quote of a path alone in a doc as prose', () => {
     expect([...stepOf('|~~ see ~(/a) ~~|')]).toEqual([' see ~(/a) ']);
   });
@@ -70,10 +70,8 @@ describe('parse — error handling', () => {
   });
 });
 
-describe('parse — a `~(` of a doc that reads as prose', () => {
-  it('reads as code a quote that takes a value after a declaration or after `!|`', () => {
-    for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
-  });
+it('reads as code a quote of a doc that takes a value after a declaration or after `!|`', () => {
+  for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
 });
 
 // The nesting of block comments. A block comment and a block doc open and
@@ -89,25 +87,23 @@ describe('parse — a `~(` of a doc that reads as prose', () => {
 // comment is content; (3) the closer of the container ends its body; (4) a
 // block doc left open is refused naming where it opened, and a block comment
 // left open is refused at its opener.
-describe('parse — block comment nesting', () => {
-  describe('negative — unbalanced or malformed nesting raises ParseError', () => {
-    const neverClosedDoc = '`|~~` opened at line 1, column 1 is never closed; `~~|` completes the source';
-    const expectRefusedAt = (src, offset, found) => {
-      const refused = refusalOf(src);
-      expect(refused, src).toBeInstanceOf(ParseError);
-      expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
-    };
+describe('a block doc left unbalanced, refused', () => {
+  const neverClosedDoc = '`|~~` opened at line 1, column 1 is never closed; `~~|` completes the source';
+  const expectRefusedAt = (src, offset, found) => {
+    const refused = refusalOf(src);
+    expect(refused, src).toBeInstanceOf(ParseError);
+    expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
+  };
 
-    it('a block doc with no closing ~~| names where it opened', () => {
-      expect(refusalOf('|~~ unterminated doc\n:foo 1\n| foo').message).toBe(neverClosedDoc);
-    });
+  it('a block doc with no closing ~~| names where it opened', () => {
+    expect(refusalOf('|~~ unterminated doc\n:foo 1\n| foo').message).toBe(neverClosedDoc);
+  });
 
-    it('a block doc whose inner nested doc swallows the outer close names where it opened', () => {
-      expect(refusalOf('|~~ A |~~ B ~~|\n:foo 1\n| foo').message).toBe(neverClosedDoc);
-    });
+  it('a block doc whose inner nested doc swallows the outer close names where it opened', () => {
+    expect(refusalOf('|~~ A |~~ B ~~|\n:foo 1\n| foo').message).toBe(neverClosedDoc);
+  });
 
-    it('bare ~~| in pipeline position (no opening) is a parse error', () => {
-      expectRefusedAt('42 | ~~|', 6, '~');
-    });
+  it('refuses a closer `~~|` that stands where a step does, with no opener', () => {
+    expectRefusedAt('42 | ~~|', 6, '~');
   });
 });

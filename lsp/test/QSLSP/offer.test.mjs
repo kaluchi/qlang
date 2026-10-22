@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseDocument, completionsAtOffset, signatureHelpAtOffset } from '../../src/features.mjs';
 import { evalQuery, isTag } from '@kaluchi/qlang-core';
 
-describe('completionsAtOffset', () => {
+describe('the names offered at a place', () => {
   it('includes the names of the verbs of the language', async () => {
     const { root } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(root, 0);
@@ -103,7 +103,7 @@ describe('completionsAtOffset', () => {
   });
 });
 
-describe('completionsAtOffset after a value offers the verbs that accept it', () => {
+describe('the verbs offered after a value', () => {
   const labelsAt = async (src) => {
     const { root } = parseDocument(src, 'test.qlang');
     return (await completionsAtOffset(root, src.length, src)).map(item => item.label);
@@ -237,7 +237,7 @@ describe('completionsAtOffset after a value offers the verbs that accept it', ()
   });
 });
 
-describe('signatureHelpAtOffset', () => {
+describe('the help of the signature of a call', () => {
   it('returns the form of the call around the cursor', async () => {
     const src = '[1 2 3] | filter ~(gt 2)';
     const { root } = parseDocument(src, 'test.qlang');

@@ -72,15 +72,13 @@ describe('the args of a call', () => {
   });
 });
 
-describe('a host\'s primitive under a label', () => {
-  it('reads the values after a primitive\'s lead by code over the args', async () => {
-    const session = await createSession({
-      sources: [{
-        uri: 'probe/zap',
-        source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
-        primitives: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
-      }]
-    });
-    expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
+it('a host\'s primitive under a label reads the values after its lead by code over the args', async () => {
+  const session = await createSession({
+    sources: [{
+      uri: 'probe/zap',
+      source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
+      primitives: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
+    }]
   });
+  expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
 });

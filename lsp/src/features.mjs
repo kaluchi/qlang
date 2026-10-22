@@ -298,7 +298,7 @@ function stepsOf(pipeline) {
 // The subject the steps answer from a subject, the kinds of its value and the
 // value where a literal step answers it: the subject itself through a
 // declaration and a `!|` step, and the kinds of the answer of a call as
-// `answerKindsOf` reads them [QSLSP#server]; null where a step answers no
+// `answerKindsOf` reads them [QSLSP#offer]; null where a step answers no
 // declared kind.
 async function subjectOfSteps(steps, subject, text) {
   let answered = subject;
@@ -322,7 +322,7 @@ async function subjectAfterStep(read, subject, text) {
 }
 
 // What a literal answers run alone over the root, closed [QSLIT#closed], a
-// refusal of its constructor at rest, and the walk of its tags, the last kept [QSLSP#server].
+// refusal of its constructor at rest, and the walk of its tags, the last kept [QSLSP#offer].
 let lastLiteral = { literal: null, subject: null };
 async function subjectOfLiteral(literal) {
   if (lastLiteral.literal !== literal) {

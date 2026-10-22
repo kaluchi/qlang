@@ -7,7 +7,7 @@ import { cpSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { answerOf, framedMessage, lspDir } from '../helpers/server-process.mjs';
 
-describe('hoverAtOffset', () => {
+describe('the hover', () => {
   it('returns hover for a verb of the language', async () => {
     const src = '[1 2 3] | count';
     const { root } = parseDocument(src, 'test.qlang');
@@ -233,7 +233,7 @@ for (const [name, range] of buildCatalogIndex(catalogRoot)) {
 }
 const testCatalogCtx = { index: testCatalogIndex, scope: await langRuntime() };
 
-describe('definitionAtOffset', () => {
+describe('the jump to a declaration', () => {
   it('jumps from the use site of a verb to its declaration under a label', async () => {
     const src = ':number/double ~(mul 2) | 10 | double';
     const { root } = parseDocument(src, 'test.qlang');
@@ -337,7 +337,7 @@ describe('definitionAtOffset', () => {
   });
 });
 
-describe('referencesAtOffset', () => {
+describe('the references of a name', () => {
   it('finds all occurrences of a verb a reader declares', () => {
     const src = ':number/double ~(mul 2) | [1 2] | map ~double';
     const { root } = parseDocument(src, 'test.qlang');
@@ -382,27 +382,25 @@ describe('referencesAtOffset', () => {
   });
 });
 
-describe('the language server process', () => {
-  it('answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
-    // A copy of the server outside the repository, which reaches the
-    // packages it depends on and no workspace beside it.
-    const outside = mkdtempSync(join(tmpdir(), 'qlang-lsp-'));
-    cpSync(join(lspDir, 'src'), join(outside, 'src'), { recursive: true });
-    symlinkSync(join(lspDir, '..', 'node_modules'), join(outside, 'node_modules'), 'junction');
-    const serverProcess = spawn(process.execPath, [join(outside, 'src', 'server.mjs'), '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
-    try {
-      const initialized = answerOf(serverProcess, 1);
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} } }));
-      await initialized;
-      const uri = 'file:///probe.qlang';
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: 'qlang', version: 1, text: '[1 2] | vec/count' } } }));
-      const definition = answerOf(serverProcess, 2);
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 2, method: 'textDocument/definition', params: { textDocument: { uri }, position: { line: 0, character: 10 } } }));
-      const { uri: sourceUri } = (await definition).result;
-      expect(sourceUri.startsWith(new URL('.', import.meta.resolve('@kaluchi/qlang-core/lib/qlang/vec.qlang')).href) && sourceUri.endsWith('.qlang')).toBe(true);
-    } finally {
-      if (serverProcess.exitCode === null) await new Promise(resolve => { serverProcess.once('exit', resolve); serverProcess.kill(); });
-      rmSync(outside, { recursive: true, force: true, maxRetries: 5 });
-    }
-  }, 30_000);
-});
+it('answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
+  // A copy of the server outside the repository, which reaches the
+  // packages it depends on and no workspace beside it.
+  const outside = mkdtempSync(join(tmpdir(), 'qlang-lsp-'));
+  cpSync(join(lspDir, 'src'), join(outside, 'src'), { recursive: true });
+  symlinkSync(join(lspDir, '..', 'node_modules'), join(outside, 'node_modules'), 'junction');
+  const serverProcess = spawn(process.execPath, [join(outside, 'src', 'server.mjs'), '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  try {
+    const initialized = answerOf(serverProcess, 1);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} } }));
+    await initialized;
+    const uri = 'file:///probe.qlang';
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: 'qlang', version: 1, text: '[1 2] | vec/count' } } }));
+    const definition = answerOf(serverProcess, 2);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 2, method: 'textDocument/definition', params: { textDocument: { uri }, position: { line: 0, character: 10 } } }));
+    const { uri: sourceUri } = (await definition).result;
+    expect(sourceUri.startsWith(new URL('.', import.meta.resolve('@kaluchi/qlang-core/lib/qlang/vec.qlang')).href) && sourceUri.endsWith('.qlang')).toBe(true);
+  } finally {
+    if (serverProcess.exitCode === null) await new Promise(resolve => { serverProcess.once('exit', resolve); serverProcess.kill(); });
+    rmSync(outside, { recursive: true, force: true, maxRetries: 5 });
+  }
+}, 30_000);

@@ -232,9 +232,7 @@ describe('a value of no kind the core meets where it reads a kind or writes a nu
   });
 });
 
-// ── errorFromForeign ────────────────────────────────────────────
-
-describe('errorFromForeign', () => {
+describe('a failure of JavaScript lifted to a failure of the host', () => {
   // A host's failure carries the facts every host can give, its account
   // and the accounts of the failures beneath it [QSERR#site].
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
@@ -284,14 +282,12 @@ describe('errorFromForeign', () => {
   });
 });
 
-describe('error-convert coercion edge cases', () => {
-  it('leaves out a fact its site hands as undefined', async () => {
-    const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
-    const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
-    expect(errorVal.facts.has('index')).toBe(false);
-    expect(errorVal.facts.get('actualValue')).toBe(null);
-    expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
-  });
+it('leaves out a fact its site hands as undefined', async () => {
+  const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
+  const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
+  expect(errorVal.facts.has('index')).toBe(false);
+  expect(errorVal.facts.get('actualValue')).toBe(null);
+  expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
 });
 
 describe('the answer of a primitive a host hands', () => {
@@ -324,35 +320,31 @@ describe('the answer of a primitive a host hands', () => {
   });
 });
 
-describe('what a primitive throws that is no refusal', () => {
-  it('lifts an error of JavaScript and any other value a primitive throws to a failure of the host', async () => {
-    // A host's primitive that throws an error of JavaScript, no QlangError, and one that throws undefined.
-    const s = await createSession({
-      sources: [{
-        uri: 'tests/bomb',
-        source: ':any/bomb ::builtin{}\n:any/hollow ::builtin{}',
-        primitives: { 'any/bomb': () => { throw new Error('raw boom'); }, 'any/hollow': () => { throw undefined; } }
-      }]
-    });
-    const entry = await s.evalCell('42 | bomb');
-    expect(isErrorValue(entry.result)).toBe(true);
-    expect(entry.result.tag.name).toBe('call/HostFailureError');
-    expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
-    expect(entry.result.facts.get('message')).toBe('raw boom');
-    expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | place)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
+it('lifts an error of JavaScript and any other value a primitive throws to a failure of the host', async () => {
+  // A host's primitive that throws an error of JavaScript, no QlangError, and one that throws undefined.
+  const s = await createSession({
+    sources: [{
+      uri: 'tests/bomb',
+      source: ':any/bomb ::builtin{}\n:any/hollow ::builtin{}',
+      primitives: { 'any/bomb': () => { throw new Error('raw boom'); }, 'any/hollow': () => { throw undefined; } }
+    }]
   });
+  const entry = await s.evalCell('42 | bomb');
+  expect(isErrorValue(entry.result)).toBe(true);
+  expect(entry.result.tag.name).toBe('call/HostFailureError');
+  expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
+  expect(entry.result.facts.get('message')).toBe('raw boom');
+  expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | place)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
 });
 
-describe('fromPlain lifts a parsed document', () => {
-  it('a parsed document lifts into the same map a literal reads into', async () => {
-    const lifted = fromPlain(JSON.parse('{"a": [1, 2]}'));
-    const read = await evalQuery('{"a": [1, 2]}');
-    const { compareValues } = await import('../../../src/ordering.mjs');
-    expect(compareValues(lifted, read) === 0).toBe(true);
-  });
+it('a parsed document lifts into the same map a literal reads into', async () => {
+  const lifted = fromPlain(JSON.parse('{"a": [1, 2]}'));
+  const read = await evalQuery('{"a": [1, 2]}');
+  const { compareValues } = await import('../../../src/ordering.mjs');
+  expect(compareValues(lifted, read) === 0).toBe(true);
 });
 
-describe('toPlain refuses a value of no kind of the language where it reads its kind', () => {
+describe('the codec of JSON refuses a value of no kind of the language where it reads its kind', () => {
   it('refuses an object of JavaScript a host handed', () => {
     expect(() => toPlain(new Date())).toThrow(BuiltinForeignValueError);
   });
@@ -364,7 +356,7 @@ describe('toPlain refuses a value of no kind of the language where it reads its 
   });
 });
 
-describe('json.fromPlain — inverse of toPlain', () => {
+describe('a value of JSON lifted into the language and back', () => {
   // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
   // object of JavaScript into a map keyed by its names, an array into a
   // vector, and an atom as it is.
@@ -388,19 +380,19 @@ describe('json.fromPlain — inverse of toPlain', () => {
     expect(lifted.get('b')).toBe(2);
   });
 
-  it('round-trips nested data of JSON through toPlain and back', async () => {
+  it('round-trips nested data of JSON into the language and back', async () => {
     const plain = { user: { name: 'alice', tags: ['admin', 'dev'] } };
     const roundtrip = toPlain(fromPlain(plain));
     expect(roundtrip).toEqual(plain);
   });
 });
 
-describe('the finite-double domain holds at every render seam', () => {
+describe('a number past the doubles, refused by the printer and the codec of JSON', () => {
   // A number past the doubles has no literal [QSLIT#number], and an answer
   // brought under `::number` past them is refused as `::number/NotFiniteError`
   // [QSNUM#arithmetic]; one a host hands meets the printer and the codec of
   // JSON, which raise it where they write it.
-  it('printValue refuses an infinity and a NaN as values of no kind', () => {
+  it('the printer refuses an infinity and a NaN as values of no kind', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;
       try { printValue(leaked); } catch (caught) { thrown = caught; }
@@ -410,23 +402,19 @@ describe('the finite-double domain holds at every render seam', () => {
     }
   });
 
-  it('toPlain refuses the values the printer refuses', () => {
+  it('the codec of JSON refuses the values the printer refuses', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       expect(() => toPlain(leaked), String(leaked)).toThrow(BuiltinForeignValueError);
     }
   });
 });
 
-describe('typeOf refuses a value of no kind', () => {
-  it('typeOf refuses an object of JavaScript, a value of no kind of the language', () => {
-    expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
-  });
+it('reads no kind of an object of JavaScript, a value of no kind of the language', () => {
+  expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
 });
 
-describe('the printer writes the literal of a value', () => {
-  it('refuses a value of no kind of the language where it reads its kind', () => {
-    expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
-  });
+it('the printer refuses a value of no kind of the language where it reads its kind', () => {
+  expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
 });
 
 describe('a session takes what its host hands by the walk of the door', () => {

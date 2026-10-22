@@ -11,8 +11,6 @@ beforeAll(async () => {
 
 const fmt = code => formatExample(code, rootVerbNames);
 
-// ── Line classification ───────────────────────────────────────
-
 describe('comment lines', () => {
   it('|~| line becomes comment span', () => {
     const out = fmt('|~| Vec → filter');
@@ -42,12 +40,10 @@ describe('prompt lines', () => {
   });
 });
 
-describe('continuation lines', () => {
-  it('two-space indent preserved, the query highlighted', () => {
-    const out = fmt('  add 1');
-    expect(out.startsWith('  ')).toBe(true);
-    expect(out).toContain('<span class="verb">add</span>');
-  });
+it('keeps the indent of two spaces of a continuation line, the query highlighted', () => {
+  const out = fmt('  add 1');
+  expect(out.startsWith('  ')).toBe(true);
+  expect(out).toContain('<span class="verb">add</span>');
 });
 
 describe('result lines', () => {
@@ -61,8 +57,6 @@ describe('result lines', () => {
     expect(out).toContain('<span class="string">"hello"</span>');
   });
 });
-
-// ── Multi-line blocks ─────────────────────────────────────────
 
 describe('multi-line blocks', () => {
   it('all four line types render in correct order', () => {
@@ -99,17 +93,13 @@ describe('multi-line blocks', () => {
   });
 });
 
-// ── Real example block ────────────────────────────────────────
-
-describe('real landing page example', () => {
-  it('pipeline example renders without throwing', () => {
-    const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2';
-    expect(() => fmt(src)).not.toThrow();
-    const out = fmt(src);
-    expect(out).toContain('class="comment"');
-    expect(out).toContain('class="verb"');
-    expect(out).toContain('<span class="number">2</span>');
-  });
+it('paints the example of the landing page without a throw', () => {
+  const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2';
+  expect(() => fmt(src)).not.toThrow();
+  const out = fmt(src);
+  expect(out).toContain('class="comment"');
+  expect(out).toContain('class="verb"');
+  expect(out).toContain('<span class="number">2</span>');
 });
 
 beforeAll(async () => {
@@ -118,8 +108,6 @@ beforeAll(async () => {
 });
 
 const hl = src => highlightQlang(src, rootVerbNames);
-
-// ── Literals ───────────────────────────────────────────────────
 
 describe('a literal', () => {
   it('is a span of the kind of its value', () => {
@@ -137,8 +125,6 @@ describe('a literal', () => {
   });
 });
 
-// ── Names ──────────────────────────────────────────────────────
-
 describe('a name', () => {
   it('is a verb where it calls a word of the root', () => {
     expect(hl('count')).toBe('<span class="verb">count</span>');
@@ -154,8 +140,6 @@ describe('a name', () => {
     expect(highlightQlang('count', null)).toBe('<span class="name">count</span>');
   });
 });
-
-// ── The rest of the source ─────────────────────────────────────
 
 describe('the rest of the source', () => {
   it('paints the pipe as punctuation and the fail track as fail', () => {

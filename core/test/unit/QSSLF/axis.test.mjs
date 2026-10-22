@@ -42,10 +42,8 @@ describe('::name | source answers the quote of the declarations under the name',
   });
 });
 
-describe('::name | doc returns the page the docs of its slot make', () => {
-  it('a value under a tag no binding declares reads the kind beneath it', async () => {
-    expect(await evalQuery('::Ghost#1 | doc | eq (::number | doc)')).toBe(true);
-  });
+it('`doc` of a value under a tag no binding declares reads the kind beneath it', async () => {
+  expect(await evalQuery('::Ghost#1 | doc | eq (::number | doc)')).toBe(true);
 });
 
 describe('the axes read the node a tag addresses', () => {
@@ -68,7 +66,7 @@ describe('the axes read the node a tag addresses', () => {
     expect(await evalQuery('::quote | doc | get [~(type) ~(eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
   });
 
-  it('an axis refusing a tag no declaration names hands its host the QlangError under `originalError`, with its address and its facts', async () => {
+  it('an axis refusing a tag no declaration names hands its host the refusal under `originalError`, with its address and its facts', async () => {
     const result = await evalQuery('::Foo | doc');
     expect(isErrorValue(result)).toBe(true);
     expect(result.originalError.address).toBe('any/doc/UnknownNameError');
@@ -94,12 +92,10 @@ describe('the axes read what a source of the root declared', () => {
   });
 });
 
-describe('a value that is no name reads the declaration of its kind', () => {
-  // An error at rest reads by `doc` the page of its tag.
-  it('an error at rest reads the page of its tag', async () => {
-    expect(await evalQuery('10 | div 0 !| doc | content'))
-      .toContain('The divisor is not zero');
-  });
+// An error at rest reads by `doc` the page of its tag.
+it('an error at rest reads the page of its tag', async () => {
+  expect(await evalQuery('10 | div 0 !| doc | content'))
+    .toContain('The divisor is not zero');
 });
 
 describe('the axes resolve the binding the evaluator dispatches', () => {
@@ -130,12 +126,10 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   });
 });
 
-describe('source on a declaration of it', () => {
-  // `source` reads the declaration of `it` under the name it declares, as written.
-  it('source on a declaration of it answers the declaration', async () => {
-    const source = await evalQuery('42 | :snap it | ::snap | source | toString');
-    expect(source).toBe(':snap it');
-  });
+// `source` reads the declaration of `it` under the name it declares, as written.
+it('source on a declaration of it answers the declaration', async () => {
+  const source = await evalQuery('42 | :snap it | ::snap | source | toString');
+  expect(source).toBe(':snap it');
 });
 
 describe('source axis prints the declaration for rare forms of a body', () => {
@@ -160,17 +154,13 @@ describe('source axis prints the declaration for rare forms of a body', () => {
   });
 });
 
-describe('the args of a call', () => {
-  it('reads the page of the invariant that refused, named by its refusal', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
-      .toBe(' The weight is a number. ');
-  });
+it('reads the page of the invariant that refused, named by its refusal', async () => {
+  expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
+    .toBe(' The weight is a number. ');
 });
 
-describe('an address reads the node its name declared', () => {
-  it('a value whose tag no node answers reads the page of the kind beneath it', async () => {
-    expect(await evalQuery('::Box#[3 1] | doc | eq (::set | doc)')).toBe(true);
-  });
+it('a value whose tag no node answers reads the page of the kind beneath it', async () => {
+  expect(await evalQuery('::Box#[3 1] | doc | eq (::set | doc)')).toBe(true);
 });
 
 describe('the subject an axis reads', () => {

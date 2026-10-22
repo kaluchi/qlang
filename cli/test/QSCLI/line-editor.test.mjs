@@ -28,8 +28,6 @@ function captureLines(editor) {
   return { lines, isClosed: () => closed };
 }
 
-// ── Non-TTY (piped) editor ─────────────────────────────────────
-
 function makePipedSetup() {
   const stdinStream = new PassThrough();
   stdinStream.isTTY = false;
@@ -41,7 +39,7 @@ function makePipedSetup() {
   return { stdinStream, editor, out, capture: captureLines(editor) };
 }
 
-describe('createLineEditor — non-TTY (piped) mode', () => {
+describe('a piped input, read a line at a time', () => {
   it('emits one `line` per `\\n`-terminated chunk', async () => {
     const { stdinStream, editor, capture } = makePipedSetup();
     editor.start();
@@ -83,8 +81,6 @@ describe('createLineEditor — non-TTY (piped) mode', () => {
   });
 });
 
-// ── TTY raw-mode editor ────────────────────────────────────────
-
 function makeTtySetup(options = {}) {
   const stdinStream = new PassThrough();
   stdinStream.isTTY = true;
@@ -105,7 +101,7 @@ function feed(stdinStream, ...chunks) {
   }
 }
 
-describe('createLineEditor — TTY printable input', () => {
+describe('a printable key', () => {
   it('inserts each printable byte and emits the buffer on Enter', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
@@ -122,7 +118,7 @@ describe('createLineEditor — TTY printable input', () => {
   });
 });
 
-describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
+describe('Enter, Ctrl+Enter and Alt+Enter', () => {
   it('Ctrl+Enter (LF) inserts a soft newline at the cursor without submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
@@ -152,7 +148,7 @@ describe('createLineEditor — TTY Enter / Ctrl+Enter semantics', () => {
   });
 });
 
-describe('createLineEditor — TTY editing keys', () => {
+describe('Backspace, Delete and the keys that move the cursor', () => {
   it('Backspace removes the char before the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
@@ -237,7 +233,7 @@ describe('createLineEditor — TTY editing keys', () => {
   });
 });
 
-describe('createLineEditor — TTY control bytes', () => {
+describe('Ctrl+C and Ctrl+D', () => {
   it('Ctrl+C clears the current buffer and reprompts', () => {
     const { stdinStream, editor, capture, out } = makeTtySetup();
     editor.start();
@@ -312,7 +308,7 @@ describe('createLineEditor — TTY control bytes', () => {
   });
 });
 
-describe('createLineEditor — TTY escape sequence handling', () => {
+describe('an escape that opens no key', () => {
   it('drops a half-formed `ESC + non-[` sequence without injecting bytes', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
@@ -328,7 +324,7 @@ describe('createLineEditor — TTY escape sequence handling', () => {
   });
 });
 
-describe('createLineEditor — TTY history navigation', () => {
+describe('the cells submitted before', () => {
   it('a submitted line is shown, emitted and recalled by Up', () => {
     const { stdinStream, editor, out, capture } = makeTtySetup();
     editor.start();
@@ -443,7 +439,7 @@ describe('createLineEditor — TTY history navigation', () => {
   });
 });
 
-describe('createLineEditor — TTY multi-line arrow navigation', () => {
+describe('Up and Down between the rows of a cell of several lines', () => {
   // In a buffer of several lines Up and Down move the cursor across its
   // lines, walk the history from the edge line in their direction, and with
   // no entry that way move the cursor home or to the end.
@@ -522,7 +518,7 @@ describe('createLineEditor — TTY multi-line arrow navigation', () => {
   });
 });
 
-describe('createLineEditor — TTY paste fast-path', () => {
+describe('a paste gathered from its chunks', () => {
   // A paste lands at the cursor with its line breaks and waits for a submit.
 
   it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
@@ -730,7 +726,7 @@ describe('createLineEditor — TTY paste fast-path', () => {
   });
 });
 
-describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)', () => {
+describe('a bracketed paste read to its end marker', () => {
   // A bracketed paste whose markers and body arrive in chunks of their own
   // is read up to its end marker and lands as one paste.
 
@@ -768,7 +764,7 @@ describe('createLineEditor — TTY bracketed paste (multi-chunk state machine)',
   });
 });
 
-describe('createLineEditor — TTY UTF-8 input', () => {
+describe('a character of several bytes', () => {
   // The editor decodes the bytes of a terminal as UTF-8, so a character of
   // several bytes, Cyrillic, CJK or an emoji, arrives whole.
 
@@ -804,7 +800,7 @@ describe('createLineEditor — TTY UTF-8 input', () => {
   });
 });
 
-describe('createLineEditor — TTY surrogate-pair editing', () => {
+describe('a character beyond the basic plane, moved and erased as one', () => {
   // A character beyond the basic plane, an emoji, is two code units, and
   // every edit steps over the pair as one character.
 
@@ -882,7 +878,7 @@ describe('createLineEditor — TTY surrogate-pair editing', () => {
   });
 });
 
-describe('createLineEditor — TTY multi-line redraw', () => {
+describe('the redraw of a cell of several rows', () => {
   // The cursor crosses line breaks and the submitted buffer holds the
   // edits, the repaint walking up and back and the submit walking down from
   // a line above the last.
@@ -913,7 +909,7 @@ describe('createLineEditor — TTY multi-line redraw', () => {
   });
 });
 
-describe('createLineEditor — TTY lifecycle', () => {
+describe('the start and the close of the editor', () => {
   it('toggles raw mode on start and clears on close', () => {
     const { editor, rawModeCalls } = makeTtySetup();
     editor.start();
@@ -974,7 +970,7 @@ describe('createLineEditor — TTY lifecycle', () => {
   });
 });
 
-describe('createLineEditor — TTY edits at the buffer edges', () => {
+describe('the edges of the cell', () => {
   it('backspaces the only character in the buffer', () => {
     // At offset 1 one code unit stands behind the cursor, and the backspace
     // takes it.

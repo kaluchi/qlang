@@ -36,17 +36,15 @@ describe('the links of the catalog', () => {
   }, 120_000);
 });
 
-describe('parse — error handling', () => {
-  // A literal that holds a part that computes is refused, while a quote of a
-  // doc that computes fails its try and reads as prose: where the quote of a
-  // doc stands outside a literal, its segments tell which it was read as.
-  it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier', () => {
-    const readAs = doc => [...doc].map(segment => (typeof segment === 'string' ? segment : 'code'));
-    expect(isGroupStep(stepOf('|~~ see ::group~(add 1) ~~|')[1])).toBe(true);
-    for (const source of ['[|~~ ::group~(add 1) ~~|]', '{:k |~~ ::group~(x) ~~|}', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
-      expect(refusalOf(source), source).toBeNull();
-    }
-    expect(readAs(stepOf('f |~~ ::fail~(x) ~~|').get('modifiers')[0])).toEqual([' ', 'code', ' ']);
-    expect(readAs(stepOf('|~~ ~([|~~ ::group~(x) ~~|]) ~~|'))).toEqual([' ', 'code', ' ']);
-  });
+// A literal that holds a part that computes is refused, while a quote of a
+// doc that computes fails its try and reads as prose: where the quote of a
+// doc stands outside a literal, its segments tell which it was read as.
+it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier', () => {
+  const readAs = doc => [...doc].map(segment => (typeof segment === 'string' ? segment : 'code'));
+  expect(isGroupStep(stepOf('|~~ see ::group~(add 1) ~~|')[1])).toBe(true);
+  for (const source of ['[|~~ ::group~(add 1) ~~|]', '{:k |~~ ::group~(x) ~~|}', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
+    expect(refusalOf(source), source).toBeNull();
+  }
+  expect(readAs(stepOf('f |~~ ::fail~(x) ~~|').get('modifiers')[0])).toEqual([' ', 'code', ' ']);
+  expect(readAs(stepOf('|~~ ~([|~~ ::group~(x) ~~|]) ~~|'))).toEqual([' ', 'code', ' ']);
 });

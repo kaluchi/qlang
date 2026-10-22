@@ -1,24 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { runCli } from '../../helpers/run-cli.mjs';
 
-describe('CLI: --help', () => {
-  it('prints the page of the command line and exits 0', async () => {
-    const { stdout, exitCode } = await runCli(['--help']);
-    expect(exitCode).toBe(0);
-    expect(stdout).toMatch(/^\|~~ The command line runs a query/);
-    expect(stdout).toMatch(/Usage:/);
-  });
+it('prints the page of the command line on --help and exits 0', async () => {
+  const { stdout, exitCode } = await runCli(['--help']);
+  expect(exitCode).toBe(0);
+  expect(stdout).toMatch(/^\|~~ The command line runs a query/);
+  expect(stdout).toMatch(/Usage:/);
 });
 
-describe('CLI: --version', () => {
-  it('prints version line and exits 0', async () => {
-    const { stdout, exitCode } = await runCli(['--version']);
-    expect(exitCode).toBe(0);
-    expect(stdout).toMatch(/qlang-cli/);
-  });
+it('prints the version on --version and exits 0', async () => {
+  const { stdout, exitCode } = await runCli(['--version']);
+  expect(exitCode).toBe(0);
+  expect(stdout).toMatch(/qlang-cli/);
 });
 
-describe('CLI: script mode — query argument', () => {
+describe('a query given as its argument', () => {
   it('evaluates `42 | mul 2` and writes `84`', async () => {
     const { stdout, exitCode } = await runCli(['42 | mul 2'], { stdin: '' });
     expect(exitCode).toBe(0);

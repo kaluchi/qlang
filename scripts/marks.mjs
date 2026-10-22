@@ -36,9 +36,8 @@ const RUN_OUTPUT = /^scripts\/benchmark\/sets\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
-// A mark names a record or a section of the specification [QSWRK#marks], and
-// one written in backquotes is the example of a mark, which names nothing
-// [D415].
+// A mark names a record or a section of the specification, and one written
+// in backquotes is the example of a mark, which names nothing [QSWRK#marks].
 const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 const EXAMPLE = /`[^`]*`/g;
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;

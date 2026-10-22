@@ -1,10 +1,10 @@
-// What the tests reach of the code through its imports [D415]: every module
-// of the workspaces read by the parser of JavaScript into its declarations,
-// the names each reads and the code it runs as it loads, and the declarations
-// a test file reaches from what it imports, through the names each
-// declaration reads, the modules each import loads and the code they run as
-// they load. A name a string holds reaches nothing, and a verb a query runs
-// is reached by the text of the query, which no import tells.
+// What the tests reach of the code through its imports [QSWRK#marks]: every
+// module of the workspaces read by the parser of JavaScript into its
+// declarations, the names each reads and the code it runs as it loads, and
+// the declarations a test file reaches from what it imports, through the
+// names each declaration reads, the modules each import loads and the code
+// they run as they load. A name a string holds reaches nothing, and a verb a
+// query runs is reached by the text of the query, which no import tells.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';

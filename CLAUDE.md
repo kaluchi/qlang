@@ -116,7 +116,9 @@ Tier 2, by topic, only the files the topic names:
 - tests: `core/test/unit/QSWRK/cases.test.mjs` for the runner, then
   only the files of the section of the topic, its cases
   `core/test/conformance/<chapter>/<section>.jsonl` and its tests
-  `<chapter>/<section>.test.mjs` under the tests of each workspace
+  `<chapter>/<section>.test.mjs` under the tests of each workspace, which
+  `node scripts/dossier.mjs <section>` hands with the code its tests import
+  and the blocks its marks cover [QSWRK#marks]
 
 Never wholesale: `core/test/`, `docs/journal/replaced/`,
 `docs/journal/research/`, the memory directory. Open a record out of
@@ -214,8 +216,10 @@ from the package and its README does not write [QSWRK#tooling],
 on a decision named in a page of the catalog, which a reader of the
 language cannot follow, on a record that names no decider [QSWRK#journal],
 on a test file whose path names no section of a chapter and no record its
-tests hold, on a line of it that cites the rule its path names and on the
-title of a test that cites a rule [QSWRK#marks], and
+tests hold, on a line of it that cites the rule its path names, on the
+title of a test or of a group that cites a rule or names a binding its file
+imports from the code, on a group of fewer than two tests and on a file
+whose tests stand in one group [QSWRK#marks], and
 on a path this file, the aim or the chapter of the work
 names that the tree lacks or on words they quote from the tree that
 their file no longer holds, on a date of the history in a text that

@@ -6,7 +6,7 @@
 // tests and of their groups, each read by the parser of JavaScript from the
 // call of `it`, `test` or `describe` that states it, which cite no rule and
 // name no binding the file imports from the code; and the groups, each of two
-// tests or more in a file of two groups or more [D414].
+// tests or more in a file of two groups or more [QSWRK#marks].
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';

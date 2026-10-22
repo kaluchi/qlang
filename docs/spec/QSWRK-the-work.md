@@ -225,10 +225,16 @@ tests hold, `core/test/unit/D404.test.mjs`. A section holds one test file
 in each folder, and a part that cannot run beside the rest, a module of
 Node it mocks, a table it meets before the bootstrap seals it or a share
 of a walk one worker runs too long, runs in a file of its own,
-`<section>.<part>.test.mjs`. The title of a test says its rule in words
-and cites none, no line of a test file cites the section its path names,
-and a helper the tests of several files share stands under `test/helpers/`
-of its workspace, a module that marks its rule; the sister project names a
+`<section>.<part>.test.mjs`. A test file holds its tests at its head or in
+groups, `describe`, a group holding two tests or more, a test written in a
+loop or a table counting as many, in a file of two groups or more, so a
+group says a rule its tests share within the section and a file of one
+group holds none. The title of a test and of a group says its rule in the
+words of its section and cites none, naming no binding its file imports
+from the code and no file of the code but in backquotes, which hold the
+words of the language; no line of a test file cites the section its path
+names; and a helper the tests of several files share stands under
+`test/helpers/` of its workspace, a module that marks its rule; the sister project names a
 record of qlang with the repository, `(qlang Dnn)`; and a screen and a run
 of a set of the benchmark name the record they measure in the name of
 their file, `screens/D395.txt` and `sets/Y/runs/D395~cli~sonnet~1.json`.
@@ -237,7 +243,20 @@ one, the first block reaching up to the head of the file, and a path its
 whole file, so a search answers what governs a file and what a record left
 behind: `node scripts/marks.mjs` answers the scope of a record or a
 section, `--touched` the records whose marked blocks a diff touched and
-`--reread Dnn` what to read again. An artifact that names nothing, a
+`--reread Dnn` what to read again, and a citation written in backquotes is
+the example of a mark and names nothing. `node scripts/dossier.mjs <section>`
+hands the dossier of a section, or of a record its tests hold: its text, the
+records in transit over it, its cases, its test files, the code its tests
+import, the blocks its marks cover, each with the sections whose tests reach
+it, and the code its tests alone reach. A test reaches the code its imports
+read, through the imports, the exports and the members of a module, the
+imports its code runs and the code every module it loads runs as it loads,
+the command line of a script aside, and the runner of the cases reaches what
+it reaches for each section that holds cases, since a case runs its query
+through the evaluator; `--astray` lists for the review the blocks of the
+code whose mark names a section no test of which reaches them while the
+tests of another do, a record in transit standing for the sections it
+overrides. An artifact that names nothing, a
 tracked `.mjs`, `.js`, `.peggy` or `.qlang` outside `docs/` that no path
 marks or a workflow, is an orphan, which `check:conventions` refuses and
 the desk counts; the files of a set of the benchmark, the data its runs
@@ -949,8 +968,10 @@ writes; a report of the research without the session's reading
 beside it [QSWRK#review]; a comment, a doc of the catalog and a sentence
 of the prose that name a token the branch took out [QSWRK#documents];
 a test file at a path that names no section of a chapter and no record
-its tests hold, a line of it that cites the rule its path names and the
-title of a test that cites a rule; and the form of a record from `D155` on,
+its tests hold, a line of it that cites the rule its path names, the title
+of a test or of a group that cites a rule or names a binding its file
+imports from the code, a group of fewer than two tests and a file whose
+tests stand in one group; and the form of a record from `D155` on,
 its `Domain.`, its decider and the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a

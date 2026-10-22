@@ -1,19 +1,28 @@
-import { it, expect } from 'vitest';
+import { it, expect, beforeAll } from 'vitest';
 import { createSession, evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { keyword, makeBinding } from '../../src/types.mjs';
 
+beforeAll(async () => {
+  await evalQuery('1');
+});
+
 it('folds by the one call of a quote faster than by a call with modifiers over the same elements', async () => {
-  const foldsOf = (count, code) => `${count} | range | map ~([1 2] | reduce 0 ~(${code})) | sum`;
-  const millisecondsOf = async query => {
+  const millisecondsOf = async (count, code) => {
     const started = Date.now();
-    expect(await evalQuery(query)).toBe(3 * Number.parseInt(query, 10));
+    expect(await evalQuery(`${count} | range | map ~([1 2] | reduce 0 ~(${code})) | sum`)).toBe(3 * count);
     return Date.now() - started;
   };
-  await millisecondsOf(foldsOf(500, 'add'));
-  await millisecondsOf(foldsOf(500, 'sumOf /0 /1'));
-  expect(await millisecondsOf(foldsOf(8000, 'add'))).toBeLessThan(await millisecondsOf(foldsOf(8000, 'sumOf /0 /1')));
-});
+  await millisecondsOf(500, 'add');
+  await millisecondsOf(500, 'sumOf /0 /1');
+  let byOneCall = 0;
+  let byACallWithModifiers = 0;
+  for (let round = 0; round < 2; round += 1) {
+    byOneCall += await millisecondsOf(4000, 'add');
+    byACallWithModifiers += await millisecondsOf(4000, 'sumOf /0 /1');
+  }
+  expect(byOneCall).toBeLessThan(byACallWithModifiers);
+}, 60_000);
 
 it('reaches a verb of the name a reader declares under its label beside the verbs of the root, and a query that declares none does not', async () => {
   expect(await evalQuery(':Box |~~ A box. ~~| | :Box/count ~(7) | 5 | count !| get /addresses | eq #[::Box/count ::map/count ::string/count ::vec/count]')).toBe(true);

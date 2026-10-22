@@ -109,7 +109,7 @@
   }
 
   // A block nested in a comment or in the prose of a doc, by the offset where
-  // it closes, for a caller that names what a source left open [D295].
+  // it closes, for a caller that names what a source left open [QSSYN#refusal].
   function keepNestedBlock() {
     const loc = span();
     options.nestedBlocks?.set(loc.end.offset, loc.start);
@@ -491,7 +491,7 @@ QuoteSpan
 // forms nest, and the closer of the other block form is content; a block
 // that failed at an offset fails there again at once [D404]. A nested block
 // is kept by the offset where it closes, where the caller asks, which names
-// the opener of a source cut short inside it [D295].
+// the opener of a source cut short inside it [QSSYN#refusal].
 NestedLineDocSpan
   = "|~~|"
     { return text(); }

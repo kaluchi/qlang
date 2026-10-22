@@ -224,11 +224,14 @@ strings and quotes, under `::doc`. The parser reads the segments: a
 `~(…)` whose text reads as code is a quote, under the tags written
 before it, a span between backquotes and a `~(` that reads as no code
 are prose [QSSYN#doc], and each run of prose is one string, an empty one
-dropped. The segments compute nothing, a quote under the tag of a group
-among them. `content` answers the text, each quote and its tags where it
+dropped. The prose holds no whitespace at its edges and no indentation
+its lines after the first share, a line of whitespace alone empty,
+whatever built the doc, the parser, `tag ::doc` or the docs of a slot
+joined into a page, so a doc holds one prose wherever its source indents
+it. The segments compute nothing, a quote under the tag of a group among
+them. `content` answers the text, each quote and its tags where it
 stands, the quote written as `print` writes it, so two equal docs print
-alike; `prose` answers the prose alone, the strings of its segments
-joined, its quotes, links and snippets left out; `segments` answers the
+alike, a link and a snippet as the code they run; `segments` answers the
 parts, of a doc under a tag as well, and `tag ::doc` builds a doc from a
 vector of strings and quotes, joining strings that stand together and
 dropping an empty one, as the parser does, a payload that is no vector
@@ -252,16 +255,16 @@ written.
 
 ```qlang
 > |~~ a ~(add 1) b ~~| | segments
-[" a " ~(add 1) " b "]
+["a " ~(add 1) " b"]
 
 > ::Box|~~ a ~(add 1) b ~~| | segments
-[" a " ~(add 1) " b "]
+["a " ~(add 1) " b"]
 
 > get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ see ::group~(add 1) ~~| | segments | count)]
-["|~~ a ~(add 1) b ~~|" 3]
+["|~~ a ~(add 1) b ~~|" 2]
 
-> get [~(|~~ a ~(add 1) b ~~| | prose | count) ~(|~~ a ::link~(::qlang | doc) b ~~| | prose | contains "link") ~(|~~ a ~(add 1) b ~~| | content | contains "~(add 1)")]
-[6 false true]
+> get [~(|~~ a ::link~(::qlang | doc) b ~~| | content) ~([" a\n     b "] | tag ::doc | content)]
+["a ::link~(::qlang | doc) b" "a\nb"]
 
 > |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open
 2

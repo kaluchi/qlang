@@ -16,7 +16,18 @@ a value of the language reads back as it by `parse | open`. A vector and
 a set stand on one line unless a part takes several, and then each part
 stands on a line of its own; a map of two entries or fewer, none a
 container, stands on one line, and any other puts each entry on a line
-of its own, indented by two. An elision stands on one line whatever it
+of its own, indented by two. A doc prints as `|~~`, its prose and `~~|`,
+a space between them, each line of its prose after the first at the
+indentation of the line it opens on and two more and a blank line empty,
+so it reads back as itself [QSSLF#doc]. A step of a quote whose line, its
+pipe among it, passes eighty characters is laid on lines as a source of
+the catalog writes it, but where a value stands on one line: a command
+writes its name on its line and each modifier on a line of its own,
+indented by four, a keyword on the line before it, since a keyword that
+begins a line opens a declaration; a declaration with a page writes its
+name on its line and each doc of its slot on a line of its own, indented
+by two, its body on the line of its last doc, since a body begun on a
+later line runs on through the steps after it [QSSYN#line]. An elision stands on one line whatever it
 holds, so a container that holds one keeps the layout its other parts
 give it, and a value of `::frame` stands on one line whatever it holds as
 well, a value of `::trace` of two frames or more putting each frame on a
@@ -49,6 +60,12 @@ true
 
 > #[2 1] | print
 "#[1 2]"
+
+> ["a\n  b\n\nc"] | tag ::doc | :d it | get [~(print | lines | map ~count) ~(print | parse | first | eq d)]
+[[5 5 0 7] true]
+
+> ::number/round | source | toString | lines | filter ~(startsWith "| takes") | first
+"| takes :digits"
 
 > :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1 ::Box] | print
 "[box ::Box]"

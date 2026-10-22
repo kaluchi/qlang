@@ -130,7 +130,7 @@ export function docText(doc) {
   return doc.map(segment => (typeof segment === 'string' ? segment : printValue(segment))).join('');
 }
 
-// [D295]
+// [QSPRN#print]
 function printDoc(doc, indent) {
   const continued = `\n${'  '.repeat(indent)}  `;
   return `|~~ ${doc.map(segment => (typeof segment === 'string' ? segment.replace(/\n(?!\n)/g, continued) : printValue(segment))).join('')} ~~|`;
@@ -153,7 +153,7 @@ export function printQuoteSource(steps, view = AS_WRITTEN) {
   }).join('');
 }
 
-// [D295]
+// [QSPRN#print]
 const LINE_WIDTH = 80;
 
 const passesTheLine = printed => printed.split('\n').some(line => line.length > LINE_WIDTH);

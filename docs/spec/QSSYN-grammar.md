@@ -198,20 +198,25 @@ within its line, so a source that fails after a line doc fails where its
 reading stopped, and a source cut short in the quote of a line doc on
 its last line names the continuations of the quote beside those of the
 prose. The prose of a line doc ends at its line break, a carriage return
-alone staying in it.
+alone staying in it. A doc holds its prose with no whitespace at its edges
+and no indentation its lines after the first share [QSSLF#doc], so
+`|~~A box.~~|` and `|~~ A box. ~~|` are one doc.
 
 ```qlang
 > :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content
-" one \n two "
+"one\ntwo"
+
+> get [~(|~~A box.~~| | content) ~(|~~   A box.   ~~| | content) ~("|~~ a\n      b\n    ~~|" | parse | first | content)]
+["A box." "A box." "a\nb"]
 
 > |~~ a ``~(add 1)`` c ~~| | segments
-[" a ``~(add 1)`` c "]
+["a ``~(add 1)`` c"]
 
 > |~~ a `f |~~ b ~~| c` then `~(count)` d ~~| | segments
-[" a `f |~~ b ~~| c` then `~(count)` d "]
+["a `f |~~ b ~~| c` then `~(count)` d"]
 
 > |~~ a `|~~` then `~(count)` d ~~| | segments
-[" a `|~~` then `~(count)` d "]
+["a `|~~` then `~(count)` d"]
 
 > [|~~ a `~~| |~~ b` c ~~|] | count
 2
@@ -229,7 +234,7 @@ true
 1
 
 > "|~~| x\r\n" | parse | first | content
-" x"
+"x"
 ```
 
 ## refusal
@@ -248,10 +253,13 @@ letters of a name [QSNAM#letters], a number, a hexadecimal digit,
 whitespace, a doc, the end of the source, any character, and a character
 by what it reads, a character of prose and a
 character and a flag of a regex among them. A source that ends with a
-bracket, a string, a quote or a doc open, where four closers at most
-complete it, names it and where it opened, its `:message` naming the
-closers that complete the source and its `:expected` the one closer the
-next character must be; one that ends with a combinator names the step
+bracket, a string, a quote, a doc or a comment open, a doc or a comment
+nested in a comment or in the prose of a doc among them, where four
+closers at most complete it, names the innermost and where it opened, its
+`:message` naming the closers that complete the source, its `:expected`
+the one closer the next character must be and its `:location` the end of
+the source, while a refusal the grammar writes keeps its own words; one
+that ends with a combinator names the step
 it misses beside its continuations, where no refusal the grammar writes
 stood before the end. A refusal the grammar writes reads no further
 than the forms beside it until a look ahead found the form it refuses
@@ -265,6 +273,9 @@ jq names a slash, and a semicolon between two queries names a template.
 ```qlang
 > "[1 2 3] | filter ~(gt 1" | parse !| get [/expected /message]
 [[")"] "`~(` opened at line 1, column 18 is never closed; `)` completes the source"]
+
+> get [~("[1 |~ a" | parse !| get /message) ~("|~~ a |~~ e" | parse !| get /message) ~("1 |~ a" | parse !| get /message | contains "apply")]
+["`|~` opened at line 1, column 4 is never closed; `~|]` completes the source" "`|~~` opened at line 1, column 7 is never closed; `~~|~~|` completes the source" true]
 
 > "#{1}" | parse !| get /message | contains "#["
 true

@@ -184,7 +184,6 @@ export function makeDoc(segments) {
   return Object.freeze(prose);
 }
 
-// [D295]
 function withoutEdges(doc) {
   const last = doc.length - 1;
   return doc.map((segment, at) => {

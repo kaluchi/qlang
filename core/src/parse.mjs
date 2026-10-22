@@ -54,7 +54,6 @@ export function parse(source, opts = {}) {
   return keepParts(root).value;
 }
 
-// [D295]
 function endOf(source, grammarSource) {
   const lines = source.split('\n');
   const end = { offset: source.length, line: lines.length, column: lines[lines.length - 1].length + 1 };
@@ -86,7 +85,7 @@ const OPENERS_BY_CLOSER = new Map([
 ]);
 const CLOSER_DEPTH = 4;
 
-// [QSQUO#step], [D295]
+// [QSQUO#step], [QSSYN#refusal]
 function attemptOf(candidate) {
   const read = { commentTrivia: new Map(), nestedBlocks: new Map() };
   try {
@@ -99,7 +98,7 @@ function attemptOf(candidate) {
   }
 }
 
-// [D295]
+// [QSSYN#refusal]
 function blockClosedAt({ commentTrivia, nestedBlocks }, offset) {
   for (const { location } of commentTrivia.values()) if (location.end.offset === offset) return location.start;
   return nestedBlocks.get(offset) ?? null;

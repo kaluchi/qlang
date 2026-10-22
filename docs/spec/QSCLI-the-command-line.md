@@ -29,12 +29,13 @@ query gives it the code 1, for a script that tests the code, the failure
 written as without the flag, the refusal of an answer past the budget
 and one a query that wrote by `out` left unwritten among them, while a
 failure caught is a value and every value exits with 0. A failure is
-written as its alert [QSERR#alert]. Below the alert stands the prose of
-its refusal's page as line comments, the repair it tells, a refusal with
-no page of its own reading the page of what refused; an error of the
-kind of errors, which no site refused, and one whose tag no declaration
-names are written without prose, and the REPL prints its cells without
-it. A query that does not parse answers `::quote/ParseError`, the line
+written as its alert [QSERR#alert]. Below the alert stands the content of
+its refusal's page as line comments, the repair it tells and its links
+and snippets as the code they run, a refusal with no page of its own
+reading the page of what refused; an error of the kind of errors, which
+no site refused, and one whose tag no declaration names are written
+without a page, and the REPL prints its cells without it. A query that
+does not parse answers `::quote/ParseError`, the line
 the reading stopped in, within an excerpt around the place its
 `:location` names, and a caret under that place drawn below the alert
 [QSERR#print], and a JSON text of standard input that `parseJson`
@@ -147,8 +148,8 @@ The REPL runs a cell at a time in one session, each cell a scope of its
 own [QSNAM#scope], its first the query `-i` is given, and prints the
 answer of each cell whole, as its literal, a string among them and an
 answer past the budget of every answer [QSPRN#budget] as well, and a
-failure as its alert within that budget [QSERR#alert], without the prose
-of its page, painted whether or not standard output is a terminal
+failure as its alert within that budget [QSERR#alert], without its page,
+painted whether or not standard output is a terminal
 [QSCLI#colour]; a cell that wrote by `out` holds the channel, no value of
 its answer printed after it, while its failure prints; a defect raised
 past the fail track, as a cell ran or as its answer printed, it writes on

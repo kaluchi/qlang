@@ -5,7 +5,7 @@
 {"name":"a-quote-handed-to-a-verb-shadows-no-input-of-the-verb","query":":any/inner (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(apply q)) | :any/outer (::fn | takes :by |~~ By. ~~| /0 | impl ~(inner ~(add by))) | :by 100 | 1 | outer 5","expect":"6"}
 {"name":"a-quote-a-call-answers-is-held-again","query":":any/keep (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q)) | :k 1 | :h (keep ~(add k)) | 5 | apply h !| type","expect":"::call/ValueWithheldError"}
 {"name":"the-args-apply-hands-a-function-read-the-step-that-wrote-them","query":":k 10 | :g (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(map q)) | [1] | apply g [~(add k)]","expect":"[11]"}
-{"decision":"D295","name":"held-code-reads-its-own-declarations","query":":f ~(:Box |~~ A box. ~~| | ::Box | doc | content) | 1 | apply f","expect":"\"A box.\""}
+{"name":"held-code-reads-its-own-declarations","query":":f ~(:Box |~~ A box. ~~| | ::Box | doc | content) | 1 | apply f","expect":"\"A box.\""}
 {"name":"held-code-reads-a-name-it-declares-itself","query":":k 1 | :f ~(:k 2 | add k) | 5 | apply f","expect":"7"}
 {"name":"a-value-withheld-from-held-code-is-withheld-from-the-code-it-holds","query":":count 2 | :f ~(:g ~(take count) | [1 2 3] | apply g) | apply f !| type","expect":"::call/ValueWithheldError"}
 {"name":"held-code-reads-a-verb-the-reader-declares","query":":number/double ~(mul 2) | :f ~(double) | 5 | apply f","expect":"10"}

@@ -1,5 +1,4 @@
-// The REPL run over a scripted standard input, its writes read back with
-// the escapes of their colours or without them [QSCLI#repl].
+// [QSCLI#repl]
 
 import { Readable } from 'node:stream';
 

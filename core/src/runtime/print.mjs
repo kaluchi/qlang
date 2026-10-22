@@ -1,5 +1,4 @@
-// The primitives of `print` [QSPRN#print] and `elide` [QSPRN#elide], and the
-// one print of an answer every host prints within the budget [QSPRN#budget].
+// [QSPRN#print], [QSPRN#elide], [QSPRN#budget]
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
@@ -14,26 +13,20 @@ import { errorFromQlang } from '../error-convert.mjs';
 
 const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
 
-// printsOfKinds(value, scope, state?) → `printedOf(part)`, the print a kind
-// declares for each part of its kind, found as a verb of the root reads it,
-// and undefined where the forms of the core write the part [QSPRN#print].
+// [QSPRN#print]
 export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
   const printedByKind = new Map();
   await collectPrintsOfKinds(value, markRootVerbScope(new Map(scope)), state, nodeOf(scope, 'any/print'), printedByKind);
   return part => printedByKind.get(part);
 }
 
-// printAnswer(value, scope, state?) → the print of a value through the prints
-// of its kinds, a failure under the line comment that says it was raised
-// [QSERR#print].
+// [QSERR#print]
 export async function printAnswer(value, scope, state = rootState(value, scope)) {
   const printed = printValue(value, 0, await printsOfKinds(value, scope, state));
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
 
-// boundAnswer(answer, scope, written?) → what a host prints for an answer, a
-// failure as its alert, where its print or the text `written` fits the
-// budget, and else the refusal of an answer past it in its place [QSPRN#budget].
+// [QSPRN#budget]
 export async function boundAnswer(answer, scope, written = null) {
   const printedOf = await printsOfKinds(answer, scope);
   const failed = isErrorValue(answer);
@@ -46,9 +39,7 @@ export async function boundAnswer(answer, scope, written = null) {
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
 
-// caretOf(answer) → the two line comments a host draws below the refusal of
-// a text, its line within an excerpt around the place and a caret under it,
-// or null [QSERR#print].
+// [QSERR#print]
 export function caretOf(answer) {
   if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
   const source = answer.facts.get('source');

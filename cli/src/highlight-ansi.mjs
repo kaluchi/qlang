@@ -1,35 +1,29 @@
-// highlightAnsi(source, verbNames) → the source painted for a terminal, each
-// token of the core's `tokenize` in the colour of its kind among the eight of
-// ANSI and their bright and dim variants, a token inside a quote in italics.
-// The rules it holds: [QSWRK#tooling], [QSCLI#colour].
+// [QSWRK#tooling], [QSCLI#colour]
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
 const ANSI_RESET = '\x1b[0m';
 
-// The parameters of the escape of each kind, the blue and the magenta bright
-// so a dark scheme does not swallow them, and a path the colour of the keys it
-// reads; whitespace and the source past the parse have none.
 const SGR_OF_KIND = {
-  null:        '33',     // yellow
+  null:        '33',
   boolean:     '33',
   number:      '33',
-  string:      '32',     // green
+  string:      '32',
   quote:       '32',
-  regex:       '95',     // bright magenta
-  keyword:     '36',     // cyan
+  regex:       '95',
+  keyword:     '36',
   path:        '36',
   name:        '36',
-  tag:         '96',     // bright cyan
-  verb:        '94',     // bright blue
-  declaration: '1;94',   // bold bright blue
-  error:       '91',     // bright red
+  tag:         '96',
+  verb:        '94',
+  declaration: '1;94',
+  error:       '91',
   fail:        '91',
-  set:         '92',     // bright green
-  vec:         '93',     // bright yellow
-  doc:         '2',      // dim
+  set:         '92',
+  vec:         '93',
+  doc:         '2',
   comment:     '2',
-  map:         '90',     // bright black
+  map:         '90',
   group:       '90',
   punctuation: '90'
 };

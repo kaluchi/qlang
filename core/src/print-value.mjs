@@ -1,7 +1,4 @@
-// The printer of the core: the text that reads back as a value, a part a
-// kind whose `print` is declared under it prints its own way taken from that
-// kind before the forms of the core write the rest, the text of code among
-// them [QSPRN#print].
+// [QSPRN#print]
 
 import { regexLiteral } from './regex-read.mjs';
 import { readsAsBareKeyword } from './name-chars.mjs';
@@ -23,8 +20,6 @@ import {
   canonicalKeywordLiteral
 } from './types.mjs';
 
-// `dispatchQlangValue(pipeValue, handlers, ...extraArgs)`: the handler of the
-// value's form, `formOf`, which the codec of JSON shares.
 export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
   return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
@@ -42,13 +37,10 @@ function escapeQlangStringLiteral(s) {
 
 const literalOfKeyword = k => k.literal;
 
-// A regex writes its literal, its flags after it [QSTXT#regex].
+// [QSTXT#regex]
 export const printRegex = r => regexLiteral(r.source, r.flags);
 
-// A path writes its segments so they read back [QSPTH#value]: an index as its
-// digits, a key as its bare name, behind a colon where its name carries a
-// slash or follows one that does, which would take it in, and quoted
-// otherwise.
+// [QSPTH#value]
 export const printPath = path => '/' + path.segments.map((segment, index) => printPathSegment(segment, index > 0 && path.segments[index - 1].includes('/'))).join('/');
 
 function printPathSegment(segment, afterSlashedKey) {
@@ -58,9 +50,7 @@ function printPathSegment(segment, afterSlashedKey) {
   return JSON.stringify(segment);
 }
 
-// A value under a tag writes its tag before its payload, a descriptor's
-// `::builtin` among them [QSPRN#print]; the set, the quote, the doc and the
-// error write their own brackets, and a number past the doubles is raised [QSHST#door].
+// [QSPRN#print], [QSHST#door]
 const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
@@ -79,28 +69,20 @@ const PRINT_HANDLERS = {
   underTag: printUnderTag
 };
 
-// A quote writes its steps in `~(…)`, and one whose code is a path alone,
-// which `~(…)` refuses where it is written, under its tag [QSPTH#value].
+// [QSPTH#value]
 function printQuote(quote, view) {
   return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote, view) + ')';
 }
 
 const printedByNoKind = () => undefined;
 
-// printValue(v, indent?, printedOf?, oneLine?) → the text that reads back as
-// `v`; `printedOf(part)` answers the print a kind declared under it gives a
-// part, or undefined where the forms of the core write it, a print of several
-// lines keeps the indent of the place it stands in, and `oneLine` lays every
-// part on one line.
 export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine = false) {
   const printed = printedOf(v);
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
   return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
-// A vector or a set stands on one line unless a part takes several, and
-// then each part stands on a line of its own, as each frame of a trace of
-// two or more does, a frame standing on one line whatever it holds [QSPRN#print].
+// [QSPRN#print]
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
   const rendered = elements.map(el => printValue(el, indent + 1, printedOf, oneLine));
   if (oneLine || (!stacked && !rendered.some(s => s.includes('\n')))) return `${open}${rendered.join(' ')}]`;
@@ -108,26 +90,20 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// A failure writes its error at rest, the value a catch holds of it: the tag
-// of its site before the bang, none for the kind of errors, and its facts, the
-// trace it left among them; the answer of a host says above it that it was
-// raised [QSERR#print].
+// [QSERR#print]
 function printErrorValue(e, indent, printedOf) {
   const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
   return `${tagHead}${printMapLike('!{', e.facts, indent, printedOf)}`;
 }
 
-// A payload touches its tag by its own sign, and a number, a boolean,
-// null or a path, whose literal would continue the tag's name, by `#`
-// [QSLIT#tag].
+// [QSLIT#tag]
 const KINDS_AFTER_HASH = new Set(['number', 'boolean', 'null', 'path']);
 
 function underTagLiteral(tagLiteral, payload, payloadPrint) {
   return KINDS_AFTER_HASH.has(formOf(payload)) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
 }
 
-// An error at rest writes the literal of its kind, `!{…}`, as a set
-// writes `#[…]` [QSERR#rest].
+// [QSERR#rest]
 function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrace(tagged) && tagged.length > 1);
@@ -136,10 +112,7 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
 }
 
-// A map of two entries or fewer, none a container, stands on one line, and
-// so does an elision of what a view left out, whatever it holds, so what
-// holds it keeps its layout [QSPRN#print]; any other map puts each entry on a line
-// of its own.
+// [QSPRN#print]
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
   const hasComposite = entries.some(([, v]) => (isMap(v) || isVec(v)) && v[TAG_HEADER_SYMBOL]?.name !== ELISION_TAG.name);
@@ -151,24 +124,15 @@ function printMapLike(open, m, indent, printedOf, oneLine = false) {
   return `${open}\n${lines.join('\n')}\n${'  '.repeat(indent)}}`;
 }
 
-// docText(doc) → its prose with each quote written where it stands as
-// `print` writes it, a quote under tags with its stack before it, the text
-// a doc's `content` answers [QSSLF#doc].
+// [QSSLF#doc]
 export function docText(doc) {
   return doc.map(segment => (typeof segment === 'string' ? segment : printValue(segment))).join('');
 }
 
-// How a rule of a step built from data reads and writes the parts it names:
-// as the record holds them and the printer writes them, a literal with each
-// part of it that computes written as its quote [QSQUO#step].
+// [QSQUO#step]
 export const asPrinted = { of: value => printValue(value), quoting: literal => printStep(literal, true), computesWithin };
 
-// printQuoteSource(steps, view?) → the text between `~(` and `)`, in the
-// command form, which reads back as the steps printed: a quote of declarations
-// alone, the story `source` reads, one declaration a line, each after the
-// first led by its pipe, as the catalog writes it, and so a quote of several
-// steps one of which takes several lines [QSQUO#parse]; on one line every part
-// of every step stands on it [QSPRN#print].
+// [QSQUO#parse], [QSPRN#print]
 const AS_WRITTEN = { oneLine: false, printedOf: printedByNoKind };
 
 export function printQuoteSource(steps, view = AS_WRITTEN) {

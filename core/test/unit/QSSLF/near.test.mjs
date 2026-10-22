@@ -1,9 +1,3 @@
-// An unresolved name names the names near it in the order of
-// their spelling: those within a slip of the hand up to a third of its
-// length, one at least, the nearest of them alone; beside them the names one
-// of which begins the other, three letters at least; and the names the page
-// of a verb it begins with links whose names end as it goes on.
-
 import { it, expect } from 'vitest';
 import { evalQuery } from '../../../src/session.mjs';
 import { keyword, makeTag } from '../../../src/types.mjs';
@@ -21,7 +15,6 @@ it('a nearer name leaves the farther ones out, a name the typed one begins with 
 
 it('the names of the session count, a label of the root among them by its tag, and an address does not', async () => {
   expect(await nearestOf(':Limit |~~ Limit. ~~| | XLimit')).toEqual([keyword('Limit')]);
-  // `numbe` begins `number/add` and every other address under `number`, none of which a bare name reaches.
   expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
 });
 

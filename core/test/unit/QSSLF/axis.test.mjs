@@ -7,16 +7,12 @@ import { BOX } from '../../helpers/box.mjs';
 
 describe('::name | source answers the quote of the declarations under the name', () => {
   it('the axes read a declaration of the query', async () => {
-    // A declaration of the query writes its record into the query's
-    // scope, which the axes read.
     const result = await evalQuery(':myLocal 42 | ::myLocal | source');
     expect(isQuote(result)).toBe(true);
     expect(printQuoteSource(result)).toBe(':myLocal 42');
   });
 
   it('the axes of a later cell read a declaration of an earlier one', async () => {
-    // The session's scope keeps the records earlier cells wrote, so a
-    // later cell's axes read them beside its own.
     const { createSession } = await import('../../../src/session.mjs');
     const sessionInstance = await createSession();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
@@ -26,8 +22,7 @@ describe('::name | source answers the quote of the declarations under the name',
   });
 
   it('the axes read a name with a path at its address, under a noun that is a name of data', async () => {
-    // `:landing/chapter01` declares a node under `landing`, whose record
-    // the axes read at its address [QSNAM#address].
+    // [QSNAM#address]
     const { createSession } = await import('../../../src/session.mjs');
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell(
@@ -92,23 +87,20 @@ describe('the axes read what a source of the root declared', () => {
   });
 });
 
-// An error at rest reads by `doc` the page of its tag.
 it('an error at rest reads the page of its tag', async () => {
   expect(await evalQuery('10 | div 0 !| doc | content'))
     .toContain('The divisor is not zero');
 });
 
 describe('the axes resolve the binding the evaluator dispatches', () => {
-  // The axes read the one record the scope holds under an address, so a
-  // verb the reader declares reads as itself [QSNAM#binding].
+  // [QSNAM#binding]
   const hundredfold = ':any/hundredfold ~(mul 100) | ';
 
   it('doc answers null for a verb of the reader that carries no page', async () => {
     expect(await evalQuery(hundredfold + '::any/hundredfold | doc')).toBeNull();
   });
 
-  // The reader's declaration of a name the root holds stands over it
-  // [QSDSP#walk], [QSDSP#residence].
+  // [QSDSP#walk], [QSDSP#residence]
   it('a cell declaration of a name the root holds is the one the axes read', async () => {
     const { createSession } = await import('../../../src/session.mjs');
     const sessionInstance = await createSession({
@@ -126,7 +118,6 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   });
 });
 
-// `source` reads the declaration of `it` under the name it declares, as written.
 it('source on a declaration of it answers the declaration', async () => {
   const source = await evalQuery('42 | :snap it | ::snap | source | toString');
   expect(source).toBe(':snap it');
@@ -147,9 +138,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
-    // The body of a declaration is a step, so a pipeline that opens with
-    // `!|` is written as a group, which keeps its parentheses in print
-    // [QSNAM#declare].
+    // [QSNAM#declare]
     expect(await evalQuery(':handler (!| get /kind) | ::handler | source | toString')).toBe(':handler (!| get /kind)');
   });
 });

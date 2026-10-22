@@ -12,8 +12,6 @@ it('a value crosses into JSON and back', () => {
 });
 
 describe('a number of JSON past the doubles', () => {
-  // `JSON.parse` reads a magnitude past the range as an infinity, which the
-  // lift refuses at the path to it.
   it('lifts an out-of-range magnitude into a per-site codec error, with no path where it is the whole text', async () => {
     const { StringParseJsonNumberNotFiniteError } = await import('../../../src/runtime/json.mjs');
     let thrown = null;

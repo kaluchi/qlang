@@ -57,5 +57,8 @@ const SECTIONS = {
     'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSWRK#tooling].'),
   testsOffTheirSection: found => section('Tests that stand at no section of their rule', found, ({ file, line, problem }) => `  ${file}:${line}  ${problem}
 `,
-    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSWRK#marks].')
+    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSWRK#marks].'),
+  // A comment of the code is a mark [D418].
+  commentsNoMarks: found => section('Comments that are no marks', found, ({ file, line, snippet }) => `  ${file}:${line}  ${snippet}\n`,
+    'a comment of the sources and the tests of the core, the command line and the language server is a mark alone, one line of the citations of the sections and the records its block holds, or a directive of a tool: the code says what it does by its names, a section its rule and a record its reason [D418].')
 };

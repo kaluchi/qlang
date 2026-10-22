@@ -60,7 +60,6 @@ describe('the part at a place', () => {
   });
 
   it('returns the narrowest part holding the offset', () => {
-    // Offset 19 lands inside `gt 2`.
     const read = partAtOffset(rootOf('[1 2 3] | filter ~(gt 2)'), 19);
     expect(read.value.get('name').name).toBe('gt');
   });

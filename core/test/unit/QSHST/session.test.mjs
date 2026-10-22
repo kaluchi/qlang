@@ -75,7 +75,6 @@ describe('the cells of a session', () => {
   it('evalCell records the error on runtime failure', async () => {
     const sessionInstance = await createSession();
     const cellEntry = await sessionInstance.evalCell('42 | count');
-    // A failure of the run is the answer of its cell, which holds no defect and keeps the refusal it was raised as.
     expect(cellEntry.defect).toBeNull();
     expect(isErrorValue(cellEntry.result)).toBe(true);
     expect(cellEntry.result.originalError).toBeInstanceOf(QlangError);
@@ -91,8 +90,6 @@ describe('the cells of a session', () => {
 });
 
 describe('a cell whose failure is no error value', () => {
-  // A defect of the host, raised past the fail track, is what a cell answers
-  // with no result, and what a query raises to its caller.
   const collapsing = () => createSession({
     sources: [{
       uri: 'tests/collapse',

@@ -2,8 +2,6 @@ import { it, expect } from 'vitest';
 import { createSession } from '../../../src/session.mjs';
 
 it('`coalesce` leaves the alternatives after the first value unrun', async () => {
-  // A verb of the host counts its runs: the walk ends at `/a`, a value,
-  // and reaches the verb where `/b` fails.
   let runs = 0;
   const counting = await createSession({
     sources: [{

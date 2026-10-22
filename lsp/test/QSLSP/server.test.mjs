@@ -30,8 +30,6 @@ describe('the diagnostics of a document', () => {
 });
 
 describe('the semantic tokens', () => {
-  // A source that writes every kind of token but the source past a parse, and
-  // the kinds that send no token, a bracket and a gap.
   const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
   const UNCOATED = new Set(['vec', 'set', 'map', 'group', 'punctuation', 'whitespace', 'unparsed']);
 
@@ -61,7 +59,6 @@ describe('the semantic tokens', () => {
   it('emits well-formed 5-int stream', async () => {
     const { data } = await semanticTokensFor('[1 2 3] | filter ~(gt 1) | count');
     expect(data.length % 5).toBe(0);
-    // Each `length` field is positive
     for (let i = 2; i < data.length; i += 5) {
       expect(data[i]).toBeGreaterThan(0);
     }
@@ -73,8 +70,6 @@ describe('the semantic tokens', () => {
   });
 
   it('returns empty data for a source the parser reads none of', async () => {
-    // tokenize emits a single whitespace span for it, which has no
-    // semantic-token type — output is empty.
     expect((await semanticTokensFor(')))')).data.length).toBe(0);
   });
 

@@ -18,8 +18,6 @@ it('reads --raw before the query, standard input read as one string', () => {
   });
 });
 
-// A query that reads no subject runs without waiting on standard input,
-// which a shell may hand open with nothing piped.
 describe('standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
 
@@ -91,7 +89,6 @@ describe('the subject standard input lifts to', () => {
   });
 
   it('uses raw mode on --raw whatever stdin holds', async () => {
-    // Standard input reads as JSON, and `--raw` reads it as a string.
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
       ['--raw', 'append " done"'],
@@ -104,7 +101,7 @@ describe('the subject standard input lifts to', () => {
 
 describe('a JSON text `parseJson` refuses', () => {
   it('answers a stdin magnitude outside the finite-double domain as parseJson refuses it, naming the path', async () => {
-    // The answer is the refusal `parseJson` gives the text, its `:path` the path to the number [QSPRN#json].
+    // [QSPRN#json]
     const s = captureStreams('{"big": 1e400, "n": 1}');
     const exitCode = await main(['count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);

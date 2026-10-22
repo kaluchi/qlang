@@ -1,8 +1,6 @@
 import { it, expect } from 'vitest';
 import { parseDocument, semanticTokensFor, SEMANTIC_TOKEN_TYPES } from '../../src/features.mjs';
 import { decodeSemanticTokens } from '../helpers/semantic-tokens.mjs';
-// Docs whose quote stands under the tag of a group or of the fail track, in a
-// literal, as a modifier and in the quote of a doc.
 const DOCS_OF_STEP_TAGS = ['|~~ see ::group~(add 1) ~~|', '[|~~ ::group~(add 1) ~~|]', 'f |~~ ::fail~(add 1) ~~|', '|~~ ~([|~~ ::group~(add 1) ~~|]) ~~|'];
 
 it('reads a doc whose quote stands under the tag of a group or of the fail track with no diagnostic', () => {

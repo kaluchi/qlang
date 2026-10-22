@@ -7,8 +7,6 @@ import { declaredPagesOf, linksOf, wrongLinksOf, wrongTarget } from '../../helpe
 import { isGroupStep } from '../../../src/steps.mjs';
 import { stepOf, refusalOf } from '../../helpers/read-text.mjs';
 
-// The links of every page, each with the address of the page it stands
-// on, and the printed page of every name of the root.
 let links;
 let declaredPages;
 
@@ -36,9 +34,6 @@ describe('the links of the catalog', () => {
   }, 120_000);
 });
 
-// A literal that holds a part that computes is refused, while a quote of a
-// doc that computes fails its try and reads as prose: where the quote of a
-// doc stands outside a literal, its segments tell which it was read as.
 it('reads the quote of a doc under the tag of a group or of the fail track as a segment that computes nothing, in a literal and as a modifier', () => {
   const readAs = doc => [...doc].map(segment => (typeof segment === 'string' ? segment : 'code'));
   expect(isGroupStep(stepOf('|~~ see ::group~(add 1) ~~|')[1])).toBe(true);

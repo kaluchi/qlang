@@ -2,8 +2,7 @@ import { it, expect } from 'vitest';
 import { evalQuery } from '../../../src/session.mjs';
 import { makeTag } from '../../../src/types.mjs';
 
-// The payload runs through the quote as a fork and the subject's tag is
-// laid back over the answer, its constructor running once [QSDSP#answer].
+// [QSDSP#answer]
 it('a constructor that refuses the answer of `within` refuses the edit', async () => {
   expect(await evalQuery('#[1 2] | within ~(count) !| type'))
     .toEqual(makeTag('set/PayloadKindNotTakenError'));

@@ -1,8 +1,6 @@
-// The kind of a parcel a reader declares, with an invariant, the verbs of
-// its function and a step past its end, a step of its source a line
-// [QSBLD#kind].
+// [QSBLD#kind]
 
-// The steps of a query a line each, joined by `|` [QSSYN#line].
+// [QSSYN#line]
 export const lines = (...steps) => steps.join('\n| ');
 
 export const BOX = lines(

@@ -1,11 +1,5 @@
-// The semantic tokens the server answers, decoded from the run of their
-// five integers to the line, the column, the length and the type of each
-// [QSLSP#server].
+// [QSLSP#server]
 
-// Helper: decode the LSP 5-int semantic-tokens stream into
-// `{ line, char, length, type }` records that align back to source
-// offsets, so assertions can read the token kinds without
-// reproducing the delta-encoding rules.
 export function decodeSemanticTokens(data, types) {
   const out = [];
   let line = 0;

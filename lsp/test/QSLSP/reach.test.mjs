@@ -82,8 +82,7 @@ describe('the hover', () => {
   });
 
   it('returns hover for the tag an error literal writes before its bang', async () => {
-    // `::Tag!{…}` is the tagged literal of an error, its head resolving
-    // like every tag and its braces showing no tag [QSERR#rest].
+    // [QSERR#rest]
     const src = '::number/NotFiniteError!{:step 1}';
     const { root } = parseDocument(src, 'test.qlang');
     const hover = await hoverAtOffset(root, src, 5);
@@ -214,13 +213,6 @@ describe('the names a step reaches in the body of a verb, the verbs, the nodes a
   });
 });
 
-// A catalog context for definition fallback tests, in the form of a
-// source of the language: a contract under `::any` and verbs under a
-// kind, each a declaration `buildCatalogIndex` records by its span, and
-// the scope of the root that answers what a bare name reaches. The server merges
-// each catalog file's source and URI onto every index entry so the goto
-// handler resolves offsets without re-reading the source — the test
-// mirror does the same.
 const catalogSrc = ':vec/count ~(1) | :number/add ~(1)';
 const catalogRoot = parseDocument(catalogSrc, 'qlang/any').root;
 const testCatalogIndex = new Map();
@@ -241,7 +233,7 @@ describe('the jump to a declaration', () => {
     const def = await definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
     expect(def.startOffset).toBe(0);
-    expect(def.fileUri).toBeUndefined(); // in-document
+    expect(def.fileUri).toBeUndefined();
   });
 
   it('jumps to last visible declaration when shadowed', async () => {
@@ -250,7 +242,6 @@ describe('the jump to a declaration', () => {
     const useOffset = src.lastIndexOf('x');
     const def = await definitionAtOffset(root, useOffset);
     expect(def).not.toBeNull();
-    // Should point to the second declaration, `:x 2`, not the first.
     expect(def.startOffset).toBe(src.lastIndexOf(':x'));
   });
 
@@ -258,8 +249,6 @@ describe('the jump to a declaration', () => {
     const src = '(:x 1) | x';
     const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('x');
-    // x is declared inside a group, a fork — invisible at the
-    // use site. Falls through to catalog (none provided) or null.
     const def = await definitionAtOffset(root, useOffset);
     expect(def === null || def.fileUri !== undefined).toBe(true);
   });
@@ -299,7 +288,7 @@ describe('the jump to a declaration', () => {
     const { root } = parseDocument(src, 'test.qlang');
     const def = await definitionAtOffset(root, src.lastIndexOf('count'), testCatalogCtx);
     expect(def).not.toBeNull();
-    expect(def.fileUri).toBeUndefined(); // in-document, not catalog
+    expect(def.fileUri).toBeUndefined();
     expect(def.startOffset).toBe(0);
   });
 
@@ -342,15 +331,13 @@ describe('the references of a name', () => {
     const src = ':number/double ~(mul 2) | [1 2] | map ~double';
     const { root } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(root, src.lastIndexOf('double'));
-    // declaration (`:number/double …`) + use site (`map ~double`)
     expect(refs.length).toBe(2);
   });
 
   it('finds references from the declaration site', () => {
     const src = ':x 42 | x';
     const { root } = parseDocument(src, 'test.qlang');
-    // Click on the name of the declaration, :x
-    const kwOffset = src.indexOf(':x') + 1; // inside the keyword
+    const kwOffset = src.indexOf(':x') + 1;
     const refs = referencesAtOffset(root, kwOffset);
     expect(refs.length).toBe(2);
   });
@@ -383,8 +370,6 @@ describe('the references of a name', () => {
 });
 
 it('answers goto-definition of a verb of the language with the file of its source the core\'s package exports, wherever the server stands', async () => {
-  // A copy of the server outside the repository, which reaches the
-  // packages it depends on and no workspace beside it.
   const outside = mkdtempSync(join(tmpdir(), 'qlang-lsp-'));
   cpSync(join(lspDir, 'src'), join(outside, 'src'), { recursive: true });
   symlinkSync(join(lspDir, '..', 'node_modules'), join(outside, 'node_modules'), 'junction');

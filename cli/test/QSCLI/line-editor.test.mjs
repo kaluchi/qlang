@@ -1,7 +1,3 @@
-// The line editor of a terminal and the one of a pipe, which one factory
-// makes, run here through streams that hand them bytes and keep what they
-// write.
-
 import { describe, it, expect } from 'vitest';
 import { PassThrough } from 'node:stream';
 import { createLineEditor } from '../../src/line-editor.mjs';
@@ -9,8 +5,8 @@ import { createLineEditor } from '../../src/line-editor.mjs';
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
 const BRACKETED_PASTE_END   = ESC + '[201~';
-const SUBMIT = '\r';   // plain Enter (CR), which submits
-const NEWLINE = '\n';  // Ctrl+Enter or Ctrl+J, which breaks the line at the cursor
+const SUBMIT = '\r';
+const NEWLINE = '\n';
 
 function captureWrites() {
   const chunks = [];
@@ -113,7 +109,6 @@ describe('a printable key', () => {
     const { stdinStream, editor, out } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'hi');
-    // Each character typed repaints the line with its prompt.
     expect((out.text().match(/> /g) || []).length).toBeGreaterThanOrEqual(2);
   });
 });
@@ -167,7 +162,6 @@ describe('Backspace, Delete and the keys that move the cursor', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', NEWLINE, 'b', Buffer.from([0x7f]), Buffer.from([0x7f]), SUBMIT);
-    // The first backspace removes `b` and the second the line break.
     expect(capture.lines).toEqual(['a']);
   });
 
@@ -181,8 +175,8 @@ describe('Backspace, Delete and the keys that move the cursor', () => {
   it('Left past start is a no-op', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'a', Buffer.from([0x01]),    // 'a', cursor → 0
-                      ESC + '[D', ESC + '[D',       // Left at start
+    feed(stdinStream, 'a', Buffer.from([0x01]),
+                      ESC + '[D', ESC + '[D',
                       SUBMIT);
     expect(capture.lines).toEqual(['a']);
   });
@@ -197,9 +191,9 @@ describe('Backspace, Delete and the keys that move the cursor', () => {
   it('Right inside the buffer advances the cursor one step', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'abc', Buffer.from([0x01]),    // 'abc', cursor → 0
-                      ESC + '[C', ESC + '[C',         // cursor → 2
-                      'X',                            // 'abXc'
+    feed(stdinStream, 'abc', Buffer.from([0x01]),
+                      ESC + '[C', ESC + '[C',
+                      'X',
                       SUBMIT);
     expect(capture.lines).toEqual(['abXc']);
   });
@@ -251,13 +245,11 @@ describe('Ctrl+C and Ctrl+D', () => {
   });
 
   it('Ctrl+C walks the cursor down to the block bottom before printing ^C', () => {
-    // With the cursor on the first of two lines, Ctrl+C walks it down one
-    // row, `\x1b[1B`, and prints ^C below the buffer.
     const { stdinStream, editor, capture, out } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', NEWLINE, 'b',
-                      Buffer.from([0x01]),   // Ctrl+A → cursor to row 0
-                      Buffer.from([0x03]),   // Ctrl+C
+                      Buffer.from([0x01]),
+                      Buffer.from([0x03]),
                       'z', SUBMIT);
     expect(capture.lines).toEqual(['z']);
     expect(out.text()).toMatch(/\x1b\[1B/);
@@ -271,31 +263,27 @@ describe('Ctrl+C and Ctrl+D', () => {
   });
 
   it('Ctrl+C resets the history navigation index to the latest entry', () => {
-    // After Ctrl+C cancels the recalled `one`, the next Up recalls the
-    // latest entry, `two`, as after a submit.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
       'one', SUBMIT,
       'two', SUBMIT,
-      ESC + '[A',                  // recall 'two'
-      ESC + '[A',                  // recall 'one'
-      Buffer.from([0x03]),          // Ctrl+C
-      ESC + '[A',                  // Up recalls the latest, 'two'
+      ESC + '[A',
+      ESC + '[A',
+      Buffer.from([0x03]),
+      ESC + '[A',
       SUBMIT);
     expect(capture.lines).toEqual(['one', 'two', 'two']);
   });
 
   it('Ctrl+C clears per-entry history drafts', () => {
-    // The edit `BX` of the recalled `B` is gone after Ctrl+C, and a walk
-    // back recalls the stored `B`.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
       'A', SUBMIT, 'B', SUBMIT,
-      ESC + '[A', 'X',              // recall 'B', edit to 'BX'
-      Buffer.from([0x03]),           // Ctrl+C clears the drafts
-      ESC + '[A', SUBMIT);          // Up recalls the stored 'B'
+      ESC + '[A', 'X',
+      Buffer.from([0x03]),
+      ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['A', 'B', 'B']);
   });
 
@@ -349,8 +337,6 @@ describe('the cells submitted before', () => {
   });
 
   it('Up at the oldest entry parks the cursor at the start of the buffer', () => {
-    // The first Up recalls `only` with the cursor at its end, and the
-    // second, with no older entry, moves the cursor home, where `Z` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'only', SUBMIT, ESC + '[A', ESC + '[A', 'Z', SUBMIT);
@@ -368,15 +354,13 @@ describe('the cells submitted before', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT,
-                      ESC + '[A', ESC + '[A',  // back to 'first'
-                      ESC + '[B',                // forward to 'second'
+                      ESC + '[A', ESC + '[A',
+                      ESC + '[B',
                       SUBMIT);
     expect(capture.lines).toEqual(['first', 'second', 'second']);
   });
 
   it('Down at the draft bottom parks the cursor at the end of the buffer', () => {
-    // With no history and the cursor home in `x`, Down moves it to the end,
-    // where `Y` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'x', Buffer.from([0x01]), ESC + '[B', 'Y', SUBMIT);
@@ -384,34 +368,30 @@ describe('the cells submitted before', () => {
   });
 
   it('preserves edits made inside a recalled cell across further Up/Down', () => {
-    // The `X` appended to the recalled `three` survives a walk back to
-    // `two` and forward again.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
       'one', SUBMIT,
       'two', SUBMIT,
       'three', SUBMIT,
-      ESC + '[A',                 // recall 'three'
-      'X',                         // edited to 'threeX'
-      ESC + '[A',                 // walk to 'two' — saves drafts[2]='threeX'
-      ESC + '[B',                 // back to drafts[2]
+      ESC + '[A',
+      'X',
+      ESC + '[A',
+      ESC + '[B',
       SUBMIT);
     expect(capture.lines).toEqual(['one', 'two', 'three', 'threeX']);
   });
 
   it('clears per-entry drafts on submit so the next recall sees the stored entry', () => {
-    // After `B` is recalled and edited to `BX` and another cell is
-    // submitted, a walk back recalls the stored `B`.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,
       'A', SUBMIT, 'B', SUBMIT,
-      ESC + '[A', 'X',            // recall 'B', edit to 'BX'
-      ESC + '[A',                 // walk to 'A' — drafts[1]='BX'
-      SUBMIT,                      // emit 'A'; drafts cleared on submit
-      ESC + '[A',                 // recall 'A' (latest history entry)
-      ESC + '[A',                 // recall the stored 'B'
+      ESC + '[A', 'X',
+      ESC + '[A',
+      SUBMIT,
+      ESC + '[A',
+      ESC + '[A',
       SUBMIT);
     expect(capture.lines).toEqual(['A', 'B', 'A', 'B']);
   });
@@ -433,20 +413,15 @@ describe('the cells submitted before', () => {
   it('recalls a multi-line submission with its internal newlines intact', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    feed(stdinStream, 'a', NEWLINE, 'b', SUBMIT,   // submit 'a\nb'
-                      ESC + '[A', SUBMIT);         // recall + submit
+    feed(stdinStream, 'a', NEWLINE, 'b', SUBMIT,
+                      ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['a\nb', 'a\nb']);
   });
 });
 
 describe('Up and Down between the rows of a cell of several lines', () => {
-  // In a buffer of several lines Up and Down move the cursor across its
-  // lines, walk the history from the edge line in their direction, and with
-  // no entry that way move the cursor home or to the end.
 
   it('Up from a lower logical row steps the cursor onto the row above', () => {
-    // From the end of `second`, column 6, Up lands at the end of `first`,
-    // the column held to its length, where `X` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', NEWLINE, 'second',
@@ -456,12 +431,10 @@ describe('Up and Down between the rows of a cell of several lines', () => {
   });
 
   it('Down from an upper logical row steps the cursor onto the row below', () => {
-    // From column 0 of `first` Down lands at column 0 of `second`, where
-    // `Y` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', NEWLINE, 'second',
-                      Buffer.from([0x01]),  // Ctrl+A → cursor=0, logical row 0
+                      Buffer.from([0x01]),
                       ESC + '[B',
                       'Y', SUBMIT);
     expect(capture.lines).toEqual(['first\nYsecond']);
@@ -472,29 +445,25 @@ describe('Up and Down between the rows of a cell of several lines', () => {
     editor.start();
     feed(stdinStream, 'prev', SUBMIT,
                       'a', NEWLINE, 'b',
-                      Buffer.from([0x01]),  // Ctrl+A → cursor=0
+                      Buffer.from([0x01]),
                       ESC + '[A',
                       SUBMIT);
     expect(capture.lines).toEqual(['prev', 'prev']);
   });
 
   it('Down on the last logical row of a multi-line buffer recalls the next history entry', () => {
-    // Up twice from the draft `first\nsecond` recalls `one`, and Down from
-    // it restores the draft whole.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'one', SUBMIT,
                       'first', NEWLINE, 'second',
-                      ESC + '[A',          // intra-buffer: cursor → end of 'first'
-                      ESC + '[A',          // first row + history available → recall 'one'
-                      ESC + '[B',          // last row + next history → restore the multi-line draft
+                      ESC + '[A',
+                      ESC + '[A',
+                      ESC + '[B',
                       SUBMIT);
     expect(capture.lines).toEqual(['one', 'first\nsecond']);
   });
 
   it('keeps a sticky desired column across short intermediate rows', () => {
-    // From column 5 of `CCCCC` the first Up lands at the end of `B` and the
-    // second at column 5 of `AAAAA`, where `X` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'AAAAA', NEWLINE, 'B', NEWLINE, 'CCCCC',
@@ -504,22 +473,18 @@ describe('Up and Down between the rows of a cell of several lines', () => {
   });
 
   it('resets the sticky desired column on any horizontal motion', () => {
-    // Left and Right after the first Up bring the cursor back to the end of
-    // `B` and reset the column, so the next Up lands at column 1 of
-    // `AAAAA`, where `X` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'AAAAA', NEWLINE, 'B', NEWLINE, 'CCCCC',
-                      ESC + '[A',             // cursor → end of 'B', desiredColumn=5
-                      ESC + '[D', ESC + '[C', // Left+Right → resets desiredColumn
-                      ESC + '[A',             // Up with local column=1
+                      ESC + '[A',
+                      ESC + '[D', ESC + '[C',
+                      ESC + '[A',
                       'X', SUBMIT);
     expect(capture.lines).toEqual(['AXAAAA\nB\nCCCCC']);
   });
 });
 
 describe('a paste gathered from its chunks', () => {
-  // A paste lands at the cursor with its line breaks and waits for a submit.
 
   it('inserts a multi-line chunk into the buffer without auto-submitting', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -727,8 +692,6 @@ describe('a paste gathered from its chunks', () => {
 });
 
 describe('a bracketed paste read to its end marker', () => {
-  // A bracketed paste whose markers and body arrive in chunks of their own
-  // is read up to its end marker and lands as one paste.
 
   it('inserts single-line paste content when markers arrive in separate data events', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -765,8 +728,6 @@ describe('a bracketed paste read to its end marker', () => {
 });
 
 describe('a character of several bytes', () => {
-  // The editor decodes the bytes of a terminal as UTF-8, so a character of
-  // several bytes, Cyrillic, CJK or an emoji, arrives whole.
 
   it('inserts a Cyrillic string from a single chunk', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
@@ -778,8 +739,6 @@ describe('a character of several bytes', () => {
   it('reassembles a Cyrillic code point split across two chunks', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    // The two bytes of `П`, 0xD0 and 0x9F, arrive in chunks of their own,
-    // and the decoder holds the first until the second.
     const bytes = Buffer.from('П', 'utf8');
     feed(stdinStream, bytes.subarray(0, 1), bytes.subarray(1, 2), SUBMIT);
     expect(capture.lines).toEqual(['П']);
@@ -801,12 +760,8 @@ describe('a character of several bytes', () => {
 });
 
 describe('a character beyond the basic plane, moved and erased as one', () => {
-  // A character beyond the basic plane, an emoji, is two code units, and
-  // every edit steps over the pair as one character.
 
   it('inserting a surrogate-pair character advances the cursor by both code units', () => {
-    // After `🎉` the cursor stands at offset 2, so `X` lands after the
-    // emoji.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉', 'X', SUBMIT);
@@ -821,19 +776,16 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
   });
 
   it('delete-forward removes a surrogate-pair character as one unit', () => {
-    // From the start of `🎉B` a forward delete leaves `B`.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉', 'B',
-                      Buffer.from([0x01]),  // Ctrl+A → cursor=0
-                      ESC + '[3~',           // delete-forward
+                      Buffer.from([0x01]),
+                      ESC + '[3~',
                       SUBMIT);
     expect(capture.lines).toEqual(['B']);
   });
 
   it('Left arrow skips a surrogate-pair character in one step', () => {
-    // Two Lefts from the end of `🎉X` land before the emoji, where `A`
-    // goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉', 'X',
@@ -843,8 +795,6 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
   });
 
   it('Right arrow skips a surrogate-pair character in one step', () => {
-    // One Right from the start of `🎉X` lands after the emoji, where `A`
-    // goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉', 'X',
@@ -855,8 +805,6 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
   });
 
   it('Up snaps the cursor to a character boundary when the desired column lands mid-surrogate-pair', () => {
-    // Up from column 1 of `X` aims inside the pair of `🎉` and lands at
-    // column 0, where `Z` goes.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉', NEWLINE, 'X',
@@ -866,7 +814,6 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
   });
 
   it('round-trips a chain of surrogate-pair characters through repeated backspace without leaving orphans', () => {
-    // Three emojis and three backspaces leave an empty buffer.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, '🎉🎊🎈',
@@ -879,16 +826,10 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
 });
 
 describe('the redraw of a cell of several rows', () => {
-  // The cursor crosses line breaks and the submitted buffer holds the
-  // edits, the repaint walking up and back and the submit walking down from
-  // a line above the last.
 
   it('walks Left across a newline, inserts a char in the first row, then submits', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
-    // Seven Lefts from the end of `first\nsecond` cross the line break, `X`
-    // lands at the end of `first`, and the submit fires from the first
-    // line.
     feed(stdinStream, 'first', NEWLINE, 'second',
                       ESC + '[D', ESC + '[D', ESC + '[D', ESC + '[D',
                       ESC + '[D', ESC + '[D', ESC + '[D',
@@ -898,13 +839,10 @@ describe('the redraw of a cell of several rows', () => {
   });
 
   it('accounts for soft-wrap when the logical line overflows a narrow column width', () => {
-    // Behind the prompt `> ` a line of ten characters in ten columns wraps
-    // onto a second row, and the next repaint walks up to its first row.
     const { stdinStream, editor, capture, out } = makeTtySetup({ columns: 10 });
     editor.start();
     feed(stdinStream, 'abcdefghij', 'K', SUBMIT);
     expect(capture.lines).toEqual(['abcdefghijK']);
-    // The repaint walked the cursor up.
     expect(out.text()).toMatch(/\x1b\[\d+A/);
   });
 });
@@ -919,8 +857,6 @@ describe('the start and the close of the editor', () => {
   });
 
   it('wraps every redraw in synchronized-output and hide/show-cursor escapes', () => {
-    // Each repaint opens a block of synchronized output and hides the
-    // cursor, and closes both before the next key.
     const { stdinStream, editor, out } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a');
@@ -972,8 +908,6 @@ describe('the start and the close of the editor', () => {
 
 describe('the edges of the cell', () => {
   it('backspaces the only character in the buffer', () => {
-    // At offset 1 one code unit stands behind the cursor, and the backspace
-    // takes it.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', Buffer.from([0x7f]), 'b', SUBMIT);
@@ -981,8 +915,6 @@ describe('the edges of the cell', () => {
   });
 
   it('deletes the last character of the buffer', () => {
-    // A forward delete on the last character, with no code unit after it,
-    // takes one.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'ab', ESC + '[D', ESC + '[3~', SUBMIT);
@@ -990,12 +922,11 @@ describe('the edges of the cell', () => {
   });
 
   it('keeps the sticky column across consecutive Up moves', () => {
-    // The first Up records the column and the second travels on it.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'aaa', NEWLINE, 'bb', NEWLINE, 'c',
-                      ESC + '[A',   // → line 'bb', column 1 recorded
-                      ESC + '[A',   // → line 'aaa', same column
+                      ESC + '[A',
+                      ESC + '[A',
                       'X', SUBMIT);
     expect(capture.lines).toEqual(['aXaa\nbb\nc']);
   });
@@ -1008,12 +939,11 @@ describe('the edges of the cell', () => {
   });
 
   it('travels back down on the column recorded by the Up moves', () => {
-    // Down travels on the column the Up moves recorded.
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'aaa', NEWLINE, 'bb', NEWLINE, 'c',
-                      ESC + '[A', ESC + '[A',   // → line 'aaa', column 1 recorded
-                      ESC + '[B',               // → line 'bb', same column
+                      ESC + '[A', ESC + '[A',
+                      ESC + '[B',
                       'X', SUBMIT);
     expect(capture.lines).toEqual(['aaa\nbXb\nc']);
   });

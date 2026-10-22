@@ -1,11 +1,4 @@
-// The ring of atoms [QSLIT#atoms]: every value comes apart into its atoms and a
-// template, and `get` over the template builds it back from the atoms, both
-// written in qlang with the language's own verbs in `test/qlang/atoms.qlang`.
-// The round trip runs over every example of the catalog, read at the address
-// of each verb and at the name of each tag it declares, and over every literal
-// the conformance cases expect, a failure among them caught to its error at
-// rest, the trace it left among its facts [QSERR#trace]. The examples of the
-// catalog are walked in shares, a file each, which run side by side.
+// [QSLIT#atoms], [QSERR#trace]
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -32,7 +25,6 @@ export async function ringSession() {
   return session;
 }
 
-// The sources of the values the ring builds back unequal.
 export async function unbuiltOf(session, valuesBySource) {
   const unbuilt = [];
   for (const [source, value] of valuesBySource) {
@@ -60,8 +52,6 @@ export async function conformanceLiterals() {
   return literalsByPrint;
 }
 
-// The ring over one share of the examples of the catalog, every
-// SHARES-th of them from the share's place.
 export function describeCatalogShare(share) {
   describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog [QSLIT#atoms]`, () => {
     let session;

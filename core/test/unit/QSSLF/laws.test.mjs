@@ -22,8 +22,7 @@ describe('the laws of the catalog, run by runLaws', () => {
   }, 30000);
 
   it('every law reads back from the text of its code as itself', async () => {
-    // `toString` writes each law as the text of its code, which `parse` reads
-    // back as the law, a reader whose read answers a failure failing [QSQUO#parse].
+    // [QSQUO#parse]
     const unequal = [];
     for (const reader of await catalogReaders()) {
       const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter ~(:law it | toString | parse | eq law | not)`);
@@ -43,8 +42,7 @@ describe('the laws of the catalog, run by runLaws', () => {
 
 describe('runLaws reads a name as laws does', () => {
   it('a binding no declaration wrote runs no law and reads no page', async () => {
-    // A binding no declaration wrote, in a scope a host hands a session,
-    // holds no doc [QSNAM#binding].
+    // [QSNAM#binding]
     const scope = new Map(await langRuntime()).set('hostInjected', makeBinding({ name: keyword('hostInjected'), value: 42 }));
     const sessionInstance = await createSession({ scope });
     const cellEntry = await sessionInstance.evalCell('::hostInjected | runLaws');
@@ -75,8 +73,7 @@ describe('the outcome of each law', () => {
   });
 
   it('a law a source of the root declares runs from a cell', async () => {
-    // A law the root declares runs in a lane over the root alone, which a
-    // cell's runLaws reaches [QSQUO#held].
+    // [QSQUO#held]
     const moduleSource = ':fortytwo 1\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -87,8 +84,6 @@ describe('the outcome of each law', () => {
   });
 
   it('a law does not leak the writes of a declaration back into the calling session', async () => {
-    // The law under `:writer` declares `:scratch` in a scope of its own, so
-    // the session reads no `scratch` after it ran.
     const moduleSource = ':writer 1\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]
@@ -103,9 +98,6 @@ describe('the outcome of each law', () => {
   });
 
   it('a law that raises a map holds it at rest as its :error, its :message among its facts', async () => {
-    // A map raised is an error of the kind of errors, and the law's
-    // result holds it at rest as `!|` grounds it, every entry of the
-    // map a fact.
     const moduleSource = ':demo 1\n:demo/raises |~~ A user-built error. ~~| ::law~({:message "hand-built failure" :kind :test} | raise)';
     const session = await createSession({
       sources: [{ uri: 'tests/source', source: moduleSource }]

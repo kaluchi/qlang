@@ -47,9 +47,6 @@ it('a source of the language the parser refuses raises its parse error, which na
 });
 
 describe('the facts and the message of SourceLoadError', () => {
-  // The class a loader raises for a source that does not read, built here by
-  // hand, its facts the origin of the source, where it was looked for and the
-  // host's account of the failure.
 
   it('carries the origin, the location and the cause, and names no platform', async () => {
     const { BuiltinSourceLoadError } = await import('../../../src/source-load-error.mjs');
@@ -112,7 +109,6 @@ it('hands a word of a host the state of its call where it marks its primitive as
 });
 
 it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
-  // `seen` is computed while the source is read, before its host hands the constructor.
   const hosted = await createSession({ sources: [{
     uri: 'test/hosted-kind',
     source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
@@ -122,9 +118,6 @@ it('lays the tag of a kind over the payload as it is until its host hands the co
   expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
 });
 
-// A session whose source declares two kinds and two verbs a host serves,
-// the constructor of `::Gauge` doubling its payload and that of `::Dial`
-// answering a value already under its kind.
 const gaugeSession = () => createSession({
   sources: [{
     uri: 'probe/gauge',
@@ -175,8 +168,6 @@ it('a descriptor under ::builtin is a value under a tag', async () => {
 });
 
 describe('the sources a host hands', () => {
-  // A source of the host declares a verb under the label of its subject, with
-  // the primitive the host hands beside it.
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [

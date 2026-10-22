@@ -1,6 +1,4 @@
-// The shape of a value and its leaves [QSPTH#shape]: `shape` answers the structure
-// of the subject beneath its tags as a value of `::shape`, with the marks it
-// lays over a part, and `paths` the pair of the path and the kind of each leaf.
+// [QSPTH#shape]
 
 import { registerPrimitive } from '../primitives.mjs';
 import {
@@ -8,17 +6,13 @@ import {
 } from '../types.mjs';
 import { makeSet, compareValues } from '../ordering.mjs';
 
-// The tag of a shape and the marks a shape lays over a part [QSPTH#shape].
 const SHAPE_TAG = makeTag('shape');
 const ABSENT_TAG = makeTag('absent');
 const NULLABLE_TAG = makeTag('nullable');
 const EACH_TAG = makeTag('each');
 
-// The subject opens beneath its tags, and below it a vector, a set or a map a
-// reader writes, a part under a tag standing whole as a leaf of its kind.
 const isOpened = (value, top) => (isMap(value) || isVec(value)) && (top || !isTagged(value) || isSet(value));
 
-// The pairs of the path and the kind of every leaf, an empty container among them.
 registerPrimitive('any/paths', subject => {
   const found = [];
   const walk = (current, segments) => {
@@ -35,9 +29,6 @@ registerPrimitive('any/paths', subject => {
   return makeSet(found);
 });
 
-// The shape of a value: a map its keys, folded into `::each` where they are
-// data or many names, a vector and a set one element whose shape holds of all,
-// or a tuple, an empty one itself, and an atom its kind.
 function shapeOf(current, top) {
   const value = top ? beneathTags(current) : current;
   if (!isOpened(value, top)) return typeOf(value);
@@ -50,18 +41,12 @@ function shapeOf(current, top) {
   return isSet(value) ? makeSet(element) : Object.freeze(element);
 }
 
-// Vectors of one length and two elements or more whose indices part are a
-// tuple, a shape for each index, and a list where every index holds one.
 function tupleOf(elements) {
   if (!elements.every(isList) || new Set(elements.map(element => element.length)).size !== 1 || elements[0].length < 2) return null;
   const byIndex = elements[0].map((_, index) => collapsed(elements.map(element => shapeOf(element[index], false))));
   return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? null : Object.freeze(byIndex);
 }
 
-// A map whose values are not all null folds into `::each` over its least key
-// [QSPTH#shape] and the shape of its values where every key is data, an id of digits, a
-// date or a time, a uuid or an email, and where more than eight names hold
-// containers, values under a tag or null of one shape.
 const DATA_KEYS = [
   /^-?\d+(\.\d+)?$/,
   /^\d{4}-\d{2}-\d{2}/,
@@ -84,11 +69,8 @@ function foldedOf(value, shapes) {
 
 const leastOf = keys => [...keys].sort(compareValues)[0];
 
-// The shape stands under `::shape`, whose page tells how a shape reads [QSPTH#shape].
 registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 
-// The marks over the core of a shape, `::absent` outside, a key some records
-// lack, and `::nullable` within, a part null in some, a part null in all `::null`.
 const NULL_KIND = typeOf(null);
 const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
 
@@ -117,9 +99,6 @@ const isFold = shape => isMark(shape, EACH_TAG);
 const eachKey = each => [...payloadBeneath(each).keys()][0];
 const eachShape = each => [...payloadBeneath(each).values()][0];
 
-// The shape the shapes of parts share, merged from all of them at once, so data
-// in any order answers one shape at any depth [QSPTH#shape]: their marks joined over the
-// cores they share, a null giving way to the rest as `::nullable`.
 function collapsed(shapes) {
   const marks = shapes.map(marksOf);
   const cores = marks.flatMap(({ core }) => (isNullShape(core) ? [] : isAlternatives(core) ? [...core] : [core]));
@@ -130,10 +109,6 @@ function collapsed(shapes) {
   });
 }
 
-// The cores of parts merged: vectors into one, sets into one, records that
-// share a key into one, folds whose values merge into one, and an empty map,
-// which holds no key, lacking each key of the records and folds beside it; the
-// rest stand apart as the set of their kinds [QSPTH#shape].
 function mergedCores(cores) {
   const kinds = [...makeSet(cores)];
   const lacks = kinds.some(kind => isRecord(kind) && kind.size === 0) && kinds.some(kind => (isRecord(kind) && kind.size > 0) || isFold(kind));
@@ -142,7 +117,6 @@ function mergedCores(cores) {
   return merged.length === 1 ? merged[0] : merged;
 }
 
-// The kinds gathered into the classes that merge, until no two classes do.
 function classesOf(kinds) {
   const classes = kinds.map(kind => [kind]);
   for (let found = true; found;) {
@@ -179,9 +153,6 @@ function mergedClass(members, lacks) {
   return makeTagged(EACH_TAG, new Map([[eachKey(first), lacks ? lacked(values) : values]]));
 }
 
-// The element vectors or sets share: none where all are empty, marked
-// `::absent` where some are, a tuple where tuples of one length part index by
-// index, and one element of all of them else.
 function elementsMerged(members) {
   const filled = members.filter(member => member.length > 0);
   if (filled.length === 0) return [];
@@ -192,9 +163,6 @@ function elementsMerged(members) {
   return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? [byIndex[0]] : byIndex;
 }
 
-// The record records that share a key make: the keys of all of them, each over
-// the shape its values share, marked `::absent` where some lack it or an empty
-// map stands beside them.
 function recordMerged(records, lacks) {
   return new Map(keysOf(records).map(key => {
     const holding = records.filter(record => record.has(key));

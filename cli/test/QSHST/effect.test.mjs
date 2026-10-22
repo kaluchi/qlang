@@ -8,7 +8,6 @@ import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 it('answers `in` in the REPL with the empty string, the prompt holding standard input', async () => {
   const replHarness = captureRepl('in | print | out\n.exit\n');
   await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-  // `in` answers the empty string, whose literal `""` `print` makes and `out` writes on stdout.
   expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
 });
 

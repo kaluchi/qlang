@@ -5,9 +5,9 @@ import { keyword, makeBinding } from '../../src/types.mjs';
 
 it('folds twenty-four thousand times by the one call of a quote within five seconds', async () => {
   await evalQuery('1');
-  const started = performance.now();
+  const started = Date.now();
   expect(await evalQuery('24000 | range | map ~([1 2] | reduce 0 ~(add)) | sum')).toBe(72000);
-  expect(performance.now() - started).toBeLessThan(5000);
+  expect(Date.now() - started).toBeLessThan(5000);
 });
 
 it('reaches a verb of the name a reader declares under its label beside the verbs of the root, and a query that declares none does not', async () => {

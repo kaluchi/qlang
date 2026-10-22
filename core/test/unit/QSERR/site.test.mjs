@@ -13,8 +13,6 @@ import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
 describe('a refusal converted to a failure', () => {
-  // The facts of the site come in the order the catalog declares them,
-  // its label's first and those of `::error` after, and the trace last.
   it('converts a refusal — its address the tag, its facts in the order the catalog declares them', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
     const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
@@ -47,7 +45,6 @@ it('a refusal carries its facts', () => {
   expect(qlangErr).toBeInstanceOf(Error);
 });
 
-// A refusal whose site hands no facts.
 const TestsProbeError = declareRefusal('tests/ProbeError');
 
 describe('a refusal declared by its address', () => {
@@ -85,9 +82,6 @@ it('a defect of the runtime carries its message and its facts', () => {
 });
 
 describe('one address, one site', () => {
-  // The address is the tag a refusal answers by and the name of its
-  // page, so a second class under one address would speak for the
-  // other site.
   it('lists every address a site declared, which the pages of the refusals are held against', () => {
     expect([...declaredRefusals()]).toEqual(expect.arrayContaining(['tests/ProbeError', 'call/UnknownNameError', 'builtin/RefusalDeclaredTwiceError']));
   });
@@ -107,8 +101,6 @@ describe('one address, one site', () => {
   });
 });
 
-// The class stays off the QlangError hierarchy and carries the address
-// every other declaration stamps.
 it('declares a failure of the embedding outside the refusals of the language, which still names its site', () => {
   const TestsBridgeUnreachableError = declareForeignError('tests/BridgeUnreachableError',
     ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
@@ -171,9 +163,6 @@ describe('the refusals a verb that is a function raises by rule', () => {
   });
 });
 
-// A refusal is public, so its name carries a kind only where its address
-// names it, which the check of the conventions holds over the code and the
-// pages of the catalog.
 describe('a refusal names a kind only where its address names it', () => {
   const nouns = new Set(['boolean', 'keyword', 'map', 'number', 'set', 'string', 'vec']);
   const named = addresses => kindsNamedOffTheirAddress(addresses.map(address => ({ address })), nouns);

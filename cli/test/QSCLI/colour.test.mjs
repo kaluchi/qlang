@@ -34,10 +34,8 @@ describe('the flag --color', () => {
 const ESCAPE = /\x1b\[[0-9;]*m/g;
 const RESET = '\x1b[0m';
 const VERBS = new Set(['filter', 'count', 'gt']);
-// A source that writes every kind of token but the source past a parse.
 const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
 
-// The painted text of each token of a source, in their order.
 function paintedTokens(source, verbNames) {
   let rest = highlightAnsi(source, verbNames);
   return tokenize(source, verbNames).map(token => {
@@ -88,9 +86,6 @@ describe('the layer of colour over the tokens', () => {
 });
 
 describe('whether the command line paints: the flag, FORCE_COLOR, NO_COLOR and a terminal', () => {
-  // Five-way precedence: --color=always > --color=never > FORCE_COLOR
-  // > NO_COLOR > TTY autodetect. Each branch needs its own assertion
-  // for the env-vars + auto-mode arms to land on full coverage.
   const ttyOut = { isTTY: true };
   const pipeOut = { isTTY: false };
 
@@ -134,9 +129,7 @@ describe('the answer painted where the caller asks for colour', () => {
       await makeCellEntry({ result: new Map([['k', 1]]) }),
       { didExplicitStdoutEffect: false, shouldColorize: true }
     );
-    // The answer holds an ANSI escape.
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
-    // Underlying text content survives stripping
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
@@ -156,7 +149,6 @@ describe('the REPL painting its prompt, its line and its answers', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    // Numbers render under the yellow escape.
     expect(replHarness.stdoutText()).toMatch(/\x1b\[33m/);
   });
 
@@ -168,7 +160,6 @@ describe('the REPL painting its prompt, its line and its answers', () => {
   });
 
   it('paints the line as it is typed', async () => {
-    // A line typed and discarded by Ctrl+C runs no cell, so the paint of its number is the line editor's alone.
     const ttyStdin = new (await import('node:stream')).PassThrough();
     ttyStdin.isTTY = true;
     ttyStdin.setRawMode = () => {};
@@ -176,9 +167,9 @@ describe('the REPL painting its prompt, its line and its answers', () => {
     const stdoutChunks = [];
     const replPromise = runRepl(ttyStdin, (text) => stdoutChunks.push(text), () => {}, { terminal: ttyStdin });
     ttyStdin.write(Buffer.from('42'));
-    ttyStdin.write(Buffer.from([0x03]));   // Ctrl+C discards the line
+    ttyStdin.write(Buffer.from([0x03]));
     await new Promise((resolveTick) => setImmediate(resolveTick));
-    ttyStdin.write(Buffer.from([0x04]));   // Ctrl+D on the empty line closes the REPL
+    ttyStdin.write(Buffer.from([0x04]));
     await replPromise;
 
     expect(stdoutChunks.join('')).toMatch(/\x1b\[33m42/);

@@ -1,6 +1,4 @@
-// The walk of a value's tags to a kind a name serves [QSDSP#walk], and the
-// primitive a host handed run over the value the walk served, what it answers
-// held at the door by the walk that holds what a host hands a session [QSHST#door].
+// [QSDSP#walk], [QSHST#door]
 
 import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
@@ -14,10 +12,7 @@ import {
   makeTag, makePath, typeOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
-// ── kinds ──────────────────────────────────────────────────────
-
-// A vector, a set and a quote are read as vectors and a tagged map as a
-// map; a number is a finite double [QSLIT#number].
+// [QSLIT#number]
 function isOfKind(value, kindName) {
   switch (kindName) {
     case ANY_KIND_NAME: return true;
@@ -29,8 +24,7 @@ function isOfKind(value, kindName) {
   }
 }
 
-// The value of one of the kinds a walk of the value's tags reaches from
-// the outside in, and the tags it passed [QSDSP#walk], or null.
+// [QSDSP#walk]
 export function walkToKinds(value, kindNames) {
   const passedTags = [];
   let served = value;
@@ -42,12 +36,7 @@ export function walkToKinds(value, kindNames) {
   return { served, passedTags };
 }
 
-// subjectOfCall(chain, labelName, subject) → the subject a function's call
-// serves: for a verb, the value of its label the walk of the subject's tags
-// reaches, or of a kind `on` names beside it, the noun's own tag name for a
-// verb of the noun itself, since the walk of a tag name passes the noun it
-// names and no other [QSDSP#tagname]; for a function `apply` runs, a value of
-// the kinds `on` names, or the subject as it is; null where the walk reaches none.
+// [QSDSP#tagname]
 export function subjectOfCall(chain, labelName, subject) {
   const onKinds = chain.subject?.kinds ?? null;
   if (labelName === null) return onKinds === null ? { served: subject, passedTags: [] } : walkToKinds(subject, onKinds);
@@ -57,34 +46,23 @@ export function subjectOfCall(chain, labelName, subject) {
   return byKinds !== null && isTag(byKinds.served) && ![...kindsOfWalk(byKinds.served)].includes(labelName) ? null : byKinds;
 }
 
-// servesTheSubject(record, subject) → whether the verb a record holds serves
-// the subject, as its call would [QSNAM#reach], [QSLSP#server].
+// [QSNAM#reach], [QSLSP#server]
 export function servesTheSubject(record, subject) {
   const value = bindingValueOf(record);
   const fn = isFn(value) ? value : functionOfRecipe(value);
   return subjectOfCall(chainOfFn(fn), splitAddress(record.get('name').name)[0], subject) !== null;
 }
 
-// Whether an answer is waited on: anything with a `then`, so a host's
-// promise of another realm and a thenable resolve as the core's own do.
 export const isThenable = value => typeof value?.then === 'function';
 
-// A primitive runs over the value the walk served and the values of the inputs
-// of the call, a reader of the tags its subject stood beneath over the tags the
-// walk passed, and a reader of the scope over the state of the call, its scope
-// the tree of the query, held at the door under the address of its call
-// [QSDSP#residence], [QSNAM#owner], [QSERR#raise], [QSHST#source].
+// [QSDSP#residence], [QSNAM#owner], [QSERR#raise], [QSHST#source]
 export function runPrimitive(primitive, served, passedTags, inputValues, state, address) {
   const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;
   const run = () => (readsState(primitive) ? primitive(served, ...read, queryStateOf(state)) : primitive(served, ...read));
   return heldAtTheDoor(primitive, run, address, [served, ...inputValues]);
 }
 
-// heldAtTheDoor(primitive, run, address, handed) → what `run` answers, one of
-// the core's table unheld, one a host handed beside its source held to the
-// kinds of the language at any depth with the facts of a refusal it throws, a
-// value of no kind failing the call as `::call/HostFailureError` naming the
-// address and the path where it stands, a value the call handed in as it is [QSHST#door].
+// [QSHST#door]
 export function heldAtTheDoor(primitive, run, address, handed) {
   if (PRIMITIVE_REGISTRY.holds(primitive)) return run();
   let answer;
@@ -103,8 +81,6 @@ function lawfulAnswer(answer, address, handed) {
   return answer;
 }
 
-// A refusal whose facts hold a value of no kind fails as such an answer does,
-// a fact left undefined none.
 function refusalHeld(thrown, address, handed) {
   if (!(thrown instanceof QlangError) || thrown instanceof QlangDefect) return thrown;
   const foreign = foreignPartOf(new Map(Object.entries(thrown.facts).filter(([, fact]) => fact !== undefined)), new Set(handed));
@@ -118,11 +94,6 @@ function failureOfTheDoor(address, { path, account }) {
 
 const NOTHING_HANDED = new Set();
 
-// foreignPartOf(value, handed?) → the first part of a value of no kind with the
-// path where it stands, or null, by one walk of a stack of its own at any depth,
-// a part the call handed in passed over, a container met twice walked once, one
-// met again within its own walk holding itself, and a hole of a vector no
-// element [QSHST#door].
 export function foreignPartOf(value, handed = NOTHING_HANDED) {
   const opened = new Set();
   const walked = new Set();
@@ -144,11 +115,6 @@ export function foreignPartOf(value, handed = NOTHING_HANDED) {
   }
 }
 
-// What the door reads of a part: null for a value it need not walk, a value
-// the call handed in and one JavaScript leaves undefined, which reads as null,
-// among them, the account of a value of no kind, or the vector or the map to
-// walk, a failure read through to the map of its facts and a value under a tag
-// to its payload.
 function readAtTheDoor(value, handed, opened, walked) {
   let part = value;
   for (;;) {

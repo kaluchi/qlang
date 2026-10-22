@@ -6,11 +6,9 @@ import { isErrorValue, TAG_HEADER_SYMBOL } from '../../../src/types.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 import * as core from '../../../src/index.mjs';
 
-// Long enough that the elision standing for it prints shorter than it.
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
 const continued = (query, elision) => evalQuery(`${query} ${printValue(elision.get('read')).slice(2, -1)}`);
 
-// The elisions a view holds, the facts of a failure among it.
 function elisionsOf(value, found = []) {
   if (isErrorValue(value)) for (const fact of value.facts.values()) elisionsOf(fact, found);
   else if (value instanceof Map && value[TAG_HEADER_SYMBOL]?.name === 'elision') found.push(value);
@@ -20,9 +18,6 @@ function elisionsOf(value, found = []) {
   return found;
 }
 
-// Every elision of the views of the alert of a query counts the elements, the
-// entries or the characters its read, continued from the query beneath `!|`,
-// answers, the query run once for them all.
 async function sizesHold(query, budgets) {
   const failing = await evalQuery(query);
   const elisions = budgets.flatMap(budget => elisionsOf(alertWithin(failing, budget)));
@@ -101,10 +96,6 @@ describe('an alert cut within its budget', () => {
   });
 });
 
-// A failure a host prints is an alert: the subject of the frame where
-// the failure arose within an excerpt, a subject it only passed given way whole,
-// an error at rest among its facts a value cut within its excerpt, a value
-// shown once, and the read of every elision continuing the query beneath `!|`.
 describe('the subjects an alert prints, each within its excerpt', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
 

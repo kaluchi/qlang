@@ -24,10 +24,6 @@ describe('the refusals by rule of an input that names the kinds of each element'
   });
 });
 
-// An input reads the args by its place: one step that reads one arg, a path
-// or `query` with a default or none, is read where it stands, a quote of a
-// path alone as the path, and any other place runs as code over the args,
-// `~(it)` alone reading them whole.
 describe('the place of an input', () => {
   const answerOf = async query => (await (await createSession()).evalCell(query)).result;
 

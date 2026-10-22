@@ -1,9 +1,6 @@
 import { it, expect } from 'vitest';
 import { parse } from '../../../src/parse.mjs';
 import { readsItsSubject } from '../../../src/walk.mjs';
-// A query reads its subject where its first step that declares nothing
-// does, or a declaration's body before it; a host waits on the stream it
-// lifts the subject from only then.
 const readsOf = query => readsItsSubject(parse(query));
 
 it('a literal of no parts reads no subject, a path among them', () => {

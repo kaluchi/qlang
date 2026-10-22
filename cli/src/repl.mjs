@@ -1,10 +1,4 @@
-// The REPL: one session across its cells, each line a cell whose answer
-// prints, painted, after what its `out`, `err` and `tap` wrote; in a terminal
-// the line paints as it is typed and a paste of several lines is one cell,
-// through the line editor; `in` reads the empty string, since the prompt holds
-// standard input; a query given after `-i` runs as the first cell
-// [QSCLI#repl]; `.help` lists the commands of the REPL, and `.exit` or
-// Ctrl+D on an empty line closes it.
+// [QSCLI#repl]
 
 import {
   createSession,
@@ -56,8 +50,6 @@ persist across the cells of one REPL session.
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQuery = null, terminal } = {}) {
   const rootVerbNames = verbNames(await langRuntime());
 
-  // A terminal in raw mode moves the cursor down at `\n` without
-  // returning it, so the writers of a terminal write `\r\n`.
   const isInteractiveTty = stdinStream.isTTY === true;
   const writeOutput = isInteractiveTty
     ? (text) => stdoutWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
@@ -66,8 +58,6 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
-  // A cell that wrote to stdout by `out` holds the channel: no value of its
-  // answer prints after it, while a failure does [QSCLI#repl].
   let wroteByOut = false;
   const session = await createSession({
     sources: cliSources({
@@ -84,8 +74,6 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     columns: () => terminal.columns || 80
   });
 
-  // The cells run one after another, and the REPL closes once the last
-  // has written.
   return new Promise((resolve) => {
     let lineQueue = Promise.resolve();
 
@@ -129,10 +117,6 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
   });
 }
 
-// An answer prints on stdout whole and a failure as `boundAnswer` shows it, but
-// a value of a cell that wrote by `out`, a failure, one that does not parse with
-// its caret, without the prose of its page; a defect raised past the
-// fail track as the cell ran or as its answer printed on stderr [QSCLI#repl].
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (wroteByOut && !isErrorValue(result)) return null;

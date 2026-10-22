@@ -6,9 +6,6 @@ import { evalQuery } from '../../../src/session.mjs';
 import { langRuntime } from '../../../src/runtime/index.mjs';
 import { printAnswer, caretOf } from '../../../src/runtime/print.mjs';
 
-// `printValue` writes the literal the parser reads, so every value
-// the host builds survives the trip; each kind of payload exercises a
-// distinct branch of the printer.
 it('reads back the literal of an error value raised and of a tag over each kind of payload', async () => {
   const errorVal = makeErrorValue(makeTag('Oops'), new Map([['message', 'something went wrong']]));
   const restoredError = await evalQuery(`${printValue(errorVal)} | raise`);
@@ -43,9 +40,6 @@ describe('the print of a failure, its tag before the bang and its facts', () => 
   });
 });
 
-// The refusal of a text holds where the reading stopped as its span, and a
-// host that prints for a person's eye draws the line and a caret under its
-// column below the alert, two line comments a reading passes over.
 describe('the caret under the line where the reading stopped', () => {
   const caretOfQuery = async query => caretOf(await evalQuery(query));
   const refusalAt = (source, span) => `::quote/ParseError!{:source ${JSON.stringify(source)} :location ::span[${span}]} | raise`;

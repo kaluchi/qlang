@@ -1,7 +1,5 @@
 import { it, expect } from 'vitest';
 
-// `query` on a Set subject — an index in the one order, which a key
-// names none of.
 it('`query` over a set counts a negative index from the end', async () => {
   const { evalQuery } = await import('../../../src/session.mjs');
   expect((await evalQuery('#[:a :b :c] | query /-1')).name).toBe('c');

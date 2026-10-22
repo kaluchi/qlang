@@ -1,7 +1,4 @@
-// @kaluchi/qlang-core — the package root, free of `node:*` for the
-// browser, and what a host builds on; `package.json#sideEffects` keeps
-// the runtime modules, which register their primitives as they load.
-// The rules it holds: [QSWRK#tooling].
+// [QSWRK#tooling]
 
 export { parse, ParseError } from './parse.mjs';
 export { langRuntime } from './runtime/index.mjs';

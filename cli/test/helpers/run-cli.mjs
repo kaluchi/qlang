@@ -1,6 +1,4 @@
-// The command line run in a process of its own, `bin.mjs` handed its
-// arguments and its standard input, its code and the text of its streams read
-// back [QSCLI#answer].
+// [QSCLI#answer]
 
 import { spawn } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
@@ -10,11 +8,6 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 const binPath = resolve(here, '..', '..', 'src', 'bin.mjs');
 
-// runCli(args, opts?) — spawn `node cli/src/bin.mjs <args…>`,
-// optionally pipe `opts.stdin` into the child, capture stdout /
-// stderr / exitCode. Resolves once the child exits. The child writes
-// without colour, whatever a terminal or a harness forces through
-// `FORCE_COLOR`, which the command line reads before `NO_COLOR`.
 export function runCli(args, opts = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [binPath, ...args], {

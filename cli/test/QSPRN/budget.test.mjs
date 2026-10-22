@@ -4,9 +4,6 @@ import { runQuery } from '../../src/run.mjs';
 import { silentStreams } from '../helpers/silent-streams.mjs';
 import { langRuntime, evalQuery, boundAnswer } from '@kaluchi/qlang-core';
 
-// Every answer prints within one budget: an answer whose print fits prints
-// whole, one past it as the refusal in its place, and a failure as its alert
-// within the budget.
 const forty = Array.from({ length: 40 }, (_, index) => index + 1);
 const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
 

@@ -92,8 +92,7 @@ describe('the places a name stands', () => {
   });
 
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
-    // `::Foo!{…}` names the tag of its content, and an error literal
-    // that writes none names no tag [QSERR#rest].
+    // [QSERR#rest]
     const source = '::Foo!{:k 1} | get [::Foo[1] !{:j 2}]';
     const refs = findNameOccurrences(rootOf(source), 'Foo', TAG_SPELLING);
     expect(refs.map(({ span }) => source.slice(span.start.offset, span.end.offset))).toEqual(['::Foo!{:k 1}', '::Foo[1]']);
@@ -211,8 +210,6 @@ describe('the names visible at a place', () => {
     expect([...visibleIn(source, source.indexOf('here'), TAG_SPELLING).keys()]).toEqual(['Box', 'Box/In']);
   });
 
-  // The declarations a predicate `declaresAVerb` holds of are verbs, here a
-  // name with a path.
   describe('in the body of a verb, around it and in its docs', () => {
     const source = ':k 1 | :map/walk |~~ see ~(walk) ~~| ~(:j 2 | get /kids | map ~walk) | here | :vec/f ~(f) | :Late |~~ L ~~| | :n 3';
     const verbs = read => read.value.get('name').name.includes('/');

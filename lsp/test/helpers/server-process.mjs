@@ -1,5 +1,4 @@
-// The language server run over stdio in a process of its own, a message
-// framed by its length and the answer to it [QSLSP#server].
+// [QSLSP#server]
 
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,9 +8,6 @@ export function framedMessage(message) {
   return `Content-Length: ${Buffer.byteLength(body, 'utf8')}\r\n\r\n${body}`;
 }
 
-// The messages the server writes, one per frame, until the one that
-// answers `id`; the process exiting first is the failure, its stderr
-// the reason.
 export function answerOf(serverProcess, id) {
   return new Promise((resolve, reject) => {
     let pending = Buffer.alloc(0);

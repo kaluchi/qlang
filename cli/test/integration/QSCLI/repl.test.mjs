@@ -1,11 +1,8 @@
 import { it, expect } from 'vitest';
 import { runCli } from '../../helpers/run-cli.mjs';
 
-// `.exit\n` sent at once closes the child after the REPL boots.
 it('starts the REPL by -i, prompts, and closes with the code 0 on .exit', async () => {
   const { exitCode, stderr } = await runCli(['-i'], { stdin: '.exit\n' });
-  // A syntax error inside repl.mjs would surface on stderr and
-  // produce a non-zero exit code BEFORE the prompt is drawn.
   expect(stderr).not.toMatch(/SyntaxError|ReferenceError/);
   expect(exitCode).toBe(0);
 });

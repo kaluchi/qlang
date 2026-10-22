@@ -1,6 +1,4 @@
-// A text read by the parser: the part of its root and its first step, the
-// kind of a part and the refusal of a text that reads as no pipeline
-// [QSQUO#step].
+// [QSQUO#step]
 
 import { parse } from '../../src/parse.mjs';
 import { partOf } from '../../src/walk.mjs';

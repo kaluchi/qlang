@@ -1,7 +1,3 @@
-// The language server, a child process a client of the protocol launches,
-// which talks JSON-RPC over stdio and answers each request of the protocol
-// by the functions of features.mjs.
-
 import { readFileSync } from 'node:fs';
 import {
   createConnection,
@@ -34,22 +30,12 @@ import {
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
 
-// Per-document parsed state.
 const documentStates = new Map();
-
-// ── Catalog context ───────────────────────────────────────────
-//
-// Every source of the language takes part in goto-definition: its
-// declarations merge into one `address → { uri, source, range }` table,
-// and the scope of the root answers the address a bare name reaches, so
-// `count` and `::number/add/SubjectNotNumberError` resolve through one lookup.
 
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // The file of each source of the language where the core's package exports
-  // it, `@kaluchi/qlang-core/lib/<uri>.qlang`, resolved from the server's own
-  // dependency, its URL the location goto-definition returns [QSHST#source].
+  // [QSHST#source]
   const sources = LANGUAGE_SOURCES.map(uri => ({ fileUri: import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();
@@ -67,8 +53,6 @@ async function loadCatalogContext() {
   }
   catalogCtx = mergedIndex.size > 0 ? { index: mergedIndex, scope: await langRuntime() } : null;
 }
-
-// ── Initialization ────────────────────────────────────────────
 
 connection.onInitialize(async () => {
   await loadCatalogContext();
@@ -89,8 +73,6 @@ connection.onInitialize(async () => {
     }
   };
 });
-
-// ── Diagnostics on document change ────────────────────────────
 
 function validateDocument(textDocument) {
   const source = textDocument.getText();
@@ -120,9 +102,7 @@ documents.onDidClose(e => {
   connection.sendDiagnostics({ uri: e.document.uri, diagnostics: [] });
 });
 
-// ── Completion ────────────────────────────────────────────────
-
-// The roles of a declaration as the kinds of a completion and a symbol [QSLSP#server].
+// [QSLSP#server]
 const COMPLETION_KIND_OF_ROLE = {
   verb:  CompletionItemKind.Function,
   value: CompletionItemKind.Variable,
@@ -153,8 +133,6 @@ connection.onCompletion(async (params) => {
   }));
 });
 
-// ── Hover ─────────────────────────────────────────────────────
-
 connection.onHover(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
@@ -173,8 +151,6 @@ connection.onHover(async (params) => {
   };
 });
 
-// ── Go to Definition ──────────────────────────────────────────
-
 connection.onDefinition(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
@@ -184,7 +160,6 @@ connection.onDefinition(async (params) => {
   const def = await definitionAtOffset(state.root, offset, catalogCtx);
   if (!def) return null;
 
-  // A declaration of the catalog stands in the file of its source.
   if (def.fileUri) {
     return {
       uri: def.fileUri,
@@ -220,8 +195,6 @@ function offsetToPosition(source, offset) {
   return { line, character: offset - lastNewline - 1 };
 }
 
-// ── Find References ───────────────────────────────────────────
-
 connection.onReferences((params) => {
   const state = documentStates.get(params.textDocument.uri);
   const doc = documents.get(params.textDocument.uri);
@@ -238,8 +211,6 @@ connection.onReferences((params) => {
     }
   }));
 });
-
-// ── Document Symbols ──────────────────────────────────────────
 
 connection.onDocumentSymbol(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
@@ -262,14 +233,10 @@ connection.onDocumentSymbol(async (params) => {
   }));
 });
 
-// ── Folding ───────────────────────────────────────────────────
-
 connection.onFoldingRanges((params) => {
   const state = documentStates.get(params.textDocument.uri);
   return state?.root ? foldingRangesOf(state.root) : [];
 });
-
-// ── Signature Help ────────────────────────────────────────────
 
 connection.onSignatureHelp(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
@@ -295,22 +262,11 @@ connection.onSignatureHelp(async (params) => {
   };
 });
 
-// ── Semantic Tokens ───────────────────────────────────────────
-//
-// The client requests semantic tokens for the whole document; the
-// returned `{ data }` is a Uint32Array carrying the LSP-encoded
-// token stream (5 ints per token). The editor merges it on top of
-// the tmLanguage grammar tokens so a reader's names get the
-// `variable` colour distinct from the `function` colour of the
-// verbs of the language.
-
 connection.languages.semanticTokens.on(async (params) => {
   const state = documentStates.get(params.textDocument.uri);
   if (!state?.source) return { data: [] };
   return await semanticTokensFor(state.source);
 });
-
-// ── Start ─────────────────────────────────────────────────────
 
 documents.listen(connection);
 connection.listen();

@@ -108,6 +108,13 @@
     commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
   }
 
+  // A block nested in a comment or in the prose of a doc, by the offset where
+  // it closes, for a caller that names what a source left open [D295].
+  function keepNestedBlock() {
+    const loc = span();
+    options.nestedBlocks?.set(loc.end.offset, loc.start);
+  }
+
   // The part of a value read, the last read of each value kept, which a
   // refusal of a rule writes as the text wrote it.
   const reads = new WeakMap();
@@ -482,7 +489,9 @@ QuoteSpan
 
 // Inside a block comment the line markers are bare tokens, the block
 // forms nest, and the closer of the other block form is content; a block
-// that failed at an offset fails there again at once [D404].
+// that failed at an offset fails there again at once [D404]. A nested block
+// is kept by the offset where it closes, where the caller asks, which names
+// the opener of a source cut short inside it [D295].
 NestedLineDocSpan
   = "|~~|"
     { return text(); }
@@ -491,11 +500,11 @@ NestedLinePlainSpan
     { return text(); }
 NestedBlockDocSpan
   = &{ return !knownToFail(nestedDocFailures); } "|~~" !"|" BlockDocContent "~~|"
-    { return text(); }
+    { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedDocFailures); } "|~~"
 NestedBlockPlainSpan
   = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockPlainContent "~|"
-    { return text(); }
+    { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedCommentFailures); } "|~"
 
 BlockPlainContent

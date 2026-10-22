@@ -38,11 +38,12 @@ export function parse(source, opts = {}) {
     // [QSQUO#step], [QSSYN#refusal]
     if (!(err instanceof PeggySyntaxError)) throw err;
     const atTheEnd = err.expected !== null && err.found === null;
-    const unclosed = atTheEnd ? bracketLeftOpen(source) : null;
+    const unclosed = atTheEnd || (err.expected !== null && source.includes(COMMENT_OPENER)) ? bracketLeftOpen(source) : null;
     const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
-    throw new ParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), err.location, opts.uri ?? null, {
+    const location = unclosed === null || atTheEnd ? err.location : endOf(source, err.location.source);
+    throw new ParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
-      found: err.found,
+      found: unclosed === null ? err.found : null,
       source,
       sentence
     });
@@ -51,6 +52,13 @@ export function parse(source, opts = {}) {
   root.uri = uri;
   root.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return keepParts(root).value;
+}
+
+// [D295]
+function endOf(source, grammarSource) {
+  const lines = source.split('\n');
+  const end = { offset: source.length, line: lines.length, column: lines[lines.length - 1].length + 1 };
+  return { source: grammarSource, start: end, end };
 }
 
 // [QSSYN#refusal]
@@ -65,25 +73,36 @@ function expectedSentence(expected, found) {
   return `Expected ${listed} but ${found === null ? nameOfContinuation({ type: 'end' }) : JSON.stringify(found)} found.`;
 }
 
+const COMMENT_OPENER = '|~';
+const COMMENT_CLOSER = '~|';
+
 const OPENERS_BY_CLOSER = new Map([
   [')', ['~(', '(']],
   [']', ['#[', '[']],
   ['}', ['!{', '{']],
   ['~~|', ['|~~']],
+  [COMMENT_CLOSER, [COMMENT_OPENER]],
   ['"', ['"']]
 ]);
 const CLOSER_DEPTH = 4;
 
-// [QSQUO#step]
+// [QSQUO#step], [D295]
 function attemptOf(candidate) {
+  const read = { commentTrivia: new Map(), nestedBlocks: new Map() };
   try {
-    return { root: peggyParse(candidate, { commentTrivia: new Map() }), closers: [] };
+    return { root: peggyParse(candidate, read), read, closers: [] };
   } catch (refusal) {
     if (!(refusal instanceof PeggySyntaxError)) throw refusal;
-    if (refusal.location.start.offset !== candidate.length) return { root: null, closers: [] };
-    const expected = new Set(refusal.expected.map(alternative => alternative.text));
+    const expected = new Set(refusal.location.start.offset === candidate.length ? refusal.expected.map(alternative => alternative.text) : []);
+    if (candidate.includes(COMMENT_OPENER)) expected.add(COMMENT_CLOSER);
     return { root: null, closers: [...OPENERS_BY_CLOSER.keys()].filter(closer => expected.has(closer)) };
   }
+}
+
+// [D295]
+function blockClosedAt({ commentTrivia, nestedBlocks }, offset) {
+  for (const { location } of commentTrivia.values()) if (location.end.offset === offset) return location.start;
+  return nestedBlocks.get(offset) ?? null;
 }
 
 // [QSSYN#combinator]
@@ -100,7 +119,7 @@ function completionOf(source) {
       for (const closer of closers) {
         const extended = [...run, closer];
         const attempt = attemptOf(source + extended.join(''));
-        if (attempt.root !== null) return { closers: extended, root: attempt.root };
+        if (attempt.root !== null) return { closers: extended, root: attempt.root, read: attempt.read };
         next.push({ run: extended, closers: attempt.closers });
       }
     }
@@ -129,10 +148,11 @@ function bracketLeftOpen(source) {
   const [innermostCloser] = completion.closers;
   const openers = OPENERS_BY_CLOSER.get(innermostCloser);
   const completed = source + completion.closers.join('');
-  const opened = partClosedAt(completion.root, completed, source.length + innermostCloser.length, openers);
+  const closedAt = source.length + innermostCloser.length;
+  const opened = partClosedAt(completion.root, completed, closedAt, openers)?.span.start ?? blockClosedAt(completion.read, closedAt);
   if (opened === null) return null;
-  const opener = openers.find(candidate => completed.startsWith(candidate, opened.span.start.offset));
-  const { line, column } = opened.span.start;
+  const opener = openers.find(candidate => completed.startsWith(candidate, opened.offset));
+  const { line, column } = opened;
   return {
     message: `\`${opener}\` opened at line ${line}, column ${column} is never closed; \`${completion.closers.join('')}\` completes the source`,
     expected: [{ type: 'literal', text: innermostCloser }]

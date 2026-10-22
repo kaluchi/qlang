@@ -159,8 +159,8 @@ const LINE_WIDTH = 80;
 const passesTheLine = printed => printed.split('\n').some(line => line.length > LINE_WIDTH);
 
 function stepOnLines(step, view) {
-  if (isCallStep(step)) {
-    const modifiers = (step.get('modifiers') ?? []).map(modifier => (isKeyword(modifier) ? ` ${printValue(modifier)}` : `\n    ${isDoc(modifier) ? printValue(modifier, 2, view.printedOf) : printStep(modifier, false, view)}`));
+  if (isCallStep(step) && step.has('modifiers')) {
+    const modifiers = step.get('modifiers').map(modifier => (isKeyword(modifier) ? ` ${printValue(modifier)}` : `\n    ${isDoc(modifier) ? printValue(modifier, 2, view.printedOf) : printStep(modifier, false, view)}`));
     return step.get('name').name + modifiers.join('');
   }
   if (!isBindStep(step) || !step.has('docs')) return null;

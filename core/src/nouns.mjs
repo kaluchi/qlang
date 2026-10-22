@@ -270,16 +270,34 @@ export function bareNameReach(scope, name, subject) {
 }
 
 // residencesOf(scope, verbName) → the verbs of a name residing on a kind,
-// each with its kind, in the order of their declarations, the one on
-// `::any` apart, since it answers every value.
+// each with its kind, in the order of their declarations, the root's a name
+// of the scope does not stand over first, the one on `::any` apart, since it
+// answers every value.
 export function residencesOf(scope, verbName) {
   const residences = [];
-  for (const [name, record] of bindingsOf(scope)) {
+  for (const [name, record, kindName] of rootNamesOfAVerb(scope, verbName)) {
+    if (!scope.has(name) && residesOn(record, scope)) residences.push([kindName, record]);
+  }
+  for (const name of pathNamesOf(scope)) {
     const [kindName, lastName] = splitAddress(name);
-    if (kindName === null || kindName === ANY_KIND_NAME || lastName !== verbName) continue;
-    if (residesOn(record, scope)) residences.push([kindName, record]);
+    if (kindName !== ANY_KIND_NAME && lastName === verbName && residesOn(scope.get(name), scope)) residences.push([kindName, scope.get(name)]);
   }
   return residences;
+}
+
+// The names of the root under a noun but `::any` whose last name is a verb's,
+// each with its record and its noun, read once for the root [D417].
+const ROOT_NAMES_OF_A_VERB = new WeakMap();
+
+function rootNamesOfAVerb(scope, verbName) {
+  return onceForRoot(ROOT_NAMES_OF_A_VERB, scope, verbName, (from, verb) => {
+    const named = [];
+    for (const [name, record] of rootOf(from)) {
+      const [kindName, lastName] = splitAddress(name);
+      if (kindName !== null && kindName !== ANY_KIND_NAME && lastName === verb) named.push([name, record, kindName]);
+    }
+    return named;
+  });
 }
 
 // The names of a scope, those of one segment: the nouns of the root and

@@ -864,8 +864,8 @@ function foldingCodeOf(value, originOfQuote, state) {
 
 // The values of the inputs of a function's call, read from its args by
 // their places, the values its modifiers computed against the subject,
-// and, for a recipe written in steps, the scope it runs in, each input
-// bound by its name as the call gave it and the args as `args`, names the steps of the recipe
+// and, for a recipe written in steps, the scope it runs in, made once for the
+// call [D417], each input bound by its name as the call gave it and the args as `args`, names the steps of the recipe
 // declare no second time, and the state of the call's run, which keeps the
 // origin of each quote its args hold [QSBLD#input]: args of more values than the
 // inputs read places are refused, an input the args leave out where its
@@ -887,7 +887,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
   if (chain.places !== null && values.length > chain.places) return refusalUnder(argsBeyondInputsAddress(address), { places: chain.places, actualValue: argsValue() }, scope);
-  let recipeScope = recipeSteps === null ? null : scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
+  const recipeScope = recipeSteps === null ? null : scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
     .set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name)]) });
   const overArgs = () => nestState(called, argsValue(), scope);
   const inputValues = [];
@@ -906,7 +906,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope);
     if (refused !== null) return refused;
     inputValues.push(held);
-    if (recipeSteps !== null) recipeScope = scopeSet(recipeScope, name.name, makeBinding({ name, value: held }));
+    if (recipeSteps !== null) recipeScope.set(name.name, makeBinding({ name, value: held }));
   }
   return { values: inputValues, given, origins, recipeScope, state: called };
 }

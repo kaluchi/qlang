@@ -11,8 +11,10 @@
 // with `$` is a shell command. One that names the sister project, the
 // sensors, which read the transcripts of a machine, or the environment
 // is listed as `machine` and left to be run by hand; any other reads the
-// repository alone and runs in bash from the root of the checkout, where
-// its pipeline fails if any command of it fails and its list of files,
+// repository alone and runs in bash from the root of the checkout, on
+// Windows the bash of Git for Windows, with the node that runs the probes
+// first on its path, a shell whose node is another refused before any
+// probe, where its pipeline fails if any command of it fails and its list of files,
 // `git ls-files`, carries `--error-unmatch`, so a file gone from under
 // it reads as a failure and never as a repair. A block indented inside
 // an item of a list is read as it stands. A probe whose answer changed,
@@ -29,10 +31,10 @@
 // chapters of the specification, whose sections show their rules by
 // probes [QSWRK#spec].
 
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { delimiter, dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { Readable } from 'node:stream';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
@@ -120,6 +122,27 @@ async function onCommandLine(query) {
 
 const readsTheRepositoryAlone = command => !/\bjdt\b|scripts\/sensors|^env\b|\$[A-Z]/.test(command);
 
+// The shell of a shell probe, one on every machine: bash, on Windows the bash
+// of Git for Windows beside the git that reads the tree, where the first bash
+// of the path may be another system's, with the node that runs the probes
+// first on its path [D420].
+function bashOfGit() {
+  const bash = resolve(execFileSync('git', ['--exec-path'], { encoding: 'utf8' }).trim(), '..', '..', '..', 'bin', 'bash.exe');
+  return existsSync(bash) ? bash : 'bash';
+}
+const SHELL = process.platform === 'win32' ? bashOfGit() : 'bash';
+const PATH_KEY = Object.keys(pipeEnv).find(key => key.toUpperCase() === 'PATH') ?? 'PATH';
+const shellEnv = { ...pipeEnv, MSYS_NO_PATHCONV: '1', [PATH_KEY]: [dirname(process.execPath), pipeEnv[PATH_KEY]].join(delimiter) };
+
+// A shell whose node is another than the one that runs the probes answers
+// them otherwise, so the run refuses it before any probe [D420].
+function refuseAnotherNode() {
+  const nodeOfTheShell = execFileSync(SHELL, ['-c', 'node --version'], { env: shellEnv, encoding: 'utf8' }).trim();
+  if (nodeOfTheShell === process.version) return;
+  console.log(`the shell of the probes, ${SHELL}, runs node ${nodeOfTheShell} where the probes run on node ${process.version}: run them where the two are one [D420]`);
+  process.exit(1);
+}
+
 // What a shell probe prints, its pipeline failing where a command of it
 // fails; the shell probes run four at a time, each answered in its turn.
 const SHELLS_AT_ONCE = 4;
@@ -130,8 +153,8 @@ function printedByShell(command) {
   return new Promise(resolve => {
     const start = () => {
       shellsRunning += 1;
-      const shell = execFile('bash', ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
-        { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28, env: { ...pipeEnv, MSYS_NO_PATHCONV: '1' } }, (failed, stdout, stderr) => {
+      const shell = execFile(SHELL, ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
+        { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28, env: shellEnv }, (failed, stdout, stderr) => {
           shellsRunning -= 1;
           shellsWaiting.shift()?.();
           resolve(failed === null ? stdout : `${stdout ?? ''}${stderr ?? ''}`);
@@ -197,6 +220,7 @@ function holdersOf(chapter, probe) {
 
 // The shell probes of every document start at once, four running at a time,
 // and each verdict is read in the order the documents hold them.
+refuseAnotherNode();
 const probesByDocument = documents.map(documentPath => [documentPath, probesOf(textOf(documentPath)).map(probe => (probe.shell ? { ...probe, shellVerdict: shellVerdict(probe) } : probe))]);
 for (const [documentPath, probes] of probesByDocument) {
   const shownPath = relative(repoRoot, documentPath).split(/[\\/]/).join('/');

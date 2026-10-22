@@ -1,9 +1,4 @@
-#!/usr/bin/env node
-// Node-runtime adapter — the only file in the CLI package that
-// touches `process.*` directly. main.mjs holds every branch worth
-// covering; this file forwards the arguments, the streams and the
-// environment and exits with the resolved code.
-// The rules it holds: [QSWRK#tooling].
+// [QSWRK#tooling]
 
 import { main } from './main.mjs';
 

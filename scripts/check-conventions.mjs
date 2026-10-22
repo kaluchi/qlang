@@ -138,6 +138,7 @@ import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
 import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
+import { parse } from 'acorn';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -908,6 +909,28 @@ function testsOffTheirSection() {
     .map(({ line, problem }) => ({ file: path, line, problem })));
 }
 
+// ── (22) A comment of the code is a mark ───────────────────────
+//
+// A comment of the sources and the tests of the core, the command line and
+// the language server, read by acorn, is a mark alone, one line of the
+// citations its block holds, or a directive of a tool [QSWRK#code].
+
+const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test'];
+const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;
+const MARKS_ALONE = new RegExp(String.raw`^\s*${CITED}(?:,\s*${CITED})*\s*$`);
+const TOOL_DIRECTIVE = /^\s*(?:eslint|global\s|@ts-|istanbul|c8\s|v8 ignore)/;
+
+function commentsThatAreNoMarks() {
+  const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`])], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  return files.flatMap(file => {
+    const text = readText(join(repoRoot, file));
+    const comments = [];
+    parse(text, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true, onComment: comments });
+    return comments.filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value))
+      .map(comment => ({ file, line: text.slice(0, comment.start).split('\n').length, snippet: comment.value.trim().slice(0, 100) }));
+  });
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -931,7 +954,8 @@ const { text, failed } = verdictOf({
   retired: retiredWordsWritten(),
   commandKinds: kindsOfCommands(),
   unreadExports: exportsNoHostReads(),
-  testsOffTheirSection: testsOffTheirSection()
+  testsOffTheirSection: testsOffTheirSection(),
+  commentsNoMarks: commentsThatAreNoMarks()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

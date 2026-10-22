@@ -1,8 +1,4 @@
-// The nearness of two names [QSSLF#near]: the names within an edit distance
-// of a third of the typed name's length, one at least, and of those the
-// nearest alone, in the order of their spelling, an edit an insertion, a
-// deletion, a substitution or a swap of two neighbours, the slips of a typing
-// hand; beside them, the names one of which begins the other.
+// [QSSLF#near]
 
 function editDistance(typed, known) {
   const table = Array.from({ length: typed.length + 1 }, () => new Array(known.length + 1).fill(0));
@@ -23,16 +19,11 @@ function editDistance(typed, known) {
   return table[typed.length][known.length];
 }
 
-// One name begins the other, three letters at least: the guess of a longer
-// or a shorter name for the same act, `multiply` for `mul` [QSSLF#near].
 const PREFIX_LETTERS = 3;
 function beginsTheOther(typed, known) {
   return Math.min(typed.length, known.length) >= PREFIX_LETTERS && (typed.startsWith(known) || known.startsWith(typed));
 }
 
-// nearestOf(names, typedName) → the nearest of the names, the typed name no
-// guess for itself: a name the scope holds yet the asking axis cannot read,
-// `:reduce | doc` of a verb only kinds keep, points to the names near it.
 export function nearestOf(names, typedName) {
   let nearest = [];
   let nearestDistance = Math.floor(Math.max(typedName.length, 3) / 3);

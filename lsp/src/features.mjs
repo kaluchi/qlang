@@ -1,6 +1,4 @@
-// The features of the language server, pure functions over the public API
-// of the core that `server.mjs` maps to the protocol, which ask the language
-// what a literal and a page answer [QSQUO#step], [QSLSP#server].
+// [QSQUO#step], [QSLSP#server]
 
 import {
   parse, ParseError,
@@ -50,14 +48,10 @@ function tidyProse(prose) {
   return dedent(prose.replace(/\n{3,}/g, '\n\n').trim());
 }
 
-// Every line ends in a Markdown hard break, so a line break of a doc
-// breaks the line of a hover.
 function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
-// A doc without the indent of its source, measured on the lines after the
-// first, which Markdown would otherwise read as a block of code.
 function dedent(text) {
   const lines = text.split('\n');
   const continuationNonEmpty = lines.slice(1).filter(l => l.trim().length > 0);
@@ -68,19 +62,16 @@ function dedent(text) {
   return lines.map(l => l.slice(Math.min(minIndent, l.search(/\S|$/) ))).join('\n');
 }
 
-// The prose of the page at an address as `doc | prose` answers it, read once
-// for each address, a verb's at the address the tool shows for it [QSLSP#server].
+// [QSLSP#server]
 const proseOfPages = new Map();
 async function proseOfThePage(address) {
   if (!proseOfPages.has(address)) proseOfPages.set(address, tidyProse(await evalQuery(`${address} | doc | prose !| ""`)));
   return proseOfPages.get(address);
 }
 
-// The form of a call of a verb: its address and the inputs of its function.
 const callFormOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
 
-// The kinds of the subject of the step that starts at an offset, where the
-// steps before it name them, or null [QSSLF#catalog].
+// [QSSLF#catalog]
 async function subjectKindsAt(source, offset) {
   return (await subjectAt(source, offset))?.kinds ?? null;
 }
@@ -88,10 +79,6 @@ async function subjectKindsAt(source, offset) {
 const spanOf = read => ({ startOffset: read.span.start.offset, endOffset: read.span.end.offset });
 const headOf = read => ({ startOffset: read.span.start.offset, endOffset: tagHeadEnd(read) });
 
-// ── Document state ────────────────────────────────────────────
-
-// parseDocument(source, uri) → the root of the parts of a document, null
-// where it does not parse, and its diagnostics.
 export function parseDocument(source, uri) {
   const diagnostics = [];
   let root = null;
@@ -119,11 +106,7 @@ export function parseDocument(source, uri) {
   return { root, diagnostics };
 }
 
-// ── Catalog context ───────────────────────────────────────────
-
-// The declarations of a source of the catalog by the name each declares,
-// its address [QSDSP#residence], with the span goto-definition jumps to;
-// the declarations of a doc's examples belong to the examples.
+// [QSDSP#residence]
 export function buildCatalogIndex(catalogRoot) {
   const index = new Map();
   if (!catalogRoot) return index;
@@ -134,9 +117,7 @@ export function buildCatalogIndex(catalogRoot) {
   return index;
 }
 
-// The catalog's declaration of what a name reaches with no subject: the one
-// verb of the name, or of a name several kinds answer the first verb the
-// catalog declares [QSNAM#reach]; for an address the node it names.
+// [QSNAM#reach]
 function catalogDeclarationOf({ index, scope }, name) {
   const reach = bareNameReach(scope, name);
   if (reach !== null) return index.get(reach.record.get('name').name) ?? null;
@@ -147,14 +128,13 @@ function catalogDeclarationOf({ index, scope }, name) {
   return index.get(name) ?? null;
 }
 
-// The role of a node of the root, a label, a verb or a value [QSLSP#server].
+// [QSLSP#server]
 function roleOfNode(scope, address) {
   if (isLabel(scope, address)) return 'label';
   return isVerb(scope, address) ? 'verb' : 'value';
 }
 
-// The role of a declaration of the document, a label, a verb as the core
-// reads it or a value a reader named [QSBLD#kind], [QSLSP#server].
+// [QSBLD#kind], [QSLSP#server]
 function roleOf(bind, scope, isLabelName) {
   if (declaresKind(bind)) return 'label';
   const name = bind.get('name').name;
@@ -162,9 +142,6 @@ function roleOf(bind, scope, isLabelName) {
   return isAVerb ? 'verb' : 'value';
 }
 
-// ── Completion ────────────────────────────────────────────────
-
-// The names of the root, its verbs by their last names and its tags, read once.
 let _verbCompletions = null;
 let _tagCompletions = null;
 
@@ -180,9 +157,6 @@ async function nameCompletions() {
   return _verbCompletions;
 }
 
-// The completion of a verb as a call of it from a subject of the kinds
-// shows it, or with no kinds, the form of its call and its page; null for
-// a name that reaches no verb.
 async function verbCompletion(scope, name, kinds) {
   const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
@@ -200,14 +174,10 @@ async function tagCompletions() {
   return _tagCompletions;
 }
 
-// After the sign a tag opens with, the literal of a tag of no name yet, the
-// cursor completes a tag name alone.
 const SIGN_OF_A_TAG = makeTag('').literal;
 const followsTheSignOfATag = (source, offset) => typeof source === 'string' && offset >= SIGN_OF_A_TAG.length
   && source.startsWith(SIGN_OF_A_TAG, offset - SIGN_OF_A_TAG.length);
 
-// After a value the cursor completes the verbs that serve it and the names
-// the document declares; where the steps before it name no kind, every name.
 export async function completionsAtOffset(root, offset, source = null) {
   const scope = await langRuntime();
   if (followsTheSignOfATag(source, offset)) {
@@ -226,9 +196,6 @@ export async function completionsAtOffset(root, offset, source = null) {
   return withDeclaredNames(everyName, root, offset, [CALL_SPELLING, TAG_SPELLING], scope);
 }
 
-// The items with the names the document declares that the offset sees, each
-// by the name a step calls it by and the role of its declaration, where no
-// item of its label stands.
 function withDeclaredNames(items, root, offset, spellings, scope) {
   if (!root) return items;
   for (const spelling of spellings) {
@@ -243,9 +210,7 @@ function withDeclaredNames(items, root, offset, spellings, scope) {
   return items;
 }
 
-// The names of the document a step may call at an offset under a spelling,
-// the body of a verb found by the labels declared before the offset, and
-// whether a name is a label's there [QSNAM#verb], [QSLSP#server].
+// [QSNAM#verb], [QSLSP#server]
 function declaredAt(root, offset, spelling, scope) {
   const labelNameIn = labels => name => labels.has(name) || isLabel(scope, name);
   let labelNameBefore = null;
@@ -254,24 +219,16 @@ function declaredAt(root, offset, spelling, scope) {
   return { names: spelling === TAG_SPELLING ? labels : bindingNamesVisibleAt(root, offset, spelling, declaresAVerb), isLabelName: labelNameIn(labels) };
 }
 
-// The declaration of the document the name a part reads reaches, by the
-// spelling it is read under, where the part stands, or undefined.
 function declarationOf(root, read, { name, spelling }, scope) {
   return declaredAt(root, read.span.start.offset, spelling, scope).names.get(name);
 }
 
-// Where the name being typed before the cursor begins.
 function wordStartBefore(source, offset) {
   let start = offset;
   while (start > 0 && (isNameContinue(source[start - 1]) || isNameStart(source[start - 1]))) start--;
   return start;
 }
 
-// The subject of the step at the cursor, the word being typed aside: the
-// steps before it, where the source with a step at the cursor parses, that
-// step follows `|`, and the steps before it name the kinds of the value they
-// answer; a step after `!|` takes an error, and has none. The parser tells
-// the combinator, the grammar written once.
 async function subjectAt(source, offset) {
   const start = wordStartBefore(source, offset);
   const text = `${source.slice(0, start)}${STEP_AT_CURSOR}`;
@@ -287,19 +244,14 @@ async function subjectAt(source, offset) {
   return subject === null ? null : { ...subject, root, end: start };
 }
 
-// The step written at the cursor so the text before it reads as a pipeline;
-// it is dropped before the steps run, any word serving [QSLSP#server].
+// [QSLSP#server]
 const STEP_AT_CURSOR = ' it';
 
 function stepsOf(pipeline) {
   return pipeline.parts.map(read => (isFailStep(read.value) ? { combinator: '!|', read: read.parts[0] } : { combinator: '|', read }));
 }
 
-// The subject the steps answer from a subject, the kinds of its value and the
-// value where a literal step answers it: the subject itself through a
-// declaration and a `!|` step, and the kinds of the answer of a call as
-// `answerKindsOf` reads them [QSLSP#offer]; null where a step answers no
-// declared kind.
+// [QSLSP#offer]
 async function subjectOfSteps(steps, subject, text) {
   let answered = subject;
   for (const { combinator, read } of steps) {
@@ -321,8 +273,7 @@ async function subjectAfterStep(read, subject, text) {
   return kinds === null ? null : { kinds };
 }
 
-// What a literal answers run alone over the root, closed [QSLIT#closed], a
-// refusal of its constructor at rest, and the walk of its tags, the last kept [QSLSP#offer].
+// [QSLIT#closed], [QSLSP#offer]
 let lastLiteral = { literal: null, subject: null };
 async function subjectOfLiteral(literal) {
   if (lastLiteral.literal !== literal) {
@@ -332,15 +283,12 @@ async function subjectOfLiteral(literal) {
   return lastLiteral.subject;
 }
 
-// The verbs a subject reaches by name, those that serve its value where a
-// literal answers it, as its call would [QSDSP#tagname], [QSLSP#server].
+// [QSDSP#tagname], [QSLSP#server]
 function verbsServing(scope, { kinds, value }) {
   const reached = verbsReaching(scope, kinds);
   if (value === undefined) return reached;
   return new Map([...reached].filter(([, { address }]) => servesTheSubject(nodeOf(scope, address.name), value)));
 }
-
-// ── Hover ─────────────────────────────────────────────────────
 
 export async function hoverAtOffset(root, source, offset) {
   if (!root) return null;
@@ -357,9 +305,6 @@ export async function hoverAtOffset(root, source, offset) {
   return null;
 }
 
-// A call of a verb of the root shows the verb its subject reaches,
-// where the steps before it name the kinds of the subject, the form of its
-// call over its page; a verb the document declares shows its doc.
 async function hoverForCall(read, root, source) {
   const name = read.value.get('name').name;
   const scope = await langRuntime();
@@ -373,8 +318,7 @@ async function hoverForCall(read, root, source) {
   return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyProse(docs.join('\n'))].join('\n')), ...spanOf(read) };
 }
 
-// The prose of each doc of a declaration of the document, each run alone,
-// closed [QSLIT#closed], through `prose` [QSLSP#server].
+// [QSLIT#closed], [QSLSP#server]
 async function proseOfTheDocs(declaration, source) {
   return await Promise.all((declaration?.value.get('docs') ?? []).map(doc => {
     const { start, end } = partOf(doc).span;
@@ -382,13 +326,11 @@ async function proseOfTheDocs(declaration, source) {
   }));
 }
 
-// A click on the head of a tagged literal, the `::Tag` of `::Tag[…]` and
-// of `::Tag!{…}` [QSERR#rest].
+// [QSERR#rest]
 function isOnTagHead(read, offset) {
   return tagWrittenBy(read) !== null && offset < tagHeadEnd(read);
 }
 
-// The page of a tag a part names or writes, over the span of its head.
 async function hoverForTag(tag, head) {
   const scope = await langRuntime();
   if (nodeOf(scope, tag) === null) return null;
@@ -396,13 +338,10 @@ async function hoverForTag(tag, head) {
   return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await proseOfThePage(literal)].join('\n')), ...head };
 }
 
-// A path shows its literal over the page of its kind.
 async function hoverForPath(read, source) {
   const written = source.slice(read.span.start.offset, read.span.end.offset);
   return { content: markdownHardBreaks([`path \`${written}\``, '', await proseOfThePage(typeOf(read.value).literal)].join('\n')), ...spanOf(read) };
 }
-
-// ── Go to Definition ──────────────────────────────────────────
 
 function nameAt(read, offset) {
   if (isCallStep(read.value)) return { name: read.value.get('name').name, spelling: CALL_SPELLING };
@@ -410,9 +349,6 @@ function nameAt(read, offset) {
   return isOnTagHead(read, offset) ? { name: tagWrittenBy(read), spelling: TAG_SPELLING } : null;
 }
 
-// The declaration a name, a tag name or the head of a tag a part writes
-// resolves to: the last one the document makes visible at the cursor,
-// else the catalog's.
 export async function definitionAtOffset(root, offset, catalogCtx) {
   if (!root) return null;
 
@@ -426,17 +362,12 @@ export async function definitionAtOffset(root, offset, catalogCtx) {
   return catalogCtx ? catalogDeclarationOf(catalogCtx, named.name) : null;
 }
 
-// The name a declaration binds and the spelling a step reads it under, a
-// label's that of a tag [QSBLD#kind], or null.
+// [QSBLD#kind]
 function declaredNameOf({ value }) {
   if (!isBindStep(value)) return null;
   return { name: value.get('name').name, spelling: declaresKind(value) ? TAG_SPELLING : CALL_SPELLING };
 }
 
-// ── Find References ───────────────────────────────────────────
-
-// The name a part names with the spelling it is read under: a call and a
-// declaration by the name a step calls, a label and a head by its tag.
 function referencedAt(read, offset) {
   const { value, parent } = read;
   if (isOnTagHead(read, offset)) return { name: tagWrittenBy(read), spelling: TAG_SPELLING };
@@ -459,10 +390,7 @@ export function referencesAtOffset(root, offset) {
   return findNameOccurrences(root, named.name, named.spelling).map(occurrence => (tagWrittenBy(occurrence) === null ? spanOf(occurrence) : headOf(occurrence)));
 }
 
-// ── Document Symbols ──────────────────────────────────────────
-
-// documentSymbols(root, scope) → the declarations of a document, each by
-// its role, a label written as its tag, a verb or a value [QSLSP#server].
+// [QSLSP#server]
 export function documentSymbols(root, scope) {
   if (!root) return [];
 
@@ -487,11 +415,6 @@ export function documentSymbols(root, scope) {
   return symbols;
 }
 
-// ── Folding ───────────────────────────────────────────────────
-
-// foldingRangesOf(root) → the lines a declaration, a doc and a quote span,
-// from 0 to where its last part ends, a doc's where its text ends; a doc
-// folds as a comment [QSLSP#server].
 const folds = read => isBindStep(read.value) || kindOf(read.value) === 'doc' || (kindOf(read.value) === 'quote' && read.content !== undefined);
 
 const lastLineOf = read => (read.text ?? read.span).end.line - 1;
@@ -508,8 +431,6 @@ export function foldingRangesOf(root) {
   return ranges;
 }
 
-// ── Signature Help ────────────────────────────────────────────
-
 export async function signatureHelpAtOffset(root, source, offset) {
   if (!root) return null;
 
@@ -523,8 +444,6 @@ export async function signatureHelpAtOffset(root, source, offset) {
 
   const inputs = shown.inputs;
 
-  // The active parameter of the protocol is the input whose modifier the
-  // cursor stands on or after: one per modifier that ends before it.
   const activeParameter = call.parts.filter(modifier => modifier.span.end.offset < offset).length;
 
   return {
@@ -535,10 +454,7 @@ export async function signatureHelpAtOffset(root, source, offset) {
   };
 }
 
-// The call the cursor writes the words of: the narrowest call with words
-// that holds it, or the last call before the cursor where what stands
-// between them reads as whitespace, a comment among it, a verb taking inputs
-// among them [QSSYN#comment].
+// [QSSYN#comment]
 function callAround(root, source, offset) {
   for (let read = partAtOffset(root, offset); read; read = read.parent) {
     if (isCallStep(read.value) && read.parts.length > 0) return read;
@@ -551,7 +467,6 @@ function callAround(root, source, offset) {
   return followed !== null && readsAsWhitespace(source.slice(followed.span.end.offset, offset)) ? followed : null;
 }
 
-// Whether a text reads as whitespace alone, the empty pipeline of the grammar.
 function readsAsWhitespace(text) {
   try {
     return parse(text).length === 0;
@@ -560,11 +475,7 @@ function readsAsWhitespace(text) {
   }
 }
 
-// ── Semantic tokens ───────────────────────────────────────────
-
-// The type of semantic token of the protocol each kind of `tokenize` is coated
-// by, a path a property as the keys it reads; a kind with none, a bracket, a
-// gap or the source past the parse, sends no token [QSLSP#server].
+// [QSLSP#server]
 const TYPE_OF_KIND = {
   verb:        'function',
   name:        'variable',
@@ -584,12 +495,10 @@ const TYPE_OF_KIND = {
   fail:        'keyword'
 };
 
-// The types of the legend the server answers `initialize` with, each once.
 export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND))];
 
 const TYPE_INDEX_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [kind, SEMANTIC_TOKEN_TYPES.indexOf(type)]));
 
-// The verbs of the root, which `tokenize` paints as verbs.
 let _rootVerbNames = null;
 async function rootVerbNames() {
   if (_rootVerbNames) return _rootVerbNames;
@@ -597,9 +506,6 @@ async function rootVerbNames() {
   return _rootVerbNames;
 }
 
-// semanticTokensFor(source) → { data: Uint32Array }, five integers per
-// token as the protocol encodes them, a token that spans lines split
-// into one per line.
 export async function semanticTokensFor(source) {
   const tokens = tokenize(source, await rootVerbNames());
   const data = [];

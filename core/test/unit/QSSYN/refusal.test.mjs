@@ -3,9 +3,6 @@ import { parse, ParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
 
 describe('what a refusal of the parser says', () => {
-  // A refusal lists its continuations as literals and as parts of the
-  // grammar named in the words of the language, no class of characters
-  // among them.
   it('lists no class of characters among the continuations of a refusal', () => {
     for (const source of ['"\\u12"', '#"a', '#"a")', '(|~~| a', '(|~~| ``a', '[|~~ a', '|~~ ~("[.']) {
       let refusal = null;

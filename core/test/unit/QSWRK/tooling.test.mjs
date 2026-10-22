@@ -15,7 +15,6 @@ const ABOVE_THE_WORDS = new Set(['core/src/session.mjs', 'core/src/index.mjs']);
 const isOfTheWords = path => path.startsWith('core/src/runtime/');
 const OF_THE_PARSER = new Set(['core/src/parse.mjs', 'core/gen/grammar.mjs', 'core/src/walk.mjs']);
 
-// The imports of a module outside the words that reach into them.
 const reachesIntoTheWords = imports => [...imports].filter(([path]) => !isOfTheWords(path) && !ABOVE_THE_WORDS.has(path))
   .flatMap(([path, targets]) => targets.filter(isOfTheWords).map(target => `${path} → ${target}`));
 
@@ -57,7 +56,6 @@ describe('the imports of core/src', () => {
     expect(imports.get('core/src/runtime/bootstrap.mjs')).toEqual(expect.arrayContaining(['core/host/load-source-node.mjs', 'core/src/load-source-web.mjs']));
   });
 
-  // The imports of a tree written from its sources.
   const importsWritten = sources => {
     const tree = mkdtempSync(join(tmpdir(), 'qlang-imports-'));
     try {

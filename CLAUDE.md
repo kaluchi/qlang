@@ -164,9 +164,10 @@ server.
 - `npm test`: every workspace's suite. Use it in the inner loop.
 - `npm run ci`: the gate for anything meant to be pushed. Build,
   eslint, `check:conventions`, `check:probes`, `check:fuzz`,
-  `check:benchmark`, every suite, coverage thresholds, CLI integration,
-  site build, in that order. Judge it by its real exit code, captured
-  to a file, never through a pipe.
+  `check:benchmark`, the suites of the core and the command line under
+  the coverage thresholds, the other suites, CLI integration, site build,
+  in that order, each suite run once. Judge it by its real exit code,
+  captured to a file, never through a pipe.
 - `node scripts/benchmark.mjs check | screen | verdict`: the references
   of the tasks held against their answers, the default and
   `check:benchmark`; the hash of the first screen a run fixes; and the
@@ -198,7 +199,10 @@ server.
 `npm run check:conventions` fails on temporal lexicon in the sources
 outside `docs/`, `vscode/` and the instructions (legacy, deprecated,
 currently, previously, backward compatibility, and the TODO, FIXME, and
-HACK markers), on a comment or a sentence of the prose that names a
+HACK markers), on a comment of the sources and the tests of the core,
+the command line and the language server that is no mark, one line of
+the citations its block holds, and no directive of a tool [QSWRK#code],
+on a comment or a sentence of the prose that names a
 token the branch took out of the code, the catalog and the cases, on a
 term the language retired, `scripts/retired-words.mjs`, written in the
 prose, a comment, a doc of the catalog, the name of a case or the title

@@ -2,9 +2,7 @@ import { it, expect } from 'vitest';
 import { answerText } from '../../src/render.mjs';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 
-// Every answer prints within one budget: an answer whose print fits prints
-// whole, one past it as the refusal in its place, and a failure as its alert
-// within the budget [QSPRN#budget].
+// [QSPRN#budget]
 it('cuts the alert of a failure within the budget, its trace kept to its first frames', async () => {
   const scope = await langRuntime();
   const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);

@@ -29,8 +29,6 @@ describe('the letters that begin a name', () => {
   });
 
   it('reads no letter past the first plane of Unicode as the start of a bare name, and its quoted form takes it', () => {
-    // The parser reads a character a UTF-16 code unit, so U+10400, a letter of
-    // ID_Start past the first plane, is two units and starts no bare name.
     expect(() => parse(':\u{10400}')).toThrow(ParseError);
     expect(stepOf(':"\u{10400}"').name).toBe('\u{10400}');
   });

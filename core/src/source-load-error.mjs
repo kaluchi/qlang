@@ -1,7 +1,4 @@
-// A source of the language that the loader `#qlang/load-source` resolves to
-// could not read, a foreign failure of the embedding: `:origin` the source,
-// `:sourceLocation` where it was looked for and `:cause` the host's account
-// of the failure [QSHST#source].
+// [QSHST#source]
 
 import { declareForeignError } from './errors.mjs';
 

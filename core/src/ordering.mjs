@@ -1,14 +1,10 @@
-// One order ranks every value, kind before kind and within a kind by value
-// [QSORD#order]: `sort`, `min`, `max`, the comparisons of two values of one kind
-// [QSCND#compare] and equality, two values equal where it ranks them alike, read it, and
-// the sets and the set of the kinds a refusal expects are made here by it.
+// [QSORD#order], [QSCND#compare]
 
 import {
   isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
-// The kinds in their order.
 const NULL_KIND     = 0;
 const BOOLEAN_KIND  = 1;
 const NUMBER_KIND   = 2;
@@ -16,23 +12,19 @@ const STRING_KIND   = 3;
 const REGEX_KIND    = 4;
 const KEYWORD_KIND  = 5;
 const TAG_NAME_KIND = 6;
-// A path ranks after the tag names [QSPTH#value].
+// [QSPTH#value]
 const PATH_KIND     = 7;
 const VECTOR_KIND   = 8;
 const SET_KIND      = 9;
 const MAP_KIND      = 10;
 const QUOTE_KIND    = 11;
 const DOC_KIND      = 12;
-// Every other value under a tag ranks by the name of its tag, then by its
-// payload, a desc reversing its own [QSORD#order], [QSORD#desc].
+// [QSORD#order], [QSORD#desc]
 const TAGGED_KIND   = 13;
-// A failure raised, which no value holds, ranks after every value by its tag
-// and then its facts, so the tools that hold an answer to the one they expect
-// tell it from every value [QSWRK#cases].
+// [QSWRK#cases]
 const RAISED_KIND   = 14;
 
-// The kind of a value as the order ranks it, a value of no kind refused as
-// `typeOf` refuses it [QSHST#door].
+// [QSHST#door]
 function kindOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;
@@ -52,8 +44,6 @@ function kindOf(value) {
   return TAGGED_KIND;
 }
 
-// The kind of the core a container holds beneath its tag, which is the kind
-// of a tagged container's payload.
 function coreKindOf(container) {
   return Array.isArray(container) ? VECTOR_KIND : MAP_KIND;
 }
@@ -64,9 +54,6 @@ function compareNumbers(left, right) {
   return 0;
 }
 
-// Two texts rank by their code points: their code units rank so but where
-// a surrogate, half of a code point past the basic plane, meets a code unit
-// at U+E000 or past it, which the code point of the pair ranks after.
 function compareText(left, right) {
   const shared = Math.min(left.length, right.length);
   for (let at = 0; at < shared; at += 1) {
@@ -82,8 +69,6 @@ function compareText(left, right) {
   return compareNumbers(left.length, right.length);
 }
 
-// Two paths rank segment by segment, a shorter one first where one
-// begins the other.
 function compareSegments(left, right) {
   for (let index = 0; index < Math.min(left.length, right.length); index++) {
     const bySegment = compareText(left[index], right[index]);
@@ -92,13 +77,11 @@ function compareSegments(left, right) {
   return left.length === right.length ? 0 : (left.length < right.length ? -1 : 1);
 }
 
-// compareValues(a, b) → -1 / 0 / 1 — the one order.
 export function compareValues(a, b) {
   return compareKinded(kindOf(a), a, kindOf(b), b);
 }
 
-// A set is the vector in the one order without duplicates under `::set`,
-// made here alone, a value held once where the order ranks two alike [QSORD#set].
+// [QSORD#set]
 export function makeSet(elements) {
   const ordered = [...elements].sort(compareValues);
   const set = ordered.filter((element, index) => index === 0 || compareValues(ordered[index - 1], element) !== 0);
@@ -106,15 +89,12 @@ export function makeSet(elements) {
   return Object.freeze(set);
 }
 
-// The kinds a holder takes, the set of their tags a refusal of a value of
-// none of them holds as `:expected` [QSERR#site].
+// [QSERR#site]
 export function kindsExpected(...kindNames) {
   return makeSet(kindNames.map(makeTag));
 }
 
-// Two values rank kind before kind, and two of one kind by value, a value
-// under another tag by the name of its tag and then its payload, which a
-// desc reverses [QSORD#order], [QSORD#desc].
+// [QSORD#order], [QSORD#desc]
 function compareKinded(leftKind, left, rightKind, right) {
   if (leftKind !== rightKind) return leftKind < rightKind ? -1 : 1;
   switch (leftKind) {
@@ -184,8 +164,6 @@ function compareMaps(leftMap, rightMap) {
   return 0;
 }
 
-// A tagged container's payload is the container itself read by the kind of
-// its core; a tag over an atom or a value class holds its payload under it.
 function comparePayloads(leftTagged, rightTagged) {
   const [leftPayload, leftKind] = payloadOf(leftTagged);
   const [rightPayload, rightKind] = payloadOf(rightTagged);

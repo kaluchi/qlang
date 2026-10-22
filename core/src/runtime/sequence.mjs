@@ -1,10 +1,4 @@
-// The words a sequence answers across its kinds, each taking the values alone,
-// the value the walk served and the inputs of the call, an input that takes
-// code arriving closed at the call, code run on the element [QSBLD#fn],
-// [QSDSP#walk]: a verb of vectors reads the elements in order, a set reaching it
-// through the walk in its one order [QSORD#order], [QSDSP#residence], a map's reads
-// its values and keeps its keys [QSCOL#map], a string's reads its characters
-// [QSTXT#string], and a refusal names the verb that refused [QSERR#site].
+// [QSBLD#fn], [QSDSP#walk], [QSORD#order], [QSDSP#residence], [QSCOL#map], [QSTXT#string], [QSERR#site]
 
 import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
@@ -16,13 +10,10 @@ import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 import { writtenAsText } from './string.mjs';
 import { pathReads } from './path.mjs';
 
-// The elements, each beside the segment of the path that places it, its index
-// from zero in a sequence and its key in a map [QSERR#trace].
+// [QSERR#trace]
 const entriesOf = elements => [...elements.entries()];
 
 const failedAt = (code, error, segment) => atPlace(code, error, makePath([String(segment)]));
-
-// ── size and ends ──────────────────────────────────────────────
 
 registerPrimitive('string/count', text => Array.from(text).length);
 registerPrimitive('vec/count', sequence => sequence.length);
@@ -38,10 +29,7 @@ registerPrimitive('map/first', map => firstOf([...map.values()]));
 registerPrimitive('vec/last', lastOf);
 registerPrimitive('map/last', map => lastOf([...map.values()]));
 
-// ── side by side ───────────────────────────────────────────────
-// The elements at each index of the vectors a vector or a set holds, as long
-// as the shortest, an element that is no vector refused at its index
-// [QSCOL#sequence], [QSORD#set].
+// [QSCOL#sequence], [QSORD#set]
 const VecZipElementKindNotTakenError = declareRefusal('vec/zip/ElementKindNotTakenError');
 const SetZipElementKindNotTakenError = declareRefusal('set/zip/ElementKindNotTakenError');
 function columnsOf(vectors, ElementKindNotTakenError) {
@@ -55,17 +43,13 @@ function columnsOf(vectors, ElementKindNotTakenError) {
 registerPrimitive('vec/zip', vectors => columnsOf(vectors, VecZipElementKindNotTakenError));
 registerPrimitive('set/zip', vectors => columnsOf(vectors, SetZipElementKindNotTakenError));
 
-// ── sum and mean ───────────────────────────────────────────────
-
-// The number an element holds beneath the tags over it, as `add` reads
-// its subject [QSNUM#arithmetic], or undefined.
+// [QSNUM#arithmetic]
 function numberBeneath(element) {
   const beneath = beneathTags(element);
   return isNumber(beneath) ? beneath : undefined;
 }
 
-// The tags of the numbers the elements hold, each handed to `take`, an element
-// refused where it stands for its kind first, then for its tags [QSCOL#sequence].
+// [QSCOL#sequence]
 function eachNumber(elements, ElementKindNotTakenError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
@@ -89,9 +73,6 @@ const MapSumElementKindNotTakenError = declareRefusal('map/sum/ElementKindNotTak
 registerStateReader('vec/sum', (vector, state) => totalOf(entriesOf(vector), VecSumElementKindNotTakenError, state));
 registerStateReader('map/sum', (map, state) => totalOf(entriesOf(map), MapSumElementKindNotTakenError, state));
 
-// The mean of the numbers under the tags they share, a running mean whose
-// every step stays among the finite doubles; an empty container has none, and
-// answers null as `min` and `max` do [QSCOL#sequence].
 function meanOf(elements, ElementKindNotTakenError, state) {
   if (elements.length === 0) return NULL;
   let mean = 0;
@@ -107,18 +88,12 @@ const MapAvgElementKindNotTakenError = declareRefusal('map/avg/ElementKindNotTak
 registerStateReader('vec/avg', (vector, state) => meanOf(entriesOf(vector), VecAvgElementKindNotTakenError, state));
 registerStateReader('map/avg', (map, state) => meanOf(entriesOf(map), MapAvgElementKindNotTakenError, state));
 
-// ── ranking ────────────────────────────────────────────────────
-
-// The error a key answered for an element, the key itself or a part of
-// the vector it answered, or null [QSERR#flow], [QSORD#sort].
+// [QSERR#flow], [QSORD#sort]
 function errorOfKey(rankKey) {
   if (isErrorValue(rankKey)) return rankKey;
   return isVec(rankKey) ? rankKey.find(isErrorValue) ?? null : null;
 }
 
-// Each entry, its index or its key beside its element, beside the value it
-// ranks by, its own without a key, an error among the elements ranked as the
-// one order ranks it, or the error a key answered at the entry's place.
 async function keyedEntries(entries, key) {
   const ranked = [];
   for (const entry of entries) {
@@ -134,10 +109,7 @@ async function keyedEntries(entries, key) {
   return ranked;
 }
 
-// The least or the greatest element in the one order, or by the value
-// the key answers for each, `pick` naming which side wins a comparison,
-// the first of equal ones staying, two of two kinds refused as a comparison
-// refuses them [QSORD#sort].
+// [QSORD#sort]
 async function extremeOf(entries, key, pick) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -157,12 +129,7 @@ registerPrimitive('map/min', runs(['key'], (map, key) => extremeOf([...map], key
 registerPrimitive('vec/max', runs(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
 registerPrimitive('map/max', runs(['key'], (map, key) => extremeOf([...map], key, greatest)));
 
-// `sort` orders the elements in the one order, or by the value the key answers
-// for each, keeping equal ones in the subject's order; a map orders its
-// entries by their values and keeps the keys. A vector the key answers ranks
-// element by element, and `desc` reverses one index of it. A key that answers an
-// error answers the call, as the key of `groupBy` does, and so does one whose
-// vector holds an error [QSERR#flow], [QSORD#sort].
+// [QSERR#flow], [QSORD#sort]
 async function sortedEntries(entries, key) {
   const ranked = await keyedEntries(entries, key);
   if (isErrorValue(ranked)) return ranked;
@@ -179,12 +146,7 @@ registerPrimitive('map/sort', runs(['key'], async (map, key) => {
   return isErrorValue(sorted) ? sorted : new Map(sorted);
 }));
 
-// ── code on each element ───────────────────────────────────────
-
-// `map` runs its code on each element in order and answers what each
-// answered, the first error the code answers answering for the call at the
-// place of its element, the elements after it left unrun [QSCOL#image],
-// [QSERR#trace]; a map keeps its keys.
+// [QSCOL#image], [QSERR#trace]
 async function answersOf(elements, code) {
   const answers = [];
   for (const [at, element] of elements) {
@@ -201,11 +163,7 @@ registerPrimitive('map/map', runs(['code'], async (map, code) => {
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
 }));
 
-// ── predicates ─────────────────────────────────────────────────
-
-// A predicate answers a boolean for each element or fails [QSCND#boolean]: the
-// error it answered is handed on at the place of the element [QSERR#trace], and
-// another answer is refused where the element stands.
+// [QSCND#boolean], [QSERR#trace]
 async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
   const verdict = await predicate(element);
   if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
@@ -214,8 +172,6 @@ async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
   throw refusingAPart(new ConditionKindNotTakenError({ expected: kindsExpected('boolean'), actualValue: verdict }), at);
 }
 
-// `filter` keeps the elements whose predicate answers true, and a map the
-// entries whose values do.
 async function keptElements(sequence, predicate, ConditionKindNotTakenError) {
   const kept = [];
   for (const [at, element] of entriesOf(sequence)) {
@@ -241,9 +197,6 @@ const MapFilterConditionKindNotTakenError = declareRefusal('map/filter/Condition
 registerPrimitive('vec/filter', runs(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionKindNotTakenError)));
 registerPrimitive('map/filter', runs(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionKindNotTakenError)));
 
-// Whether the predicate of every element answers true, the first false
-// answering for the call, and whether the predicate of any does, the
-// first true answering.
 async function firstVerdict(elements, predicate, decisive, ConditionKindNotTakenError) {
   for (const [at, element] of elements) {
     const verdict = await verdictOf(predicate, at, element, ConditionKindNotTakenError);
@@ -262,14 +215,7 @@ const MapAnyConditionKindNotTakenError = declareRefusal('map/any/ConditionKindNo
 registerPrimitive('vec/any', runs(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyConditionKindNotTakenError)));
 registerPrimitive('map/any', runs(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionKindNotTakenError)));
 
-// ── partitions ─────────────────────────────────────────────────
-
-// The keyword the key of `groupBy` or `indexBy` answers for an element, the
-// one `toKeyword` names it by, a key of another kind refused at its element
-// with the kinds a key files under as `:expected`, or the error it answered;
-// without a key the element is its own, and two values of the key that file
-// under one keyword meet, `1` and `"1"` under `:"1"`, the second refused
-// [QSCOL#group].
+// [QSCOL#group]
 async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(key, answer, index);
@@ -281,8 +227,6 @@ async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenErro
   return named;
 }
 
-// The elements filed under the keyword the key answers for each, in
-// order.
 async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   const buckets = new Map();
   const filed = new Map();
@@ -300,14 +244,11 @@ const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
 const SetGroupByKeyKindNotTakenError = declareRefusal('set/groupBy/KeyKindNotTakenError');
 const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
 registerPrimitive('vec/groupBy', runs(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyKindNotTakenError, VecGroupByKeyTakenError)));
-// A set's buckets are sets, so the uniqueness of its elements survives
-// the partition.
 registerPrimitive('set/groupBy', runs(['key'], async (set, key) => {
   const buckets = await bucketsOf(set, key, SetGroupByKeyKindNotTakenError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
-// The last element filed under each keyword the key answers.
 async function indexOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
@@ -323,11 +264,7 @@ const VecIndexByKeyKindNotTakenError = declareRefusal('vec/indexBy/KeyKindNotTak
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
 registerPrimitive('vec/indexBy', runs(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyKindNotTakenError, VecIndexByKeyTakenError)));
 
-// ── slices and lookup ──────────────────────────────────────────
-
-// A count is a whole number by the invariant of its input [QSERR#site]; a
-// negative one clamps to 0, the same graceful out-of-range handling an
-// over-length one gets (`take 99` → the whole container).
+// [QSERR#site]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
 registerPrimitive('vec/take', (sequence, count) => sequence.slice(0, Math.max(0, count)));
 registerPrimitive('map/take', (map, count) => new Map([...map].slice(0, Math.max(0, count))));
@@ -335,9 +272,7 @@ registerPrimitive('string/drop', (text, count) => Array.from(text).slice(Math.ma
 registerPrimitive('vec/drop', (sequence, count) => sequence.slice(Math.max(0, count)));
 registerPrimitive('map/drop', (map, count) => new Map([...map].slice(Math.max(0, count))));
 
-// Whether a vector holds a value the one order ranks alike with the element
-// [QSORD#order]: a set by a search in its one order, and any other vector element by
-// element [QSCOL#sequence].
+// [QSORD#order], [QSCOL#sequence]
 function containsElement(vector, element) {
   if (!isSet(vector)) return vector.some(held => compareValues(held, element) === 0);
   let low = 0;
@@ -352,19 +287,17 @@ function containsElement(vector, element) {
   return false;
 }
 
-// `has` asks whether a path reads, and of any other value whether it is
-// held [QSPTH#has]; `contains` asks whether the element is held alone.
+// [QSPTH#has]
 registerPrimitive('vec/has', (vector, element) => (isPath(element) ? pathReads(vector, element) : containsElement(vector, element)));
 registerPrimitive('vec/contains', containsElement);
 
 registerPrimitive('vec/prepend', (vector, element) => [element, ...vector]);
 registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 
-// `concat` joins the vectors the call gives after its subject [QSCOL#sequence].
+// [QSCOL#sequence]
 registerPrimitive('vec/concat', combines((vector, vectors) => [...vector, ...vectors.flat()]));
 
-// An element `join` writes is a string or a keyword, written as text, and the
-// text stands under the tags its strings share [QSTXT#string], [QSCOL#sequence].
+// [QSTXT#string], [QSCOL#sequence]
 const VecJoinElementKindNotTakenError = declareRefusal('vec/join/ElementKindNotTakenError');
 
 registerStateReader('vec/join', (subject, separator, state) => {
@@ -380,22 +313,13 @@ registerStateReader('vec/join', (subject, separator, state) => {
   return underSharedTags(joined, tally.tags, state);
 });
 
-// ── order and nesting ──────────────────────────────────────────
-
 registerPrimitive(['vec/reverse', 'set/reverse'], sequence => [...sequence].reverse());
 registerPrimitive('map/reverse', map => new Map([...map].reverse()));
 
-// `flat` lifts one level of nesting: the inner sequences splice in
-// order, and the answer of a set is a set again, so a set of sets
-// flattens into their union [QSCOL#sequence], [QSCOL#algebra].
+// [QSCOL#sequence], [QSCOL#algebra]
 registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(beneathTags(element)) ? beneathTags(element) : [element])));
 
-// ── the fold ───────────────────────────────────────────────────
-
-// The fold, `reduce seed ~(reducer)`: the reducer folds the value so far and
-// each element into the value so far after it; `seed` answers for an empty
-// subject, and a failure of the reducer stops the fold at the place of its
-// element [QSCOL#reduce].
+// [QSCOL#reduce]
 async function foldOf(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {

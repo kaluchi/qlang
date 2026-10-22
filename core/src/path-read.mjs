@@ -1,7 +1,4 @@
-// Reading a path: each segment a key of a map or an index of a vector,
-// read beneath the tags stacked over the value it meets, and a write
-// follows a path as a read does and misses as a read misses [QSPTH#get],
-// [QSPTH#write].
+// [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
 import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, keyword, CORE_KIND } from './types.mjs';
@@ -12,18 +9,15 @@ export const PathKeyNotInMapError = declareRefusal('path/KeyNotInMapError');
 export const PathIndexOutOfBoundsError = declareRefusal('path/IndexOutOfBoundsError');
 export const PathIndexNotIntegerError = declareRefusal('path/IndexNotIntegerError');
 
-// What a soft read answers where the path misses, a key or an index
-// missing or null standing before its last segment.
 export const MISSED = Symbol('qlang/missed');
 
-// A key alone, a keyword, a number or a string, names the segment of its text [QSPTH#key].
+// [QSPTH#key]
 export const KINDS_OF_A_KEY_ALONE = Object.freeze(['keyword', 'number', 'string']);
 export const isKeyAlone = value => KINDS_OF_A_KEY_ALONE.includes(isKeyword(value) ? 'keyword' : typeof value);
 
 export const keyNameOf = key => (isKeyword(key) ? key.name : String(key));
 
-// A strict read's refusal of a part the subject lacks and of null on the way,
-// a miss a soft read answers null for [QSPTH#query].
+// [QSPTH#query]
 const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexOutOfBoundsError.prototype.address]);
 
 export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
@@ -31,30 +25,17 @@ export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
 export const isMissedRead = error => isMissedPart(error)
   || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.facts.get('actualType')?.name === CORE_KIND.null.name);
 
-// partsOfTemplate(value) → the parts a template of `get` reads in their
-// places, the elements of a vector or a set and the values of a map, under
-// a tag or none; null for any other value, which the template answers as
-// it is, a quote, a doc, a function and a kind among them, each a vector
-// of code or prose [QSPTH#template].
+// [QSPTH#template]
 export function partsOfTemplate(value) {
   if (isQuote(value) || isDoc(value) || isFn(value) || isKind(value)) return null;
   if (isVec(value)) return value;
   return isMap(value) ? [...value.values()] : null;
 }
 
-// segmentIndex(segment) → the index a segment names, a whole number or one
-// counted from the end, or NaN for a segment that names no index, `1e0`
-// among them.
 export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
 }
 
-// readPath(subject, path, soft?) → the value at the path, each value it
-// meets read beneath the tags over it. A miss is refused with the key and
-// the keys near it, or the index and the length, and a value on the path
-// that has no parts with the segment it met, each refusal with the path it
-// followed and the value it met beneath its tags, of the subject at its first
-// segment; read softly, a miss answers MISSED and a refusal of a kind stands.
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
@@ -79,19 +60,15 @@ export function readPath(subject, path, soft = false) {
   return current;
 }
 
-// A refusal of a read at a depth of its path, of the subject at the first [QSPTH#get].
+// [QSPTH#get]
 const refusalAt = (refusal, depth) => (depth === 0 ? refusingTheSubject(refusal) : refusal);
 
-// The refusal of a key the map lacks, with the keys near it, as a name is
-// near the names of the scope [QSSLF#near].
+// [QSSLF#near]
 export function keyNotInMap(container, segment, path, depth) {
   const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => keyword(name)));
   return refusalAt(new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: container }), depth);
 }
 
-// The index a segment names in a vector, counted from the end where it
-// is negative; a segment that names no index is refused, and an index
-// past the end too, or answers MISSED read softly.
 export function indexIn(container, segment, path, depth, soft = false) {
   const index = segmentIndex(segment);
   if (Number.isNaN(index)) throw refusalAt(new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: container }), depth);
@@ -101,7 +78,6 @@ export function indexIn(container, segment, path, depth, soft = false) {
   throw refusalAt(new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container }), depth);
 }
 
-// The refusal of a value on the path that has no parts.
 export function noPartsOn(value, segment, path, depth) {
   return refusalAt(new PathSubjectHasNoPartsError({
     segment: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),

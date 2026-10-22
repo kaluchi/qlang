@@ -8,8 +8,6 @@ import { marksOfTree } from '../../../../scripts/marks.mjs';
 import { graphOfTree, reachOf } from '../../../../scripts/import-reach.mjs';
 import { astrayBlocks, blocksReached, dossierOf, reachOfTree } from '../../../../scripts/dossier.mjs';
 
-// The sections and the record a planted tree holds: QSCLI#budget is a
-// section its chapter does not hold, D9999 a record no journal holds.
 const context = { sections: new Set(['QSCLI#answer', 'QSHST#source']), heldByItsTests: name => name === 'D404' };
 const titled = (...titles) => titles.map(title => `it('${title}', () => {});`).join('\n');
 const problems = text => problemsOfTestFile('cli/test/QSCLI/answer.test.mjs', text, context).map(({ line, problem }) => [line, problem]);
@@ -110,7 +108,6 @@ describe('the titles of the tests', () => {
   });
 });
 
-// A tree planted in a folder of its own and handed to git, its files by path.
 function planted(files, read) {
   const tree = mkdtempSync(join(tmpdir(), 'qlang-marks-'));
   try {
@@ -123,9 +120,6 @@ function planted(files, read) {
   }
 }
 
-// The code of a planted tree, the tests of its three sections, the third
-// held by a case and the runner of the cases, and a record in transit over
-// the first.
 const lines = (...written) => [...written, ''].join('\n');
 const TREE = {
   'core/package.json': JSON.stringify({ name: '@kaluchi/qlang-core', exports: { '.': { import: './src/index.mjs' } }, imports: { '#load': { node: './src/node.mjs', default: './src/web.mjs' } } }),
@@ -154,8 +148,6 @@ const TREE = {
   'docs/journal/D900.md': lines('# D900 · A record in transit', '', 'Overrides [QSNAM#scope]')
 };
 
-// The declarations a test reaches in the code of a planted tree, each by its
-// module and its names, the code a module runs as it loads by none.
 const namesReached = (modules, entry) => [...reachOf(modules, entry).values()].filter(({ path }) => path.startsWith('core/src/'))
   .map(({ path, from }) => `${path.slice('core/src/'.length)} ${modules.get(path).declarations.find(declaration => declaration.from === from).names.join(',') || 'as it loads'}`).sort();
 

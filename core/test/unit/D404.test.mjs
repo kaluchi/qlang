@@ -1,9 +1,6 @@
 import { it, expect } from 'vitest';
 import { Worker } from 'node:worker_threads';
 
-// A read past its bound blocks the thread that reads it, past any timeout
-// of the suite, so a worker reads the text and is stopped at ten seconds,
-// which answer as never.
 const millisecondsOfARead = text => new Promise((resolve, reject) => {
   const worker = new Worker(`const { parentPort, workerData } = require('node:worker_threads');
       import(workerData.parser).then(({ parse }) => {

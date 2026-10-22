@@ -11,13 +11,10 @@ it('the value of `::vec/take` is its function, whose recipe is the descriptor of
   expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
 });
 
-// A call that leaves the place of an input empty is refused under the input.
 it('mul given no multiplier is refused under its input', async () => {
   expect(await evalQuery('5 | mul !| type')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
 });
 
-// A command of a chain is named by its act and what it writes by the noun of
-// the thing, which the check of the conventions holds over the catalog.
 describe('no kind of the catalog bears the name of a command of a chain', () => {
   it('finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
     const planted = [

@@ -1,21 +1,10 @@
-// The painter of a source over the parts its parser reads, each token named by
-// what it writes in the language, one sense to a kind [QSHST#tokens].
+// [QSHST#tokens]
 
 import { closersCompleting, parse, ParseError } from './parse.mjs';
 import { partOf, walkParts, tagHeadEnd } from './walk.mjs';
 import { isCallStep, isBindStep, isGroupStep, errorFieldsOf } from './steps.mjs';
 import { formOf } from './types.mjs';
 
-// tokenize(source, verbNames) → `{ start, end, kind }` in the order of the
-// source, every character in one token and a token inside a quote `italic`: a
-// literal by the kind of its value, `null`, `boolean`, `number`, `string`,
-// `regex`, `keyword`, `tag` and `path`; `quote` the `~(`, `)` and `~` of a
-// quote; `vec`, `set`, `map` and `error` the brackets of a container and of an
-// error literal; `doc` the prose of a doc; `comment`; `declaration` the name a
-// declaration writes; `verb` the name of a call `verbNames` holds, a last name
-// or an address, and `name` any other; `group` the parentheses of a group;
-// `fail` the combinator `!|`; `punctuation` the rest of a gap; `whitespace`;
-// and `unparsed` the source past where its parse stopped [QSHST#tokens].
 export function tokenize(source, verbNames) {
   if (source.length === 0) return [];
   const read = readOf(source);
@@ -28,9 +17,7 @@ export function tokenize(source, verbNames) {
   return tokens;
 }
 
-// The parts a source is painted from: `{ root, source, end }`, the source
-// they were read from and how far into the painted one it reads, or null when
-// no prefix completes, a throw that is no refusal passing as it is [QSQUO#step].
+// [QSQUO#step]
 function readOf(source) {
   let refusal;
   try {
@@ -46,9 +33,7 @@ function readOf(source) {
   return null;
 }
 
-// The spans of the parts and of the comments the parser keeps on the side, in
-// the order of their starts, one that starts inside the span before it giving
-// way, a part's before those of the parts it holds [QSHST#tokens].
+// [QSHST#tokens]
 function spansOf(source, root, verbNames) {
   const spans = [];
   const paint = (start, end, kind) => {
@@ -67,8 +52,6 @@ function spansOf(source, root, verbNames) {
   return kept;
 }
 
-// The spans a part paints by what it writes, false where it paints the parts
-// it holds itself [QSHST#tokens].
 function paintPart(read, source, verbNames, paint, spans) {
   const { value } = read;
   const start = read.span.start.offset;
@@ -96,8 +79,6 @@ function paintPart(read, source, verbNames, paint, spans) {
   return paint(start, start + name.length, verbNames.has(name) ? 'verb' : 'name');
 }
 
-// The `~(` and `)` of a quote, or the `~` of its short form, and what it holds
-// painted as the code it is, each token of it `italic` [QSHST#tokens].
 function paintQuote(read, source, verbNames, paint, spans) {
   const start = read.span.start.offset;
   const end = read.span.end.offset;
@@ -110,8 +91,6 @@ function paintQuote(read, source, verbNames, paint, spans) {
   return false;
 }
 
-// The prose of a doc around the quotes it holds, which the walk paints, and
-// the code its spans between backquotes hold, painted as code [QSHST#tokens].
 function paintDoc(read, source, verbNames, paint, spans) {
   const quotes = read.parts.map(({ span }) => ({ start: span.start.offset, end: span.end.offset, code: false }));
   const backquoted = read.backquoted.map(({ start, end }) => ({ start: start.offset, end: end.offset, code: true }));
@@ -124,9 +103,6 @@ function paintDoc(read, source, verbNames, paint, spans) {
   paint(cursor, read.span.end.offset, 'doc');
 }
 
-// The tokens of a source, its spans and each gap between them split into runs
-// of whitespace, the combinator `!|`, `fail`, and each other character,
-// `punctuation` [QSHST#tokens].
 function withGaps(source, spans) {
   const tokens = [];
   let cursor = 0;

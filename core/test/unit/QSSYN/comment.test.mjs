@@ -26,19 +26,6 @@ describe('a comment read as whitespace', () => {
   });
 });
 
-// The nesting of block comments. A block comment and a block doc open and
-// close with forms of their own, `|~`/`~|` and `|~~`/`~~|`, so the parser
-// descends into a nested pair with no escape: where the content of a block
-// meets the opener of another, it reads the whole pair, its own closer
-// among it, as content of the outer one. A line marker, `|~|` or `|~~|`,
-// inside a block is read as its own characters and hides no closer on its
-// line.
-//
-// The tests below pin: (1) a nested pair round-trips the outer `.content`
-// as the source between the delimiters; (2) a bare `~~|` inside a block
-// comment is content; (3) the closer of the container ends its body; (4) a
-// block doc left open is refused naming where it opened, and a block comment
-// left open is refused at its opener.
 describe('a block comment that nests', () => {
   const blockStep = (src) => rootOf(src).comments[0];
 
@@ -105,7 +92,6 @@ describe('a block comment that nests', () => {
     });
 
     it('a block comment whose inner nested comment swallows the outer close is refused at its opener', () => {
-      // The inner opener of `|~ A |~ B ~|` takes the one closer, and none is left for the outer.
       expectRefusedAt('|~ A |~ B ~|\n| 1', 0, '|');
     });
 

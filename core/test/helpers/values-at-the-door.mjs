@@ -1,6 +1,4 @@
-// The values the doors of a host are held to [QSHST#door]: a value of each kind of
-// the language, which passes both doors as it is, and each value of no kind
-// beside the path where it stands and what the walk of the door names it by.
+// [QSHST#door]
 
 import { evalQuery } from '../../src/session.mjs';
 import { langRuntime } from '../../src/runtime/index.mjs';

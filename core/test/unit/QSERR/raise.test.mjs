@@ -11,7 +11,7 @@ it('an error literal under the address of a refusal, raised, keeps every fact it
 });
 
 it('`raise` takes the tag the map carries and keeps every entry a fact', async () => {
-  // A `:kind` entry names no tag [QSERR#rest]: the tag is the map's own.
+  // [QSERR#rest]
   const result = await evalQuery(':MyTag |~~ MyTag. ~~| | ::MyTag{:kind ::Other :detail "x"} | raise');
   expect(result.tag.name).toBe('MyTag');
   expect(result.facts.get('kind')).toEqual(makeTag('Other'));

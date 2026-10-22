@@ -1,9 +1,4 @@
-// The loader of a source that `#qlang/load-source` picks by its condition
-// `node`, which answers the uri of a source, `qlang/number`, with the text of
-// the file the `imports` field of the core's `package.json` maps
-// `#qlang/number` to, with null where the field maps it to no file, and raises
-// `::builtin/SourceLoadError` where the file does not read [QSHST#source].
-// The rules it holds: [QSWRK#tooling].
+// [QSHST#source], [QSWRK#tooling]
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';

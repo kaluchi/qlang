@@ -5,7 +5,6 @@ import { printValue } from '../../../src/print-value.mjs';
 import { TAG_HEADER_SYMBOL } from '../../../src/types.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
-// Long enough that the elision standing for it prints shorter than it.
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that its elision prints shorter';
 const readBack = async (value, elision) => evalQuery(`${printValue(value)} | apply ${printValue(elision.get('read'))}`);
 

@@ -241,8 +241,6 @@ describe('the help of the signature of a call', () => {
   it('returns the form of the call around the cursor', async () => {
     const src = '[1 2 3] | filter ~(gt 2)';
     const { root } = parseDocument(src, 'test.qlang');
-    // The cursor on the `g` of `gt` stands in the narrowest call with
-    // modifiers, `gt 2`, whose form the help shows.
     const offset = src.indexOf('gt');
     const sig = await signatureHelpAtOffset(root, src, offset);
     expect(sig).not.toBeNull();
@@ -253,14 +251,12 @@ describe('the help of the signature of a call', () => {
     const src = '[1 2 3] | count';
     const { root } = parseDocument(src, 'test.qlang');
     const sig = await signatureHelpAtOffset(root, src, src.indexOf('count'));
-    // A call of `count` writes no modifiers, and the help shows nothing.
     expect(sig).toBeNull();
   });
 
   it('tracks the active parameter by the modifiers before the cursor', async () => {
     const src = '{:x 1 :y 2} | subOf /x /y';
     const { root } = parseDocument(src, 'test.qlang');
-    // Cursor on the second modifier
     const offset = src.indexOf('/y');
     const sig = await signatureHelpAtOffset(root, src, offset);
     expect(sig).not.toBeNull();

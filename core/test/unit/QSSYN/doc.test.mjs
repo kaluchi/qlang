@@ -74,19 +74,6 @@ it('reads as code a quote of a doc that takes a value after a declaration or aft
   for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
 });
 
-// The nesting of block comments. A block comment and a block doc open and
-// close with forms of their own, `|~`/`~|` and `|~~`/`~~|`, so the parser
-// descends into a nested pair with no escape: where the content of a block
-// meets the opener of another, it reads the whole pair, its own closer
-// among it, as content of the outer one. A line marker, `|~|` or `|~~|`,
-// inside a block is read as its own characters and hides no closer on its
-// line.
-//
-// The tests below pin: (1) a nested pair round-trips the outer `.content`
-// as the source between the delimiters; (2) a bare `~~|` inside a block
-// comment is content; (3) the closer of the container ends its body; (4) a
-// block doc left open is refused naming where it opened, and a block comment
-// left open is refused at its opener.
 describe('a block doc left unbalanced, refused', () => {
   const neverClosedDoc = '`|~~` opened at line 1, column 1 is never closed; `~~|` completes the source';
   const expectRefusedAt = (src, offset, found) => {

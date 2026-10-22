@@ -1,8 +1,4 @@
-// Arithmetic primitives, each taking the values alone, the number the walk
-// served and the inputs its call reads [QSHST#source]. The invariants of a call
-// hold before a primitive runs, a divisor no zero and the count of `range` whole
-// [QSERR#site], [QSBLD#fn], and an answer that left the finite doubles is refused
-// as it is brought under `::number` [QSNUM#arithmetic].
+// [QSHST#source], [QSERR#site], [QSBLD#fn], [QSNUM#arithmetic]
 
 import { declareRefusal, refusingTheSubject } from '../errors.mjs';
 import { registerPrimitive, combines } from '../primitives.mjs';
@@ -13,9 +9,7 @@ registerPrimitive('number/sub', combines((minuend, subtrahend) => minuend - subt
 registerPrimitive('number/mul', combines((multiplicand, multiplier) => multiplicand * multiplier));
 registerPrimitive('number/div', combines((dividend, divisor) => dividend / divisor));
 
-// The remainder takes the sign of the divisor, the floored remainder, read
-// from the remainder of the doubles so no quotient leaves their range
-// [QSNUM#arithmetic]; a zero answer is no negative zero.
+// [QSNUM#arithmetic]
 const unsignedZero = number => (number === 0 ? 0 : number);
 registerPrimitive('number/mod', combines((dividend, divisor) => {
   const remainder = dividend % divisor;
@@ -25,17 +19,13 @@ registerPrimitive('number/abs', subject => Math.abs(subject));
 registerPrimitive('number/floor', subject => Math.floor(subject));
 registerPrimitive('number/ceil', subject => unsignedZero(Math.ceil(subject)));
 
-// The whole numbers from zero below a whole count [QSNUM#arithmetic], a count no
-// longer than the length a JavaScript array may have.
 const LONGEST_VECTOR = 2 ** 32 - 1;
 registerPrimitive('number/range', count => {
   if (count > LONGEST_VECTOR) throw refusingTheSubject(new NumberRangeCountTooLargeError({ longest: LONGEST_VECTOR, actualValue: count }));
   return Array.from({ length: Math.max(count, 0) }, (_, index) => index);
 });
 
-// A number rounds half away from zero to the digits the call gives, a whole
-// number [QSERR#site], as its digits are written, a negative count to tens and
-// beyond [QSNUM#arithmetic]; past a double it stays, and tens past it give zero.
+// [QSERR#site], [QSNUM#arithmetic]
 registerPrimitive('number/round', (subject, digits) => {
   const shifted = shiftedBy(Math.abs(subject), digits);
   if (!Number.isFinite(shifted)) return subject;
@@ -43,7 +33,6 @@ registerPrimitive('number/round', (subject, digits) => {
   return rounded === 0 ? 0 : rounded;
 });
 
-// A number with its point moved by places, read from the digits that write it.
 function shiftedBy(number, places) {
   const [digits, exponent = '0'] = String(number).split('e');
   return Number(`${digits}e${Number(exponent) + places}`);

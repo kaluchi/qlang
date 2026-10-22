@@ -26,8 +26,6 @@ describe('the one order ranks a failure raised after every value, by its tag and
 });
 
 describe('the one order tells an Array, a Map and a Set under a tag from one under none', () => {
-  // Collections that hold their tag on themselves, of one content under
-  // another tag or none, are not equal.
   it('rejects tagged Array vs untagged Array with same elements', () => {
     const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
     expect(compareValues(tagged, [1, 2, 3]) === 0).toBe(false);
@@ -62,10 +60,6 @@ it('ranks each value of a ladder after the one before it, the sign of the places
   }
 });
 
-// Keyword / tag ordering — sort / min / max / gt / lt / gte /
-// lte pairwise comparability extends to pairs of names through
-// lexicographic `.name` compare, the one order of `compareValues` in
-// `ordering.mjs`; these tests cover its keyword and tag branches.
 describe('the one order over keywords and tags', async () => {
   it('gt / lt / gte / lte on Keywords compare by .name', async () => {
     const { evalQuery } = await import('../../../src/session.mjs');

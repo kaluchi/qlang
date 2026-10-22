@@ -1,7 +1,4 @@
-// `env` reads the state of its call [QSDSP#residence] and answers what the
-// reader declared, the cells of a session and the steps before it, by name
-// [QSSLF#axis], [QSNAM#binding]; `kinds` answers the kinds the scope reads,
-// the root's and the reader's, each by its tag.
+// [QSDSP#residence], [QSSLF#axis], [QSNAM#binding]
 
 import { registerStateReader } from '../primitives.mjs';
 import { makeTag } from '../types.mjs';

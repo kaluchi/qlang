@@ -1,7 +1,3 @@
-// The ring of atoms over the examples of its own verbs and every
-// literal the conformance cases expect; the examples of the catalog are
-// walked in shares, `atoms-catalog-*.test.mjs`.
-
 import { it, expect, beforeAll } from 'vitest';
 import {
   RING_TIMEOUT, ringSession, unbuiltOf, conformanceLiterals

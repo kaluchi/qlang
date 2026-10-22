@@ -1,5 +1,4 @@
-// The codec of JSON both ways [QSWRK#catalog], [QSPRN#json], `json` writing
-// the JSON text of a value and `parseJson` reading one.
+// [QSWRK#catalog], [QSPRN#json]
 
 import { TAG_HEADER_SYMBOL, makePath, refuseForeign } from '../types.mjs';
 import { declareRefusal, refusingTheSubject } from '../errors.mjs';
@@ -12,9 +11,7 @@ function dispatchPlainValue(v, handlers, path) {
   return handlers.atom(v, path);
 }
 
-// `toPlain` writes a value in the kinds of JSON, for `json` and a host, a number
-// past the doubles raised [QSHST#door], and `fromPlain` reads them back as
-// maps, vectors and the atoms, for a host.
+// [QSHST#door]
 const TO_PLAIN_HANDLERS = {
   null:    () => null,
   number:  v => (Number.isFinite(v) ? v : refuseForeign(v)),
@@ -22,13 +19,12 @@ const TO_PLAIN_HANDLERS = {
   boolean: v => v,
   keyword: k => k.name,
   tag:     k => k.literal,
-  // A regex writes its literal, which JSON has no form for [QSPRN#json].
+  // [QSPRN#json]
   regex:   printRegex,
-  // A path writes its literal [QSPTH#value].
+  // [QSPTH#value]
   path:    printPath,
   vec:     v => v.map(toPlain),
   map:     qMapToPlainObject,
-  // A value under a tag writes its tag as `$tag` beside its payload.
   underTag: t => {
     let inner;
     if (Array.isArray(t)) inner = [...t];
@@ -36,12 +32,10 @@ const TO_PLAIN_HANDLERS = {
     else inner = t.payload;
     return { $tag: t[TAG_HEADER_SYMBOL].name, payload: toPlain(inner) };
   },
-  // A quote and a doc write their prints [QSPRN#json].
+  // [QSPRN#json]
   quote:   q => printValue(q),
   doc:     d => printValue(d),
   set:     s => s.map(toPlain),
-  // A failure a host converts writes its tag beside its facts, which no
-  // value of the pipe holds; its literal is the form that reads back.
   error:   e => ({ $error: { $tag: e.tag.name, facts: toPlain(e.facts) } })
 };
 
@@ -49,8 +43,6 @@ export function toPlain(v) {
   return dispatchQlangValue(v, TO_PLAIN_HANDLERS);
 }
 
-// Each key is laid as a property of its own, so a key JavaScript reads as
-// the prototype, `__proto__`, is written as any key is [QSPRN#json].
 function qMapToPlainObject(m) {
   const obj = {};
   for (const [k, val] of m) {
@@ -59,8 +51,6 @@ function qMapToPlainObject(m) {
   return obj;
 }
 
-// A number of a JSON document past the doubles, which `JSON.parse` reads as
-// an infinity, is refused at the `:path` to it, none for the whole text [QSPRN#json].
 export const StringParseJsonNumberNotFiniteError = declareRefusal('string/parseJson/NumberNotFiniteError');
 
 const FROM_PLAIN_HANDLERS = {
@@ -92,10 +82,7 @@ function plainObjectToQMap(plainObj, path) {
   return qlangMap;
 }
 
-// fromJsonText(text) → the value a text `JSON.parse` has read writes, read as
-// a literal reads it: each object the map of its keys in the order the text
-// writes them, a key written twice in its first place with its last value,
-// and a number past the doubles refused at its path [QSLIT#json].
+// [QSLIT#json]
 export function fromJsonText(text) {
   let at = 0;
   const skipSpace = () => {
@@ -146,8 +133,7 @@ export function fromJsonText(text) {
   return valueAt([]);
 }
 
-// `json` resides on `::any` and `parseJson` on `::string`, each taking the
-// value the walk served alone [QSQUO#modifier].
+// [QSQUO#modifier]
 export const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 registerPrimitive('any/json', subject => JSON.stringify(toPlain(subject)));

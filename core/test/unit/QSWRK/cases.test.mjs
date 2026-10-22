@@ -1,19 +1,4 @@
-// Conformance test runner.
-//
-// Each JSONL line has two qlang expressions: query (arbitrary) and
-// expect (must be a pure literal — no calls, no pipelines — or the print
-// of a failure, its error at rest raised, `!{…} | raise`).
-// Both are eval'd, results compared by the tie of the one order.
-//
-// Every file is a section of a chapter, and a case that names a record
-// opens with a record in force, `{"decision":"Dnn",…}`,
-// and a requirement the tree does not meet yet is a target,
-// `"target": true`, which answers its present, `"now"`, an error by its tag
-// and any other value as its literal: a target that answers as expected
-// fails until the branch that met it drops the mark, and one that answers
-// neither fails until a reader tells a repair from a broken case
-// [QSWRK#target]. The requirements agree with each other in the one
-// form a runner can see: no two cases hold one query to different answers.
+// [QSWRK#target]
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -34,10 +19,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .map(f => f.split(/[\\/]/).join('/'))
   .sort();
 
-// assertLiteral refuses an expectation that holds a call outside a quote,
-// a failure's print, `!{…} | raise`, read by the literal it raises; a path
-// is a value [QSPTH#value], and a quote literal is a literal whatever steps
-// it holds.
+// [QSPTH#value]
 function assertLiteral(quote, testName) {
   walkParts(raisedLiteralOf(quote) ?? partOf(quote), ({ value, content }) => {
     if (isQuote(value) && content !== undefined) return false;
@@ -56,8 +38,6 @@ async function answersAsPresent(queryResult, now) {
   return compareValues(queryResult, present) === 0;
 }
 
-// The chapter of the specification a file stands under, `QSNAM` for
-// `QSNAM/scope.jsonl`, or null for a file outside the chapters.
 const chapterOf = file => /^(QS[A-Z]{3})\//.exec(file)?.[1] ?? null;
 
 const casesByFile = files.map(file => ({
@@ -84,9 +64,6 @@ describe('conformance: the requirements agree', () => {
     expect(contradictions).toEqual([]);
   });
 
-  // A case is gated by its section, the file it stands in, and names a
-  // record only while the record's change is in transit over it, the record
-  // opening the case.
   it('opens a case that names a record with the one record in force, whose record stands in the root of the records', () => {
     const decisionsDir = join(here, '..', '..', '..', '..', 'docs', 'journal');
     const ungated = allCases.filter(({ file: _file, ...test }) => test.decision !== undefined
@@ -95,7 +72,6 @@ describe('conformance: the requirements agree', () => {
     expect(ungated).toEqual([]);
   });
 
-  // The name of a case says the rule it shows, in four words at least.
   it('names each case by the rule it shows, in four words at least', () => {
     const terse = allCases.filter(test => test.name.split('-').length < 4).map(test => `${test.file}#${test.name}`);
     expect(terse).toEqual([]);

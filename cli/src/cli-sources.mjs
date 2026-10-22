@@ -1,5 +1,4 @@
-// The source the command line declares the root by beside the language's,
-// with the primitives of its verbs [QSDSP#residence].
+// [QSDSP#residence]
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

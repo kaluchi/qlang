@@ -1,6 +1,3 @@
-// `table` run through runQuery, so the primitive the sources of the command
-// line hand reaches the runtime, its refusals held by the laws of its page.
-
 import { it, expect } from 'vitest';
 import { runQuery } from '../../src/run.mjs';
 import { silentStreams } from '../helpers/silent-streams.mjs';

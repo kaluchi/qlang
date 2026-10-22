@@ -14,8 +14,6 @@ function expectCoversInputExactly(tokens, src) {
   expect(cursor).toBe(src.length);
 }
 
-// Each token as the text it covers and its kind, a token inside a quote
-// marked by its italics, the whitespace aside.
 const painted = async src => tokenize(src, await rootVerbNames())
   .filter(token => token.kind !== 'whitespace')
   .map(token => [src.slice(token.start, token.end), token.italic ? `${token.kind} italic` : token.kind]);
@@ -288,8 +286,6 @@ describe('a source that does not parse', () => {
 });
 
 describe('the code a doc holds', () => {
-  // Only the prose of a doc paints as a doc: its quotes and its spans between
-  // backquotes paint as the code they are.
 
   it('paints a quote of the prose as code', async () => {
     expect(await painted('|~~ see ~(add 1) ~~|')).toEqual([
@@ -337,8 +333,6 @@ describe('the code a doc holds', () => {
 });
 
 describe('the docs of a slot', () => {
-  // The doc literals of a declaration's slot are parts the parser reads as it
-  // reads every doc, each of prose painted as one doc.
 
   it('a doc of prose between the key and the body is one doc', async () => {
     expect(await painted(':double |~~ Doubles the input. ~~| mul 2')).toEqual([

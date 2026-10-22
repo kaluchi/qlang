@@ -1,8 +1,4 @@
-// The verbs that turn a value into another kind, each a verb of the
-// source kind named for the kind it answers, `toNumber`, taking the subject
-// the walk served alone: a kind answers its own verb as
-// itself, and what a verb cannot read whole it refuses under its address
-// [QSCND#convert].
+// [QSCND#convert]
 
 import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf, beneathTags } from '../types.mjs';
 import { makeSet, kindsExpected } from '../ordering.mjs';
@@ -17,16 +13,9 @@ import { partOf } from '../walk.mjs';
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
 registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
 
-// The kinds a key files under are those `toKeyword` lives on, the set a
-// refusal of a key of another kind holds as `:expected` [QSCND#convert].
 const TO_KEYWORD_ADDRESSES = ['keyword/toKeyword', 'string/toKeyword', 'number/toKeyword', 'boolean/toKeyword', 'null/toKeyword', 'tag/toKeyword'];
 export const KINDS_A_KEY_FILES_UNDER = kindsExpected(...TO_KEYWORD_ADDRESSES.map(address => splitAddress(address)[0]));
 
-// keywordFiledFor(value) → the keyword a value of a kind a key files under
-// is named by, a keyword itself, a string or a number by its text, a
-// boolean or null by its literal and a tag name by its name, as `toKeyword`
-// names it and `groupBy`, `indexBy` and `toMap` file it [QSCND#convert]; null for a
-// value of another kind.
 export function keywordFiledFor(value) {
   if (!KINDS_A_KEY_FILES_UNDER.some(kind => kind.name === typeOf(value).name)) return null;
   return isKeyword(value) ? value : keyword(textOf(value));
@@ -34,7 +23,6 @@ export function keywordFiledFor(value) {
 
 registerPrimitive(TO_KEYWORD_ADDRESSES, keywordFiledFor);
 
-// The literal of the kind a text writes whole, its one step spanning it, or null.
 function literalWritten(text, isOfKind) {
   let quote;
   try {
@@ -47,7 +35,6 @@ function literalWritten(text, isOfKind) {
   return start.offset === 0 && end.offset === text.length ? quote[0] : null;
 }
 
-// The number a text writes whole as the literal of a number, or null.
 const numberWritten = text => literalWritten(text, step => typeof step === 'number');
 
 const StringToNumberTextNotNumberError = declareRefusal('string/toNumber/TextNotNumberError');
@@ -78,9 +65,7 @@ registerPrimitive('keyword/toTag', key => {
   return makeTag(key.name);
 });
 
-// A string reads as the source of a regex with the flags the call gives,
-// none for null, and a text that writes the literal of a regex whole is
-// refused [QSTXT#match].
+// [QSTXT#match]
 const StringToRegexTextNotRegexError = declareRefusal('string/toRegex/TextNotRegexError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
 const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
@@ -104,9 +89,7 @@ registerPrimitive('string/toRegex', (text, written) => {
 registerPrimitive(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));
 registerPrimitive('set/toSet', set => set);
 registerPrimitive('vec/toSet', vector => makeSet(vector));
-// The map a vector's pairs `[key value]` write, the reverse of `entries`:
-// each key named as `toKeyword` names it, and of two pairs with one key
-// the last holds [QSCND#convert].
+// [QSCND#convert]
 const VecToMapElementNotPairError = declareRefusal('vec/toMap/ElementNotPairError');
 const VecToMapKeyKindNotTakenError = declareRefusal('vec/toMap/KeyKindNotTakenError');
 

@@ -1,9 +1,4 @@
-// The names of control, residing on `::any`, each taking the values alone, the
-// subject and the inputs of its call [QSBLD#fn]: a branch, a clause, an
-// alternative and a quote among the conditions of `allOf` and `anyOf` is code
-// the name runs only when it is chosen, closed at the call [QSQUO#literal],
-// [QSDSP#walk], and the condition of `if` is a boolean computed at the call
-// [QSCND#boolean].
+// [QSBLD#fn], [QSQUO#literal], [QSDSP#walk], [QSCND#boolean]
 
 import { isNull, isErrorValue, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -19,10 +14,7 @@ const AnyAnyOfConditionKindNotTakenError = declareRefusal('any/anyOf/ConditionKi
 registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
 
-// Whether every condition holds of the subject, and whether some does:
-// a condition computed at the call is the boolean it answered, a quote
-// answers one in its turn, and the first condition that decides answers
-// with the quotes after it unrun [QSCND#boolean].
+// [QSCND#boolean]
 async function verdictOfConditions(subject, conditions, decisive, ConditionKindNotTakenError) {
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;
@@ -36,7 +28,7 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionKindN
 registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionKindNotTakenError)));
 registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionKindNotTakenError)));
 
-// The first alternative that answers a value, each in its place [QSCND#coalesce].
+// [QSCND#coalesce]
 registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
@@ -48,8 +40,7 @@ registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alterna
   return NULL;
 }));
 
-// The clauses alternate a predicate and its branch, a pair at least by
-// the invariant of the clauses, and a clause left over is the default [QSCND#branch].
+// [QSCND#branch]
 registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {

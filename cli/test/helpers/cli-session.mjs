@@ -1,6 +1,4 @@
-// A session of the sources of the command line over streams that read and
-// write nothing, the answer of a query in it and the names the command line
-// declares in its own source [QSSLF#page].
+// [QSSLF#page]
 
 import { createSession, nodeAddresses } from '@kaluchi/qlang-core';
 import { cliSources } from '../../src/cli-sources.mjs';

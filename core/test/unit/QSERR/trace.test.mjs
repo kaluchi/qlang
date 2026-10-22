@@ -23,10 +23,6 @@ describe('an error value and the trace it is handed', () => {
   });
 });
 
-// A host hands a failure by the answer of its verb, by a refusal its verb or
-// the constructor of its kind throws, as the first value of a query and as the
-// value of a name in a scope it hands, and each holds the `:trace` it writes
-// as the kind `::trace` takes it before a frame joins it.
 const AnyThrownRefusedError = declareRefusal('any/thrown/RefusedError');
 const NumberThrownToTheFoldRefusedError = declareRefusal('number/thrownToTheFold/RefusedError');
 const BuiltRefusedError = declareRefusal('Built/RefusedError');
@@ -39,8 +35,6 @@ const HANDING_SOURCE = [
   ':Built |~~ A kind whose constructor its host hands. ~~| (::kind | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})'
 ].join('\n');
 
-// A session whose host makes every failure with the `:trace` given, its
-// constructor refusing the text "x" and an error at rest.
 function hostHanding(trace) {
   const failure = () => makeErrorValue(makeTag('error'), new Map([['trace', trace]]));
   return createSession({ sources: [{ uri: 'host', source: HANDING_SOURCE, primitives: {
@@ -89,7 +83,6 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
-    // `raise` raises the value under `::Built`, the catch lays its error at rest under that kind, whose constructor refuses it with a `:trace` of text, and the second catch reads the tag of the refusal of the kind of a trace.
     const session = await hostHanding('at Foo.bar(Foo.java:1)');
     expect(await answerIn(session, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });

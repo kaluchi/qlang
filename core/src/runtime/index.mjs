@@ -1,9 +1,6 @@
-// The scope every query starts from: the root the language's sources declare
-// [QSDSP#residence], each read by the host's locator, with nothing seeded
-// before them [QSHST#source].
+// [QSDSP#residence], [QSHST#source]
 
-// Each module registers the primitives of the language's verbs and kinds
-// into PRIMITIVE_REGISTRY, by address, as it loads [QSDSP#residence].
+// [QSDSP#residence]
 import './sequence.mjs';
 import './map.mjs';
 import './setops.mjs';
@@ -34,14 +31,9 @@ import { keyword } from '../types.mjs';
 import { declareRoot } from './root.mjs';
 import { platformLocator, LANGUAGE_SOURCES, BuiltinBootstrapSourceMissingError } from './bootstrap.mjs';
 
-// One template per locator; each call answers a copy that the caller's
-// declarations write into.
 const _templateScopeByLocator = new WeakMap();
 
-// langRuntime({ locator? }) → a copy of the scope of the root the language's
-// sources declare, each read by `opts.locator`, `(uri) → Promise<{ source }
-// | null>`, or through `package.json#imports`; a bundle without an import
-// map hands its own, as `site/scripts/_browser-entry.mjs` does [QSHST#source].
+// [QSHST#source]
 export async function langRuntime(opts = {}) {
   const locator = opts.locator ?? platformLocator;
   let templatePromise = _templateScopeByLocator.get(locator);
@@ -53,14 +45,11 @@ export async function langRuntime(opts = {}) {
   return new Map(templateScope);
 }
 
-// The noun a source of the language declares, the last name of its uri:
-// `qlang/number` declares `number`, and `qlang` the topic [QSDSP#residence].
+// [QSDSP#residence]
 function nounOfSource(uri) {
   return uri.slice(uri.lastIndexOf('/') + 1);
 }
 
-// The bootstrap `langRuntime` memoises, callable with a locator of a
-// test's own.
 export async function buildLangRuntime(locator) {
   const sources = [];
   for (const uri of LANGUAGE_SOURCES) {

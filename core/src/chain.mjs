@@ -1,6 +1,4 @@
-// The chain of a function and of a kind, the commands that built it folded
-// into the quote its literal holds, read once for each value as the roles
-// they declare and the places its inputs read, on every road to one [QSBLD#fn], [QSBLD#kind].
+// [QSBLD#fn], [QSBLD#kind]
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
@@ -34,8 +32,6 @@ const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && va
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
-// The modifiers each command writes, in their order, the last ones left out
-// where the command may leave them.
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
   ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isKindsOfEach] }],
@@ -56,22 +52,15 @@ const KIND_COMMANDS = new Map([
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
-// The names of the commands of the chain of a function and of a kind, which
-// their verbs write, and of every command a chain is written in, `impl`, which
-// gives the recipe or the constructor, among them [QSBLD#fn], [QSBLD#kind].
 export const FN_COMMAND_NAMES = Object.freeze([...COMMANDS.keys()]);
 export const KIND_COMMAND_NAMES = Object.freeze([...KIND_COMMANDS.keys()]);
 export const COMMAND_NAMES = Object.freeze([...new Set([...FN_COMMAND_NAMES, ...KIND_COMMAND_NAMES, 'impl'])]);
 
-// isVerbBody(body) → whether the body of a declaration as written is the value of a
-// verb: a quote, a `::builtin{}` or a function built from `::fn` [QSNAM#address], [QSLSP#server].
+// [QSNAM#address], [QSLSP#server]
 export function isVerbBody(body) {
   return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }
 
-// The object of a step a table of commands does not take: `{ index, actualValue }`,
-// its place among the objects written and the object, its place alone where it is
-// left out, `{}` for a step that is no command, or null where every one is taken.
 function objectNotTaken(step, commands) {
   if (!isCallStep(step) || !commands.has(step.get('name').name)) return {};
   const { taken, optional } = commands.get(step.get('name').name);
@@ -82,24 +71,16 @@ function objectNotTaken(step, commands) {
   return objects.length > rules.length ? { index: rules.length, actualValue: objects[rules.length] } : null;
 }
 
-// The names of the kinds a tag or a set of tags names, or null for any
-// value, which names no kind or names `::any`.
 function kindsOf(value) {
   const names = value === undefined ? [] : isTag(value) ? [value.name] : value.map(tag => tag.name);
   return names.length === 0 || names.includes(ANY_KIND_NAME) ? null : names;
 }
 
-// The kinds of a value or of each of its elements, as `takes`, `wraps` and
-// `reads` write them: whether they are of each element, the names of the
-// kinds, and the kinds as written, null where none are.
 function kindsWritten(written) {
   const each = isPlainVec(written);
   return { each, kinds: kindsOf(each ? written[0] : written), written: written ?? null };
 }
 
-// The names a quote of commands declares, each once, and the names a law
-// or a fact written with a path is named under: those declared and the
-// refusals the kinds the commands write name.
 function namesOf(quote, DeclaredTwiceError) {
   const declared = new Set();
   const named = new Set();
@@ -114,9 +95,6 @@ function namesOf(quote, DeclaredTwiceError) {
   };
 }
 
-// The roles the quote of the commands of a function declares, in their order,
-// each name declared once and a name with a path under one declared before
-// it, a step written with args the rules of the chain do not take refused.
 function readChainOfFn(quote) {
   const chain = { subject: null, inputs: [], answer: null, pages: new Map(), facts: [], invariants: [], laws: [] };
   const names = namesOf(quote, FnNameDeclaredTwiceError);
@@ -174,9 +152,6 @@ function readChainOfFn(quote) {
   return Object.freeze(chain);
 }
 
-// The roles the quote of the commands of a kind declares, in their order,
-// each name declared once and a name with a path under one declared before
-// it, a step written with args the rules of the chain do not take refused.
 function readChainOfKind(quote) {
   const kind = { payload: null, fields: [], tells: [], pages: new Map(), facts: [], invariants: [], laws: [] };
   const names = namesOf(quote, KindNameDeclaredTwiceError);
@@ -237,7 +212,6 @@ function readChainOfKind(quote) {
   return Object.freeze(kind);
 }
 
-// chainOfFn(fn) → the roles of the chain of a function, read once.
 const CHAINS_OF_FUNCTIONS = new WeakMap();
 
 export function chainOfFn(fn) {
@@ -246,9 +220,7 @@ export function chainOfFn(fn) {
   return chain;
 }
 
-// functionOfRecipe(recipe) → the function of no commands a recipe is, a quote
-// or a host's primitive written as the value of a verb [QSBLD#recipe], made once
-// for the recipe.
+// [QSBLD#recipe]
 const FUNCTIONS_OF_RECIPES = new WeakMap();
 const NO_COMMANDS = makeQuote([]);
 
@@ -258,7 +230,6 @@ export function functionOfRecipe(recipe) {
   return fn;
 }
 
-// chainOfKind(kind) → the roles of the chain of a kind, read once.
 const CHAINS_OF_KINDS = new WeakMap();
 
 export function chainOfKind(kind) {
@@ -267,9 +238,6 @@ export function chainOfKind(kind) {
   return chain;
 }
 
-// pageOfKindsRefusal(name, kinds, each) → the page of the refusal the kinds
-// of an input, of a payload or of a field name where `throws` gives it
-// none: the value, or each of its elements, and its kinds.
 export function pageOfKindsRefusal(name, kinds, each) {
   const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
@@ -277,24 +245,16 @@ export function pageOfKindsRefusal(name, kinds, each) {
   return makeDoc([` ${holder} holds a value of ${listed}. `]);
 }
 
-// pageOfConstructor(address) → the page of the constructor of a kind, the
-// `::builtin{}` its `impl` gives, which constructs by the primitive a host
-// hands beside its source and constructs nothing where none is handed
-// [QSBLD#kind], [QSHST#source].
+// [QSBLD#kind], [QSHST#source]
 export function pageOfConstructor(address) {
   return makeDoc([` The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed. `]);
 }
 
-// invariantsOf(chain, name) → the invariants written under the subject, an
-// input or the answer, in their order.
 export function invariantsOf(chain, name) {
   return chain.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
 }
 
-// The places the inputs of a function read, one past the greatest index an
-// input reads strictly or softly, or null when one reads no index, the args
-// whole, a place counted from its end, code of several steps or anything
-// else, and so takes any number of values [QSBLD#input].
+// [QSBLD#input]
 function placesOfReadings(readings) {
   let places = 0;
   for (const { index, ofSeveralSteps } of readings) {
@@ -304,10 +264,6 @@ function placesOfReadings(readings) {
   return places;
 }
 
-// How the place of an input of a function reads the args, once per place
-// [QSBLD#input]: the path it reads, a quote of a path alone among them, or
-// else the quote it runs, the index of the arg its first step reads, whether
-// the place is that one step, and whether it reads the args whole, `~(it)`.
 const READINGS = new WeakMap();
 
 function readingOfPlace(value) {
@@ -331,9 +287,6 @@ function readingOfPlace(value) {
   return reading;
 }
 
-// The index of the arg the first step of a place reads, by a path or by
-// `query`, a whole number, or none for a place that reads the args whole,
-// one counted from its end or anything else.
 function indexReadBy(head, call) {
   const read = isPath(head) ? head : call?.name === 'query' && isPath(call.modifiers[0]) && call.modifiers[0].segments.length === 1 ? call.modifiers[0] : null;
   const index = read === null ? NaN : segmentIndex(read.segments[0]);

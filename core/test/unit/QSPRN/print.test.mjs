@@ -19,8 +19,6 @@ const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0'
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
-// The commands of a chain, each group written together, in the order the
-// names they declare rest on.
 const FN_COMMANDS = [
   ['on |~~ A number. ~~| ::number'],
   ['takes :by |~~ How much,\n    a number. ~~| /0 ::number', 'holds :by/TooBigError |~~ Below ten. ~~| ~(lt 10)'],
@@ -42,16 +40,11 @@ const KIND_COMMANDS = [
 const FN_RECIPES = ['impl ~(it)', 'impl ~(get /w | add 1)'];
 const KIND_CONSTRUCTORS = ['impl ::builtin{}'];
 
-// A part is the text that builds it and whether that text computes.
 const written = text => ({ text, computed: false });
 const computed = text => ({ text, computed: true });
 
-// The quote that answers a part in a template of `get`, a path under its
-// kind, since `get` reads a path its template holds.
 const answering = part => `~(${!part.computed && part.text.startsWith('/') ? `::path#${part.text}` : part.text})`;
 
-// A container of parts: its literal, or the template of `get` where a
-// part computes.
 function container(open, parts, separator, close) {
   if (!parts.some(part => part.computed)) return written(`${open}${parts.map(part => part.text).join(separator)}${close}`);
   return computed(`get ${open}${parts.map(answering).join(separator)}${close}`);
@@ -62,8 +55,6 @@ function entriesOf(open, entries, separator) {
   return computed(`get ${open}${entries.map(([key, part]) => `${key} ${answering(part)}`).join(separator)}}`);
 }
 
-// A part under a tag: its literal, the payload touching the tag by its own
-// sign or by `#`, or the part computed and put under the tag by `tag`.
 function underTag(tag, part) {
   if (part.computed) return computed(`${part.text} | tag ${tag}`);
   return written(/^[\w/-]/.test(part.text) ? `${tag}#${part.text}` : `${tag}${part.text}`);
@@ -71,7 +62,6 @@ function underTag(tag, part) {
 
 const tagged = (tag, part) => (part.computed ? computed(`${part.text} | tag ${tag}`) : written(`${tag}${part.text}`));
 
-// A walk of a linear congruential generator, the same values on every run.
 function literalsOf(count, seed) {
   let state = seed;
   const random = () => { state = (state * 1103515245 + 12345) % 2147483648; return state / 2147483648; };
@@ -147,8 +137,6 @@ describe('a binding record and a vector under a tag', () => {
   });
 });
 
-// A kind whose `print` is declared under it prints its parts through it,
-// and the forms of the core print the rest of the value.
 describe('the print declared under a kind', () => {
   const BADGE_SOURCE = [
     ':badge |~~ A badge. ~~|',

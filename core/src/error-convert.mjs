@@ -3,23 +3,16 @@ import { declareDefect, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './nouns.mjs';
 import { nameOfContinuation } from './parse.mjs';
 
-// The reading of text into code refuses on `::quote`, and a primitive that
-// fails in a call on `::call` [QSERR#site].
+// [QSERR#site]
 recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
-// A refusal of the runtime that carries a fact neither its label nor the
-// kind of errors declares: the source of the refusal and the catalog
-// disagree, a defect of the runtime.
 const BuiltinRefusalFactNotDeclaredError = declareDefect('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
 const SPAN_TAG = makeTag('span');
 
-// spanOfLocation(loc, source) → the stretch of the source a location names
-// as a span, the offset from zero, the line and the column from one of its
-// start and of the point after its end, each counted in code points as a
-// string counts, `::span[0 1 1 1 1 2]` [QSPRN#span].
+// [QSPRN#span]
 export function spanOfLocation(loc, source) {
   const point = ({ offset, line, column }) => {
     const lineStart = offset - (column - 1);
@@ -28,15 +21,9 @@ export function spanOfLocation(loc, source) {
   return makeTagged(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
 }
 
-// The code points of the source between two offsets of its UTF-16 text.
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
-// factsInOrder(tag, facts, scope) → the facts of a refusal of the runtime in
-// the order of the definitions that describe them, each named as its fact
-// [QSERR#site]: those under the refusal's label first, then those under
-// `::error`, which every refusal shares, the trace an error leaves coming
-// after them as it joins them. A fact neither declares is a
-// defect of the runtime.
+// [QSERR#site]
 export function factsInOrder(tag, facts, scope) {
   const ordered = new Map();
   for (const name of [...namesDeclaredUnder(scope, tag.name), ...namesDeclaredUnder(scope, ERROR_TAG.name)]) {
@@ -48,9 +35,6 @@ export function factsInOrder(tag, facts, scope) {
   return ordered;
 }
 
-// The error a refusal of the runtime raised: the facts its site handed with
-// the kind of the value refused, of the subject a step was served the kind
-// alone [QSERR#site].
 export function errorFromQlang(qlangError, subject, scope) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
@@ -59,15 +43,10 @@ export function errorFromQlang(qlangError, subject, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
-// The error of a text the parser refused: the line where it stopped, what it
-// wanted there, the span of the place and where the text came from, in the
-// order its label declares [QSSYN#refusal].
+// [QSSYN#refusal]
 export function errorFromParse(parseError, scope, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
-  // A refusal the grammar names itself carries its sentence, which says
-  // the fix, and a bracket left open its sentence beside its closers
-  // [QSSYN#refusal]; any other failure lists what the parser expected there.
   if (parseError.sentence) d.set('message', parseError.sentence);
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
@@ -78,8 +57,6 @@ export function errorFromParse(parseError, scope, uri = parseError.uri) {
   return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });
 }
 
-// The continuations a parse failure lists, each once: a literal as its text,
-// the end, any character and a named part of the grammar as keywords [QSSYN#refusal].
 function liftExpectedAlternatives(expected) {
   const seen = new Set();
   const out = [];
@@ -97,14 +74,9 @@ function liftExpectedAlternative(alt) {
   return alt.type === 'literal' ? alt.text : keyword(nameOfContinuation(alt));
 }
 
-// The failures beneath a host's failure that its facts recount.
 const CAUSES_RECOUNTED = 8;
 
-// A JavaScript error escaping a primitive is a failure of the host: a tag of
-// the language, its account and the accounts of the failures beneath it
-// [QSERR#site]. The step that failed stands in the trace; the stack, the
-// class and the fields of the error stay with the host in `originalError`,
-// and a host that has facts to hand declares a refusal of its own.
+// [QSERR#site]
 export function errorFromForeign(jsError, scope) {
   const tag = makeTag('call/HostFailureError');
   const facts = new Map([['message', accountOf(jsError)]]);
@@ -116,8 +88,6 @@ export function errorFromForeign(jsError, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: jsError });
 }
 
-// What a thrown value says of itself: an error's message, and any other
-// value as its text, since a host may throw what it likes.
 function accountOf(thrown) {
   return thrown instanceof Error ? thrown.message : String(thrown);
 }

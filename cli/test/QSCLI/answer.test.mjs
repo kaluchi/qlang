@@ -134,8 +134,6 @@ describe('the page, the version, the REPL and a call with no query', () => {
   });
 });
 
-// `--fail` gives a failure the code 1, written as without it, and a
-// value the code 0.
 describe('the code a failure exits with under --fail', () => {
   it('exits a failure with 1 and writes its alert on stdout', async () => {
     const s = captureStreams();
@@ -205,7 +203,6 @@ it('writes what `out` writes and leaves the answer of the query unwritten', asyn
     s.stdinStream, s.stdoutStream, s.stderrStream, {}
   );
   expect(exitCode).toBe(0);
-  // `out` writes `3`, and the answer, the string `print` made, is not written after it.
   expect(s.stdoutText()).toBe('3\n');
   expect(s.stderrText()).toBe('');
 });
@@ -216,8 +213,6 @@ describe('a failure written on stdout and a defect on stderr', () => {
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stderrText()).toBe('');
-    // The failure as the language prints it holds the line and the span of
-    // the place, and the command line draws the caret under the line.
     expect(s.stdoutText()).toContain('::quote/ParseError!{');
     expect(s.stdoutText()).toContain(':source "[1 2"');
     expect(s.stdoutText()).toContain(':location ::span[4 1 5 4 1 5]');
@@ -225,14 +220,12 @@ describe('a failure written on stdout and a defect on stderr', () => {
   });
 
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with the code 1', async () => {
-    // A literal nested past the stack the parser reads it with raises a defect past the fail track.
     const s = captureStreams();
     const exitCode = await main(['['.repeat(20000) + ']'.repeat(20000)], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect([exitCode, s.stdoutText(), s.stderrText()]).toEqual([1, '', 'qlang: Maximum call stack size exceeded\n']);
   });
 
   it('writes a failure on stdout as every answer, exit 0', async () => {
-    // Without `--fail` a failure is an answer on the channel of every answer with exit 0, a nonzero exit kept for a defect and a call with no query.
     const s = captureStreams();
     const exitCode = await main(
       ['[1 2 3] | add 1'],
@@ -281,7 +274,6 @@ describe('a failure written on stdout and a defect on stderr', () => {
   });
 });
 
-// A failure the language answers, the refusal of `add` on a string.
 const refusalOfAdd = () => evalQuery('"x" | add 1');
 
 describe('a defect raised as the answer is written, and a failure written as every answer', () => {
@@ -305,7 +297,6 @@ describe('a defect raised as the answer is written, and a failure written as eve
   });
 
   it('writes a failure on stdout as every answer, exit 0', async () => {
-    // A failure is a value of the language on the channel of every answer with exit 0, so a failing call never stops the calls run beside it.
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
       didExplicitStdoutEffect: false,
       shouldColorize: false
@@ -316,8 +307,6 @@ describe('a defect raised as the answer is written, and a failure written as eve
   });
 });
 
-// `--fail` gives a failure the code 1 for a script that tests it, the
-// failure written as without it.
 describe('the code the caller asks a failure to exit with', () => {
   it('exits a failure with the code the caller asks for, written as without it', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
@@ -351,7 +340,6 @@ describe('the code the caller asks a failure to exit with', () => {
   });
 });
 
-// The answer is written as the language prints it.
 describe('the answer as the language prints it, and none after `out`', () => {
   it('prints a non-String composite as its literal', async () => {
     const result = new Map([['k', 1]]);
@@ -381,9 +369,6 @@ it('writes a string as its text where the caller asks for colour, which no colou
   expect(cliOutcome.stdoutText).toBe('hello | world\n');
 });
 
-// The answer is written as the language prints it whatever the data was,
-// a string as its text, so a query converts it where a reader wants
-// another format.
 describe('the text written for an answer', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))

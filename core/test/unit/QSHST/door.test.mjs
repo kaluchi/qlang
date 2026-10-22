@@ -11,9 +11,6 @@ import { valuesOfTheLanguage, valuesOfNoKind } from '../../helpers/values-at-the
 import { errorFromQlang, errorFromForeign } from '../../../src/error-convert.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
-// A host's verb that answers the value the test lays at the index its
-// subject names, one that throws a refusal holding it, and a kind whose
-// constructor the host hands.
 const ANSWERS = [];
 const answering = value => ANSWERS.push(value) - 1;
 const AnyRefuseRefusedError = declareRefusal('any/refuse/RefusedError');
@@ -60,7 +57,6 @@ const doorRefusal = (address, path, account) =>
 
 const HOST_FAILURE = makeTag('call/HostFailureError');
 
-// A vector whose element the test counts the reads of.
 function counted(element) {
   const reads = { count: 0 };
   const vector = new Proxy([element], {
@@ -105,8 +101,6 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('passes back unwalked a value the call handed in', async () => {
-    // The door of a cell walks the subject it takes once, and the door of an
-    // answer walks no value the call handed in.
     const { vector, reads } = counted(1);
     expect((await session.evalCell('same', { initialPipeValue: vector })).result).toBe(vector);
     expect(reads.count).toBe(1);
@@ -233,8 +227,7 @@ describe('a value of no kind the core meets where it reads a kind or writes a nu
 });
 
 describe('a failure of JavaScript lifted to a failure of the host', () => {
-  // A host's failure carries the facts every host can give, its account
-  // and the accounts of the failures beneath it [QSERR#site].
+  // [QSERR#site]
   it('lifts a JavaScript error to its account under the tag of the language', async () => {
     const jsErr = new Error('something went wrong');
     const errorVal = errorFromForeign(jsErr, await langRuntime());
@@ -321,7 +314,6 @@ describe('the answer of a primitive a host hands', () => {
 });
 
 it('lifts an error of JavaScript and any other value a primitive throws to a failure of the host', async () => {
-  // A host's primitive that throws an error of JavaScript, no QlangError, and one that throws undefined.
   const s = await createSession({
     sources: [{
       uri: 'tests/bomb',
@@ -357,9 +349,6 @@ describe('the codec of JSON refuses a value of no kind of the language where it 
 });
 
 describe('a value of JSON lifted into the language and back', () => {
-  // `fromPlain` lifts a value of JavaScript parsed from JSON into qlang: an
-  // object of JavaScript into a map keyed by its names, an array into a
-  // vector, and an atom as it is.
 
   it('atoms pass through unchanged', async () => {
     expect(fromPlain(42)).toBe(42);
@@ -388,10 +377,7 @@ describe('a value of JSON lifted into the language and back', () => {
 });
 
 describe('a number past the doubles, refused by the printer and the codec of JSON', () => {
-  // A number past the doubles has no literal [QSLIT#number], and an answer
-  // brought under `::number` past them is refused as `::number/NotFiniteError`
-  // [QSNUM#arithmetic]; one a host hands meets the printer and the codec of
-  // JSON, which raise it where they write it.
+  // [QSLIT#number], [QSNUM#arithmetic]
   it('the printer refuses an infinity and a NaN as values of no kind', () => {
     for (const leaked of [Infinity, -Infinity, NaN]) {
       let thrown = null;

@@ -1,14 +1,3 @@
-// The retired terms of the chain, of the slot of a kind, of the node an
-// axis reads, of the trace a failure leaves, of a refusal, of the boundary
-// of a host, of the read of text into code and back, of the elision, of the
-// template, of the read of a print, of the shape of a value, of the tag over
-// a payload and of the scope and the parts the parser reads, each held by the
-// lexicon of retired terms as one regex of
-// its one sense, which refuses the term where it is written, in prose, a
-// name of the code or the name of a case, and leaves the words of another
-// sense, and the generic words the texts that state what holds write in no
-// sense, which it refuses whole.
-
 import { it, expect } from 'vitest';
 import { RETIRED_WORDS } from '../../../../scripts/retired-words.mjs';
 

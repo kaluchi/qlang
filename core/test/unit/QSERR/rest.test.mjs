@@ -19,7 +19,6 @@ it('converts a refusal whose site hands no facts to an error of no facts', async
 });
 
 it('an error of the kind of errors prints without its kind', async () => {
-  // The kind of errors is the one `!{…}` implies, so its print writes no tag before the bang.
   const err = makeErrorValue(makeTag('error'), new Map());
   expect(printValue(err)).toBe('!{}');
 });

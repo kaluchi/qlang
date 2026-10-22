@@ -1,12 +1,3 @@
-// The pages of the refusals of the core and of every host of the tree that
-// declares any, the command line, held against the sites that declare them
-// and the rules that raise them: a refusal a site declares by
-// its address has its page under the noun of the place it guards, the prose,
-// the facts and the laws a reader reaches through `doc`, the command line's
-// in its own source, and a page of a refusal is declared by a site or raised
-// by the rule of a verb or a kind. Every module of the command line but
-// `bin.mjs`, which touches the process, declares its refusals as it loads.
-
 import { describe, it, expect } from 'vitest';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -26,13 +17,10 @@ const session = await createSession({
 const addresses = nodeAddresses(session.scope);
 const kindAt = address => typeOf(nodeOf(session.scope, address)?.get('value')).name;
 
-// The refusals the verbs and the kinds of the root raise by rule, which their
-// chains page as the declared ones are paged.
 const ruleBorn = new Set(addresses
   .filter(address => isVerb(session.scope, address) || kindAt(address) === 'kind')
   .flatMap(address => ruleRefusalsOf(session.scope, address)));
 
-// The pages of the refusals under a noun, `number/add/SubjectNotNumberError`.
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && kindAt(address) === 'doc');
 
 describe('every refusal a site of the core or of the command line declares has its page under its noun', () => {

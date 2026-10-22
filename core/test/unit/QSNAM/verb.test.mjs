@@ -32,9 +32,6 @@ describe('the limit of the evaluation depth — every re-entry seam', () => {
 });
 
 it('runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
-  // The host's tally counts the depths whose `runLaws` step returned, the
-  // root and every depth below it up to the limit, the step at the depth
-  // refused answering the failure, which skips the tally.
   let depthTally = 0;
   const sessionInstance = await createSession({
     sources: [{

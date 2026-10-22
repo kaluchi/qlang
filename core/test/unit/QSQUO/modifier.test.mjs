@@ -57,7 +57,7 @@ it('`tag` hands on an error its modifier answers', async () => {
 });
 
 it('a tag a vector holds beside a value is read through a name of the vector', async () => {
-  // The subject of a call is the value in the pipe [QSNUM#combine], so the pair is named before its value takes the tag it holds.
+  // [QSNUM#combine]
   const r = await evalQuery('[42 ::Box] | :pair it | get /0 | tag (pair | get /1) | type');
   expect(r).toEqual(makeTag('Box'));
 });

@@ -1,8 +1,3 @@
-// The loaders `#qlang/load-source` picks by its condition raise
-// `::builtin/SourceLoadError` where a source the package maps does not read,
-// its facts the origin of the source, where the platform looked for it and
-// the host's account of the failure.
-
 import { it, expect, vi, afterEach } from 'vitest';
 import { keyword } from '../../../src/types.mjs';
 

@@ -1,8 +1,4 @@
-// The verbs of a path: `get` reads it strictly and `query` softly, over a
-// path, a key or a literal that holds paths; `put`, `update` and `delete`
-// write it; `segments` and `toPath` turn a path and its keys into each other,
-// JSON Pointer's form read with its escapes [QSPTH#get], [QSPTH#query],
-// [QSPTH#template], [QSPTH#write], [QSPTH#verbs].
+// [QSPTH#get], [QSPTH#query], [QSPTH#template], [QSPTH#write], [QSPTH#verbs]
 
 import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
@@ -16,20 +12,15 @@ const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerErro
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
-// A path, or the path of one segment a key alone names [QSPTH#key].
+// [QSPTH#key]
 const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
 
-// A path read from the subject, a miss read softly answering the fallback.
 function readOne(subject, path, soft, fallback) {
   const read = readPath(subject, path, soft);
   return read === MISSED ? fallback : read;
 }
 
-// A path, or a key alone beneath the tags over it, read from the subject;
-// any other value a template whose paths are read and whose quotes, closed at
-// the call, are run against the subject in their places, its other values
-// kept, each container laid back under its tags as a write lays it, the first
-// failure the answer [QSLIT#tag].
+// [QSLIT#tag]
 function readByPath(subject, path, soft, fallback, state) {
   const key = beneathTags(path);
   return isPath(path) || isKeyAlone(key) ? readOne(subject, pathOf(key), soft, fallback) : readTemplate(subject, path, soft, fallback, state);
@@ -50,8 +41,6 @@ async function readTemplate(subject, template, soft, fallback, state) {
   return await relaid(template, isMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
 }
 
-// The parts of a template read one after another, the first failure the
-// answer.
 async function readParts(subject, templates, soft, fallback, state) {
   const parts = [];
   for (const template of templates) {
@@ -65,14 +54,7 @@ async function readParts(subject, templates, soft, fallback, state) {
 registerStateReader('any/get', runsWithin(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
 registerStateReader('any/query', runsWithin(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
-// The subject with the part at a path written: `put` lays a value there,
-// a key the last map lacks added, `update` lays what its code answers for
-// the part there, and `delete` takes the part out, the elements after an
-// index it takes moving up. The path is followed as `get` follows it, and
-// every container on the way is built again and laid under the tags it
-// stood under, each laid again through its kind, as `within` lays
-// its answer; an error the code answers is the answer, at its path
-// [QSPTH#write], [QSERR#trace].
+// [QSPTH#write], [QSERR#trace]
 async function written(value, path, at, write, state) {
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
@@ -122,8 +104,7 @@ registerStateReader('any/update', runs(['code'], (subject, pathOrKey, code, stat
 registerStateReader('any/delete', (subject, pathOrKey, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: false, removes: true }, state));
 
-// `has` asks whether a path reads, beside whether a value of any other kind
-// is held [QSPTH#has].
+// [QSPTH#has]
 export function pathReads(subject, path) {
   try {
     return readPath(subject, path, true) !== MISSED;
@@ -132,16 +113,12 @@ export function pathReads(subject, path) {
   }
 }
 
-// The keys and indices of a path, an index as its number and a key as its
-// keyword.
 registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segment => {
   const index = segmentIndex(segment);
   return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
 })));
 
-// A path names one segment at least, the value itself being `it` [QSPTH#value],
-// each the text of a key alone [QSPTH#key], an element of no key refused by
-// its role [QSPTH#verbs]; a path is itself.
+// [QSPTH#value], [QSPTH#key], [QSPTH#verbs]
 registerPrimitive('vec/toPath', keys => {
   if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
   return makePath(keys.map((element, index) => {
@@ -152,8 +129,6 @@ registerPrimitive('vec/toPath', keys => {
 });
 registerPrimitive('path/toPath', path => path);
 
-// A string in JSON Pointer's form, a fragment's `#` before it read too,
-// `~1` a slash and `~0` a tilde within a segment.
 registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
   if (!pointer.startsWith('/')) throw refusingTheSubject(new StringToPathNotPointerError({ actualValue: text }));

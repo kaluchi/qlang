@@ -9,9 +9,10 @@ export default defineConfig({
     include: ['test/**/*.test.mjs'],
     // A value of the language compares by the tie of the one order [QSWRK#tooling].
     setupFiles: ['test/helpers/language-equality.mjs'],
-    // A test waits fifteen seconds, the boot of the root under the
-    // coverage among them.
+    // A test and a hook wait fifteen seconds, the boot of the root under
+    // the coverage among them.
     testTimeout: 15000,
+    hookTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],

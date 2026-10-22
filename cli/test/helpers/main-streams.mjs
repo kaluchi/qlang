@@ -1,6 +1,4 @@
-// The streams `main` runs over, a standard input that holds the text it is
-// handed and the writes of stdout and stderr read back, and the entry of a
-// cell as a session answers it [QSCLI#answer].
+// [QSCLI#answer]
 
 import { Readable, Writable } from 'node:stream';
 import { langRuntime } from '@kaluchi/qlang-core';
@@ -25,7 +23,6 @@ export function captureStreams(stdinPayload = '') {
   };
 }
 
-// A cell as a session answers it, over the root unless a test hands the scope its query ran in.
 export async function makeCellEntry({ result = null, defect = null, scope = null } = {}) {
   return {
     source: '…',

@@ -285,7 +285,7 @@ export function residencesOf(scope, verbName) {
   return residences;
 }
 
-// The names of the root under a noun but `::any` whose last name is a verb's,
+// The names of the root but those under `::any` whose last name is a verb's,
 // each with its record and its noun, read once for the root [D417].
 const ROOT_NAMES_OF_A_VERB = new WeakMap();
 
@@ -294,7 +294,7 @@ function rootNamesOfAVerb(scope, verbName) {
     const named = [];
     for (const [name, record] of rootOf(from)) {
       const [kindName, lastName] = splitAddress(name);
-      if (kindName !== null && kindName !== ANY_KIND_NAME && lastName === verb) named.push([name, record, kindName]);
+      if (kindName !== ANY_KIND_NAME && lastName === verb) named.push([name, record, kindName]);
     }
     return named;
   });

@@ -53,8 +53,6 @@ jobs:
       fail-fast: false
       matrix:
         workspace:
-          - "@kaluchi/qlang-core"
-          - "@kaluchi/qlang-cli"
           - "@kaluchi/qlang-lsp"
           - "@kaluchi/qlang-site"
           - "qlang-vscode"

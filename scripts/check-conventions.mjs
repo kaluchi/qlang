@@ -913,7 +913,7 @@ function testsOffTheirSection() {
 //
 // A comment of the sources and the tests of the core, the command line and
 // the language server, read by acorn, is a mark alone, one line of the
-// citations its block holds, or a directive of a tool [D418].
+// citations its block holds, or a directive of a tool [QSWRK#code].
 
 const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;

@@ -406,13 +406,16 @@ a fresh session likelier and its reading lighter.
 
 The code names each thing as the language names it: a tag is a tag,
 `makeTag`, `isTag`, `TagLit`, a step a step, a modifier a modifier. A
-comment states what holds, in one sentence, and cites the section or
-the record it holds; the reason of a rule lives with its record. Every
-branch leaves the files it touches so: it moves a reason it finds in a
-comment into its record or deletes it with the compromise it excuses,
-and deletes a false comment. The ratio of comment lines to code lines
-over the core, the command line and the language server falls on every
-branch, which `node scripts/measure.mjs` measures against the baseline. A printer decides a
+comment of the sources and the tests of the core, the command line and
+the language server is a mark alone, one line of the citations of the
+sections and the records its block holds, `// [QSNAM#reach], [QSDSP#walk]`,
+or a directive of a tool, `/* global fetch */`: what the code does is read
+from the code and its names, the rule from its section and the reason from
+its record, so no comment says again what a section states or the code
+shows, and a mark that repeats the one before it in its file stands once,
+the block of that one reaching to the next [QSWRK#marks].
+`check:conventions` refuses any other comment of them, each read by acorn, a
+comment after code on its line among them. A printer decides a
 spelling by the kind of the value, never by a regex over the text of a
 print; a fact of a call is kept by the call and never by a value it
 received; and what a rule takes from code is withheld by a refusal of its
@@ -907,7 +910,8 @@ it, the parser and the loaders among its imports, and none outside
 package, which the tests of this section,
 `core/test/unit/QSWRK/tooling.test.mjs`, hold by the strong components
 `scripts/core-imports.mjs` computes. Each module is named for
-what it holds and its head says so: the codec of JSON in
+what it holds, and the comment at its head marks the rules it holds: the
+codec of JSON in
 `core/src/runtime/json.mjs`, which exports no print; the words a sequence
 answers across its kinds in `core/src/runtime/sequence.mjs`; the
 constructors of the kinds of the core's values in
@@ -935,21 +939,35 @@ and comments by `site/src/lib/format-example.js` and painted by
 `.github/workflows/pages.yml` builds it and publishes it to GitHub Pages
 on every push to master.
 
-`npm run ci` is the gate of what is pushed, judged by its exit code: the
-build, eslint, `check:conventions`, `check:probes`, `check:fuzz`,
-`check:benchmark`, every suite, the thresholds of coverage, the
-integration of the command line and the build of the site, in that
-order, the one run that boots the language while it runs; the checks of
-GitHub, `.github/workflows/ci.yml`, run its steps but `check:fuzz` and
-`check:benchmark` on every push to master and every pull request. The
-thresholds of coverage, pinned in the `vitest.config.mjs` of `core` and
+`npm run ci` is the gate of what is pushed, judged by its exit code, each
+suite run once: the build, eslint, `check:conventions`, `check:probes`,
+`check:fuzz`, `check:benchmark`, the suites of the core and of the command
+line under the thresholds of coverage, a run of which fails a test that
+fails as a run without it does, the suites of the language server, the
+site and the extension, the integration of the command line and the build
+of the site, in that order, the one run that boots the language while it
+runs; the checks of GitHub, `.github/workflows/ci.yml`, run its steps but
+`check:fuzz` and `check:benchmark` on every push to master and every pull
+request, the job of the suites of the core and of the command line the
+job of their coverage.
+
+```sh
+$ node -e "console.log(require('./package.json').scripts.ci.split(' && ').filter(step => /^npm (test|run test)/.test(step)).join('\n'))"
+npm run test:coverage
+npm test -w lsp -w site -w vscode
+npm run test:integration
+```
+
+The thresholds of coverage, pinned in the `vitest.config.mjs` of `core` and
 `cli`, hold the sources under the `src/` of both at a hundred on every
 axis, the browser's loader and `cli/src/bin.mjs` aside, and the setup of
 vitest in the core, the command line and the language server registers
 an equality that compares a value of the language by the tie of the one
 order, which reads the tag a vector or a map holds on itself, leaving any
 other value to the equality of vitest; every suite of vitest fails a test
-that makes no assertion. `scripts/fuzz-laws.mjs`
+that makes no assertion, and in the core and the command line a hook of a
+test waits as long as a test, fifteen seconds, the boot of the root under
+the coverage among them. `scripts/fuzz-laws.mjs`
 runs every law of the root again with its literals changed to edge
 values, failing on a host's failure, a throw past the fail track, or a
 print that reads back as another value. `check:conventions` holds,
@@ -971,7 +989,9 @@ a test file at a path that names no section of a chapter and no record
 its tests hold, a line of it that cites the rule its path names, the title
 of a test or of a group that cites a rule or names a binding its file
 imports from the code, a group of fewer than two tests and a file whose
-tests stand in one group; and the form of a record from `D155` on,
+tests stand in one group; a comment of the sources and the tests of the
+core, the command line and the language server that is no mark and no
+directive of a tool [QSWRK#code]; and the form of a record from `D155` on,
 its `Domain.`, its decider and the fields of an open record.
 
 `node scripts/release.mjs <version>` runs a release end to end from a

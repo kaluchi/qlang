@@ -39,11 +39,10 @@ const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.m
 // answer [QSCLI#answer], run in this process as
 // `bin.mjs` runs it, its data handed as standard input.
 async function answerOf(query, task) {
-  const flags = task.raw ? ['--raw', `(${query}) | json | out`] : [`(${query}) | json | out`];
   let stdout = '';
   let stderr = '';
   const stdin = Readable.from([readFileSync(join(dataDir, task.data))], { objectMode: false });
-  const code = await main(flags, stdin, { write: written => { stdout += written; } }, { write: written => { stderr += written; } }, pipeEnv);
+  const code = await main([`(${query}) | json | out`], stdin, { write: written => { stdout += written; } }, { write: written => { stderr += written; } }, pipeEnv);
   if (code !== 0) throw new Error(`the command line exits ${code}: ${stderr}`);
   return stdout;
 }

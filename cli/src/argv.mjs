@@ -20,7 +20,6 @@ const noFlag = argument => ({
 });
 
 export function parseArgv(argvSlice) {
-  let stdinFormat = 'auto';
   let colorMode = 'auto';
   let failureExitCode = 0;
   let isRepl = false;
@@ -28,10 +27,9 @@ export function parseArgv(argvSlice) {
 
   while (cursor < argvSlice.length) {
     const head = argvSlice[cursor];
-    if (head === '-h' || head === '--help')    return { kind: 'evalQuery', queryText: HELP_QUERY, stdinFormat, colorMode, failureExitCode };
+    if (head === '-h' || head === '--help')    return { kind: 'evalQuery', queryText: HELP_QUERY, colorMode, failureExitCode };
     if (head === '-V' || head === '--version') return { kind: 'version' };
     if (head === '-i' || head === '--repl') { isRepl = true; cursor += 1; continue; }
-    if (head === '--raw')  { stdinFormat = 'raw';  cursor += 1; continue; }
     if (head === '--fail') { failureExitCode = 1; cursor += 1; continue; }
     if (head.startsWith('--color=')) {
       const value = head.slice('--color='.length);
@@ -48,7 +46,7 @@ export function parseArgv(argvSlice) {
     if (head.startsWith('--')) return noFlag(head);
     if (cursor + 1 < argvSlice.length) return argumentAfterTheQuery(argvSlice[cursor + 1]);
     if (isRepl) return { kind: 'repl', initialQuery: head };
-    return { kind: 'evalQuery', queryText: head, stdinFormat, colorMode, failureExitCode };
+    return { kind: 'evalQuery', queryText: head, colorMode, failureExitCode };
   }
 
   if (isRepl) return { kind: 'repl', initialQuery: null };

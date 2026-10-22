@@ -77,7 +77,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   const cellEntry = await runQuery(
     queryText,
     { stdinReader, stdoutWrite, stderrWrite, recordStdoutEffect },
-    { stdinText, raw: cliInvocation.stdinFormat === 'raw' }
+    { stdinText }
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {

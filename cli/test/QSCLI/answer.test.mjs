@@ -13,11 +13,11 @@ describe('the arguments of the command line', () => {
   });
 
   it('reads -h as the query of the page of the command line', () => {
-    expect(parseArgv(['-h'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'auto', failureExitCode: 0 });
+    expect(parseArgv(['-h'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', colorMode: 'auto', failureExitCode: 0 });
   });
 
   it('reads --help as -h, the flags before it holding', () => {
-    expect(parseArgv(['--color=never', '--help'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', stdinFormat: 'auto', colorMode: 'never', failureExitCode: 0 });
+    expect(parseArgv(['--color=never', '--help'])).toEqual({ kind: 'evalQuery', queryText: '::cli | doc', colorMode: 'never', failureExitCode: 0 });
   });
 
   it('recognises -V as the short version flag', () => {
@@ -41,7 +41,6 @@ describe('the arguments of the command line', () => {
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
       queryText: '[1 2 3] | count',
-      stdinFormat: 'auto',
       colorMode: 'auto',
       failureExitCode: 0
     });
@@ -73,11 +72,14 @@ describe('the arguments of the command line', () => {
     expect(parseArgv(['--json', 'get /a']).message).toBe('qlang: --json is no flag of the command line, which `qlang --help` lists\n');
   });
 
+  it('refuses --raw, a text read as it came by `in`', () => {
+    expect(parseArgv(['--raw', 'count']).message).toBe('qlang: --raw is no flag of the command line, which `qlang --help` lists\n');
+  });
+
   it('parses --fail as the code 1 a failure exits with', () => {
-    expect(parseArgv(['--fail', '--raw', 'count'])).toEqual({
+    expect(parseArgv(['--fail', 'count'])).toEqual({
       kind: 'evalQuery',
       queryText: 'count',
-      stdinFormat: 'raw',
       colorMode: 'auto',
       failureExitCode: 1
     });
@@ -91,8 +93,8 @@ describe('the arguments of the command line', () => {
     expect(parseArgv(['-i', '--color=never', '::qlang | doc'])).toEqual({ kind: 'repl', initialQuery: '::qlang | doc' });
   });
 
-  it('reports a usageError when only a flag of the reading of stdin is supplied without a query', () => {
-    const cliInvocation = parseArgv(['--raw']);
+  it('reports a usageError when only a flag is supplied without a query', () => {
+    const cliInvocation = parseArgv(['--fail']);
     expect(cliInvocation.kind).toBe('usageError');
     expect(cliInvocation.message).toMatch(/missing query/);
   });

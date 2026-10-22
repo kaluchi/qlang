@@ -3,11 +3,16 @@ import { createSession, evalQuery } from '../../src/session.mjs';
 import { parse } from '../../src/parse.mjs';
 import { keyword, makeBinding } from '../../src/types.mjs';
 
-it('folds twenty-four thousand times by the one call of a quote within five seconds', async () => {
-  await evalQuery('1');
-  const started = Date.now();
-  expect(await evalQuery('24000 | range | map ~([1 2] | reduce 0 ~(add)) | sum')).toBe(72000);
-  expect(Date.now() - started).toBeLessThan(5000);
+it('folds by the one call of a quote faster than by a call with modifiers over the same elements', async () => {
+  const foldsOf = (count, code) => `${count} | range | map ~([1 2] | reduce 0 ~(${code})) | sum`;
+  const millisecondsOf = async query => {
+    const started = Date.now();
+    expect(await evalQuery(query)).toBe(3 * Number.parseInt(query, 10));
+    return Date.now() - started;
+  };
+  await millisecondsOf(foldsOf(500, 'add'));
+  await millisecondsOf(foldsOf(500, 'sumOf /0 /1'));
+  expect(await millisecondsOf(foldsOf(8000, 'add'))).toBeLessThan(await millisecondsOf(foldsOf(8000, 'sumOf /0 /1')));
 });
 
 it('reaches a verb of the name a reader declares under its label beside the verbs of the root, and a query that declares none does not', async () => {

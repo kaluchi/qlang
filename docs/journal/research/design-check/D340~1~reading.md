@@ -72,7 +72,7 @@
 [D273]: ../../replaced/D273.md
 [D338]: ../../replaced/D338.md
 [D339]: ../../D339.md
-[D340]: ../../D340.md
+[D340]: ../../replaced/D340.md
 [D342]: ../../replaced/D342.md
 [QSERR#site]: ../../../spec/QSERR-errors.md#site
 [QSHST#input]: ../../../spec/QSCLI-the-command-line.md#stdin

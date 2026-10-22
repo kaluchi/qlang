@@ -81,15 +81,16 @@ noun of the language. The command line lifts the text by the verb
 `parseJson`, run on it before the query: a JSON text lifts to its value,
 a text that is no JSON to the string it is, and a JSON text `parseJson`
 refuses, one that holds a number past the doubles, to the failure it
-answers, which the steps of the query pass by and `!|` catches; `--raw`
-reads the text as text alone. A query reads its subject unless its first
+answers, which the steps of the query pass by and `!|` catches. A query
+reads its subject unless its first
 step on the success track that declares nothing is a literal, a group
 whose code reads none, or `in`, the verb that reads standard input as it
 came, called by its address, `any/in`, or by its name where no
 declaration before it declares a verb of that name, and no declaration
 before that step has a body that reads the subject; a query of
 declarations alone reads it. So `in | count` counts the characters of
-any text, and `in | parseJson` reads it as JSON alone. A query that
+any text, a JSON text among it, and `in | parseJson` reads it as JSON
+alone. A query that
 reads its subject reads standard input to its end, waiting on a slow
 producer, and `< /dev/null` ends the wait; a terminal gives no text.
 
@@ -100,7 +101,7 @@ $ echo '{"a": [1, 2]}' | qlang 'get /a | count'
 $ echo 'not json' | qlang 'type'
 ::string
 
-$ echo '[1, 2]' | qlang --raw 'type'
+$ echo '[1, 2]' | qlang 'in | type'
 ::string
 
 $ qlang 'eq ::qlang' < /dev/null

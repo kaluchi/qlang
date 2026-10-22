@@ -10,6 +10,7 @@ import {
   isSet,
   isQuote,
   isDoc,
+  isKeyword,
   isFrame,
   isTrace,
   ELISION_TAG,
@@ -142,13 +143,29 @@ export const asPrinted = { of: value => printValue(value), quoting: literal => p
 const AS_WRITTEN = { oneLine: false, printedOf: printedByNoKind };
 
 export function printQuoteSource(steps, view = AS_WRITTEN) {
-  const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view) }));
+  const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view), source: step }));
   const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
-  return printed.map(({ fail, step }, index) => {
+  return printed.map(({ fail, step, source }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
-    return (index === 0 ? '' : `${gap}| `) + step;
+    const head = index === 0 ? '' : `${gap}| `;
+    return head + (view.oneLine || !passesTheLine(head + step) ? step : stepOnLines(source, view) ?? step);
   }).join('');
+}
+
+// [D295]
+const LINE_WIDTH = 80;
+
+const passesTheLine = printed => printed.split('\n').some(line => line.length > LINE_WIDTH);
+
+function stepOnLines(step, view) {
+  if (isCallStep(step)) {
+    const modifiers = (step.get('modifiers') ?? []).map(modifier => (isKeyword(modifier) ? ` ${printValue(modifier)}` : `\n    ${isDoc(modifier) ? printValue(modifier, 2, view.printedOf) : printStep(modifier, false, view)}`));
+    return step.get('name').name + modifiers.join('');
+  }
+  if (!isBindStep(step) || !step.has('docs')) return null;
+  const docs = step.get('docs').map(doc => `\n  ${printValue(doc, 1, view.printedOf)}`);
+  return step.get('name').literal + docs.join('') + (step.has('body') ? ` ${printStep(step.get('body'), false, view)}` : '');
 }
 
 function printStep(step, quoting = false, view = AS_WRITTEN) {

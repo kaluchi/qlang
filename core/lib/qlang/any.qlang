@@ -1269,9 +1269,12 @@
     | proves :printsTheDeclaration
         |~~ The source of a verb prints as its declaration. ~~|
         ~(::vec/filter | source | toString | contains ":vec/filter")
-    | proves :printsADeclarationALine
-        |~~ The source of a verb prints a declaration a line. ~~|
-        ~(::number/round | source | toString | lines | first | eq ":number/round |~~ Answers the subject rounded to the digits after the point the call")
+    | proves :printsItsNameAboveItsPage
+        |~~ The source of a verb prints its name on a line of its own and
+            its page under it, within the width of a line.
+        ~~|
+        ~(::number/round | source | toString | lines | take 2
+          | eq [":number/round" "  |~~ Answers the subject rounded to the digits after the point the call"])
     | proves :printsARefusalInTheChainOfItsKind
         |~~ A refusal a kind pages prints in the source of the kind, the
             chain that declares it.

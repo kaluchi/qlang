@@ -128,7 +128,7 @@ describe('the extension', () => {
     expect([configuration.wordPattern, configuration.folding]).toEqual([undefined, undefined]);
   });
 
-  it('paints by its grammar the frame of a source alone, its comments, its docs, its strings and its regexes, the language server the rest', () => {
+  it('paints by its grammar the spans no other form reads inside, its comments, its docs, its strings and its regexes, the language server the rest', () => {
     const grammar = JSON.parse(readFileSync(new URL('../../syntaxes/qlang.tmLanguage.json', import.meta.url), 'utf8'));
     expect(Object.keys(grammar.repository).sort()).toEqual(['comment-block', 'comment-line', 'doc-block', 'doc-line', 'regex', 'string']);
   });

@@ -31,7 +31,7 @@ export const TASKS = [
     answer: '{"acme":160.5,"globex":300}'
   },
   {
-    id: 'T5', data: 'app.log', raw: true,
+    id: 'T5', data: 'app.log',
     question: 'the distinct messages of the ERROR lines, where the message is the text after the level word. Expected shape: a JSON list of strings.',
     reference: 'lines | filter ~(contains "ERROR") | map ~(split "ERROR " | last) | distinct | sort',
     answer: '["db timeout"]'

@@ -12,7 +12,7 @@
       `qlang -i` a session of cells. It is the host a reader meets first,
       and the verbs it adds read and write the streams of the process.
 
-      Usage: `qlang [--raw] [--color=MODE] [--fail] '<query>'` runs a
+      Usage: `qlang [--color=MODE] [--fail] '<query>'` runs a
       query, `qlang -i ['<query>']` opens a session of cells, the query
       its first, `qlang -h` prints this page and `qlang -V` the version.
       The flags stand before the query, one argument the shell quotes
@@ -22,9 +22,9 @@
 
       A query runs on what stdin holds. JSON is read as values, an object
       a map whose keys are keywords, `{"name": "Ann"}` arriving as
-      `{:name "Ann"}`; any other text is one string, and `--raw` reads
-      JSON text as a string too. A query headed by `in` reads the text as
-      it came, `in | parseJson` reading it as JSON alone. A query that
+      `{:name "Ann"}`; any other text is one string. A query headed by
+      `in` reads the text as it came, JSON text among it, and
+      `in | parseJson` reads it as JSON alone. A query that
       reads no subject, `qlang '::vec | doc'` or `qlang '[1 2] | sum'`,
       runs at once and reads no stdin. One that reads it with nothing
       piped, a terminal or `< /dev/null`, runs on the noun of the

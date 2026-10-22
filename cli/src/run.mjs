@@ -4,9 +4,9 @@ import { isErrorValue, createSession } from '@kaluchi/qlang-core';
 import { cliSources } from './cli-sources.mjs';
 import { liftOfInput } from './stdin.mjs';
 
-export async function runQuery(queryText, ioContext, { stdinText = '', raw } = {}) {
+export async function runQuery(queryText, ioContext, { stdinText = '' } = {}) {
   const session = await createSession({ sources: cliSources(ioContext) });
-  const lifted = await liftOfInput(session, stdinText, raw);
+  const lifted = await liftOfInput(session, stdinText);
   const cellEntry = lifted.raised ?? await session.evalCell(queryText, lifted);
   if (!isErrorValue(cellEntry.result)) return cellEntry;
   return { ...cellEntry, page: await proseOfThePage(cellEntry.result, cellEntry.scopeAfterCell) };

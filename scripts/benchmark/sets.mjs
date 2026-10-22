@@ -28,7 +28,6 @@ const scratchRoot = join(tmpdir(), 'qlang-benchmark');
 const setDirOf = setId => join(setsDir, setId);
 const tasksOf = setId => JSON.parse(readFileSync(join(setDirOf(setId), 'tasks.json'), 'utf8'));
 const dataNamesOf = setId => readdirSync(join(setDirOf(setId), 'data'));
-const isTextData = data => data !== null && !data.endsWith('.json');
 const commitOf = () => execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
 
 function setRecordOf(setId) {
@@ -86,7 +85,7 @@ function promptOf(setId, screen) {
   return [
     'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its command line, as the language prints them, and you may run the `qlang` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qlang \'<query>\' < file.json`, and a text file `qlang --raw \'<query>\' < file.log`.',
+    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qlang \'<query>\' < file.json`, a text file alike, `qlang \'<query>\' < file.log`.',
     '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json` or `| out`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.data ?? 'no data file'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
@@ -175,9 +174,8 @@ function finalQueriesOf(setId, reply) {
 // it fails.
 function answerOf(setId, task, query) {
   try {
-    const flags = isTextData(task.data) ? ['--raw'] : [];
     const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
-    const printed = execFileSync(process.execPath, [commandLine, ...flags, `(${query}) | json | out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    const printed = execFileSync(process.execPath, [commandLine, `(${query}) | json | out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed.split('\n').at(-1)) };
   } catch {
     return null;
@@ -247,7 +245,7 @@ export function misses(setId, runName, taskIds) {
     if (query !== null) {
       try {
         const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
-        printed = execFileSync(process.execPath, [commandLine, ...(isTextData(task.data) ? ['--raw'] : []), query], { input: data, encoding: 'utf8', timeout: 30000, env: pipeEnv });
+        printed = execFileSync(process.execPath, [commandLine, query], { input: data, encoding: 'utf8', timeout: 30000, env: pipeEnv });
       } catch (failure) {
         printed = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
       }

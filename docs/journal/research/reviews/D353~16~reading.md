@@ -210,7 +210,7 @@
 начинается с `in`.
 
 [D295]: ../../D295.md
-[D340]: ../../D340.md
+[D340]: ../../replaced/D340.md
 [D402]: ../../replaced/D402.md
 [QSLIT#json]: ../../../spec/QSLIT-values-and-literals.md#json
 [QSHST#stdin]: ../../../spec/QSCLI-the-command-line.md#stdin

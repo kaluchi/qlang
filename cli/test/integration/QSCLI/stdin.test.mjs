@@ -9,10 +9,10 @@ it('reads piped JSON as values, which `get /name` reads', async () => {
   expect(stdout.trim()).toBe('alice');
 });
 
-it('--raw reads standard input as a string', async () => {
-  const { stdout, exitCode } = await runCli(['--raw', 'append " world"'], {
-    stdin: 'hello'
+it('reads piped JSON as the text it is under a query headed by `in`', async () => {
+  const { stdout, exitCode } = await runCli(['in | append " world"'], {
+    stdin: '{"name": "alice"}'
   });
   expect(exitCode).toBe(0);
-  expect(stdout.trim()).toBe('hello world');
+  expect(stdout.trim()).toBe('{"name": "alice"} world');
 });

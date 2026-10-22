@@ -14,7 +14,6 @@ describe('the flag --color', () => {
     expect(parseArgv(['--color=always', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
-      stdinFormat: 'auto',
       colorMode: 'always',
       failureExitCode: 0
     });
@@ -24,7 +23,6 @@ describe('the flag --color', () => {
     expect(parseArgv(['--color=never', '42'])).toEqual({
       kind: 'evalQuery',
       queryText: '42',
-      stdinFormat: 'auto',
       colorMode: 'never',
       failureExitCode: 0
     });

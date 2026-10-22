@@ -5,7 +5,7 @@ import { renderCellOutcome, answerText } from '../../src/render.mjs';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 import { captureStreams, makeCellEntry } from '../helpers/main-streams.mjs';
 
-describe('parseArgv', () => {
+describe('the arguments of the command line', () => {
   it('returns a usageError cliInvocation for an empty argv slice', () => {
     const cliInvocation = parseArgv([]);
     expect(cliInvocation.kind).toBe('usageError');
@@ -36,7 +36,7 @@ describe('parseArgv', () => {
     expect(parseArgv(['--repl'])).toEqual({ kind: 'repl', initialQuery: null });
   });
 
-  it('returns an evalQuery cliInvocation carrying the first positional argument and auto stdinFormat', () => {
+  it('reads the first argument that is no flag as the query, standard input read by its default', () => {
     const cliInvocation = parseArgv(['[1 2 3] | count']);
     expect(cliInvocation).toEqual({
       kind: 'evalQuery',
@@ -98,7 +98,7 @@ describe('parseArgv', () => {
   });
 });
 
-describe('main — flag dispatch', () => {
+describe('the page, the version, the REPL and a call with no query', () => {
   it('prints on --help the page of the command line as `::cli | doc` answers it, exit 0', async () => {
     const [help, page] = [captureStreams(), captureStreams()];
     const exitCode = await main(['--help'], help.stdinStream, help.stdoutStream, help.stderrStream, {});
@@ -136,7 +136,7 @@ describe('main — flag dispatch', () => {
 
 // `--fail` gives a failure the code 1, written as without it, and a
 // value the code 0.
-describe('main — the code a failure exits with under --fail', () => {
+describe('the code a failure exits with under --fail', () => {
   it('exits a failure with 1 and writes its alert on stdout', async () => {
     const s = captureStreams();
     const exitCode = await main(['--fail', '"x" | add 1'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
@@ -153,7 +153,7 @@ describe('main — the code a failure exits with under --fail', () => {
   });
 });
 
-describe('main — the subject standard input lifts to', () => {
+describe('the answer written as the language prints it, whatever standard input held', () => {
   it('feeds piped JSON as the initial pipeValue and writes a string answer as its text', async () => {
     const s = captureStreams('{"user": {"name": "alice"}}');
     const exitCode = await main(
@@ -198,21 +198,19 @@ describe('main — the subject standard input lifts to', () => {
   });
 });
 
-describe('main — `out` holding the channel', () => {
-  it('writes what `out` writes and leaves the answer of the query unwritten', async () => {
-    const s = captureStreams();
-    const exitCode = await main(
-      ['[1 2 3] | count | print | out'],
-      s.stdinStream, s.stdoutStream, s.stderrStream, {}
-    );
-    expect(exitCode).toBe(0);
-    // `out` writes `3`, and the answer, the string `print` made, is not written after it.
-    expect(s.stdoutText()).toBe('3\n');
-    expect(s.stderrText()).toBe('');
-  });
+it('writes what `out` writes and leaves the answer of the query unwritten', async () => {
+  const s = captureStreams();
+  const exitCode = await main(
+    ['[1 2 3] | count | print | out'],
+    s.stdinStream, s.stdoutStream, s.stderrStream, {}
+  );
+  expect(exitCode).toBe(0);
+  // `out` writes `3`, and the answer, the string `print` made, is not written after it.
+  expect(s.stdoutText()).toBe('3\n');
+  expect(s.stderrText()).toBe('');
 });
 
-describe('main — error paths', () => {
+describe('a failure written on stdout and a defect on stderr', () => {
   it('writes a query that does not parse as its failure on stdout, its caret drawn below it, with exit 0 as every answer', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
@@ -286,7 +284,7 @@ describe('main — error paths', () => {
 // A failure the language answers, the refusal of `add` on a string.
 const refusalOfAdd = () => evalQuery('"x" | add 1');
 
-describe('renderCellOutcome — error paths', () => {
+describe('a defect raised as the answer is written, and a failure written as every answer', () => {
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with exit 1', async () => {
     const cellEntry = await makeCellEntry({ defect: new Error('the host broke') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
@@ -320,7 +318,7 @@ describe('renderCellOutcome — error paths', () => {
 
 // `--fail` gives a failure the code 1 for a script that tests it, the
 // failure written as without it.
-describe('renderCellOutcome — the code a failure exits with', () => {
+describe('the code the caller asks a failure to exit with', () => {
   it('exits a failure with the code the caller asks for, written as without it', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
       didExplicitStdoutEffect: false,
@@ -354,7 +352,7 @@ describe('renderCellOutcome — the code a failure exits with', () => {
 });
 
 // The answer is written as the language prints it.
-describe('renderCellOutcome — the answer as the language prints it', () => {
+describe('the answer as the language prints it, and none after `out`', () => {
   it('prints a non-String composite as its literal', async () => {
     const result = new Map([['k', 1]]);
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result }), {
@@ -375,20 +373,18 @@ describe('renderCellOutcome — the answer as the language prints it', () => {
   });
 });
 
-describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => {
-  it('writes a string as its text, which no colour paints as code', async () => {
-    const cliOutcome = await renderCellOutcome(
-      await makeCellEntry({ result: 'hello | world' }),
-      { didExplicitStdoutEffect: false, shouldColorize: true }
-    );
-    expect(cliOutcome.stdoutText).toBe('hello | world\n');
-  });
+it('writes a string as its text where the caller asks for colour, which no colour paints as code', async () => {
+  const cliOutcome = await renderCellOutcome(
+    await makeCellEntry({ result: 'hello | world' }),
+    { didExplicitStdoutEffect: false, shouldColorize: true }
+  );
+  expect(cliOutcome.stdoutText).toBe('hello | world\n');
 });
 
 // The answer is written as the language prints it whatever the data was,
 // a string as its text, so a query converts it where a reader wants
 // another format.
-describe('answerText — the answer as the language prints it', () => {
+describe('the text written for an answer', () => {
   it('prints a keyword, a set, a tag and a quote as their literals', async () => {
     expect(await answerText(await evalQuery('[:v #[2 1] ::vec ~(add 1) "s"]'), await langRuntime()))
       .toBe('[:v #[1 2] ::vec ~(add 1) "s"]');
@@ -406,7 +402,7 @@ describe('answerText — the answer as the language prints it', () => {
   });
 });
 
-describe('renderCellOutcome — the bound of the answer', () => {
+describe('an answer past the budget', () => {
   const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
 
   it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {

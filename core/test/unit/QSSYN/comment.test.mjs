@@ -3,7 +3,7 @@ import { parse, ParseError } from '../../../src/parse.mjs';
 import { isBindStep } from '../../../src/steps.mjs';
 import { stepOf, refusalOf, rootOf } from '../../helpers/read-text.mjs';
 
-describe('parse — comments and whitespace', () => {
+describe('a comment read as whitespace', () => {
   it('keeps a line comment on the side', () => {
     const source = `|~| this is a comment
       | [1 2 3] | count`;
@@ -39,10 +39,10 @@ describe('parse — comments and whitespace', () => {
 // comment is content; (3) the closer of the container ends its body; (4) a
 // block doc left open is refused naming where it opened, and a block comment
 // left open is refused at its opener.
-describe('parse — block comment nesting', () => {
+describe('a block comment that nests', () => {
   const blockStep = (src) => rootOf(src).comments[0];
 
-  describe('positive — content captured verbatim', () => {
+  describe('the content it holds as written', () => {
     it('a block comment holds adjacent nested pairs', () => {
       const step = blockStep('|~ |~ a ~| middle |~ b ~| ~|\n| 1');
       expect(step.content).toBe(' |~ a ~| middle |~ b ~| ');
@@ -79,23 +79,21 @@ describe('parse — block comment nesting', () => {
     });
   });
 
-  describe('positive — a block comment that holds a doc marker and code', () => {
-    it('reads the comment whole', () => {
-      const src = [
-        '|~ The refusals the guards of this source raise. Each is a tag',
-        '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
-        '   `::AssertionFailedError | doc`, `| source` and `| doc | laws`,',
-        '   and `result !| type` reads the tag of a failure back. ~|',
-        '| 42'
-      ].join('\n');
-      const step = blockStep(src);
-      expect(step.type).toBe('BlockPlainComment');
-      expect(step.content).toContain('|~~ ~~|');
-      expect(step.content).toContain('::AssertionFailedError | doc');
-    });
+  it('reads a block comment that holds a doc marker and code whole', () => {
+    const src = [
+      '|~ The refusals the guards of this source raise. Each is a tag',
+      '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
+      '   `::AssertionFailedError | doc`, `| source` and `| doc | laws`,',
+      '   and `result !| type` reads the tag of a failure back. ~|',
+      '| 42'
+    ].join('\n');
+    const step = blockStep(src);
+    expect(step.type).toBe('BlockPlainComment');
+    expect(step.content).toContain('|~~ ~~|');
+    expect(step.content).toContain('::AssertionFailedError | doc');
   });
 
-  describe('negative — unbalanced or malformed nesting raises ParseError', () => {
+  describe('a nest left unbalanced, refused', () => {
     const expectRefusedAt = (src, offset, found) => {
       const refused = refusalOf(src);
       expect(refused, src).toBeInstanceOf(ParseError);
@@ -111,7 +109,7 @@ describe('parse — block comment nesting', () => {
       expectRefusedAt('|~ A |~ B ~|\n| 1', 0, '|');
     });
 
-    it('bare ~| in pipeline position (no opening) is a parse error', () => {
+    it('refuses a closer `~|` that stands where a step does, with no opener', () => {
       expectRefusedAt('42 | ~|', 6, '|');
     });
 
@@ -120,7 +118,7 @@ describe('parse — block comment nesting', () => {
     });
   });
 
-  describe('round-trip — outer .content is the exact source slice between delimiters', () => {
+  describe('its content the text between its markers', () => {
     const cases = [
       '|~ a ~|',
       '|~ outer |~ inner ~| tail ~|',

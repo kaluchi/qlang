@@ -9,7 +9,7 @@ import { runRepl } from '../../src/repl.mjs';
 import { makeCellEntry } from '../helpers/main-streams.mjs';
 import { captureRepl } from '../helpers/scripted-repl.mjs';
 
-describe('parseArgv', () => {
+describe('the flag --color', () => {
   it('parses --color=always as the explicit always-paint mode', () => {
     expect(parseArgv(['--color=always', '42'])).toEqual({
       kind: 'evalQuery',
@@ -50,7 +50,7 @@ function paintedTokens(source, verbNames) {
   });
 }
 
-describe('highlightAnsi', () => {
+describe('the layer of colour over the tokens', () => {
   it('writes every character of the source in its order, each escape closed by the reset', () => {
     const out = highlightAnsi(EVERY_KIND, VERBS);
     expect(out.replace(ESCAPE, '')).toBe(EVERY_KIND);
@@ -87,7 +87,7 @@ describe('highlightAnsi', () => {
   });
 });
 
-describe('resolveShouldColorize — explicit flag, env vars, TTY detection', () => {
+describe('whether the command line paints: the flag, FORCE_COLOR, NO_COLOR and a terminal', () => {
   // Five-way precedence: --color=always > --color=never > FORCE_COLOR
   // > NO_COLOR > TTY autodetect. Each branch needs its own assertion
   // for the env-vars + auto-mode arms to land on full coverage.
@@ -128,7 +128,7 @@ describe('resolveShouldColorize — explicit flag, env vars, TTY detection', () 
   });
 });
 
-describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => {
+describe('the answer painted where the caller asks for colour', () => {
   it('paints the literal of an answer in ANSI where the caller asks for colour', async () => {
     const cliOutcome = await renderCellOutcome(
       await makeCellEntry({ result: new Map([['k', 1]]) }),
@@ -152,7 +152,7 @@ describe('renderCellOutcome — ANSI colour when shouldColorize is true', () => 
   });
 });
 
-describe('runRepl — output highlighting', () => {
+describe('the REPL painting its prompt, its line and its answers', () => {
   it('paints the printed result with ANSI escape sequences', async () => {
     const replHarness = captureRepl('[1 2 3]\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });

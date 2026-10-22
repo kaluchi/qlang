@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { evalQuery, createSession } from '../../../src/session.mjs';
 import { keyword, makeTag } from '../../../src/types.mjs';
 
-describe('a quote a template holds', () => {
-  it('runs a template of a set as code written in the step, its quotes reading the names of the step', async () => {
-    expect(await evalQuery(':k 5 | [1] | get #[~(k)]')).toEqual(await evalQuery('#[5]'));
-  });
+it('runs a template of a set as code written in the step, its quotes reading the names of the step', async () => {
+  expect(await evalQuery(':k 5 | [1] | get #[~(k)]')).toEqual(await evalQuery('#[5]'));
 });
 
 describe('what a verb reads and runs as data reads the tree of the query', () => {

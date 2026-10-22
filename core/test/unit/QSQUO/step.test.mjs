@@ -12,23 +12,19 @@ import { evalQuery } from '../../../src/session.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
 import { refusalOf, rootOf, kindOf } from '../../helpers/read-text.mjs';
 
-describe('code assembled from data', () => {
-  it('runs the verb a call record names, a step no text wrote', async () => {
-    const quote = makeQuote([callOf(new Map([['name', keyword('count')]]), asPrinted)]);
-    const state = rootState([1, 2, 3], await langRuntime());
-    expect((await evalPipeline(quote, state)).pipeValue).toBe(3);
-  });
+it('runs the verb a call record names, a step no text wrote', async () => {
+  const quote = makeQuote([callOf(new Map([['name', keyword('count')]]), asPrinted)]);
+  const state = rootState([1, 2, 3], await langRuntime());
+  expect((await evalPipeline(quote, state)).pipeValue).toBe(3);
 });
 
-describe('tokenize — a source that does not parse', () => {
-  it('passes a throw of the parser that is no refusal of the text as it is, the overflow of the stack of a deep nest among it', async () => {
-    let thrown = null;
-    try { tokenize('['.repeat(20000) + ']'.repeat(20000), await rootVerbNames()); } catch (e) { thrown = e; }
-    expect(thrown).toBeInstanceOf(RangeError);
-  });
+it('passes a throw of the parser that is no refusal of the text as it is, the overflow of the stack of a deep nest among it', async () => {
+  let thrown = null;
+  try { tokenize('['.repeat(20000) + ']'.repeat(20000), await rootVerbNames()); } catch (e) { thrown = e; }
+  expect(thrown).toBeInstanceOf(RangeError);
 });
 
-describe('parse — error handling', () => {
+describe('a rule of a step refused where the text writes it', () => {
   it('refuses a rule of a step its constructor holds at the part it names, with the rule\'s message', () => {
     const refused = refusalOf('5 | [1 2]');
     expect(refused.message).toBe('a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`');
@@ -63,7 +59,7 @@ describe('parse — error handling', () => {
   });
 });
 
-describe('parse — the source and its name on the root of the parts', () => {
+describe('the source and its name on the root of the parts', () => {
   it('records source and uri on the root', () => {
     const root = rootOf('42', { uri: 'test.qlang' });
     expect(root.source).toBe('42');
@@ -75,7 +71,7 @@ describe('parse — the source and its name on the root of the parts', () => {
   });
 });
 
-describe('parse — the span of each part', () => {
+describe('the span of each part', () => {
   it('keeps the span of every step and modifier it read', () => {
     const spanOf = read => [read.span.start.offset, read.span.end.offset];
     const [call] = rootOf('add 2 3').parts;
@@ -90,7 +86,7 @@ describe('parse — the span of each part', () => {
   });
 });
 
-describe('parse.mjs — input guards and the depth of a nest', () => {
+describe('a throw of the parser that is no refusal, and the depth of a nest', () => {
   const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 

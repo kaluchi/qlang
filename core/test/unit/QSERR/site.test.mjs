@@ -12,7 +12,7 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../../scr
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
-describe('errorFromQlang', () => {
+describe('a refusal converted to a failure', () => {
   // The facts of the site come in the order the catalog declares them,
   // its label's first and those of `::error` after, and the trace last.
   it('converts a refusal — its address the tag, its facts in the order the catalog declares them', async () => {
@@ -26,7 +26,7 @@ describe('errorFromQlang', () => {
     expect([...desc.keys()]).toEqual(['actualType', 'actualValue']);
   });
 
-  it('converts CallUnknownNameError with the facts its label declares', async () => {
+  it('converts the refusal of an unknown name with the facts its label declares', async () => {
     const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
     const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
@@ -39,14 +39,12 @@ describe('errorFromQlang', () => {
   });
 });
 
-describe('QlangError base class', () => {
-  it('carries its facts', () => {
-    const qlangErr = new QlangError('boom', { count: 5 });
-    expect(qlangErr.facts).toEqual({ count: 5 });
-    expect(qlangErr.message).toBe('boom');
-    expect(qlangErr.name).toBe('QlangError');
-    expect(qlangErr).toBeInstanceOf(Error);
-  });
+it('a refusal carries its facts', () => {
+  const qlangErr = new QlangError('boom', { count: 5 });
+  expect(qlangErr.facts).toEqual({ count: 5 });
+  expect(qlangErr.message).toBe('boom');
+  expect(qlangErr.name).toBe('QlangError');
+  expect(qlangErr).toBeInstanceOf(Error);
 });
 
 // A refusal whose site hands no facts.
@@ -78,14 +76,12 @@ describe('a refusal declared by its address', () => {
   });
 });
 
-describe('QlangDefect', () => {
-  it('carries its message and its facts', () => {
-    const defect = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
-    expect(defect.message).toBe('registration failed');
-    expect(defect.facts.site).toBe('X');
-    expect(defect.facts.verb).toBe('foo');
-    expect(defect).toBeInstanceOf(QlangError);
-  });
+it('a defect of the runtime carries its message and its facts', () => {
+  const defect = new QlangDefect('registration failed', { site: 'X', verb: 'foo' });
+  expect(defect.message).toBe('registration failed');
+  expect(defect.facts.site).toBe('X');
+  expect(defect.facts.verb).toBe('foo');
+  expect(defect).toBeInstanceOf(QlangError);
 });
 
 describe('one address, one site', () => {
@@ -111,39 +107,35 @@ describe('one address, one site', () => {
   });
 });
 
-describe('declareForeignError — a failure of the embedding', () => {
-  // The class stays off the QlangError hierarchy and carries the address
-  // every other declaration stamps.
-  it('declares a class outside the QlangError hierarchy that still names its site', () => {
-    const TestsBridgeUnreachableError = declareForeignError('tests/BridgeUnreachableError',
-      ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
-    const foreignErr = new TestsBridgeUnreachableError({ endpoint: 'ipc://bridge' });
+// The class stays off the QlangError hierarchy and carries the address
+// every other declaration stamps.
+it('declares a failure of the embedding outside the refusals of the language, which still names its site', () => {
+  const TestsBridgeUnreachableError = declareForeignError('tests/BridgeUnreachableError',
+    ({ endpoint }) => `host bridge at ${endpoint} answered nothing`);
+  const foreignErr = new TestsBridgeUnreachableError({ endpoint: 'ipc://bridge' });
 
-    expect(foreignErr).toBeInstanceOf(Error);
-    expect(foreignErr).not.toBeInstanceOf(QlangError);
-    expect(foreignErr.name).toBe('BridgeUnreachableError');
-    expect(foreignErr.address).toBe('tests/BridgeUnreachableError');
-    expect(foreignErr.facts.endpoint).toBe('ipc://bridge');
-    expect(foreignErr.message).toContain('ipc://bridge');
-  });
+  expect(foreignErr).toBeInstanceOf(Error);
+  expect(foreignErr).not.toBeInstanceOf(QlangError);
+  expect(foreignErr.name).toBe('BridgeUnreachableError');
+  expect(foreignErr.address).toBe('tests/BridgeUnreachableError');
+  expect(foreignErr.facts.endpoint).toBe('ipc://bridge');
+  expect(foreignErr.message).toContain('ipc://bridge');
 });
 
-describe('the refusals of the runtime', () => {
-  it('every refusal of the runtime is one kind of error, its message its address', async () => {
-    const queries = [
-      '42 | count',
-      '[1 "two"] | sum',
-      '42 | get /name',
-      '42 | map ~(add 1)',
-      '5 | :five it | five 42',
-      '42 | reduce 0 ~(add)'
-    ];
-    for (const q of queries) {
-      const caughtErr = await catchOriginalError(q);
-      expect(caughtErr).toBeInstanceOf(QlangError);
-      expect(caughtErr.message).toBe(`::${caughtErr.address}`);
-    }
-  });
+it('every refusal of the runtime is one kind of error, its message its address', async () => {
+  const queries = [
+    '42 | count',
+    '[1 "two"] | sum',
+    '42 | get /name',
+    '42 | map ~(add 1)',
+    '5 | :five it | five 42',
+    '42 | reduce 0 ~(add)'
+  ];
+  for (const q of queries) {
+    const caughtErr = await catchOriginalError(q);
+    expect(caughtErr).toBeInstanceOf(QlangError);
+    expect(caughtErr.message).toBe(`::${caughtErr.address}`);
+  }
 });
 
 const session = await createSession();

@@ -6,18 +6,14 @@ import { platformLocator, LANGUAGE_SOURCES } from '../../../src/runtime/bootstra
 import { kindsNamedForCommands } from '../../../../scripts/catalog-kinds.mjs';
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 
-describe('::name | binding | /value answers the value of the declaration', () => {
-  it('::vec/take reads its function, whose recipe is the descriptor of its primitive, and an input its place', async () => {
-    expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
-    expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
-  });
+it('the value of `::vec/take` is its function, whose recipe is the descriptor of its primitive, and an input its place', async () => {
+  expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
+  expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
 });
 
 // A call that leaves the place of an input empty is refused under the input.
-describe('a call that leaves an input empty', () => {
-  it('mul given no multiplier is refused under its input', async () => {
-    expect(await evalQuery('5 | mul !| type')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
-  });
+it('mul given no multiplier is refused under its input', async () => {
+  expect(await evalQuery('5 | mul !| type')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
 });
 
 // A command of a chain is named by its act and what it writes by the noun of

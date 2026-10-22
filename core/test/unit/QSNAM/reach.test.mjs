@@ -53,11 +53,9 @@ describe('the names of the scope', () => {
   });
 });
 
-describe('a recipe of the root reads its verbs and its inputs by name', () => {
-  it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s', async () => {
-    const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
-    expect(await evalQuery(`${post} | subOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
-    const session = await createSession({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
-    expect((await session.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :divisor]')).result).toBe(true);
-  });
+it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s', async () => {
+  const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
+  expect(await evalQuery(`${post} | subOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
+  const session = await createSession({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
+  expect((await session.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(type) /name] | eq [::call/ValueMeetsVerbError :divisor]')).result).toBe(true);
 });

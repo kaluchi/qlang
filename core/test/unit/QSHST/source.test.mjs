@@ -12,7 +12,7 @@ import { originOf } from '../../../src/walk.mjs';
 import { commandStep } from '../../../src/steps.mjs';
 import { lines } from '../../helpers/box.mjs';
 
-describe('platformLocator', () => {
+describe('the locator of the sources of the language', () => {
   it('returns null for an unmapped source', async () => {
     expect(await platformLocator('does/not/exist/anywhere')).toBeNull();
   });
@@ -24,7 +24,7 @@ describe('platformLocator', () => {
   });
 });
 
-describe('BootstrapSourceMissingError', () => {
+describe('a source of the language no locator serves', () => {
   it('names the source it missed as its origin, and where a host maps it', () => {
     const err = new BuiltinBootstrapSourceMissingError({ origin: keyword('qlang/vec') });
     expect(err.name).toBe('BootstrapSourceMissingError');
@@ -32,20 +32,18 @@ describe('BootstrapSourceMissingError', () => {
     expect(err.message).toContain('package.json#imports');
   });
 
-  it('fires from buildLangRuntime when the locator serves no source, naming the first as its origin', async () => {
+  it('fires as the runtime is built where the locator serves no source, naming the first as its origin', async () => {
     const refused = await buildLangRuntime(async () => null).catch(error => error);
     expect(refused).toBeInstanceOf(BuiltinBootstrapSourceMissingError);
     expect(refused).toMatchObject({ name: 'BootstrapSourceMissingError', facts: { origin: keyword('qlang/builtin') } });
   });
 });
 
-describe('a source of the language the parser refuses', () => {
-  it('raises its parse error, which names the source', async () => {
-    let thrown = null;
-    try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
-    expect(thrown).toBeInstanceOf(ParseError);
-    expect(thrown.uri).toBe('qlang/builtin');
-  });
+it('a source of the language the parser refuses raises its parse error, which names the source', async () => {
+  let thrown = null;
+  try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
+  expect(thrown).toBeInstanceOf(ParseError);
+  expect(thrown.uri).toBe('qlang/builtin');
 });
 
 describe('the facts and the message of SourceLoadError', () => {
@@ -106,26 +104,22 @@ describe('a host\'s verb written as the chain of its function', () => {
   });
 });
 
-describe('the package root', () => {
-  it('hands a word of a host the state of its call where it marks its primitive as a reader of it', async () => {
-    const primitive = core.readingState((subject, state) => state.scope.has('k'));
-    const session = await core.createSession({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
-    expect((await session.evalCell('1 | where')).result).toBe(false);
-    expect((await session.evalCell(':k 5 | 1 | where')).result).toBe(true);
-  });
+it('hands a word of a host the state of its call where it marks its primitive as a reader of it', async () => {
+  const primitive = core.readingState((subject, state) => state.scope.has('k'));
+  const session = await core.createSession({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
+  expect((await session.evalCell('1 | where')).result).toBe(false);
+  expect((await session.evalCell(':k 5 | 1 | where')).result).toBe(true);
 });
 
-describe('the constructor a host hands a kind', () => {
-  it('lays the tag over the payload as it is until the host hands the constructor, and runs it after', async () => {
-    // `seen` is computed while the source is read, before its host hands the constructor.
-    const hosted = await createSession({ sources: [{
-      uri: 'test/hosted-kind',
-      source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
-      primitives: { 'Hk/construct': payload => payload + 1 }
-    }] });
-    expect(printValue((await hosted.evalCell('seen')).result)).toBe('1');
-    expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
-  });
+it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
+  // `seen` is computed while the source is read, before its host hands the constructor.
+  const hosted = await createSession({ sources: [{
+    uri: 'test/hosted-kind',
+    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
+    primitives: { 'Hk/construct': payload => payload + 1 }
+  }] });
+  expect(printValue((await hosted.evalCell('seen')).result)).toBe('1');
+  expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
 });
 
 // A session whose source declares two kinds and two verbs a host serves,
@@ -174,12 +168,10 @@ describe('a host\'s primitive under a label', () => {
   });
 });
 
-describe('a binding record, a vector under a tag and a descriptor are values under a tag', async () => {
-  it('isTagged takes a descriptor under ::builtin as the value under a tag it is', async () => {
-    const { isTagged } = await import('../../../src/types.mjs');
-    expect(isTagged(await evalQuery('::builtin{:a 1}'))).toBe(true);
-    expect(isTagged(await evalQuery('{:kind ::builtin}'))).toBe(false);
-  });
+it('a descriptor under ::builtin is a value under a tag', async () => {
+  const { isTagged } = await import('../../../src/types.mjs');
+  expect(isTagged(await evalQuery('::builtin{:a 1}'))).toBe(true);
+  expect(isTagged(await evalQuery('{:kind ::builtin}'))).toBe(false);
 });
 
 describe('the sources a host hands', () => {
@@ -291,9 +283,7 @@ describe('a kind whose construct is a primitive of the host', () => {
   });
 });
 
-describe('the parts of a text', () => {
-  it('names the source of a quote by the name its reader gave it, `quote` for one no text wrote', () => {
-    expect(originOf(parse('add 1', { uri: 'cell-3' }))).toBe('cell-3');
-    expect(originOf(makeQuote([commandStep('count', [])]))).toBe('quote');
-  });
+it('names the source of a quote by the name its reader gave it, `quote` for one no text wrote', () => {
+  expect(originOf(parse('add 1', { uri: 'cell-3' }))).toBe('cell-3');
+  expect(originOf(makeQuote([commandStep('count', [])]))).toBe('quote');
 });

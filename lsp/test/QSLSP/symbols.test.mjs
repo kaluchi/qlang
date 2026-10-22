@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { CompletionItemKind, SymbolKind } from 'vscode-languageserver/node';
 import { answerOf, framedMessage, serverPath } from '../helpers/server-process.mjs';
 
-describe('foldingRangesOf', () => {
+describe('the folds', () => {
   const foldsOf = src => foldingRangesOf(parseDocument(src, 'test.qlang').root);
 
   it('folds a declaration, its doc as a comment, and a quote, each to the line where its last part ends', () => {
@@ -34,7 +34,7 @@ describe('foldingRangesOf', () => {
   });
 });
 
-describe('documentSymbols', () => {
+describe('the symbols of a document', () => {
   it('collects the verbs a reader declares under a label as verb symbols', async () => {
     const src = ':number/double ~(mul 2) | :number/triple ~(mul 3) | :q ~(add 1)';
     const { root } = parseDocument(src, 'test.qlang');
@@ -109,25 +109,23 @@ describe('documentSymbols', () => {
   });
 });
 
-describe('the language server process', () => {
-  it('names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol', async () => {
-    const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
-    try {
-      const initialized = answerOf(serverProcess, 1);
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} } }));
-      await initialized;
-      const uri = 'file:///roles.qlang';
-      const text = ':Box |~~ A box. ~~| | :Box/area ~(1) | :n 1 | n';
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: 'qlang', version: 1, text } } }));
-      const symbols = answerOf(serverProcess, 2);
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 2, method: 'textDocument/documentSymbol', params: { textDocument: { uri } } }));
-      expect((await symbols).result.map(({ name, kind }) => [name, kind])).toEqual([['::Box', SymbolKind.Struct], ['Box/area', SymbolKind.Function], ['n', SymbolKind.Variable]]);
-      const completions = answerOf(serverProcess, 3);
-      serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 3, method: 'textDocument/completion', params: { textDocument: { uri }, position: { line: 0, character: text.length } } }));
-      const kinds = new Map((await completions).result.map(({ label, kind }) => [label, kind]));
-      expect(['area', 'n', '::Box'].map(label => kinds.get(label))).toEqual([CompletionItemKind.Function, CompletionItemKind.Variable, CompletionItemKind.Struct]);
-    } finally {
-      serverProcess.kill();
-    }
-  }, 30_000);
-});
+it('names a declaration of a document by its role, a verb a function, a value a variable and a label a struct of the protocol', async () => {
+  const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  try {
+    const initialized = answerOf(serverProcess, 1);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} } }));
+    await initialized;
+    const uri = 'file:///roles.qlang';
+    const text = ':Box |~~ A box. ~~| | :Box/area ~(1) | :n 1 | n';
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: 'qlang', version: 1, text } } }));
+    const symbols = answerOf(serverProcess, 2);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 2, method: 'textDocument/documentSymbol', params: { textDocument: { uri } } }));
+    expect((await symbols).result.map(({ name, kind }) => [name, kind])).toEqual([['::Box', SymbolKind.Struct], ['Box/area', SymbolKind.Function], ['n', SymbolKind.Variable]]);
+    const completions = answerOf(serverProcess, 3);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 3, method: 'textDocument/completion', params: { textDocument: { uri }, position: { line: 0, character: text.length } } }));
+    const kinds = new Map((await completions).result.map(({ label, kind }) => [label, kind]));
+    expect(['area', 'n', '::Box'].map(label => kinds.get(label))).toEqual([CompletionItemKind.Function, CompletionItemKind.Variable, CompletionItemKind.Struct]);
+  } finally {
+    serverProcess.kill();
+  }
+}, 30_000);

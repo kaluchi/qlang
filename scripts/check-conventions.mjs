@@ -115,8 +115,10 @@
 //
 //   (21) A test file stands in the section whose rule its tests hold,
 //       `<chapter>/<section>.test.mjs` under the tests of its workspace, or
-//       at a record in force of a domain its tests hold, and the title of a
-//       test cites no rule [QSWRK#marks].
+//       at a record in force of a domain its tests hold, the title of a test
+//       or of a group cites no rule and names no binding its file imports
+//       from the code, and a group holds two tests or more in a file of two
+//       groups or more [QSWRK#marks], [D414].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -891,8 +893,9 @@ function exportsNoHostReads() {
 //
 // A test file stands in the section whose rule its tests hold, named by its
 // path as a file of the cases is, or at the record in force of a domain whose
-// tests hold it where no chapter states the rule, and the title of a test
-// cites no rule, which the path names [QSWRK#marks].
+// tests hold it where no chapter states the rule, the title of a test cites
+// no rule, which the path names [QSWRK#marks], and its groups and its titles
+// say its rules in the words of its section [D414].
 
 function testsOffTheirSection() {
   const records = readDecisionRecords(repoRoot);

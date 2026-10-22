@@ -6,9 +6,7 @@ import { createSession, evalQuery } from '../../../src/session.mjs';
 import { boundAnswer } from '../../../src/runtime/print.mjs';
 import { declareRefusal } from '../../../src/errors.mjs';
 
-// ── makeErrorValue ──────────────────────────────────────────────
-
-describe('makeErrorValue', () => {
+describe('an error value and the trace it is handed', () => {
   it('produces a frozen error under its tag that holds no :trace while no step raised it', () => {
     const tag = makeTag('Oops');
     const errorVal = makeErrorValue(tag, new Map([['message', 'boom']]));
@@ -24,8 +22,6 @@ describe('makeErrorValue', () => {
     expect(errorVal.facts.get('trace')).toBe(trace);
   });
 });
-
-// ── a failure a host hands ──────────────────────────────────────
 
 // A host hands a failure by the answer of its verb, by a refusal its verb or
 // the constructor of its kind throws, as the first value of a query and as the
@@ -150,11 +146,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 });
 
-// ── `!|` runs a verb ───────────────────────────────────────────
-
-describe('`!|` runs a verb on the error at rest', () => {
-  it('the steps skipped past a comment run again by apply as the call after it', async () => {
-    const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
-    expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
-  });
+it('the steps skipped past a comment run again by apply as the call after it', async () => {
+  const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
+  expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
 });

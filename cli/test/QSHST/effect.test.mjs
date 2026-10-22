@@ -5,33 +5,27 @@ import { captureIoContext } from '../helpers/captured-streams.mjs';
 import { expectRefusalRaised, expectRefusalByAddress } from '../helpers/error-assertions.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
-describe('runRepl — in / out behaviour', () => {
-  it('answers `in` with the empty string, the prompt holding standard input', async () => {
-    const replHarness = captureRepl('in | print | out\n.exit\n');
-    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    // `in` answers the empty string, whose literal `""` `print` makes and `out` writes on stdout.
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
-  });
+it('answers `in` in the REPL with the empty string, the prompt holding standard input', async () => {
+  const replHarness = captureRepl('in | print | out\n.exit\n');
+  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+  // `in` answers the empty string, whose literal `""` `print` makes and `out` writes on stdout.
+  expect(stripAnsi(replHarness.stdoutText())).toMatch(/""/);
 });
 
-describe('runQuery', () => {
-  it('binds the ioContext writers so `out` reaches the captured stdout chunks', async () => {
-    const io = captureIoContext();
-    let writesOfOut = 0;
-    const cellEntry = await runQuery('"qlang" | out', { ...io, recordStdoutEffect: () => { writesOfOut += 1; } });
-    expect(cellEntry.defect).toBeNull();
-    expect(io.stdoutText()).toBe('qlang\n');
-    expect(writesOfOut).toBe(1);
-  });
+it('writes what `out` writes on the standard output the host hands, counting each write', async () => {
+  const io = captureIoContext();
+  let writesOfOut = 0;
+  const cellEntry = await runQuery('"qlang" | out', { ...io, recordStdoutEffect: () => { writesOfOut += 1; } });
+  expect(cellEntry.defect).toBeNull();
+  expect(io.stdoutText()).toBe('qlang\n');
+  expect(writesOfOut).toBe(1);
 });
 
-describe('in', () => {
-  it('replaces pipeValue with the stdin payload as a String', async () => {
-    const io = captureIoContext('hello\nworld');
-    const cellEntry = await runQuery('in', io);
-    expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toBe('hello\nworld');
-  });
+it('answers `in` with the text of standard input', async () => {
+  const io = captureIoContext('hello\nworld');
+  const cellEntry = await runQuery('in', io);
+  expect(cellEntry.defect).toBeNull();
+  expect(cellEntry.result).toBe('hello\nworld');
 });
 
 describe('out — the subject, written when it is a string', () => {

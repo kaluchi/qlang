@@ -3,8 +3,6 @@ import { keyword, makeErrorValue, makeTag, makeTagged } from '../../../src/types
 import { makeSet, compareValues } from '../../../src/ordering.mjs';
 import { evalQuery } from '../../../src/session.mjs';
 
-// ── the one order ───────────────────────────────────────────────────
-
 describe('the one order ranks a failure raised after every value, by its tag and then its facts', () => {
   it('ties two failures of one tag and one set of facts', () => {
     const tag = makeTag('Oops');
@@ -54,16 +52,14 @@ const LADDER = [
   '::Z!{:a 1} | raise', '!{:a 1} | raise', '!{:a 2} | raise'
 ];
 
-describe('the one order ranks each value of a ladder after the one before it', () => {
-  it('answers the sign of the places of every two values', async () => {
-    const values = [];
-    for (const query of LADDER) values.push(await evalQuery(query));
-    for (const [at, value] of values.entries()) {
-      for (const [other, than] of values.entries()) {
-        expect(compareValues(value, than), `${LADDER[at]} against ${LADDER[other]}`).toBe(Math.sign(at - other));
-      }
+it('ranks each value of a ladder after the one before it, the sign of the places of every two values', async () => {
+  const values = [];
+  for (const query of LADDER) values.push(await evalQuery(query));
+  for (const [at, value] of values.entries()) {
+    for (const [other, than] of values.entries()) {
+      expect(compareValues(value, than), `${LADDER[at]} against ${LADDER[other]}`).toBe(Math.sign(at - other));
     }
-  });
+  }
 });
 
 // Keyword / tag ordering — sort / min / max / gt / lt / gte /

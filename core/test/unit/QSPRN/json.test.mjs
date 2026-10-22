@@ -6,14 +6,12 @@ import { makeSet } from '../../../src/ordering.mjs';
 import { makeBinding, keyword, makeTag, makeTagged } from '../../../src/types.mjs';
 import { langRuntime } from '../../../src/runtime/index.mjs';
 
-describe('the package root', () => {
-  it('crosses the JSON boundary both ways', () => {
-    const lifted = core.fromPlain({ name: 'alice' });
-    expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
-  });
+it('a value crosses into JSON and back', () => {
+  const lifted = core.fromPlain({ name: 'alice' });
+  expect(core.toPlain(lifted)).toEqual({ name: 'alice' });
 });
 
-describe('fromPlain refuses a JSON number past the finite double range', () => {
+describe('a number of JSON past the doubles', () => {
   // `JSON.parse` reads a magnitude past the range as an infinity, which the
   // lift refuses at the path to it.
   it('lifts an out-of-range magnitude into a per-site codec error, with no path where it is the whole text', async () => {
@@ -40,10 +38,8 @@ describe('fromPlain refuses a JSON number past the finite double range', () => {
   });
 });
 
-describe('a descriptor is data', () => {
-  it('writes its keyword field as its name in JSON', async () => {
-    expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
-  });
+it('a descriptor writes its keyword field as its name in JSON', async () => {
+  expect(await evalQuery('::builtin{:note :draft} | json')).toContain('"note":"draft"');
 });
 
 describe('a JSON text reads as its literal reads, the keys in the order it writes them', () => {
@@ -81,48 +77,38 @@ describe('a JSON text reads as its literal reads, the keys in the order it write
   });
 });
 
-describe('toPlain encodes a failure', () => {
-  it('as the object of its $error, its tag and its facts', async () => {
-    const plain = toPlain(await evalQuery('"x" | add 1'));
-    expect(Object.keys(plain)).toEqual(['$error']);
-    expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');
-    expect(plain.$error.facts.actualType).toBe('::string');
-  });
+it('writes a failure in JSON as the object of its $error, its tag and its facts', async () => {
+  const plain = toPlain(await evalQuery('"x" | add 1'));
+  expect(Object.keys(plain)).toEqual(['$error']);
+  expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');
+  expect(plain.$error.facts.actualType).toBe('::string');
 });
 
-describe('toPlain encodes a tag over a set through the $tag envelope', () => {
-  it('a tag over a set writes its payload as the array of its elements in JSON', () => {
-    const taggedSet = makeTagged(makeTag('Keys'), makeSet([2, 1]));
-    const plainSet = toPlain(taggedSet);
-    expect(plainSet.$tag).toBe('Keys');
-    expect(plainSet.payload).toEqual([1, 2]);
-  });
+it('a tag over a set writes its payload as the array of its elements in JSON', () => {
+  const taggedSet = makeTagged(makeTag('Keys'), makeSet([2, 1]));
+  const plainSet = toPlain(taggedSet);
+  expect(plainSet.$tag).toBe('Keys');
+  expect(plainSet.payload).toEqual([1, 2]);
 });
 
-describe('json of a boolean', () => {
-  it('writes a boolean as the boolean of JSON, which parseJson reads back', async () => {
-    expect(await evalQuery('true | json')).toBe('true');
-    expect(await evalQuery('false | json')).toBe('false');
-    expect(await evalQuery('[true false] | map ~(json | parseJson)')).toEqual([true, false]);
-  });
+it('writes a boolean as the boolean of JSON, which parseJson reads back', async () => {
+  expect(await evalQuery('true | json')).toBe('true');
+  expect(await evalQuery('false | json')).toBe('false');
+  expect(await evalQuery('[true false] | map ~(json | parseJson)')).toEqual([true, false]);
 });
 
-describe('the print and the JSON of env', () => {
-  it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {
-    const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: keyword('kindName'), value: makeTag('Foo') }));
-    const session = await createSession({ scope });
-    const parsed = JSON.parse((await session.evalCell('env | json')).result);
-    expect(parsed.kindName.payload.value).toBe('::Foo');
-  });
+it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {
+  const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: keyword('kindName'), value: makeTag('Foo') }));
+  const session = await createSession({ scope });
+  const parsed = JSON.parse((await session.evalCell('env | json')).result);
+  expect(parsed.kindName.payload.value).toBe('::Foo');
 });
 
-describe('a binding record, a vector under a tag and a descriptor are values under a tag', async () => {
-  it('toPlain writes a vector under a tag as its tag beside its payload', async () => {
-    const { makeTagged, makeTag } = await import('../../../src/types.mjs');
-    const { toPlain } = await import('../../../src/runtime/json.mjs');
-    const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
-    const plainTagged = toPlain(tagged);
-    expect(plainTagged.$tag).toBe('Box');
-    expect(plainTagged.payload).toEqual([42, 'inner']);
-  });
+it('writes a vector under a tag in JSON as its tag beside its payload', async () => {
+  const { makeTagged, makeTag } = await import('../../../src/types.mjs');
+  const { toPlain } = await import('../../../src/runtime/json.mjs');
+  const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
+  const plainTagged = toPlain(tagged);
+  expect(plainTagged.$tag).toBe('Box');
+  expect(plainTagged.payload).toEqual([42, 'inner']);
 });

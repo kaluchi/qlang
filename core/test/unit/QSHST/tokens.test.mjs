@@ -20,7 +20,7 @@ const painted = async src => tokenize(src, await rootVerbNames())
   .filter(token => token.kind !== 'whitespace')
   .map(token => [src.slice(token.start, token.end), token.italic ? `${token.kind} italic` : token.kind]);
 
-describe('tokenize — empty and whitespace-only inputs', () => {
+describe('an empty source and one of whitespace alone', () => {
   it('returns the empty token stream for the empty source', async () => {
     expect(tokenize('', await rootVerbNames())).toEqual([]);
   });
@@ -31,7 +31,7 @@ describe('tokenize — empty and whitespace-only inputs', () => {
   });
 });
 
-describe('tokenize — a literal by the kind of its value', () => {
+describe('a literal by the kind of its value', () => {
   it('paints a string with its quotes', async () => {
     expect(tokenize('"hello"', await rootVerbNames())).toEqual([
       { start: 0, end: 7, kind: 'string' }
@@ -74,7 +74,7 @@ describe('tokenize — a literal by the kind of its value', () => {
   });
 });
 
-describe('tokenize — the head of a tag', () => {
+describe('the head of a tag', () => {
   it('paints the tag a tagged literal writes at its head and descends into the payload', async () => {
     expect(await painted('::Box[~(x) ~(y)]')).toEqual([
       ['::Box', 'tag'], ['[', 'vec'], ['~(', 'quote'], ['x', 'name italic'], [')', 'quote'],
@@ -100,7 +100,7 @@ describe('tokenize — the head of a tag', () => {
   });
 });
 
-describe('tokenize — a quote', () => {
+describe('a quote', () => {
   it('paints the `~(` and `)` of a quote upright and what it holds as the code it is, in italics', async () => {
     expect(tokenize('~(mul 2)', await rootVerbNames())).toEqual([
       { start: 0, end: 2, kind: 'quote' },
@@ -134,7 +134,7 @@ describe('tokenize — a quote', () => {
   });
 });
 
-describe('tokenize — the name of a call by its name, a word of the root a verb', () => {
+describe('the name of a call by its name, a word of the root a verb', () => {
   it('paints the name of a word of the root as a verb, a call by its address among them', async () => {
     expect(await painted('count')).toEqual([['count', 'verb']]);
     expect(await painted('[1] | vec/count')).toContainEqual(['vec/count', 'verb']);
@@ -152,7 +152,7 @@ describe('tokenize — the name of a call by its name, a word of the root a verb
   });
 });
 
-describe('tokenize — comments and docs', () => {
+describe('comments and docs', () => {
   it('paints a comment to the end of its line as a comment', async () => {
     expect(tokenize('|~| short note |~|', await rootVerbNames())).toEqual([{ start: 0, end: 18, kind: 'comment' }]);
     expect(tokenize('|~| note\ncount', await rootVerbNames())).toEqual([
@@ -191,7 +191,7 @@ describe('tokenize — comments and docs', () => {
   });
 });
 
-describe('tokenize — the gaps between the parts', () => {
+describe('the gaps between the parts', () => {
   it('paints the brackets of a vector, a set and a map each by its kind', async () => {
     expect(tokenize('[1 2 3]', await rootVerbNames()).map(t => t.kind)).toEqual([
       'vec', 'number', 'whitespace', 'number', 'whitespace', 'number', 'vec'
@@ -230,7 +230,7 @@ describe('tokenize — the gaps between the parts', () => {
   });
 });
 
-describe('tokenize — every character in one token', () => {
+describe('every character in one token', () => {
   it('every byte of `[1 2 3] | filter ~(gt 1) | count` lies inside exactly one token', async () => {
     const src = '[1 2 3] | filter ~(gt 1) | count';
     const tokens = tokenize(src, await rootVerbNames());
@@ -255,7 +255,7 @@ describe('tokenize — every character in one token', () => {
   });
 });
 
-describe('tokenize — a source that does not parse', () => {
+describe('a source that does not parse', () => {
   it('paints a source cut short through the closers that complete it', async () => {
     expect(tokenize('(unclosed', await rootVerbNames())).toEqual([
       { start: 0, end: 1, kind: 'group' },
@@ -287,7 +287,7 @@ describe('tokenize — a source that does not parse', () => {
   });
 });
 
-describe('tokenize — the code a doc holds', () => {
+describe('the code a doc holds', () => {
   // Only the prose of a doc paints as a doc: its quotes and its spans between
   // backquotes paint as the code they are.
 
@@ -336,7 +336,7 @@ describe('tokenize — the code a doc holds', () => {
   });
 });
 
-describe('tokenize — the docs of a slot', () => {
+describe('the docs of a slot', () => {
   // The doc literals of a declaration's slot are parts the parser reads as it
   // reads every doc, each of prose painted as one doc.
 
@@ -356,9 +356,7 @@ describe('tokenize — the docs of a slot', () => {
   });
 });
 
-describe('a verb as the tooling reads it', () => {
-  it('names the verbs of the root by their last names and their addresses, an address no verb stands at among none', async () => {
-    const names = verbNames(await langRuntime());
-    expect(['sort', 'vec/sort', 'count', 'map/count', 'string/sort', 'vec', 'number/NotFiniteError'].map(name => names.has(name))).toEqual([true, true, true, true, false, false, false]);
-  });
+it('names the verbs of the root by their last names and their addresses, an address no verb stands at among none', async () => {
+  const names = verbNames(await langRuntime());
+  expect(['sort', 'vec/sort', 'count', 'map/count', 'string/sort', 'vec', 'number/NotFiniteError'].map(name => names.has(name))).toEqual([true, true, true, true, false, false, false]);
 });

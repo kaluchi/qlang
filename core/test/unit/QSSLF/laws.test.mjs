@@ -5,16 +5,14 @@ import { failingLawsOf, reportOfLaws } from '../../helpers/catalog-pages.mjs';
 import { isErrorValue, isSet, makeTag, makeBinding, keyword } from '../../../src/types.mjs';
 import { catalogReaders } from '../../helpers/catalog-readers.mjs';
 
-describe('the axes read what a source of the root declared', () => {
-  async function sessionOf(source) {
-    const { createSession } = await import('../../../src/session.mjs');
-    return await createSession({ sources: [{ uri: 'tests/demo', source }] });
-  }
+async function sessionOf(source) {
+  const { createSession } = await import('../../../src/session.mjs');
+  return await createSession({ sources: [{ uri: 'tests/demo', source }] });
+}
 
-  it('reads the laws a source declared under a name', async () => {
-    const session = await sessionOf(':demo 99\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
-    expect((await session.evalCell('::demo | laws | count')).result).toBe(1);
-  });
+it('reads the laws a source declared under a name', async () => {
+  const session = await sessionOf(':demo 99\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
+  expect((await session.evalCell('::demo | laws | count')).result).toBe(1);
 });
 
 describe('the laws of the catalog, run by runLaws', () => {

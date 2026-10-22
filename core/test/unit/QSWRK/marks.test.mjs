@@ -10,6 +10,7 @@ import { marksOfTree } from '../../../../scripts/marks.mjs';
 // section its chapter does not hold, D9999 a record no journal holds.
 const context = { sections: new Set(['QSCLI#answer', 'QSHST#source']), heldByItsTests: name => name === 'D404' };
 const titled = (...titles) => titles.map(title => `it('${title}', () => {});`).join('\n');
+const problems = text => problemsOfTestFile('cli/test/QSCLI/answer.test.mjs', text, context).map(({ line, problem }) => [line, problem]);
 
 describe('the home of a test file', () => {
   it('reads the section a test file stands in by its path, a part of it and the tests of a process of their own among them, and the record a test of a domain holds', () => {
@@ -47,27 +48,25 @@ describe('the home of a test file', () => {
   });
 });
 
-describe('the marks of a tree', () => {
-  it('marks a test file by the section its path names, its whole text, the rules a comment in it cites beside, and finds no orphan in it', () => {
-    const tree = mkdtempSync(join(tmpdir(), 'qlang-marks-'));
-    try {
-      const files = {
-        'cli/test/QSCLI/answer.test.mjs': "it('reads -h', () => {});\n",
-        'cli/test/QSCLI/repl.test.mjs': "// The prompt is painted [QSCLI#colour].\nit('prompts', () => {});\n",
-        'cli/test/helpers/streams.mjs': 'export const streams = {};\n'
-      };
-      for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(tree, path)), { recursive: true }); writeFileSync(join(tree, path), text); }
-      execFileSync('git', ['init', '-q'], { cwd: tree });
-      execFileSync('git', ['add', '.'], { cwd: tree });
-      const { marks, orphans, blocks } = marksOfTree(tree);
-      expect(marks.map(({ path, name, line }) => `${path}:${line} ${name}`)).toEqual([
-        'cli/test/QSCLI/answer.test.mjs:1 QSCLI#answer', 'cli/test/QSCLI/repl.test.mjs:1 QSCLI#repl', 'cli/test/QSCLI/repl.test.mjs:1 QSCLI#colour']);
-      expect(blocks.get('cli/test/QSCLI/answer.test.mjs')).toEqual([{ from: 1, to: Infinity, names: new Set(['QSCLI#answer']) }]);
-      expect(orphans).toEqual(['cli/test/helpers/streams.mjs']);
-    } finally {
-      rmSync(tree, { recursive: true, force: true });
-    }
-  });
+it('marks a test file by the section its path names, its whole text, the rules a comment in it cites beside, and finds no orphan in it', () => {
+  const tree = mkdtempSync(join(tmpdir(), 'qlang-marks-'));
+  try {
+    const files = {
+      'cli/test/QSCLI/answer.test.mjs': "it('reads -h', () => {});\n",
+      'cli/test/QSCLI/repl.test.mjs': "// The prompt is painted [QSCLI#colour].\nit('prompts', () => {});\n",
+      'cli/test/helpers/streams.mjs': 'export const streams = {};\n'
+    };
+    for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(tree, path)), { recursive: true }); writeFileSync(join(tree, path), text); }
+    execFileSync('git', ['init', '-q'], { cwd: tree });
+    execFileSync('git', ['add', '.'], { cwd: tree });
+    const { marks, orphans, blocks } = marksOfTree(tree);
+    expect(marks.map(({ path, name, line }) => `${path}:${line} ${name}`)).toEqual([
+      'cli/test/QSCLI/answer.test.mjs:1 QSCLI#answer', 'cli/test/QSCLI/repl.test.mjs:1 QSCLI#repl', 'cli/test/QSCLI/repl.test.mjs:1 QSCLI#colour']);
+    expect(blocks.get('cli/test/QSCLI/answer.test.mjs')).toEqual([{ from: 1, to: Infinity, names: new Set(['QSCLI#answer']) }]);
+    expect(orphans).toEqual(['cli/test/helpers/streams.mjs']);
+  } finally {
+    rmSync(tree, { recursive: true, force: true });
+  }
 });
 
 describe('the titles of the tests', () => {
@@ -80,5 +79,56 @@ describe('the titles of the tests', () => {
   it('reads no test from a call that hands no body after its title, nor from a member of a value named test', () => {
     const source = ["const check = test => test('adds');", "const words = test => test.name.replace('adds', () => '');", "it.todo('adds');"].join('\n');
     expect(titlesOfSource(source)).toEqual([{ line: 3, title: 'adds' }]);
+  });
+
+  it('refuses a title that names a binding its file imports from the code, as the whole title, before a dash or in the shape of a name of code, and a file of the code', () => {
+    const text = ["import { main, parse, runQuery, EVAL_LIMIT, keyword } from '../../src/main.mjs';", "it('main', () => {});",
+      "it('parse — error handling', () => {});", "it('answers as runQuery does', () => {});", "it('admits EVAL_LIMIT', () => {});",
+      "it('reads types.mjs', () => {});", "it('writes a keyword bare', () => {});", "it('parse reads a text', () => {});"].join('\n');
+    expect(problems(text)).toEqual([
+      [2, 'names `main`, a binding it imports from the code: a title says its rule in the words of its section'],
+      [3, 'names `parse`, a binding it imports from the code: a title says its rule in the words of its section'],
+      [4, 'names `runQuery`, a binding it imports from the code: a title says its rule in the words of its section'],
+      [5, 'names `EVAL_LIMIT`, a binding it imports from the code: a title says its rule in the words of its section'],
+      [6, 'names types.mjs, a file of the code: a title says its rule in the words of its section']]);
+  });
+
+  it('reads the bindings a test takes apart from an import of its own as imported, and leaves a binding in backquotes and one of vitest or of the helpers of the tests', () => {
+    const text = ["import { describe, it } from 'vitest';", "import { captureRepl } from '../helpers/scripted-repl.mjs';",
+      "import { runRepl } from '../../src/repl.mjs';", "it('runs `runRepl` on a cell', () => {});", "it('answers as captureRepl writes', () => {});",
+      "it('reads a cell', async () => { const { runCell } = await import('../../src/cell.mjs'); });", "it('answers as runCell does', () => {});",
+      "it('it — the value itself', () => {});"].join('\n');
+    expect(problems(text)).toEqual([[7, 'names `runCell`, a binding it imports from the code: a title says its rule in the words of its section']]);
+  });
+
+  it('reads the title of a group as the title of a test', () => {
+    const text = ["import { tokenize } from '../../src/highlight.mjs';", "describe('tokenize — a quote [QSHST#tokens]', () => { it('a', () => {}); it('b', () => {}); });", "it('c', () => {});"].join('\n');
+    expect(problems(text)).toEqual([[2, 'cites [QSHST#tokens] in its title, which its path names'],
+      [2, 'names `tokenize`, a binding it imports from the code: a title says its rule in the words of its section']]);
+  });
+});
+
+describe('the groups of the tests', () => {
+  it('refuses a group of one test and of none, a test of its own standing outside every group', () => {
+    const text = ["describe('two', () => { it('a', () => {}); it('b', () => {}); });", "describe('one', () => { it('a', () => {}); });", "describe('none', () => {});"].join('\n');
+    expect(problems(text)).toEqual([
+      [2, 'groups one test: a group holds two tests or more, a test of its own standing outside every group'],
+      [3, 'groups no test: a group holds two tests or more, a test of its own standing outside every group']]);
+  });
+
+  it('counts as many a test written in a loop, in a function a call hands on and in a table, and the tests of a group inside another', () => {
+    const text = ["describe('a loop', () => { for (const n of [1, 2]) it(`reads ${n}`, () => {}); });",
+      "describe('a function handed on', () => { [1, 2].forEach(n => it(`reads ${n}`, () => {})); });",
+      "describe('a table', () => { it.each([[1], [2]])('reads %s', () => {}); });",
+      "describe('a group of groups', () => { describe('inner', () => { it('a', () => {}); it('b', () => {}); }); });"].join('\n');
+    expect(problems(text)).toEqual([]);
+  });
+
+  it('refuses a file whose tests stand in one group, the groups inside it among them, and passes one with a test outside it', () => {
+    const lone = "describe('the answer', () => { it('a', () => {}); it('b', () => {}); });";
+    const nested = "describe('the answer', () => { describe('a', () => { it('a', () => {}); it('b', () => {}); }); describe('b', () => { it('a', () => {}); it('b', () => {}); }); });";
+    expect(problems(lone)).toEqual([[1, 'holds its tests in one group, which says again what its path names']]);
+    expect(problems(nested)).toEqual([[1, 'holds its tests in one group, which says again what its path names']]);
+    expect(problems(`${lone}\nit('c', () => {});`)).toEqual([]);
   });
 });

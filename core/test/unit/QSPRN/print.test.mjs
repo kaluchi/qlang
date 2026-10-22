@@ -5,11 +5,9 @@ import { printValue } from '../../../src/print-value.mjs';
 import { makeBinding, keyword, makeTag, makeTagged, makeErrorValue } from '../../../src/types.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
-describe('the package root', () => {
-  it('prints every part of a kind of the root by the print a host source declares under its label, bare or under a tag', async () => {
-    const session = await core.createSession({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
-    expect((await session.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
-  });
+it('prints every part of a kind of the root by the print a host source declares under its label, bare or under a tag', async () => {
+  const session = await core.createSession({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
+  expect((await session.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
 });
 
 const NUMBERS = ['0', '-0', '1', '-1.5', '0.1', '1e10', '1e21', '1e-7', '5e-324', '1.7976931348623157e308', '-2.5e-3'];
@@ -122,18 +120,16 @@ function literalsOf(count, seed) {
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }
 
-describe('the round trip of the print', () => {
-  it('reads every value back from its print as itself', async () => {
-    const failing = [];
-    for (const source of literalsOf(300, 7)) {
-      const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);
-      if (held !== true) failing.push(source);
-    }
-    expect(failing).toEqual([]);
-  });
+it('reads every value back from its print as itself', async () => {
+  const failing = [];
+  for (const source of literalsOf(300, 7)) {
+    const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);
+    if (held !== true) failing.push(source);
+  }
+  expect(failing).toEqual([]);
 });
 
-describe('printValue — a binding record and a vector under a tag', () => {
+describe('a binding record and a vector under a tag', () => {
   it('renders a binding record as the tagged Map it is', () => {
     const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
@@ -153,7 +149,7 @@ describe('printValue — a binding record and a vector under a tag', () => {
 
 // A kind whose `print` is declared under it prints its parts through it,
 // and the forms of the core print the rest of the value.
-describe('print — the print declared under a kind', () => {
+describe('the print declared under a kind', () => {
   const BADGE_SOURCE = [
     ':badge |~~ A badge. ~~|',
     ':badge/print',
@@ -184,10 +180,8 @@ describe('print — the print declared under a kind', () => {
   });
 });
 
-describe('the print and the JSON of env', () => {
-  it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-    expect(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env | :e it | print | parse | open | eq e')).toBe(true);
-  });
+it('prints the records of the names a query declares as a literal that reads back as them', async () => {
+  expect(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env | :e it | print | parse | open | eq e')).toBe(true);
 });
 
 describe('printing steps read from text', () => {
@@ -282,9 +276,7 @@ describe('the print of a value reads back as the value', () => {
   });
 });
 
-describe('a tag name as a value', () => {
-  it('printValue renders a tag as ::name', async () => {
-    const { printValue } = await import('../../../src/print-value.mjs');
-    expect(printValue(makeTag('foo'))).toBe('::foo');
-  });
+it('prints a tag name as `::name`', async () => {
+  const { printValue } = await import('../../../src/print-value.mjs');
+  expect(printValue(makeTag('foo'))).toBe('::foo');
 });

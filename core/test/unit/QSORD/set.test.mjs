@@ -36,17 +36,13 @@ describe('distinct — structural equality', () => {
   });
 });
 
-describe('types.mjs', () => {
-  it('isSet tells a set from a vector', () => {
-    expect(isSet(makeSet([]))).toBe(true);
-    expect(isSet([])).toBe(false);
-  });
+it('tells a set from a vector', () => {
+  expect(isSet(makeSet([]))).toBe(true);
+  expect(isSet([])).toBe(false);
 });
 
-describe('a set literal holds a keyword once', async () => {
-  it('deduplicates keywords by name in Set literals', async () => {
-    const { evalQuery } = await import('../../../src/session.mjs');
-    const result = await evalQuery('#[:a :b :a]');
-    expect(result.length).toBe(2);
-  });
+it('a set literal holds a keyword once', async () => {
+  const { evalQuery } = await import('../../../src/session.mjs');
+  const result = await evalQuery('#[:a :b :a]');
+  expect(result.length).toBe(2);
 });

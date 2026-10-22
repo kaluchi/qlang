@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { homeOfPath, problemsOfTestFile, titlesOfSource } from '../../../../scripts/test-homes.mjs';
 import { marksOfTree } from '../../../../scripts/marks.mjs';
+import { graphOfTree, reachOf } from '../../../../scripts/import-reach.mjs';
+import { astrayBlocks, blocksReached, dossierOf, reachOfTree } from '../../../../scripts/dossier.mjs';
 
 // The sections and the record a planted tree holds: QSCLI#budget is a
 // section its chapter does not hold, D9999 a record no journal holds.
@@ -105,6 +107,92 @@ describe('the titles of the tests', () => {
     const text = ["import { tokenize } from '../../src/highlight.mjs';", "describe('tokenize — a quote [QSHST#tokens]', () => { it('a', () => {}); it('b', () => {}); });", "it('c', () => {});"].join('\n');
     expect(problems(text)).toEqual([[2, 'cites [QSHST#tokens] in its title, which its path names'],
       [2, 'names `tokenize`, a binding it imports from the code: a title says its rule in the words of its section']]);
+  });
+});
+
+// A tree planted in a folder of its own and handed to git, its files by path.
+function planted(files, read) {
+  const tree = mkdtempSync(join(tmpdir(), 'qlang-marks-'));
+  try {
+    for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(tree, path)), { recursive: true }); writeFileSync(join(tree, path), text); }
+    execFileSync('git', ['init', '-q'], { cwd: tree });
+    execFileSync('git', ['add', '.'], { cwd: tree });
+    return read(tree);
+  } finally {
+    rmSync(tree, { recursive: true, force: true });
+  }
+}
+
+// The code of a planted tree, the tests of its three sections, the third
+// held by a case and the runner of the cases, and a record in transit over
+// the first.
+const lines = (...written) => [...written, ''].join('\n');
+const TREE = {
+  'core/package.json': JSON.stringify({ name: '@kaluchi/qlang-core', exports: { '.': { import: './src/index.mjs' } }, imports: { '#load': { node: './src/node.mjs', default: './src/web.mjs' } } }),
+  'core/src/index.mjs': lines('// The root [QSNAM#scope].', "export * from './a.mjs';", "export { tool as namedTool } from './b.mjs';"),
+  'core/src/a.mjs': lines('// The reading of a part [QSNAM#scope].', 'export function reads() { return helper() + { unreadKey: 1 }.unreadKey + table[keyOfTable]; }',
+    'function helper() { return 1; }', "const keyOfTable = 'k';", 'const table = { k: 1 };', 'function unreadKey() { return 0; }',
+    '// The writing of a part [QSNAM#reach].', 'export function writes() { return 2; }', 'export function takenApart() { return 3; }', 'export function readAsAMember() { return 4; }',
+    '// A part no test reaches [QSNAM#scope].', 'export function unread() { return 5; }',
+    '// A part read again [D900].', 'export function again() { return new Shelf().count; }', 'class Shelf { count = 6; }',
+    '// The third rule [QSNAM#verb].', 'export function third() { return 7; }'),
+  'core/src/b.mjs': lines('// A tool [QSNAM#scope], beside the example of a mark, `[QSNAM#reach]`.', 'export function tool() { return 8; }',
+    '// What the module registers as it loads [QSNAM#reach].', "import '#load';", 'export const registered = [];', 'registered.push(9);',
+    "if (process.argv[1]?.endsWith('b.mjs')) commandOfTheScript();", 'function commandOfTheScript() { return 10; }'),
+  'core/src/node.mjs': lines('// Loaded by Node [QSNAM#reach].', 'export const loaded = [];', 'loaded.push(11);'),
+  'core/src/web.mjs': lines('// Loaded by a browser [QSNAM#reach].', 'export const loaded = [];', 'loaded.push(12);'),
+  'core/src/lent.js': lines('// Lent by require [QSNAM#reach].', 'function lend() { return 13; }', 'module.exports = { lend };'),
+  'core/src/whole.mjs': lines('// A module read whole [QSNAM#reach].', "export * from './deep.mjs';", 'export function first() { return 14; }'),
+  'core/src/deep.mjs': lines('// What a module read whole exports of another [QSNAM#reach].', 'export function deep() { return 15; }'),
+  'core/test/helpers/reader.mjs': lines('// A reader the tests share [QSNAM#scope].', "import { helper } from '../../src/a.mjs';", 'export const readerOf = () => helper;'),
+  'core/test/unit/QSNAM/scope.test.mjs': lines("import { reads, again } from '@kaluchi/qlang-core';", "import { readerOf } from '../../helpers/reader.mjs';", "it('reads', () => reads() + again() + readerOf());"),
+  'core/test/unit/QSNAM/reach.test.mjs': lines("import * as core from '../../../src/index.mjs';", "import * as whole from '../../../src/whole.mjs';", "it('writes', async () => {", '  core.writes();', '  core.namedTool();',
+    "  const { takenApart } = await import('../../../src/a.mjs');", "  return takenApart() + (await import('../../../src/a.mjs')).readAsAMember() + require('../../../src/lent.js').lend() + Object.keys(whole).length;", '});'),
+  'core/test/unit/QSWRK/cases.test.mjs': lines("import { third } from '../../../src/a.mjs';", "it('runs the cases', () => third());"),
+  'core/test/conformance/QSNAM/verb.jsonl': lines('{"name":"a-case-of-the-third-rule","query":"7","expect":"7"}'),
+  'docs/spec/QSNAM-names.md': lines('# QSNAM · Names', '', '## scope', '', 'The first rule.', '', '## reach', '', 'The second rule.', '', '## verb', '', 'The third rule.'),
+  'docs/journal/D900.md': lines('# D900 · A record in transit', '', 'Overrides [QSNAM#scope]')
+};
+
+// The declarations a test reaches in the code of a planted tree, each by its
+// module and its names, the code a module runs as it loads by none.
+const namesReached = (modules, entry) => [...reachOf(modules, entry).values()].filter(({ path }) => path.startsWith('core/src/'))
+  .map(({ path, from }) => `${path.slice('core/src/'.length)} ${modules.get(path).declarations.find(declaration => declaration.from === from).names.join(',') || 'as it loads'}`).sort();
+
+describe('the dossier of a section', () => {
+  it('reaches the declarations the imports of a test read, through a door of a package and an import of its own for Node, the exports of another module, a member of a module taken whole and the imports its code runs, past the key of a property and the name of a member, and the code each module runs as it loads, the command line of a script aside', () => {
+    planted(TREE, tree => {
+      const modules = graphOfTree(tree);
+      expect(namesReached(modules, 'core/test/unit/QSNAM/scope.test.mjs')).toEqual([
+        'a.mjs Shelf', 'a.mjs again', 'a.mjs helper', 'a.mjs keyOfTable', 'a.mjs reads', 'a.mjs table', 'b.mjs as it loads', 'b.mjs registered', 'node.mjs as it loads', 'node.mjs loaded']);
+      expect(namesReached(modules, 'core/test/unit/QSNAM/reach.test.mjs')).toEqual([
+        'a.mjs readAsAMember', 'a.mjs takenApart', 'a.mjs writes', 'b.mjs as it loads', 'b.mjs registered', 'b.mjs tool', 'deep.mjs deep', 'lent.js as it loads', 'lent.js lend', 'node.mjs as it loads', 'node.mjs loaded', 'whole.mjs first']);
+    });
+  });
+
+  it('lists a block whose mark names a section none of whose tests reach it while the tests of another do, a record in transit naming the sections it overrides, the runner of the cases reaching for each section that holds cases, and an example of a mark in backquotes naming nothing', () => {
+    planted(TREE, tree => {
+      const blocks = blocksReached(tree, reachOfTree(tree));
+      expect(astrayBlocks(blocks).map(({ path, from, names, holders }) => [path, from, [...names], [...holders]])).toEqual([['core/src/b.mjs', 1, ['QSNAM#scope'], ['QSNAM#reach']]]);
+      expect(blocks.find(({ path, from }) => path === 'core/src/a.mjs' && from === 13).names).toEqual(new Set(['D900', 'QSNAM#scope']));
+      expect(blocks.find(({ path, from }) => path === 'core/src/a.mjs' && from === 16).holders).toEqual(new Set(['QSWRK#cases', 'QSNAM#verb']));
+    });
+  });
+
+  it('hands a section with its text, its records in transit, its cases, its tests, the code its tests import, the blocks that cite it and the code its tests alone reach', () => {
+    planted(TREE, tree => {
+      const one = dossierOf(tree, 'QSNAM#scope');
+      expect(one.text).toEqual({ path: 'docs/spec/QSNAM-names.md', from: 3, lines: ['## scope', '', 'The first rule.', ''] });
+      expect(one.transit).toEqual(['D900']);
+      expect(one.cases).toBeNull();
+      expect(one.tests.map(({ path, tests }) => [path, tests.map(({ title }) => title)])).toEqual([['core/test/unit/QSNAM/scope.test.mjs', ['reads']]]);
+      expect(one.imports).toEqual(new Map([['core/src/index.mjs', new Set(['reads', 'again'])], ['core/src/a.mjs', new Set(['helper'])]]));
+      expect(one.blocks.map(({ path, from, holders }) => [path, from, [...holders].sort()])).toEqual([
+        ['core/src/a.mjs', 1, ['QSNAM#scope']], ['core/src/a.mjs', 11, []], ['core/src/a.mjs', 13, ['QSNAM#scope']], ['core/src/b.mjs', 1, ['QSNAM#reach']], ['core/src/index.mjs', 1, []]]);
+      expect(one.alone.map(({ path, from }) => `${path}:${from}`)).toEqual(['core/src/a.mjs:2', 'core/src/a.mjs:3', 'core/src/a.mjs:4', 'core/src/a.mjs:5', 'core/src/a.mjs:14', 'core/src/a.mjs:15']);
+      expect(dossierOf(tree, 'QSNAM#verb').cases).toEqual({ path: 'core/test/conformance/QSNAM/verb.jsonl', names: ['a-case-of-the-third-rule'] });
+      expect(dossierOf(tree, 'D900').text).toEqual({ path: 'docs/journal/D900.md', from: 1, lines: ['# D900 · A record in transit', '', 'Overrides [QSNAM#scope]', ''] });
+    });
   });
 });
 

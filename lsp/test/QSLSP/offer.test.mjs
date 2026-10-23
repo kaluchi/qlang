@@ -177,7 +177,7 @@ describe('the verbs offered after a value', () => {
     const afterWraps = await labelsAt('::kind | wraps |~~ w ~~| ::vec | ');
     expect(['reads', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
     const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '::frame[1 ~(a)] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
-    expect(afterSorts.map(labels => ['count', 'payload', 'failed', 'add'].map(label => labels.includes(label))))
+    expect(afterSorts.map(labels => ['count', 'within', 'failed', 'add'].map(label => labels.includes(label))))
       .toEqual([[true, true, false, false], [true, true, true, false], [true, false, false, false]]);
   });
 

@@ -13,6 +13,7 @@ import './raise.mjs';
 import './convert.mjs';
 import './regex.mjs';
 import './path.mjs';
+import './with.mjs';
 import './shape.mjs';
 import './constructors.mjs';
 import './tagged.mjs';

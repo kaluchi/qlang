@@ -21,12 +21,12 @@ function readOne(subject, path, soft, fallback) {
 }
 
 // [QSLIT#tag]
-function readByPath(subject, path, soft, fallback, state) {
+export function readByPath(subject, path, soft, fallback, state) {
   const key = beneathTags(path);
   return isPath(path) || isKeyAlone(key) ? readOne(subject, pathOf(key), soft, fallback) : readTemplate(subject, path, soft, fallback, state);
 }
 
-async function readTemplate(subject, template, soft, fallback, state) {
+export async function readTemplate(subject, template, soft, fallback, state) {
   if (typeof template === 'function') return await template(subject);
   if (isPath(template)) return readOne(subject, template, soft, fallback);
   if (isValueClass(template, 'underTag')) {

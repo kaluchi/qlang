@@ -112,7 +112,7 @@ it('lays the tag of a kind over the payload as it is until its host hands the co
   const hosted = await createSession({ sources: [{
     uri: 'test/hosted-kind',
     source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
-    primitives: { 'Hk/construct': payload => payload + 1 }
+    primitives: { 'Hk': payload => payload + 1 }
   }] });
   expect(printValue((await hosted.evalCell('seen')).result)).toBe('1');
   expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
@@ -128,10 +128,10 @@ const gaugeSession = () => createSession({
       ':Dial |~~ A reading of a dial. ~~| (::kind | impl ::builtin{})'
     ),
     primitives: {
-      'Gauge/construct': payload => payload * 2,
+      'Gauge': payload => payload * 2,
       'Gauge/over': runs(['test'], async (reading, test) => test(reading)),
       'Gauge/shifted': (reading, by) => reading.payload + by,
-      'Dial/construct': payload => makeTagged(makeTag('Dial'), payload + 1)
+      'Dial': payload => makeTagged(makeTag('Dial'), payload + 1)
     }
   }]
 });
@@ -259,11 +259,11 @@ describe('the sources a host hands', () => {
   });
 });
 
-describe('a kind whose construct is a primitive of the host', () => {
+describe('a kind whose constructor is a primitive of the host', () => {
   it('puts a payload under the tag through the constructor its host hands', async () => {
     const { createSession } = await import('../../../src/session.mjs');
     const sessionInstance = await createSession({
-      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType/construct': payload => payload * 2 } }]
+      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType': payload => payload * 2 } }]
     });
     expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });

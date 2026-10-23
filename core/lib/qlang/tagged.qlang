@@ -36,49 +36,6 @@
         |~~ The step `::Box[1 2]` is a `::construct`. ~~|
         ~(~(::Box[1 2]) | first | type | eq ::construct)
 
-:tagged/payload
-  |~~ Answers the value beneath the tag of the subject,
-      `::Box[42] | payload` answering `[42]`: the reverse of `tag` where
-      the tag lays itself over the value as it is, so
-      `value | tag ::Foo | payload` answers the value, whatever its kind,
-      while a kind of the core reads its payload as a value of its own.
-      A value under two tags opens one, `::A::B[1] | payload` answering
-      `::B[1]`. A set is a vector under its tag, so its payload is the
-      vector of its elements in their one order, `#[2 1] | payload`
-      answering `[1 2]`, and a value turned by `desc` opens to the value
-      it turned. A value under no tag, a number, a string, a vector or a
-      plain map, has no payload and is refused. `within` edits the payload
-      and puts the tag back.
-      ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
-  ~~|
-  ::fn
-    | returns |~~ The value beneath the tag, of any kind. ~~| ::any
-    | throws :SubjectNotTaggedError
-        |~~ `payload` opens a value under a tag, `::Box[42] | payload`; a
-            number, a string, a vector or a plain map stands under none
-            and is its own value, and the kind of a value is read by
-            `type`.
-        ~~|
-    | proves :answersAVector
-        |~~ A box of a vector answers the vector. ~~|
-        ~(:Box |~~ A box. ~~| | ::Box[42] | payload | eq [42])
-    | proves :answersAString
-        |~~ A note of a string answers the string. ~~|
-        ~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
-    | proves :undoesTag
-        |~~ A value laid under a tag is its payload. ~~|
-        ~({:a 1} | tag ::Foo | payload | eq {:a 1})
-    | proves :opensOneTagOfTwo
-        |~~ A value under two tags opens one. ~~|
-        ~(::A::B[1] | payload | eq ::B[1])
-    | proves :answersTheVectorOfASet
-        |~~ A set's payload is its vector in its one order. ~~|
-        ~(#[2 1] | payload | eq [1 2])
-    | proves :SubjectNotTaggedError/refusesANumber
-        |~~ A number under no tag has no payload. ~~|
-        ~(42 | payload !| get [~(type) /actualType] | eq [::tagged/payload/SubjectNotTaggedError ::number])
-    | impl ::builtin{}
-
 :tagged/within
   |~~ Answers the subject with code run beneath its tag: the quote the
       call gives runs against the payload, as `apply` runs it, and its answer
@@ -94,7 +51,7 @@
       path, `within /a`: a value computed at the call,
       `within (reverse)`, is refused under the input. A value under no
       tag runs its code by `apply`, and is refused here.
-      ::link~(::any/apply | doc) ::link~(::tagged/payload | doc)
+      ::link~(::any/apply | doc) ::link~(::any/payload | doc)
   ~~|
   ::fn
     | takes :code

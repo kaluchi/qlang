@@ -19,7 +19,7 @@ function setConstructor(payload) {
   return makeSet(payload);
 }
 
-registerPrimitive('set/construct', setConstructor);
+registerPrimitive('set', setConstructor);
 
 // [QSLIT#tag]
 const NullPayloadKindNotTakenError      = declareRefusal('null/PayloadKindNotTakenError');
@@ -44,29 +44,29 @@ function coreKindConstructor(isOfKind, ErrorCls) {
 const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
 
-registerPrimitive('null/construct',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
-registerPrimitive('boolean/construct', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
+registerPrimitive('null',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
+registerPrimitive('boolean', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
 // [QSNUM#arithmetic]
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
 const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError);
-registerPrimitive('number/construct', payload => {
+registerPrimitive('number', payload => {
   const number = finiteNumber(payload);
   if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
   return number;
 });
-registerPrimitive('string/construct',  coreKindConstructor(isString, StringPayloadKindNotTakenError));
-registerPrimitive('keyword/construct', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError));
-registerPrimitive('regex/construct',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError));
-registerPrimitive('path/construct',    coreKindConstructor(isPath, PathPayloadKindNotTakenError));
-registerPrimitive('tag/construct',     coreKindConstructor(isTag, TagPayloadKindNotTakenError));
-registerPrimitive('vec/construct',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
-registerPrimitive('map/construct',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
+registerPrimitive('string',  coreKindConstructor(isString, StringPayloadKindNotTakenError));
+registerPrimitive('keyword', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError));
+registerPrimitive('regex',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError));
+registerPrimitive('path',    coreKindConstructor(isPath, PathPayloadKindNotTakenError));
+registerPrimitive('tag',     coreKindConstructor(isTag, TagPayloadKindNotTakenError));
+registerPrimitive('vec',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
+registerPrimitive('map',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
 
 // [QSERR#rest]
-registerPrimitive('error/construct', facts => facts);
+registerPrimitive('error', facts => facts);
 
 // [QSORD#desc]
-registerPrimitive('desc/construct', payload => makeTagged(DESC_TAG, payload));
+registerPrimitive('desc', payload => makeTagged(DESC_TAG, payload));
 
 // [QSSLF#doc]
 const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');
@@ -80,13 +80,13 @@ function docConstructor(payload) {
   return makeDoc(payload);
 }
 
-registerPrimitive('doc/construct', docConstructor);
+registerPrimitive('doc', docConstructor);
 
 // [QSQUO#step]
-registerPrimitive('quote/construct', payload => quoteOf(payload, asPrinted));
+registerPrimitive('quote', payload => quoteOf(payload, asPrinted));
 
 // [QSERR#trace]
-registerPrimitive('trace/construct', payload => makeTrace(framesOfTrace(payload)));
+registerPrimitive('trace', payload => makeTrace(framesOfTrace(payload)));
 
 // [QSHST#source]
 const BuiltinPayloadKindNotTakenError = declareRefusal('builtin/PayloadKindNotTakenError');
@@ -99,4 +99,4 @@ function builtinConstructor(payload) {
   return descriptor;
 }
 
-registerPrimitive('builtin/construct', builtinConstructor);
+registerPrimitive('builtin', builtinConstructor);

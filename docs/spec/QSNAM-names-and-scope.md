@@ -266,17 +266,17 @@ no commands: its verbs reside on it, its nodes lie under its address,
 `kinds` answers it where its name is of one segment [QSNAM#root], and a
 value goes under its tag through the kind [QSBLD#label]. A verb is a
 function named under a label, whatever recipe it holds, or a recipe
-written alone there, the value its declaration wrote, its constructor
-`construct` aside, what runs on the values of its label [QSNAM#verb];
+written alone there, the value its declaration wrote, what runs on the
+values of its label [QSNAM#verb];
 under it lie
 the roles of its chain, its subject, its inputs, its answer, its
 refusals and the facts they carry, its invariants and its laws, so what
 a verb is is the set of the nodes under its address, and a helper
 several verbs share is a node under their noun. Any other value is data.
 
-Written as a step, an address reads what it declared, a verb or the
-constructor a host hands run on the subject its residence serves
-[QSDSP#residence] and any other value itself, whatever the subject; a
+Written as a step, an address reads what it declared, a verb run on the
+subject its residence serves [QSDSP#residence] and any other value
+itself, whatever the subject; a
 node that holds data is read by its address alone, its last name no bare
 name. An address no declaration
 names, written as a step, is refused as `::call/UnknownAddressError`
@@ -311,8 +311,8 @@ true
 > :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | type) ~(::number/b | binding | get /value | type) ~(5 | a) ~(5 | b)]
 [::fn ::quote 6 6]
 
-> get [~(5 | number/construct) ~("x" | number/construct !| type) ~(::vec/take/count/NotIntegerError#5 | type)]
-[5 ::number/construct/SubjectNotNumberError ::vec/take/count/NotIntegerError]
+> get [~(5 | number/add 1) ~("x" | number/add 1 !| type) ~(::vec/take/count/NotIntegerError#5 | type)]
+[6 ::number/add/SubjectNotNumberError ::vec/take/count/NotIntegerError]
 ```
 
 ## root

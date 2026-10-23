@@ -23,9 +23,9 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -222,7 +222,6 @@ async function evalBind(bind, state, at) {
 function writesOutsideItsChain(scope, nounName, lastName, value) {
   if (isInvariant(value)) return true;
   if (nounName === null) return false;
-  if (isLabel(scope, nounName)) return lastName === CONSTRUCT_NAME;
   return isVerb(scope, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
@@ -265,7 +264,6 @@ function nodesOfKind(kind, address, scope, origin) {
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
-  if (constructorOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), constructorOf(kind));
   return layRest(roles);
 }
 
@@ -611,21 +609,21 @@ function handedTo(primitive, chain, { values, origins }, state, flight) {
   const ofTheCall = code => (typeof code === 'function' ? Object.assign(code, { flight }) : code);
   return values.map((value, at) => {
     const { name, reading } = chain.inputs[at];
-    if (asCode.within?.has(name.name)) return quotesClosedIn(value, originOfQuote);
+    if (asCode.within?.has(name.name)) return quotesClosedIn(value, quote => stateOfOrigin(originOfQuote(quote)));
     if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, originOfQuote, state));
     if (!asCode.run?.has(name.name)) return value;
     return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : ofTheCall(codeOfArg(value, originOfQuote, state));
   });
 }
 
-function quotesClosedIn(value, originOfQuote) {
-  if (isQuote(value)) return codeFrom(value, originOfQuote(value));
+function quotesClosedIn(value, stateOfQuote) {
+  if (isQuote(value)) return closeQuote(value, stateOfQuote(value));
   if (!holdsAQuote(value)) return value;
-  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, originOfQuote));
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, stateOfQuote));
   const header = value[TAG_HEADER_SYMBOL];
   const closed = isMap(value)
-    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, originOfQuote)]))
-    : value.map(part => quotesClosedIn(part, originOfQuote));
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, stateOfQuote)]))
+    : value.map(part => quotesClosedIn(part, stateOfQuote));
   if (header !== undefined) stampTagHeader(closed, header);
   return closed;
 }
@@ -763,7 +761,7 @@ async function underKind(tagName, kind, payload, state) {
     if (refused !== null) return refused;
   }
   const constructs = handedFor(constructorOf(kind), kind)?.primitive;
-  const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
+  const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
@@ -828,6 +826,20 @@ function codeOfPath(path, callState) {
 // [QSQUO#literal], [QSQUO#held]
 export function codeOf(code, callState) {
   return codeFrom(code, originIn(callState, code) ?? heldIn(callState));
+}
+
+// [QSPTH#template], [QSQUO#held], [QSNAM#scope]
+export function templateClosedIn(template, callState, names = new Map()) {
+  return quotesClosedIn(template, quote => {
+    const state = stateOfOrigin(originIn(callState, quote));
+    return withScope(state, scopeNaming(state.scope, names));
+  });
+}
+
+function scopeNaming(scope, names) {
+  let named = scope;
+  for (const [name, value] of names) named = scopeSet(named, name, makeBinding({ name: keyword(name), value }));
+  return named;
 }
 
 // [QSQUO#held]

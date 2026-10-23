@@ -10,9 +10,9 @@
 {"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
-{"name":"the-subject-of-tag-alone-is-a-pair","query":"[[:foo 42] 5] | map ~(tag !| type)","expect":"[::any/tag/PairTagKindNotTakenError ::any/tag/SubjectNotPairError]"}
+{"name":"tag-alone-reads-the-outermost-tag-of-its-subject","query":"get [~(1 | tag) ~(::A::B{} | tag) ~([::Box 5] | tag) ~(::Box | tag) ~(\"x\" | add 1 !| tag)]","expect":"[::number ::A ::vec ::tag ::number/add/SubjectNotNumberError]"}
 {"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
-{"name":"tag-refuses-a-pair-whose-head-names-no-tag","query":"[:foo 1] | tag !| get [~(type) /actualType /expected]","expect":"[::any/tag/PairTagKindNotTakenError ::keyword #[::tag]]"}
+{"name":"tag-and-payload-split-and-join-every-value","query":"[42 \"hi\" :foo true null /a #\"a\" ::Box [1 2] {:a 1} #[2 1] ~(add 1) |~~ A page. ~~| ::Box#5 ::A::B{} !{:k 1}] | map ~(:value it | :t (tag) | payload | tag t | eq value) | every ~(it)","expect":"true"}
 {"name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
 {"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
 {"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}

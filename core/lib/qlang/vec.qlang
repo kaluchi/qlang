@@ -37,7 +37,7 @@
             `toVec`, and a vector under a tag of its own, a quote and a
             doc among them, gives the vector beneath by `payload`, each
             refused here.
-            ::link~(::set/toVec | doc) ::link~(::tagged/payload | doc)
+            ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::vec` reads its payload as the vector it is: a set turns

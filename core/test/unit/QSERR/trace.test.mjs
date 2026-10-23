@@ -42,7 +42,7 @@ function hostHanding(trace) {
     'any/thrown': () => { throw new AnyThrownRefusedError({ trace }); },
     'number/answeredToTheFold': failure,
     'number/thrownToTheFold': () => { throw new NumberThrownToTheFoldRefusedError({ trace }); },
-    'Built/construct': payload => {
+    'Built': payload => {
       if (payload === 'x' || payload?.[TAG_HEADER_SYMBOL]?.name === 'error') throw new BuiltRefusedError({ trace });
       return payload;
     }

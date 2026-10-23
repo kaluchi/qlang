@@ -25,7 +25,7 @@ function madeFn(commands, recipe) {
   return fn;
 }
 
-registerPrimitive('fn/construct', payload => {
+registerPrimitive('fn', payload => {
   if (!isVec(payload) || !holdsNoOtherTag(payload, FN_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
   return madeFn(...payload);
 });

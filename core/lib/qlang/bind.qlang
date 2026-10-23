@@ -85,12 +85,11 @@
             the fields of a kind `| wraps …` and `| reads …`, and an input
             of a verb `| takes …`,
             its answer `| returns …` and its subject `| on …`. Declared by
-            a name, an invariant holds of no value, and a constructor
-            under a label, or an input, an answer or a subject under a
-            verb, is read by no call, so the declaration is refused,
-            `:name` naming it and `:noun` the label or the verb it is
-            under. A page and a law are declared by a name under any of
-            them.
+            a name, an invariant holds of no value, and an input, an
+            answer or a subject under a verb is read by no call, so the
+            declaration is refused, `:name` naming it and `:noun` the
+            label or the verb it is under. A page and a law are declared
+            by a name under any of them.
             ::link~(::kind | doc) ::link~(::fn | doc)
             ::link~(::bind | doc)
         ~~|
@@ -184,9 +183,6 @@
         ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::invariant~(gt 0)
           !| get [~(type) /name /noun]
           |  eq [::bind/WrittenOutsideItsChainError :Pos/NotPositiveError ::Pos])
-    | proves :WrittenOutsideItsChainError/refusesAConstructorUnderALabel
-        |~~ A constructor declared by a name under a label is refused. ~~|
-        ~(:Pos |~~ A positive number. ~~| | :Pos/construct ~(add 0) !| type | eq ::bind/WrittenOutsideItsChainError)
     | proves :WrittenOutsideItsChainError/refusesAnInputUnderAVerb
         |~~ An input declared by a name under a verb is refused; the chain
             of the function takes it.

@@ -18,14 +18,14 @@ the language and a primitive do [QSNAM#owner]. A host
 hands each source as `{ uri, source, primitives }`: the source declares
 its nouns into the root as a cell [QSNAM#root], and `primitives` hands a
 primitive, a JavaScript function, under each address the source declares
-as `::builtin{}` under a label, the descriptor of a recipe or a
-constructor a host answers by a primitive: for the recipe of a verb a
-function of the values of its inputs, the subject first and the inputs
-in their order, a primitive of the core marking the inputs it runs as
-code, each handed to it as code closed at the call; and for the
-constructor of a kind, its node `<label>/construct`, a function of the
-payload that answers the value the tag is laid over or refuses the
-payload. The root
+with `::builtin{}`, the descriptor of a recipe or a constructor a host
+answers by a primitive: for the recipe of a verb, under its address
+beneath a label, a function of the values of its inputs, the subject
+first and the inputs in their order, a primitive of the core marking the
+inputs it runs as code, each handed to it as code closed at the call; and
+for the constructor of a kind, under the address of its label, a
+function of the payload that answers the value the tag is laid over or
+refuses the payload. The root
 refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
@@ -79,7 +79,7 @@ a host hands as that origin. The
 core is a host of its own sources, listed once in `LANGUAGE_SOURCES`, and
 hands beside each the primitives of its verbs and of the constructor of
 each kind whose chain ends in `impl ::builtin{}`, under the address of
-the constructor's node, `::number/construct`. The runtime, the evaluator
+the kind's label, `number`. The runtime, the evaluator
 with its table of primitives and the values it reads, `::fn`, `::kind`
 and `::builtin{}`, whose pages the catalog holds, runs a primitive, and
 a failure inside one is `::call/HostFailureError` [QSERR#site]. A
@@ -119,7 +119,7 @@ the failure.
 > ::vec/count | source | toString | contains "::builtin{}"
 true
 
-> ::number/construct | binding | get /value
+> ::number | binding | get /value | get /1
 ::builtin{}
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]

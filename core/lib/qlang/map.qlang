@@ -38,7 +38,7 @@
             map beneath by `payload`, and the pairs of a vector build a
             map by `toMap`, each refused here.
             ::link~(::map | doc) ::link~(::vec/toMap | doc)
-            ::link~(::tagged/payload | doc)
+            ::link~(::any/payload | doc)
         ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::map` reads its payload as the map it is: the pairs of a
@@ -846,7 +846,7 @@
       `map ~(get [~(get /0 | toString) "@" /1] | join "")`. It takes no
       value, and the empty map answers `[]`.
       ::link~(::map/keys | doc) ::link~(::vec/toMap | doc)
-      ::link~(::tagged/payload | doc)
+      ::link~(::any/payload | doc)
   ~~|
   ::fn
     | returns

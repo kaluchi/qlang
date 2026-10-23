@@ -10,10 +10,11 @@ requirements of each section are the cases of its file under
 A name a step calls finds its verb by walking the subject's stack of
 tags from the outside in, down to the kind of the core at the bottom,
 and beneath every kind lies `::any`, where every walk ends and the verbs
-of any value live: `type`, `eq`, `apply`, `if`, `cond`, `coalesce`,
-`json`, `env`, and the axes. A tagged value reaches `::tagged` after its
-own tag and before its payload, where `payload` and `within` live, so a
-tag over a value passes to the verbs of its payload, and a vector or a
+of any value live: `tag` and `payload`, the two sides of a value, `type`,
+`eq`, `apply`, `with`, `if`, `cond`, `coalesce`, `json`, `env`, and the
+axes. A tagged value reaches `::tagged` after its own tag and before its
+payload, where `within` lives, so a tag over a value passes to the verbs
+of its payload, and a vector or a
 map that holds a tag of its own, a set, a quote and a doc among them,
 reaches `::vec` or `::map` after `::tagged`. A word reads a value it takes
 from its subject or from code as a kind the same way, beneath every tag
@@ -106,7 +107,7 @@ of two kinds refused [QSCND#compare].
 [:vec/count #[2 3] #[1 2] [2 4 6]]
 
 > ::set | manifest
-#[::set/PayloadKindNotTakenError ::set/construct ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
+#[::set/PayloadKindNotTakenError ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
 
 > 42 | zip !| get [~(type) /addresses]
 [::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]

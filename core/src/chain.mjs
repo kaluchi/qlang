@@ -1,7 +1,7 @@
 // [QSBLD#fn], [QSBLD#kind]
 
 import { declareRefusal } from './errors.mjs';
-import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
+import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
 import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
@@ -21,12 +21,11 @@ const KindFactUnderNoNameError = declareRefusal('kind/FactUnderNoNameError');
 export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
-export const CONSTRUCT_NAME = 'construct';
 
 const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
-const isNameOfOneSegment = value => isNameOfChain(value) && !value.name.includes('/') && !LITERAL_WORDS.has(value.name);
+const isNameOfOneSegment = value => isKeyword(value) && readsAsName(value.name);
 const isInputName = value => isNameOfOneSegment(value) && value.name !== ANSWER_NAME && value.name !== SUBJECT_NAME;
-const isFieldName = value => isNameOfOneSegment(value) && value.name !== PAYLOAD_NAME && value.name !== CONSTRUCT_NAME;
+const isFieldName = value => isNameOfOneSegment(value) && value.name !== PAYLOAD_NAME;
 const isPlace = value => isPath(value) || isQuote(value);
 const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && value.every(isTag));
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
@@ -243,11 +242,6 @@ export function pageOfKindsRefusal(name, kinds, each) {
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
   const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
   return makeDoc([`${holder} holds a value of ${listed}.`]);
-}
-
-// [QSBLD#kind], [QSHST#source]
-export function pageOfConstructor(address) {
-  return makeDoc([`The constructor of \`${makeTag(address).literal}\`, the \`::builtin{}\` \`impl\` gives it, which attaches the tag to a payload or refuses it by the primitive a host hands beside its source, and constructs nothing where none is handed.`]);
 }
 
 export function invariantsOf(chain, name) {

@@ -18,3 +18,5 @@ export function readsAsBareKeyword(name) {
   return name.split('/').every(segment =>
     segment.length > 0 && isNameStart(segment[0]) && segment.split('').slice(1).every(isNameContinue));
 }
+
+export const readsAsName = name => readsAsBareKeyword(name) && !name.includes('/') && !LITERAL_WORDS.has(name);

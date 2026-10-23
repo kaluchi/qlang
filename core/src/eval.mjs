@@ -23,9 +23,9 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLabel, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, CONSTRUCT_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfConstructor, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -222,7 +222,6 @@ async function evalBind(bind, state, at) {
 function writesOutsideItsChain(scope, nounName, lastName, value) {
   if (isInvariant(value)) return true;
   if (nounName === null) return false;
-  if (isLabel(scope, nounName)) return lastName === CONSTRUCT_NAME;
   return isVerb(scope, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
@@ -265,7 +264,6 @@ function nodesOfKind(kind, address, scope, origin) {
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
-  if (constructorOf(kind) !== null) lay(CONSTRUCT_NAME, pageOfConstructor(address), constructorOf(kind));
   return layRest(roles);
 }
 
@@ -763,7 +761,7 @@ async function underKind(tagName, kind, payload, state) {
     if (refused !== null) return refused;
   }
   const constructs = handedFor(constructorOf(kind), kind)?.primitive;
-  const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), `${tagName}/construct`, [held]);
+  const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;

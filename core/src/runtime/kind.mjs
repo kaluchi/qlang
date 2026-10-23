@@ -23,7 +23,7 @@ function madeKind(commands, constructor) {
 }
 
 // [QSLIT#tag]
-registerPrimitive('kind/construct', payload => {
+registerPrimitive('kind', payload => {
   if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
   return madeKind(...payload);
 });

@@ -42,9 +42,9 @@ beforeAll(async () => {
       'any/refuse': index => { throw new AnyRefuseRefusedError({ actualValue: ANSWERS[index] }); },
       'any/refuseLater': async index => { throw new AnyRefuseRefusedError({ actualValue: ANSWERS[index] }); },
       'any/break': index => { throw new AnyBreakBrokenError({ detail: ANSWERS[index] }); },
-      'Raw/construct': payload => ({ raw: payload }),
-      'Kept/construct': payload => payload,
-      'Counted/construct': (...handed) => handed.length
+      'Raw': payload => ({ raw: payload }),
+      'Kept': payload => payload,
+      'Counted': (...handed) => handed.length
     }
   }] });
   lawful = await valuesOfTheLanguage();
@@ -142,7 +142,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
-    expect((await session.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw/construct', '', 'object Object'));
+    expect((await session.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
     expect((await session.evalCell('::Kept[1] | payload')).result).toEqual([1]);
     expect((await session.evalCell('::Counted[7] | payload')).result).toBe(1);
   });

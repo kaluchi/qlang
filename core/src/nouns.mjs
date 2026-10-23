@@ -13,7 +13,7 @@ import {
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, CONSTRUCT_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -54,8 +54,8 @@ export function isUnderLabel(scope, name) {
 }
 
 export function declaresVerb(address, ofAVerb, isLabelName) {
-  const [labelName, lastName] = splitAddress(address);
-  return ofAVerb && labelName !== null && lastName !== CONSTRUCT_NAME && isLabelName(labelName);
+  const [labelName] = splitAddress(address);
+  return ofAVerb && labelName !== null && isLabelName(labelName);
 }
 
 function residesOn(record, scope) {

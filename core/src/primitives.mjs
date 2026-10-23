@@ -37,7 +37,7 @@ export const PRIMITIVE_REGISTRY = {
   primitivesUnder(nounName) {
     const under = {};
     for (const [address, primitive] of primitives) {
-      if (splitAddress(address)[0] === nounName) under[address] = primitive;
+      if ((splitAddress(address)[0] ?? address) === nounName) under[address] = primitive;
     }
     return under;
   },

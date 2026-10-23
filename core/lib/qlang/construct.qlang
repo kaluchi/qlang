@@ -14,9 +14,8 @@
       error literal among them, `~(::Late!{:k 1}) | first` answering
       `::construct{:tag ::Late :payload !{:k 1}}`: `:tag` the tag and
       `:payload` the step of the payload the literal writes, the record
-      built into its step by its constructor, `::construct/construct`, as
-      the constructor a kind holds in its slot lies under its label as
-      `construct`.
+      built into its step by the constructor of this kind, the second part
+      of its literal, `::construct | binding | get /value | get /1`.
       ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind

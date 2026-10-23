@@ -48,15 +48,15 @@ describe('the table of the primitives — the primitives of the language by addr
   it('registers one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {
     const { ROOT_KEY } = await import('../../../src/scope-keys.mjs');
     const { splitAddress } = await import('../../../src/address.mjs');
-    const { isBuiltinDescriptor, isFn, recipeOf, bindingValueOf } = await import('../../../src/types.mjs');
+    const { isBuiltinDescriptor, isFn, isKind, recipeOf, constructorOf, bindingValueOf } = await import('../../../src/types.mjs');
     const root = (await bootstrapped()).get(ROOT_KEY);
-    const builtinOf = value => (isFn(value) ? recipeOf(value) : value);
+    const builtinOf = value => (isFn(value) ? recipeOf(value) : isKind(value) ? constructorOf(value) : value);
     const answeredByPrimitives = [...root].filter(([, record]) => isBuiltinDescriptor(builtinOf(bindingValueOf(record)))).map(([name]) => name);
-    const nouns = new Set([...root.keys()].map(name => splitAddress(name)[0]));
+    const nouns = new Set([...root.keys()].map(name => splitAddress(name)[0] ?? name));
     const registered = [...nouns].flatMap(noun => Object.keys(PRIMITIVE_REGISTRY.primitivesUnder(noun)));
     expect(registered.sort()).toEqual(answeredByPrimitives.sort());
     expect(registered).toContain('number/add');
-    expect(registered).toContain('vec/construct');
+    expect(registered).toContain('vec');
   });
 
   it('hands a source of the language the primitives under its noun, each one the table holds', async () => {

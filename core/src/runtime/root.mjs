@@ -3,13 +3,13 @@
 import { parse } from '../parse.mjs';
 import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isPrimitiveHanded, recipeOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isKind, isPrimitiveHanded, recipeOf, constructorOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
-import { isUnderLabel } from '../nouns.mjs';
+import { isLabel, isUnderLabel } from '../nouns.mjs';
 import { splitAddress } from '../address.mjs';
-import { CONSTRUCT_NAME, functionOfRecipe } from '../chain.mjs';
+import { functionOfRecipe } from '../chain.mjs';
 
 export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
   ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
@@ -46,11 +46,11 @@ export async function declareRoot(scope, sources) {
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];
       if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: keyword(name) });
-      takePrimitive(builtin, primitive, holdersOf(name, value, declared), splitAddress(name)[0]);
+      takePrimitive(builtin, primitive, [isFn(value) || isKind(value) ? value : functionOfRecipe(value)], splitAddress(name)[0]);
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
-      if (taking.has(primitiveName) && isUnderLabel(answered.scope, primitiveName)) continue;
+      if (taking.has(primitiveName) && (isUnderLabel(answered.scope, primitiveName) || isLabel(answered.scope, primitiveName))) continue;
       const held = builtinOf(bindingValueOf(declared.get(primitiveName)));
       const facts = { origin, name: keyword(primitiveName) };
       if (held !== null && !taking.has(primitiveName)) facts.sharedWith = keyword([...root, ...declared].find(([, record]) => builtinOf(bindingValueOf(record)) === held)[0]);
@@ -62,13 +62,7 @@ export async function declareRoot(scope, sources) {
 }
 
 function builtinOf(value) {
-  const recipe = isFn(value) ? recipeOf(value) : value;
+  const recipe = isFn(value) ? recipeOf(value) : isKind(value) ? constructorOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;
-}
-
-function holdersOf(name, value, declared) {
-  if (isFn(value)) return [value];
-  const [labelName, lastName] = splitAddress(name);
-  return lastName === CONSTRUCT_NAME ? [functionOfRecipe(value), bindingValueOf(declared.get(labelName))] : [functionOfRecipe(value)];
 }
 

@@ -4,9 +4,10 @@ import { printValue } from '../../../src/print-value.mjs';
 
 const answers = async query => printValue(await evalQuery(query));
 
-it('refuses a constructor declared by a name under a kind its chain built', async () => {
+it('declares construct under a kind its chain built as any other name, the constructor standing in the literal of the kind', async () => {
   const kind = ':Pos |~~ A positive number. ~~| (::kind | wraps |~~ The number. ~~| ::number)';
-  expect(await answers(`${kind} | :Pos/construct ~(add 0) !| type`)).toBe('::bind/WrittenOutsideItsChainError');
+  expect(await answers(`${kind} | :Pos/construct ~(add 0) | ::Pos#5 | construct`)).toBe('::Pos#5');
+  expect(await answers(`${kind} | ::Pos | binding | get /value | get /1`)).toBe('null');
 });
 
 it('a command a function and a kind share, called on another tag, meets the verbs of both nouns, each reached by its address', async () => {

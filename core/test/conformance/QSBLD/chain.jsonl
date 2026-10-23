@@ -5,5 +5,5 @@
 {"name":"a-tag-a-reader-declares-under-a-verb-changes-no-call","query":":any/k ~(5) | :any/k/out |~~ Text. ~~| ::string | 0 | k","expect":"5"}
 {"name":"a-name-under-a-label-outside-its-chain-lies-there-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | get [~(::Box | manifest) ~(::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]"}
 {"name":"a-page-alone-writes-no-answer-under-a-verb","query":":any/k ~(5) | :any/k/answer |~~ a ~~| !| get [~(type) /name]","expect":"[::bind/WrittenOutsideItsChainError :any/k/answer]"}
-{"decision":"D427","name":"construct-is-a-name-like-any-other-under-a-label","query":":Box |~~ b ~~| | :Box/construct |~~ c ~~| | ::Box/construct | doc | content","expect":"\"c\""}
+{"name":"construct-is-a-name-like-any-other-under-a-label","query":":Box |~~ b ~~| | :Box/construct |~~ c ~~| | ::Box/construct | doc | content","expect":"\"c\""}
 {"name":"an-invariant-declared-by-a-name-is-refused-under-whatever-tags-its-condition-stands","query":"get [~(:Positive ::invariant~(gt 0) !| type) ~(:Positive ::invariant::Foo~(gt 0) !| type)]","expect":"[::bind/WrittenOutsideItsChainError ::bind/WrittenOutsideItsChainError]"}

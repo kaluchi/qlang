@@ -275,9 +275,9 @@ takes is refused by the holder's role, `KindNotTakenError`,
 verb, the subject of a function `apply` runs, `SubjectKindNotTakenError`,
 the key an element files under, `KeyKindNotTakenError`, the answer of a
 condition, `ConditionKindNotTakenError`, the row of a table,
-`RowKindNotTakenError`, and the constructor and the recipe of a chain,
-the answer of code a verb runs and the tag of a pair among them, the set
-of the kinds it takes the fact `:expected`; the subject of a verb is
+`RowKindNotTakenError`, and the constructor and the recipe of a chain
+and the answer of code a verb runs among them, the set of the kinds it
+takes the fact `:expected`; the subject of a verb is
 refused by the label it resides on, `SubjectNotNumberError`. A last name
 names a kind after `Not` there alone and as the kind a conversion of its
 address reads, `::string/toNumber/TextNotNumberError`, so a name moves

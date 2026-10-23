@@ -970,7 +970,7 @@ an equality that compares a value of the language by the tie of the one
 order, which reads the tag a vector or a map holds on itself, leaving any
 other value to the equality of vitest; every suite of vitest fails a test
 that makes no assertion, and in the core and the command line a hook of a
-test waits as long as a test, fifteen seconds, the boot of the root under
+test waits as long as a test, twenty seconds, the boot of the root under
 the coverage among them. `scripts/fuzz-laws.mjs`
 runs every law of the root again with its literals changed to edge
 values, failing on a host's failure, a throw past the fail track, or a

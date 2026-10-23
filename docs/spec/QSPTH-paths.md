@@ -187,6 +187,27 @@ a name builds the same shape wherever it is applied. A part that answers
 a failure is the answer of the template, the parts after it unread
 [QSERR#flow].
 
+`with` names parts of its subject for one template and answers the
+template as `get` answers it, the names in each of its quotes beside the
+names of its step. Its first input names the parts: a vector of paths,
+each part named by the last key of its path, a map among them naming the
+parts it maps, or a map of names and the places they read. A place is a
+path or a quote, each read against the subject apart from the others, a
+path strictly and a quote as it is written, so no place sees the name of
+another and the maps of a vector are one map in any order; a shape or a
+literal is written in a quote, so a map of the data names no parts, a
+value in the place of a path or a quote refused as
+`::any/with/names/PlaceKindNotTakenError`, and an element that is neither
+path nor map as `::any/with/names/ElementKindNotTakenError`. A name is a
+name of one segment by the letters of a name [QSNAM#letters], a last key
+that is an index, a quoted key or a word of the literals refused as
+`::any/with/names/KeyNotNameError` and a name written twice as
+`::any/with/names/NameWrittenTwiceError`. Each quote of the template runs
+on the subject, seeing nothing of the others but the names, and no name
+leaves the call; a name that meets a verb its step's subject answers is
+refused as every name of a value is [QSNAM#reach], and a key of the
+subject no name names is read by its path.
+
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
 [4 3]
@@ -199,6 +220,15 @@ a failure is the answer of the template, the parts after it unread
 
 > {:a 1} | get [::Box::Crate[/a] ::Box#[/a]]
 [::Box::Crate[1] ::Box#[1]]
+
+> {:id 7 :user {:name "Ann"}} | with [/id /user/name] ~(name | append (id | toString))
+"Ann7"
+
+> [::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]
+[::Box 5 ::Box#5]
+
+> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~({:a 1 :b 2} | with it ~(a) !| type)]
+["Ann7" :t ::any/with/names/PlaceKindNotTakenError]
 ```
 
 ## code

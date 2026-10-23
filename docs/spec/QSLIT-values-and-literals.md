@@ -17,16 +17,24 @@ the path, and a number, a string, a keyword, a tag name, a boolean and
 null each have their own; `#[…]` writes the set, `~(…)` the quote,
 `|~~ … ~~|` the doc and `!{…}` the error, each a payload under the tag of
 its kind, which `payload` opens; a host's value carries its tags above
-one of them. `type` answers the kind of any value, the kind a literal implies
-for one under no tag, and the kind's page is one step away. A tag names
-a kind: tags stack over any payload and read from the outside in,
-`payload` reading what stands beneath the outermost and refusing a value
-under no tag as `::tagged/payload/SubjectNotTaggedError`; behaviour
-lives in the catalog and is found through the tag.
+one of them. `tag` given no name answers the kind of any value, `type`
+its other name, the kind a literal implies for one under no tag, and the
+kind's page is one step away. A tag names a kind: tags stack over any
+payload and read from the outside in, `payload` reading what stands
+beneath the outermost, and for a value of a kind of the core what its
+literal writes after the tag of its kind, a number, a string, a vector
+and a map their own and a set, a quote and a doc the vector of their
+elements, of their steps and of their segments, so every value splits
+into its tag and its payload and joins back by `tag`,
+`:t (tag) | payload | tag t`; behaviour lives in the catalog and is found
+through the tag.
 
 ```qlang
 > [1 2] | type
 ::vec
+
+> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | :t (tag) | payload | tag t)]
+[::number 1 [1 2] ::Box#5]
 
 > null | type
 ::null
@@ -166,11 +174,10 @@ opens. A tag
 no declaration names, the tag of a verb and the tag of an invariant lay
 themselves over a payload as it is [QSNAM#address], and the tag of a
 name that holds data is refused as `::construct/TagNamesAValueError`. `tag`
-lays a tag over the value in the pipe, `5 | tag ::Foo`, or over the pair
-`[tag payload]` it takes apart, through the tag's kind; a name that is
-no tag name is refused as `::any/tag/name/KindNotTakenError`, a
-subject that is no pair as `::any/tag/SubjectNotPairError`, and a pair
-whose first is no tag as `::any/tag/PairTagKindNotTakenError`.
+given a name lays it over the value in the pipe through the tag's kind,
+`5 | tag ::Foo`, a name that is no tag name refused as
+`::any/tag/name/KindNotTakenError`, and given none answers the tag of the
+value, a vector of a tag and a value the vector it is.
 
 ```qlang
 > ::Width#5 | add 3 | get [~(type) ~(payload)]
@@ -189,7 +196,7 @@ whose first is no tag as `::any/tag/PairTagKindNotTakenError`.
 ::vec/PayloadKindNotTakenError
 
 > [::Foo 5] | tag
-::Foo#5
+::vec
 
 > get [~(::vec/sort#5 | type) ~(::vec/take/count/NotIntegerError#5 | type) ~(:limit 5 | ::limit#1 !| type)]
 [::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNamesAValueError]
@@ -238,15 +245,16 @@ other leaves are. The template is the literal of the reads of its
 parts: an atom by the path of
 its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
-value, a set, a quote, a doc and an error at rest among them, from its
-tag and its payload by `tag`, each of the two a quote `get` runs against
-the set. Every value comes back so, each example of
+value, a set, a quote, a doc and an error at rest among them, from the
+pair of its tag and its payload, each a quote `get` runs against the set,
+the payload laid under the tag by `with {:t /0 :p /1} ~(p | tag t)`.
+Every value comes back so, each example of
 the catalog and each literal a case expects among them.
 
 ```qlang
 > #[1 "x" :a :b] | apply ~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])
 ["x" [1 1] {:b :a}]
 
-> #[1 ::Foo] | get [/1 /0] | tag
+> #[1 ::Foo] | with {:t /1 :p /0} ~(p | tag t)
 ::Foo#1
 ```

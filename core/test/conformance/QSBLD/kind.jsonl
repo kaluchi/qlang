@@ -16,4 +16,4 @@
 {"name":"the-literal-of-a-kind-whose-commands-are-no-quote-is-no-pair","query":"::kind[[] null] !| type","expect":"::kind/PayloadNotPairError"}
 {"name":"a-command-of-a-kind-written-with-args-its-chain-does-not-take-is-refused","query":"::kind | reads :null |~~ n ~~| /n !| type","expect":"::kind/CommandNotTakenError"}
 {"name":"a-command-a-verb-of-a-kind-writes-is-refused-by-the-chain-as-written","query":"::kind | reads 5 |~~ x ~~| /x !| get [~(type) /command /index /actualValue]","expect":"[::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5]"}
-{"decision":"D427","name":"a-constructor-handed-with-another-kind-constructs-nothing-under-this-one","query":":B |~~ B. ~~| (::kind | impl (::number | binding | get /value | get /1)) | get [~(::B\"x\" | type) ~(::B\"x\" | payload)]","expect":"[::B \"x\"]"}
+{"name":"a-constructor-handed-with-another-kind-constructs-nothing-under-this-one","query":":B |~~ B. ~~| (::kind | impl (::number | binding | get /value | get /1)) | get [~(::B\"x\" | type) ~(::B\"x\" | payload)]","expect":"[::B \"x\"]"}

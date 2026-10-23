@@ -227,7 +227,7 @@ them, the refusal of the kinds and of a place left out, and a step of
 the chain written with objects its rules do not take is refused as
 `::kind/CommandNotTakenError` on either road with the facts of
 `::fn/CommandNotTakenError`, the name of a field and of a page of one
-segment, none of `payload`, `construct` and the words of a literal; a
+segment, neither `payload` nor a word of a literal; a
 refusal or an invariant written with a path stands under a field read
 before it, and a law or a fact under a name declared before it,
 `NameUnderNoFieldError`, `LawUnderNoNameError` and
@@ -248,7 +248,7 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 > :B |~~ B. ~~| (::kind | wraps |~~ w ~~| ::number | impl ::builtin{}) | get [~(::B#5 | type) ~(::B"x" !| type)]
 [::B ::B/PayloadKindNotTakenError]
 
-> :B |~~ B. ~~| (::kind | impl (::number/construct | binding | get /value)) | get [~(::B | binding | get /value | get /1) ~(::number | binding | get /value | get /1) ~(::B"x")]
+> :B |~~ B. ~~| (::kind | impl (::number | binding | get /value | get /1)) | get [~(::B | binding | get /value | get /1) ~(::number | binding | get /value | get /1) ~(::B"x")]
 [::builtin{} ::builtin{} ::B"x"]
 ```
 
@@ -284,12 +284,12 @@ an error hands it on. `get` reads a field's place.
 ## label
 
 A label is a kind declared under a name [QSNAM#address]. Its verbs are
-the functions and the recipes named under it, and its nodes lie under
-its address for `doc`, `manifest` and the tools, its laws for `laws`,
-and its constructor, where `impl` gives it one, as `construct`, which
-runs where its tag is laid, as a literal or by `tag`, and which no bare
-name reaches, its address running the one a host hands on the subject
-its label serves [QSNAM#address]. A word of a literal, `::null`, is
+the functions and the recipes named under it, `construct` a name there
+like any other, and its nodes lie under its address for `doc`,
+`manifest` and the tools and its laws for `laws`; its constructor, where
+`impl` gives it one, stands as the second part of the literal of its
+kind and runs where its tag is laid, as a literal or by `tag`, under that
+kind alone. A word of a literal, `::null`, is
 declared by the chain of a kind. The tag of a label declared by its page
 alone lays itself over a payload as it is. A value laid under a tag
 before its kind is declared keeps the tag; a literal or `tag` after the
@@ -313,11 +313,11 @@ under `::invariant`, lays itself over the value [QSNAM#address].
 > ::vec/take/count/NotIntegerError | binding | get /value | type
 ::invariant
 
-> ::keyword/construct | binding | get /value | type
+> ::keyword | binding | get /value | get /1 | type
 ::builtin
 
-> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | get [~(::Pos#5 | construct !| type) ~(5 | number/construct)]
-[::call/UnknownNameError 5]
+> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | :Pos/construct ~(add 0) | get [~(::Pos#5 | construct) ~(::Pos | manifest)]
+[::Pos#5 #[::Pos/construct]]
 
 > ::null | binding | get /value | type
 ::kind
@@ -329,12 +329,11 @@ What a chain holds is written in the chain, and a declaration by name
 of what it holds is refused where it stands as
 `::bind/WrittenOutsideItsChainError`: an invariant, a quote under
 `::invariant` beneath whatever tags it stands, wherever it is declared,
-the constructor `construct`
-under a label, and under a verb its `answer`, its `subject` and an
-input, any quote or path a reader declares there, which a place of an
-input writes. A page, a law and any other value a reader declares by
-name under a verb or a label lie there for `doc`, `manifest` and
-`runLaws`.
+and under a verb its `answer`, its `subject` and an input, any quote or
+path a reader declares there, which a place of an input writes. A page,
+a law and any other value a reader declares by name under a verb or a
+label lie there for `doc`, `manifest` and `runLaws`, a verb under a
+label among them, whatever its name.
 
 ```qlang
 > get [~(:Positive ::invariant~(gt 0) !| type) ~(:Positive ::invariant::Foo~(gt 0) !| type)]

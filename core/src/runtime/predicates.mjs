@@ -21,7 +21,6 @@ registerPrimitive('any/lte', comparing(order => order <= 0));
 registerPrimitive('boolean/and', (subject, condition) => subject && condition);
 registerPrimitive('boolean/or',  (subject, condition) => subject || condition);
 registerPrimitive('boolean/not', subject => !subject);
-registerPrimitive('any/type', subject => typeOf(subject));
 
 // [QSDSP#walk]
 registerPrimitive('any/is', (subject, kinds) => walkToKinds(subject, kinds.map(kind => kind.name)) !== null);

@@ -53,7 +53,7 @@
     | cond
         ~(kind | eq ::vec) ~(get {:parts ~(it) :glue ~(~())})
         ~(kind | eq ::map) ~(:whole it | get {:parts ~(keys | sort | map ~(:key it | get [~(key) ~(whole | query key)])) :glue ~(~(indexBy ~(first) | map ~last))})
-        ~(get {:parts [~(kind) ~(payload)] :glue ~(~(tag))}))
+        ~(get {:parts [~(kind) ~(payload)] :glue ~(~(with {:t /0 :p /1} ~(p | tag t)))}))
 
 :any/atomsOf
   |~~ The atoms of a value, its own when it is an atom and otherwise

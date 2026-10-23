@@ -362,19 +362,13 @@
     | impl ::builtin{}
 
 :any/type
-  |~~ Answers the kind of the subject, the tag its value stands under,
-      `5 | type` answering `::number`. The answer is a tag name, a value
-      that reads the kind's page, `type | doc`, and compares,
-      `filter ~(type | eq ::string)`. Every value answers: a literal its
-      kind, `"hi"`, `:foo`, `[1 2]` and `#[1 2]` answering `::string`,
-      `::keyword`, `::vec` and `::set`; null `::null`; a quote, a doc and
-      a tag name `::quote`, `::doc` and `::tag`. A value under tags
-      answers the outermost, `::Width#5` answering `::Width`, while `is`
-      walks the tags to the kind beneath. A failure passes over the
-      step; `!|` catches it, and the error at rest answers the tag of the
-      refusal it carries. The call takes no value: whether the subject is of a kind
-      is `is`.
-      ::link~(::any/is | doc) ::link~(::any/tag | doc)
+  |~~ The name other languages give the read of `tag`: answers the kind of
+      the subject, its outermost tag, as `tag` given no name does,
+      `5 | type` answering `::number` and `::Width#5 | type` `::Width`.
+      The answer is a tag name, a value that reads the kind's page,
+      `type | doc`, and compares, `filter ~(type | eq ::string)`. The call
+      takes no value: whether the subject is of a kind is `is`.
+      ::link~(::any/tag | doc) ::link~(::any/is | doc)
   ~~|
   ::fn
     | returns |~~ The kind of the subject, its outermost tag. ~~| ::tag
@@ -382,44 +376,15 @@
         |~~ `type` answers the kind of its subject and takes no value:
             whether the subject is of a kind is `is`, `5 | is ::number`.
         ~~|
-    | proves :ofANumber
-        |~~ A number literal is a number. ~~|
-        ~(42 | type | eq ::number)
+    | proves :answersAsTag
+        |~~ `type` answers as `tag` given no name. ~~|
+        ~([5 ::Width#5 #[1]] | map ~(get [~(type) ~(tag)]) | eq [[::number ::number] [::Width ::Width] [::set ::set]])
     | proves :readsThePageOfItsKind
         |~~ The answer reads the page of the kind. ~~|
         ~(5 | type | doc | eq (::number | doc))
     | proves :comparesAsATagName
         |~~ The answer compares with a tag name. ~~|
         ~(["a" 1 "b"] | filter ~(type | eq ::string) | eq ["a" "b"])
-    | proves :ofAString
-        |~~ A string literal is a string. ~~|
-        ~("hi" | type | eq ::string)
-    | proves :ofAKeyword
-        |~~ A keyword literal is a keyword. ~~|
-        ~(:foo | type | eq ::keyword)
-    | proves :ofAVector
-        |~~ A vector literal is a vector. ~~|
-        ~([1 2] | type | eq ::vec)
-    | proves :ofASet
-        |~~ A set literal is a set. ~~|
-        ~(#[1 2] | type | eq ::set)
-    | proves :ofNull
-        |~~ Null answers `::null`, a missing field read by `query` among
-            them.
-        ~~|
-        ~({} | query /a | type | eq ::null)
-    | proves :ofAQuote
-        |~~ A quote answers `::quote`. ~~|
-        ~(~(42) | type | eq ::quote)
-    | proves :ofADoc
-        |~~ A doc answers `::doc`. ~~|
-        ~(|~~ A page. ~~| | type | eq ::doc)
-    | proves :ofATagName
-        |~~ A tag name answers `::tag`. ~~|
-        ~(::vec | type | eq ::tag)
-    | proves :answersTheOutermostTag
-        |~~ A value under tags answers the outermost. ~~|
-        ~(::Width#5 | type | eq ::Width)
     | proves :readsAnErrorAtRest
         |~~ An error passes over `type`, and the error at rest answers
             the tag of its refusal.
@@ -428,7 +393,7 @@
     | proves :ArgsBeyondInputsError/refusesAKind
         |~~ A kind given to `type` is refused under the verb. ~~|
         ~(5 | type ::number !| type | eq ::any/type/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ~(tag)
 
 :any/json
   |~~ Answers the subject written as JSON text, for a reader that does
@@ -1730,63 +1695,74 @@
     | impl ~(:subject it | doc | get [~(it) ~(subject | laws)])
 
 :any/tag
-  |~~ Answers the subject under the name the call gives, a tag name,
-      laying the tag over the subject through its kind as the
-      literal does where it is written: `5 | tag ::Box` answers
-      `::Box#5`, its type the tag and its payload the subject. Given no
-      name, it reads the pair `get [~(type) ~(payload)]` answers,
-      `[::Box 5] | tag`, so a value split tags back into itself. A tag of
-      a kind is laid through the kind: `5 | tag ::number` answers `5`, a
-      payload the kind refuses is refused, `"5" | tag ::number`, and a
-      kind the reader declares holds its invariants. A tag over a tagged
-      value stands before its tags and never in their place, its own
-      among them, `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` standing twice;
-      replacing the tag goes through the payload, `payload | tag ::Crate`.
-      A tag over an error at rest
-      names its site, `[::Late !{:by 3}] | tag` answering
-      `::Late!{:by 3}`, and `raise` raises it under that tag.
-      The call takes one name; a keyword, `:box`, names a field and no
-      kind.
-      ::link~(::any/type | doc) ::link~(::tagged/payload | doc)
+  |~~ Answers the tag of the subject where the call gives no name, one side
+      of the value, whose other side `payload` answers, and lays the tag the
+      call names over the subject where it gives one. Given no name it
+      answers the kind of the subject, its outermost tag: `5 | tag`
+      answers `::number` and `::Box::Crate{:a 1} | tag` `::Box`; a literal
+      its kind, `"hi"`, `:foo`, `[1 2]` and `#[1 2]` answering `::string`,
+      `::keyword`, `::vec` and `::set`; null `::null`; a quote, a doc and a
+      tag name `::quote`, `::doc` and `::tag`; and an error at rest the tag
+      of the refusal it carries, while `is` walks the tags to the kind
+      beneath. Given a tag name it lays the tag over the subject through
+      its kind as the literal does where it is written: `5 | tag ::Box`
+      answers `::Box#5`, its tag the name and its payload the subject, so
+      a value splits and joins back into itself,
+      `:t (tag) | payload | tag t`. A tag of a kind is laid through the
+      kind: `5 | tag ::number` answers `5`, a payload the kind refuses is
+      refused, `"5" | tag ::number`, and a kind the reader declares holds
+      its invariants. A tag over a tagged value stands before its tags and
+      never in their place, its own among them,
+      `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` standing twice; replacing the
+      tag goes through the payload, `payload | tag ::Crate`. A tag over an
+      error at rest names its site, `!{:by 3} | tag ::Late` answering
+      `::Late!{:by 3}`, and `raise` raises it under that tag. The call
+      takes one name; a keyword, `:box`, names a field and no kind.
+      ::link~(::any/payload | doc) ::link~(::any/type | doc) ::link~(::any/is | doc)
   ~~|
   ::fn
     | takes :name
         |~~ The tag laid over the subject, null when the call gives none
-            and the subject is a pair.
+            and the tag of the subject is read.
         ~~|
         ~(query /0) #[::null ::tag]
     | throws :name/KindNotTakenError
         |~~ The name is a tag name, `::Box`; a keyword, `:box`, names a
             field and no kind.
         ~~|
-    | returns |~~ The subject under the tag, read by its kind. ~~| ::any
-    | throws :PairTagKindNotTakenError
-        |~~ The tag of the pair `tag` reads is a tag name,
-            `[::Box 5] | tag`; a keyword, `:box`, names a field and no
-            kind.
+    | returns
+        |~~ The tag of the subject, or the subject under the tag, read by
+            its kind.
         ~~|
-    | throws :SubjectNotPairError
-        |~~ `tag` alone reads a pair, `[::Box value] | tag`, the tag and
-            the value it goes over; a subject of another shape is refused,
-            a vector of another length among them.
-        ~~|
+        ::any
     | throws :ArgsBeyondInputsError
         |~~ `tag` lays one tag: two tags nest one call after the other,
-            `tag ::Box | tag ::Crate`, and a pair whose value comes first
-            turns before it is read, `get [/1 /0] | tag`.
+            `tag ::Box | tag ::Crate`.
         ~~|
+    | proves :readsTheKindOfEveryValue
+        |~~ Given no name, `tag` answers the kind of a literal, of null, of
+            a quote, of a doc and of a tag name.
+        ~~|
+        ~([42 "hi" :foo [1 2] #[1 2] null ~(42) |~~ A page. ~~| ::vec] | map ~tag
+          | eq [::number ::string ::keyword ::vec ::set ::null ::quote ::doc ::tag])
+    | proves :readsTheOutermostTag
+        |~~ A value under tags answers the outermost. ~~|
+        ~(::Box::Crate{:a 1} | tag | eq ::Box)
+    | proves :readsAnErrorAtRest
+        |~~ The error at rest answers the tag of its refusal. ~~|
+        ~("x" | add 1 !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :standsOverTheValue
         |~~ The payload of a tagged number is the number. ~~|
         ~(42 | tag ::Box | payload | eq 42)
     | proves :namesTheKind
         |~~ The tag is the type of the value. ~~|
         ~([1 2 3] | tag ::Triple | type | eq ::Triple)
-    | proves :readsAPair
-        |~~ Given no name, `tag` reads a pair. ~~|
-        ~([::Box 5] | tag | eq ::Box#5)
-    | proves :tagsASplitBack
-        |~~ A split value tags back into itself. ~~|
-        ~(:Box |~~ A box. ~~| | ::Box[1 2 3] | get [~(type) ~(payload)] | tag | eq ::Box[1 2 3])
+    | proves :splitsAndJoinsEveryValue
+        |~~ A value split into its tag and its payload joins back into
+            itself, whatever its kind.
+        ~~|
+        ~([42 "hi" :foo true null /a #"a" ::Box [1 2] {:a 1} #[2 1] ~(add 1) |~~ A page. ~~| ::Box#5 ::A::B{} !{:k 1}]
+          | map ~(:value it | :t (tag) | payload | tag t | eq value) | every ~(it))
     | proves :laysThroughTheKind
         |~~ A tag of a kind of the core reads the payload as the kind. ~~|
         ~(5 | tag ::number | eq 5)
@@ -1805,27 +1781,58 @@
         ~(::Box#1 | payload | tag ::Crate | eq ::Crate#1)
     | proves :namesTheSiteOfAnErrorAtRest
         |~~ A tag over an error at rest names its site. ~~|
-        ~([::Late !{:by 3}] | tag | eq ::Late!{:by 3})
+        ~(!{:by 3} | tag ::Late | eq ::Late!{:by 3})
     | proves :raisesAnErrorAtRestAsItself
-        |~~ An error at rest split and tagged back raises as itself. ~~|
-        ~(1 | add "1" !| get [~(type) ~(payload)] | tag | raise
+        |~~ An error at rest split and joined back raises as itself. ~~|
+        ~(1 | add "1" !| :t (tag) | payload | tag t | raise
           !| type
           |  eq ::number/add/addend/KindNotTakenError)
     | proves :name/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the name is refused under the input. ~~|
         ~(5 | tag :box !| get [~(type) /actualType] | eq [::any/tag/name/KindNotTakenError ::keyword])
-    | proves :PairTagKindNotTakenError/refusesAKeyword
-        |~~ A keyword names a field and no kind. ~~|
-        ~([:foo 42] | tag !| get [~(type) /actualType /expected] | eq [::any/tag/PairTagKindNotTakenError ::keyword #[::tag]])
-    | proves :SubjectNotPairError/refusesANumber
-        |~~ A number is no pair. ~~|
-        ~(42 | tag !| get [~(type) /actualType] | eq [::any/tag/SubjectNotPairError ::number])
-    | proves :SubjectNotPairError/refusesAVectorOfThree
-        |~~ A vector of three is no pair. ~~|
-        ~([::Foo 1 2] | tag !| get [~(type) /actualType] | eq [::any/tag/SubjectNotPairError ::vec])
     | proves :ArgsBeyondInputsError/refusesTwoTags
         |~~ Two tags given to one call are refused under the verb. ~~|
         ~(5 | tag ::Box ::Crate !| type | eq ::any/tag/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
+:any/payload
+  |~~ Answers the value beneath the outermost tag of the subject, the other
+      side of `tag`, so a value splits and joins back into itself,
+      `:t (tag) | payload | tag t`: `::Box[42] | payload` answers `[42]`,
+      and a value under two tags opens one, `::A::B[1] | payload`
+      answering `::B[1]`. A value of a kind of the core answers what its
+      literal writes after the tag of its kind: a number, a string, a
+      vector and a map are their own, `1 | payload` answering `1`, and a
+      set, a quote and a doc answer the vector of their elements, of their
+      steps and of their segments, `#[2 1] | payload` answering `[1 2]`. A
+      value turned by `desc` opens to the value it turned, and an error at
+      rest to its facts. `within` edits the payload and puts the tag back.
+      ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
+  ~~|
+  ::fn
+    | returns |~~ The value beneath the outermost tag, of any kind. ~~| ::any
+    | proves :answersAVector
+        |~~ A box of a vector answers the vector. ~~|
+        ~(:Box |~~ A box. ~~| | ::Box[42] | payload | eq [42])
+    | proves :answersAString
+        |~~ A note of a string answers the string. ~~|
+        ~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
+    | proves :undoesTag
+        |~~ A value laid under a tag is its payload. ~~|
+        ~({:a 1} | tag ::Foo | payload | eq {:a 1})
+    | proves :opensOneTagOfTwo
+        |~~ A value under two tags opens one. ~~|
+        ~(::A::B[1] | payload | eq ::B[1])
+    | proves :answersTheVectorOfASet
+        |~~ A set's payload is its vector in its one order. ~~|
+        ~(#[2 1] | payload | eq [1 2])
+    | proves :answersAValueOfItsOwn
+        |~~ A number, a string, a vector and a map are their own payload.
+        ~~|
+        ~([1 "s" [1] {:a 1}] | map ~payload | eq [1 "s" [1] {:a 1}])
+    | proves :opensAnErrorAtRestToItsFacts
+        |~~ An error at rest opens to its facts. ~~|
+        ~(!{:k 1} | payload | eq {:k 1})
     | impl ::builtin{}
 
 :any/sumOf

@@ -140,7 +140,11 @@ behind: `node scripts/marks.mjs` answers the scope of a record or a
 section, and `node scripts/dossier.mjs <section>` the dossier of a section,
 its text, the records in transit over it, its cases, its test files, the
 code its tests reach through their imports and the blocks its marks cover. A
-citation written in backquotes is the example of a mark and names nothing.
+mark is read from the comments of a file by the parser of its language
+[QSREQ#rigor]: a citation written in backquotes is the example of a mark,
+and one in a string of the code, a message of a script or a text a test
+hands its code, names nothing, while a mark of the sister project stands
+wherever its files write it.
 An artifact that names nothing, a tracked `.mjs`, `.js`, `.peggy` or
 `.qlang` outside `docs/` that no path marks or a workflow, is an orphan,
 which `check:conventions` refuses and the desk counts; the files of a set of

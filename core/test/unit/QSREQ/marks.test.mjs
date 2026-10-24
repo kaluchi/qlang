@@ -69,6 +69,22 @@ it('marks a test file by the section its path names, its whole text, the rules a
   }
 });
 
+it('marks an artifact by the citations its comments hold, a citation in a string of its code naming nothing', () => {
+  const tree = mkdtempSync(join(tmpdir(), 'qlang-marks-'));
+  try {
+    const files = {
+      'core/src/hint.mjs': "// [QSNAM#scope]\nexport const hint = 'read [QSNAM#reach] for the rest';\n",
+      'cli/test/QSCLI/answer.test.mjs': "it('reads -h', () => expect('[D900]').toBeTruthy());\n"
+    };
+    for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(tree, path)), { recursive: true }); writeFileSync(join(tree, path), text); }
+    execFileSync('git', ['init', '-q'], { cwd: tree });
+    execFileSync('git', ['add', '.'], { cwd: tree });
+    expect(marksOfTree(tree).marks.map(({ path, name, line }) => `${path}:${line} ${name}`)).toEqual(['cli/test/QSCLI/answer.test.mjs:1 QSCLI#answer', 'core/src/hint.mjs:1 QSNAM#scope']);
+  } finally {
+    rmSync(tree, { recursive: true, force: true });
+  }
+});
+
 describe('the titles of the tests', () => {
   it('reads the title of a test from its string, its template and the call of a table, and none from a name', () => {
     const source = ["describe('a group', () => {", "  it('adds', () => {});", '  test(`adds ${1}`, () => {});',

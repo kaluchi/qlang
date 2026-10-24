@@ -43,9 +43,12 @@ const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-
 const EXAMPLE = /`[^`]*`/g;
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;
 
-function marksOfText(text, regex) {
+// What the comments of each line of an artifact say: a mark is a citation in
+// a comment, and a citation in a string of the code names nothing [QSREQ#marks].
+const commentsOfLines = (text, path) => linesOfComments(path, text).map(({ names }) => names);
+
+function marksOfLines(lines, regex) {
   const marks = [];
-  const lines = text.split(/\r?\n/);
   lines.forEach((line, index) => {
     for (const match of line.replace(EXAMPLE, '').matchAll(regex)) {
       for (const name of match[1].split(/,\s*/)) marks.push({ name: /^(D|E|QS)/.test(name) ? name : `D${name}`, line: index + 1 });
@@ -127,14 +130,14 @@ export function marksOfTree(root = repoRoot) {
       // text, and a comment in it the rules it cites [QSREQ#marks].
       const name = home.section ?? home.record;
       const text = readText(join(root, path));
-      const cited = marksOfText(text, MARK);
+      const cited = marksOfLines(commentsOfLines(text, path), MARK);
       marks.push({ path, name, line: 1 }, ...cited.map(mark => ({ path, ...mark })));
       blocks.set(path, [{ from: 1, to: Infinity, names: new Set([name]) }, ...(cited.length > 0 ? blocksOf(cited, text, path) : [])]);
       continue;
     }
     if (!isArtifact(path)) continue;
     const text = readText(join(root, path));
-    const found = marksOfText(text, MARK);
+    const found = marksOfLines(commentsOfLines(text, path), MARK);
     if (found.length === 0) orphans.push(path);
     marks.push(...found.map(mark => ({ path, ...mark })));
     if (found.length > 0) blocks.set(path, blocksOf(found, text, path));
@@ -266,7 +269,7 @@ export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } 
 
 function marksOfSister(dir) {
   return git(dir, 'ls-files').split('\n').filter(path => /\.(mjs|js|qlang|md)$/.test(path))
-    .flatMap(path => marksOfText(readText(join(dir, path)), SISTER_MARK).map(mark => ({ path, ...mark })));
+    .flatMap(path => marksOfLines(readText(join(dir, path)).split(/\r?\n/), SISTER_MARK).map(mark => ({ path, ...mark })));
 }
 
 const [command, argument] = process.argv.slice(2);

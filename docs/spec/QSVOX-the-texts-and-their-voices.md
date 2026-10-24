@@ -100,7 +100,7 @@ address under `::`; a term the language retired written there, in the name
 of a case or in the title of a test, naming the term to write and the record
 that retired it [QSLEX#term]; the words that tell when a text changed,
 legacy, deprecated, currently, previously and backward compatibility, and
-the markers TODO, FIXME and HACK, in the sources outside `docs/`, `vscode/`
+the words of unfinished work, TODO, FIXME and HACK, in the sources outside `docs/`, `vscode/`
 and the instructions; a month of the history in a text that states what
 holds; and a count in markdown prose that a command answers, which the
 command states. A section a record in transit overrides waits for its

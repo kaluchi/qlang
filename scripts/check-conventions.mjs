@@ -6,7 +6,7 @@
 //
 // Checks:
 //
-//   (1) Forbidden temporal framing / placeholder markers.
+//   (1) Forbidden temporal framing and the words of unfinished work.
 //       `TODO`, `FIXME`, `HACK`, `legacy`, `deprecated`,
 //       `currently`, `previously`, `for backward compatibility`,
 //       `backwards compat`, in the .mjs, .js, .md, .qlang, .peggy,
@@ -182,9 +182,9 @@ const RULESET_FILES = new Set([
 ]);
 
 const FORBIDDEN_REGEXES = [
-  { rule: 'TODO marker',                 regex: /\bTODO\b/ },
-  { rule: 'FIXME marker',                regex: /\bFIXME\b/ },
-  { rule: 'HACK marker',                 regex: /\bHACK\b/ },
+  { rule: 'unfinished work: "TODO"',     regex: /\bTODO\b/ },
+  { rule: 'unfinished work: "FIXME"',    regex: /\bFIXME\b/ },
+  { rule: 'unfinished work: "HACK"',     regex: /\bHACK\b/ },
   { rule: 'temporal: "legacy"',          regex: /\blegacy\b/i },
   { rule: 'temporal: "deprecated"',      regex: /\bdeprecated\b/i },
   { rule: 'temporal: "currently"',       regex: /\bcurrently\b/i },
@@ -683,10 +683,10 @@ function voiceOfFile(path) {
 }
 
 // The lines of a text, each split into what it holds and what it names;
-// a doc and a comment of the catalog run over lines, the longer marker
+// a doc and a comment of the catalog run over lines, the longer opener
 // read first, `|~~|` before `|~|` and `|~~` before `|~`, and a string of
 // its code, `"…"` with its escapes as the grammar reads it, holds what it
-// writes, a marker inside it among it.
+// writes, an opener inside it among it.
 function partsOfLines(voice, text) {
   const lines = text.split(/\r?\n/);
   if (voice === 'case') return lines.map(line => ({ holds: line, names: '' }));

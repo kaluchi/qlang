@@ -123,7 +123,7 @@ describe('the extension', () => {
     await extension.deactivate();
   }, 60_000);
 
-  it('keeps in the configuration of the language neither a regex of a word nor a marker of a fold, the core and the language server answering them', () => {
+  it('keeps in the configuration of the language neither a regex of a word nor the bounds of a fold, the core and the language server answering them', () => {
     const configuration = JSON.parse(readFileSync(new URL('../../language-configuration.json', import.meta.url), 'utf8'));
     expect([configuration.wordPattern, configuration.folding]).toEqual([undefined, undefined]);
   });

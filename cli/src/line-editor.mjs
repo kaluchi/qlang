@@ -381,7 +381,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     const accumulated = pasteAccumBuffer;
     pasteAccumBuffer  = '';
     pasteAccumTimer   = null;
-    insertPasteAtCursor(stripPasteMarkers(accumulated));
+    insertPasteAtCursor(stripPasteSequences(accumulated));
   }
 
   function startPasteAccumulator(chunkText) {
@@ -436,7 +436,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     redrawCurrentLine();
   }
 
-  function stripPasteMarkers(text) {
+  function stripPasteSequences(text) {
     return text.replaceAll(BRACKETED_PASTE_BEGIN, '').replaceAll(BRACKETED_PASTE_END, '');
   }
 

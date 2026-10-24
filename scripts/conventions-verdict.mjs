@@ -14,8 +14,8 @@ export function verdictOf(found) {
 const section = (title, found, lineOf, rule) => [`\n${title} (${found.length}):\n`, ...found.map(lineOf), `    ${rule}\n`].join('');
 
 const SECTIONS = {
-  forbidden: found => section('Forbidden framing / markers', found, v => `  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`,
-    'a text says what holds, not when it changed, and leaves no marker of work undone [QSVOX#pentimento].'),
+  forbidden: found => section('Words of a moment and of unfinished work', found, v => `  ${v.file}:${v.line}  [${v.rule}]  ${v.snippet}\n`,
+    'a text says what holds, not when it changed, and leaves no word of unfinished work [QSVOX#pentimento].'),
   refusalDeclarations: found => section('Refusals not declared by their address', found, v => `  ${v.file}:${v.line}  ${v.problem}\n`,
     'the address is the key the implementation and the page of the catalog share [QSERR#site].'),
   kindNames: found => section('Refusals that name a kind their address does not', found, v => `  ${v.file}:${v.line}  ${v.address} names ${v.kinds.map(kind => `::${kind}`).join(', ')}\n`,

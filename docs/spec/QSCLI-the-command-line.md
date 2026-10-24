@@ -200,8 +200,8 @@ cell before it never stored. Ctrl+C clears the cell, Ctrl+D closes the
 REPL on an empty cell and does nothing on another, and a character beyond
 the basic plane moves and is erased as one. A paste the terminal hands
 over in several chunks is gathered and lands at the cursor as one, its
-bracket markers taken out, its line breaks kept and the trailing ones
+start and end sequences taken out, its line breaks kept and the trailing ones
 dropped, waiting for a submit; a bracketed paste is read to its end
-marker. An Escape alone does nothing, an escape before `[` opens a
+sequence. An Escape alone does nothing, an escape before `[` opens a
 sequence however its chunks split it, and Alt with an arrow reads as the
 arrow.

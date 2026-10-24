@@ -59,9 +59,9 @@ cell.defect;              // what was raised past the fail track, else null
   marked by `readingState(primitive)`, which takes the state of its call
   after them, its `scope` the names the query reads; the
   constructor of a kind whose chain ends in `impl ::builtin{}` is handed
-  under the address of its node, `<label>/construct`, a function of the
-  payload that answers the value its tag is laid over or refuses the
-  payload. A source that declares a name the root holds is refused.
+  under the address of its label, `Box`, a function of the payload that
+  answers the value its tag is laid over or refuses the payload. A source
+  that declares a name the root holds is refused.
 - A primitive runs within the function or the kind it was handed with,
   on a subject the label it was handed under serves, and answers a value
   of the language, held to its kinds at any depth: an answer that is or

@@ -193,8 +193,8 @@ paste in both its spellings, ESC then CR and ESC then LF; Backspace and
 Delete erase the character before the cursor and the one under it, Left,
 Right, Home and End move the cursor, Ctrl+A and Ctrl+E as Home and End,
 and Up and Down move it between the rows of a cell of several lines,
-keeping across a shorter row the column it was asked for, and past the
-first row and the last walk the cells submitted before, each keeping the
+keeping across a shorter row the column it was asked for, and past the first row and the last move
+through the cells submitted before, each keeping the
 edits made in it until a submit, an empty cell and one that repeats the
 cell before it never stored. Ctrl+C clears the cell, Ctrl+D closes the
 REPL on an empty cell and does nothing on another, and a character beyond

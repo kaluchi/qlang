@@ -7,7 +7,7 @@ import { rootState } from '../../../src/state.mjs';
 import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { tokenize } from '../../../src/highlight.mjs';
 import { parseSource } from '../../../src/parse.mjs';
-import { partOf, keepParts } from '../../../src/walk.mjs';
+import { partOf, keepParts } from '../../../src/parsed-parts.mjs';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
 import { refusalOf, rootOf, kindOf } from '../../helpers/read-text.mjs';
@@ -109,7 +109,7 @@ describe('a throw of the parser that is no refusal, and the depth of a nest', ()
     for (let depth = read - 8; depth <= read + 8; depth++) expect(thrownBy(nestOf(depth, 1)), String(depth)).not.toBeInstanceOf(TypeError);
   });
 
-  it('reads a nest of literals 2300 and 2500 deep, the parts of a literal walked by a stack of their own', () => {
+  it('reads a nest of literals 2300 and 2500 deep, the parts of a literal read by a stack of their own', () => {
     for (const depth of [2300, 2500]) expect(parseSource(nestOf(depth)), String(depth)).toHaveLength(1);
   });
 });
@@ -185,7 +185,7 @@ describe('assembling steps by hand', () => {
     }
   });
 
-  it('holds a literal assembled from data to the rules of a step at any depth, its parts walked by a stack of their own', async () => {
+  it('holds a literal assembled from data to the rules of a step at any depth, its parts read by a stack of their own', async () => {
     expect(await evalQuery('6000 | range | reduce [] ~(get [/0]) | get [~(it)] | tag ::quote | count')).toBe(1);
   });
 

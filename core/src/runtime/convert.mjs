@@ -8,7 +8,7 @@ import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
 import { parseSource } from '../parse.mjs';
-import { partOf } from '../walk.mjs';
+import { partOf } from '../parsed-parts.mjs';
 
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
 registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);

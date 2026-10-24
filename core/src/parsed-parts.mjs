@@ -15,7 +15,7 @@ const keep = (value, read) => {
 };
 
 export function keepParts(root) {
-  walkParts(root, (read, parent) => {
+  forEachPart(root, (read, parent) => {
     read.parent = parent;
     keep(read.value, read);
     if (isGroupStep(read.value) || isFailStep(read.value)) keep(read.value.payload, read);
@@ -28,16 +28,16 @@ export const partOf = value => PARTS.get(value);
 // [QSHST#source]
 export const originOf = quote => partOf(quote)?.span.source ?? 'quote';
 
-export function walkParts(read, visit, parent = null) {
+export function forEachPart(read, visit, parent = null) {
   if (visit(read, parent) === false) return;
-  for (const held of read.parts) walkParts(held, visit, read);
+  for (const held of read.parts) forEachPart(held, visit, read);
 }
 
 const holds = (span, offset) => span.start.offset <= offset && offset < span.end.offset;
 
 export function partAtOffset(root, offset) {
   let narrowest = null;
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     if (holds(read.span, offset)) narrowest = read;
   });
   return narrowest;
@@ -54,7 +54,7 @@ export const tagHeadEnd = read => read.head?.end.offset ?? null;
 // [QSNAM#address]
 export function findNameOccurrences(root, name, spelling = CALL_SPELLING) {
   const occurrences = [];
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     const { value } = read;
     if (spelling === TAG_SPELLING) {
       if (tagWrittenBy(read) === name || (isTag(value) && value.name === name) || (isBindStep(value) && declaresKind(value) && value.get('name').name === name)) occurrences.push(read);
@@ -80,7 +80,7 @@ export function visibleAt(declaration, offset) {
 // [QSSLF#catalog], [QSNAM#address], [QSNAM#verb], [QSLSP#server]
 export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, declaresAVerb = () => false) {
   const declarations = [];
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     if (isBindStep(read.value)) declarations.push(read);
   });
   const body = declarations.findLast(read => holds(read.parts.at(-1).span, offset) && declaresAVerb(read))?.parts.at(-1);

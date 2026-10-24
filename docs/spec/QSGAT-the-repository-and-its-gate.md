@@ -21,7 +21,7 @@ language, `core/lib/qlang.qlang`, as `#qlang`, through the `imports` of its
 the sibling's version, which `check:conventions` holds.
 
 The core exports its root, `core/src/index.mjs`, beside `./errors`,
-`./highlight`, the light door that loads the parser and its walks and no
+`./highlight`, the light door that loads the parser and the parts it keeps and no
 runtime, and the sources of its catalog, each function of the package at one
 door. The root re-exports by name from a module of the core what a workspace
 beside it reads from the package or the page of the package,
@@ -35,7 +35,7 @@ The modules of `core/src` import in the order of the concepts, from the
 bottom: the letters of a name, the address, the keys of the scope and the
 declaration of a refusal; the values and their one order; the records of the
 steps and the rules their constructors hold, which register nothing and
-import no parser; the parser and the walks of its tree; the reading of a
+import no parser; the parser and the parts it keeps; the reading of a
 path and the nearness of two names; the printer of the core's forms; the
 parts of a doc; the state of a query, the table of primitives, the
 resolution of names and the chain; the walk of a value's tags and the run of

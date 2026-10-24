@@ -5,7 +5,7 @@
 // catalog bears the name of a command.
 
 import { parseSource } from '../core/src/parse.mjs';
-import { partOf } from '../core/src/walk.mjs';
+import { partOf } from '../core/src/parsed-parts.mjs';
 import { isBindStep, declaresKind } from '../core/src/steps.mjs';
 import { COMMAND_NAMES } from '../core/src/chain.mjs';
 

@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { parseSource } from '../../../src/parse.mjs';
-import { readsItsSubject } from '../../../src/walk.mjs';
+import { readsItsSubject } from '../../../src/parsed-parts.mjs';
 const readsOf = query => readsItsSubject(parseSource(query));
 
 it('a literal of no parts reads no subject, a path among them', () => {

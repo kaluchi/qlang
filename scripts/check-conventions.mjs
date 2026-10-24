@@ -200,7 +200,7 @@ const FORBIDDEN_REGEXES = [
 const SOURCE_FILE = /\.(mjs|js|md|qlang)$/;
 const TEXT_FILE = /\.(mjs|js|md|qlang|peggy|astro|yml)$/;
 
-function* walkSourceTree(rootDir, sourceFile = SOURCE_FILE) {
+function* sourceFilesUnder(rootDir, sourceFile = SOURCE_FILE) {
   for (const entry of readdirSync(rootDir)) {
     const entryPath = join(rootDir, entry);
     const entryStat = statSync(entryPath);
@@ -211,7 +211,7 @@ function* walkSourceTree(rootDir, sourceFile = SOURCE_FILE) {
       // A directory with a `.git` of its own is another checkout, such
       // as the worktree an editor or an agent keeps inside the tree.
       if (existsSync(join(entryPath, '.git'))) continue;
-      yield* walkSourceTree(entryPath, sourceFile);
+      yield* sourceFilesUnder(entryPath, sourceFile);
       continue;
     }
     if (!sourceFile.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
@@ -221,7 +221,7 @@ function* walkSourceTree(rootDir, sourceFile = SOURCE_FILE) {
 
 function scanForbiddenWords() {
   const violations = [];
-  for (const filePath of walkSourceTree(repoRoot, TEXT_FILE)) {
+  for (const filePath of sourceFilesUnder(repoRoot, TEXT_FILE)) {
     const text = readText(filePath);
     const lines = text.split(/\r?\n/);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
@@ -281,13 +281,13 @@ const REFUSAL_SCAN_ROOTS = [
   ['lsp',  'src']
 ];
 
-function* walkRefusalScanRoots() {
+function* refusalScanFiles() {
   for (const segments of REFUSAL_SCAN_ROOTS) {
     const root = join(repoRoot, ...segments);
     let st;
     try { st = statSync(root); } catch { continue; }
     if (!st.isDirectory()) continue;
-    yield* walkSourceTree(root);
+    yield* sourceFilesUnder(root);
   }
 }
 
@@ -301,7 +301,7 @@ let declarationsRead;
 function refusalDeclarations() {
   if (declarationsRead !== undefined) return declarationsRead;
   declarationsRead = { declarations: [], classes: [] };
-  for (const filePath of walkRefusalScanRoots()) {
+  for (const filePath of refusalScanFiles()) {
     if (!/\.m?js$/.test(filePath)) continue;
     const text = readText(filePath);
     const file = relative(repoRoot, filePath).split(sep).join('/');
@@ -388,7 +388,7 @@ const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')}
 
 function scanProseTallies() {
   const violations = [];
-  for (const filePath of walkSourceTree(repoRoot)) {
+  for (const filePath of sourceFilesUnder(repoRoot)) {
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
     if (!relFile.endsWith('.md') || OUTSIDE_REPORT.test(relFile)) continue;
 

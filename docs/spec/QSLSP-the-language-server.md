@@ -8,7 +8,7 @@ how the extension of the editor shows a source of qlang. The tests of
 ## server
 
 The language server runs over stdio and reads the language from the core:
-the walks of the parts, the kinds of a value, the tokens of `tokenize`,
+the parts the parser keeps, the kinds of a value, the tokens of `tokenize`,
 the pages by `doc | content`, and the grammar, which reads the steps before
 the cursor, a step the server writes at the cursor and drops before the
 steps run, and what stands as whitespace there, a comment among it; the

@@ -115,8 +115,7 @@ of its own, `lsp/test/`, `site/test/` and `vscode/test/`, or, where no
 chapter states the rule, the record in force of a domain its tests hold,
 `core/test/unit/D404.test.mjs`. A section holds one test file in each
 folder, and a part that cannot run beside the rest, a module of Node it
-mocks, a table it meets before the bootstrap seals it or a share of a walk
-one worker runs too long, runs in a file of its own,
+mocks, a table it meets before the bootstrap seals it or a share of a run too long for one worker, runs in a file of its own,
 `<section>.<part>.test.mjs`; a section a record in transit brings is one a
 test file stands at [QSVOX#chapter].
 
@@ -161,8 +160,8 @@ fail; a clause is cut in a copy its own runner alone writes, and a cut is
 read by the name of the test that failed. A change to how a text is read is
 run against the previous version over generated texts, each divergence
 explained, and a form a script rewrites is read against the parse the old
-grammar gave, each part whose role the rewrite changes found by walking the
-old parse and set by hand. A change to the scope a quote runs in or to the
+grammar gave, each part whose role the rewrite changes found by reading the old parse part
+by part and set by hand. A change to the scope a quote runs in or to the
 reach of a bare name comes with tests of shadowing by a reader's verb and by
 a later source's, and a design of scope is checked by a second model on
 counterexamples before its record is written, and again when a review moves

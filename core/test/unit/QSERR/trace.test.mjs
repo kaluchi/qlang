@@ -115,7 +115,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await evalQuery('get [~(f)] !| type', scope)).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
 
-  it('a trace a host stamps `::trace` over by hand is walked to its frames, an element that is no frame refused at its index', async () => {
+  it('a trace a host stamps `::trace` over by hand is read to its frames, an element that is no frame refused at its index', async () => {
     const trace = [makeFrame(0, parseSource('pre')), [1, parseSource('post')]];
     stampTagHeader(trace, makeTag('trace'));
     expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);

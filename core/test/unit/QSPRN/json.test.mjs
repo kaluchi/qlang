@@ -21,7 +21,7 @@ describe('a number of JSON past the doubles', () => {
     expect(thrown.facts.path).toBeUndefined();
   });
 
-  it('names the path it walked to when the magnitude sits nested', async () => {
+  it('names the path it read to when the magnitude sits nested', async () => {
     const { StringParseJsonNumberNotFiniteError } = await import('../../../src/runtime/json.mjs');
     let thrown = null;
     try { fromPlain(JSON.parse('{"a": {"b": [1, 1e400]}}')); } catch (caught) { thrown = caught; }

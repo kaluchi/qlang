@@ -5,9 +5,9 @@ export { langRuntime } from './runtime/lang-runtime.mjs';
 export { LANGUAGE_SOURCES } from './runtime/bootstrap.mjs';
 export { createNotebook, evalQuery } from './notebook.mjs';
 export {
-  partOf, walkParts, partAtOffset, findNameOccurrences, tagWrittenBy, tagHeadEnd, readsItsSubject,
+  partOf, forEachPart, partAtOffset, findNameOccurrences, tagWrittenBy, tagHeadEnd, readsItsSubject,
   bindingNamesVisibleAt, CALL_SPELLING, TAG_SPELLING
-} from './walk.mjs';
+} from './parsed-parts.mjs';
 export { isCallStep, isBindStep, isGroupStep, isFailStep, holdsALiteral, declaresKind } from './steps.mjs';
 export { isVerbBody } from './chain.mjs';
 export { splitAddress } from './address.mjs';

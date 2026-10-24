@@ -1,7 +1,7 @@
 // [QSQUO#step]
 
 import { parseSource } from '../../src/parse.mjs';
-import { partOf } from '../../src/walk.mjs';
+import { partOf } from '../../src/parsed-parts.mjs';
 import { isBindStep, isCallStep, isConstructStep } from '../../src/steps.mjs';
 import { isPath } from '../../src/types.mjs';
 

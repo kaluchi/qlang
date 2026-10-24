@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createNotebook } from '../../../src/notebook.mjs';
 import { scopeSet, scopeHas } from '../../../src/state.mjs';
 import { parseSource } from '../../../src/parse.mjs';
-import { walkParts, visibleAt, repeatsDeclarationAt } from '../../../src/walk.mjs';
+import { forEachPart, visibleAt, repeatsDeclarationAt } from '../../../src/parsed-parts.mjs';
 import { isBindStep } from '../../../src/steps.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
@@ -36,7 +36,7 @@ it('a declaration writes a new scope and leaves the one before it as it was', ()
 describe('where a declaration is visible', () => {
   const declarationIn = source => {
     let found = null;
-    walkParts(rootOf(source), read => { if (isBindStep(read.value) && found === null) found = read; });
+    forEachPart(rootOf(source), read => { if (isBindStep(read.value) && found === null) found = read; });
     return found;
   };
 

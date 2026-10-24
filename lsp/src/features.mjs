@@ -15,7 +15,7 @@ import {
   splitAddress,
   CALL_SPELLING,
   TAG_SPELLING,
-  walkParts,
+  forEachPart,
   isNameStart,
   isNameContinue,
   isKeyword,
@@ -100,7 +100,7 @@ export function parseDocument(source, uri) {
 export function buildCatalogIndex(catalogRoot) {
   const index = new Map();
   if (!catalogRoot) return index;
-  walkParts(catalogRoot, (read) => {
+  forEachPart(catalogRoot, (read) => {
     if (kindOf(read.value) === 'doc') return false;
     if (isBindStep(read.value)) index.set(read.value.get('name').name, spanOf(read));
   });
@@ -385,14 +385,14 @@ export function documentSymbols(root, scope) {
   if (!root) return [];
 
   const labels = new Set();
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     if (kindOf(read.value) === 'doc') return false;
     if (declaredNameOf(read)?.spelling === TAG_SPELLING) labels.add(read.value.get('name').name);
   });
   const isLabelName = name => labels.has(name) || isLabel(scope, name);
 
   const symbols = [];
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     if (kindOf(read.value) === 'doc') return false;
     const declared = declaredNameOf(read);
     if (declared === null) return;
@@ -412,7 +412,7 @@ const lastLineOf = read => (read.text ?? read.span).end.line - 1;
 export function foldingRangesOf(root) {
   if (!root) return [];
   const ranges = [];
-  walkParts(root, (read) => {
+  forEachPart(root, (read) => {
     if (!folds(read)) return;
     const startLine = read.span.start.line - 1;
     const endLine = kindOf(read.value) === 'doc' ? lastLineOf(read) : read.parts.length === 0 ? startLine : lastLineOf(read.parts.at(-1));
@@ -450,7 +450,7 @@ function callAround(root, source, offset) {
     if (isCallStep(read.value) && read.parts.length > 0) return read;
   }
   let followed = null;
-  walkParts(root, (candidate) => {
+  forEachPart(root, (candidate) => {
     const end = candidate.span.end.offset;
     if (isCallStep(candidate.value) && end < offset && (followed === null || end >= followed.span.end.offset)) followed = candidate;
   });

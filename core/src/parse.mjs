@@ -4,7 +4,7 @@ import {
   parse as peggyParse,
   SyntaxError as PeggySyntaxError
 } from '../gen/grammar.mjs';
-import { keepParts } from './walk.mjs';
+import { keepParts } from './parsed-parts.mjs';
 
 
 // [QSSYN#refusal]

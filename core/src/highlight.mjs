@@ -1,7 +1,7 @@
 // [QSHST#tokens]
 
 import { closersCompleting, parseSource, SourceParseError } from './parse.mjs';
-import { partOf, walkParts, tagHeadEnd } from './walk.mjs';
+import { partOf, forEachPart, tagHeadEnd } from './parsed-parts.mjs';
 import { isCallStep, isBindStep, isGroupStep, errorFieldsOf } from './steps.mjs';
 import { formOf } from './types.mjs';
 
@@ -40,7 +40,7 @@ function spansOf(source, root, verbNames) {
     if (end > start) spans.push({ start, end, kind });
   };
   for (const { location } of root.comments) paint(location.start.offset, location.end.offset, 'comment');
-  walkParts(root, read => paintPart(read, source, verbNames, paint, spans));
+  forEachPart(root, read => paintPart(read, source, verbNames, paint, spans));
   spans.sort((left, right) => left.start - right.start);
   const kept = [];
   let cursor = 0;

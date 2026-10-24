@@ -96,32 +96,32 @@ const NOTHING_HANDED = new Set();
 
 export function foreignPartOf(value, handed = NOTHING_HANDED) {
   const opened = new Set();
-  const walked = new Set();
-  const walks = [];
+  const scanned = new Set();
+  const scans = [];
   let part = value;
   for (;;) {
-    const read = readAtTheDoor(part, handed, opened, walked);
-    if (typeof read === 'string') return { path: walks.map(({ segment }) => segment), account: read };
+    const read = readAtTheDoor(part, handed, opened, scanned);
+    if (typeof read === 'string') return { path: scans.map(({ segment }) => segment), account: read };
     if (read !== null) {
       opened.add(read);
-      walks.push({ container: read, parts: (isVec(read) ? Array.prototype.entries : Map.prototype.entries).call(read), segment: null });
+      scans.push({ container: read, parts: (isVec(read) ? Array.prototype.entries : Map.prototype.entries).call(read), segment: null });
     }
     let next;
-    while (walks.length > 0 && (next = walks[walks.length - 1].parts.next()).done) walked.add(walks.pop().container);
-    if (walks.length === 0) return null;
-    const top = walks[walks.length - 1];
+    while (scans.length > 0 && (next = scans[scans.length - 1].parts.next()).done) scanned.add(scans.pop().container);
+    if (scans.length === 0) return null;
+    const top = scans[scans.length - 1];
     [top.segment, part] = next.value;
-    if (isVec(top.container) && !(top.segment in top.container)) return { path: walks.map(({ segment }) => segment), account: 'a hole of a vector' };
+    if (isVec(top.container) && !(top.segment in top.container)) return { path: scans.map(({ segment }) => segment), account: 'a hole of a vector' };
   }
 }
 
-function readAtTheDoor(value, handed, opened, walked) {
+function readAtTheDoor(value, handed, opened, scanned) {
   let part = value;
   for (;;) {
     if (handed.has(part)) return null;
     if (part === null || part === undefined || typeof part === 'boolean' || typeof part === 'string' || Number.isFinite(part)) return null;
     if (typeof part !== 'object') return accountOfForeign(part);
-    if (walked.has(part) || isKeyword(part) || isTag(part) || isRegex(part) || isPath(part)) return null;
+    if (scanned.has(part) || isKeyword(part) || isTag(part) || isRegex(part) || isPath(part)) return null;
     if (!isErrorValue(part) && !isValueClass(part, 'underTag')) return containerAtTheDoor(part, opened);
     if (!isTag(part.tag)) return `${isErrorValue(part) ? 'an error' : 'a value'} whose tag ${accountOfForeign(part.tag)} is no tag`;
     if (isErrorValue(part) && !isMap(part.facts)) return `an error whose facts ${accountOfForeign(part.facts)} are no map`;

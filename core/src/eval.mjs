@@ -16,7 +16,7 @@ import {
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
-import { originOf, repeatsDeclarationAt } from './walk.mjs';
+import { originOf, repeatsDeclarationAt } from './parsed-parts.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
   commandStep, groupStep

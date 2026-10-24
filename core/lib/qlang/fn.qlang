@@ -51,11 +51,11 @@
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain
-            takes, written with the objects the page of its verb names in
+            takes, written with the modifiers the page of its verb names in
             their order, `::fn/takes | doc` those of `takes`, whether the
             verb wrote it or the literal: `:command` holds the command as
-            written, `:index` the index of the object refused, from zero,
-            or of the first left out, and `:actualValue` the object.
+            written, `:index` the index of the modifier refused, from zero,
+            or of the first left out, and `:actualValue` the modifier.
             ::link~(::fn/on | doc) ::link~(::fn/takes | doc)
             ::link~(::fn/returns | doc) ::link~(::fn/throws | doc)
             ::link~(::fn/carries | doc) ::link~(::fn/holds | doc)
@@ -164,7 +164,7 @@
         ~~|
         ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(type) /command /index /actualValue] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
     | proves :CommandNotTakenError/countsTheObjectsAsTheLiteralDoes
-        |~~ A command its verb writes with an object left out or past the
+        |~~ A command its verb writes with a modifier left out or past the
             last is refused as the literal's is.
         ~~|
         ~(get [~(::fn | takes :by |~~ x ~~| !| get /index) ~(::fn[~(takes :by |~~ x ~~|) null] !| get /index) ~(::fn | takes :by |~~ x ~~| /0 ::number 5 !| get /index)] | eq [2 2 4])
@@ -290,8 +290,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the page of the subject, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the page of the subject, a
             doc, and the kinds it serves, a tag or a set of one tag or more, any
             value where none is written.
         ~~|
@@ -332,8 +332,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the input, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the input, a
             keyword its recipe reads as a step, of one segment, neither `answer`
             nor `subject`, which the chain lays itself, nor a word of a literal;
             its page, a doc; its selector over the args, a path or a quote;
@@ -463,8 +463,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the page of the answer, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the page of the answer, a
             doc, and its kinds, a tag or a set of one tag or more.
         ~~|
         ~(it)
@@ -509,8 +509,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the refusal, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal, a
             keyword read as a tag, under the subject, an input or the answer
             where it is written with a path, and its page, a doc.
         ~~|
@@ -556,8 +556,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the refusal of
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal of
             a value that breaks it, a keyword read as a tag, written with a path
             under the subject, an input or the answer, `:by/TooBigError`; its
             page, a doc; and the condition the value answers true to, a quote.
@@ -604,8 +604,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the law, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the law, a
             keyword read as a tag, under a name declared before it where it is
             written with a path; its page, the claim it proves, a doc; and the
             query that proves the claim, answering `true`, a quote.
@@ -650,8 +650,8 @@
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
         ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the fact, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the fact, a
             keyword read as a tag, written with a path under a name declared
             before it, the refusal that carries it; its page, a doc; and its
             kinds, a tag or a set of one tag or more, any value where none is

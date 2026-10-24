@@ -35,9 +35,9 @@ const kindFrom = subject => (isKind(subject) ? subject : NO_KIND);
 
 // [QSBLD#kind]
 for (const command of KIND_COMMAND_NAMES) {
-  registerPrimitive(`kind/${command}`, (subject, objects) => {
+  registerPrimitive(`kind/${command}`, (subject, modifiers) => {
     const kind = kindFrom(subject);
-    return madeKind(makeQuote([...commandsOf(kind), commandStep(command, [...objects])]), constructorOf(kind));
+    return madeKind(makeQuote([...commandsOf(kind), commandStep(command, [...modifiers])]), constructorOf(kind));
   });
 }
 

@@ -100,4 +100,5 @@ export const RETIRED_WORDS = [
   { regex: /\bcreateSession\b/, written: 'the notebook of a host, `createNotebook`', by: 'D431' },
   { regex: /\b[mM]arkers?\b|(?<=[a-z])Markers?\b/, written: 'the opener or the closer of a comment or a doc, the start or the end sequence of a paste, the bounds of a fold, the words of unfinished work, and an elision of a view, `::elision`', by: 'D433' },
   { regex: /\bwalk\.mjs\b|\bwalkParts\b|\bwalkSourceTree\b|\bwalkRefusalScanRoots\b|\bwalks?[\s-]+of[\s-]+the[\s-]+door\b/, written: 'the parts the parser keeps, `core/src/parsed-parts.mjs` and `forEachPart`, the scan of the door, and the files a script lists, `sourceFilesUnder` and `refusalScanFiles`, walk naming the walk of the tags of a value alone', by: 'D436' },
+  { regex: /::(?:fn|kind)\/[a-z]+\/objects\b|\bobjectNotTaken\b/, written: 'what a command of a chain takes, its modifiers as written, the input `modifiers` of its verb, `modifierNotTaken`', by: 'D440' },
 ];

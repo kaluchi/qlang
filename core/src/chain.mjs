@@ -60,14 +60,14 @@ export function isVerbBody(body) {
   return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
 }
 
-function objectNotTaken(step, commands) {
+function modifierNotTaken(step, commands) {
   if (!isCallStep(step) || !commands.has(step.get('name').name)) return {};
   const { taken, optional } = commands.get(step.get('name').name);
-  const objects = step.get('modifiers') ?? [];
+  const modifiers = step.get('modifiers') ?? [];
   const rules = [...taken, ...optional];
-  const index = rules.findIndex((rule, at) => (at < objects.length ? !rule(objects[at]) : at < taken.length));
-  if (index !== -1) return { index, actualValue: objects[index] };
-  return objects.length > rules.length ? { index: rules.length, actualValue: objects[rules.length] } : null;
+  const index = rules.findIndex((rule, at) => (at < modifiers.length ? !rule(modifiers[at]) : at < taken.length));
+  if (index !== -1) return { index, actualValue: modifiers[index] };
+  return modifiers.length > rules.length ? { index: rules.length, actualValue: modifiers[rules.length] } : null;
 }
 
 function kindsOf(value) {
@@ -102,7 +102,7 @@ function readChainOfFn(quote) {
     if (head !== ANSWER_NAME && head !== SUBJECT_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: makeKeyword(name), actualValue: quote });
   };
   for (const step of quote) {
-    const refused = objectNotTaken(step, COMMANDS);
+    const refused = modifierNotTaken(step, COMMANDS);
     if (refused !== null) throw new FnCommandNotTakenError({ command: makeQuote([step]), ...refused });
     const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {
@@ -160,7 +160,7 @@ function readChainOfKind(quote) {
     return head;
   };
   for (const step of quote) {
-    const refused = objectNotTaken(step, KIND_COMMANDS);
+    const refused = modifierNotTaken(step, KIND_COMMANDS);
     if (refused !== null) throw new KindCommandNotTakenError({ command: makeQuote([step]), ...refused });
     const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {

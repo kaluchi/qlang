@@ -18,7 +18,7 @@ const treeOf = files => {
 };
 const overriding = (...overrides) => citableOf(treeOf({
   'docs/spec/QSAAA-a.md': '# QSAAA · A\n\nThe head.\n\n## one\n\nA rule.\n',
-  'docs/journal/D1.md': ['# D1 · A record', '', 'Domain. Process.', ...overrides.map(line => `Overrides ${line}`), ''].join('\n'),
+  'docs/journal/D1.md': ['# D1 · A record', '', 'Domain. Process.', ...(overrides.length === 0 ? [] : [`Overrides ${overrides.map(cited => `[${cited}]`).join(', ')}`]), ''].join('\n'),
 }));
 
 it('cites a chapter and a section the specification holds, and none it lacks', () => {
@@ -28,16 +28,16 @@ it('cites a chapter and a section the specification holds, and none it lacks', (
 });
 
 it('cites a section a record in transit brings into a chapter the specification holds, and no other the chapter lacks', () => {
-  const citable = overriding('[QSAAA#two]');
+  const citable = overriding('QSAAA#two');
   expect([citable('QSAAA', 'two'), citable('QSAAA', 'three')]).toEqual([true, false]);
 });
 
 it('cites a chapter a record in transit brings whole, and any section of it', () => {
-  const citable = overriding('[QSAAA#one], [QSBBB]');
+  const citable = overriding('QSAAA#one', 'QSBBB');
   expect([citable('QSBBB'), citable('QSBBB', 'any')]).toEqual([true, true]);
 });
 
 it('cites no section a chapter lacks where a record in transit overrides that chapter whole', () => {
-  const citable = overriding('[QSAAA]');
+  const citable = overriding('QSAAA');
   expect([citable('QSAAA', 'one'), citable('QSAAA', 'two')]).toEqual([true, false]);
 });

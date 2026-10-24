@@ -15,7 +15,7 @@ const treeOf = (...overrides) => {
     'core/src/kept.mjs': 'export const kept = 1;\n',
     'CLAUDE.md': 'Start at `core/src/kept.mjs`.\n',
     'docs/spec/QSAAA-a.md': chapter,
-    'docs/journal/D1.md': ['# D1 · A record', '', 'Domain. Process.', ...overrides.map(line => `Overrides ${line}`), ''].join('\n'),
+    'docs/journal/D1.md': ['# D1 · A record', '', 'Domain. Process.', ...(overrides.length === 0 ? [] : [`Overrides ${overrides.map(cited => `[${cited}]`).join(', ')}`]), ''].join('\n'),
   };
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
@@ -33,12 +33,12 @@ it('holds a path a chapter names to a file the tree holds, and a quote beside it
 });
 
 it('leaves a section a record in transit overrides to its closeout, and the sections beside it held', () => {
-  expect(broken('[QSAAA#one]')).toEqual([['docs/spec/QSAAA-a.md', 'core/src/kept.mjs', 'quotes “a word”']]);
+  expect(broken('QSAAA#one')).toEqual([['docs/spec/QSAAA-a.md', 'core/src/kept.mjs', 'quotes “a word”']]);
 });
 
 it('leaves a chapter a record in transit overrides whole to its closeout, and holds the seed', () => {
-  expect(broken('[QSAAA]')).toEqual([]);
-  const root = treeOf('[QSAAA]');
+  expect(broken('QSAAA')).toEqual([]);
+  const root = treeOf('QSAAA');
   writeFileSync(join(root, 'CLAUDE.md'), 'Start at `core/src/gone.mjs`.\n');
   expect(anchorsTheTreeLacks(root, join(tmpdir(), 'qlang-no-sister')).map(({ file, anchor }) => [file, anchor])).toEqual([['CLAUDE.md', 'core/src/gone.mjs']]);
 });

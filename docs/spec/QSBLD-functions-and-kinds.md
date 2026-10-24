@@ -22,11 +22,11 @@ or the answer, a quote under `::invariant`, `proves` a law, a quote under
 the function of no commands `::fn[~() ~(add 1)]`; a command written after
 `impl` joins the others and the recipe stays. The chain is the one
 reading of what each command takes: the verb of a command hands it its
-objects whole, as written, and a step of the chain written with objects
-its rules do not take is refused as `::fn/CommandNotTakenError` whether
-its verb wrote it or the literal, `:command` the command, `:index` the
-index of the object refused, from zero, or of the first left out, and
-`:actualValue` that object: each name is written with its page, a doc,
+modifiers whole, as written, its input `modifiers`, and a step of the chain
+written with modifiers its rules do not take is refused as
+`::fn/CommandNotTakenError` whether its verb wrote it or the literal,
+`:command` the command, `:index` the index of the modifier refused, from
+zero, or of the first left out, and `:actualValue` that modifier: each name is written with its page, a doc,
 the name of an input of one segment, neither `answer` nor `subject`,
 which the chain lays itself, nor a word of a literal, a selector is a path
 or a quote, and kinds are a tag or a set of one tag or more, or for an
@@ -224,7 +224,7 @@ holds. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
 named as a refusal the runtime raises by rule under its field among
 them, the refusal of the kinds and of a field left out, and a step of
-the chain written with objects its rules do not take is refused as
+the chain written with modifiers its rules do not take is refused as
 `::kind/CommandNotTakenError` on either road with the facts of
 `::fn/CommandNotTakenError`, the name of a field and of a page of one
 segment, neither `payload` nor a word of a literal; a

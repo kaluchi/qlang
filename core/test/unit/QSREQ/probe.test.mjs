@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { anchorsTheTreeLacks } from '../../../../scripts/anchors.mjs';
+import { recordsOverAProbe } from '../../../../scripts/probes-in-transit.mjs';
 
 const roots = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -47,4 +48,20 @@ it('leaves a chapter a record in transit overrides whole to its closeout, and ho
   const root = treeOf('QSAAA');
   writeFileSync(join(root, 'CLAUDE.md'), 'Start at `core/src/gone.mjs`.\n');
   expect(anchorsTheTreeLacks(root, join(tmpdir(), 'qlang-no-sister')).map(({ file, anchor }) => [file, anchor])).toEqual([['CLAUDE.md', 'core/src/gone.mjs']]);
+});
+
+it('holds a changed probe of a chapter a record in transit overrides whole for its closeout, and one of a section by a probe of its query', () => {
+  const transit = new Map([['D1', ['QSAAA']], ['D2', ['QSBBB#one']], ['D3', ['QSBBB#two']]]);
+  const holdsTheQuery = (name, query) => name === 'D2' && query === 'held';
+  expect([
+    recordsOverAProbe(transit, 'QSAAA', { section: 'one', query: 'asked' }, holdsTheQuery),
+    recordsOverAProbe(transit, 'QSBBB', { section: 'one', query: 'held' }, holdsTheQuery),
+    recordsOverAProbe(transit, 'QSBBB', { section: 'one', query: 'asked' }, holdsTheQuery),
+    recordsOverAProbe(transit, 'QSCCC', { section: 'one', query: 'asked' }, holdsTheQuery)
+  ]).toEqual([
+    { over: ['D1'], holding: undefined, whole: 'D1' },
+    { over: ['D2'], holding: 'D2', whole: undefined },
+    { over: ['D2'], holding: undefined, whole: undefined },
+    { over: [], holding: undefined, whole: undefined }
+  ]);
 });

@@ -23,7 +23,7 @@
 {"name":"code-after-the-alternative-that-answers-stays-unrun","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
 {"name":"the-alternatives-after-a-later-one-that-answers-stay-unrun","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
 {"name":"coalesce-runs-the-quote-after-a-path-that-misses","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
-{"decision":"D442","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","expect":"::any/coalesce/alternatives/EmptyError!{\n  :actualTag ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trace ::trace[::frame[{} ~(coalesce)]]\n} | raise"}
+{"decision":"D442","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","raises":"::any/coalesce/alternatives/EmptyError!{\n  :actualTag ::any/coalesce\n  :actualValue ::any/coalesce[]\n  :trace ::trace[::frame[{} ~(coalesce)]]\n}"}
 {"name":"coalesce-reads-a-path-of-several-segments-as-an-alternative","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"name":"coalesce-answers-the-first-alternative-where-none-is-null","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
 {"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}

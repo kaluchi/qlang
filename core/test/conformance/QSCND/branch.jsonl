@@ -40,8 +40,8 @@
 {"name":"cond-answers-the-first-branch-where-several-predicates-hold","query":"95 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"A\""}
 {"name":"cond-only-evaluates-matching-branch","query":"5 | cond ~(eq 5) ~(\"safe\") ~(\"never\" | div 0)","expect":"\"safe\""}
 {"name":"a-predicate-of-cond-reads-the-subject-by-a-path","query":"{:role :admin :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"150"}
-{"decision":"D442","name":"cond-with-no-clauses-is-refused","query":"5 | cond","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualTag ::any/cond\n  :actualValue ::any/cond[]\n  :trace ::trace[::frame[5 ~(cond)]]\n} | raise"}
-{"decision":"D442","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","expect":"::any/cond/clauses/NoBranchesError!{\n  :actualTag ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trace ::trace[::frame[5 ~(cond ~(eq 5))]]\n} | raise"}
+{"decision":"D442","name":"cond-with-no-clauses-is-refused","query":"5 | cond","raises":"::any/cond/clauses/NoBranchesError!{\n  :actualTag ::any/cond\n  :actualValue ::any/cond[]\n  :trace ::trace[::frame[5 ~(cond)]]\n}"}
+{"decision":"D442","name":"cond-with-one-clause-is-refused","query":"5 | cond ~(eq 5)","raises":"::any/cond/clauses/NoBranchesError!{\n  :actualTag ::any/cond\n  :actualValue ::any/cond[~(eq 5)]\n  :trace ::trace[::frame[5 ~(cond ~(eq 5))]]\n}"}
 {"name":"cond-answers-as-ifs-nested-in-their-else-branches-do","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
 {"name":"coalesce-in-a-branch-chosen-by-a-boolean-field-reads-the-subject","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
 {"name":"if-resides-on-any","query":"\"x\" | if true ~(1) ~(2)","expect":"1"}

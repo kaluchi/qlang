@@ -1,6 +1,6 @@
 {"decision":"D442","name":"raise-names-no-tag-by-a-kind","query":"{:kind ::Foo} | raise !| get [~(tag) /kind]","expect":"[::error ::Foo]"}
 {"decision":"D442","name":"raise-takes-the-tag-the-map-carries","query":"::Foo{:a 1} | raise !| tag","expect":"::Foo"}
-{"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","expect":"!{\n  :kind :oops\n  :trace ::trace[::frame[{:kind :oops} ~(raise)]]\n} | raise"}
+{"name":"raise-makes-an-error-of-a-map","query":"{:kind :oops} | raise","raises":"!{\n  :kind :oops\n  :trace ::trace[::frame[{:kind :oops} ~(raise)]]\n}"}
 {"decision":"D442","name":"the-facts-of-an-error-at-rest-raise-under-the-kind-of-errors","query":"!{:a 1} | payload | get [~(tag) ~(raise !| tag)]","expect":"[::map ::error]"}
 {"name":"raise-puts-an-error-at-rest-read-from-a-vector-on-the-fail-track","query":"[::error{:a 1}] | first | raise !| trace | map ~failed","expect":"[~(raise)]"}
 {"name":"raise-alone-raises-an-error-at-rest","query":"!{:a 1} | raise !| trace | map ~failed","expect":"[~(raise)]"}

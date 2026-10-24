@@ -10,7 +10,7 @@ import { printValue } from '../../src/print-value.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 import { compareValues } from '../../src/ordering.mjs';
 import { rootAddressesOf } from './root-addresses.mjs';
-import { expectedValueOf } from './expected-value.mjs';
+import { writtenLiteralOf } from './expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const atomsModulePath = join(here, '..', 'qlang', 'atoms.qlang');
@@ -45,7 +45,7 @@ export async function conformanceLiterals() {
   for (const caseFile of readdirSync(conformanceDir, { recursive: true }).map(String).filter(name => name.endsWith('.jsonl'))) {
     for (const line of readFileSync(join(conformanceDir, caseFile), 'utf8').split(/\r?\n/)) {
       if (line.trim() === '' || line.trim().startsWith('//')) continue;
-      const literal = await expectedValueOf(JSON.parse(line).expect);
+      const literal = await evalQuery(writtenLiteralOf(JSON.parse(line)));
       literalsByPrint.set(printValue(literal), literal);
     }
   }

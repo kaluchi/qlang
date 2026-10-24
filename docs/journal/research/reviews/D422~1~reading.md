@@ -111,7 +111,12 @@ Answer with the text of the report and nothing else: a verdict line, `Verdict: a
      служат этим дорогам.
    - Отказ один, `PayloadNotTakenError` нет:
      `:Mark |~~ M ~~| (::kind | wraps |~~ None. ~~| #[]) | :any/mk (::fn | returns |~~ r ~~| ::Mark | impl ~(5)) | 1 | mk !| tag`
-     → `::any/mk/answer/KindNotTakenError`.
+     → `::any/mk/answer/KindNotTakenError`. Отказ элемента ответа — другое
+     правило и стоит под адресом вида со своим `:index`, как держат раздел
+     ответа и кейс
+     `the-trace-of-an-error-at-rest-is-brought-to-its-kind-as-the-verb-answers-it`:
+     `get [~(!{:trace 5} | trace !| tag) ~(::error{:trace [5]} | trace !| get [~(tag) /index])]`
+     → `[::error/trace/answer/KindNotTakenError [::trace/ElementKindNotTakenError 0]]`.
    - `isInvariant` и `isLaw` (`core/src/nouns.mjs`) читают
      `isQuote(value.payload)`, без `beneathTags`.
 

@@ -21,7 +21,7 @@
 {"name":"minus-folds-the-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | minus","expect":"#[:a :c]"}
 {"name":"inter-folds-the-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | inter","expect":"#[:b]"}
 {"name":"union-folds-the-maps-a-vector-holds","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
-{"decision":"D442","name":"a-union-of-nothing-is-refused","query":"[] | union","expect":"::vec/union/SubjectEmptyError!{\n  :actualTag ::vec\n  :trace ::trace[::frame[[] ~(union)]]\n} | raise"}
+{"decision":"D442","name":"a-union-of-nothing-is-refused","query":"[] | union","raises":"::vec/union/SubjectEmptyError!{\n  :actualTag ::vec\n  :trace ::trace[::frame[[] ~(union)]]\n}"}
 {"name":"the-fold-of-a-vector-of-one-set-answers-that-set","query":"[#[:only]] | union","expect":"#[:only]"}
 {"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}"}
 {"decision":"D442","name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| tag","expect":"::vec/union/ArgsBeyondInputsError"}

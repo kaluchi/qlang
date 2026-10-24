@@ -8,7 +8,7 @@
 {"name":"the-segment-a-path-read-as-an-index-is-a-number","query":"42 | get /0 !| get /segment","expect":"0"}
 {"name":"a-refusal-over-a-map-names-the-entry-by-its-key","query":"{:a 1 :b \"x\"} | sum !| trace | last | path","expect":"/b"}
 {"decision":"D442","name":"a-refusal-is-an-error-under-the-tag-of-its-site","query":"\"x\" | add 1 !| payload | tag","expect":"::error"}
-{"decision":"D442","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","expect":"::vec/sum/ElementKindNotTakenError!{\n  :expected #[::number]\n  :actualTag ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum) /1]]\n} | raise"}
+{"decision":"D442","name":"a-sum-refuses-an-element-that-is-no-number","query":"[1 \"two\" 3] | sum","raises":"::vec/sum/ElementKindNotTakenError!{\n  :expected #[::number]\n  :actualTag ::string\n  :actualValue \"two\"\n  :trace ::trace[::frame[[1 \"two\" 3] ~(sum) /1]]\n}"}
 {"decision":"D442","name":"a-refusal-is-tagged-by-its-address-its-noun-said-once","query":"\"x\" | add 1 !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"decision":"D442","name":"a-refusal-names-the-site-it-guards","query":"blah !| tag","expect":"::call/UnknownNameError"}
 {"decision":"D442","name":"a-vector-is-refused-by-the-label-add-resides-on","query":"[1 2 3] | add 1 !| tag","expect":"::number/add/SubjectNotNumberError"}

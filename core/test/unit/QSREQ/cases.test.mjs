@@ -10,7 +10,7 @@ import { partOf, forEachPart } from '../../../src/parsed-parts.mjs';
 import { isCallStep } from '../../../src/steps.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 import { isErrorValue, isQuote, isTag } from '../../../src/types.mjs';
-import { expectedValueOf, raisedLiteralOf } from '../../helpers/expected-value.mjs';
+import { expectedValueOf, printedAnswerOf, writtenAnswerOf, writtenLiteralOf } from '../../helpers/expected-value.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const conformanceDir = join(here, '..', '..', 'conformance');
@@ -20,22 +20,30 @@ const files = readdirSync(conformanceDir, { recursive: true })
   .sort();
 
 // [QSPTH#value]
-function assertLiteral(quote, testName) {
-  forEachPart(raisedLiteralOf(quote) ?? partOf(quote), ({ value, content }) => {
+function assertLiteral(source, testName) {
+  forEachPart(partOf(parseSource(source)), ({ value, content }) => {
     if (isQuote(value) && content !== undefined) return false;
     if (isCallStep(value)) {
       throw new Error(
-        `expect in "${testName}" contains the call of "${value.get('name').name}" — ` +
-        `expected values must be pure literals, not computations`
+        `the answer "${testName}" writes holds the call of "${value.get('name').name}" — ` +
+        `a case writes the print of its answer, a literal that computes nothing`
       );
     }
   });
 }
 
-async function answersAsPresent(queryResult, now) {
-  const present = await expectedValueOf(now);
-  if (isErrorValue(queryResult) && isTag(present)) return queryResult.tag.name === present.name;
-  return compareValues(queryResult, present) === 0;
+// The answer a target gives today: a failure by its tag, any other value by
+// its print.
+async function answersAsPresent(answer, now) {
+  const present = await evalQuery(now);
+  if (isErrorValue(answer) && isTag(present)) return answer.tag.name === present.name;
+  return printedAnswerOf(answer) === writtenAnswerOf({ expect: now });
+}
+
+// Whether the query answers what the case writes: the print alike, and the
+// tie of the one order holding where a print drops a part of its value.
+async function answersAsWritten(answer, test) {
+  return printedAnswerOf(answer) === writtenAnswerOf(test) && compareValues(answer, await expectedValueOf(test)) === 0;
 }
 
 const chapterOf = file => /^(QS[A-Z]{3})\//.exec(file)?.[1] ?? null;
@@ -52,16 +60,19 @@ const casesByFile = files.map(file => ({
 describe('conformance: the requirements agree', () => {
   const allCases = casesByFile.flatMap(({ file, cases }) => cases.map(test => ({ file, ...test })));
 
-  it('holds no query to two answers', async () => {
+  it('holds no query to two answers', () => {
     const contradictions = [];
     for (const [query, sameQuery] of Map.groupBy(allCases, test => test.query)) {
-      if (sameQuery.length < 2) continue;
-      const answers = await Promise.all(sameQuery.map(test => expectedValueOf(test.expect)));
-      if (answers.some(answer => compareValues(answer, answers[0]) !== 0)) {
+      if (new Set(sameQuery.map(writtenAnswerOf)).size > 1) {
         contradictions.push(`${query}: ${sameQuery.map(test => `${test.file}#${test.name}`).join(', ')}`);
       }
     }
     expect(contradictions).toEqual([]);
+  });
+
+  it('writes each answer once, under `expect` for a value and under `raises` for a failure', () => {
+    const unwritten = allCases.filter(test => (test.expect === undefined) === (test.raises === undefined)).map(test => `${test.file}#${test.name}`);
+    expect(unwritten).toEqual([]);
   });
 
   it('opens a case that names a record with the one record in force, whose record stands in the root of the records', () => {
@@ -92,20 +103,20 @@ for (const { file, cases } of casesByFile) {
   describe(`conformance: ${file}`, () => {
     for (const test of cases) {
       it(`${test.target === true ? 'target: ' : ''}${test.name}`, async () => {
-        assertLiteral(parseSource(test.expect), test.name);
+        assertLiteral(writtenLiteralOf(test), test.name);
 
-        const queryResult = await evalQuery(test.query);
-        const expectedValue = await expectedValueOf(test.expect);
-        const answersAsExpected = compareValues(queryResult, expectedValue) === 0;
+        const answer = await evalQuery(test.query);
+        const answeredAsWritten = await answersAsWritten(answer, test);
         if (test.target === true) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
-          expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
+          expect(answeredAsWritten, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
           expect(test.now, `${test.name}: a target records the answer the tree gives today as "now"`).toBeDefined();
-          assertLiteral(parseSource(test.now), test.name);
-          expect(await answersAsPresent(queryResult, test.now),
+          assertLiteral(test.now, test.name);
+          expect(await answersAsPresent(answer, test.now),
             `${test.name}: the target answers neither its goal nor its present "now"; tell whether a repair moved it or the case broke, then rewrite "now" or the case`).toBe(true);
         } else {
-          expect(answersAsExpected, `${test.name}: result !== expected`).toBe(true);
+          expect(printedAnswerOf(answer), `${test.name}: the answer prints otherwise than the case writes it`).toBe(writtenAnswerOf(test));
+          expect(answeredAsWritten, `${test.name}: the answer prints as the case writes it and is another value, a part its print drops`).toBe(true);
         }
       });
     }

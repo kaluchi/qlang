@@ -15,7 +15,7 @@
 {"name":"an-error-at-rest-in-a-container-prints-as-it-is","query":"[::error{:a 1}] | print","expect":"\"[!{:a 1}]\""}
 {"name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"#[:a]"}
 {"name":"a-read-of-an-error-at-rest-raises-nothing","query":"[::error{:a 1}] | get /0 | get /a","expect":"1"}
-{"name":"the-step-of-an-error-literal-is-the-error-at-rest-it-spells","query":"~(!{:a 1}) | first","expect":"::error{:a 1}"}
+{"name":"the-step-of-an-error-literal-is-the-error-at-rest-it-spells","query":"~(!{:a 1}) | first","expect":"!{:a 1}"}
 {"name":"the-bang-writes-an-error-at-rest-a-container-holds","query":"[!{:a 1}] | get /0","expect":"!{:a 1}"}
 {"name":"an-error-at-rest-a-container-holds-reads-its-facts","query":"[!{:a 1}] | get /0 | get /a","expect":"1"}
 {"name":"the-bang-is-the-literal-of-the-kind-of-errors","query":"!{:a 1} | eq ::error{:a 1}","expect":"true"}

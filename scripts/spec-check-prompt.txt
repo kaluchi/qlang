@@ -5,7 +5,7 @@ Your task is the consistency of what is written and nothing else: the chapters a
 First bootstrap yourself from the description of the language as it holds: read whole docs/spec/README.md and every chapter it lists, in its order, then run `qlang '[::qlang ::cli] | map ~(get [~(it) ~(doc)])' < /dev/null`, the first pages a session is handed. Read every file whole with the Read tool under its absolute path; a read the tool cut short is no read, so read the rest from its offset.
 
 Then check your chapters, {{group}}, section by section; the heading `## name` of the chapter CODE is the section CODE#name.
-1. Its cases: core/test/conformance/CODE/name.jsonl, each line a case `{"name", "query", "expect"}` the runner holds the tree to, an expected failure written as its error under `raise`.
+1. Its cases: core/test/conformance/CODE/name.jsonl, each line a case `{"name", "query", "expect"}` the runner holds the tree to by the print of its answer, a failure the query raises written as the print of its error at rest under `raises` in the place of `expect`.
 2. The code that cites it: Grep for the text `[CODE#name]` under {{repo}}/core, cli, lsp and scripts, and read each block that cites it.
 3. The pages of the verbs and kinds it names, read from the language: `qlang '::any/coalesce | doc' < /dev/null`, and `laws`, `manifest` and `source` the same way.
 4. Every claim, run: `qlang '<query>' < /dev/null`. End every query with `< /dev/null`, or a query that reads its subject waits on standard input, and write `MSYS_NO_PATHCONV=1 qlang '…' < /dev/null` where the query begins with `/`.

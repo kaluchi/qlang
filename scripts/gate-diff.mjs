@@ -75,7 +75,7 @@ for (const [key, before] of baseCases) {
     findings.push(`case removed: ${key}`);
     continue;
   }
-  const sameText = after.query === before.query && after.expect === before.expect;
+  const sameText = after.query === before.query && after.expect === before.expect && after.raises === before.raises;
   if (!sameText) findings.push(`case rewritten: ${key}`);
   if (before.target !== true && after.target === true) findings.push(`case marked as a target: ${key}`);
   if (decisionsOf(before).join() !== decisionsOf(after).join()) findings.push(`case moved to other decisions: ${key}`);
@@ -120,7 +120,8 @@ for (const path of changedPaths) {
 const implementationAdded = git('diff', '-U0', base, head, '--', 'core/src', 'core/lib', 'cli/src', 'cli/lib', 'lsp/src')
   .split('\n').filter(line => line.startsWith('+') && !line.startsWith('+++')).join('\n');
 for (const met of metTargets) {
-  const spellings = [met.query, ...(met.expect.length >= 6 ? [met.expect] : [])];
+  const written = met.expect ?? met.raises;
+  const spellings = [met.query, ...(written.length >= 6 ? [written] : [])];
   if (spellings.some(spelling => implementationAdded.includes(spelling))) {
     findings.push(`implementation spells a target it met: ${met.name}`);
   }

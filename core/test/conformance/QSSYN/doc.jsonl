@@ -48,7 +48,7 @@
 {"name":"a-span-opens-none-of-the-docs-a-span-before-it-left-open","query":"[|~~ a `|~~` then `~~| |~~ b` c ~~|] | count","expect":"2"}
 {"name":"a-doc-reads-its-prose-without-the-whitespace-at-its-edges","query":"get [~(|~~ A box. ~~| | content) ~(|~~A box.~~| | content) ~(|~~     A box.     ~~| | content)]","expect":"[\"A box.\" \"A box.\" \"A box.\"]"}
 {"name":"a-doc-reads-its-lines-without-the-indentation-they-share","query":"|~~ a\n      b\n        c ~~| | content","expect":"\"a\\nb\\n  c\""}
-{"name":"a-line-of-whitespace-alone-in-a-doc-reads-empty","query":"|~~ a\n \n    b ~~| | content","expect":"\"a\n\nb\""}
+{"name":"a-line-of-whitespace-alone-in-a-doc-reads-empty","query":"|~~ a\n \n    b ~~| | content","expect":"\"a\\n\\nb\""}
 {"name":"a-line-a-quote-opens-counts-in-the-indentation-the-lines-share","query":"|~~ a\n      ~(x) b\n    c ~~| | content","expect":"\"a\\n  ~(x) b\\nc\""}
 {"name":"the-line-of-a-closer-counts-in-no-indentation-of-the-prose","query":"|~~ a\n    b\n  ~~| | content","expect":"\"a\\nb\""}
 {"name":"a-doc-built-from-strings-holds-the-prose-a-literal-would","query":"[\" a\n   b \"] | tag ::doc | content","expect":"\"a\\nb\""}

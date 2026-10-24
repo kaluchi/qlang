@@ -311,7 +311,7 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
       if (test.decision !== undefined && !overrides(test.decision, chapter, section)) unclaimed.push({ where: `${file}#${name}`, problem: `names ${test.decision}, which overrides no section ${chapter}#${section}` });
       if (then === null) continue;
       const before = then.get(name);
-      const touched = before === undefined || before.query !== test.query || before.expect !== test.expect || before.target !== test.target || before.now !== test.now;
+      const touched = before === undefined || before.query !== test.query || before.expect !== test.expect || before.raises !== test.raises || before.target !== test.target || before.now !== test.now;
       if (touched && test.decision === undefined && dissolvedOver(chapter, section).length === 0) unclaimed.push({ where: `${file}#${name}`, problem: `changed since the baseline ${baseline}, and names no record in transit over ${chapter}#${section}, nor did one dissolve into it since` });
     }
     for (const name of then === null ? [] : [...then.keys()].filter(name => !now.has(name))) {

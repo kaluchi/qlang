@@ -14,7 +14,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './baseline-walk.mjs';
+import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './reconciliation.mjs';
 import { JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');

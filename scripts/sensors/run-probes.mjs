@@ -38,7 +38,7 @@ import { execFile, execFileSync } from 'node:child_process';
 import { Readable } from 'node:stream';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
-import { recordsInTransit } from '../baseline-walk.mjs';
+import { recordsInTransit } from '../reconciliation.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, JOURNAL);

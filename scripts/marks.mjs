@@ -19,7 +19,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { baselineOf } from './baseline-walk.mjs';
+import { baselineOf } from './reconciliation.mjs';
 import { readText } from './tree-reads.mjs';
 import { homeOfPath } from './test-homes.mjs';
 import { FATE, FIELD_OPENS, LINK_DEFINITION, RUN_LINE, JOURNAL } from './decision-records.mjs';

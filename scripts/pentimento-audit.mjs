@@ -23,7 +23,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
-import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './baseline-walk.mjs';
+import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './reconciliation.mjs';
 import { importsOfCore, cyclesOf } from './core-imports.mjs';
 import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
 import {

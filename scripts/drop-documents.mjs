@@ -13,7 +13,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { isReadme, recordHolding, seriesPastTheirTwoLatest, textsInForce, unitOf, uncitedDocuments } from './baseline-walk.mjs';
+import { isReadme, recordHolding, seriesPastTheirTwoLatest, textsInForce, unitOf, uncitedDocuments } from './reconciliation.mjs';
 import { JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');

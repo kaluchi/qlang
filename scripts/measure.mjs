@@ -13,7 +13,7 @@
 // The rules it holds: [QSWRK#diff].
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { baselineOf } from './baseline-walk.mjs';
+import { baselineOf } from './reconciliation.mjs';
 
 const repoRoot = join(import.meta.dirname, '..');
 const git = args => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });

@@ -10,7 +10,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } fro
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CHILD_ENVIRONMENT, withTheLanguageOf } from './benchmark/child.mjs';
-import { baselineOf } from './baseline-walk.mjs';
+import { baselineOf } from './reconciliation.mjs';
 import { JOURNAL, isOpenText } from './decision-records.mjs';
 
 // runLine({ report, kind, tree, baseline, date, from, to, why }) → the line

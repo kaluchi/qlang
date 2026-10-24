@@ -128,7 +128,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
-import { baselineOf, chaptersOfSpec, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
+import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
@@ -138,6 +138,7 @@ import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
 import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
+import { anchorsTheTreeLacks } from './anchors.mjs';
 import { parse } from 'acorn';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -409,42 +410,9 @@ function rangesOffTheirSibling() {
 }
 
 // ── (5) Anchors of the texts that hold the work ────────────────
-
-const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md', 'docs/spec/QSWRK-the-work.md'];
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
-const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
-const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
-
-// The checkout that holds a path: this one when its folder is here, the
-// sister project's where it sits beside this one, and none otherwise.
-function anchorRootOf(anchorPath) {
-  const folder = anchorPath.split('/').slice(0, -1).join('/');
-  if (existsSync(join(repoRoot, folder))) return repoRoot;
-  return existsSync(sisterRoot) ? sisterRoot : null;
-}
-
-function anchorsTheTreeLacks() {
-  const violations = [];
-  for (const documentPath of ANCHOR_DOCUMENTS) {
-    const text = readText(join(repoRoot, documentPath));
-    for (const [, anchorPath] of text.matchAll(ANCHOR_PATH_RE)) {
-      if (/\/(?:Dnn|En)\.md$/.test(anchorPath)) continue;
-      const root = anchorRootOf(anchorPath);
-      if (root !== null && !existsSync(join(root, anchorPath))) {
-        violations.push({ file: documentPath, anchor: anchorPath, problem: 'names a file the tree lacks' });
-      }
-    }
-    for (const [, quoted, anchorPath] of text.replace(/\s+/g, ' ').matchAll(TREE_QUOTE_RE)) {
-      const root = anchorRootOf(anchorPath);
-      if (root === null || !existsSync(join(root, anchorPath))) continue;
-      const anchored = readText(join(root, anchorPath)).replace(/\s+/g, ' ');
-      if (!anchored.includes(quoted.trim())) {
-        violations.push({ file: documentPath, anchor: anchorPath, problem: `quotes “${quoted}”, which the file no longer holds` });
-      }
-    }
-  }
-  return violations;
-}
+//
+// A path the seed, the aim or a chapter names is a file, and words they quote
+// beside it stand in it, `scripts/anchors.mjs` [QSWRK#probe], [D430].
 
 // ── (6) Decisions kept out of the catalog ──────────────────────
 //
@@ -514,17 +482,16 @@ function misplacedRecords() {
   ];
 }
 
-// ── (9) The walk of a baseline ─────────────────────────────────
+// ── (9) The reconciliation of the tree with its baseline ───────
 //
 // The baseline is the last commit that landed a branch on master. A record
 // of the language that the baseline's tree holds is held by a case or closed
-// by the line of its fate, and the records written since wait for the walk,
-// twenty at most; the code, the tests and the
-// cases cite the records in force, and the documents that hold the work
-// those in force or waiting on a target [QSWRK#baseline].
+// by the line of its fate; the code, the tests and the cases cite the records
+// in force, and the documents that hold the work those in force or waiting
+// on a target [D429].
 
-function baselineUnwalked() {
-  return walkOfBaseline(repoRoot).violations;
+function baselineUnreconciled() {
+  return reconciliationOf(repoRoot).violations;
 }
 
 // ── (10) The links of the documents ────────────────────────────
@@ -598,15 +565,15 @@ function fatesOutOfStep() {
 // no record of the journal, speaks none of the journal's words, tells no
 // history of a form, and says nothing of what it leaves out [QSWRK#spec]. The
 // prose is read outside its fenced blocks, whose probes may hold any text.
-// The chapter of the work speaks the words and the paths of the journal,
-// and no chapter cites a record [QSWRK#spec].
+// The chapters of the work speak the words and the paths of the journal,
+// and no chapter cites a record [QSWRK#spec], [D430].
 // A month written in a text that states what holds dates a story, which the
 // history keeps [QSWRK#documents].
 const HISTORY_DATE = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
 const SPEC_INTRUSIONS = [
   { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b/ },
-  { rule: 'a record of the journal', regex: /docs\/journal/, besides: 'QSWRK' },
-  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: 'QSWRK' },
+  { rule: 'a record of the journal', regex: /docs\/journal/, besides: WORK_CHAPTERS },
+  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: WORK_CHAPTERS },
   { rule: 'the history of a form', regex: /\b(left|leaves|leave) the language\b|\bno longer\b|\bused to\b|\bformerly\b|\banymore\b/i },
   { rule: 'what the text leaves out', regex: /\bnothing else\b|\bno history\b/i },
   { rule: 'a date of the history', regex: HISTORY_DATE },
@@ -621,7 +588,7 @@ function specIntrusions() {
       if (line.startsWith('```')) { fenced = !fenced; return; }
       if (fenced) return;
       for (const { rule, regex, besides } of SPEC_INTRUSIONS) {
-        if (besides !== undefined && name.startsWith(besides)) continue;
+        if (besides !== undefined && besides.includes(name.slice(0, 5))) continue;
         const match = regex.exec(line);
         if (match) found.push({ file: `docs/spec/${name}`, line: index + 1, rule, text: match[0] });
       }
@@ -900,7 +867,10 @@ function exportsNoHostReads() {
 
 function testsOffTheirSection() {
   const records = readDecisionRecords(repoRoot);
-  const sections = new Set([...chaptersOfSpec(repoRoot)].flatMap(([chapter, names]) => [...names].map(name => `${chapter}#${name}`)));
+  // A section the specification holds, or one a record in transit brings,
+  // where its test file stands until the closeout writes it [D430].
+  const citable = citableOf(repoRoot);
+  const sections = { has: cited => citable(...cited.split('#')) };
   const heldByItsTests = name => {
     const record = records.get(name);
     return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
@@ -939,14 +909,14 @@ const { text, failed } = verdictOf({
   kindNames: refusalsNamingKinds(),
   proseTallies: scanProseTallies(),
   workspaceRanges: rangesOffTheirSibling(),
-  anchors: anchorsTheTreeLacks(),
+  anchors: anchorsTheTreeLacks(repoRoot),
   catalogDecisions: decisionsInCatalog(),
   undecided: recordsWithoutDecider(),
   unmarked: unmarkedArtifacts(),
   misplaced: misplacedRecords(),
   broken: brokenLinks(),
   outOfStep: fatesOutOfStep(),
-  unwalked: baselineUnwalked(),
+  unreconciled: baselineUnreconciled(),
   intrusions: specIntrusions(),
   swollen: seriesBeyondTwo(),
   unread: unreadReports(),

@@ -140,8 +140,8 @@ true
 ## door
 
 A value enters the language from a host only as a value of the
-language, which two doors hold, each by one walk of the value at any
-depth, a container met twice in one value walked once. The answer of a
+language, which two doors hold, each by one scan of the value at any
+depth, a container met twice in one value scanned once. The answer of a
 primitive a host hands beside its source, and the facts of a refusal it
 throws, are held where the call takes them: an answer that is or holds a
 function, an object of JavaScript, a map whose key is no string, a
@@ -149,13 +149,12 @@ failure whose facts are no map, a value under a tag that is no tag, a
 container that holds itself, a hole of a vector or a number past the
 finite doubles fails the call as `::call/HostFailureError`, its
 `:message` naming the verb and the path where that value stands in its
-answer; a value the call handed in passes back as it is, unwalked, and
-the
-primitives of the core are never walked. A
+answer; a value the call handed in passes back as it is, unscanned, and
+the primitives of the core are never scanned. A
 value JavaScript leaves undefined is null wherever the language reads
 it. The subject a host hands a cell and the values of the scope it hands
 a notebook or `evalQuery` are held where the core takes them, by the same
-walk: a value of no kind there is a defect of the host, raised past the
+scan: a value of no kind there is a defect of the host, raised past the
 fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
 the value as JavaScript holds it, its type and its name or its maker,
 `"function hello"`, `"number Infinity"`, or what makes a container of no
@@ -247,7 +246,7 @@ them with their source from `./cli-sources` of the command line's package.
 ## tokens
 
 The core's `tokenize`, of `./highlight`, the door of the core that loads
-its parser and its walks and no runtime, names each token of a source by
+its parser and the parts it keeps and no runtime, names each token of a source by
 what it writes in the language, one sense to a kind: a literal by the
 kind of its value, `null`, `boolean`, `number`, `string`, `regex`,
 `keyword`, `tag` and `path`; `quote` the `~(` and `)` of a quote and the

@@ -95,8 +95,8 @@ keeps the date of its answer and is run by hand.
 An anchor holds a sentence to a file as a probe holds it to a run: a path
 the seed, the aim or a chapter names in backquotes is a file of the tree or
 of the sister project, and words they quote in “…” beside a path stand in
-that file. `check:conventions` holds the anchors, `scripts/anchors.mjs`, a
-section a record in transit overrides waiting for its closeout.
+that file. `check:conventions` holds the anchors, `scripts/anchors.mjs`, a section a record in transit overrides waiting for its
+closeout [QSVOX#chapter].
 
 ## marks
 
@@ -176,7 +176,8 @@ of the gate finds no case reaching is read first as a question of the
 design.
 
 A printer decides a spelling by the kind of the value, never by a regex over
-the text of a print; a fact of a call is kept by the call and never by a
+the text of a print, and a script reads a module of JavaScript by its
+parser, acorn, never by a regex over its text; a fact of a call is kept by the call and never by a
 value it received; and what a rule takes from code is withheld by a refusal
 of its own, never left to fall to another meaning of the name. A script that
 moves cases between files writes every file after it has computed them all,

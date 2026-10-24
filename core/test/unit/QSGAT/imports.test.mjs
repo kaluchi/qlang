@@ -85,3 +85,15 @@ it('the walk of the imports reads a cycle a module closes through a loader the i
   expect(written.get('core/src/boot.mjs')).toEqual(['core/host/load.mjs', 'core/src/load.mjs']);
   expect(cyclesOf(written)).toEqual([['core/host/load.mjs', 'core/src/boot.mjs']]);
 });
+
+it('the walk of the imports reads a module a module re-exports, whole or by its names, and skips a package of npm', () => {
+  const written = importsWritten({
+    'core/package.json': '{"imports":{}}',
+    'core/src/a.mjs': "export * from './b.mjs';\nexport { c } from './c.mjs';\nimport { parse } from 'acorn';\n",
+    'core/src/b.mjs': '',
+    'core/src/c.mjs': 'export const c = 1;\n',
+    'core/gen/grammar.mjs': '',
+    'core/host/load.mjs': ''
+  });
+  expect(written.get('core/src/a.mjs')).toEqual(['core/src/b.mjs', 'core/src/c.mjs']);
+});

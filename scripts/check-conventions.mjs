@@ -141,7 +141,7 @@ import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
-import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
 import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds.mjs';
@@ -262,9 +262,9 @@ function scanForbiddenWords() {
 
 const ABSTRACT_BASES = new Set(['QlangError', 'QlangDefect']);
 
-const refusalDeclarationRe = /(?:\b(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*)?\b(declareRefusal|declareDefect|declare\w*Error|recordRefusal)\(\s*([^,)]*)/g;
-const directClassRe = /class\s+([A-Z][A-Za-z0-9_]*)\s+extends\s+(?:Qlang(?:Error|Defect)|Error)\b/g;
-const ADDRESS_RE = /^'((?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error)'$/;
+const REFUSAL_FACTORY = /^(?:declareRefusal|declareDefect|recordRefusal|declare\w*Error)$/;
+const REFUSAL_ROOTS = new Set([...ABSTRACT_BASES, 'Error']);
+const ADDRESS_RE = /^(?:[a-z][A-Za-z0-9]*\/)+[A-Z][A-Za-z0-9]*Error$/;
 const FACTORY_DEFINITION_FILES = new Set(['core/src/errors.mjs']);
 
 // The constant a refusal's class is held by: its address without the
@@ -293,22 +293,39 @@ function* walkRefusalScanRoots() {
 
 // The declarations of the refusals across the sources of the workspaces, each
 // factory with its constant and its address and each class extending a root,
-// read once for (2) and (20).
+// read by the parser of JavaScript once for (2) and (20) [QSREQ#rigor]: a call of a
+// factory, the constant whose value it is, and its first argument, an
+// address where it is a string the form of one; the factory's own module
+// handing it a name passes.
 let declarationsRead;
 function refusalDeclarations() {
   if (declarationsRead !== undefined) return declarationsRead;
   declarationsRead = { declarations: [], classes: [] };
   for (const filePath of walkRefusalScanRoots()) {
+    if (!/\.m?js$/.test(filePath)) continue;
     const text = readText(filePath);
     const file = relative(repoRoot, filePath).split(sep).join('/');
-    const lineAt = index => text.slice(0, index).split('\n').length;
-    for (const match of text.matchAll(refusalDeclarationRe)) {
-      const [, constant, factory, written] = match;
-      const argument = written.trim();
-      if (FACTORY_DEFINITION_FILES.has(file) && /^[a-z]\w*$/.test(argument)) continue;
-      declarationsRead.declarations.push({ file, line: lineAt(match.index), constant, factory, argument, address: ADDRESS_RE.exec(argument)?.[1] });
+    const program = parse(text, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true, locations: true });
+    const constants = new Map();
+    const calls = [];
+    const visit = node => {
+      if (node === null || typeof node !== 'object') return;
+      if (Array.isArray(node)) return node.forEach(visit);
+      if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && node.init?.type === 'CallExpression') constants.set(node.init, node);
+      if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && REFUSAL_FACTORY.test(node.callee.name)) calls.push(node);
+      if (/^Class(?:Declaration|Expression)$/.test(node.type) && /^[A-Z]/.test(node.id?.name ?? '') && REFUSAL_ROOTS.has(node.superClass?.name)) {
+        declarationsRead.classes.push({ file, line: node.loc.start.line, name: node.id.name });
+      }
+      for (const key in node) if (key !== 'loc') visit(node[key]);
+    };
+    visit(program);
+    for (const call of calls) {
+      const [first] = call.arguments;
+      if (FACTORY_DEFINITION_FILES.has(file) && first?.type === 'Identifier') continue;
+      const held = constants.get(call);
+      const address = first?.type === 'Literal' && typeof first.value === 'string' && ADDRESS_RE.test(first.value) ? first.value : undefined;
+      declarationsRead.declarations.push({ file, line: (held ?? call).loc.start.line, constant: held?.id.name, factory: call.callee.name, argument: first === undefined ? '' : text.slice(first.start, first.end), address });
     }
-    for (const match of text.matchAll(directClassRe)) declarationsRead.classes.push({ file, line: lineAt(match.index), name: match[1] });
   }
   return declarationsRead;
 }
@@ -486,7 +503,7 @@ function recordsWithoutDecider() {
 // [QSWRK#journal].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(readText(join(repoRoot, path)));
+  const replacedWhole = path => lineOfFate(FATES_OUT_OF_FORCE, 'm').test(readText(join(repoRoot, path)));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder(JOURNAL).filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
@@ -544,7 +561,7 @@ const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
   const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readText(record.path)).map(statement => statement.text)]));
-  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what|Filed under the (?:principles|tooling) by) /.test(statement));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => lineOfFate(FATES_NAMING_A_RECORD).test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
   for (const name of records.keys()) {

@@ -7,8 +7,23 @@
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, posix } from 'node:path';
+import { parse } from 'acorn';
 
-const IMPORTED = /^\s*(?:import|export)\b[^'"]*?from\s+(['"])([.#][^'"]+)\1|^\s*import\s+(['"])([.#][^'"]+)\3|\bimport\(\s*(['"])([.#][^'"]+)\5\s*\)/gm;
+// The specifiers a module names, read by the parser of JavaScript [QSREQ#rigor]:
+// its imports and re-exports, and an import its code calls with a literal,
+// those of the core alone, a relative path or a name of the `imports` of
+// the package.
+function specifiersOf(text) {
+  const found = [];
+  const visit = node => {
+    if (node === null || typeof node !== 'object') return;
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (/^(?:Import|ExportAll|ExportNamed)Declaration$|^ImportExpression$/.test(node.type) && typeof node.source?.value === 'string') found.push(node.source.value);
+    for (const key in node) if (key !== 'loc') visit(node[key]);
+  };
+  visit(parse(text, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true }));
+  return found.filter(specifier => specifier.startsWith('.') || specifier.startsWith('#'));
+}
 
 const conditionsOf = target => (typeof target === 'string' ? [target] : Object.values(target ?? {}));
 
@@ -24,8 +39,8 @@ export function importsOfCore(repoRoot) {
   const targetsOf = (path, specifier) => (specifier.startsWith('#')
     ? conditionsOf(mapped[specifier]).map(target => posix.join('core', target))
     : [posix.join(posix.dirname(path), specifier)]);
-  return new Map(modules.map(path => [path, [...readFileSync(join(repoRoot, path), 'utf8').matchAll(IMPORTED)]
-    .flatMap(match => targetsOf(path, match[2] ?? match[4] ?? match[6])).filter(target => known.has(target))]));
+  return new Map(modules.map(path => [path, specifiersOf(readFileSync(join(repoRoot, path), 'utf8'))
+    .flatMap(specifier => targetsOf(path, specifier)).filter(target => known.has(target))]));
 }
 
 // cyclesOf(imports) → the strongly connected components of more than one

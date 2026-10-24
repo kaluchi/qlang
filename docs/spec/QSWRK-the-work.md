@@ -45,10 +45,8 @@ Each is weighed by the mission of the aim: whether it makes the first
 attempt of a fresh session likelier and its reading lighter.
 
 A home, a chapter, a section, a module or a test file, is made in the stint
-whose work asks for it, with the record that needs it [QSVOX#chapter]. A
-structure that does not fit what the tree holds is cut anew so: a chapter
-grown past one topic parts into chapters of one topic each, and a module
-that holds two things into two.
+whose work asks for it, with the record that needs it [QSVOX#chapter], and a module that holds two
+things parts into two.
 
 ## journal
 
@@ -180,7 +178,7 @@ At the closeout:
 - A document of the research leaves with what holds it [QSRVW#research],
   `node scripts/drop-documents.mjs` dropping the documents nothing in force
   holds and giving each series of the benchmark past its two latest to the
-  history [QSMSR#benchmark]; a stint keeps every run it made until then.
+  history [QSMSR#benchmark].
 - Every probe of the open records and of the chapters is run, and a section
   whose answer the work changed is written with the answer the record
   dissolving into it holds [QSREQ#probe].

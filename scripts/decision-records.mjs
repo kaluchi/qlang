@@ -43,9 +43,15 @@ export const foldersOfForm = form => RESEARCH_FOLDERS.filter(entry => entry.form
 export const FIELD_NAMES = ['Domain', 'Decided by', 'Decision', 'Question', 'Source', 'Alternatives', 'Set aside', 'Requirements', 'Runs'];
 export const OPEN_RECORD_FIELDS = ['Question', 'Source', 'Alternatives'];
 export const DECIDED_RECORD_FIELDS = ['Decided by', 'Decision'];
-const FATES = ['Replaces', 'Pruned of what', 'Replaced by', 'Merged into', 'Dissolved into', 'Filed under the principles by', 'Filed under the tooling by', 'Left at'];
+// The lines of fate that move a record out of force whole, and those that
+// name the record a part or the whole of it went to [QSWRK#journal].
+export const FATES_OUT_OF_FORCE = ['Replaced by', 'Merged into', 'Dissolved into', 'Filed under the principles by', 'Filed under the tooling by'];
+export const FATES_NAMING_A_RECORD = ['Replaced by', 'Merged into', 'Pruned of what', 'Filed under the principles by', 'Filed under the tooling by'];
+const FATES = [...new Set(['Replaces', ...FATES_NAMING_A_RECORD, ...FATES_OUT_OF_FORCE, 'Left at'])];
+// lineOfFate(fates, flags) → a regex of a line that opens with one of them.
+export const lineOfFate = (fates, flags = '') => new RegExp(`^(${fates.join('|')}) `, flags);
 export const FIELD_OPENS = new RegExp(`^(${FIELD_NAMES.join('|')})\\.`);
-export const FATE = new RegExp(`^(${FATES.join('|')}) `);
+export const FATE = lineOfFate(FATES);
 const FIELD = new RegExp(`${FIELD_OPENS.source}|${FATE.source}`);
 // A line of the field of runs, its opening or a run under it, which opens
 // with the path of its report under `research/`: history the record keeps,

@@ -60,7 +60,7 @@ describe('the selector of an input', () => {
 
 describe('the args of a call', () => {
   it('refuses under the input an arg the call leaves out', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put !| tag')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
   it('reads an arg softly by a selector of query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {

@@ -29,13 +29,13 @@
         ~(keys | eq #[:page :value])
     | proves :explainsAFailure
         |~~ An error explained is an `::explanation`. ~~|
-        ~("x" | add 1 !| explain | type | eq ::explanation)
+        ~("x" | add 1 !| explain | tag | eq ::explanation)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ An explanation is a map of its page and its value. ~~|
-        ~(::explanation#5 !| type | eq ::explanation/PayloadKindNotTakenError)
+        ~(::explanation#5 !| tag | eq ::explanation/PayloadKindNotTakenError)
     | proves :NotPageAndValueError/refusesAMapOfNeither
         |~~ A map of no page and no value is no explanation. ~~|
-        ~(::explanation{} !| type | eq ::explanation/NotPageAndValueError)
+        ~(::explanation{} !| tag | eq ::explanation/NotPageAndValueError)
 
 :explanation/page
   |~~ Answers the page that explains what `explain` was asked of: of a
@@ -81,7 +81,7 @@
     | proves :SubjectNotExplanationError/refusesAMap
         |~~ A map with a key `:page` is no explanation. ~~|
         ~({:page 1} | page
-          !| get [~(type) /actualType] | eq [::explanation/page/SubjectNotExplanationError ::map])
+          !| get [~(tag) /actualTag] | eq [::explanation/page/SubjectNotExplanationError ::map])
     | impl ~(get /page)
 
 :explanation/value
@@ -110,10 +110,10 @@
         ~(::vec/count | explain | value | eq ::vec/count)
     | proves :holdsAnErrorAtRest
         |~~ An error explained is the error at rest `!|` caught. ~~|
-        ~("x" | add 1 !| explain | value | get /actualType | eq ::string)
+        ~("x" | add 1 !| explain | value | get /actualTag | eq ::string)
     | proves :SubjectNotExplanationError/refusesAMap
         |~~ A map with a key `:value` is no explanation. ~~|
         ~({:value 1} | value
-          !| get [~(type) /actualType] | eq [::explanation/value/SubjectNotExplanationError ::map])
+          !| get [~(tag) /actualTag] | eq [::explanation/value/SubjectNotExplanationError ::map])
     | impl ~(get /value)
 

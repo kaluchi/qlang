@@ -1,32 +1,35 @@
-{"name":"a-word-of-the-literals-after-two-colons-is-a-tag-name","query":"::null | type","expect":"::tag"}
+{"name":"a-word-of-the-literals-after-two-colons-is-a-tag-name","query":"::null | tag","expect":"::tag"}
 {"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
-{"name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] !| type) ~(#[2 1] | toVec)]","expect":"[::vec/PayloadKindNotTakenError [1 2]]"}
-{"name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) !| type) ~(~(a | b) | payload | type)]","expect":"[::vec/PayloadKindNotTakenError ::vec]"}
-{"name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} !| type) ~(::Box{:a 1} | payload | type)]","expect":"[::map/PayloadKindNotTakenError ::map]"}
-{"name":"no-kind-reads-text","query":"::number\"5\" !| type","expect":"::number/PayloadKindNotTakenError"}
+{"name":"the-vector-kind-keeps-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] | tag) ~(#[2 1] | toVec)]","expect":"[::set [1 2]]"}
+{"name":"the-vector-kind-keeps-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) | tag) ~(~(a | b) | payload | tag)]","expect":"[::quote ::vec]"}
+{"name":"the-map-kind-keeps-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} | tag) ~(::Box{:a 1} | payload | tag)]","expect":"[::Box ::map]"}
+{"name":"no-kind-reads-text","query":"::number\"5\" !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
 {"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | open","expect":"5"}
 {"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | open | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
-{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(type) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
-{"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| type) ~(#[2 1] | tag ::vec !| type)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
+{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(tag) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
+{"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| tag) ~(#[2 1] | tag ::vec | tag)]","expect":"[::map/PayloadKindNotTakenError ::set]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
 {"name":"tag-alone-reads-the-outermost-tag-of-its-subject","query":"get [~(1 | tag) ~(::A::B{} | tag) ~([::Box 5] | tag) ~(::Box | tag) ~(\"x\" | add 1 !| tag)]","expect":"[::number ::A ::vec ::tag ::number/add/SubjectNotNumberError]"}
 {"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
 {"name":"tag-and-payload-split-and-join-every-value","query":"[42 \"hi\" :foo true null /a #\"a\" ::Box [1 2] {:a 1} #[2 1] ~(add 1) |~~ A page. ~~| ::Box#5 ::A::B{} !{:k 1}] | map ~(:value it | :t (tag) | payload | tag t | eq value) | every ~(it)","expect":"true"}
 {"name":"an-undeclared-tag-keeps-its-payload","query":"::AutoBox[1 2 3] | payload","expect":"[1 2 3]"}
-{"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | type","expect":"::AutoSet"}
-{"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | type","expect":"::set"}
-{"name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | type","expect":"::AutoMap"}
-{"name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | type","expect":"::map"}
-{"name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | type","expect":"::AutoNumber"}
+{"name":"an-undeclared-tag-over-a-set-answers-its-tag","query":"::AutoSet#[1 2 3] | tag","expect":"::AutoSet"}
+{"name":"an-undeclared-tag-keeps-a-set-a-set","query":"::AutoSet#[1 2 3] | payload | tag","expect":"::set"}
+{"name":"an-undeclared-tag-over-a-map-answers-its-tag","query":"::AutoMap{:k 1} | tag","expect":"::AutoMap"}
+{"name":"an-undeclared-tag-keeps-a-map-a-map","query":"::AutoMap{:k 1} | payload | tag","expect":"::map"}
+{"name":"an-undeclared-tag-over-a-number-answers-its-tag","query":"::AutoNumber#42 | tag","expect":"::AutoNumber"}
 {"name":"an-undeclared-tag-keeps-a-number-a-number","query":"::AutoNumber#42 | payload","expect":"42"}
-{"name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | type","expect":"::AutoJson"}
-{"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | type","expect":"::tag"}
-{"name":"a-tag-lays-itself-over-a-regex","query":"#\"a\" | tag ::Rule | get [~(type) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
-{"name":"a-kind-of-the-core-refuses-a-payload-of-another-kind-with-its-kind-expected","query":"::number\"5\" !| get [~(type) /expected]","expect":"[::number/PayloadKindNotTakenError #[::number]]"}
+{"name":"an-undeclared-tag-over-a-tagged-value-answers-its-tag","query":"::AutoJson::json[1 2 3] | tag","expect":"::AutoJson"}
+{"name":"an-undeclared-tag-alone-is-a-tag","query":"::AutoBareOnly | tag","expect":"::tag"}
+{"name":"a-tag-lays-itself-over-a-regex","query":"#\"a\" | tag ::Rule | get [~(tag) ~(payload | eq #\"a\")]","expect":"[::Rule true]"}
+{"name":"a-kind-of-the-core-refuses-a-payload-of-another-kind-with-its-kind-expected","query":"::number\"5\" !| get [~(tag) /expected]","expect":"[::number/PayloadKindNotTakenError #[::number]]"}
 {"name":"a-tag-over-a-set-stacks-on-it","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | payload","expect":"#[1 2 3]"}
-{"name":"a-label-laid-over-a-value-already-under-it-stands-again","query":":Lab |~~ L. ~~| | :K |~~ K ~~| (::kind | reads :w |~~ w ~~| /w ::number) | get [~(::Lab::Lab[1]) ~({:w 1} | tag ::K | tag ::K)]","expect":"[::Lab::Lab[1] ::K::K{:w 1}]"}
-{"name":"desc-laid-over-a-desc-stands-twice","query":"::desc::desc#5 | payload | type","expect":"::desc"}
-{"name":"tag-refuses-a-name-that-is-no-tag","query":"5 | tag :Foo !| type","expect":"::any/tag/name/KindNotTakenError"}
-{"name":"a-kind-of-the-core-refuses-a-payload-under-a-tag-of-another-kind","query":"get [~(::T[2 1] | tag ::set !| type) ~(::T[\"a\"] | tag ::doc !| type) ~(::T[1] | tag ::quote !| type) ~(::T{} | tag ::builtin !| type) ~(::T[~() null] | tag ::fn !| type) ~(::T[~() null] | tag ::kind !| type) ~(::T{:name :x} | tag ::call !| type)]","expect":"[::set/PayloadKindNotTakenError ::doc/PayloadKindNotTakenError ::quote/PayloadKindNotTakenError ::builtin/PayloadKindNotTakenError ::fn/PayloadNotPairError ::kind/PayloadNotPairError ::call/PayloadKindNotTakenError]"}
-{"name":"a-kind-of-the-core-reads-a-payload-of-its-own-kind-as-the-value-itself","query":"get [~(#[2 1] | tag ::set) ~(~(a) | tag ::quote) ~(::builtin{} | tag ::builtin) ~(::trace[] | tag ::trace) ~(::fn[~() ~(1)] | tag ::fn | type) ~(|~~ x ~~| | tag ::doc | type) ~(~(a) | first | tag ::call | type) ~(::kind[~() null] | tag ::kind | type)]","expect":"[#[1 2] ~(a) ::builtin{} ::trace[] ::fn ::doc ::call ::kind]"}
+{"name":"a-tag-laid-over-a-value-that-answers-it-stands-once","query":":Lab |~~ L. ~~| | :K |~~ K ~~| (::kind | reads :w |~~ w ~~| /w ::number) | get [~(::Lab::Lab[1] | payload) ~({:w 1} | tag ::K | tag ::K | payload)]","expect":"[[1] {:w 1}]"}
+{"name":"desc-laid-over-a-desc-stands-once","query":"::desc::desc#5 | payload | tag","expect":"::number"}
+{"name":"tag-refuses-a-name-that-is-no-tag","query":"5 | tag :Foo !| tag","expect":"::any/tag/name/KindNotTakenError"}
+{"name":"a-kind-of-the-core-refuses-a-payload-under-a-tag-of-another-kind","query":"get [~(::T[2 1] | tag ::set !| tag) ~(::T[\"a\"] | tag ::doc !| tag) ~(::T[1] | tag ::quote !| tag) ~(::T{} | tag ::builtin !| tag) ~(::T[~() null] | tag ::fn !| tag) ~(::T[~() null] | tag ::kind !| tag) ~(::T{:name :x} | tag ::call !| tag)]","expect":"[::set/PayloadKindNotTakenError ::doc/PayloadKindNotTakenError ::quote/PayloadKindNotTakenError ::builtin/PayloadKindNotTakenError ::fn/PayloadNotPairError ::kind/PayloadNotPairError ::call/PayloadKindNotTakenError]"}
+{"name":"a-kind-of-the-core-reads-a-payload-of-its-own-kind-as-the-value-itself","query":"get [~(#[2 1] | tag ::set) ~(~(a) | tag ::quote) ~(::builtin{} | tag ::builtin) ~(::trace[] | tag ::trace) ~(::fn[~() ~(1)] | tag ::fn | tag) ~(|~~ x ~~| | tag ::doc | tag) ~(~(a) | first | tag ::call | tag) ~(::kind[~() null] | tag ::kind | tag)]","expect":"[#[1 2] ~(a) ::builtin{} ::trace[] ::fn ::doc ::call ::kind]"}
+{"name":"a-kind-of-the-core-and-a-kind-of-the-reader-refuse-a-payload-under-another-tag","query":":Nums |~~ n ~~| (::kind | wraps |~~ v ~~| ::vec) | get [~(::Nums::T[1 2] !| get [~(tag) /actualTag]) ~(::set::T[1 2] !| get [~(tag) /actualTag]) ~(::T[1 2] | payload | tag ::Nums)]","expect":"[[::Nums/PayloadKindNotTakenError ::T] [::set/PayloadKindNotTakenError ::T] ::Nums[1 2]]"}
+{"name":"a-tag-the-value-is-of-changes-nothing","query":"get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[1] | tag ::vec) ~(::Box#5 | tag ::number) ~(::Box#5 | tag ::tagged)]","expect":"[5 5 #[1] ::Box#5 ::Box#5]"}
+{"name":"a-kind-whose-wraps-names-no-kind-takes-no-payload","query":"get [~(5 | tag ::tagged !| tag) ~(1 | tag ::qlang !| tag)]","expect":"[::tagged/PayloadKindNotTakenError ::qlang/PayloadKindNotTakenError]"}

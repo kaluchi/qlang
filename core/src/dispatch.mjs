@@ -9,7 +9,7 @@ import { kindsOfWalk } from './nouns.mjs';
 import { functionOfRecipe, chainOfFn } from './chain.mjs';
 import {
   isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue, isFn,
-  makeTag, makePath, typeOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
+  makeTag, makePath, tagOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 // [QSLIT#number]
@@ -20,7 +20,7 @@ function isOfKind(value, kindName) {
     case 'vec':   return isVec(value);
     case 'map':   return isMap(value);
     case TAGGED_KIND_NAME: return isTagged(value);
-    default:      return typeOf(value).name === kindName;
+    default:      return tagOf(value).name === kindName;
   }
 }
 

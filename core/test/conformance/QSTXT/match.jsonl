@@ -3,31 +3,31 @@
 {"name":"match-answers-null-where-none-stands","query":"\"none\" | match #\"\\d\"","expect":"null"}
 {"name":"capture-answers-the-named-groups-as-a-record","query":"\"2026-10-12T08:15 WARN disk 91%\" | capture #\"(?<date>[^T]+)T(?<time>\\S+) (?<level>\\w+) (?<message>.*)\"","expect":"{:date \"2026-10-12\" :time \"08:15\" :level \"WARN\" :message \"disk 91%\"}"}
 {"name":"capture-reads-the-lines-of-a-log-into-records","query":"\"ERROR db\\nINFO up\\nERROR net\" | lines | map ~(capture #\"(?<level>\\w+) (?<what>\\w+)\") | filter ~(get /level | eq \"ERROR\") | map /what","expect":"[\"db\" \"net\"]"}
-{"name":"capture-refuses-a-regex-that-names-no-group","query":"\"a1\" | capture #\"(\\d)\" !| type","expect":"::string/capture/RegexNamesNoGroupError"}
+{"name":"capture-refuses-a-regex-that-names-no-group","query":"\"a1\" | capture #\"(\\d)\" !| tag","expect":"::string/capture/RegexNamesNoGroupError"}
 {"name":"scan-answers-the-text-of-every-match","query":"\"took 12ms, then 7ms, then 130ms\" | scan #\"\\d+\" | map ~toNumber | sum","expect":"149"}
 {"name":"scan-meets-an-empty-match-before-every-code-point-and-at-the-end","query":"\"ab\" | scan #\"x*\"","expect":"[\"\" \"\" \"\"]"}
 {"name":"replace-names-the-groups-of-a-match","query":"[\"2026-10-12\" \"id: 7\"] | get [~(get /0 | replace #\"(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)\" \"$<d>.$<m>.$<y>\") ~(get /1 | replace #\"\\d+\" \"[$&]\")]","expect":"[\"12.10.2026\" \"id: [7]\"]"}
 {"name":"replace-puts-a-text-as-written","query":"\"price $5\" | replace \"$5\" \"$&10\"","expect":"\"price $&10\""}
 {"name":"replace-runs-code-on-the-vector-of-each-match","query":"\"3x4 and 5x6\" | replace #\"(\\d+)x(\\d+)\" ~(mulOf (get /1 | toNumber) (get /2 | toNumber) | toString)","expect":"\"12 and 30\""}
 {"name":"replace-runs-code-on-each-match-of-a-text","query":"\"a.b.c\" | replace \".\" ~(:m (get /0) | m | append m)","expect":"\"a..b..c\""}
-{"name":"replace-hands-on-the-failure-its-code-answers","query":"\"a1\" | replace #\"\\d\" ~(get /0 | add 1) !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| type","expect":"::string/replace/with/KindNotTakenError"}
+{"name":"replace-hands-on-the-failure-its-code-answers","query":"\"a1\" | replace #\"\\d\" ~(get /0 | add 1) !| tag","expect":"::number/add/SubjectNotNumberError"}
+{"name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| tag","expect":"::string/replace/with/KindNotTakenError"}
 {"name":"toRegex-reads-a-regex-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | :p (get /rule | toRegex) | get [\"123\" \"12a\"] | map ~(contains p)","expect":"[true false]"}
-{"name":"toRegex-refuses-a-source-the-engine-cannot-read","query":"\"(a\" | toRegex !| get [~(type) ~(get /message | contains \"Invalid regular expression\")]","expect":"[::string/toRegex/TextNotRegexError false]"}
+{"name":"toRegex-refuses-a-source-the-engine-cannot-read","query":"\"(a\" | toRegex !| get [~(tag) ~(get /message | contains \"Invalid regular expression\")]","expect":"[::string/toRegex/TextNotRegexError false]"}
 {"name":"a-name-holds-a-regex-and-a-verb-takes-it","query":":digits #\"\\d+\" | \"a1b22\" | get [~(scan digits) ~(contains digits)]","expect":"[[\"1\" \"22\"] true]"}
 {"name":"toRegex-takes-the-flags-of-the-call","query":"\"error\" | toRegex \"mi\" | eq #\"error\"im","expect":"true"}
-{"name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| type","expect":"::string/toRegex/flags/NotFlagsError"}
-{"name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [~(toRegex !| type) ~(parse | open | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
+{"name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| tag","expect":"::string/toRegex/flags/NotFlagsError"}
+{"name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [~(toRegex !| tag) ~(parse | open | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
 {"name":"toRegex-names-its-input-for-flags-written-inside","query":"\"(?i)abc\" | toRegex !| get /message | contains \"toRegex \\\"i\\\"\"","expect":"true"}
 {"name":"replace-cuts-no-character-in-halves","query":"\"a😀\" | replace \"\" \"-\"","expect":"\"-a-😀-\""}
 {"name":"a-refusal-names-no-habit-the-source-does-not-show","query":"\"(\\\\d\" | toRegex !| get /message | contains \"backslash\"","expect":"false"}
 {"name":"a-needed-escape-stays-where-a-needless-one-goes","query":"\"a\\\\-b\\\\(\" | toRegex !| get /message | contains \"backslash\"","expect":"true"}
 {"name":"a-name-of-a-group-the-regex-lacks-stands-beside-named-groups","query":"\"abc\" | replace #\"(?<n>b)\" \"$<zz>\"","expect":"\"a$<zz>c\""}
 {"name":"a-path-reads-the-text-that-replaces-each-match","query":"\"1x 2x\" | replace #\"(\\d)x\" /1","expect":"\"1 2\""}
-{"name":"match-refuses-a-text-for-a-regex","query":"\"abc\" | match \"a\" !| type","expect":"::string/match/regex/KindNotTakenError"}
+{"name":"match-refuses-a-text-for-a-regex","query":"\"abc\" | match \"a\" !| tag","expect":"::string/match/regex/KindNotTakenError"}
 {"name":"a-regex-flagged-m-anchors-at-every-line","query":"\"a\nb\" | get [~(contains #\"^b$\") ~(contains #\"^b$\"m)]","expect":"[false true]"}
 {"name":"a-replacement-text-writes-the-text-around-the-match-and-a-dollar","query":"\"xay\" | replace #\"a\" \"[$`|$'|$$]\"","expect":"\"x[x|y|$]y\""}
-{"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| get [~(type) /expected]","expect":"[::string/replace/with/AnswerKindNotTakenError #[::string]]"}
+{"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| get [~(tag) /expected]","expect":"[::string/replace/with/AnswerKindNotTakenError #[::string]]"}
 {"name":"capture-answers-null-where-the-regex-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}
-{"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| type","expect":"::string/toRegex/flags/KindNotTakenError"}
+{"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| tag","expect":"::string/toRegex/flags/KindNotTakenError"}
 {"name":"a-two-digit-group-the-regex-lacks-reads-as-the-group-of-its-first-digit","query":"\"abc\" | replace #\"(b)\" \"[$10]\"","expect":"\"a[b0]c\""}

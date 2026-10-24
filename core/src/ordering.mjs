@@ -1,7 +1,7 @@
 // [QSORD#order], [QSCND#compare]
 
 import {
-  isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, typeOf, makeTag, stampTagHeader,
+  isKeyword, isTag, isRegex, isPath, isDoc, isErrorValue, isValueClass, tagOf, makeTag, stampTagHeader,
   TAG_HEADER_SYMBOL, QUOTE_TAG_NAME, SET_TAG_NAME, SET_TAG, DESC_TAG, CORE_KIND
 } from './types.mjs';
 
@@ -36,7 +36,7 @@ function kindOf(value) {
   if (isPath(value)) return PATH_KIND;
   if (isDoc(value)) return DOC_KIND;
   if (isErrorValue(value)) return RAISED_KIND;
-  const kind = typeOf(value);
+  const kind = tagOf(value);
   if (kind === CORE_KIND.vec) return VECTOR_KIND;
   if (kind === CORE_KIND.map) return MAP_KIND;
   if (kind.name === SET_TAG_NAME) return SET_KIND;

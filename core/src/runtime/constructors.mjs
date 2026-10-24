@@ -2,8 +2,7 @@
 
 import { registerPrimitive } from '../primitives.mjs';
 import {
-  isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeTagged, makeTrace, holdsNoOtherTag, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
+  isVec, isMap, isNumber, isDocSegment, makeDoc, makeTrace, holdsNoOtherTag, BUILTIN_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -33,40 +32,31 @@ const TagPayloadKindNotTakenError       = declareRefusal('tag/PayloadKindNotTake
 const VecPayloadKindNotTakenError       = declareRefusal('vec/PayloadKindNotTakenError');
 const MapPayloadKindNotTakenError       = declareRefusal('map/PayloadKindNotTakenError');
 
-function coreKindConstructor(isOfKind, ErrorCls) {
+function refusalOfAnotherKind(ErrorCls) {
   const expected = kindsExpected(ErrorCls.prototype.address.split('/')[0]);
   return payload => {
-    if (!isOfKind(payload)) throw new ErrorCls({ expected, actualValue: payload });
-    return payload;
+    throw new ErrorCls({ expected, actualValue: payload });
   };
 }
 
-const isBareVec = payload => isVec(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
-const isBareMap = payload => isMap(payload) && payload[TAG_HEADER_SYMBOL] === undefined;
-
-registerPrimitive('null',    coreKindConstructor(isNull, NullPayloadKindNotTakenError));
-registerPrimitive('boolean', coreKindConstructor(isBoolean, BooleanPayloadKindNotTakenError));
+registerPrimitive('null',    refusalOfAnotherKind(NullPayloadKindNotTakenError));
+registerPrimitive('boolean', refusalOfAnotherKind(BooleanPayloadKindNotTakenError));
 // [QSNUM#arithmetic]
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
-const finiteNumber = coreKindConstructor(isNumber, NumberPayloadKindNotTakenError);
+const NUMBER_EXPECTED = kindsExpected('number');
 registerPrimitive('number', payload => {
-  const number = finiteNumber(payload);
-  if (!Number.isFinite(number)) throw new NumberNotFiniteError({});
-  return number;
+  throw isNumber(payload) ? new NumberNotFiniteError({}) : new NumberPayloadKindNotTakenError({ expected: NUMBER_EXPECTED, actualValue: payload });
 });
-registerPrimitive('string',  coreKindConstructor(isString, StringPayloadKindNotTakenError));
-registerPrimitive('keyword', coreKindConstructor(isKeyword, KeywordPayloadKindNotTakenError));
-registerPrimitive('regex',   coreKindConstructor(isRegex, RegexPayloadKindNotTakenError));
-registerPrimitive('path',    coreKindConstructor(isPath, PathPayloadKindNotTakenError));
-registerPrimitive('tag',     coreKindConstructor(isTag, TagPayloadKindNotTakenError));
-registerPrimitive('vec',     coreKindConstructor(isBareVec, VecPayloadKindNotTakenError));
-registerPrimitive('map',     coreKindConstructor(isBareMap, MapPayloadKindNotTakenError));
+registerPrimitive('string',  refusalOfAnotherKind(StringPayloadKindNotTakenError));
+registerPrimitive('keyword', refusalOfAnotherKind(KeywordPayloadKindNotTakenError));
+registerPrimitive('regex',   refusalOfAnotherKind(RegexPayloadKindNotTakenError));
+registerPrimitive('path',    refusalOfAnotherKind(PathPayloadKindNotTakenError));
+registerPrimitive('tag',     refusalOfAnotherKind(TagPayloadKindNotTakenError));
+registerPrimitive('vec',     refusalOfAnotherKind(VecPayloadKindNotTakenError));
+registerPrimitive('map',     refusalOfAnotherKind(MapPayloadKindNotTakenError));
 
 // [QSERR#rest]
 registerPrimitive('error', facts => facts);
-
-// [QSORD#desc]
-registerPrimitive('desc', payload => makeTagged(DESC_TAG, payload));
 
 // [QSSLF#doc]
 const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');

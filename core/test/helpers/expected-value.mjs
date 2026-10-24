@@ -1,23 +1,22 @@
-// [QSERR#print]
+// [QSREQ#cases]
 
 import { evalQuery } from '../../src/notebook.mjs';
 import { factsWithTheirTrace } from '../../src/eval.mjs';
-import { parseSource } from '../../src/parse.mjs';
-import { partOf } from '../../src/parsed-parts.mjs';
-import { isCallStep } from '../../src/steps.mjs';
+import { printValue } from '../../src/print-value.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/lang-runtime.mjs';
-import { beneathTags, makeErrorValue, typeOf } from '../../src/types.mjs';
+import { beneathTags, isErrorValue, makeErrorValue, tagOf } from '../../src/types.mjs';
 
-export async function expectedValueOf(expectSource) {
-  const literal = raisedLiteralOf(parseSource(expectSource));
-  if (literal === null) return await evalQuery(expectSource);
-  const atRest = await evalQuery(expectSource.slice(literal.span.start.offset, literal.span.end.offset));
-  const facts = await factsWithTheirTrace(new Map(beneathTags(atRest)), rootState(atRest, await langRuntime()));
-  return makeErrorValue(typeOf(atRest), facts);
-}
+export const writtenLiteralOf = test => test.raises ?? test.expect;
 
-export function raisedLiteralOf(quote) {
-  const raises = quote.length === 2 && isCallStep(quote[1]) && quote[1].get('name').name === 'raise' && !quote[1].has('modifiers');
-  return raises ? partOf(quote).parts[0] : null;
+const withoutLayout = text => text.replace(/\s+/g, ' ').replace(/([[{(]) /g, '$1').replace(/ ([\]})])/g, '$1').trim();
+
+export const writtenAnswerOf = test => `${test.raises === undefined ? '' : 'raises '}${withoutLayout(writtenLiteralOf(test))}`;
+export const printedAnswerOf = answer => `${isErrorValue(answer) ? 'raises ' : ''}${withoutLayout(printValue(answer))}`;
+
+export async function expectedValueOf(test) {
+  const literal = await evalQuery(writtenLiteralOf(test));
+  if (test.raises === undefined) return literal;
+  const facts = await factsWithTheirTrace(new Map(beneathTags(literal)), rootState(literal, await langRuntime()));
+  return makeErrorValue(tagOf(literal), facts);
 }

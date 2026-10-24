@@ -10,7 +10,7 @@
 {"name":"a-colon-before-a-bare-name-changes-nothing-it-reads","query":"{:name 42} | get /:name","expect":"42"}
 {"name":"every-key-of-a-path-may-stand-behind-a-colon-of-its-own","query":"{:a {:b 42}} | get /:a/:b","expect":"42"}
 {"name":"a-word-of-the-literals-is-a-key-a-path-reads","query":"{:null 42} | get /null","expect":"42"}
-{"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | type","expect":"::path"}
+{"name":"a-path-at-the-head-is-the-subject","query":"/items/1 | tag","expect":"::path"}
 {"name":"a-path-prints-as-written","query":"/items/1 | print","expect":"\"/items/1\""}
 {"name":"json-writes-a-path-as-its-literal","query":"/items/1 | json","expect":"\"\\\"/items/1\\\"\""}
 {"name":"two-paths-are-equal-when-their-segments-are","query":"[/a/0 /a/0 /a/1] | distinct | count","expect":"2"}

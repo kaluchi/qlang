@@ -2,7 +2,7 @@
 
 import { registerPrimitive } from '../primitives.mjs';
 import {
-  makePath, makeTag, isMap, isVec, isSet, isTagged, makeTagged, beneathTags, payloadBeneath, typeOf, TAG_HEADER_SYMBOL
+  makePath, makeTag, isMap, isVec, isSet, isTagged, makeTagged, beneathTags, payloadBeneath, tagOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { makeSet, compareValues } from '../ordering.mjs';
 
@@ -20,7 +20,7 @@ registerPrimitive('any/paths', subject => {
     const value = top ? beneathTags(current) : current;
     const parts = !isOpened(value, top) ? [] : isMap(value) ? [...value] : value.map((element, index) => [String(index), element]);
     if (parts.length === 0) {
-      if (!top) found.push(Object.freeze([makePath(segments), typeOf(value)]));
+      if (!top) found.push(Object.freeze([makePath(segments), tagOf(value)]));
       return;
     }
     for (const [segment, part] of parts) walk(part, [...segments, segment]);
@@ -31,7 +31,7 @@ registerPrimitive('any/paths', subject => {
 
 function shapeOf(current, top) {
   const value = top ? beneathTags(current) : current;
-  if (!isOpened(value, top)) return typeOf(value);
+  if (!isOpened(value, top)) return tagOf(value);
   if (isMap(value)) {
     const shapes = new Map([...value].map(([key, part]) => [key, shapeOf(part, false)]));
     return foldedOf(value, shapes) ?? shapes;
@@ -71,7 +71,7 @@ const leastOf = keys => [...keys].sort(compareValues)[0];
 
 registerPrimitive('any/shape', subject => makeTagged(SHAPE_TAG, shapeOf(subject, true)));
 
-const NULL_KIND = typeOf(null);
+const NULL_KIND = tagOf(null);
 const isMark = (value, tag) => isTagged(value) && value[TAG_HEADER_SYMBOL].name === tag.name;
 
 function marksOf(shape) {

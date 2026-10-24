@@ -6,7 +6,7 @@ import { toPlain, fromPlain } from '../../../src/runtime/json.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 import { declareRefusal, declareDefect } from '../../../src/errors.mjs';
 import { WITHHELD_KEY } from '../../../src/scope-keys.mjs';
-import { makeKeyword, makeTag, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, isErrorValue, isMap } from '../../../src/types.mjs';
+import { makeKeyword, makeTag, makeErrorValue, makeBinding, tagOf, accountOfForeign, BuiltinForeignValueError, isErrorValue, isMap } from '../../../src/types.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../../helpers/values-at-the-door.mjs';
 import { errorFromQlang, errorFromForeign } from '../../../src/error-convert.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
@@ -51,7 +51,7 @@ beforeAll(async () => {
 });
 
 const answerOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb}`)).result;
-const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(type) /message]`)).result;
+const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(tag) /message]`)).result;
 const doorRefusal = (address, path, account) =>
   [HOST_FAILURE, `the answer of ::${address} ${path === '' ? 'is' : `holds at ${path}`} ${account}, a value of no kind of the language`];
 
@@ -95,9 +95,9 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     const index = answering(cached);
     expect((await notebook.evalCell(`${index} | answer | count`)).result).toBe(2);
     cached.push(function leaked() {});
-    expect((await notebook.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
     cached[2] = cached;
-    expect((await notebook.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
   it('passes back unwalked a value the call handed in', async () => {
@@ -116,7 +116,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
       deepest = [deepest];
     }
     expect(await answerOf(nested)).toBe(nested);
-    expect((await notebook.evalCell(`${answering(deepest)} | answer !| type`)).result).toEqual(HOST_FAILURE);
+    expect((await notebook.evalCell(`${answering(deepest)} | answer !| tag`)).result).toEqual(HOST_FAILURE);
   });
 
   it('holds an answer a primitive waits on as it holds any', async () => {
@@ -130,8 +130,8 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
-    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(type) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
-    expect((await notebook.evalCell(`${answering(undefined)} | refuse !| type`)).result).toEqual(makeTag('any/refuse/RefusedError'));
+    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
+    expect((await notebook.evalCell(`${answering(undefined)} | refuse !| tag`)).result).toEqual(makeTag('any/refuse/RefusedError'));
     expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/actualValue', 'object Object'));
     expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/actualValue', 'object Object'));
   });
@@ -142,7 +142,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
-    expect((await notebook.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
+    expect((await notebook.evalCell('::Raw[1] !| get [~(tag) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
     expect((await notebook.evalCell('::Kept[1] | payload')).result).toEqual([1]);
     expect((await notebook.evalCell('::Counted[7] | payload')).result).toBe(1);
   });
@@ -153,13 +153,13 @@ describe('a primitive of the core runs within the function its host handed it wi
 
   it('refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
     for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
-      expect((await notebook.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('fn/RecipeMissingError'));
+      expect((await notebook.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| tag`)).result).toEqual(makeTag('fn/RecipeMissingError'));
     }
   });
 
   it('brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
     for (const fn of ['(::number/add | binding | get /value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
-      expect((await notebook.evalCell(`1e308 | apply ${fn} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
+      expect((await notebook.evalCell(`1e308 | apply ${fn} [1e308] !| tag`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
   });
 });
@@ -177,7 +177,7 @@ describe('the second door: what a host hands where the core takes it', () => {
 
   it('raises each value of no kind as the subject of a cell, naming it as JavaScript holds it', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
-      const cell = await notebook.evalCell('type', { initialPipeValue: value });
+      const cell = await notebook.evalCell('tag', { initialPipeValue: value });
       expect([cell.result, cell.defect], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
       expect(cell.defect.facts, account).toEqual({ actualValue: account });
       expect(cell.defect.message).toBe(`the core met ${account}, a value of no kind of the language`);
@@ -194,7 +194,7 @@ describe('the second door: what a host hands where the core takes it', () => {
   });
 
   it('reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
-    expect((await notebook.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
+    expect((await notebook.evalCell('get [~(tag) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
     expect((await notebook.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
 
@@ -207,9 +207,9 @@ describe('the second door: what a host hands where the core takes it', () => {
 describe('a value of no kind the core meets where it reads a kind or writes a number', () => {
   it('raises an object of no kind of the core where its kind is read, and reads every number of JavaScript as a number', () => {
     for (const value of [function named() {}, { a: 1 }, new Date(0), 5n, Symbol('s')]) {
-      expect(() => typeOf(value)).toThrow(BuiltinForeignValueError);
+      expect(() => tagOf(value)).toThrow(BuiltinForeignValueError);
     }
-    expect([Infinity, NaN, -0].map(typeOf)).toEqual([makeTag('number'), makeTag('number'), makeTag('number')]);
+    expect([Infinity, NaN, -0].map(tagOf)).toEqual([makeTag('number'), makeTag('number'), makeTag('number')]);
   });
 
   it('raises a number past the finite doubles where the printer and the codec of JSON write it, and ranks it in the one order', () => {
@@ -280,7 +280,7 @@ it('leaves out a fact its site hands as undefined', async () => {
   const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
   expect(errorVal.facts.has('index')).toBe(false);
   expect(errorVal.facts.get('actualValue')).toBe(null);
-  expect(errorVal.facts.get('actualType')).toEqual(makeTag('null'));
+  expect(errorVal.facts.get('actualTag')).toEqual(makeTag('null'));
 });
 
 describe('the answer of a primitive a host hands', () => {
@@ -307,9 +307,9 @@ describe('the answer of a primitive a host hands', () => {
         primitives: { 'any/past': () => Infinity, 'any/pastOne': () => Infinity }
       }]
     });
-    expect((await s.evalCell('1 | past !| get [~(type) /message]')).result)
+    expect((await s.evalCell('1 | past !| get [~(tag) /message]')).result)
       .toEqual(await evalQuery('[::call/HostFailureError "the answer of ::any/past is number Infinity, a value of no kind of the language"]'));
-    expect((await s.evalCell('1 | pastOne !| type')).result).toEqual(await evalQuery('::call/HostFailureError'));
+    expect((await s.evalCell('1 | pastOne !| tag')).result).toEqual(await evalQuery('::call/HostFailureError'));
   });
 });
 
@@ -326,7 +326,7 @@ it('lifts an error of JavaScript and any other value a primitive throws to a fai
   expect(entry.result.tag.name).toBe('call/HostFailureError');
   expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
   expect(entry.result.facts.get('message')).toBe('raw boom');
-  expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
+  expect((await s.evalCell('42 | hollow !| get [~(tag) /message ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
 });
 
 it('a parsed document lifts into the same map a literal reads into', async () => {
@@ -396,7 +396,7 @@ describe('a number past the doubles, refused by the printer and the codec of JSO
 });
 
 it('reads no kind of an object of JavaScript, a value of no kind of the language', () => {
-  expect(() => typeOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
+  expect(() => tagOf({ type: 'alien' })).toThrow('the core met object Object, a value of no kind of the language');
 });
 
 it('the printer refuses a value of no kind of the language where it reads its kind', () => {
@@ -417,7 +417,7 @@ describe('a notebook takes what its host hands by the scan of the door', () => {
   it('answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
     const sessionInstance = await createNotebook();
     for (const [value, , account] of valuesOfNoKind()) {
-      const cell = await sessionInstance.evalCell(':late 1 | type', { initialPipeValue: value });
+      const cell = await sessionInstance.evalCell(':late 1 | tag', { initialPipeValue: value });
       expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
       expect(cell.scopeAfterCell.has('late')).toBe(false);
     }

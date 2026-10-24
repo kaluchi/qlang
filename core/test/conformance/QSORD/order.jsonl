@@ -8,22 +8,22 @@
 {"name":"sort-orders-maps-by-keys-then-values","query":"[{:b 1} {:a 2} {:a 1}] | sort","expect":"[{:a 1} {:a 2} {:b 1}]"}
 {"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]"}
 {"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]"}
-{"name":"sort-orders-errors-at-rest-by-tag-then-fields","query":"[::B::error{} ::error{:k 2} ::error{:k 1}] | sort","expect":"[::B::error{} ::error{:k 1} ::error{:k 2}]"}
+{"name":"sort-orders-errors-at-rest-by-tag-then-fields","query":"[::B::error{} ::error{:k 2} ::error{:k 1}] | sort","expect":"[::B!{} !{:k 1} !{:k 2}]"}
 {"name":"sort-ranks-an-elision-among-the-tags-by-its-name","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::Z[1] ::elision{:size 1} ::elision{:size 2}]"}
 {"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]"}
 {"name":"sort-orders-tagged-atoms-by-payload","query":"[::A#2 ::A#1] | sort","expect":"[::A#1 ::A#2]"}
 {"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]"}
 {"name":"sort-keeps-equal-maps","query":"[{:a 1} {:a 1}] | sort","expect":"[{:a 1} {:a 1}]"}
 {"name":"the-one-order-ranks-paths-by-their-segments","query":"[/b /a/c /a] | sort | map ~(print)","expect":"[\"/a\" \"/a/c\" \"/b\"]"}
-{"name":"the-one-order-ranks-a-path-after-a-tag-name","query":"[/a ::T :k] | sort | map ~(type)","expect":"[::keyword ::tag ::path]"}
+{"name":"the-one-order-ranks-a-path-after-a-tag-name","query":"[/a ::T :k] | sort | map ~(tag)","expect":"[::keyword ::tag ::path]"}
 {"name":"sort-orders-numbers-by-their-value","query":"[3 1 4 1 5 9 2 6] | sort","expect":"[1 1 2 3 4 5 6 9]"}
 {"name":"sort-orders-strings-by-their-text-whatever-their-length","query":"[\"charlie\" \"alice\" \"bob\"] | sort","expect":"[\"alice\" \"bob\" \"charlie\"]"}
-{"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 ::error{:k 1}]"}
+{"name":"sort-ranks-an-error-at-rest","query":"[2 ::error{:k 1} 1] | sort","expect":"[1 2 !{:k 1}]"}
 {"name":"regexes-rank-after-strings-by-text-then-flags","query":"[:k #\"b\" \"z\" #\"a\"i #\"a\" 1] | sort","expect":"[1 \"z\" #\"a\" #\"a\"i #\"b\" :k]"}
 {"name":"paths-rank-segment-by-segment-an-index-as-its-text","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
 {"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
-{"name":"a-desc-and-an-elision-rank-after-a-doc-by-the-names-of-their-tags","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type","expect":"[::map ::quote ::doc ::desc ::elision]"}
+{"name":"a-desc-and-an-elision-rank-after-a-doc-by-the-names-of-their-tags","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag","expect":"[::map ::quote ::doc ::desc ::elision]"}
 {"name":"quotes-rank-by-their-steps","query":"[~(b) ~(a | b) ~(a)] | sort","expect":"[~(a) ~(a | b) ~(b)]"}
 {"name":"strings-order-by-their-code-points-as-they-count","query":"[\"😀\" \"ﬁ\" \"a\" \"👍\"] | sort","expect":"[\"a\" \"ﬁ\" \"👍\" \"😀\"]"}
 {"name":"a-comparison-of-strings-reads-their-code-points","query":"get [~(\"😀\" | gt \"ﬁ\") ~(\"ﬁ\" | lt \"😀\") ~(\"😀\" | gt \"a\")]","expect":"[true true true]"}

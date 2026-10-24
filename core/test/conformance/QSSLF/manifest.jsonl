@@ -13,12 +13,12 @@
 {"name":"the-answer-of-a-verb-is-a-node-under-it","query":"::number/add | manifest | has ::number/add/answer","expect":"true"}
 {"name":"the-answer-of-a-verb-stands-under-answer","query":"::any/eq | manifest | has ::any/eq/answer","expect":"true"}
 {"name":"a-fan-out-over-kinds-answers-each-kind-beside-its-verbs","query":"[::vec ::any] | map ~(get [~(it) ~(manifest)]) | map ~(get [/0 ~(get /1 | has ::vec/count)])","expect":"[[::vec true] [::any false]]"}
-{"name":"manifest-answers-the-nodes-of-a-topic-as-tag-names","query":"::qlang | manifest | every ~(type | eq ::tag)","expect":"true"}
+{"name":"manifest-answers-the-nodes-of-a-topic-as-tag-names","query":"::qlang | manifest | every ~(tag | eq ::tag)","expect":"true"}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
 {"name":"the-chapters-are-nodes-under-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
 {"name":"an-input-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
 {"name":"an-input-of-several-kinds-lists-their-refusal","query":"get [~(::vec/sort | binding | get /value | inputs | map /kinds) ~(::vec/sort/key | manifest)]","expect":"[[#[::null ::path ::quote]] #[::vec/sort/key/KindNotTakenError]]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
-{"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(type) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
+{"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(tag) /name]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
 {"name":"the-topic-lists-the-refusal-of-an-answer-past-the-budget","query":"::qlang | manifest | has ::qlang/AnswerBeyondBudgetError","expect":"true"}

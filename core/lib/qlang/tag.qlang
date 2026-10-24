@@ -8,8 +8,8 @@
       it: `[1 2]` is of `::vec`, `::Box[1 2]` a vector under `::Box`.
       Taken alone, `::Box` is a value of this kind, the name a query
       asks about the kind: `::vec | doc` reads its page and
-      `::vec | manifest` lists what lies under it, and `type` answers
-      the tag of any value, `[1 2] | type` answering `::vec`.
+      `::vec | manifest` lists what lies under it, and `tag` answers
+      the tag of any value, `[1 2] | tag` answering `::vec`.
 
       It is written `::` and a name, a slash joining names into an
       address, `::vec/count`; a tag that touches a payload puts the
@@ -21,30 +21,30 @@
       keywords and before paths, and JSON writes a tag as its literal,
       `"::Box"`.
       ::snippet~(kinds) lists the kinds the scope reads, and
-      ::snippet~(::Box::Crate{:a 1} | type) answers the outer tag.
+      ::snippet~(::Box::Crate{:a 1} | tag) answers the outer tag.
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
     | wraps |~~ A tag name, read as itself. ~~|
     | throws :PayloadKindNotTakenError
         |~~ `::tag` reads its payload as the tag name it is; a value's own
-            tag is read by `type`.
+            tag is read by `tag`.
         ~~|
     | proves :isATag
         |~~ A tag name is a value of `::tag`. ~~|
-        ~(::Box | type | eq ::tag)
+        ~(::Box | tag | eq ::tag)
     | proves :namesAPage
         |~~ The tag of a kind names its page. ~~|
-        ~(5 | type | doc | type | eq ::doc)
+        ~(5 | tag | doc | tag | eq ::doc)
     | proves :namesNothingUndeclared
         |~~ A tag no declaration answers names no record. ~~|
-        ~(::Unbound[1] | type | binding !| type | eq ::any/binding/UnknownNameError)
+        ~(::Unbound[1] | tag | binding !| tag | eq ::any/binding/UnknownNameError)
     | proves :readsATagNameAsItself
         |~~ `::tag` over a tag name is that name. ~~|
         ~(::tag::Box | eq ::Box)
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [~(type) /actualType] | eq [::tag/PayloadKindNotTakenError ::keyword])
+        ~(::tag:k !| get [~(tag) /actualTag] | eq [::tag/PayloadKindNotTakenError ::keyword])
     | impl ::builtin{}
 
 :tag/toString
@@ -62,7 +62,7 @@
 
 :tag/toKeyword
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
-      answering `:Box`, as `groupBy ~(type)` files values by their kinds.
+      answering `:Box`, as `groupBy ~(tag)` files values by their kinds.
       `toTag` turns the keyword back into the tag.
       ::link~(::keyword/toTag | doc)
   ~~|

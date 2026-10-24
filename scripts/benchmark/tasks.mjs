@@ -60,7 +60,7 @@ export const TASKS = [
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)) | get [~(::Small#3 | type) ~(::Small#12 | ok | not !| true)]",
+    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)) | get [~(::Small#3 | tag) ~(::Small#12 | ok | not !| true)]",
     answer: "[::Small true]"
   },
   {
@@ -72,7 +72,7 @@ export const TASKS = [
   {
     id: 'L4',
     question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
-    reference: "\"a\" | mul 2 !| get [~(type) /actualType]",
+    reference: "\"a\" | mul 2 !| get [~(tag) /actualTag]",
     answer: "[::number/mul/SubjectNotNumberError ::string]"
   },
   {
@@ -84,7 +84,7 @@ export const TASKS = [
   {
     id: 'L6',
     question: 'put the vector [7 8] under the tag ::Inner and that under the tag ::Outer, and answer a vector of the kind of the result and its second element.',
-    reference: "::Outer::Inner[7 8] | get [~(type) /1]",
+    reference: "::Outer::Inner[7 8] | get [~(tag) /1]",
     answer: "[::Outer 8]"
   },
   {
@@ -122,8 +122,8 @@ export const TASKS = [
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | manifest | filter ~(binding | get /value | type | eq ::fn) | sort | map ~(get [~(it) ~(doc | content)])',
-    answer: '::string | manifest | filter ~(binding | get /value | type | eq ::fn) | map ~(get [~(it) ~(doc | content)]) | sort'
+    reference: '::string | manifest | filter ~(binding | get /value | tag | eq ::fn) | sort | map ~(get [~(it) ~(doc | content)])',
+    answer: '::string | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(get [~(it) ~(doc | content)]) | sort'
   },
   {
     id: 'N3',
@@ -134,7 +134,7 @@ export const TASKS = [
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | manifest | filter ~(binding | get /value | type | eq ::fn) | map ~(laws | count) | sum',
-    answer: '::vec | manifest | filter ~(binding | get /value | type | eq ::fn) | map ~(runLaws | count) | sum'
+    reference: '::vec | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(laws | count) | sum',
+    answer: '::vec | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(runLaws | count) | sum'
   }
 ];

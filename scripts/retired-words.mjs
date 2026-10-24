@@ -18,7 +18,7 @@ export const RETIRED_WORDS = [
   { regex: /\bisWord\b/, written: 'whether a name under a label is a verb, `isVerb`', by: 'D352' },
   { regex: /\bdeclaresWord\b/, written: 'whether a declaration declares a verb, `declaresVerb`', by: 'D352' },
   { regex: /\bfn\/params\b|[|~]\s*params\b|~\(\s*params\b|`params`/, written: 'the inputs a function declares, `inputs`', by: 'D352' },
-  { regex: /\btypeKeyword\b/, written: 'the kind of a value, the tag `type` answers, `typeOf`', by: 'D352' },
+  { regex: /\btypeKeyword\b/, written: 'the kind of a value, the tag `tag` answers, `tagOf`', by: 'D352' },
   { regex: /::any\/source\/name\b|\bsource\/name\/KindNotTakenError\b/, written: 'the anchor `source` takes, `::any/source/anchor`, refused as `source/anchor/KindNotTakenError`', by: 'D352' },
   { regex: /::boolean\/(?:and|or)\/right\b|\b(?:and|or)\/right\/KindNotTakenError\b/, written: 'the condition `and` and `or` take, `::boolean/and/condition`, refused as `and/condition/KindNotTakenError`', by: 'D352' },
   { regex: /::holds\b|\bqlang\/holds\b/, written: 'the kind of an invariant, `::invariant`, which the command `holds` writes', by: 'D357' },
@@ -101,4 +101,6 @@ export const RETIRED_WORDS = [
   { regex: /\b[mM]arkers?\b|(?<=[a-z])Markers?\b/, written: 'the opener or the closer of a comment or a doc, the start or the end sequence of a paste, the bounds of a fold, the words of unfinished work, and an elision of a view, `::elision`', by: 'D433' },
   { regex: /\bwalk\.mjs\b|\bwalkParts\b|\bwalkSourceTree\b|\bwalkRefusalScanRoots\b|\bwalks?[\s-]+of[\s-]+the[\s-]+door\b/, written: 'the parts the parser keeps, `core/src/parsed-parts.mjs` and `forEachPart`, the scan of the door, and the files a script lists, `sourceFilesUnder` and `refusalScanFiles`, walk naming the walk of the tags of a value alone', by: 'D436' },
   { regex: /::(?:fn|kind)\/[a-z]+\/objects\b|\bobjectNotTaken\b/, written: 'what a command of a chain takes, its modifiers as written, the input `modifiers` of its verb, `modifierNotTaken`', by: 'D440' },
+  { regex: /\btypeOf\b/, written: 'the tag of a value, the tag `tag` answers, `tagOf`', by: 'D442' },
+  { regex: /\b(?:actual|left|right)Type\b/, written: 'the tag a fact of a refusal names, `:actualTag`, and the tags two values part at, `:leftTag` and `:rightTag`', by: 'D442' },
 ];

@@ -11,7 +11,7 @@ describe('what a verb reads and runs as data reads the tree of the query', () =>
 
   it('code held as data reads no value of the reader, past the inputs of a verb of the root', async () => {
     const notebook = await createNotebook({ sources: [runner] });
-    expect((await notebook.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99 !| get [~(type) /name]')).result)
+    expect((await notebook.evalCell(':x 1 | "x" | parse | :q it | null | runIt q 99 !| get [~(tag) /name]')).result)
       .toEqual([makeTag('call/ValueWithheldError'), makeKeyword('x')]);
   });
 
@@ -26,6 +26,6 @@ describe('what a verb reads and runs as data reads the tree of the query', () =>
     const host = { uri: 'host', source: ':pi 3' };
     const notebook = await createNotebook({ sources: [host] });
     expect((await notebook.evalCell(':f ~(pi) | apply f')).result).toBe(3);
-    expect((await notebook.evalCell(':pi 4 | :f ~(pi) | apply f !| type')).result).toEqual(makeTag('call/ValueWithheldError'));
+    expect((await notebook.evalCell(':pi 4 | :f ~(pi) | apply f !| tag')).result).toEqual(makeTag('call/ValueWithheldError'));
   });
 });

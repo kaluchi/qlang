@@ -25,30 +25,31 @@
       ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
-        |~~ The condition its values keep, a quote beneath the tags it is
-            given under.
-        ~~|
-        ::quote
+    | wraps |~~ The condition its values keep, a quote. ~~| ::quote
     | proves :liesUnderItsRefusal
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.
         ~~|
-        ~(::vec/take/count/NotIntegerError | binding | get /value | type | eq ::invariant)
+        ~(::vec/take/count/NotIntegerError | binding | get /value | tag | eq ::invariant)
     | proves :readsThePayloadBeneathTheTag
         |~~ An invariant of a kind's value reads the payload beneath the
             tag, so a verb that keeps its subject's kind runs in it.
         ~~|
-        ~(:Sorted |~~ In order. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| type)] | eq [[1 2] ::Sorted/NotSortedError])
+        ~(:Sorted |~~ In order. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| tag)] | eq [[1 2] ::Sorted/NotSortedError])
     | proves :refusesUnderItsName
         |~~ A value that breaks an invariant is refused under its name. ~~|
-        ~(:Small |~~ Below ten. ~~| (::kind | holds :TooLargeError |~~ A number below ten. ~~| ~(lt 10)) | get [~(::Small#3 | type) ~(::Small#12 !| type)] | eq [::Small ::Small/TooLargeError])
+        ~(:Small |~~ Below ten. ~~| (::kind | holds :TooLargeError |~~ A number below ten. ~~| ~(lt 10)) | get [~(::Small#3 | tag) ~(::Small#12 !| tag)] | eq [::Small ::Small/TooLargeError])
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ An invariant is a quote. ~~|
-        ~(::invariant#5 !| type | eq ::invariant/PayloadKindNotTakenError)
-    | proves :isWrittenInAChainBeneathItsTags
-        |~~ An invariant declared by a name is refused, under whatever tags
-            its condition stands.
+        ~(::invariant#5 !| tag | eq ::invariant/PayloadKindNotTakenError)
+    | proves :isWrittenInAChain
+        |~~ An invariant declared by a name is refused: it is written in a
+            chain.
         ~~|
-        ~(:Positive ::invariant::Foo~(gt 0) !| type | eq ::bind/WrittenOutsideItsChainError)
+        ~(:Positive ::invariant~(gt 0) !| tag | eq ::bind/WrittenOutsideItsChainError)
+    | proves :holdsAQuoteByItsOwnTag
+        |~~ The condition of an invariant is a quote, a quote under another
+            tag refused.
+        ~~|
+        ~(::invariant::Foo~(gt 0) !| get [~(tag) /actualTag] | eq [::invariant/PayloadKindNotTakenError ::Foo])
 

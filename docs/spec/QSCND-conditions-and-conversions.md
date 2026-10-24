@@ -12,12 +12,12 @@ them alike [QSORD#order]: a keyword is not its string, a vector is not
 the set of its elements, and two maps of the same entries are equal
 whatever the order of their keys. `gt`, `gte`, `lt` and `lte` reside on
 `::any` and compare the subject with the `:value` the call gives, a value
-of its kind as `type` answers it, by the one order, so `a | gt b` answers
+of its kind as `tag` answers it, by the one order, so `a | gt b` answers
 `true` exactly where `sort` puts `b` before `a`, and `gte` with `lte`
 exactly where `eq` does. The order ranks every value, the kinds among
 themselves, while a comparison relates two values of one kind: a pair of
 two kinds is refused as the pair, `::call/KindsMismatchedError`, its
-facts the two kinds, `:leftType` and `:rightType`, a value under a tag
+facts the two kinds, `:leftTag` and `:rightTag`, a value under a tag
 compared with a value of its payload's kind by `payload`, and text that
 holds a number with a number by `toNumber`. A comparison takes one value,
 two fields of one record compared through a name. Null is tested with
@@ -33,10 +33,10 @@ true
 > [null 1] | filter ~(eq null)
 [null]
 
-> get [~(5 | gt "a" !| type) ~(true | gt false !| type)]
+> get [~(5 | gt "a" !| tag) ~(true | gt false !| tag)]
 [::call/KindsMismatchedError true]
 
-> get [~([1 "a"] | max !| type) ~([1 "a"] | sort) ~("a" | gt 1 !| type) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftType /rightType])]
+> get [~([1 "a"] | max !| tag) ~([1 "a"] | sort) ~("a" | gt 1 !| tag) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftTag /rightTag])]
 [::call/KindsMismatchedError [1 "a"] ::call/KindsMismatchedError [::Cents ::Dollars]]
 
 > get [~(#"a"i | eq #"a"i) ~(#"a"i | eq #"a") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]
@@ -66,16 +66,16 @@ such index, and an error computed at the call at its own, the conditions
 computed in their order before their kinds are read [QSQUO#modifier].
 
 ```qlang
-> 5 | if 1 ~(1) ~(2) !| type
+> 5 | if 1 ~(1) ~(2) !| tag
 ::any/if/condition/KindNotTakenError
 
-> true | and 1 !| type
+> true | and 1 !| tag
 ::boolean/and/condition/KindNotTakenError
 
 > {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
 false
 
-> 5 | allOf ~(1) !| get [~(type) /index]
+> 5 | allOf ~(1) !| get [~(tag) /index]
 [::any/allOf/ConditionKindNotTakenError 0]
 
 > 5 | allOf ~(true | tag ::Ok)
@@ -127,10 +127,10 @@ true
 > {:a -1 :b 2} | any ~(gt 0)
 true
 
-> get [~(#[true 1] | every ~(it) !| type) ~(42 | any ~(gt 0) !| get /addresses)]
+> get [~(#[true 1] | every ~(it) !| tag) ~(42 | any ~(gt 0) !| get /addresses)]
 [::vec/every/ConditionKindNotTakenError #[::map/any ::vec/any]]
 
-> {:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | path)]
+> {:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]
 [::map/every/ConditionKindNotTakenError /b]
 ```
 
@@ -163,13 +163,13 @@ unrun.
 > [{:t 45} {:t null}] | map ~(query /t | coalesce 30)
 [45 30]
 
-> get [~({:t null} | coalesce (get /t) 30 !| type) ~(9000 | coalesce ~(it) 7000 8080) ~({:t null} | coalesce /t 30)]
+> get [~({:t null} | coalesce (get /t) 30 !| tag) ~(9000 | coalesce ~(it) 7000 8080) ~({:t null} | coalesce /t 30)]
 [::any/coalesce/alternatives/ValuesAloneError 9000 30]
 
-> {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| type) ~(coalesce ~(get /items | first | get /cost) 0)]
+> {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| tag) ~(coalesce ~(get /items | first | get /cost) 0)]
 [::path/KeyNotInMapError 0]
 
-> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| type) ~({:a ::T#null} | coalesce /a 0)]
+> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| tag) ~({:a ::T#null} | coalesce /a 0)]
 [0 ::call/UnknownNameError 0]
 ```
 
@@ -195,8 +195,10 @@ subject and the kind it does not become, `toNumber` as
 `toSet`
 answers the elements of a vector in the one order without duplicates, as
 the constructor of `::set` builds them, `distinct` answering as it does,
-while a set beneath a tag, which that constructor refuses, answers
-itself under the tag; `toVec` answers the elements of a set in its order;
+while a set beneath a tag, of `::set` already, answers itself under the
+tag; `toVec` answers the vector a set, a quote and a doc hold, the
+elements of a set in its order, the steps of a quote and the segments of
+a doc, the tags over the subject taken off with its own;
 `toMap` reads pairs, the last pair of a key holding, an element that is no
 pair refused at its index and a key of another kind as
 `::vec/toMap/KeyKindNotTakenError` at the key of its pair, its `:expected`
@@ -208,35 +210,39 @@ into text and a keyword one way. A container's texts are `print` and
 `json`, the `:nearest` of `toString` over a vector, a set and a map
 `[:json :print]`, the text of a doc is its `content`, and a map's parts
 are read by `entries`, `keys` and `vals`.
-`desc`, a verb of any value whose recipe is the one step `tag ::desc`,
-puts a value under `::desc`, so `::Box#5 | desc` answers `::desc::Box#5`
-[QSORD#desc].
+`tag ::K` converts nothing, a value of `::K` already standing as it is
+[QSLIT#tag]. `desc`, a verb of any value, turns its subject, its recipe
+taking `::desc` off a value under it and laying it over any other, so
+`::Box#5 | desc` answers `::desc::Box#5` [QSORD#desc].
 
 ```qlang
 > "42" | toNumber
 42
 
-> ["4x" ""] | map ~(toNumber !| type)
+> ["4x" ""] | map ~(toNumber !| tag)
 [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]
 
 > [42 :a ::vec true null ~(add 1 | mul 2)] | map ~toString
 ["42" "a" "vec" "true" "null" "add 1 | mul 2"]
 
-> get [~(:"a b" | toTag !| type) ~("a b" | toTag !| type) ~(#"a" | toString !| type)]
+> get [~(:"a b" | toTag !| tag) ~("a b" | toTag !| tag) ~(#"a" | toString !| tag)]
 [::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError ::call/KindAnswersNoVerbError]
 
-> get [~(::Box#[2 1] | toSet) ~(::Box#[2 1] | tag ::set !| type) ~([2 1 2] | distinct) ~(::W#5 | toNumber)]
-[::Box#[1 2] ::set/PayloadKindNotTakenError #[1 2] ::W#5]
+> get [~(::Box#[2 1] | toSet) ~(::Box#[2 1] | tag ::set !| tag) ~([2 1 2] | distinct) ~(::W#5 | toNumber)]
+[::Box#[1 2] ::Box#[1 2] #[1 2] ::W#5]
+
+> get [~(::Box#[2 1] | toVec) ~(::Box~(add 1 | mul 2) | toVec | tag) ~(|~~ a ~(b) ~~| | toVec)]
+[[1 2] ::vec ["a " ~(b)]]
 
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(type) ~(trace | last | path) /expected]
+> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) /expected]
 [::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
-> [1] | toKeyword !| type
+> [1] | toKeyword !| tag
 ::call/KindAnswersNoVerbError
 
 > get [~(::Box#5 | desc) ~(::any/desc | binding | get /value | get /1)]
-[::desc::Box#5 ~(tag ::desc)]
+[::desc::Box#5 ~(if (tag | eq ::desc) ~(payload) ~(tag ::desc))]
 ```

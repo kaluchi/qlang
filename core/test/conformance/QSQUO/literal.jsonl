@@ -5,8 +5,8 @@
 {"name":"the-empty-quote-is-a-value-as-written","query":"~()","expect":"~()"}
 {"name":"a-quote-of-a-keyword-is-a-value-as-written","query":"~(:foo)","expect":"~(:foo)"}
 {"name":"a-quote-of-a-literal-across-lines-is-a-value-as-written","query":"~({\n  :a 1\n  :b 2\n})","expect":"~({\n  :a 1\n  :b 2\n})"}
-{"name":"a-quote-whose-content-reads-as-no-pipeline-is-refused","query":"\"~( , )\" | parse !| type","expect":"::quote/ParseError"}
-{"name":"quote-type-answers-quote","query":"~(mul 2) | type | eq ::quote","expect":"true"}
+{"name":"a-quote-whose-content-reads-as-no-pipeline-is-refused","query":"\"~( , )\" | parse !| tag","expect":"::quote/ParseError"}
+{"name":"the-tag-of-a-quote-is-quote","query":"~(mul 2) | tag | eq ::quote","expect":"true"}
 {"name":"two-quotes-of-the-same-steps-are-equal","query":"~(mul 2) | eq ~(mul 2)","expect":"true"}
 {"name":"two-quotes-of-different-steps-differ","query":"~(mul 2) | eq ~(mul 3)","expect":"false"}
 {"name":"quote-equality-ignores-spacing","query":"~(mul 2) | eq ~(mul  2)","expect":"true"}

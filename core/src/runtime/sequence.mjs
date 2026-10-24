@@ -1,6 +1,6 @@
 // [QSBLD#fn], [QSDSP#walk], [QSORD#order], [QSDSP#residence], [QSCOL#map], [QSTXT#string], [QSERR#site]
 
-import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, typeOf, TagsInCommon, pairRefused } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, tagOf, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, asCombiner } from '../primitives.mjs';
@@ -116,7 +116,7 @@ async function extremeOf(entries, key, pick) {
   if (ranked.length === 0) return NULL;
   let best = ranked[0];
   for (const candidate of ranked.slice(1)) {
-    if (typeOf(ranked[0].sortKey).name !== typeOf(candidate.sortKey).name) throw refusingAPart(pairRefused(ranked[0].sortKey, candidate.sortKey), candidate.entry[0]);
+    if (tagOf(ranked[0].sortKey).name !== tagOf(candidate.sortKey).name) throw refusingAPart(pairRefused(ranked[0].sortKey, candidate.sortKey), candidate.entry[0]);
     if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
   }
   return best.entry[1];

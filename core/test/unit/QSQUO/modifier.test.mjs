@@ -38,7 +38,7 @@ describe('the forks of a sequence run in its order', () => {
 });
 
 it('a call hands on the error a modifier answers', async () => {
-  expect(await evalQuery(BOX + '::Box[4 2] | put (get /missing) !| type')).toEqual(makeTag('path/IndexNotIntegerError'));
+  expect(await evalQuery(BOX + '::Box[4 2] | put (get /missing) !| tag')).toEqual(makeTag('path/IndexNotIntegerError'));
 });
 
 it('computes the modifiers of a call up to the first that answers an error, and runs none after it', async () => {
@@ -46,7 +46,7 @@ it('computes the modifiers of a call up to the first that answers an error, and 
   const notebook = await createNotebook({
     sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
   });
-  expect((await notebook.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
+  expect((await notebook.evalCell('[1 2] | query (get /nope) ("ran" | note) !| tag')).result).toEqual(makeTag('path/IndexNotIntegerError'));
   expect(noted).toBe(0);
 });
 
@@ -58,6 +58,6 @@ it('`tag` hands on an error its modifier answers', async () => {
 
 it('a tag a vector holds beside a value is read through a name of the vector', async () => {
   // [QSNUM#combine]
-  const r = await evalQuery('[42 ::Box] | :pair it | get /0 | tag (pair | get /1) | type');
+  const r = await evalQuery('[42 ::Box] | :pair it | get /0 | tag (pair | get /1) | tag');
   expect(r).toEqual(makeTag('Box'));
 });

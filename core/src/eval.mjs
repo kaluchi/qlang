@@ -10,9 +10,9 @@ import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
-  typeOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
+  tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
-  isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
+  isFn, isKind, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
@@ -375,7 +375,7 @@ async function callByAddress(call, address, modifierSteps, state) {
 // [QSBLD#fn], [QSERR#site]
 function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
   const tag = makeTag(tagName);
-  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualType', typeOf(refused)), scope));
+  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualTag', tagOf(refused)), scope));
 }
 
 function heldByItsKinds({ kinds, each }, refusalOf, value, scope, asGiven = false) {
@@ -485,12 +485,12 @@ async function underTags(value, tags, state) {
 
 // [QSCOL#sequence], [QSCOL#algebra]
 export async function underSharedTags(answer, tagNames, state) {
-  return await underTags(await layTag(typeOf(answer).name, answer, state), tagNames.map(makeTag), state);
+  return await underTags(await layTag(tagOf(answer).name, answer, state), tagNames.map(makeTag), state);
 }
 
 // [QSDSP#answer], [QSSLF#catalog], [QSBLD#answer]
 function keptAsSubject(answer, served, passedTags, state) {
-  const ownKind = typeOf(served).name;
+  const ownKind = tagOf(served).name;
   const reached = walkToKinds(answer, [ownKind]);
   if (reached !== null && passedTags.length === 0) return answer;
   return keptUnderTags(answer, reached, ownKind, passedTags, state);
@@ -509,9 +509,9 @@ function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, stat
   if (returnsItsLabel(kinds, labelName)) {
     if (walkToKinds(answer, [labelName]) !== null) return keptAsSubject(answer, walked.served, walked.passedTags, state);
     const keeping = () => keptOfTheLabel(answer, labelName, walked, refused, state);
-    return typeOf(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
+    return tagOf(walked.served).name === labelName ? answerMadeBy(labelName, keeping, refused) : keeping();
   }
-  const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === typeOf(answer).name);
+  const constructing = kinds.length === 1 ? kinds[0] : kinds.find(kind => kind === tagOf(answer).name);
   return constructing === undefined ? refused() : answerMadeBy(constructing, () => layTag(constructing, answer, state), refused);
 }
 
@@ -739,9 +739,12 @@ function refusalOfFailedModifier(chain, address, index, error, scope) {
 }
 
 // [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
-export async function layTag(tagName, payload, state) {
-  if (isErrorValue(payload)) return payload;
+export async function layTag(tagName, laidOver, state) {
+  if (isErrorValue(laidOver)) return laidOver;
   refuseWithheld(state.scope, tagName, true);
+  const [outermost] = tagsOver(laidOver);
+  if (outermost !== tagName && walkToKinds(laidOver, [tagName]) !== null) return laidOver;
+  const payload = outermost === tagName ? payloadBeneath(laidOver) : laidOver;
   const node = nodeOf(state.scope, tagName);
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
@@ -749,10 +752,23 @@ export async function layTag(tagName, payload, state) {
   throw new ConstructTagNamesAValueError({ tag: makeTag(tagName), actualValue: declared });
 }
 
+// [QSBLD#value]
+function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
+  const refusalOf = each => `${tagName}/${payloadRefusalName(each)}`;
+  const ownKinds = each ? ['vec'] : kinds;
+  if (ownKinds !== null && !ownKinds.includes(tagOf(payload).name)) {
+    return refusalUnder(refusalOf(false), { expected: kindsExpected(...ownKinds), actualValue: payload }, scope);
+  }
+  if (!each || kinds === null) return payload;
+  const refused = refusedElementOf(payload, kinds);
+  if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
+  return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
+}
+
 // [QSBLD#value], [QSLIT#tag], [QSHST#source]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
-  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.scope);
+  const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
@@ -762,7 +778,7 @@ async function underKind(tagName, kind, payload, state) {
   }
   const constructs = handedFor(constructorOf(kind), kind)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
-  const labelled = constructs !== undefined && typeOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
+  const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);
   return ofTheValue.length === 0 ? labelled : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled) ?? labelled;
 }

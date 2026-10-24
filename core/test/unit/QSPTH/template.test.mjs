@@ -11,20 +11,20 @@ describe('the names `with` gives the parts of a value', () => {
 
   it('reach a body held as data, which reads no value of the reader', async () => {
     expect(await evalQuery(':b ~(id | add 1) | {:id 7} | with [/id] b')).toBe(8);
-    expect(await evalQuery(':r 10 | :b ~(id | add r) | {:id 7} | with [/id] b !| get [~(type) /name]'))
+    expect(await evalQuery(':r 10 | :b ~(id | add r) | {:id 7} | with [/id] b !| get [~(tag) /name]'))
       .toEqual([makeTag('call/ValueWithheldError'), makeKeyword('r')]);
   });
 });
 
 describe('a name of `with` and a verb of the same name', () => {
   it('meet where a verb the reader declares serves the subject, and the name is read where none does', async () => {
-    expect(await evalQuery(':vec/second ~(get /1) | [7 8] | get [~(with {:second ~first} ~(second) !| type) ~(with {:second ~first} ~(5 | second))]'))
+    expect(await evalQuery(':vec/second ~(get /1) | [7 8] | get [~(with {:second ~first} ~(second) !| tag) ~(with {:second ~first} ~(5 | second))]'))
       .toEqual([makeTag('call/ValueMeetsVerbError'), 7]);
   });
 
   it('meet where a verb a later source declares serves the subject, and the name is read where none does', async () => {
     const notebook = await createNotebook({ sources: [{ uri: 'later', source: ':number/triple ~(mul 3)' }] });
-    expect((await notebook.evalCell('[7 8] | get [~(with {:triple ~first} ~(1 | triple) !| type) ~(with {:triple ~first} ~(triple))]')).result)
+    expect((await notebook.evalCell('[7 8] | get [~(with {:triple ~first} ~(1 | triple) !| tag) ~(with {:triple ~first} ~(triple))]')).result)
       .toEqual([makeTag('call/ValueMeetsVerbError'), 7]);
   });
 });

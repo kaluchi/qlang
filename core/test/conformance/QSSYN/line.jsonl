@@ -3,20 +3,20 @@
 {"name":"a-pipe-at-the-start-of-a-line-joins-the-step-above","query":"[1 2 3 4 5]\n  | filter ~(gt 2)\n  | count","expect":"3"}
 {"name":"literals-nested-across-lines-read-at-any-depth","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | get /team/lead/email","expect":"\"alice@example.com\""}
 {"name":"a-literal-across-lines-continues-its-pipeline","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  | map ~(mulOf /price /qty)","expect":"[300 500]"}
-{"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| type","expect":"::quote/ParseError"}
-{"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | open !| type","expect":"\"pos\""}
+{"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| tag","expect":"::quote/ParseError"}
+{"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | open !| tag","expect":"\"pos\""}
 {"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
 {"name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| get [~(x) ~(y)]\" | parse | open","expect":"[[1] 2]"}
 {"name":"a-tag-name-on-a-later-line-is-the-body","query":":s\n::vec\n| s","expect":"::vec"}
 {"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":":Box |~~ A box. ~~| | :Box/w\n  ::number | ::Box/w | binding | get /value","expect":"::number"}
 {"name":"a-keyword-on-a-later-line-opens-a-declaration-of-its-own","query":":a\n:b 2\n| b","expect":"2"}
 {"name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by)\n| 5 | plus 3","expect":"8"}
-{"name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map\n| ::Box\"x\" !| type","expect":"::Box/PayloadKindNotTakenError"}
+{"name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map\n| ::Box\"x\" !| tag","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-declaration-joins-the-step-before-it-on-its-line","query":"[1 2] :y 2 | y","expect":"2"}
-{"name":"a-keyword-on-the-line-of-a-command-is-its-modifier","query":"5 | add 1 :y 2 | y !| type","expect":"::number/add/ArgsBeyondInputsError"}
+{"name":"a-keyword-on-the-line-of-a-command-is-its-modifier","query":"5 | add 1 :y 2 | y !| tag","expect":"::number/add/ArgsBeyondInputsError"}
 {"name":"a-declaration-joins-a-group-before-it-on-its-line","query":"5 | (add 1) :y 2 | y","expect":"2"}
 {"name":"a-keyword-alone-on-its-line-before-a-declaration-is-a-modifier","query":"\"[1] | append\n:y\n:z 2\n| z\" | parse","expect":"~([1] | append :y | :z 2 | z)"}
-{"name":"a-word-after-a-literal-step-is-refused-naming-the-pipe","query":"1 2","expect":"::quote/ParseError!{\n  :source \"1 2\"\n  :message \"steps are joined by `|`: write `a | b`\"\n  :location ::span[2 1 3 3 1 4]\n} | raise"}
+{"name":"a-word-after-a-literal-step-is-refused-naming-the-pipe","query":"1 2","raises":"::quote/ParseError!{\n  :source \"1 2\"\n  :message \"steps are joined by `|`: write `a | b`\"\n  :location ::span[2 1 3 3 1 4]\n}"}
 {"name":"a-chain-on-the-line-of-a-name-with-a-path-is-refused-naming-its-parentheses","query":"\":number/plus ::fn | takes :by |~~ b ~~| /0 | impl ~(add by) | 5 | plus 3\" | parse !| get /message","expect":"\"the body of `:number/plus` on the line of its name is one step, `::fn`, and the commands after it are steps of the query: a chain stands in parentheses, `:number/plus (::fn | …)`\""}
 {"name":"a-chain-on-the-line-of-a-bare-name-is-refused-naming-its-parentheses","query":"\":x ::Box | count | 5\" | parse !| get /message","expect":"\"the body of `:x` on the line of its name is one step, `::Box`, and the commands after it are steps of the query: a chain stands in parentheses, `:x (::Box | …)`\""}
 {"name":"a-chain-on-the-line-of-a-bare-name-with-its-page-is-refused-naming-its-parentheses","query":"\":Box |~~ B ~~| ::kind | wraps |~~ w ~~| | 5\" | parse !| get /message","expect":"\"the body of `:Box` on the line of its name is one step, `::kind`, and the commands after it are steps of the query: a chain stands in parentheses, `:Box (::kind | …)`\""}

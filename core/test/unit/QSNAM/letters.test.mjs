@@ -13,7 +13,7 @@ describe('the regex of a name', () => {
 
   it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit', async () => {
     expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a', 'b', 'c']);
-    expect(await core.evalQuery('":a𝐀 1" | parse !| type')).toEqual(core.makeTag('quote/ParseError'));
+    expect(await core.evalQuery('":a𝐀 1" | parse !| tag')).toEqual(core.makeTag('quote/ParseError'));
   });
 });
 

@@ -21,10 +21,10 @@
         ~(allOf ~(count | eq 6) ~(every ~(eq (floor))))
     | proves :PayloadNotStartAndEndError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| type | eq ::span/PayloadNotStartAndEndError)
+        ~(::span[0 1 1] !| tag | eq ::span/PayloadNotStartAndEndError)
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
-        ~(::span"abcdef" !| type | eq ::span/PayloadKindNotTakenError)
+        ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)
     | proves :ElementKindNotTakenError/namesTheElement
         |~~ An element that is no number is refused by its index. ~~|
         ~(::span[0 1 "x" 1 1 2] !| get /index | eq 2)
@@ -43,7 +43,7 @@
         ~~|
     | proves :SubjectNotSpanError/refusesANumber
         |~~ A subject that is no span is refused. ~~|
-        ~(5 | span/start !| type | eq ::span/start/SubjectNotSpanError)
+        ~(5 | span/start !| tag | eq ::span/start/SubjectNotSpanError)
     | proves :answersThePointItStartsAt
         |~~ The start of a span is the point of its first three numbers. ~~|
         ~(::span[0 1 1 4 1 5] | start | eq ::point[0 1 1])
@@ -63,7 +63,7 @@
         ~~|
     | proves :SubjectNotSpanError/refusesANumber
         |~~ A subject that is no span is refused. ~~|
-        ~(5 | span/end !| type | eq ::span/end/SubjectNotSpanError)
+        ~(5 | span/end !| tag | eq ::span/end/SubjectNotSpanError)
     | proves :answersThePointAfterIt
         |~~ The end of a span is the point of its last three numbers. ~~|
         ~(::span[0 1 1 4 1 5] | end | eq ::point[4 1 5])

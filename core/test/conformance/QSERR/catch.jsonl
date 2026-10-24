@@ -9,15 +9,17 @@
 {"name":"a-catch-passes-a-string-by","query":"\"hello\" !| get /kind","expect":"\"hello\""}
 {"name":"a-catch-passes-a-vector-by","query":"[1 2 3] !| get /kind","expect":"[1 2 3]"}
 {"name":"a-catch-runs-a-group-on-the-error-at-rest","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
-{"name":"an-error-literal-passes-the-fail-track-by","query":"!{:a 1} !| type","expect":"!{:a 1}"}
+{"name":"an-error-literal-passes-the-fail-track-by","query":"!{:a 1} !| tag","expect":"!{:a 1}"}
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
-{"name":"a-catch-whose-label-refuses-the-error-at-rest-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
-{"name":"an-error-raised-under-a-label-whose-invariant-refuses-it-at-rest-is-caught-by-that-refusal","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(type) /actualType]","expect":"[::Box/k ::Box]"}
-{"name":"a-catch-whose-label-takes-no-facts-refuses-the-error-at-rest","query":"{:a 1} | tag ::P | :v it | :P |~~ P. ~~| (::kind | wraps |~~ A number. ~~| ::number) | v | raise !| it !| get [~(type) /actualType]","expect":"[::P/PayloadKindNotTakenError ::error]"}
+{"name":"a-catch-whose-label-refuses-the-error-at-rest-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
+{"name":"an-error-raised-under-a-label-whose-invariant-refuses-it-at-rest-is-caught-by-that-refusal","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) /actualTag]","expect":"[::Box/k ::Box]"}
+{"name":"a-catch-whose-label-takes-no-facts-refuses-the-error-at-rest","query":"{:a 1} | tag ::P | :v it | :P |~~ P. ~~| (::kind | wraps |~~ A number. ~~| ::number) | v | raise !| it !| get [~(tag) /actualTag]","expect":"[::P/PayloadKindNotTakenError ::error]"}
+{"name":"a-catch-whose-label-takes-maps-alone-refuses-the-error-at-rest","query":":Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) /actualTag]","expect":"[::Late/PayloadKindNotTakenError ::error]"}
+{"name":"a-catch-whose-label-takes-errors-holds-the-error-at-rest-under-it","query":":Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]","expect":"[::Late 3]"}
 {"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
-{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| type) ~(::fail~({:k ~(get /k)}) !| type)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
+{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| tag) ~(::fail~({:k ~(get /k)}) !| tag)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
 {"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
-{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| type","expect":"::fail/StepNotCommandError"}
-{"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | type) ~({:a 1} | raise !| payload | type)]","expect":"[::map ::map]"}
+{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| tag","expect":"::fail/StepNotCommandError"}
+{"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | tag) ~({:a 1} | raise !| payload | tag)]","expect":"[::map ::map]"}

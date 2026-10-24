@@ -123,44 +123,44 @@ describe('the steps a quote holds, each a record or a literal', () => {
 
   it('refuses a container holding a value with no reading as code', async () => {
     for (const container of ['{:a ::Box[1]}', '#[::Box[1]]', '{"j": ::Box[1]}']) {
-      expect(await evalQuery(`[${container}] | tag(::quote) !| type`))
+      expect(await evalQuery(`[${container}] | tag(::quote) !| tag`))
         .toEqual(await evalQuery('::quote/ElementNotStepError'));
     }
   });
 
   it('refuses an error literal holding a fact with no reading as code', async () => {
-    expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [~(it)] | tag ::quote !| get [~(type) /index]'))
+    expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [~(it)] | tag ::quote !| get [~(tag) /index]'))
       .toEqual(await evalQuery('[::quote/ElementNotStepError 0]'));
   });
 });
 
 describe('assembling steps by hand', () => {
-  const refusal = source => evalQuery(`${source} !| type`);
-  const tagOf = name => evalQuery(name);
+  const refusal = source => evalQuery(`${source} !| tag`);
+  const tagNamed = name => evalQuery(name);
 
   it('a step of the fail track stands in the quote itself and in no container', async () => {
-    expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
+    expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagNamed('::quote/ElementNotStepError'));
   });
 
   it('a declaration stands in a pipeline and in no container or modifier', async () => {
-    expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagOf('::quote/ElementNotStepError'));
+    expect(await refusal('[[::bind{:name :x :body 1}]] | tag ::quote')).toEqual(await tagNamed('::quote/ElementNotStepError'));
     expect(await refusal('::call{:name :f :modifiers [::bind{:name :x :body 1}]}'))
-      .toEqual(await tagOf('::call/PayloadNotSchemaError'));
+      .toEqual(await tagNamed('::call/PayloadNotSchemaError'));
   });
 
   it('a value of another tag is no step', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| get [~(type) /field]'))
+    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| get [~(tag) /field]'))
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
   it('an error at rest under the tag of its site is a value under a tag, which no text writes as a step', async () => {
-    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote !| type')).toEqual(await evalQuery('::quote/ElementNotStepError'));
+    expect(await evalQuery('get [~("x" | add 1 !| minus #[:trace])] | tag ::quote !| tag')).toEqual(await evalQuery('::quote/ElementNotStepError'));
     expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ~("x" | add 1 !| minus #[:trace] | payload)} | tag ::construct | get [~(it)] | tag ::quote | toString'))
-      .toBe('::number/add/SubjectNotNumberError!{:actualType ::string}');
+      .toBe('::number/add/SubjectNotNumberError!{:actualTag ::string}');
   });
 
   it('a required field left out does not fit the schema', async () => {
-    expect(await evalQuery('::call{:modifiers []} !| get [~(type) /field /actualType]'))
+    expect(await evalQuery('::call{:modifiers []} !| get [~(tag) /field /actualTag]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name ::null]'));
   });
 
@@ -205,21 +205,21 @@ describe('assembling steps by hand', () => {
       ['~() | tag ::group', 'group/PayloadEmptyError']
     ];
     for (const [query, address] of refusals) {
-      expect(await evalQuery(`${query} !| get [~(type) ~(:e it | print | parse | open | eq e)]`), query).toEqual([makeTag(address), true]);
+      expect(await evalQuery(`${query} !| get [~(tag) ~(:e it | print | parse | open | eq e)]`), query).toEqual([makeTag(address), true]);
     }
-    expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| get /actualValue | type')).toEqual(makeTag('map'));
+    expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| get /actualValue | tag')).toEqual(makeTag('map'));
   });
 
   it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own', async () => {
-    expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [~(type) /field]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
-    expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [~(type) /field]'))
+    expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [~(tag) /field]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
+    expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [~(tag) /field]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :modifiers]'));
   });
 });
 
 describe('the steps of a tagged literal and of a tag', () => {
   it('a tagged literal is a `::construct` step over the step of its payload', async () => {
-    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [~(type) /tag /payload]'))
+    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [~(tag) /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::invariant ~(mul 2)]'));
   });
 

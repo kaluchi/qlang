@@ -19,7 +19,7 @@ it('writes the first screen whole, the budget never smaller than it', async () =
 it('writes an answer past the budget as the refusal, its head read from the answer, above the prose of its page', async () => {
   const scope = await langRuntime();
   const text = await answerText(await evalQuery(past, scope), scope);
-  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:actualType ::vec\n {2}:actualValue \[\{:id 0 :name "user"\}/);
+  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:actualTag ::vec\n {2}:actualValue \[\{:id 0 :name "user"\}/);
   expect(text).toMatch(/::elision\{:size \d+ :read ~\(drop \d+\)\}\]\n\}\n\|~\| /);
   expect(text).toContain('print | out');
 });

@@ -66,17 +66,17 @@
         ~(::trace[::X::frame[1 ~(pre)]] | eq ::trace[::frame[1 ~(pre)]])
     | proves :PayloadKindNotTakenError/refusesASet
         |~~ A set of frames is no trace, written or raised. ~~|
-        ~(get [~(::trace#[::frame[1 ~(a)]] !| type) ~({:trace #[::frame[1 ~(a)]]} | raise !| type)]
+        ~(get [~(::trace#[::frame[1 ~(a)]] !| tag) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag)]
           | eq [::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError])
     | proves :PayloadKindNotTakenError/refusesAVectorUnderAnotherTag
         |~~ A vector of frames under a tag of another kind is refused. ~~|
-        ~([::frame[1 ~(a)]] | tag ::T | tag ::trace !| type | eq ::trace/PayloadKindNotTakenError)
+        ~([::frame[1 ~(a)]] | tag ::T | tag ::trace !| tag | eq ::trace/PayloadKindNotTakenError)
     | proves :PayloadKindNotTakenError/refusesANumberARaiseLays
         |~~ A number a map writes as its trace is refused when it is
             raised.
         ~~|
-        ~({:a 1 :trace 5} | raise !| get [~(type) /actualType] | eq [::trace/PayloadKindNotTakenError ::number])
+        ~({:a 1 :trace 5} | raise !| get [~(tag) /actualTag] | eq [::trace/PayloadKindNotTakenError ::number])
     | proves :ElementKindNotTakenError/refusesAMap
         |~~ An element that is no frame is refused at its index. ~~|
-        ~(::trace[{:failed ~(add 1)}] !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 0])
+        ~(::trace[{:failed ~(add 1)}] !| get [~(tag) /index] | eq [::trace/ElementKindNotTakenError 0])
     | impl ::builtin{}

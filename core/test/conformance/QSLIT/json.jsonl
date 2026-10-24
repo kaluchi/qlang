@@ -1,6 +1,6 @@
 {"name":"the-key-of-a-json-object-reads-the-escapes-of-a-string","query":"{\"k\\u0065y\": 42} | get /key","expect":"42"}
-{"name":"type-json-array-syntax-reads-as-a-vector","query":"[1, 2] | type","expect":"::vec"}
-{"name":"type-json-object-syntax-reads-as-a-map","query":"{\"k\": 1} | type","expect":"::map"}
+{"name":"json-array-syntax-has-the-kind-vec","query":"[1, 2] | tag","expect":"::vec"}
+{"name":"json-object-syntax-has-the-kind-map","query":"{\"k\": 1} | tag","expect":"::map"}
 {"name":"the-string-key-of-a-json-object-reads-as-a-keyword","query":"{\"name\": \"alice\"}","expect":"{:name \"alice\"}"}
 {"name":"a-json-object-separates-its-entries-by-commas","query":"{\"name\": \"alice\", \"age\": 30}","expect":"{:name \"alice\" :age 30}"}
 {"name":"a-json-object-holds-a-json-object-as-a-value","query":"{\"user\": {\"name\": \"alice\"}}","expect":"{:user {:name \"alice\"}}"}
@@ -21,13 +21,13 @@
 {"name":"a-json-object-holds-values-of-several-kinds","query":"{\"name\": \"alice\", \"age\": 30, \"active\": true, \"score\": null} | get [/name, /age, /active, /score]","expect":"[\"alice\" 30 true null]"}
 {"name":"map-reads-a-key-of-each-json-object-an-array-holds","query":"[{\"v\": 1e3}, {\"v\": 2e3}, {\"v\": 3e3}] | map /v","expect":"[1000 2000 3000]"}
 {"name":"a-json-array-holds-values-of-several-kinds","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
-{"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | type","expect":"::map"}
+{"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | tag","expect":"::map"}
 {"name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}
 {"name":"json-object-key-that-is-no-identifier-reads-quoted","query":"{\"a b\": 1} | keys","expect":"#[:\"a b\"]"}
 {"name":"json-literal-prints-as-the-map-it-is","query":"{\"a\": [1, 2]} | eq {:a [1 2]}","expect":"true"}
-{"name":"a-map-with-a-key-named-type-is-a-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | type","expect":"::map"}
+{"name":"a-map-with-a-key-named-type-is-a-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | tag","expect":"::map"}
 {"name":"a-map-with-a-key-named-error-is-no-failure","query":"{\"type\": \"error\"} | ok !| false","expect":"true"}
 {"name":"json-duplicate-key-reads-as-json-parse-reads-it","query":"{\"a\": 1, \"b\": 2, \"a\": 3} | vals","expect":"[3 2]"}
 {"name":"a-map-that-writes-its-keys-both-ways-names-the-two","query":"\"{:a 1 \\\"b\\\": 2}\" | parse !| get /message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}
-{"name":"a-comma-written-twice-or-last-or-missing-is-refused","query":"[\"[1,,2]\" \"[1,]\" \"{\\\"a\\\": 1 \\\"b\\\": 2}\" \"{:a 1, :b 2}\" \"#[1, 2]\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
+{"name":"a-comma-written-twice-or-last-or-missing-is-refused","query":"[\"[1,,2]\" \"[1,]\" \"{\\\"a\\\": 1 \\\"b\\\": 2}\" \"{:a 1, :b 2}\" \"#[1, 2]\"] | map ~(parse !| tag)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
 {"name":"a-json-map-that-goes-on-with-a-keyword-key-names-the-two-spellings","query":"\"{\\\"a\\\": 1, :b 2}\" | parse !| get /message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}

@@ -22,7 +22,8 @@
 // run, which `npm run ci` and the checks of a push make; a
 // probe of a section a record in transit overrides is the record's, and an
 // answer its work changed waits for the move where the record holds a
-// probe of the same query [QSREQ#probe].
+// probe of the same query, or overrides the chapter whole, which its
+// closeout writes anew [QSREQ#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the open records, whose questions hold
@@ -39,6 +40,7 @@ import { Readable } from 'node:stream';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
 import { recordsInTransit } from '../reconciliation.mjs';
+import { recordsOverAProbe } from '../probes-in-transit.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, JOURNAL);
@@ -209,14 +211,9 @@ async function answersAsRecorded({ query, answer }) {
 
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
-// The records in transit over the section of a chapter's probe, and the
-// one of them that holds a probe of its query, whose answer the move
-// writes into the section [QSREQ#probe].
-function holdersOf(chapter, probe) {
-  const over = [...transit].filter(([, sections]) => sections.some(cited => cited === chapter || cited === `${chapter}#${probe.section}`)).map(([name]) => name);
-  const holding = over.find(name => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(probe.query)));
-  return { over, holding };
-}
+// Whether a record in transit holds a probe of the query, whose answer the
+// move writes into the section [QSREQ#probe].
+const holdsTheQuery = (name, query) => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(query));
 
 // The shell probes of every document start at once, four running at a time,
 // and each verdict is read in the order the documents hold them.
@@ -234,12 +231,13 @@ for (const [documentPath, probes] of probesByDocument) {
       verdict = agrees === 'lossy' ? 'LOSSY' : probe.target ? (agrees ? 'MET' : 'target') : (agrees ? 'ok' : 'STALE');
     }
     if (verdict === 'STALE' && chapter !== undefined) {
-      const { over, holding } = holdersOf(chapter, probe);
+      const { over, holding, whole } = recordsOverAProbe(transit, chapter, probe, holdsTheQuery);
       if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the move]`];
+      else if (whole !== undefined) [verdict, note] = ['waits', `  [${whole} overrides ${chapter} whole, which its closeout writes anew]`];
       else if (over.length > 0) note = `  [${over.join(', ')} overrides ${chapter}#${probe.section} and holds no probe of this query]`;
     }
     console.log(`${verdict.padEnd(8)}${shownPath}:${probe.line}  ${probe.query.replace(/\n/g, ' ').slice(0, 70)}${note}`);
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its chapter whole, or over its section by a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');

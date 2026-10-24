@@ -24,13 +24,13 @@
         |~~ `::null` reads its payload as null; a payload of another kind
             is refused.
         ~~|
-    | proves :isNull |~~ Null is of `::null`. ~~| ~(null | type | eq ::null)
+    | proves :isNull |~~ Null is of `::null`. ~~| ~(null | tag | eq ::null)
     | proves :buildsNull
         |~~ The constructor of null answers null. ~~|
         ~(::null#null | eq null)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null#1 !| get [~(type) /actualType] | eq [::null/PayloadKindNotTakenError ::number])
+        ~(::null#1 !| get [~(tag) /actualTag] | eq [::null/PayloadKindNotTakenError ::number])
     | impl ::builtin{}
 
 :null/toString

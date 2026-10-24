@@ -14,8 +14,11 @@ reads back as itself. `!{…}` is its literal, the literal of `::error`,
 whose payload is the map of the facts, a payload of another kind refused
 as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
 `::Foo::error{…}`, the facts laid under the tag written before the bang
-through its label, a refusal of the label answering for the literal; the
-kind of errors over an error at rest is that error. An
+through its label, a refusal of the label answering for the literal: a
+label takes the error at rest by its own tag, `::error`, so one whose
+`wraps` names maps alone refuses it and one that names
+`#[::map ::error]` holds it, while the kind of errors and the kind of
+maps over an error at rest are that error. An
 error at rest holds the facts it is written with, a `:kind` entry a fact
 as any key is and a `:trace` that holds no frames among them, so
 `!{:trace 5}` stands as the value it writes. The walk of an error passes
@@ -30,10 +33,10 @@ facts beneath the tags.
 > ::Oops!{:a 1} | eq ::Oops::error{:a 1}
 true
 
-> !{:kind ::Foo} | get [~(type) /kind]
+> !{:kind ::Foo} | get [~(tag) /kind]
 [::error ::Foo]
 
-> !{:trace 5} | get [~(type) /trace]
+> !{:trace 5} | get [~(tag) /trace]
 [::error 5]
 
 > :error/twice ~(get /a | mul 2) | ::Oops!{:a 3} | twice
@@ -41,6 +44,9 @@ true
 
 > !{:by 3} | tag ::error | eq !{:by 3}
 true
+
+> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]
+[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]
 ```
 
 ## raise
@@ -52,13 +58,13 @@ another value among them, is refused as `::map/raise/SubjectNotMapError`.
 An error at rest raised again is the error it was.
 
 ```qlang
-> {:k 1} | raise !| type
+> {:k 1} | raise !| tag
 ::error
 
-> ::Foo{:a 1} | raise !| type
+> ::Foo{:a 1} | raise !| tag
 ::Foo
 
-> "x" | add 1 !| raise !| type
+> "x" | add 1 !| raise !| tag
 ::number/add/SubjectNotNumberError
 ```
 
@@ -73,11 +79,13 @@ either [QSSYN#step], so a quote the recovery answers is computed by a
 group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, none where the site is the kind
-of errors itself, and a label whose payload takes no facts, or whose
+of errors itself, and a label that takes no error at rest by its own tag,
+`::error`, one whose `wraps` names maps alone among them, or whose
 invariant the error at rest breaks, refuses it with a frame at the step
-of the catch. `ok` answers
+of the catch, the refusal raised to the next catch; a label whose `wraps`
+names `#[::map ::error]` holds it. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
-taken on the way and a failure recovered by its type in lines of
+taken on the way and a failure recovered by its tag in lines of
 `!| … | raise`.
 
 ```qlang
@@ -96,11 +104,17 @@ taken on the way and a failure recovered by its type in lines of
 > 5 | ok !| false
 true
 
-> !{:a 1} | raise !| payload | type
+> !{:a 1} | raise !| payload | tag
 ::map
 
-> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(type | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(type) /actualType]
+> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) /actualTag]
 [::Box/k ::Box]
+
+> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) /actualTag]
+[::Late/PayloadKindNotTakenError ::error]
+
+> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
+[::Late 3]
 ```
 
 ## trace
@@ -148,10 +162,11 @@ The kind `::trace` alone holds what a trace is: a vector of frames in the
 order the failure flew, plain or under `::trace`, an element under a tag
 over a frame read as the frame beneath it. Any other payload, a set and a
 vector under a tag of another kind among them, is refused as
-`::trace/PayloadKindNotTakenError`, and an element that is no frame, a
-frame laid over a vector under a tag or over a set among them, as
-`::trace/ElementKindNotTakenError` at its index; a frame of a subject
-alone, or whose third element is no path, is refused as
+`::trace/PayloadKindNotTakenError`, and an element that is no frame as
+`::trace/ElementKindNotTakenError` at its index; a frame takes the vector
+of its parts by its own tag, a vector under a tag and a set refused as
+`::frame/PayloadKindNotTakenError`, and a frame of a subject alone, or
+whose third element is no path, as
 `::frame/PayloadNotSubjectAndStepsError`. The kind holds a trace wherever
 one is laid: its literal and `tag ::trace`; `raise`, which lays the
 `:trace` of the map or the error at rest it raises through the kind's
@@ -174,7 +189,7 @@ trace over at that raise.
 
 ```qlang
 > "x" | add 1 !| keys
-#[:actualType :trace]
+#[:actualTag :trace]
 
 > [1 "x" 3] | map ~(mul 2) | count !| trace
 ::trace[
@@ -206,8 +221,11 @@ true
 > !{:a 1} | raise | count !| minus #[:trace] | raise | add 1 !| trace | last | skipped
 ~(add 1)
 
-> get [~({:trace 5} | raise !| type) ~({:trace [5]} | raise !| get [~(type) /index]) ~({:trace #[::frame[1 ~(a)]]} | raise !| type) ~(::frame[1] !| type)]
+> get [~({:trace 5} | raise !| tag) ~({:trace [5]} | raise !| get [~(tag) /index]) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag) ~(::frame[1] !| tag)]
 [::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/PayloadNotSubjectAndStepsError]
+
+> get [~(::frame::X[1 ~(a)] !| get [~(tag) /actualTag]) ~(::frame#[1 ~(a)] !| get [~(tag) /actualTag])]
+[[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]
 
 > ::error{:a 1} | trace
 ::trace[]
@@ -215,7 +233,7 @@ true
 > get [~(::A[::number"x"] !| trace | map ~failed) ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| trace | map ~failed)]
 [[~(::A[::number"x"])] [~(pre) ~(eq raise)]]
 
-> !{:a 1 :trace 5} | trace !| type
+> !{:a 1 :trace 5} | trace !| tag
 ::error/trace/answer/KindNotTakenError
 
 > get [~([1 "x"] | sum !| trace | first | path) ~([[1 "x"]] | map ~(sum) !| trace | map ~path) ~([1 "x"] | eq sum !| trace | map ~path) ~({:a 1} | filter ~(5) !| trace | last | path)]
@@ -242,7 +260,7 @@ input takes a value, and is refused under the input where it takes code
 error at rest it is, so reading it raises nothing.
 
 ```qlang
-> get [1 ~("x" | add 1)] !| type
+> get [1 ~("x" | add 1)] !| tag
 ::number/add/SubjectNotNumberError
 
 > :x (1 | div 0) !| env | has :x
@@ -251,13 +269,13 @@ false
 > [1 "x" 3] | map ~(add 10 !| 0)
 [11 0 13]
 
-> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)) | ::Box::Pair[1 2] | take 1 !| type
+> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)) | ::Box::Pair[1 2] | take 1 !| tag
 ::Pair/NotPairError
 
-> [1 2] | map (1 | div 0) !| type
+> [1 2] | map (1 | div 0) !| tag
 ::vec/map/code/KindNotTakenError
 
-> get [~(#[::number"b" ::string#1] !| type) ~({:k ::number"x" :k 1} | count)]
+> get [~(#[::number"b" ::string#1] !| tag) ~({:k ::number"x" :k 1} | count)]
 [::string/PayloadKindNotTakenError 1]
 ```
 
@@ -317,9 +335,9 @@ or holds a value of no kind of the language, its `:message` naming the
 verb and the path where that value stands [QSHST#door]. A refusal of
 the runtime holds its facts in the order the catalog declares them, the
 label's own first, the facts `::error` declares after them, `:expected`,
-`:actualType` and `:actualValue` among them, and the trace last: the
+`:actualTag` and `:actualValue` among them, and the trace last: the
 value it refuses as `:actualValue`, whatever that value equals, and its
-kind as `:actualType`, but a refusal of the subject its step was served,
+kind as `:actualTag`, but a refusal of the subject its step was served,
 which holds the kind of that value alone, the first frame holding the
 subject, a host refusing its own so through `refusingTheSubject`
 [QSHST#source], and a refusal of a part of the subject holds no index and
@@ -331,22 +349,22 @@ read and the keyword two values file under are keywords, and an index and
 a segment a path read as an index numbers.
 
 ```qlang
-> "hello" | add 1 !| type
+> "hello" | add 1 !| tag
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| get [~(type) /expected /actualType]
+> 1 | add "x" !| get [~(tag) /expected /actualTag]
 [::number/add/addend/KindNotTakenError #[::number] ::string]
 
 > 1 | add 1 2 !| entries | map ~first
-[:actualType :arity :actualValue :trace]
+[:actualTag :arity :actualValue :trace]
 
-> get [~("zz" | toRegex "zz" !| has /actualValue) ~(::W"x" | toNumber !| get [~(keys) /actualType])]
-[true [#[:actualType :trace] ::string]]
+> get [~("zz" | toRegex "zz" !| has /actualValue) ~(::W"x" | toNumber !| get [~(keys) /actualTag])]
+[true [#[:actualTag :trace] ::string]]
 
 > [1 "x"] | sum !| get [~(keys) ~(trace | first | path)]
-[#[:actualType :actualValue :expected :trace] /1]
+[#[:actualTag :actualValue :expected :trace] /1]
 
-> ::error | manifest | has ::error/actualType
+> ::error | manifest | has ::error/actualTag
 true
 
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | get /name) ~(::number/plus/by/NotGivenError | binding | get /name)]
@@ -424,7 +442,7 @@ holds not even its first frame. The excerpts of an alert and its cut
 tell the rest of a part by the elisions they made, so each `:size`
 counts what its `:read` answers. A failure whose alert passes the
 budget, the names of its facts kept, prints as the refusal of an answer
-past it, its `:actualType` the tag of the failure and its head the error
+past it, its `:actualTag` the tag of the failure and its head the error
 at rest, each `:read` there beneath `!|`. The line of the raise and the
 caret [QSERR#print] and the content of a page stand beside the budget
 [QSPRN#budget].
@@ -433,9 +451,9 @@ caret [QSERR#print] and the content of a page stand beside the budget
 $ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| get /trace | drop [0-9]*)'
 :size 993 :read ~(!| get /trace | drop 8)
 
-$ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise' < /dev/null | grep -o -E '::qlang/AnswerBeyondBudgetError|:actualType ::error'
+$ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise' < /dev/null | grep -o -E '::qlang/AnswerBeyondBudgetError|:actualTag ::error'
 ::qlang/AnswerBeyondBudgetError
-:actualType ::error
+:actualTag ::error
 ```
 
 ```qlang

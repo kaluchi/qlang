@@ -22,7 +22,7 @@ segments are, and the one order ranks paths by their segments
 [QSORD#order].
 
 ```qlang
-> /items/1 | type
+> /items/1 | tag
 ::path
 
 > /items/1 | print
@@ -59,20 +59,20 @@ and a kind read by index.
 > {:a {:b [10 20]}} | get /a/b/-1
 20
 
-> {:emails [] :age 3} | get /email !| get [~(type) /key /nearest /path]
+> {:emails [] :age 3} | get /email !| get [~(tag) /key /nearest /path]
 [::path/KeyNotInMapError :email [:emails] /email]
 
-> [10 20] | get /name !| get [~(type) /segment]
+> [10 20] | get /name !| get [~(tag) /segment]
 [::path/IndexNotIntegerError :name]
 
-> {:a 5} | get /a/b !| get [~(type) /segment]
+> {:a 5} | get /a/b !| get [~(tag) /segment]
 [::path/SubjectHasNoPartsError :b]
 
-> {:b ::T#5} | get /b/c !| get [~(type) /actualValue]
+> {:b ::T#5} | get /b/c !| get [~(tag) /actualValue]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(keys) /actualType]) ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue)]
-[[#[:actualType :path :segment :trace] ::number] [1 2]]
+> get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue)]
+[[#[:actualTag :path :segment :trace] ::number] [1 2]]
 ```
 
 ## query
@@ -94,7 +94,7 @@ path misses; a `null` that stands at the path is answered as it stands.
 > [null] | query /0 7
 null
 
-> [1 2] | query /a !| type
+> [1 2] | query /a !| tag
 ::path/IndexNotIntegerError
 ```
 
@@ -151,10 +151,10 @@ reading `:b` under `:a`.
 > {:k "b" :b 7} | get (get /k)
 7
 
-> get [~({:k null} | get (get /k) !| type) ~({} | get (get /k) !| type)]
+> get [~({:k null} | get (get /k) !| tag) ~({} | get (get /k) !| tag)]
 [::any/get/path/KindNotTakenError ::path/KeyNotInMapError]
 
-> [1 2 3] | groupBy ~(gt 1) | get [~(get true !| type) ~(get :true)]
+> [1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]
 [::any/get/path/KindNotTakenError [2 3]]
 
 > {:a 1} | get [~(get ::K:a) ~(has ::K:a) ~(get ::T#/a)]
@@ -163,7 +163,7 @@ reading `:b` under `:a`.
 > {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]
 
-> get [~({:a 1} | minus [:a true] !| get [~(type) /index /expected]) ~([{:a 1} [true]] | minus !| type)]
+> get [~({:a 1} | minus [:a true] !| get [~(tag) /index /expected]) ~([{:a 1} [true]] | minus !| tag)]
 [[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
@@ -227,7 +227,7 @@ subject no name names is read by its path.
 > [::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]
 [::Box 5 ::Box#5]
 
-> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~({:a 1 :b 2} | with it ~(a) !| type)]
+> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
 ["Ann7" :t ::any/with/names/SelectorKindNotTakenError]
 ```
 
@@ -257,14 +257,14 @@ as the value it is.
 > {:price 4 :qty 3} | mulOf /price /qty
 12
 
-> 5 | mul /qty !| get [~(type) /repair]
+> 5 | mul /qty !| get [~(tag) /repair]
 [::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
 ```
 
 ## verbs
 
 A path answers the verbs of `::path` and those every value answers,
-`eq`, `ne`, `type`, `print`, `json` and `tag` among them; a name whose
+`eq`, `ne`, `print`, `json` and `tag` among them; a name whose
 verbs serve other kinds is refused on a path, under the address of its
 verb where one verb holds the name and by the call where several do
 [QSDSP#refusal], the refusal naming as `:repair` the step the call was
@@ -281,7 +281,7 @@ string of another form refused as `::string/toPath/NotPointerError`; and
 a path answers it with itself.
 
 ```qlang
-> get [~(/tags | count !| get [~(type) /repair]) ~(/tags | keys !| get [~(type) /repair])]
+> get [~(/tags | count !| get [~(tag) /repair]) ~(/tags | keys !| get [~(tag) /repair])]
 [[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
 
 > /a/0 | segments
@@ -293,7 +293,7 @@ a path answers it with itself.
 > get [~("/a~1b/0" | toPath) ~([:a 1.5] | toPath) ~(/a/0 | toPath)]
 [/:a/b/0 /a/"1.5" /a/0]
 
-> [] | toPath !| type
+> [] | toPath !| tag
 ::vec/toPath/SubjectEmptyError
 ```
 
@@ -307,7 +307,7 @@ template of `get` writes the shape of an answer [QSPTH#template].
 answer reads that page: each map keeping its keys, each vector and each
 set one element whose shape holds of all its elements, a set as `#[E]`,
 an empty vector `[]`, and each part that holds no parts its kind, as
-`type` answers it, a part under a tag standing whole as its tag, a quote
+`tag` answers it, a part under a tag standing whole as its tag, a quote
 and a doc among them. The tags a shape lays over a part are its marks:
 `::absent` over a part some of the data lacks, `::nullable` over a part
 null in some of the data, and `::each` over a map that stands for its
@@ -345,7 +345,7 @@ read beneath a mark is answered without the mark, which stands over the
 part above it. The shape of a part of the data is the shape of that part,
 `get /items | map /assignee | shape`, and the size of the data, a sample
 of it and the share of its kinds are read from the data, by `count`,
-`get /0` and `groupBy ~(type) | map ~count`.
+`get /0` and `groupBy ~(tag) | map ~count`.
 
 `paths` answers the leaves of a value, the set of the pairs of the path
 that reads each and its kind, the value read beneath the tags over it, a
@@ -423,7 +423,7 @@ its tag is refused.
 > [1 2 3] | delete /1
 [1 3]
 
-> {:box ::Box{:w 2}} | put /box/w 3 | get /box | type
+> {:box ::Box{:w 2}} | put /box/w 3 | get /box | tag
 ::Box
 ```
 

@@ -15,7 +15,7 @@ export async function runQuery(queryText, ioContext, { stdinText = '' } = {}) {
 const ERROR_KIND = 'error';
 
 // [QSCLI#answer], [QSSLF#doc]
-const CONTENT_OF_THE_PAGE = '!| type | doc | content !| null';
+const CONTENT_OF_THE_PAGE = '!| tag | doc | content !| null';
 
 // [QSCLI#answer]
 export async function contentOfThePage(failure, scope) {

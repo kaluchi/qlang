@@ -43,7 +43,7 @@
         ~~|
     | proves :isARegex
         |~~ `#"\d+"` is a regex. ~~|
-        ~(#"\d+" | type | eq ::regex)
+        ~(#"\d+" | tag | eq ::regex)
     | proves :readsAsWritten
         |~~ A backslash reaches the engine as written, and `\"` writes a
             quote.
@@ -63,7 +63,7 @@
         |~~ A group of flags and a group name written twice do not parse,
             on every platform.
         ~~|
-        ~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map ~(parse !| type) | eq [::quote/ParseError ::quote/ParseError])
+        ~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map ~(parse !| tag) | eq [::quote/ParseError ::quote/ParseError])
     | proves :namesTheRepairOfAHabit
         |~~ The refusal of a needless backslash names where a backslash
             stands.
@@ -90,7 +90,7 @@
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
-        ~(::regex"a" !| get [~(type) /actualType] | eq [::regex/PayloadKindNotTakenError ::string])
+        ~(::regex"a" !| get [~(tag) /actualTag] | eq [::regex/PayloadKindNotTakenError ::string])
     | impl ::builtin{}
 
 :regex/toRegex
@@ -110,12 +110,12 @@
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
     | proves :flags/KindNotTakenError/refusesANumber
         |~~ Flags that are no string are refused. ~~|
-        ~(#"a" | toRegex 5 !| type | eq ::regex/toRegex/flags/KindNotTakenError)
+        ~(#"a" | toRegex 5 !| tag | eq ::regex/toRegex/flags/KindNotTakenError)
     | throws :flags/NotFlagsError
         |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
     | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that names no flag is refused. ~~|
-        ~(#"a" | toRegex "z" !| type | eq ::regex/toRegex/flags/NotFlagsError)
+        ~(#"a" | toRegex "z" !| tag | eq ::regex/toRegex/flags/NotFlagsError)
     | returns |~~ The regex itself, or its source with the flags. ~~| ::regex
     | proves :takesFlagsAsAStringDoes
         |~~ A regex given flags answers its source with them. ~~|

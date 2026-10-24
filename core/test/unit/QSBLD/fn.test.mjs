@@ -12,7 +12,7 @@ it('the value of `::vec/take` is its function, whose recipe is the descriptor of
 });
 
 it('mul given no multiplier is refused under its input', async () => {
-  expect(await evalQuery('5 | mul !| type')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
+  expect(await evalQuery('5 | mul !| tag')).toEqual(makeTag('number/mul/multiplier/NotGivenError'));
 });
 
 describe('no kind of the catalog bears the name of a command of a chain', () => {

@@ -157,7 +157,7 @@ describe('the verbs offered after a value', () => {
     expect(['manifest', 'toTag', 'count', 'sort', 'add'].map(label => afterVec.includes(label))).toEqual([true, true, false, false, false]);
     expect(await labelsAt('::kind | ')).toContain('wraps');
     for (const label of afterVec.filter(offered => !offered.startsWith('::'))) {
-      const answer = await evalQuery(`::vec | ${label} !| type`);
+      const answer = await evalQuery(`::vec | ${label} !| tag`);
       expect(isTag(answer) && /^vec\/[^/]+\/Subject\w*Error$/.test(answer.name), label).toBe(false);
     }
   });

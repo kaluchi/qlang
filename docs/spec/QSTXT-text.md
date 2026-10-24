@@ -43,7 +43,7 @@ with the addresses of its verbs.
 > "a\nb\nc" | lines
 ["a" "b" "c"]
 
-> get [~(42 | lower !| type) ~(42 | take 2 !| get [~(type) /addresses])]
+> get [~(42 | lower !| tag) ~(42 | take 2 !| get [~(tag) /addresses])]
 [::string/lower/SubjectNotStringError [::call/KindAnswersNoVerbError #[::map/take ::string/take ::vec/take]]]
 ```
 
@@ -67,10 +67,10 @@ true
 > "anything" | startsWith ""
 true
 
-> "abc" | contains :a !| type
+> "abc" | contains :a !| tag
 ::string/contains/needle/KindNotTakenError
 
-> get [~(42 | contains "x" !| get [~(type) /addresses]) ~(#[1 2] | binding :contains | get /name)]
+> get [~(42 | contains "x" !| get [~(tag) /addresses]) ~(#[1 2] | binding :contains | get /name)]
 [[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
 ```
 
@@ -92,7 +92,7 @@ refused at its index, the path of the step's frame naming it
 > "a,b,c" | split "," | join ";"
 "a;b;c"
 
-> ["a" 42] | join "," !| get [~(type) ~(trace | last | path)]
+> ["a" 42] | join "," !| get [~(tag) ~(trace | last | path)]
 [::vec/join/ElementKindNotTakenError /1]
 ```
 
@@ -118,7 +118,7 @@ the call gives none or null. A regex whose matching backtracks without
 end runs as long as its matching does.
 
 ```qlang
-> #"\d+ms" | type
+> #"\d+ms" | tag
 ::regex
 
 > [#"\d+ms" #"a"mi] | map ~print
@@ -180,6 +180,6 @@ writes a whole literal is refused as
 > "error" | toRegex "mi"
 #"error"im
 
-> get [~(::string/match | binding | get /value | inputs | map ~(get /name)) ~(::string/replace | binding | get /value | inputs | map ~(get /name)) ~("abc" | match "a" !| type) ~("a1" | capture #"(\d)" !| type) ~("(" | toRegex !| type)]
+> get [~(::string/match | binding | get /value | inputs | map ~(get /name)) ~(::string/replace | binding | get /value | inputs | map ~(get /name)) ~("abc" | match "a" !| tag) ~("a1" | capture #"(\d)" !| tag) ~("(" | toRegex !| tag)]
 [[:regex] [:needle :with] ::string/match/regex/KindNotTakenError ::string/capture/RegexNamesNoGroupError ::string/toRegex/TextNotRegexError]
 ```

@@ -100,31 +100,31 @@ parser, which gives the path bare.
 > [~(:x 1) ~(:x |~~ X. ~~| 1) ~(:Box |~~ A box. ~~|)] | map ~(first | keys)
 [#[:body :name] #[:body :docs :name] #[:docs :name]]
 
-> ~(::Box[1 2]) | first | get [~(type) /tag /payload]
+> ~(::Box[1 2]) | first | get [~(tag) /tag /payload]
 [::construct ::Box [1 2]]
 
 > [[1 2] ::call{:name :count}] | tag ::quote | toString
 "[1 2] | count"
 
-> [[1 2] 5] | tag ::quote !| type
+> [[1 2] 5] | tag ::quote !| tag
 ::quote/StepNotCommandError
 
 > [/age] | tag ::quote | print
 "::quote[/age]"
 
-> get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| type) ~([[::call{:name :count}]] | tag ::quote !| type)]
+> get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)]
 [::construct/LiteralComputesError ::quote/LiteralComputesError]
 
-> get [~(::call[1] !| get [~(type) /expected]) ~(::fail[1] !| get [~(type) /expected]) ~(::call{:name 1} !| get /field)]
+> get [~(::call[1] !| get [~(tag) /expected]) ~(::fail[1] !| get [~(tag) /expected]) ~(::call{:name 1} !| get /field)]
 [[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
 
-> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(type) /actualType ~(print | parse | open | eq e)]
+> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) /actualTag ~(print | parse | open | eq e)]
 [::construct/LiteralComputesError ::map true]
 
 > "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)
 true
 
-> get [~(~(::Foo!{:k 1}) | first | get [~(type) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(type) /field])]
+> get [~(~(::Foo!{:k 1}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) /field])]
 [[::construct ::Foo !{:k 1}] [::construct/PayloadNotSchemaError :tag]]
 ```
 
@@ -162,10 +162,10 @@ the same quote.
 > ~(:a 1 | :b 2) | toString
 ":a 1\n| :b 2"
 
-> ~(add 1 | mul 2) | parse !| get [~(type) /actualType]
+> ~(add 1 | mul 2) | parse !| get [~(tag) /actualTag]
 [::string/parse/SubjectNotStringError ::quote]
 
-> "add (" | parse !| get [~(type) /source /origin]
+> "add (" | parse !| get [~(tag) /source /origin]
 [::quote/ParseError "add (" :string/parse]
 ```
 
@@ -189,10 +189,10 @@ snippet alike.
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
 8
 
-> {:a 1} | apply ~(:x 2) | x !| type
+> {:a 1} | apply ~(:x 2) | x !| tag
 ::call/UnknownNameError
 
-> 42 | apply 1 !| type
+> 42 | apply 1 !| tag
 ::any/apply/code/KindNotTakenError
 
 > get [~({:a 1} | print | parse | open) ~("10 | add 5" | parse | open)]
@@ -219,7 +219,7 @@ the condition of `if`, which always runs, is a value. An input that
 takes code takes a quote or a path, a group that computes a quote among
 them, `apply` a function too, and refuses a value computed at the call
 that none of its kinds takes, a failure among it, under its own address,
-the value its `:actualValue` and its tag its `:actualType`, but for a
+the value its `:actualValue` and its tag its `:actualTag`, but for a
 name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of
 its modifier on as the answer of the call.
@@ -228,13 +228,13 @@ its modifier on as the answer of the call.
 > [1 2 3] | take count
 [1 2 3]
 
-> [{:a true}] | filter (get /a) !| type
+> [{:a true}] | filter (get /a) !| tag
 ::vec/filter/predicate/KindNotTakenError
 
-> [1 2] | take (get /x) !| type
+> [1 2] | take (get /x) !| tag
 ::path/IndexNotIntegerError
 
-> :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| type
+> :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| tag
 ::vec/map/code/KindNotTakenError
 ```
 
@@ -271,12 +271,12 @@ verb.
 > :k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)})]
 [::E!{:q 15} !{:q 15}]
 
-> :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(type) /name]
+> :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(tag) /name]
 [::call/ValueWithheldError :lim]
 
 > :k 1 | :f ~(:k 2 | add k) | 5 | apply f
 7
 
-> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(type) /name]
+> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(tag) /name]
 [::call/ValueWithheldError :count]
 ```

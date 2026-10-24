@@ -18,7 +18,7 @@ export { printAnswer, boundAnswer, caretOf } from './runtime/print.mjs';
 export { ANSWER_BUDGET } from './elide.mjs';
 export { readingState } from './primitives.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';
-export { makeKeyword, isKeyword, makeTag, isTag, isErrorValue, makeErrorValue, typeOf } from './types.mjs';
+export { makeKeyword, isKeyword, makeTag, isTag, isErrorValue, makeErrorValue, tagOf } from './types.mjs';
 export {
   verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf,
   shownFor, answerKindsOf, kindsOfWalk

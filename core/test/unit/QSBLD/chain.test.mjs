@@ -11,6 +11,6 @@ it('declares construct under a kind its chain built as any other name, the const
 });
 
 it('a command a function and a kind share, called on another tag, meets the verbs of both nouns, each reached by its address', async () => {
-  expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| get [~(type) /addresses]'))
+  expect(await answers('::number | holds :E |~~ An e. ~~| ~(true) !| get [~(tag) /addresses]'))
     .toBe('[::call/KindAnswersNoVerbError #[::fn/holds ::kind/holds]]');
 });

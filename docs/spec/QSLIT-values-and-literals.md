@@ -30,19 +30,19 @@ into its tag and its payload and joins back by `tag`,
 through the tag.
 
 ```qlang
-> [1 2] | type
+> [1 2] | tag
 ::vec
 
 > get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | :t (tag) | payload | tag t)]
 [::number 1 [1 2] ::Box#5]
 
-> null | type
+> null | tag
 ::null
 
-> ::A::B{} | get [~(type) ~(payload | type)]
+> ::A::B{} | get [~(tag) ~(payload | tag)]
 [::A ::B]
 
-> 5 | type | type
+> 5 | tag | tag
 ::tag
 ```
 
@@ -60,7 +60,7 @@ double's precision round.
 > -2.5e3
 -2500
 
-> "1e400" | parse !| get [~(type) /found /location]
+> "1e400" | parse !| get [~(tag) /found /location]
 [::quote/ParseError "1" ::span[0 1 1 1 1 2]]
 
 > [1e0 2e3 1.5e-2]
@@ -141,7 +141,7 @@ query [QSPRN#json].
 > [1, null, true]
 [1 null true]
 
-> {"type": "quote", "source": "hi"} | type
+> {"type": "quote", "source": "hi"} | tag
 ::map
 
 > {"a": 1, "b": 2, "a": 3}
@@ -162,43 +162,49 @@ whose first character would continue the tag's name, take `#`:
 `::Width#5`, `::T#/a`, and print so. The words of the literals are tag
 names after `::`, `::null`.
 
-The tag's kind lays the tag before the tags of the payload the literal
-writes and never instead of them, or refuses it naming why the payload
-does not fit [QSBLD#value], so a label laid over a value already under it
-stands again, `::Lab::Lab[1]`, and `::desc` stacks its reversals
-[QSORD#desc]. A kind of the core reads its payload, a value of its own
-kind or, for a set, a quote and a doc, a vector, and for an error the map
-of its facts, so `::number"5"` is refused and `::set[3 1]` is `#[1 3]`,
-a vector or a map under a tag of another kind refused, which `payload`
-opens. A tag
-no declaration names, the tag of a verb and the tag of an invariant lay
-themselves over a payload as it is [QSNAM#address], and the tag of a
-name that holds data is refused as `::construct/TagNamesAValueError`. `tag`
-given a name lays it over the value in the pipe through the tag's kind,
+The tag's kind lays the tag over the payload the literal writes, before
+its tags and never between or instead of them, or refuses it naming why
+the payload does not fit [QSBLD#value]. A tag the value is of already,
+as `is` answers it [QSDSP#walk], changes nothing, the literal and `tag`
+alike: `::number#5` is `5`, `#[2 1] | tag ::vec` the set and
+`::Box#5 | tag ::number` the box, and a tag the value holds outermost is
+laid again over the payload beneath it, so `::Lab::Lab[1]` is `::Lab[1]`
+and a value tagged before its kind was declared is held to the kind
+[QSBLD#label]. A kind of the core reads its payload by its own tag, a
+value of its own kind or, for a set, a quote and a doc, a vector, and for
+an error the map of its facts, so `::number"5"` is refused, `::set[3 1]`
+is `#[1 3]` and a vector under a tag of another kind is no payload of a
+set, which `payload` opens. A tag no declaration names, the tag of a verb
+and the tag of an invariant lay themselves over a payload as it is
+[QSNAM#address], a tag whose `wraps` names the set of no kinds takes no
+payload, `5 | tag ::tagged` refused as
+`::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
+data is refused as `::construct/TagNamesAValueError`. `tag` given a name
+lays it over the value in the pipe through the tag's kind,
 `5 | tag ::Foo`, a name that is no tag name refused as
 `::any/tag/name/KindNotTakenError`, and given none answers the tag of the
 value, a vector of a tag and a value the vector it is.
 
 ```qlang
-> ::Width#5 | add 3 | get [~(type) ~(payload)]
+> ::Width#5 | add 3 | get [~(tag) ~(payload)]
 [::Width 8]
 
 > [::Pos#-3 ::T#true ::T#null ::T#/a]
 [::Pos#-3 ::T#true ::T#null ::T#/a]
 
-> ::number"5" !| type
+> ::number"5" !| tag
 ::number/PayloadKindNotTakenError
 
-> :Lab |~~ L ~~| | get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| type)]
-[::Lab::Lab[1] ::set/PayloadKindNotTakenError]
+> :Lab |~~ L ~~| | get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
+[::Lab[1] ::set/PayloadKindNotTakenError]
 
-> #[2 1] | tag ::vec !| type
-::vec/PayloadKindNotTakenError
+> get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[2 1] | tag ::vec) ~(::Box#5 | tag ::number) ~(5 | tag ::tagged !| tag)]
+[5 5 #[1 2] ::Box#5 ::tagged/PayloadKindNotTakenError]
 
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | type) ~(::vec/take/count/NotIntegerError#5 | type) ~(:limit 5 | ::limit#1 !| type)]
+> get [~(::vec/sort#5 | tag) ~(::vec/take/count/NotIntegerError#5 | tag) ~(:limit 5 | ::limit#1 !| tag)]
 [::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNamesAValueError]
 ```
 
@@ -229,7 +235,7 @@ that computes reads as prose.
 > "{:a 1 2}" | parse !| get [/message /location]
 ["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
-> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| type
+> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| tag
 ::Pos/NegError
 ```
 

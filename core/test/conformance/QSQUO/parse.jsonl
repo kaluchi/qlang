@@ -3,13 +3,13 @@
 {"name":"a-quote-of-two-steps-writes-them-joined-by-the-pipe","query":"~(a | b) | toString","expect":"\"a | b\""}
 {"name":"a-quote-that-opens-with-a-catch-writes-it-in-its-text","query":"~(!| 0 | sort) | toString","expect":"\"!| 0 | sort\""}
 {"name":"a-quote-turned-into-text-and-read-back-is-itself","query":"~(mul 2) | toString | parse","expect":"~(mul 2)"}
-{"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | toString","expect":"\":a 1\n| :b 2\""}
+{"name":"a-quote-of-declarations-prints-a-declaration-a-line","query":"~(:a 1 | :b 2) | toString","expect":"\":a 1\\n| :b 2\""}
 {"name":"a-quote-of-other-steps-prints-on-one-line","query":"~(:a 1 | a) | toString","expect":"\":a 1 | a\""}
 {"name":"a-story-printed-reads-back-as-itself","query":"::number | source | print | parse | first | eq (::number | source)","expect":"true"}
 {"name":"parse-reads-the-text-of-a-number-into-its-quote","query":"\"42\" | parse","expect":"~(42)"}
-{"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | type","expect":"::quote"}
-{"name":"parse-reads-text-alone-and-refuses-a-quote-under-its-address","query":"~(5 | mul 2) | parse !| type","expect":"::string/parse/SubjectNotStringError"}
+{"name":"parse-pipeline-is-a-quote","query":"\"42 | add 1\" | parse | tag","expect":"::quote"}
+{"name":"parse-reads-text-alone-and-refuses-a-quote-under-its-address","query":"~(5 | mul 2) | parse !| tag","expect":"::string/parse/SubjectNotStringError"}
 {"name":"a-text-read-as-a-quote-is-written-back-in-the-one-spelling","query":"\"5 |  mul   2\" | parse | toString","expect":"\"5 | mul 2\""}
 {"name":"the-parse-of-a-source-of-whitespace-alone-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
-{"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| type","expect":"::quote/ParseError"}
+{"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-text-parse-refuses-names-the-verb-that-read-it-as-its-origin","query":"\"add (\" | parse !| get /origin","expect":":string/parse"}

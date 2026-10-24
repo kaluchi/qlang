@@ -190,7 +190,7 @@ describe('the answer a host prints for a failure', () => {
     const scope = await core.langRuntime();
     const failure = await core.evalQuery('3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise', scope);
     const shown = await core.boundAnswer(failure, scope);
-    expect([shown.tag, shown.facts.get('actualType')]).toEqual([core.makeTag('qlang/AnswerBeyondBudgetError'), core.makeTag('error')]);
+    expect([shown.tag, shown.facts.get('actualTag')]).toEqual([core.makeTag('qlang/AnswerBeyondBudgetError'), core.makeTag('error')]);
     expect(core.printValue(shown)).toContain(':read ~(!| ');
     expect(core.printValue(shown).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
   });

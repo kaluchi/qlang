@@ -29,7 +29,7 @@
       the print raised flies on from that trace; a query that does not
       parse flew no step and prints its facts alone.
       `|` passes a failure by, writing its trace, and `!|` alone catches
-      it, its step running on the error at rest: `"x" | add 1 !| type`
+      it, its step running on the error at rest: `"x" | add 1 !| tag`
       answers the site, `::number/add/SubjectNotNumberError`, and
       `trace` the trace. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
@@ -97,7 +97,7 @@
             refused, `#[::number]`.
         ~~|
         #[::tag]
-    | carries :actualType |~~ The kind of the value refused. ~~| ::tag
+    | carries :actualTag |~~ The kind of the value refused. ~~| ::tag
     | carries :arity
         |~~ The arity of the verb, how many args its inputs read, where
             the call gave more.
@@ -109,37 +109,37 @@
             holding the subject.
         ~~|
         ::any
-    | carries :leftType |~~ The kind of the value on the left. ~~| ::tag
-    | carries :rightType |~~ The kind of the value on the right. ~~| ::tag
+    | carries :leftTag |~~ The kind of the value on the left. ~~| ::tag
+    | carries :rightTag |~~ The kind of the value on the right. ~~| ::tag
     | carries :field
         |~~ The field of the record of a step that does not fit. ~~|
         ::keyword
     | proves :writesAnErrorAtRestByItsBang
         |~~ The bang writes an error at rest of the kind of errors. ~~|
-        ~(!{:detail "boom"} | type | eq ::error)
+        ~(!{:detail "boom"} | tag | eq ::error)
     | proves :standsOverItsKind
         |~~ Beneath the site's tag lies an `::error`. ~~|
-        ~("x" | add 1 !| payload | type | eq ::error)
+        ~("x" | add 1 !| payload | tag | eq ::error)
     | proves :readsItsFacts
         |~~ An error's facts read as fields. ~~|
         ~(::error{:k 1} | get /k | eq 1)
     | proves :takesAFactOnTheWay
         |~~ A fact added on the fail track rides on. ~~|
         ~("x" | add 1 !| union {:request "r-1"} | raise !| get /request | eq "r-1")
-    | proves :recoversByItsType
-        |~~ A failure of a known type recovers. ~~|
-        ~("x" | add 1 !| if (type | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
+    | proves :recoversByItsTag
+        |~~ A failure of a known tag recovers. ~~|
+        ~("x" | add 1 !| if (tag | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
     | proves :raisesAgainOtherwise
-        |~~ A failure of another type raises again as itself. ~~|
-        ~("x" | add 1 !| if (type | eq ::Other) ~(0) ~(raise) !| type | eq ::number/add/SubjectNotNumberError)
+        |~~ A failure of another tag raises again as itself. ~~|
+        ~("x" | add 1 !| if (tag | eq ::Other) ~(0) ~(raise) !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no map of facts. ~~|
-        ~(::error[1] !| type | eq ::error/PayloadKindNotTakenError)
+        ~(::error[1] !| tag | eq ::error/PayloadKindNotTakenError)
     | proves :standsWithATraceOfAnotherShapeAtRest
         |~~ An error at rest holds the facts it is written with, a trace of
             another shape among them, which a raise refuses.
         ~~|
-        ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| type)] | eq [5 ::trace/PayloadKindNotTakenError])
+        ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| tag)] | eq [5 ::trace/PayloadKindNotTakenError])
     | proves :repair/namesAWrittenPathAlone
         |~~ A path a name holds is no path the step wrote, and names no
             repair.
@@ -201,9 +201,9 @@
         |~~ The `:trace` an error at rest is written with is brought to
             `::trace`, a number refused as the answer.
         ~~|
-        ~(get [~(::error{:trace [::frame[1 ~(pre)]]} | trace) ~(!{:trace 5} | trace !| type)] | eq [::trace[::frame[1 ~(pre)]] ::error/trace/answer/KindNotTakenError])
+        ~(get [~(::error{:trace [::frame[1 ~(pre)]]} | trace) ~(!{:trace 5} | trace !| tag)] | eq [::trace[::frame[1 ~(pre)]] ::error/trace/answer/KindNotTakenError])
     | proves :SubjectNotErrorError/refusesAMap
         |~~ A map with the key `:trace` is no error. ~~|
-        ~({:trace []} | trace !| get [~(type) /actualType] | eq [::error/trace/SubjectNotErrorError ::map])
+        ~({:trace []} | trace !| get [~(tag) /actualTag] | eq [::error/trace/SubjectNotErrorError ::map])
     | impl ~(query /trace | coalesce ::trace[])
 

@@ -49,7 +49,7 @@
       from the pairs of its keys and values, and a tagged value, a doc
       and an error at rest among them, from its tag and its payload.
   ~~|
-  ~(:kind (type)
+  ~(:kind (tag)
     | cond
         ~(kind | eq ::vec) ~(get {:parts ~(it) :glue ~(~())})
         ~(kind | eq ::map) ~(:whole it | get {:parts ~(keys | sort | map ~(:key it | get [~(key) ~(whole | query key)])) :glue ~(~(indexBy ~(first) | map ~last))})
@@ -59,7 +59,7 @@
   |~~ The atoms of a value, its own when it is an atom and otherwise
       those of its parts, each part's gathered by the same verb.
   ~~|
-  ~(:item it | if (atomKinds | has (item | type)) ~(get [~(it)]) ~(partsOf | get /parts | map ~atomsOf | flat))
+  ~(:item it | if (atomKinds | has (item | tag)) ~(get [~(it)]) ~(partsOf | get /parts | map ~atomsOf | flat))
 
 :any/indexKey
   |~~ The key an atom's index is read by, the keyword of its print, which
@@ -87,7 +87,7 @@
         ~(:acc it
           | element
           | :item it
-          | if (atomKinds | has (item | type))
+          | if (atomKinds | has (item | tag))
               ~(get {:numbered ~(acc | get /numbered)
                      :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | indexKey) | last)] | toPath))})
               ~(partsOf | :built it

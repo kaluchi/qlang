@@ -1,6 +1,6 @@
 // [QSCND#compare], [QSCND#boolean]
 
-import { typeOf, pairRefused } from '../types.mjs';
+import { tagOf, pairRefused } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { walkToKinds } from '../dispatch.mjs';
@@ -10,7 +10,7 @@ registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !
 
 // [QSCND#compare]
 const comparing = holds => (subject, value) => {
-  if (typeOf(subject).name !== typeOf(value).name) throw pairRefused(subject, value);
+  if (tagOf(subject).name !== tagOf(value).name) throw pairRefused(subject, value);
   return holds(compareValues(subject, value));
 };
 

@@ -1,7 +1,7 @@
 // [QSPRN#print], [QSPRN#elide], [QSPRN#budget]
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
+import { isErrorValue, tagOf, makeErrorValue } from '../types.mjs';
 import { elideToBudget, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
@@ -34,7 +34,7 @@ export async function boundAnswer(answer, scope, written = null) {
   const characters = lengthOf(written ?? printValue(shown, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return shown;
   const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: headOfAnswer(answer, printedOf) }), undefined, scope);
-  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualType', failed ? answer.tag : typeOf(answer))), ANSWER_BUDGET, printedOf);
+  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualTag', failed ? answer.tag : tagOf(answer))), ANSWER_BUDGET, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
@@ -44,7 +44,7 @@ export function caretOf(answer) {
   if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
   const source = answer.facts.get('source');
   const location = answer.facts.get('location');
-  if (typeof source !== 'string' || source.includes('\n') || typeOf(location).name !== 'span') return null;
+  if (typeof source !== 'string' || source.includes('\n') || tagOf(location).name !== 'span') return null;
   const [, startLine, startColumn, , endLine, endColumn] = location;
   const characters = Array.from(source);
   const pastTheLine = characters.length + 1;

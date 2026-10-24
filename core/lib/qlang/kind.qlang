@@ -95,7 +95,7 @@
         ~~|
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
-        ~(::kind | wraps |~~ The sizes. ~~| ::map | type | eq ::kind)
+        ~(::kind | wraps |~~ The sizes. ~~| ::map | tag | eq ::kind)
     | proves :printsAsItsLiteral
         |~~ A kind prints as its commands and its constructor. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | print | eq "::kind[~(wraps |~~ The sizes. ~~| ::map) null]")
@@ -109,7 +109,7 @@
           | eq [#[::Box/w] #[:holds]])
     | proves :laysTheTagOfALabelOfItsPageAlone
         |~~ A label declared by its page alone lays its tag. ~~|
-        ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | type | eq ::Shop)
+        ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | tag | eq ::Shop)
     | proves :readsBackFromItsPrint
         |~~ The print of a kind reads back as the kind. ~~|
         ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | open | eq k)
@@ -117,7 +117,7 @@
         |~~ A value put under a kind is the payload under its tag. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map)
           | ::Box{:w 1}
-          | get [~(type) /w]
+          | get [~(tag) /w]
           | eq [::Box 1])
     | proves :isALabel
         |~~ A kind declared under a name is a label the scope reads. ~~|
@@ -126,32 +126,34 @@
         |~~ A payload of none of the kinds `wraps` names is refused under
             the kind.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | ::Box#5 !| type | eq ::Box/PayloadKindNotTakenError)
+        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | ::Box#5 !| tag | eq ::Box/PayloadKindNotTakenError)
     | proves :refusesAnElementOfNoneOfItsKinds
         |~~ Where `wraps` names the kinds of each element, an element of
             none is refused with its index.
         ~~|
         ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| [::number])
           | ::Nums[1 "a"]
-          !| get [~(type) /index]
+          !| get [~(tag) /index]
           |  eq [::Nums/ElementKindNotTakenError 1])
     | proves :holdsThePayloadOfItsKind
-        |~~ The payload holds a value of its kind beneath the tags it is
-            given under, which stay beneath the tag of the kind.
+        |~~ The payload is of the kinds its `wraps` names by its own tag, a
+            payload under another tag refused.
         ~~|
-        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | get [~(::Count::Width#3 | payload) ~(::Count::Width"3" !| type)] | eq [::Width#3 ::Count/PayloadKindNotTakenError])
+        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number)
+          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) /actualTag]) ~(::Width#3 | payload | tag ::Count)]
+          | eq [3 [::Count/PayloadKindNotTakenError ::Width] ::Count#3])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
           | ::Box{:w "x"}
-          !| type
+          !| tag
           |  eq ::Box/w/KindNotTakenError)
     | proves :refusesAFieldLeftOut
         |~~ A field whose path the payload leaves out is refused. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{} !| type | eq ::Box/w/NotGivenError)
+        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{} !| tag | eq ::Box/w/NotGivenError)
     | proves :givesAFieldADefault
         |~~ A field read by `query` gives a default. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :h |~~ The height. ~~| ~(query /h 1) ::number) | ::Box{} | type | eq ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | reads :h |~~ The height. ~~| ~(query /h 1) ::number) | ::Box{} | tag | eq ::Box)
     | proves :pagesAFieldUnderIt
         |~~ The page of a field is the page of its node under the kind. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
@@ -176,7 +178,7 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w) ::number)
           | ::Box{:w 1}
-          | get [~(w !| type) /w]
+          | get [~(w !| tag) /w]
           | eq [::call/UnknownNameError 1])
     | proves :holdsTheInvariantsOfItsValue
         |~~ A value that breaks an invariant of the kind is refused under
@@ -184,7 +186,7 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | holds :TooWideError |~~ No wider than high. ~~| ~(subOf /h /w | gte 0))
           | ::Box{:w 3 :h 2}
-          !| type
+          !| tag
           |  eq ::Box/TooWideError)
     | proves :holdsTheInvariantsOfAField
         |~~ A field that breaks an invariant written under it is refused
@@ -192,80 +194,83 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0))
           | ::Box{:w -1}
-          !| type
+          !| tag
           |  eq ::Box/w/NegativeError)
     | proves :PayloadNotPairError/refusesANumber
         |~~ A number is no pair. ~~|
-        ~(::kind[1] !| type | eq ::kind/PayloadNotPairError)
+        ~(::kind[1] !| tag | eq ::kind/PayloadNotPairError)
     | proves :PayloadNotPairError/refusesCommandsThatAreNoQuote
         |~~ The commands of a chain are a quote. ~~|
-        ~(::kind[[] null] !| type | eq ::kind/PayloadNotPairError)
+        ~(::kind[[] null] !| tag | eq ::kind/PayloadNotPairError)
     | proves :CommandNotTakenError/refusesACommandItsVerbWrites
         |~~ A command its verb writes with what the chain does not take is
             refused as the literal's is, the command its `:actualValue`.
         ~~|
-        ~(::kind | reads 5 |~~ x ~~| /x !| get [~(type) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5])
+        ~(::kind | reads 5 |~~ x ~~| /x !| get [~(tag) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5])
     | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
         |~~ A step of a recipe is no command of a kind. ~~|
-        ~(::kind[~(add 1) null] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(add 1) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesACommandOfAFunction
         |~~ A command of a function is no command of a kind. ~~|
-        ~(::kind[~(takes :by |~~ How much. ~~| /0) null] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(takes :by |~~ How much. ~~| /0) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAFieldNamedWithAPath
         |~~ The name of a field is one segment. ~~|
-        ~(::kind[~(reads :w/x |~~ A w. ~~| /w) null] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(reads :w/x |~~ A w. ~~| /w) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesThePayloadAsAField
         |~~ The payload is no field. ~~|
-        ~(::kind[~(reads :payload |~~ A payload. ~~| /p) null] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(reads :payload |~~ A payload. ~~| /p) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesASelectorThatIsNoPathOrQuote
         |~~ A selector is a path or a quote. ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| 0) null] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(reads :w |~~ A w. ~~| 0) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAWordOfALiteralAsAField
         |~~ A word of a literal is no field, which the chain refuses. ~~|
-        ~(::kind | reads :null |~~ Nothing. ~~| /n !| type | eq ::kind/CommandNotTakenError)
-    | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfThePayload
-        |~~ The payload names one kind at least, a set of none refused by
-            the chain.
+        ~(::kind | reads :null |~~ Nothing. ~~| /n !| tag | eq ::kind/CommandNotTakenError)
+    | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfEachElement
+        |~~ The kinds of each element are one kind at least, a vector of the
+            set of none refused by the chain.
         ~~|
-        ~(::kind | wraps |~~ w ~~| #[] !| type | eq ::kind/CommandNotTakenError)
+        ~(::kind | wraps |~~ w ~~| [#[]] !| tag | eq ::kind/CommandNotTakenError)
     | proves :NameDeclaredTwiceError/refusesTwoFieldsOfOneName
         |~~ Two fields of one name are refused. ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| /w | reads :w |~~ Again. ~~| /x) null] !| type | eq ::kind/NameDeclaredTwiceError)
+        ~(::kind[~(reads :w |~~ A w. ~~| /w | reads :w |~~ Again. ~~| /x) null] !| tag | eq ::kind/NameDeclaredTwiceError)
     | proves :NameDeclaredTwiceError/refusesAnInvariantNamedAsTheRefusalOfKinds
         |~~ An invariant named as the refusal of its field's kinds is
             refused.
         ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| /w ::number | holds :w/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) null] !| type | eq ::kind/NameDeclaredTwiceError)
+        ~(::kind[~(reads :w |~~ A w. ~~| /w ::number | holds :w/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) null] !| tag | eq ::kind/NameDeclaredTwiceError)
     | proves :NameUnderNoFieldError/refusesARefusalUnderNoField
         |~~ A refusal under a name no field reads is refused. ~~|
-        ~(::kind[~(throws :x/TooBigError |~~ Too big. ~~|) null] !| type | eq ::kind/NameUnderNoFieldError)
+        ~(::kind[~(throws :x/TooBigError |~~ Too big. ~~|) null] !| tag | eq ::kind/NameUnderNoFieldError)
     | proves :LawUnderNoNameError/refusesALawUnderNoName
         |~~ A law under a name the kind does not declare is refused. ~~|
-        ~(::kind[~(proves :x/holds |~~ An x. ~~| ~(true)) null] !| type | eq ::kind/LawUnderNoNameError)
+        ~(::kind[~(proves :x/holds |~~ An x. ~~| ~(true)) null] !| tag | eq ::kind/LawUnderNoNameError)
     | proves :FactUnderNoNameError/refusesAFactUnderNoName
         |~~ A fact under a name the kind does not declare is refused. ~~|
-        ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| type | eq ::kind/FactUnderNoNameError)
+        ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| tag | eq ::kind/FactUnderNoNameError)
     | proves :ConstructorKindNotTakenError/refusesANumber
         |~~ A number is no constructor of a host. ~~|
-        ~(::kind[~() 5] !| get [~(type) /expected] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
+        ~(::kind[~() 5] !| get [~(tag) /expected] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
     | proves :ConstructorKindNotTakenError/refusesCode
         |~~ Code that would build another value is refused. ~~|
-        ~(::kind[~() ~(add 1)] !| type | eq ::kind/ConstructorKindNotTakenError))
+        ~(::kind[~() ~(add 1)] !| tag | eq ::kind/ConstructorKindNotTakenError))
     ::builtin{}]
 
 :kind/wraps
   |~~ Names the payload of a kind, its page and its kinds,
-      `::kind | wraps |~~ The sizes. ~~| ::map`: a payload of none of them
-      is refused under the kind, and one they reach beneath its tags is
-      held as the value of its kind; a vector of kinds names the kinds of
-      each element, and a payload that is no vector is refused.
+      `::kind | wraps |~~ The sizes. ~~| ::map`: a payload whose own tag
+      names none of them is refused under the kind, a payload under another
+      tag among them, and a `wraps` that writes no kinds takes any payload;
+      a vector of kinds names the kinds of each element, each read through
+      its tags, and a payload that is no vector is refused. A set of no
+      kinds, `#[]`, takes no payload, as a tag that names verbs or pages
+      alone writes it, `::tagged`.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the page of the payload, a
-            doc, and its kinds, a tag or a set of one tag or more, or a vector of
-            one of them for the kinds of each element, any value where none is
-            written.
+            doc, and its kinds, a tag or a set of tags, the set of none taking
+            no payload, or a vector of one tag or set of one tag or more for
+            the kinds of each element, any value where none is written.
         ~~|
         ~(it)
     | returns |~~ The kind with its payload. ~~| ::kind
@@ -283,9 +288,15 @@
           | content
           | trim
           | eq "The sizes.")
+    | proves :takesNoPayloadOfASetOfNoKinds
+        |~~ A set of no kinds takes no payload. ~~|
+        ~(:Topic |~~ A topic. ~~| (::kind | wraps |~~ None. ~~| #[])
+          | 5 | tag ::Topic
+          !| get [~(tag) /expected]
+          |  eq [::Topic/PayloadKindNotTakenError #[]])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | wraps |~~ A number. ~~| !| type | eq ::kind/wraps/SubjectNotKindError))
+        ~(::number | wraps |~~ A number. ~~| !| tag | eq ::kind/wraps/SubjectNotKindError))
     ::builtin{}]
 
 :kind/reads
@@ -316,17 +327,17 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :xs |~~ Values. ~~| /xs [::number])
           | ::Box{:xs [1 "a"]}
-          !| get [~(type) /index]
+          !| get [~(tag) /index]
           |  eq [::Box/xs/ElementKindNotTakenError 1])
     | proves :readsAPathAtDepth
         |~~ A path reads a field at depth. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /size/w ::number)
           | ::Box{:size {:w "x"}}
-          !| type
+          !| tag
           |  eq ::Box/w/KindNotTakenError)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | reads :w |~~ A w. ~~| /w !| type | eq ::kind/reads/SubjectNotKindError))
+        ~(::number | reads :w |~~ A w. ~~| /w !| tag | eq ::kind/reads/SubjectNotKindError))
     ::builtin{}]
 
 :kind/tells
@@ -365,7 +376,7 @@
           | eq [true])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | tells :x |~~ An x. ~~| !| type | eq ::kind/tells/SubjectNotKindError))
+        ~(::number | tells :x |~~ An x. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
     ::builtin{}]
 
 :kind/carries
@@ -399,7 +410,7 @@
           | eq "The width refused.")
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/carries :x |~~ An x. ~~| !| type | eq ::kind/carries/SubjectNotKindError))
+        ~(::number | kind/carries :x |~~ An x. ~~| !| tag | eq ::kind/carries/SubjectNotKindError))
     ::builtin{}]
 
 :kind/holds
@@ -428,11 +439,11 @@
         |~~ A value that keeps every invariant goes under the kind. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | holds :TooWideError |~~ No wider than high. ~~| ~(subOf /h /w | gte 0))
           | ::Box{:w 1 :h 2}
-          | type
+          | tag
           | eq ::Box)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/holds :E |~~ An e. ~~| ~(true) !| type | eq ::kind/holds/SubjectNotKindError))
+        ~(::number | kind/holds :E |~~ An e. ~~| ~(true) !| tag | eq ::kind/holds/SubjectNotKindError))
     ::builtin{}]
 
 :kind/throws
@@ -466,7 +477,7 @@
           | eq "The width is a number.")
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/throws :E |~~ An e. ~~| !| type | eq ::kind/throws/SubjectNotKindError))
+        ~(::number | kind/throws :E |~~ An e. ~~| !| tag | eq ::kind/throws/SubjectNotKindError))
     ::builtin{}]
 
 :kind/proves
@@ -498,7 +509,7 @@
           | eq [true])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/proves :x |~~ An x. ~~| ~(true) !| type | eq ::kind/proves/SubjectNotKindError))
+        ~(::number | kind/proves :x |~~ An x. ~~| ~(true) !| tag | eq ::kind/proves/SubjectNotKindError))
     ::builtin{}]
 
 :kind/impl
@@ -529,13 +540,13 @@
         |~~ A constructor that is no `::builtin{}` is refused as the
             literal refuses it.
         ~~|
-        ~(get [~(::kind | impl 5 !| type) ~(::kind | impl ~(add 1) !| type)] | eq [::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError])
+        ~(get [~(::kind | impl 5 !| tag) ~(::kind | impl ~(add 1) !| tag)] | eq [::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError])
     | proves :constructsNothingByAConstructorOfAnotherKind
         |~~ A constructor a host handed with another kind constructs
             nothing under this one.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | get /value | get /1)) | ::Box"x" | type | eq ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | get /value | get /1)) | ::Box"x" | tag | eq ::Box)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/impl ::builtin{} !| type | eq ::kind/impl/SubjectNotKindError))
+        ~(::number | kind/impl ::builtin{} !| tag | eq ::kind/impl/SubjectNotKindError))
     ::builtin{}]

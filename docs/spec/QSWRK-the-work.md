@@ -203,7 +203,9 @@ refuses:
   dissolved into since, and a section or a chapter gone that none names;
 - a case of a chapter the baseline held, added, rewritten or taken away
   since, that no record in transit over its section claims, nor a record
-  dissolved into the section since [QSREQ#cases];
+  dissolved into the section since, a case taken away or renamed claimed
+  by the text of the record, which names the case that leaves beside the
+  one it gives way to [QSREQ#cases];
 - a document of the research the baseline holds that nothing in force
   holds, and a series of the benchmark past its two latest at the baseline;
 - a seed that cites a record in transit [QSVOX#seed];

@@ -34,18 +34,19 @@
   ~~|
   ::kind
     | wraps
-        |~~ A map, read as itself. A map under a tag of its own gives the
-            map beneath by `payload`, and the pairs of a vector build a
-            map by `toMap`, each refused here.
+        |~~ A map, read as itself. A value of `::map` already, a map under
+            a tag of its own and an error at rest among them, stays as it
+            is, `payload` reading the map beneath, and the pairs of a vector,
+            refused here, build a map by `toMap`.
             ::link~(::map | doc) ::link~(::vec/toMap | doc)
             ::link~(::any/payload | doc)
         ~~|
     | throws :PayloadKindNotTakenError
-        |~~ `::map` reads its payload as the map it is: the pairs of a
-            vector build a map by `toMap`, `entries | toMap`, and a map
-            under a tag of its own gives the map beneath by `payload`.
+        |~~ `::map` reads its payload as the map it is, and a value of no
+            map is refused: the pairs of a vector build a map by `toMap`,
+            `[[:a 1]] | toMap`.
         ~~|
-    | proves :isAMap |~~ Braces make a map. ~~| ~({:a 1} | type | eq ::map)
+    | proves :isAMap |~~ Braces make a map. ~~| ~({:a 1} | tag | eq ::map)
     | proves :buildsAMap
         |~~ The constructor of a map answers it. ~~|
         ~(::map{:a 1} | eq {:a 1})
@@ -60,17 +61,17 @@
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::map#1 !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::number])
+        ~(::map#1 !| get [~(tag) /actualTag] | eq [::map/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/refusesThePairsOfAVector
         |~~ The pairs of a vector are refused; `toMap` builds them into a
             map.
         ~~|
-        ~([[:a 1]] | tag ::map !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::vec])
-    | proves :PayloadKindNotTakenError/refusesAMapUnderATag
-        |~~ A map under a tag of its own is refused; `payload` reads the
-            map beneath.
+        ~([[:a 1]] | tag ::map !| get [~(tag) /actualTag] | eq [::map/PayloadKindNotTakenError ::vec])
+    | proves :keepsAValueOfItsKind
+        |~~ A value of `::map` already, a map under a tag of its own and an
+            error at rest, stays as it is; `payload` reads the map beneath.
         ~~|
-        ~(::map::Box{:a 1} !| get [~(type) /actualType] | eq [::map/PayloadKindNotTakenError ::Box])
+        ~(get [~(::map::Box{:a 1} | tag) ~(::map!{:a 1} | tag) ~(::Box{:a 1} | payload | tag)] | eq [::Box ::error ::map])
     | impl ::builtin{}
 
 :map/count
@@ -102,7 +103,7 @@
         |~~ A predicate given to `count` is refused; `filter` chooses
             first.
         ~~|
-        ~({:a 1 :b 2} | count ~(gt 1) !| type | eq ::map/count/ArgsBeyondInputsError)
+        ~({:a 1 :b 2} | count ~(gt 1) !| tag | eq ::map/count/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/size
@@ -180,7 +181,7 @@
         ~({:b 1 :a 2} | entries | first | eq [:b 1])
     | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused; `take` takes it. ~~|
-        ~({:a 1 :b 2} | first 2 !| type | eq ::map/first/ArgsBeyondInputsError)
+        ~({:a 1 :b 2} | first 2 !| tag | eq ::map/first/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/last
@@ -236,14 +237,14 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| get [~(type) /actualType ~(trace | last | path) /expected]
+          !| get [~(tag) /actualTag ~(trace | last | path) /expected]
           |  eq [::map/sum/ElementKindNotTakenError ::string /b #[::number]])
     | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:a null} | sum !| get [~(type) ~(trace | last | path)] | eq [::map/sum/ElementKindNotTakenError /a])
+        ~({:a null} | sum !| get [~(tag) ~(trace | last | path)] | eq [::map/sum/ElementKindNotTakenError /a])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
-        ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
+        ~({:a 1} | sum (get /a) !| tag | eq ::map/sum/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/avg
@@ -279,7 +280,7 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| get [~(type) /actualType ~(trace | last | path) /expected]
+          !| get [~(tag) /actualTag ~(trace | last | path) /expected]
           |  eq [::map/avg/ElementKindNotTakenError ::string /b #[::number]])
     | impl ::builtin{}
 
@@ -310,7 +311,7 @@
         ~({:a 3 :b 1} | min | eq 1)
     | proves :relatesValuesOfOneKind
         |~~ A number and a string are no pair a minimum relates. ~~|
-        ~({:a 1 :b "x"} | min !| type | eq ::call/KindsMismatchedError)
+        ~({:a 1 :b "x"} | min !| tag | eq ::call/KindsMismatchedError)
     | proves :ranksByTheKey
         |~~ The key ranks each value. ~~|
         ~({:a {:n 2} :b {:n 1}} | min /n | eq {:n 1})
@@ -328,7 +329,7 @@
             refused.
         ~~|
         ~({:a {:n 1}} | min (get /n)
-          !| get [~(type) /actualType]
+          !| get [~(tag) /actualTag]
           |  eq [::map/min/key/KindNotTakenError ::path/KeyNotInMapError])
     | impl ::builtin{}
 
@@ -353,7 +354,7 @@
         ~({:a 3 :b 1} | max | eq 3)
     | proves :relatesValuesOfOneKind
         |~~ A number and a string are no pair a maximum relates. ~~|
-        ~({:a 1 :b "x"} | max !| type | eq ::call/KindsMismatchedError)
+        ~({:a 1 :b "x"} | max !| tag | eq ::call/KindsMismatchedError)
     | proves :findsTheKeyByEntries
         |~~ The key of the greatest value is read by `entries`. ~~|
         ~({:a 3 :b 1} | entries | max /1 | get /0 | eq :a)
@@ -362,7 +363,7 @@
         ~({} | max | eq null)
     | proves :key/KindNotTakenError/refusesANumber
         |~~ A key that is no quote is refused under the input. ~~|
-        ~({:a 1} | max 1 !| type | eq ::map/max/key/KindNotTakenError)
+        ~({:a 1} | max 1 !| tag | eq ::map/max/key/KindNotTakenError)
     | proves :ranksByTheKey
         |~~ The key the call gives ranks each value. ~~|
         ~({:a {:age 30} :b {:age 40}} | max /age | eq {:age 40})
@@ -412,7 +413,7 @@
         ~(::Box{:a 1} | map ~(add 1) | eq {:a 2})
     | proves :code/KindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
-        ~({:a 1} | map (add 1) !| type | eq ::map/map/code/KindNotTakenError)
+        ~({:a 1} | map (add 1) !| tag | eq ::map/map/code/KindNotTakenError)
     | impl ::builtin{}
 
 :map/filter
@@ -460,14 +461,14 @@
         |~~ The predicate meets the value, not its entry: a number has no
             parts.
         ~~|
-        ~({:a 1} | filter /0 !| type | eq ::path/SubjectHasNoPartsError)
+        ~({:a 1} | filter /0 !| tag | eq ::path/SubjectHasNoPartsError)
     | proves :predicate/KindNotTakenError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
-        ~({:a 1} | filter (gt 0) !| type | eq ::map/filter/predicate/KindNotTakenError)
+        ~({:a 1} | filter (gt 0) !| tag | eq ::map/filter/predicate/KindNotTakenError)
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| get [~(type) ~(trace | last | path) /actualType /expected]
+          !| get [~(tag) ~(trace | last | path) /actualTag /expected]
           |  eq [::map/filter/ConditionKindNotTakenError /a ::number #[::boolean]])
     | impl ::builtin{}
 
@@ -513,13 +514,13 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| get [~(type) ~(trace | last | path) /actualType /expected]
+          !| get [~(tag) ~(trace | last | path) /actualTag /expected]
           |  eq [::map/every/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
-        ~({:a 1} | every (gt 0) !| type | eq ::map/every/predicate/KindNotTakenError)
+        ~({:a 1} | every (gt 0) !| tag | eq ::map/every/predicate/KindNotTakenError)
     | impl ::builtin{}
 
 :map/any
@@ -559,13 +560,13 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| get [~(type) ~(trace | last | path) /actualType /expected]
+          !| get [~(tag) ~(trace | last | path) /actualTag /expected]
           |  eq [::map/any/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
-        ~({:a 1} | any (gt 0) !| type | eq ::map/any/predicate/KindNotTakenError)
+        ~({:a 1} | any (gt 0) !| tag | eq ::map/any/predicate/KindNotTakenError)
     | impl ::builtin{}
 
 :map/sort
@@ -605,7 +606,7 @@
         ~(::Box{:a 3 :b 1} | sort | eq ::Box{:b 1 :a 3})
     | proves :key/KindNotTakenError/refusesANumber
         |~~ A key that is no code is refused. ~~|
-        ~({:a 1 :b 2} | sort 1 !| type | eq ::map/sort/key/KindNotTakenError)
+        ~({:a 1 :b 2} | sort 1 !| tag | eq ::map/sort/key/KindNotTakenError)
     | impl ::builtin{}
 
 :map/take
@@ -645,10 +646,10 @@
         ~(::Box{:a 1 :b 2} | take 1 | eq ::Box{:a 1})
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~({:a 1} | take 1.5 !| type | eq ::map/take/count/NotIntegerError)
+        ~({:a 1} | take 1.5 !| tag | eq ::map/take/count/NotIntegerError)
     | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~({:a 1} | take "1" !| type | eq ::map/take/count/KindNotTakenError)
+        ~({:a 1} | take "1" !| tag | eq ::map/take/count/KindNotTakenError)
     | impl ::builtin{}
 
 :map/drop
@@ -689,10 +690,10 @@
         ~({:a 1} | drop 5 | eq {})
     | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~({:a 1} | drop "1" !| type | eq ::map/drop/count/KindNotTakenError)
+        ~({:a 1} | drop "1" !| tag | eq ::map/drop/count/KindNotTakenError)
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A count that is no whole number is refused. ~~|
-        ~({:a 1} | drop 1.5 !| type | eq ::map/drop/count/NotIntegerError)
+        ~({:a 1} | drop 1.5 !| tag | eq ::map/drop/count/NotIntegerError)
     | impl ::builtin{}
 
 :map/reverse
@@ -754,13 +755,13 @@
         ~({:a "x" :b "y"} | reduce "" ~(append) | eq "xy")
     | proves :reducer/KindNotTakenError/refusesAReducerComputedAtTheCall
         |~~ A reducer written without its quote is refused. ~~|
-        ~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/KindNotTakenError)
+        ~({:a 1} | reduce 0 (add) !| tag | eq ::map/reduce/reducer/KindNotTakenError)
     | proves :reducer/KindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed is read as the seed, and
             the seed as the reducer.
         ~~|
         ~({:a 1} | reduce ~(add) 0
-          !| get [~(type) /actualType]
+          !| get [~(tag) /actualTag]
           |  eq [::map/reduce/reducer/KindNotTakenError ::number])
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
@@ -806,7 +807,7 @@
         ~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
-        ~(42 | keys !| get [~(type) /actualType] | eq [::map/keys/SubjectNotMapError ::number])
+        ~(42 | keys !| get [~(tag) /actualTag] | eq [::map/keys/SubjectNotMapError ::number])
     | impl ::builtin{}
 
 :map/vals
@@ -832,14 +833,14 @@
         ~({} | vals | eq [])
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
-        ~([1 2] | vals !| get [~(type) /actualType] | eq [::map/vals/SubjectNotMapError ::vec])
+        ~([1 2] | vals !| get [~(tag) /actualTag] | eq [::map/vals/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/entries
   |~~ Answers the vector of the pairs `[key value]` of the map, in the
       order of the entries, each key a keyword: the map with its keys as
       data, for a step that reads a key beside its value, as
-      `get [~(type) ~(payload)]` reads a tagged value. `toMap` builds the map back,
+      `get [~(tag) ~(payload)]` reads a tagged value. `toMap` builds the map back,
       so a test of a key is
       `entries | filter ~(get /0 | ne :tmp) | toMap`, and a key is spelled
       with its value by turning it to text first,
@@ -868,7 +869,7 @@
         ~({:a 1 :tmp 2} | entries | filter ~(get /0 | ne :tmp) | toMap | eq {:a 1})
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
-        ~([1 2] | entries !| get [~(type) /actualType] | eq [::map/entries/SubjectNotMapError ::vec])
+        ~([1 2] | entries !| get [~(tag) /actualTag] | eq [::map/entries/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/has
@@ -920,7 +921,7 @@
     | proves :key/KindNotTakenError/refusesAVector
         |~~ A vector key is refused. ~~|
         ~({:a 1} | has [1]
-          !| get [~(type) /actualType]
+          !| get [~(tag) /actualTag]
           |  eq [::map/has/key/KindNotTakenError ::vec])
     | impl ::builtin{}
 
@@ -963,7 +964,7 @@
         ~(::Box{:a 1} | union {:b 2} | eq ::Box{:a 1 :b 2})
     | proves :other/KindNotTakenError/refusesASetOfKeys
         |~~ A set of keys unites with no map. ~~|
-        ~({:a 1} | union #[:b] !| type | eq ::map/union/other/KindNotTakenError)
+        ~({:a 1} | union #[:b] !| tag | eq ::map/union/other/KindNotTakenError)
     | impl ::builtin{}
 
 :map/merge
@@ -992,7 +993,7 @@
         ~({:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})] | eq [{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}])
     | proves :other/KindNotTakenError/refusesASetOfKeys
         |~~ A set of keys merges with no map. ~~|
-        ~({:a 1} | merge #[:b] !| type | eq ::map/merge/other/KindNotTakenError)
+        ~({:a 1} | merge #[:b] !| tag | eq ::map/merge/other/KindNotTakenError)
     | impl ~(union other)
 
 :map/minus
@@ -1046,13 +1047,13 @@
         ~({:"1" 5 :b 2} | minus [1] | eq {:b 2})
     | proves :keys/KindNotTakenError/refusesASingleKey
         |~~ A key written alone is refused; a set holds it. ~~|
-        ~({:a 1} | minus "a" !| type | eq ::map/minus/keys/KindNotTakenError)
+        ~({:a 1} | minus "a" !| tag | eq ::map/minus/keys/KindNotTakenError)
     | proves :keys/ElementKindNotTakenError/refusesABoolean
         |~~ A boolean among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
         ~({:a 1} | minus [:a true]
-          !| get [~(type) /actualType /index /expected]
+          !| get [~(tag) /actualTag /index /expected]
           |  eq [::map/minus/keys/ElementKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
     | impl ::builtin{}
 
@@ -1102,13 +1103,13 @@
             index, with the kinds of a key.
         ~~|
         ~({:a 1} | inter [[:a]]
-          !| get [~(type) /actualType /index /expected]
+          !| get [~(tag) /actualTag /index /expected]
           |  eq [::map/inter/keys/ElementKindNotTakenError ::vec 0 #[::keyword ::number ::string]])
     | proves :keys/KindNotTakenError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
             input.
         ~~|
-        ~({:a 1} | inter 5 !| type | eq ::map/inter/keys/KindNotTakenError)
+        ~({:a 1} | inter 5 !| tag | eq ::map/inter/keys/KindNotTakenError)
     | impl ::builtin{}
 
 :map/raise
@@ -1148,13 +1149,13 @@
         ~({:message "boom"} | raise !| get /message | eq "boom")
     | proves :takesTheTagTheMapCarries
         |~~ The tag the map carries is the tag of the error. ~~|
-        ~(::Oops{:message "boom"} | raise !| type | eq ::Oops)
+        ~(::Oops{:message "boom"} | raise !| tag | eq ::Oops)
     | proves :keepsEveryEntryAsAFact
         |~~ Every entry of the map is a fact of the error. ~~|
-        ~({:a 1} | raise !| get [~(type) /a] | eq [::error 1])
+        ~({:a 1} | raise !| get [~(tag) /a] | eq [::error 1])
     | proves :raisesAnErrorAtRestAsItself
         |~~ An error at rest raised again is the error it was. ~~|
-        ~("x" | add 1 !| raise !| type | eq ::number/add/SubjectNotNumberError)
+        ~("x" | add 1 !| raise !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :startsATraceOverAnEmptyTrace
         |~~ An empty `:trace` is no trace: the raise starts one, and the
             steps the failure skips join its frame.
@@ -1174,23 +1175,23 @@
         |~~ A trace that is no vector of frames is refused by its kind, a
             vector of maps at the index of its first.
         ~~|
-        ~({:trace [{:failed ~(a) :subject 1}]} | raise !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 0])
+        ~({:trace [{:failed ~(a) :subject 1}]} | raise !| get [~(tag) /index] | eq [::trace/ElementKindNotTakenError 0])
     | proves :renamesByATag
         |~~ A step that lays a tag over an error caught renames it. ~~|
-        ~("x" | add 1 !| tag ::Renamed | raise !| type | eq ::Renamed)
+        ~("x" | add 1 !| tag ::Renamed | raise !| tag | eq ::Renamed)
     | proves :guardsAValue
         |~~ A guard raises an error of its own tag when a value fails its
             check.
         ~~|
         ~(42 | if (gt 100) ~(it) ~(get {:value ~(it)} | tag ::TooSmall | raise)
-          !| get [~(type) /value]
+          !| get [~(tag) /value]
           |  eq [::TooSmall 42])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number is no map to raise. ~~|
-        ~(42 | raise !| get [~(type) /actualType] | eq [::map/raise/SubjectNotMapError ::number])
+        ~(42 | raise !| get [~(tag) /actualTag] | eq [::map/raise/SubjectNotMapError ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
-        ~({:a 1} | raise "boom" !| type | eq ::map/raise/ArgsBeyondInputsError)
+        ~({:a 1} | raise "boom" !| tag | eq ::map/raise/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :map/toMap

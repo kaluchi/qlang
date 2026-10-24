@@ -34,7 +34,7 @@ it('shows the caret under the point a parse stopped at below its failure', async
 });
 
 it('writes a defect raised as the cell ran as qlang: and its message', async () => {
-  const shown = await cellShown(await notebook.evalCell('type', { initialPipeValue: function hello() {} }));
+  const shown = await cellShown(await notebook.evalCell('tag', { initialPipeValue: function hello() {} }));
   expect(shown).toEqual({ text: expect.stringMatching(/^qlang: /), failed: true });
 });
 

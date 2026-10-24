@@ -3,30 +3,30 @@
 {"name":"mul-multiplies-the-subject-by-its-modifier","query":"10 | mul 2","expect":"20"}
 {"name":"div-divides-the-subject-by-its-modifier","query":"10 | div 2","expect":"5"}
 {"name":"arithmetic-runs-step-after-step","query":"10 | add 5 | mul 2 | sub 10","expect":"20"}
-{"name":"add-refuses-an-answer-past-the-doubles","query":"1e308 | add 1e308 !| type","expect":"::number/NotFiniteError"}
-{"name":"sub-refuses-an-answer-past-the-doubles","query":"-1e308 | sub 1e308 !| type","expect":"::number/NotFiniteError"}
-{"name":"mul-refuses-an-answer-past-the-doubles","query":"1e308 | mul 10 !| type","expect":"::number/NotFiniteError"}
-{"name":"div-refuses-an-answer-past-the-doubles","query":"1e308 | div 0.0001 !| type","expect":"::number/NotFiniteError"}
+{"name":"add-refuses-an-answer-past-the-doubles","query":"1e308 | add 1e308 !| tag","expect":"::number/NotFiniteError"}
+{"name":"sub-refuses-an-answer-past-the-doubles","query":"-1e308 | sub 1e308 !| tag","expect":"::number/NotFiniteError"}
+{"name":"mul-refuses-an-answer-past-the-doubles","query":"1e308 | mul 10 !| tag","expect":"::number/NotFiniteError"}
+{"name":"div-refuses-an-answer-past-the-doubles","query":"1e308 | div 0.0001 !| tag","expect":"::number/NotFiniteError"}
 {"name":"finite-arithmetic-answers-as-it-is","query":"[1 2 3] | sum | add 4 | mul 2 | div 4 | sub 1","expect":"4"}
 {"name":"the-remainder-takes-the-sign-of-the-divisor","query":"get [~(7 | mod 3) ~(-7 | mod 3) ~(7 | mod -3)]","expect":"[1 2 -2]"}
 {"name":"floor-ceil-and-abs-take-a-number-to-a-whole-one-or-its-size","query":"get [~(2.7 | floor) ~(-2.1 | floor) ~(2.1 | ceil) ~(-2.7 | ceil) ~(-3 | abs)]","expect":"[2 -3 3 -2 3]"}
 {"name":"range-counts-from-zero-below-its-subject","query":"get [~(5 | range) ~(0 | range)]","expect":"[[0 1 2 3 4] []]"}
-{"name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","expect":"::number/div/divisor/ZeroError!{\n  :actualType ::number\n  :actualValue 0\n  :trace ::trace[::frame[10 ~(div 0)]]\n} | raise"}
+{"name":"a-division-by-zero-is-refused-under-its-divisor","query":"10 | div 0","raises":"::number/div/divisor/ZeroError!{\n  :actualTag ::number\n  :actualValue 0\n  :trace ::trace[::frame[10 ~(div 0)]]\n}"}
 {"name":"round-rounds-half-away-from-zero","query":"[2.5 -2.5 3.4] | map ~round","expect":"[3 -3 3]"}
 {"name":"round-keeps-the-digits-the-call-gives","query":"3.14159 | round 2","expect":"3.14"}
 {"name":"a-remainder-and-a-rounding-stay-within-the-doubles","query":"get [~(1e308 | mod 1e-308 | lt 1e-308) ~(-1e-300 | mod 1e300 | gt 0) ~(1 | round 400) ~(1 | round -400)]","expect":"[true true 1 0]"}
 {"name":"a-number-past-the-digits-a-double-holds-rounds-to-itself","query":"1e308 | round 2","expect":"1e+308"}
 {"name":"round-reads-a-number-below-a-half-as-below-it","query":"get [~(1.4999999999999998 | round) ~(0.49999999999999994 | round) ~(1.005 | round 2)]","expect":"[1 0 1.01]"}
-{"name":"mod-refuses-a-divisor-of-zero","query":"7 | mod 0 !| type","expect":"::number/mod/divisor/ZeroError"}
-{"name":"range-counts-a-whole-number-within-the-longest","query":"get [~(2.5 | range !| type) ~(1e10 | range !| type)]","expect":"[::number/range/subject/NotIntegerError ::number/range/CountTooLargeError]"}
+{"name":"mod-refuses-a-divisor-of-zero","query":"7 | mod 0 !| tag","expect":"::number/mod/divisor/ZeroError"}
+{"name":"range-counts-a-whole-number-within-the-longest","query":"get [~(2.5 | range !| tag) ~(1e10 | range !| tag)]","expect":"[::number/range/subject/NotIntegerError ::number/range/CountTooLargeError]"}
 {"name":"a-number-under-a-tag-rounds-under-the-tag","query":"::W#2.7 | floor","expect":"::W#2"}
 {"name":"a-negative-count-of-digits-rounds-to-tens","query":"15 | round -1","expect":"20"}
-{"name":"sum-refuses-an-answer-past-the-doubles","query":"[1e308 1e308] | sum !| type","expect":"::number/NotFiniteError"}
-{"name":"sum-overflow-holds-its-subject-on-the-trace","query":"[1e308 1e308] | sum !| get /trace/0/0","expect":"[1e308 1e308]"}
-{"name":"add-refuses-a-subject-that-is-no-number","query":"\"x\" | add 1 !| type","expect":"::number/add/SubjectNotNumberError"}
-{"name":"add-refuses-an-addend-that-is-no-number-under-the-addend","query":"1 | add \"x\" !| type","expect":"::number/add/addend/KindNotTakenError"}
-{"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| type","expect":"::number/round/digits/NotIntegerError"}
+{"name":"sum-refuses-an-answer-past-the-doubles","query":"[1e308 1e308] | sum !| tag","expect":"::number/NotFiniteError"}
+{"name":"sum-overflow-holds-its-subject-on-the-trace","query":"[1e308 1e308] | sum !| get /trace/0/0","expect":"[1e+308 1e+308]"}
+{"name":"add-refuses-a-subject-that-is-no-number","query":"\"x\" | add 1 !| tag","expect":"::number/add/SubjectNotNumberError"}
+{"name":"add-refuses-an-addend-that-is-no-number-under-the-addend","query":"1 | add \"x\" !| tag","expect":"::number/add/addend/KindNotTakenError"}
+{"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| tag","expect":"::number/round/digits/NotIntegerError"}
 {"name":"range-of-zero-and-below-is-empty","query":"get [~(0 | range) ~(-2 | range)]","expect":"[[] []]"}
 {"name":"a-step-works-beneath-the-tag-its-operands-share-a-bare-value-taking-any","query":"get [~(::Cents#100 | add 1) ~(100 | add ::Cents#1) ~(::Cents#100 | add ::Cents#1) ~(::Cents#100 | mul 2)]","expect":"[::Cents#101 ::Cents#101 ::Cents#101 ::Cents#200]"}
-{"name":"numbers-under-two-tags-combine-in-no-step","query":"::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars]"}
-{"name":"add-without-its-addend-is-refused-under-its-input","query":"5 | add !| type","expect":"::number/add/addend/NotGivenError"}
+{"name":"numbers-under-two-tags-combine-in-no-step","query":"::Cents#100 | add ::Dollars#1 !| get [~(tag) /leftTag /rightTag]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars]"}
+{"name":"add-without-its-addend-is-refused-under-its-input","query":"5 | add !| tag","expect":"::number/add/addend/NotGivenError"}

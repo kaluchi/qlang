@@ -2,8 +2,8 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
-  typeOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  isValueClass, isFn, isKind, makeTag, makeTagged,
+  tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -94,7 +94,7 @@ export function answerKindsOf(scope, record, subjectKinds) {
 
 // [QSBLD#fn]
 export function isInvariant(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(beneathTags(value.payload));
+  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
 
 export const INVARIANT_TAG = makeTag('invariant');
@@ -102,7 +102,7 @@ const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
 // [QSSLF#laws]
 export function isLaw(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(beneathTags(value.payload));
+  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
 
 export const LAW_TAG = makeTag('law');
@@ -168,7 +168,7 @@ const PATH_NAMES = new WeakMap();
 export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
-    yield typeOf(value).name;
+    yield tagOf(value).name;
     if (isTag(value)) {
       yield value.name;
       return;

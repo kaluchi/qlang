@@ -45,13 +45,13 @@
         ~({:a {:b [1 2]}} | get /c !| trace | first | print | lines | count | eq 1)
     | proves :PayloadNotSubjectAndStepsError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
-        ~(::frame["x"] !| type | eq ::frame/PayloadNotSubjectAndStepsError)
+        ~(::frame["x"] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadNotSubjectAndStepsError/refusesAThirdElementThatIsNoPath
         |~~ A third element that is no path is refused. ~~|
-        ~(::frame["x" ~(add 1) 1] !| type | eq ::frame/PayloadNotSubjectAndStepsError)
+        ~(::frame["x" ~(add 1) 1] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no frame. ~~|
-        ~(::frame{:failed ~(add 1)} !| type | eq ::frame/PayloadKindNotTakenError)
+        ~(::frame{:failed ~(add 1)} !| tag | eq ::frame/PayloadKindNotTakenError)
 
 :frame/subject
   |~~ Answers the subject of the frame, the value the step that failed
@@ -75,7 +75,7 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | subject | eq [1 "x" 3])
     | proves :SubjectNotFrameError/refusesAnError
         |~~ An error at rest is read by `trace` first. ~~|
-        ~("x" | add 1 !| subject !| type | eq ::frame/subject/SubjectNotFrameError)
+        ~("x" | add 1 !| subject !| tag | eq ::frame/subject/SubjectNotFrameError)
     | impl ~(get /0)
 
 :frame/unfinished
@@ -106,7 +106,7 @@
         ~("x" | add 1 | mul 2 !| trace | first | get [~(unfinished) ~(failed) ~(skipped)] | eq [~(add 1 | mul 2) ~(add 1) ~(mul 2)])
     | proves :SubjectNotFrameError/refusesAMap
         |~~ A map is no frame. ~~|
-        ~({:a 1} | unfinished !| type | eq ::frame/unfinished/SubjectNotFrameError)
+        ~({:a 1} | unfinished !| tag | eq ::frame/unfinished/SubjectNotFrameError)
     | impl ~(get /1)
 
 :frame/failed
@@ -135,10 +135,10 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | map ~failed | eq [~(mul 2) ~(map ~(mul 2))])
     | proves :readsTheRecordOfItsStepByFirst
         |~~ The first of the quote is the record of the step, a call. ~~|
-        ~("x" | add 1 !| trace | first | failed | first | type | eq ::call)
+        ~("x" | add 1 !| trace | first | failed | first | tag | eq ::call)
     | proves :SubjectNotFrameError/refusesAQuote
         |~~ A quote is no frame. ~~|
-        ~(~(add 1) | failed !| type | eq ::frame/failed/SubjectNotFrameError)
+        ~(~(add 1) | failed !| tag | eq ::frame/failed/SubjectNotFrameError)
     | impl ~(unfinished | take 1)
 
 :frame/skipped
@@ -167,7 +167,7 @@
         ~("x" | add 1 | mul 2 !| trace | last | skipped | :rest it | 5 | apply rest | eq 10)
     | proves :SubjectNotFrameError/refusesAVector
         |~~ A vector is no frame. ~~|
-        ~([1 2] | skipped !| type | eq ::frame/skipped/SubjectNotFrameError)
+        ~([1 2] | skipped !| tag | eq ::frame/skipped/SubjectNotFrameError)
     | impl ~(unfinished | drop 1)
 
 :frame/path
@@ -214,5 +214,5 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path) | eq "x")
     | proves :SubjectNotFrameError/refusesANumber
         |~~ A number is no frame. ~~|
-        ~(5 | path !| type | eq ::frame/path/SubjectNotFrameError)
+        ~(5 | path !| tag | eq ::frame/path/SubjectNotFrameError)
     | impl ~(query /2)

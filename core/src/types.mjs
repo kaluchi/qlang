@@ -246,6 +246,8 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
+export const isKindOfTheCore = name => Object.hasOwn(CORE_KIND, name);
+
 export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
@@ -278,7 +280,7 @@ export function tagsOver(value) {
   let part = value;
   for (; isValueClass(part, 'underTag'); part = part.payload) tags.push(part.tag.name);
   const header = part[TAG_HEADER_SYMBOL];
-  if (header !== undefined && !Object.hasOwn(CORE_KIND, header.name)) tags.push(header.name);
+  if (header !== undefined && !isKindOfTheCore(header.name)) tags.push(header.name);
   return tags;
 }
 
@@ -303,9 +305,9 @@ export function pairRefused(left, right) {
   const kindAt = (tags, value) => {
     if (depth < tags.length) return makeTag(tags[depth]);
     const beneath = beneathTags(value);
-    return isMap(beneath) ? CORE_KIND.map : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec : typeOf(beneath);
+    return isMap(beneath) ? CORE_KIND.map : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec : tagOf(beneath);
   };
-  return new CallKindsMismatchedError({ leftType: kindAt(lefts, left), rightType: kindAt(rights, right) });
+  return new CallKindsMismatchedError({ leftTag: kindAt(lefts, left), rightTag: kindAt(rights, right) });
 }
 
 // [QSLIT#kind]
@@ -377,12 +379,12 @@ export function makeErrorValue(tag, facts, { originalError = null } = {}) {
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
   if (isValueClass(v, 'underTag')) return 'underTag';
-  const kind = typeOf(v);
-  return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
+  const kind = tagOf(v);
+  return isKindOfTheCore(kind.name) ? kind.name : 'underTag';
 }
 
 // [QSLIT#kind], [QSHST#door]
-export function typeOf(v) {
+export function tagOf(v) {
   if (isNull(v)) return CORE_KIND.null;
   if (isBoolean(v)) return CORE_KIND.boolean;
   if (isNumber(v)) return CORE_KIND.number;

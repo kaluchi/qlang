@@ -14,7 +14,7 @@
     | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
-        ~(::point["a" 1 1] !| type | eq ::point/ElementKindNotTakenError)
+        ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)
     | holds :PayloadNotOffsetLineAndColumnError
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
@@ -22,10 +22,10 @@
         ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
     | proves :PayloadNotOffsetLineAndColumnError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
-        ~(::point[0 1 1 4 1 5] !| type | eq ::point/PayloadNotOffsetLineAndColumnError)
+        ~(::point[0 1 1 4 1 5] !| tag | eq ::point/PayloadNotOffsetLineAndColumnError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
-        ~(::point{:a 1 :b 2 :c 3} !| type | eq ::point/PayloadKindNotTakenError)
+        ~(::point{:a 1 :b 2 :c 3} !| tag | eq ::point/PayloadKindNotTakenError)
 
 :point/offset
   |~~ Answers the offset of the point from the start of the text,
@@ -39,7 +39,7 @@
         ~~|
     | proves :SubjectNotPointError/refusesANumber
         |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/offset !| type | eq ::point/offset/SubjectNotPointError)
+        ~(5 | point/offset !| tag | eq ::point/offset/SubjectNotPointError)
     | proves :readsTheFirstNumber
         |~~ The offset is the first number of a point. ~~|
         ~(::point[4 1 5] | offset | eq 4)
@@ -57,7 +57,7 @@
         ~~|
     | proves :SubjectNotPointError/refusesANumber
         |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/line !| type | eq ::point/line/SubjectNotPointError)
+        ~(5 | point/line !| tag | eq ::point/line/SubjectNotPointError)
     | proves :readsTheSecondNumber
         |~~ The line is the second number of a point. ~~|
         ~(::point[4 2 1] | line | eq 2)
@@ -75,7 +75,7 @@
         ~~|
     | proves :SubjectNotPointError/refusesANumber
         |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/column !| type | eq ::point/column/SubjectNotPointError)
+        ~(5 | point/column !| tag | eq ::point/column/SubjectNotPointError)
     | proves :readsTheThirdNumber
         |~~ The column is the third number of a point. ~~|
         ~(::point[4 1 5] | column | eq 5)

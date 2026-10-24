@@ -58,7 +58,7 @@ describe('the axes read the node a tag addresses', () => {
   });
 
   it('::quote | doc reads the page the declaration of the kind holds, the page a quote reads', async () => {
-    expect(await evalQuery('::quote | doc | get [~(type) ~(eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
+    expect(await evalQuery('::quote | doc | get [~(tag) ~(eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
   });
 
   it('an axis refusing a tag no declaration names hands its host the refusal under `originalError`, with its address and its facts', async () => {

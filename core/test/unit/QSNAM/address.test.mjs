@@ -8,5 +8,5 @@ it('an address reads the verb of the root whatever the reader binds under its la
 });
 
 it('an address whose kind the verb does not live on names nothing', async () => {
-  expect(await evalQuery('::string/sum | doc !| type')).toEqual(makeTag('any/doc/UnknownNameError'));
+  expect(await evalQuery('::string/sum | doc !| tag')).toEqual(makeTag('any/doc/UnknownNameError'));
 });

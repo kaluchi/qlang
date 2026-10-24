@@ -141,18 +141,18 @@
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | toString | eq "mul 2")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::quote{:not :steps} !| get [~(type) /actualType] | eq [::quote/PayloadKindNotTakenError ::map])
+        ~(::quote{:not :steps} !| get [~(tag) /actualTag] | eq [::quote/PayloadKindNotTakenError ::map])
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
-        ~([::Box[1]] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 0])
+        ~([::Box[1]] | tag ::quote !| get [~(tag) /index] | eq [::quote/ElementNotStepError 0])
     | proves :ElementNotStepError/refusesTheQuoteOfAPathAlone
         |~~ The quote of a path alone, which a step writes bare, is refused
             at its index.
         ~~|
-        ~(get [1 ~("/name" | parse)] | tag ::quote !| get [~(type) /index] | eq [::quote/ElementNotStepError 1])
+        ~(get [1 ~("/name" | parse)] | tag ::quote !| get [~(tag) /index] | eq [::quote/ElementNotStepError 1])
     | proves :StepNotCommandError/refusesAValueAfterTheHead
         |~~ A value after the first step is refused at its index. ~~|
-        ~([[1] [2]] | tag ::quote !| get [~(type) /index] | eq [::quote/StepNotCommandError 1])
+        ~([[1] [2]] | tag ::quote !| get [~(tag) /index] | eq [::quote/StepNotCommandError 1])
     | proves :StepNotCommandError/namesTheVerbThatTakesThePath
         |~~ A path after the first step names the verb that reads it. ~~|
         ~([1 /a] | tag ::quote !| get /message | contains "write `get /a`")
@@ -169,10 +169,10 @@
         |~~ A vector that holds a name is refused, naming the template
             `get` builds.
         ~~|
-        ~([[::call{:name :count}]] | tag ::quote !| get [~(type) /message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(count)]`"])
+        ~([[::call{:name :count}]] | tag ::quote !| get [~(tag) /message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(count)]`"])
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
-        ~("42 |" | parse !| type | eq ::quote/ParseError)
+        ~("42 |" | parse !| tag | eq ::quote/ParseError)
     | proves :ParseError/namesTheLineAndTheColumnWhereTheReadingStopped
         |~~ The start of `:location` reads the line and the column where the
             reading stopped, under the line `:source` holds.
@@ -221,6 +221,21 @@
         ~(~() | toString | eq "")
     | impl ::builtin{}
 
+:quote/toVec
+  |~~ Answers the vector of the quote's steps, the payload beneath its
+      tag, `~(add 1 | mul 2) | toVec | count` answering `2`, as `toVec`
+      of a set answers its elements.
+      ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
+  ~~|
+  ::fn
+    | returns |~~ The vector of the steps. ~~| ::vec
+    | proves :answersTheVectorOfItsSteps
+        |~~ A quote answers the vector of its steps, under a tag of its own
+            as well.
+        ~~|
+        ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
+    | impl ::builtin{}
+
 :quote/open
   |~~ Answers what the query the quote holds answers, run beneath
       whatever tags stand over it, `~(1 | add 1) | open` answering `2`:
@@ -253,21 +268,21 @@
         ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
     | proves :withholdsAValueOfTheReader
         |~~ A value the reader named is withheld from the query. ~~|
-        ~(:k 5 | ~(k) | open !| type | eq ::call/ValueWithheldError)
+        ~(:k 5 | ~(k) | open !| tag | eq ::call/ValueWithheldError)
     | proves :keepsItsNamesInside
         |~~ A name the query binds stays inside it. ~~|
         ~(:k 5 | ~(:k 1) | open | k | eq 5)
     | proves :runsFromNull
         |~~ The query runs from null. ~~|
-        ~(~(type) | open | eq ::null)
+        ~(~(tag) | open | eq ::null)
     | proves :runsTextReadByParse
         |~~ Text read as a quote by `parse` opens. ~~|
         ~("1 | add 1" | parse | open | eq 2)
     | proves :SubjectNotQuoteError/refusesAString
         |~~ Text is no quote until `parse` reads it. ~~|
-        ~("1 | add 1" | open !| get [~(type) /actualType] | eq [::quote/open/SubjectNotQuoteError ::string])
+        ~("1 | add 1" | open !| get [~(tag) /actualTag] | eq [::quote/open/SubjectNotQuoteError ::string])
     | proves :refusesAQueryThatReadsASubject
         |~~ A query that reads a subject is refused on null. ~~|
-        ~(~(add 1) | open !| type | eq ::number/add/SubjectNotNumberError)
+        ~(~(add 1) | open !| tag | eq ::number/add/SubjectNotNumberError)
     | impl ::builtin{}
 

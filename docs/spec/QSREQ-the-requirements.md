@@ -10,7 +10,9 @@ the code is held to.
 The conformance suite is the requirements of the language, held outside it.
 A case is a line of `core/test/conformance/<chapter>/<section>.jsonl`,
 `{"name":…,"query":…,"expect":…}`: a query the runner reads as text and the
-literal it must answer, a value or a raised error, `!{…} | raise`. Every
+print of the answer it must give, a value under `expect` and a failure the
+query raises as the print of its error at rest under `raises` instead.
+Every
 file of the suite is a section of a chapter, the section whose rule its
 cases show, and the name of a case says that rule in the words of the
 language. A case names a record only while that record's change is in
@@ -24,21 +26,30 @@ stated by its section, or by the record it names, and a rule neither states
 is written into a record in transit over the section before a case shows
 it.
 
-The runner holds an answer to the literal it expects by the tie of the one
-order, the equality of the language, a failure raised ranking after every
-value by its tag and then its facts, so a case that expects a refusal tells
-it from the error at rest a catch answers, and a case writes a set in the
-order its print shows. The probes, the fuzz of the laws and the benchmark
-over a task that reads no data judge by the same tie, and the benchmark
-judges the answer of a task over data as JSON. The tie is the order the
-cases hold, so the unit tests of the order hold its sign over a ladder of
-values of every kind, which no tie judges.
+The runner holds an answer by its print, the text `print` answers of it,
+against the expectation as it is written, the layout of its lines aside,
+and by the tie of the one order, the equality of the language, where a
+print drops a part of its value, two values printing alike, as the probes
+judge a print [QSREQ#probe]. A case holds what its query computes and no
+text a host writes around an answer, the line of a raise, the page of a
+refusal or the budget of an answer, and a case that expects a refusal under
+`raises` tells it from the error at rest a catch answers under `expect`. A
+case writes its answer as the print shows it, a set in its order, an error
+at rest as `!{…}`, the facts of a refusal in the order it holds them and a
+number as the printer writes it, and its expectation computes nothing, so a
+literal written with a tag twice, which builds the value of one, is the
+print of no answer. The fuzz of the laws and the benchmark over a task that
+reads no data judge by the tie, and the benchmark judges the answer of a
+task over data as JSON. The tie is the order the runner leans on where a
+print drops a part, so the unit tests of the order hold its sign over a
+ladder of values of every kind, which no tie judges.
 
 The runner, `core/test/unit/QSREQ/cases.test.mjs`, refuses a file that is no
 section of a chapter, a case that names a record and does not open with one
 record in force, a target that names no record, two cases that hold one
-query to two answers, and a case whose name holds fewer than four words, the
-words its hyphens part; `check:conventions` refuses a case whose record
+query to two answers, a case that writes its answer under both `expect` and
+`raises` or under neither, and a case whose name holds fewer than four
+words, the words its hyphens part; `check:conventions` refuses a case whose record
 overrides neither its section nor its chapter whole.
 
 ## target
@@ -88,7 +99,10 @@ transit and the specification that reads the repository alone. A probe of a
 section a record in transit overrides is the record's while it is in
 transit: an answer the record's work changed waits for the closeout, which
 writes it into the section, where the record holds a probe of the same query
-with the new answer, and any other answer that changed fails the run. A
+with the new answer, and a probe of a chapter the record overrides whole
+waits for the closeout that writes the chapter anew, the run listing it as
+waiting, `scripts/probes-in-transit.mjs`; any other answer that changed
+fails the run. A
 shell probe that reads a machine, the sister project or the environment
 keeps the date of its answer and is run by hand.
 

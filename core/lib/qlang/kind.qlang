@@ -52,11 +52,11 @@
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a kind is a command the chain takes,
-            written with the objects the page of its verb names in their
+            written with the modifiers the page of its verb names in their
             order, `::kind/reads | doc` those of `reads`, whether the verb
             wrote it or the literal: `:command` holds the command as
-            written, `:index` the index of the object refused, from zero, or
-            of the first left out, and `:actualValue` the object.
+            written, `:index` the index of the modifier refused, from zero, or
+            of the first left out, and `:actualValue` the modifier.
             ::link~(::kind/wraps | doc) ::link~(::kind/reads | doc)
             ::link~(::kind/tells | doc) ::link~(::kind/carries | doc)
             ::link~(::kind/holds | doc) ::link~(::kind/throws | doc)
@@ -261,8 +261,8 @@
       each element, and a payload that is no vector is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the page of the payload, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the page of the payload, a
             doc, and its kinds, a tag or a set of one tag or more, or a vector of
             one of them for the kinds of each element, any value where none is
             written.
@@ -299,8 +299,8 @@
       selector.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the field, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the field, a
             keyword of one segment, neither `payload` nor a word
             of a literal; its page, a doc; its selector over the payload, a
             path or a quote; and its kinds, as `wraps` writes them, any value
@@ -337,8 +337,8 @@
       under its name lies under it.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the page, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the page, a
             keyword of one segment, neither `payload` nor a word
             of a literal; the page told, a doc; and the kinds it tells of, a tag
             or a set of one tag or more, none where none is written.
@@ -376,8 +376,8 @@
       error may carry.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the fact, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the fact, a
             keyword read as a tag, under a name declared before it where it is
             written with a path and else a fact of the payload; its page, a doc;
             and its kinds, a tag or a set of one tag or more, any value where
@@ -412,8 +412,8 @@
       ::link~(::invariant | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the refusal of
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal of
             a value that breaks it, a keyword read as a tag, under a field read
             before it where it is written with a path; its page, a doc; and the
             condition the value answers true to, a quote.
@@ -443,8 +443,8 @@
       of the kind raises is paged so.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the refusal, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal, a
             keyword read as a tag, under a field read before it where it is
             written with a path, and its page, a doc.
         ~~|
@@ -477,8 +477,8 @@
       the kind declares before it.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :objects
-        |~~ The objects of the command as written: the name of the law, a
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the law, a
             keyword read as a tag, under a name declared before it where it is
             written with a path; its page, the claim it proves, a doc; and the
             query that proves the claim, answering `true`, a quote.

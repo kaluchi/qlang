@@ -30,7 +30,7 @@ it('refuses the names the chain, the slot of a kind and the node under an anchor
     'a path of anchors', 'ConstructorNotBuiltinError', 'ConditionNotBooleanError', 'ElementNotNumberError', 'ElementNotSetOrMapError', 'RowNotMapError', 'any/out/SubjectNotStringError',
     'AddressNotStringError', 'AnswerNotStringError', 'PairTagNotTagError', 'RecipeNotCodeError', 'PayloadNotSixNumbersError', 'TagNotKindError', 'KeyNotKeywordOrStringError',
     'ValueMeetsWordError', 'isWord', 'declaresWord', 'fn/params', '| params', '~(params', '`params`', 'typeKeyword', '::any/source/name', 'source/name/KindNotTakenError',
-    '::boolean/and/right', 'or/right/KindNotTakenError'
+    '::boolean/and/right', 'or/right/KindNotTakenError', '::fn/takes/objects', '::kind/reads/objects', 'objectNotTaken'
   ]) expect(refused(text), text).toBe(true);
 });
 
@@ -38,7 +38,8 @@ it('leaves the help of a signature, a member of a series, the recipe of a functi
   for (const text of [
     'signature help', 'signatureHelpAtOffset', 'a member of a series', 'the recipe of a verb', 'a recipe written alone', 'the check of the conventions', 'the constructor of a kind',
     '::kind/impl/constructor', 'chainOfFn', 'nodeUnderAnchor', 'a vector of anchors', 'ElementKindNotTakenError', 'ConditionKindNotTakenError', 'TagNamesAValueError',
-    'ValueMeetsVerbError', 'isVerb', 'the inputs a function declares', '::any/source/anchor', '::boolean/and/condition'
+    'ValueMeetsVerbError', 'isVerb', 'the inputs a function declares', '::any/source/anchor', '::boolean/and/condition',
+    '::fn/takes/modifiers', 'modifierNotTaken', 'an object of JSON', 'an object of JavaScript'
   ]) expect(refused(text), text).toBe(false);
 });
 

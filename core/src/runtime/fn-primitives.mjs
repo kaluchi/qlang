@@ -37,9 +37,9 @@ function functionOf(subject) {
 
 // [QSBLD#fn]
 for (const command of FN_COMMAND_NAMES) {
-  registerPrimitive(`fn/${command}`, (subject, objects) => {
+  registerPrimitive(`fn/${command}`, (subject, modifiers) => {
     const fn = functionOf(subject);
-    return madeFn(makeQuote([...commandsOf(fn), commandStep(command, [...objects])]), recipeOf(fn));
+    return madeFn(makeQuote([...commandsOf(fn), commandStep(command, [...modifiers])]), recipeOf(fn));
   });
 }
 

@@ -12,11 +12,11 @@ import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
-  isFn, isKind, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
+  isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
-import { originOf, repeatsDeclarationAt } from './parsed-parts.mjs';
+import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
   commandStep, groupStep
@@ -192,7 +192,8 @@ async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
   if (nounName !== null) refuseWithheld(state.scope, nounName, true);
-  if (repeatsDeclarationAt(at.steps, at.index) || declaresWhatTheCallBinds(at.steps, state.scope, name) || (nounName !== null && rootOf(state.scope).has(name))) {
+  if (repeatsDeclarationAt(at.steps, at.index) || declaresWhatTheCallBinds(at.steps, state.scope, name)
+    || (nounName !== null && (rootOf(state.scope).has(name) || laidByTheChainOfItsNoun(state.scope, name, nounName, at)))) {
     throw new BindNameDeclaredTwiceError({ name: makeKeyword(name) });
   }
   if (nounName !== null && !scopeHas(state.scope, nounName)) {
@@ -216,6 +217,12 @@ async function evalBind(bind, state, at) {
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
+}
+
+// [D445]
+function laidByTheChainOfItsNoun(scope, name, nounName, at) {
+  const entry = scope.get(name);
+  return isBinding(entry) && entry.get('source') === null && declaresBefore(at.steps, at.index, nounName);
 }
 
 // [QSBLD#chain]

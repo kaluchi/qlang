@@ -121,6 +121,8 @@ export function readsItsSubject(steps, verbsOfNoSubject = new Set()) {
 // [QSNAM#scope]
 const REPEATED_DECLARATIONS = new WeakMap();
 
+const declaredNameOf = step => (isFailStep(step) ? step.payload[0] : step).get('name').name;
+
 export function repeatsDeclarationAt(steps, index) {
   let repeated = REPEATED_DECLARATIONS.get(steps);
   if (repeated === undefined) {
@@ -128,11 +130,16 @@ export function repeatsDeclarationAt(steps, index) {
     const declared = new Set();
     steps.forEach((step, at) => {
       if (!declaresAName(step)) return;
-      const name = (isFailStep(step) ? step.payload[0] : step).get('name').name;
+      const name = declaredNameOf(step);
       if (declared.has(name)) repeated.add(at);
       declared.add(name);
     });
     REPEATED_DECLARATIONS.set(steps, repeated);
   }
   return repeated.has(index);
+}
+
+// [D445]
+export function declaresBefore(steps, index, name) {
+  return steps.slice(0, index).some(step => declaresAName(step) && declaredNameOf(step) === name);
 }

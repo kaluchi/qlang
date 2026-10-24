@@ -9,7 +9,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { parse } from 'acorn';
 
-// The specifiers a module names, read by the parser of JavaScript [D434]:
+// The specifiers a module names, read by the parser of JavaScript [QSREQ#rigor]:
 // its imports and re-exports, and an import its code calls with a literal,
 // those of the core alone, a relative path or a name of the `imports` of
 // the package.

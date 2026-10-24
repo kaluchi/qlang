@@ -198,7 +198,8 @@ shows, and the error at rest a catch holds the page of its site, its
 value the error at rest that `raise` raises again; a refusal the runtime raises by
 rule under a verb, with no page of its own, reads the page of what
 refused; a name nothing declares is refused as
-`::any/explain/UnknownNameError`. The page of a refusal says what
+`::any/explain/UnknownNameError`, but one past an address whose last name
+ends in `Error`, which reads the record of that address [QSSLF#axis]. The page of a refusal says what
 failed, which fact or which place of the frame names the culprit and how
 the call is repaired, and
 the laws of a refusal a query can meet hold the recovery through `!|`,

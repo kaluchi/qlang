@@ -74,12 +74,8 @@ The apophatic texts are where the work lives. While a stint works, a record
 in transit reaches into the cataphatic texts, each section it overrides,
 each case it claims, each line of code that cites it and each target it
 left speaking in both voices, the tension of the work, while the text of a
-chapter waits; the desk shows the reach. At the closeout the tension
-relaxes [QSWRK#closeout]: every record in transit parts, what a reader
-decides against the new tree written into its sections, and leaves with its
-origo, so the merge that lands a branch holds no text in both voices, and
-the journal on master keeps the open records and the aim, what the next
-change draws on.
+chapter waits; the desk shows the reach. At the closeout the tension relaxes, every record in transit
+parting [QSWRK#closeout].
 
 ## pentimento
 
@@ -103,8 +99,8 @@ legacy, deprecated, currently, previously and backward compatibility, and
 the words of unfinished work, TODO, FIXME and HACK, in the sources outside `docs/`, `vscode/`
 and the instructions; a month of the history in a text that states what
 holds; and a count in markdown prose that a command answers, which the
-command states. A section a record in transit overrides waits for its
-closeout, as its probes wait [QSREQ#probe].
+command states. A section a record in transit overrides waits for its closeout
+[QSVOX#chapter].
 
 The readers of the check of the chapters read for a pentimento, and for a
 drift, one thing named by two words across the texts that state what holds,
@@ -148,9 +144,10 @@ branch, where the records in transit dissolve into its sections
 records, and a sentence of a chapter the tree contradicts is written with
 its probe as a record [QSWRK#stint]. A home a stint makes, a chapter or a
 section, is named in the `Overrides` of the record that brings it, a new
-chapter whole and a section of a chapter one by one; the code, the tests and
-the records cite it while the record is in transit, a test file stands at
-it, and the closeout writes it. A chapter grown past one topic parts into
+chapter whole and a section of a chapter one by one; the code, the tests and the records cite it while the record is in transit
+[QSREQ#marks], and the closeout writes it. A section a record in transit
+overrides waits for its closeout, its probes, its anchors and its words
+held against the text the closeout writes [QSREQ#probe]. A chapter grown past one topic parts into
 chapters of one topic each, which cite one another by their sections.
 
 `check:conventions` refuses a citation of a section its chapter lacks and no

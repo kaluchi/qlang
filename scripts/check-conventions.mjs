@@ -293,7 +293,7 @@ function* walkRefusalScanRoots() {
 
 // The declarations of the refusals across the sources of the workspaces, each
 // factory with its constant and its address and each class extending a root,
-// read by the parser of JavaScript once for (2) and (20) [D434]: a call of a
+// read by the parser of JavaScript once for (2) and (20) [QSREQ#rigor]: a call of a
 // factory, the constant whose value it is, and its first argument, an
 // address where it is a string the form of one; the factory's own module
 // handing it a name passes.

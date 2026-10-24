@@ -2,7 +2,7 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, constructorOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
@@ -237,6 +237,13 @@ export function chainOfKind(kind) {
   return chain;
 }
 
+// [D422]
+export function namesNoPayload(kind) {
+  const { payload, fields, invariants } = chainOfKind(kind);
+  return payload === null && fields.length === 0 && invariants.length === 0 && constructorOf(kind) === null;
+}
+
+// [QSBLD#recipe]
 export function pageOfKindsRefusal(name, kinds, each) {
   const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;

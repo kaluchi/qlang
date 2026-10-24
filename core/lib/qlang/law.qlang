@@ -36,7 +36,8 @@
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A law is a quote. ~~|
         ~(::law#3 !| tag | eq ::law/PayloadKindNotTakenError)
-    | proves :runsTheQueryBeneathItsTags
-        |~~ A law runs the query beneath the tags it is given under. ~~|
-        ~(:three 3 | :three/x |~~ x ~~| ::law::Foo~(3 | eq 3) | ::three | runLaws | map /ok | eq [true])
+    | proves :holdsAQuoteByItsOwnTag
+        |~~ The query of a law is a quote, a quote under another tag refused.
+        ~~|
+        ~(::law::Foo~(3 | eq 3) !| get [~(tag) /actualTag] | eq [::law/PayloadKindNotTakenError ::Foo])
 

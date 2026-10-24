@@ -246,6 +246,8 @@ export const CORE_KIND = Object.freeze({
   doc:     DOC_TAG
 });
 
+export const isKindOfTheCore = name => Object.hasOwn(CORE_KIND, name);
+
 export function makeTagged(tag, payload) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
@@ -278,7 +280,7 @@ export function tagsOver(value) {
   let part = value;
   for (; isValueClass(part, 'underTag'); part = part.payload) tags.push(part.tag.name);
   const header = part[TAG_HEADER_SYMBOL];
-  if (header !== undefined && !Object.hasOwn(CORE_KIND, header.name)) tags.push(header.name);
+  if (header !== undefined && !isKindOfTheCore(header.name)) tags.push(header.name);
   return tags;
 }
 
@@ -378,7 +380,7 @@ export function formOf(v) {
   if (isErrorValue(v)) return 'error';
   if (isValueClass(v, 'underTag')) return 'underTag';
   const kind = tagOf(v);
-  return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
+  return isKindOfTheCore(kind.name) ? kind.name : 'underTag';
 }
 
 // [QSLIT#kind], [QSHST#door]

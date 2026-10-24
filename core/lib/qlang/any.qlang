@@ -15,32 +15,42 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
+    | throws :PayloadNotTakenError
+        |~~ `::any` names the verbs every value answers and takes no
+            payload: a value answers them as it is, `5 | eq 5`.
+        ~~|
     | proves :holdsTag
         |~~ `tag` lives on `::any`. ~~|
         ~(::any | manifest | has ::any/tag)
+    | proves :PayloadNotTakenError/refusesAValue
+        |~~ No value is put under `::any`. ~~|
+        ~(5 | tag ::any !| tag | eq ::any/PayloadNotTakenError)
     | proves :isTheKindOfNoValue
         |~~ No value's tag is `::any`. ~~|
         ~(5 | tag | eq ::any | not)
 
 :any/desc
-  |~~ Answers the subject under `::desc`, as `tag ::desc` lays it,
-      `5 | desc` answering `::desc#5`, a value that ranks the greater
-      first: a key of `sort`, `min` or `max` that answers it descends,
+  |~~ Turns the subject: a value under `::desc` back to its payload, and
+      any other under `::desc`, as `tag ::desc` lays it, `5 | desc`
+      answering `::desc#5` and `5 | desc | desc` answering `5`. A value
+      turned ranks the greater first: a key of `sort`, `min` or `max`
+      that answers it descends,
       `[1 3 2] | sort ~(desc)` answering `[3 2 1]`, and in a vector key it
       turns its own index alone, `sort ~(get [~(get /n | desc) /s])`. A
       value of every kind turns, a map among them, and `payload` reads it
       back. The key is code, a
       quote: `sort desc` turns the vector itself, which `sort` refuses
-      as no key. A desc of a desc ranks as the value does, and a key
-      turned in `max` finds the least. The call takes no value; a field
-      turns by reading it first, `~(get /n | desc)`.
+      as no key. A key turned in `max` finds the least. The call takes no
+      value; a field turns by reading it first, `~(get /n | desc)`.
       ::link~(::desc | doc) ::link~(::any/tag | doc)
       ::link~(::vec/sort | doc)
   ~~|
   ::fn
     | returns
-        |~~ The subject under `::desc`, which ranks the greater first. ~~|
-        ::desc
+        |~~ The subject turned: under `::desc`, which ranks the greater
+            first, or a value turned back to its payload.
+        ~~|
+        ::any
     | throws :ArgsBeyondInputsError
         |~~ `desc` turns its subject and takes no value: a key turns a
             field by reading it first, `sort ~(get /n | desc)`.
@@ -64,16 +74,16 @@
         ~([1 3 2] | sort desc
           !| get [~(tag) /actualTag]
           |  eq [::vec/sort/key/KindNotTakenError ::desc])
-    | proves :ranksTurnedTwiceAsTheValue
-        |~~ A desc of a desc ranks as the value does. ~~|
-        ~([1 3 2] | sort ~(desc | desc) | eq [1 2 3])
+    | proves :turnsBackToTheValue
+        |~~ A value turned twice is the value. ~~|
+        ~([5 {:n 1} ::Box[2]] | map ~(:v it | desc | desc | eq v) | every ~(it))
     | proves :turnsAMaximum
         |~~ A key turned in `max` finds the least. ~~|
         ~([{:n 1} {:n 2}] | max ~(get /n | desc) | eq {:n 1})
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `desc` is refused under the verb. ~~|
         ~([{:n 1} {:n 2}] | sort ~(desc (get /n)) !| tag | eq ::any/desc/ArgsBeyondInputsError)
-    | impl ~(tag ::desc)
+    | impl ~(if (tag | eq ::desc) ~(payload) ~(tag ::desc))
 
 :any/eq
   |~~ Answers whether the subject and the value the call gives are one
@@ -1708,13 +1718,16 @@
       its kind as the literal does where it is written: `5 | tag ::Box`
       answers `::Box#5`, its tag the name and its payload the subject, so
       a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`. A tag of a kind is laid through the
-      kind: `5 | tag ::number` answers `5`, a payload the kind refuses is
-      refused, `"5" | tag ::number`, and a kind the reader declares holds
-      its invariants. A tag over a tagged value stands before its tags and
-      never instead of them, its own among them,
-      `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` standing twice; replacing the
-      tag goes through the payload, `payload | tag ::Crate`. A tag over an
+      `:t (tag) | payload | tag t`. A tag the subject already answers
+      changes nothing, `5 | tag ::number` answering `5` and
+      `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` answering `::Lab[1]`, and any
+      other stands before the tags of the subject and never instead of
+      them; replacing the tag goes through the payload,
+      `payload | tag ::Crate`. A tag is laid through its kind, which takes
+      the payload its chain names by the payload's own tag, so a payload
+      of another kind or under another tag is refused, `"5" | tag ::number`,
+      a kind the reader declares holds its invariants, and a kind whose
+      chain names no payload takes none, `5 | tag ::any`. A tag over an
       error at rest names its site, `!{:by 3} | tag ::Late` answering
       `::Late!{:by 3}`, and `raise` raises it under that tag. The call
       takes one name; a keyword, `:box`, names a field and no kind.
@@ -1772,6 +1785,14 @@
     | proves :holdsTheInvariantsOfAReadersKind
         |~~ A kind the reader declares holds its invariants. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | -3 | tag ::Pos !| tag | eq ::Pos/NotPositiveError)
+    | proves :laysATagOnce
+        |~~ A tag the subject already answers changes nothing. ~~|
+        ~(:Lab |~~ A lab. ~~| | get [~(::Lab[1] | tag ::Lab) ~(::Lab::Lab[1])] | eq [::Lab[1] ::Lab[1]])
+    | proves :refusesAPayloadUnderAnotherTag
+        |~~ A kind takes its payload by the payload's own tag. ~~|
+        ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums
+          !| get [~(tag) /actualTag]
+          |  eq [::Nums/PayloadKindNotTakenError ::T])
     | proves :nestsATaggedValue
         |~~ A tag over a tagged value nests it. ~~|
         ~(:Inner |~~ An inner kind. ~~| | :Outer |~~ An outer kind. ~~|
@@ -2295,7 +2316,7 @@
       `!|` catches it, an error at rest, a value of `::error` and of its
       refusal. Given
       several kinds, it answers whether the subject is of one of them,
-      and given none, false. A kind no tag of the walk names is not
+      and a call of none is refused. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
       not refused. An input of a verb is held to its kinds by the `takes`
       that declares it.
@@ -2303,12 +2324,17 @@
   ~~|
   ::fn
     | takes :kinds
-        |~~ The kinds asked, each a tag name; of none, no value is one. ~~|
+        |~~ The kinds asked, each a tag name, one at least. ~~|
         ~(it) [::tag]
     | throws :kinds/ElementKindNotTakenError
         |~~ Each of the kinds is a tag name, `::number`; a keyword,
             `:number`, names a field and no kind.
         ~~|
+    | holds :kinds/EmptyError
+        |~~ `is` asks of one kind at least, `5 | is ::number`; a call of
+            none asks nothing.
+        ~~|
+        ~(count | gt 0)
     | returns
         |~~ `true` when the walk of the tags reaches one of the kinds,
             `false` otherwise.
@@ -2343,9 +2369,9 @@
     | proves :failsOfOtherKinds
         |~~ A string is neither a number nor null. ~~|
         ~("5" | is ::number ::null | not)
-    | proves :failsOfNoKind
-        |~~ Of no kinds, no value is one. ~~|
-        ~(5 | is | not)
+    | proves :kinds/EmptyError/refusesACallOfNoKind
+        |~~ A call of no kind is refused under the kinds. ~~|
+        ~(5 | is !| tag | eq ::any/is/kinds/EmptyError)
     | proves :failsOfAMisspeltKind
         |~~ A misspelt kind answers false and is not refused. ~~|
         ~(5 | is ::Numbr | not)

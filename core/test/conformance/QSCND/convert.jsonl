@@ -30,3 +30,4 @@
 {"decision":"D442","name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) /expected]","expect":"[::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]"}
 {"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
 {"decision":"D442","name":"a-regex-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| tag","expect":"::call/KindAnswersNoVerbError"}
+{"decision":"D422","name":"a-quote-and-a-doc-turn-into-the-vector-they-hold","query":"get [~(~(add 1 | mul 2) | toVec | get [~(tag) ~(count)]) ~(|~~ a ~~| | toVec)]","expect":"[[::vec 2] [\"a\"]]"}

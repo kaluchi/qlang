@@ -46,9 +46,14 @@
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ An invariant is a quote. ~~|
         ~(::invariant#5 !| tag | eq ::invariant/PayloadKindNotTakenError)
-    | proves :isWrittenInAChainBeneathItsTags
-        |~~ An invariant declared by a name is refused, under whatever tags
-            its condition stands.
+    | proves :isWrittenInAChain
+        |~~ An invariant declared by a name is refused: it is written in a
+            chain.
         ~~|
-        ~(:Positive ::invariant::Foo~(gt 0) !| tag | eq ::bind/WrittenOutsideItsChainError)
+        ~(:Positive ::invariant~(gt 0) !| tag | eq ::bind/WrittenOutsideItsChainError)
+    | proves :holdsAQuoteByItsOwnTag
+        |~~ The condition of an invariant is a quote, a quote under another
+            tag refused.
+        ~~|
+        ~(::invariant::Foo~(gt 0) !| get [~(tag) /actualTag] | eq [::invariant/PayloadKindNotTakenError ::Foo])
 

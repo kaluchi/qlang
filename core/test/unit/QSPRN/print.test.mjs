@@ -90,7 +90,7 @@ function literalsOf(count, seed) {
       () => underTag('::T', literal(depth - 1)),
       () => written(`::T~(${pick(STEPS)})`),
       () => written(`::T${pick([...STRINGS, ...KEYWORDS, ...TAGS, ...DOCS])}`),
-      () => { const tag = pick(['::qlang', '::json']); return tagged(tag, entriesOf('{', entries(), ' ')); },
+      () => { const tag = pick(['::shape', '::json']); return tagged(tag, entriesOf('{', entries(), ' ')); },
       () => written(`~(${pick(STEPS)})`),
       () => written(`::quote[${pick(PATHS)}]`),
       () => errorOf([]),

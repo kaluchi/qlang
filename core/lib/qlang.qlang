@@ -24,10 +24,10 @@
       names. A value written as a later step is refused.
 
       2. Values. Every value has a kind, named by its tag, which `tag`
-      answers: `[1 2] | tag` answers `::vec`. A value is written as its literal,
-      which opens with the sign of its kind and closes with its pair, and
-      everything between is literal: a literal reads no name and no
-      subject, so it is the value it writes. Numbers, ::number, are
+      answers: `[1 2] | tag` answers `::vec`. A value is written as its
+      literal, which opens with the sign of its kind and closes with its
+      pair, and everything between is literal: a literal reads no name and
+      no subject, so it is the value it writes. Numbers, ::number, are
       finite doubles: `42`, `-1.5`. Strings, ::string: `"text"`.
       Keywords, ::keyword, are names that stand for themselves: `:name`.
       Booleans and null: `true`, `false`, `null`. Vectors, ::vec:
@@ -35,7 +35,10 @@
       ::set, hold no duplicates and keep one order: `#[3 1 3]` answers
       `#[1 3]`. A tag written before a literal puts the value under it,
       `::Box{:w 2}`, a number, a boolean, null or a path touching it by
-      `#`, `::Width#5`. JSON is a literal too and pastes into a query as
+      `#`, `::Width#5`: a value is a pair of its tag and its payload,
+      which `payload` reads, `::Box{:w 2} | payload` answering `{:w 2}`,
+      and a tag the value already answers changes nothing, `::number#5`
+      being `5`. JSON is a literal too and pastes into a query as
       it is, its keys read as keywords: `{"a": [1, 2]}` answers
       `{:a [1 2]}`. A keyword is not its string: `:a | eq "a"` answers
       `false`, and `toString` and `toKeyword` turn one into the other,
@@ -217,6 +220,14 @@
     | carries :AnswerBeyondBudgetError/budget
         |~~ The budget every host prints an answer within. ~~|
         ::number
+    | throws :PayloadNotTakenError
+        |~~ `::qlang` names the topic of the language, its page and its
+            chapters, and takes no payload: it is asked by itself,
+            `::qlang | doc :values`.
+        ~~|
+    | proves :PayloadNotTakenError/refusesAValue
+        |~~ No value is put under `::qlang`. ~~|
+        ~(1 | tag ::qlang !| tag | eq ::qlang/PayloadNotTakenError)
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)

@@ -2111,8 +2111,8 @@
     | impl ::builtin{}
 
 :vec/toVec
-  |~~ Answers the vector itself, so `map ~toVec` turns vectors and sets
-      into vectors.
+  |~~ Answers the vector itself, so `map ~toVec` turns vectors, sets,
+      quotes and docs into vectors.
       ::link~(::set/toVec | doc)
   ~~|
   ::fn

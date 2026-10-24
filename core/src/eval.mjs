@@ -12,8 +12,8 @@ import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
-  isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
+  isFn, isKind, isTagged, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
+  ERROR_TAG, TRACE_TAG, isKindOfTheCore, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt } from './parsed-parts.mjs';
@@ -25,11 +25,11 @@ import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn, namesNoPayload } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
+  notGivenAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS, ANY_KIND_NAME, TAGGED_KIND_NAME, PAYLOAD_NOT_TAKEN_NAME
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
@@ -738,10 +738,11 @@ function refusalOfFailedModifier(chain, address, index, error, scope) {
   return refusalUnder(kindsRefusalAddress(inputAddress), { expected, actualValue: atRest }, scope);
 }
 
-// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
+// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held], [D422]
 export async function layTag(tagName, payload, state) {
   if (isErrorValue(payload)) return payload;
   refuseWithheld(state.scope, tagName, true);
+  if (!isKindOfTheCore(tagName) && tagOf(payload).name === tagName) return payload;
   const node = nodeOf(state.scope, tagName);
   const declared = bindingValueOf(node);
   if (isKind(declared)) return await underKind(tagName, declared, payload, state);
@@ -749,10 +750,23 @@ export async function layTag(tagName, payload, state) {
   throw new ConstructTagNamesAValueError({ tag: makeTag(tagName), actualValue: declared });
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source]
+// [D422]
+const ownTagIs = (value, kindName) => kindName === ANY_KIND_NAME || (kindName === TAGGED_KIND_NAME ? isTagged(value) : tagOf(value).name === kindName);
+
+function payloadHeldByItsKinds(role, tagName, payload, scope) {
+  const refusalOf = each => `${tagName}/${payloadRefusalName(each)}`;
+  const kinds = role.each ? ['vec'] : role.kinds;
+  if (kinds !== null && !kinds.some(kindName => ownTagIs(payload, kindName))) {
+    return refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: payload }, scope);
+  }
+  return role.each ? heldByItsKinds(role, refusalOf, payload, scope) : payload;
+}
+
+// [QSBLD#value], [QSLIT#tag], [QSHST#source], [D422]
 async function underKind(tagName, kind, payload, state) {
+  if (namesNoPayload(kind)) return refusalUnder(`${tagName}/${PAYLOAD_NOT_TAKEN_NAME}`, { actualValue: payload }, state.scope);
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
-  const held = payloadRole === null ? payload : heldByItsKinds(payloadRole, each => `${tagName}/${payloadRefusalName(each)}`, payload, state.scope);
+  const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));

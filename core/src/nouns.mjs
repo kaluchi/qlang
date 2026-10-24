@@ -9,11 +9,11 @@ import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
   splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
-  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
+  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName, PAYLOAD_NOT_TAKEN_NAME
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn, namesNoPayload } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -289,7 +289,7 @@ function kindsWalkedTo(kindNames, labelName) {
 export function ruleRefusalsOf(scope, address) {
   const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(scope, address));
-  if (isKind(value)) return kindRuleRefusalsOf(chainOfKind(value), address);
+  if (isKind(value)) return kindRuleRefusalsOf(value, address);
   return functionRuleRefusalsOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
 }
 
@@ -307,8 +307,10 @@ function functionRuleRefusalsOf(chain, address, labelName) {
   return refusals;
 }
 
-// [QSBLD#kind]
-function kindRuleRefusalsOf({ payload, fields }, address) {
+// [QSBLD#kind], [D422]
+function kindRuleRefusalsOf(kind, address) {
+  if (namesNoPayload(kind)) return [`${address}/${PAYLOAD_NOT_TAKEN_NAME}`];
+  const { payload, fields } = chainOfKind(kind);
   const refusals = [];
   if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
   if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);

@@ -25,6 +25,11 @@
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
+    | wraps
+        |~~ The size of the part left out, the query that reads it and the
+            head of its text.
+        ~~|
+        ::map
     | proves :measuresWhatItLeftOut
         |~~ An elision holds the size of what it left out. ~~|
         ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}

@@ -13,7 +13,8 @@
       name.
 
       It is a value under its tag, `::desc#5`, which `desc` lays over
-      any value and `payload` opens. Two values turned compare as `sort`
+      a value and takes off a value turned, `5 | desc | desc` answering
+      `5`, and `payload` opens. Two values turned compare as `sort`
       ranks them, `1 | desc | gt (2 | desc)` answering `true`, and a value
       turned beside one that is not is refused as a pair of two kinds,
       `gt (2 | desc)` turning the other first.

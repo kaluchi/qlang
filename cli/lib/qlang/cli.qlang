@@ -70,12 +70,19 @@
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
+    | throws :PayloadNotTakenError
+        |~~ `::cli` names the command line, its page and its words, and
+            takes no payload: it is asked by itself, `::cli | doc`.
+        ~~|
     | proves :declaresTable
         |~~ The command line declares `table` under vectors. ~~|
         ~(::vec | manifest | has ::vec/table)
     | proves :declaresTheStreams
         |~~ The command line declares the streams under any value. ~~|
         ~(::any | manifest | has ::any/out)
+    | proves :PayloadNotTakenError/refusesAValue
+        |~~ No value is put under `::cli`. ~~|
+        ~(5 | tag ::cli !| tag | eq ::cli/PayloadNotTakenError)
 
 :any/in
   |~~ Answers the text stdin holds, read to its end whatever the subject,

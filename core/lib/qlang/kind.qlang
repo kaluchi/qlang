@@ -136,10 +136,12 @@
           !| get [~(tag) /index]
           |  eq [::Nums/ElementKindNotTakenError 1])
     | proves :holdsThePayloadOfItsKind
-        |~~ The payload holds a value of its kind beneath the tags it is
-            given under, which stay beneath the tag of the kind.
+        |~~ The payload is of the kinds its `wraps` names by its own tag, a
+            payload under another tag refused.
         ~~|
-        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number) | get [~(::Count::Width#3 | payload) ~(::Count::Width"3" !| tag)] | eq [::Width#3 ::Count/PayloadKindNotTakenError])
+        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number)
+          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) /actualTag]) ~(::Width#3 | payload | tag ::Count)]
+          | eq [3 [::Count/PayloadKindNotTakenError ::Width] ::Count#3])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
@@ -255,10 +257,13 @@
 
 :kind/wraps
   |~~ Names the payload of a kind, its page and its kinds,
-      `::kind | wraps |~~ The sizes. ~~| ::map`: a payload of none of them
-      is refused under the kind, and one they reach beneath its tags is
-      held as the value of its kind; a vector of kinds names the kinds of
-      each element, and a payload that is no vector is refused.
+      `::kind | wraps |~~ The sizes. ~~| ::map`: a payload whose own tag
+      names none of them is refused under the kind, a payload under another
+      tag among them, and a `wraps` that writes no kinds takes any payload;
+      a vector of kinds names the kinds of each element, each read through
+      its tags, and a payload that is no vector is refused. A kind whose
+      chain names no payload, by `wraps`, `reads` or `holds`, and holds no
+      constructor takes none.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers

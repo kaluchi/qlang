@@ -221,6 +221,19 @@
         ~(~() | toString | eq "")
     | impl ::builtin{}
 
+:quote/toVec
+  |~~ Answers the vector of the quote's steps, the payload beneath its
+      tag, `~(add 1 | mul 2) | toVec | count` answering `2`, as `toVec`
+      of a set answers its elements.
+      ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
+  ~~|
+  ::fn
+    | returns |~~ The vector of the steps. ~~| ::vec
+    | proves :answersTheVectorOfItsSteps
+        |~~ A quote answers the vector of its steps. ~~|
+        ~(~(add 1 | mul 2) | toVec | get [~(tag) ~(count)] | eq [::vec 2])
+    | impl ~(payload)
+
 :quote/open
   |~~ Answers what the query the quote holds answers, run beneath
       whatever tags stand over it, `~(1 | add 1) | open` answering `2`:

@@ -144,6 +144,19 @@
         ~("text" | doc/segments !| get [~(tag) /actualTag] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
 
+:doc/toVec
+  |~~ Answers the vector of the doc's segments, as `segments` answers
+      them, `::vec/count | doc | toVec | tag` answering `::vec`, as
+      `toVec` of a set answers its elements.
+      ::link~(::doc/segments | doc) ::link~(::set/toVec | doc)
+  ~~|
+  ::fn
+    | returns |~~ The vector of the segments. ~~| ::vec
+    | proves :answersTheVectorOfItsSegments
+        |~~ A doc answers the vector of its segments. ~~|
+        ~(|~~ a ~(eq 1) b ~~| | toVec | get [~(tag) ~(count)] | eq [::vec 3])
+    | impl ~(segments)
+
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
       under a stack of tags that holds `::link`, `::link~(::vec | doc)`

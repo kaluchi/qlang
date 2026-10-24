@@ -26,6 +26,10 @@
       ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|
   ::kind
+    | wraps
+        |~~ The structure of a value beneath its tags, as `shape` answers
+            it.
+        ~~|
     | proves :isWhatShapeAnswers
         |~~ A shape is what `shape` answers, under its tag. ~~|
         ~({:a 1} | shape | eq ::shape{:a ::number})

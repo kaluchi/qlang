@@ -16,10 +16,10 @@
   ~~|
   ::kind
     | wraps
-        |~~ The query a snippet shows, a quote beneath the tags it is given
-            under.
+        |~~ The query a snippet shows, a quote, or a link, which the snippet
+            makes a snippet as well.
         ~~|
-        ::quote
+        #[::quote ::link]
     | proves :opensToWhatItShows
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)

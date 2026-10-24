@@ -19,10 +19,10 @@
   ~~|
   ::kind
     | wraps
-        |~~ The query a link opens, a quote beneath the tags it is given
-            under.
+        |~~ The query a link opens, a quote, or a snippet, which the link
+            makes a link as well.
         ~~|
-        ::quote
+        #[::quote ::snippet]
     | proves :isALink
         |~~ A link a doc holds is a `::link`. ~~|
         ~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | tag | eq ::link)

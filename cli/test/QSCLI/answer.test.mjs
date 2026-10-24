@@ -177,7 +177,7 @@ describe('the answer written as the language prints it, whatever standard input 
 
   it('prints a kind asked of a JSON subject, which JSON has no form for', async () => {
     const s = captureStreams('{"a": 1}');
-    await main(['type'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['tag'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('::map\n');
   });
 

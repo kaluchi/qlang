@@ -181,7 +181,7 @@ describe('the sources a host hands', () => {
   it('runs a host name through the primitive handed beside its source', async () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
-    expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
+    expect((await sessionInstance.evalCell('7 | less "a" !| tag')).result)
       .toEqual(makeTag('number/less/by/KindNotTakenError'));
   });
 
@@ -192,9 +192,9 @@ describe('the sources a host hands', () => {
 
   it('answers a host name as the function whose recipe is its descriptor, and refuses an answer of a kind it does not return', async () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(type) ~(get /1 | type)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
+    expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(tag) ~(get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
     const misanswering = await createNotebook({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
-    expect((await misanswering.evalCell('fetch !| type')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
+    expect((await misanswering.evalCell('fetch !| tag')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
   });
 
   it('records the source a host name came from as its origin', async () => {
@@ -265,11 +265,11 @@ describe('a kind whose constructor is a primitive of the host', () => {
     const sessionInstance = await createNotebook({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType': payload => payload * 2 } }]
     });
-    expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
+    expect((await sessionInstance.evalCell('::myType#4 | get [~(tag) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });
 
   it('a kind a reader declares with a constructor no host hands lays its tag over a quote', async () => {
-    const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType~(add 1) | type');
+    const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType~(add 1) | tag');
     expect(result).toEqual(makeTag('myType'));
   });
 });

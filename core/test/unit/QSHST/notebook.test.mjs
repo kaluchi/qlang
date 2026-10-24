@@ -53,7 +53,7 @@ describe('the cells of a notebook', () => {
   });
 
   it('a cell handed no subject starts from null', async () => {
-    expect((await (await createNotebook()).evalCell('type')).result).toEqual(makeTag('null'));
+    expect((await (await createNotebook()).evalCell('tag')).result).toEqual(makeTag('null'));
   });
 
   it('answers a cell that does not parse by its failure, the cell no defect', async () => {

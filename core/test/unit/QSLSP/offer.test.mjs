@@ -31,7 +31,7 @@ it('keeps of the walk the kinds up to its label and the kind `::tagged` of the v
   const kindsAfter = (address, kinds) => answerKindsOf(scope, nodeOf(scope, address), kinds);
   expect([kindsAfter('tagged/within', ['Box', 'tagged', 'vec']), kindsAfter('Box/g', ['Box', 'tagged', 'vec']), kindsAfter('vec/h', ['vec'])])
     .toEqual([['Box', 'tagged'], ['Box', 'tagged'], ['vec', 'number']]);
-  const answers = await Promise.all(['::Box[1 2] | within ~(get /0) | type', '::Box[1 2] | within ~(get /0) | payload | type', '[1 2] | h | type'].map(query => notebook.evalCell(query)));
+  const answers = await Promise.all(['::Box[1 2] | within ~(get /0) | tag', '::Box[1 2] | within ~(get /0) | payload | tag', '[1 2] | h | tag'].map(query => notebook.evalCell(query)));
   expect(answers.map(cell => cell.result.name)).toEqual(['Box', 'number', 'number']);
 });
 

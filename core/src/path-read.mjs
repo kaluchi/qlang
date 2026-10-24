@@ -23,7 +23,7 @@ const MISSED_PARTS = new Set([PathKeyNotInMapError.prototype.address, PathIndexO
 export const isMissedPart = error => MISSED_PARTS.has(error.tag.name);
 
 export const isMissedRead = error => isMissedPart(error)
-  || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.facts.get('actualType')?.name === CORE_KIND.null.name);
+  || (error.tag.name === PathSubjectHasNoPartsError.prototype.address && error.facts.get('actualTag')?.name === CORE_KIND.null.name);
 
 // [QSPTH#template]
 export function partsOfTemplate(value) {

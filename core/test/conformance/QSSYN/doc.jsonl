@@ -20,25 +20,25 @@
 {"name":"a-line-doc-opener-inside-a-block-doc-hides-no-closer","query":":foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | get /foo | get /docs | map ~content","expect":"[\"pair holds |~~| line-doc marker inline\"]"}
 {"name":"a-doc-value-holds-a-nested-doc-pair-in-its-content","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\"mentions |~~ inner pair ~~| inside\""}
 {"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | content | contains \"\\r\"","expect":"false"}
-{"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| type","expect":"::quote/ParseError"}
+{"decision":"D442","name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\"note\""}
 {"name":"a-doc-after-a-step-is-refused","query":"\"[5] |~~ why ~~|\" | parse !| get /message | contains \"|~ … ~|\"","expect":"true"}
 {"name":"a-doc-is-a-modifier-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
 {"name":"a-doc-that-names-keywords-at-the-head-of-a-query-answers-itself","query":"|~~ see :filter and :every ~~|","expect":"|~~ see :filter and :every ~~|"}
-{"name":"doc-line-type-answers-doc","query":"|~~| line content\n  | type | eq ::doc","expect":"true"}
+{"decision":"D442","name":"the-tag-of-a-line-doc-is-doc","query":"|~~| line content\n  | tag | eq ::doc","expect":"true"}
 {"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\"one\\ntwo\""}
 {"name":"a-comment-between-two-docs-of-a-slot-is-whitespace","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\"doc one\\ndoc two\""}
 {"name":"the-docs-of-a-slot-join-in-order-across-the-comments-among-them","query":":foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content","expect":"\"a\\nb\\nc\""}
 {"name":"a-block-doc-and-a-line-doc-join-across-a-comment-between-them","query":":bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content","expect":"\"block doc\\nline doc\""}
 {"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\"the doc\""}
-{"name":"doc-type-answers-doc","query":"|~~ x ~~| | type | eq ::doc","expect":"true"}
-{"name":"a-vector-holds-a-doc-as-its-first-element","query":"[|~~ doc ~~| 42] | first | type | eq ::doc","expect":"true"}
-{"name":"a-vector-holds-a-doc-as-its-last-element","query":"[42 |~~ doc ~~|] | last | type | eq ::doc","expect":"true"}
+{"decision":"D442","name":"the-tag-of-a-block-doc-is-doc","query":"|~~ x ~~| | tag | eq ::doc","expect":"true"}
+{"decision":"D442","name":"a-vector-holds-a-doc-as-its-first-element","query":"[|~~ doc ~~| 42] | first | tag | eq ::doc","expect":"true"}
+{"decision":"D442","name":"a-vector-holds-a-doc-as-its-last-element","query":"[42 |~~ doc ~~|] | last | tag | eq ::doc","expect":"true"}
 {"name":"a-doc-that-opens-a-query-is-a-value-a-name-holds","query":"|~~ note ~~| | :n it | n | content","expect":"\"note\""}
 {"name":"a-run-of-backquotes-closes-at-a-run-of-as-many","query":"|~~ a ``~(add 1)`` c ~~| | segments","expect":"[\"a ``~(add 1)`` c\"]"}
 {"name":"a-line-doc-reads-a-quote-of-no-code-to-the-parenthesis-that-pairs-it","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | segments","expect":"[\"a ~(b, ~(add 1)) c\"]"}
 {"name":"a-line-doc-that-holds-a-quote-of-no-code-reads-back-from-its-print","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | :d it | print | parse | first | eq d","expect":"true"}
-{"name":"a-doc-before-the-key-of-a-map-entry-is-refused-by-the-parser","query":"\"{|~~ doc ~~| :k 1}\" | parse !| get [~(type) /found]","expect":"[::quote/ParseError \"|\"]"}
+{"decision":"D442","name":"a-doc-before-the-key-of-a-map-entry-is-refused-by-the-parser","query":"\"{|~~ doc ~~| :k 1}\" | parse !| get [~(tag) /found]","expect":"[::quote/ParseError \"|\"]"}
 {"name":"a-quote-of-a-line-doc-is-tried-as-code-within-its-line-alone","query":"\"[|~~| x ~(a\\n 1 2 | f\" | parse !| get /location","expect":"::span[17 2 6 18 2 7]"}
 {"name":"a-line-doc-ends-at-its-line-break-a-carriage-return-before-a-line-feed-left-out-of-its-prose","query":"get [~(\"|~~| x\\r\\n\" | parse | first | content) ~(\"[|~~| x\\r\\n 1]\" | parse | first | first | content) ~(\"|~~| a\\rb\" | parse | first | content)]","expect":"[\"x\" \"x\" \"a\\nb\"]"}
 {"name":"a-span-between-backquotes-of-a-block-doc-holds-a-doc-nested-in-it","query":"|~~ a `f |~~ b ~~| c` then `~(count)` d ~~| | segments","expect":"[\"a `f |~~ b ~~| c` then `~(count)` d\"]"}

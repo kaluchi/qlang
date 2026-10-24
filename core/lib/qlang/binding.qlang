@@ -55,8 +55,8 @@
         ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)
     | proves :docs/NotGivenError/refusesARecordWithNoDocs
         |~~ A binding a reader writes holds every field of the record. ~~|
-        ~(::binding{:name :x} !| type | eq ::binding/docs/NotGivenError)
+        ~(::binding{:name :x} !| tag | eq ::binding/docs/NotGivenError)
     | proves :name/KindNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of a binding is a keyword. ~~|
-        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| type | eq ::binding/name/KindNotTakenError)
+        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/name/KindNotTakenError)
 

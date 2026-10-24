@@ -14,9 +14,9 @@ it('answers the refusal instead of an answer past the budget, its answer cut to 
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);
   expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
-  expect([...shown.facts.keys()]).toEqual(['characters', 'budget', 'actualType', 'actualValue']);
+  expect([...shown.facts.keys()]).toEqual(['characters', 'budget', 'actualTag', 'actualValue']);
   expect(shown.facts.get('characters')).toBe((await core.printAnswer(answer, scope)).length);
-  expect([shown.facts.get('budget'), shown.facts.get('actualType')]).toEqual([core.ANSWER_BUDGET, core.makeTag('vec')]);
+  expect([shown.facts.get('budget'), shown.facts.get('actualTag')]).toEqual([core.ANSWER_BUDGET, core.makeTag('vec')]);
   expect(await core.printAnswer(shown.facts.get('actualValue'), scope)).toMatch(/^\[\{:id 0 :name "user"\} [\s\S]*::elision\{:size \d+ :read ~\(drop \d+\)\}\]$/);
 });
 

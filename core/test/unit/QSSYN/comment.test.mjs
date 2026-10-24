@@ -71,7 +71,7 @@ describe('a block comment that nests', () => {
       '|~ The refusals the guards of this source raise. Each is a tag',
       '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
       '   `::AssertionFailedError | doc`, `| source` and `| doc | laws`,',
-      '   and `result !| type` reads the tag of a failure back. ~|',
+      '   and `result !| tag` reads the tag of a failure back. ~|',
       '| 42'
     ].join('\n');
     const step = blockStep(src);

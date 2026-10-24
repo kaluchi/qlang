@@ -1,6 +1,6 @@
 // [QSDSP#residence], [QSQUO#modifier]
 
-import { kindsExpected, printValue, typeOf } from '@kaluchi/qlang-core';
+import { kindsExpected, printValue, tagOf } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
 const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
@@ -15,7 +15,7 @@ function cellTextOf(cellValue) {
 const LINE_BREAK = /\s*\n\s*/g;
 
 function docOnOneLine(part) {
-  if (typeOf(part).name !== 'doc') return undefined;
+  if (tagOf(part).name !== 'doc') return undefined;
   return `|~~ ${part.map(segment => (typeof segment === 'string' ? segment.replace(LINE_BREAK, ' ') : printValue(segment, 0, docOnOneLine, true))).join('')} ~~|`;
 }
 

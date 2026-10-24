@@ -86,8 +86,8 @@ cell.defect;              // what was raised past the fail track, else null
   part's path, which the frame of the step names; a failure of the host's
   own world is an error value,
   `makeErrorValue(makeTag('Late'), facts)`, its facts a map, a keyword
-  made by `makeKeyword`; and `typeOf` answers the kind of a value, the tag
-  `type` answers.
+  made by `makeKeyword`; and `tagOf` answers the kind of a value, the tag
+  `tag` answers.
 - `evalQuery(source, scope?)` answers the value one cell of a notebook over
   the scope it is handed answers, by default over the scope of the root
   `langRuntime()` answers, a defect raised to its caller; a declaration

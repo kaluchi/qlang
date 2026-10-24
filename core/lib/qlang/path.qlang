@@ -98,7 +98,7 @@
         ::keyword
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
-        ~(/items/0 | type | eq ::path)
+        ~(/items/0 | tag | eq ::path)
     | proves :printsInOneSpelling
         |~~ A path prints in one spelling that reads back as itself. ~~|
         ~([/items/0/"first name" /"0" /:name] | map ~print | eq ["/items/0/\"first name\"" "/0" "/name"])
@@ -116,20 +116,20 @@
         ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| get [~(type) /actualType] | eq [::path/PayloadKindNotTakenError ::vec])
+        ~([:a 0] | tag ::path !| get [~(tag) /actualTag] | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
         |~~ An index past the end is refused with the length. ~~|
-        ~([10 20 30] | get /99 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
+        ~([10 20 30] | get /99 !| get [~(tag) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
     | proves :IndexOutOfBoundsError/refusesAnIndexBeforeTheStart
         |~~ A negative index past the start is refused as it was written.
         ~~|
-        ~([10 20 30] | get /-4 !| get [~(type) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
+        ~([10 20 30] | get /-4 !| get [~(tag) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
     | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
         |~~ `/-1` reads the last element whatever the length. ~~|
         ~([10 20 30] | get /-1 | eq 30)
     | proves :KeyNotInMapError/refusesAKeyTheMapLacks
         |~~ A key the map lacks is refused. ~~|
-        ~({:a 1} | get /b !| get [~(type) /key] | eq [::path/KeyNotInMapError :b])
+        ~({:a 1} | get /b !| get [~(tag) /key] | eq [::path/KeyNotInMapError :b])
     | proves :KeyNotInMapError/namesThePathItFollowed
         |~~ The refusal holds the path the read followed. ~~|
         ~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
@@ -145,16 +145,16 @@
     | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [~(type) /segment /actualType] | eq [::path/SubjectHasNoPartsError :foo ::number])
+          !| get [~(tag) /segment /actualTag] | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [~(type) /actualType] | eq [::path/SubjectHasNoPartsError ::null])
+        ~(null | get /k !| get [~(tag) /actualTag] | eq [::path/SubjectHasNoPartsError ::null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by an index, not a field. ~~|
-        ~([10 20 30] | get /name !| get [~(type) /segment] | eq [::path/IndexNotIntegerError :name])
+        ~([10 20 30] | get /name !| get [~(tag) /segment] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
         |~~ A set is read by an index, not a field. ~~|
-        ~(#[:a :b :c] | get /name !| get [~(type) /segment] | eq [::path/IndexNotIntegerError :name])
+        ~(#[:a :b :c] | get /name !| get [~(tag) /segment] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])

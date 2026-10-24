@@ -1,8 +1,8 @@
 {"name":"keys-answers-the-set-of-the-keys-of-a-map","query":"{:name \"Alice\" :age 30} | keys","expect":"#[:age :name]"}
 {"name":"vals-answers-the-vector-of-the-values-of-a-map","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
-{"name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | type","expect":"::vec"}
-{"name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | type","expect":"::set"}
-{"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | type","expect":"::keyword"}
+{"decision":"D442","name":"vals-map-yields-vec","query":"{:a 1 :b 2} | vals | tag","expect":"::vec"}
+{"decision":"D442","name":"keys-map-yields-set","query":"{:a 1 :b 2} | keys | tag","expect":"::set"}
+{"decision":"D442","name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | tag","expect":"::keyword"}
 {"name":"the-keys-of-a-map-equal-a-set-of-them-written-in-another-order","query":"{:a 1 :b 2} | keys | eq #[:b :a]","expect":"true"}
 {"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
 {"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}

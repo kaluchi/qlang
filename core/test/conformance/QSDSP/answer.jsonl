@@ -1,38 +1,38 @@
-{"name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width#5 | inc | get [~(type) ~(payload)]","expect":"[::Width 6]"}
-{"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | type","expect":"::T"}
+{"decision":"D442","name":"a-verb-that-returns-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)) | ::Width#5 | inc | get [~(tag) ~(payload)]","expect":"[::Width 6]"}
+{"decision":"D442","name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | tag","expect":"::T"}
 {"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]"}
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
-{"name":"append-lays-the-tag-of-its-subject-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | type) ~(append 3 | append 4 !| type)]","expect":"[::P ::P/TooLongError]"}
+{"decision":"D442","name":"append-lays-the-tag-of-its-subject-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)) | ::P[1 2] | get [~(append 3 | tag) ~(append 3 | append 4 !| tag)]","expect":"[::P ::P/TooLongError]"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box\"b\" | prepend \"a\"","expect":"::Box\"ab\""}
-{"name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | type","expect":"::T"}
+{"decision":"D442","name":"an-edit-that-returns-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | tag","expect":"::T"}
 {"name":"an-answer-of-the-verbs-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
 {"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~| | ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
 {"name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A::B[1 2 3] | filter ~(gt 1)","expect":"::A::B[2 3]"}
 {"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1) | ::Width#5 | inc","expect":"::Width#6"}
-{"name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | type","expect":"::T"}
-{"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | type","expect":"::AutoFilter"}
-{"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | type","expect":"::AutoSort"}
-{"name":"a-kind-of-no-constructor-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | type","expect":"::Box"}
-{"name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-constructor-behind","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | type","expect":"::set"}
-{"name":"a-kind-of-no-constructor-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | type","expect":"::Box"}
+{"decision":"D442","name":"a-verb-that-returns-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}) | ::T{:a 1} | grow | tag","expect":"::T"}
+{"decision":"D442","name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | tag","expect":"::AutoFilter"}
+{"decision":"D442","name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | tag","expect":"::AutoSort"}
+{"decision":"D442","name":"a-kind-of-no-constructor-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | tag","expect":"::Box"}
+{"decision":"D442","name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-constructor-behind","query":":Box |~~ Box. ~~| | ::Box[1 2 1 3] | distinct | tag","expect":"::set"}
+{"decision":"D442","name":"a-kind-of-no-constructor-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | tag","expect":"::Box"}
 {"name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | count","expect":"3"}
 {"name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | sum","expect":"6"}
 {"name":"first-of-a-tagged-vector-answers-the-element","query":":Box |~~ Box. ~~| | ::Box[42 100] | first","expect":"42"}
-{"name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | type","expect":"::Box"}
-{"name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | type","expect":"::Box"}
-{"name":"drop-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | drop 2 | type","expect":"::Box"}
-{"name":"reverse-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | reverse | type","expect":"::Box"}
-{"name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | type","expect":"::Box"}
+{"decision":"D442","name":"sort-keyed-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[{:k 2} {:k 1}] | sort /k | tag","expect":"::Box"}
+{"decision":"D442","name":"take-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | take 2 | tag","expect":"::Box"}
+{"decision":"D442","name":"drop-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | drop 2 | tag","expect":"::Box"}
+{"decision":"D442","name":"reverse-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[1 2 3] | reverse | tag","expect":"::Box"}
+{"decision":"D442","name":"flat-tagged-vec-preserves-tag","query":":Box |~~ Box. ~~| | ::Box[[1] [2 3]] | flat | tag","expect":"::Box"}
 {"name":"filter-tagged-vec-elements-unchanged","query":":Box |~~ Box. ~~| | ::Box[1 2 3 4] | filter ~(gt 2) | sum","expect":"7"}
 {"name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~| | ::Box[3 1 2] | sort | first","expect":"1"}
 {"name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag-and-keeps-it","query":"::Box#5 | add 1","expect":"::Box#6"}
 {"name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~| | ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
-{"name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | distinct | type","expect":"::set"}
+{"decision":"D442","name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | distinct | tag","expect":"::set"}
 {"name":"the-set-of-the-elements-beneath-the-tag-of-a-vector-is-made-within-it","query":"::Box[2 1 2] | within ~(distinct)","expect":"::Box#[1 2]"}
-{"name":"values-under-two-tags-combine-in-no-step-of-any-kind","query":"get [~(::Name\"a\" | append ::Other\"b\" !| type) ~(::Name\"a\" | append \"b\") ~(\"a\" | append ::Name\"b\")]","expect":"[::call/KindsMismatchedError ::Name\"ab\" ::Name\"ab\"]"}
-{"name":"a-container-under-a-tag-it-holds-combines-as-every-tagged-value-does","query":"get [~([1] | concat ::Box[2]) ~(::A[1] | concat ::B[2] !| type) ~(::A{:a 1} | union {:b 2}) ~({:a 1} | union ::B{:b 2}) ~(::A{:a 1} | union ::B{:b 2} !| type)]","expect":"[::Box[1 2] ::call/KindsMismatchedError ::A{:a 1 :b 2} ::B{:a 1 :b 2} ::call/KindsMismatchedError]"}
+{"decision":"D442","name":"values-under-two-tags-combine-in-no-step-of-any-kind","query":"get [~(::Name\"a\" | append ::Other\"b\" !| tag) ~(::Name\"a\" | append \"b\") ~(\"a\" | append ::Name\"b\")]","expect":"[::call/KindsMismatchedError ::Name\"ab\" ::Name\"ab\"]"}
+{"decision":"D442","name":"a-container-under-a-tag-it-holds-combines-as-every-tagged-value-does","query":"get [~([1] | concat ::Box[2]) ~(::A[1] | concat ::B[2] !| tag) ~(::A{:a 1} | union {:b 2}) ~({:a 1} | union ::B{:b 2}) ~(::A{:a 1} | union ::B{:b 2} !| tag)]","expect":"[::Box[1 2] ::call/KindsMismatchedError ::A{:a 1 :b 2} ::B{:a 1 :b 2} ::call/KindsMismatchedError]"}
 {"name":"a-value-that-steers-a-step-shares-no-tag","query":"get [~(1.234 | round ::D#2) ~(\"abc\" | replace \"b\" ::X\"z\") ~(\"b\" | prepend ::K:a) ~({:a 1 :b 2} | minus ::T[:a]) ~([::A{:a 1 :b 2} ::T[:a]] | minus)]","expect":"[1.23 \"azc\" \"ab\" {:b 2} ::A{:b 2}]"}
-{"name":"the-pair-names-the-kinds-where-the-tags-part","query":"get [~(::A::T#1 | add ::A::U#2 !| get [/leftType /rightType]) ~(::A#1 | add ::A::T#2 !| get [/leftType /rightType]) ~(::A[1] | concat ::A::T[2] !| get [/leftType /rightType]) ~(::A{:a 1} | union ::A::T{:b 2} !| get [/leftType /rightType])]","expect":"[[::T ::U] [::number ::T] [::vec ::T] [::map ::T]]"}
+{"decision":"D442","name":"the-pair-names-the-kinds-where-the-tags-part","query":"get [~(::A::T#1 | add ::A::U#2 !| get [/leftTag /rightTag]) ~(::A#1 | add ::A::T#2 !| get [/leftTag /rightTag]) ~(::A[1] | concat ::A::T[2] !| get [/leftTag /rightTag]) ~(::A{:a 1} | union ::A::T{:b 2} !| get [/leftTag /rightTag])]","expect":"[[::T ::U] [::number ::T] [::vec ::T] [::map ::T]]"}
 {"name":"each-step-that-combines-lays-the-tag-a-bare-subject-takes","query":"get [~(100 | sub ::Cents#1) ~(2 | mul ::Cents#3) ~(6 | div ::Cents#3) ~(7 | mod ::Cents#3) ~(\"b\" | prepend ::Name\"a\") ~(#[1 2] | minus ::A#[2]) ~(#[1 2] | inter ::A#[2])]","expect":"[::Cents#99 ::Cents#6 ::Cents#2 ::Cents#1 ::Name\"ab\" ::A#[1] ::A#[2]]"}
 {"name":"a-verb-of-vectors-a-reader-declares-answers-under-the-tags-of-its-subject","query":":vec/backwards ~(reverse) | ::Crate[1 2] | backwards","expect":"::Crate[2 1]"}

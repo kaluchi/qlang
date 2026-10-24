@@ -1,15 +1,15 @@
 {"name":"a-set-literal-holds-its-elements-in-the-one-order","query":"#[3 1 3]","expect":"#[1 3]"}
 {"name":"a-set-literal-of-mixed-kinds-orders-by-kind","query":"#[1 \"a\" null :k]","expect":"#[null 1 \"a\" :k]"}
-{"name":"distinct-answers-the-set","query":"[1 2 1] | distinct | type","expect":"::set"}
+{"decision":"D442","name":"distinct-answers-the-set","query":"[1 2 1] | distinct | tag","expect":"::set"}
 {"name":"distinct-keeps-no-order-of-first-occurrence","query":"[2 1 2] | distinct | payload","expect":"[1 2]"}
 {"name":"the-set-tag-runs-the-constructor-of-the-literal","query":"::set[3 1 3] | eq #[1 3]","expect":"true"}
 {"name":"tag-set-runs-the-constructor","query":"[3 1 3] | tag ::set","expect":"#[1 3]"}
 {"name":"the-payload-of-a-set-is-its-vector","query":"#[2 1] | payload","expect":"[1 2]"}
-{"name":"the-set-tag-refuses-a-payload-other-than-a-vector","query":"::set{:a 1} !| type","expect":"::set/PayloadKindNotTakenError"}
+{"decision":"D442","name":"the-set-tag-refuses-a-payload-other-than-a-vector","query":"::set{:a 1} !| tag","expect":"::set/PayloadKindNotTakenError"}
 {"name":"a-set-indexes-in-the-one-order","query":"#[:z :x :y] | query /1","expect":":y"}
 {"name":"filter-keeps-the-set","query":"#[3 1 2] | filter ~(gt 1)","expect":"#[2 3]"}
 {"name":"a-set-maps-into-the-vector-of-its-images","query":"#[-1 1] | map ~(mul 0)","expect":"[0 0]"}
-{"name":"sort-of-a-set-answers-a-vector","query":"#[3 1 2] | sort | type","expect":"::vec"}
+{"decision":"D442","name":"sort-of-a-set-answers-a-vector","query":"#[3 1 2] | sort | tag","expect":"::vec"}
 {"name":"reverse-of-a-set-answers-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]"}
 {"name":"two-sets-are-equal-by-their-content","query":"#[1 2] | eq #[2 1]","expect":"true"}
 {"name":"a-set-is-not-its-vector","query":"#[1 2] | eq [1 2]","expect":"false"}
@@ -19,5 +19,5 @@
 {"name":"distinct-turns-the-images-of-a-set-back-into-a-set","query":"#[1 2 3] | map ~(add 1) | distinct","expect":"#[2 3 4]"}
 {"name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
 {"name":"keys-answer-the-one-order","query":"{:b 1 :a 2} | keys | payload","expect":"[:a :b]"}
-{"name":"a-set-answers-zip-by-its-own-the-vector-of-its-columns","query":"get [~(#[[1 1] [2 2]] | zip) ~(::Box#[[1 1] [2 2]] | zip) ~(#[3 1 2] | vec/sort) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | path)])]","expect":"[[[1 2] [1 2]] [[1 2] [1 2]] #[1 2 3] [::set/zip/ElementKindNotTakenError /0]]"}
+{"decision":"D442","name":"a-set-answers-zip-by-its-own-the-vector-of-its-columns","query":"get [~(#[[1 1] [2 2]] | zip) ~(::Box#[[1 1] [2 2]] | zip) ~(#[3 1 2] | vec/sort) ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path)])]","expect":"[[[1 2] [1 2]] [[1 2] [1 2]] #[1 2 3] [::set/zip/ElementKindNotTakenError /0]]"}
 {"name":"a-word-of-vectors-a-set-reaches-answers-a-set-each-value-held-once","query":"get [~(#[[1 1] [2 2]] | flat) ~(#[[1 1] [2 2]] | vec/zip) ~(#[[1 1] [2 2]] | zip)]","expect":"[#[1 2] #[[1 2]] [[1 2] [1 2]]]"}

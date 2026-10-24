@@ -15,14 +15,14 @@ it('the parser reads a map touching a tag as its payload', () => {
 });
 
 describe('a tag no declaration answers lays itself over any payload', () => {
-  it('a vector under a tag is read as a vector, and `type` reads the tag', async () => {
-    const { isVec, isTagged, typeOf, TAG_HEADER_SYMBOL } = await import('../../../src/types.mjs');
+  it('a vector under a tag is read as a vector, and `tag` reads the tag', async () => {
+    const { isVec, isTagged, tagOf, TAG_HEADER_SYMBOL } = await import('../../../src/types.mjs');
     const tagged = await evalQuery('::Loose[1 2 3]');
     expect(Array.isArray(tagged)).toBe(true);
     expect(isVec(tagged)).toBe(true);
     expect(isTagged(tagged)).toBe(true);
     expect(tagged[TAG_HEADER_SYMBOL]).toEqual(makeTag('Loose'));
-    expect(typeOf(tagged)).toEqual(makeTag('Loose'));
+    expect(tagOf(tagged)).toEqual(makeTag('Loose'));
     expect(tagged.length).toBe(3);
     expect(tagged[0]).toBe(1);
     expect(tagged[1]).toBe(2);
@@ -39,10 +39,10 @@ describe('a tag no declaration answers lays itself over any payload', () => {
   });
 
   it('a string under a tag is held whole, and `payload` takes it off', async () => {
-    const { isTagged, typeOf } = await import('../../../src/types.mjs');
+    const { isTagged, tagOf } = await import('../../../src/types.mjs');
     const tagged = await evalQuery('::Loose"hello"');
     expect(isTagged(tagged)).toBe(true);
-    expect(typeOf(tagged)).toEqual(makeTag('Loose'));
+    expect(tagOf(tagged)).toEqual(makeTag('Loose'));
     expect(tagged.payload).toBe('hello');
     const extracted = await evalQuery('::Loose"hello" | payload');
     expect(extracted).toBe('hello');

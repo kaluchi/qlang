@@ -71,7 +71,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('a refusal a host\'s verb throws carrying a :trace of another shape answers the refusal of the kind', async () => {
     const notebook = await hostHanding('at Foo.bar(Foo.java:1)');
-    expect(await answerIn(notebook, '1 | thrown | add 1 !| get [~(type) /actualValue ~(trace | map ~failed)] | eq [::trace/PayloadKindNotTakenError "at Foo.bar(Foo.java:1)" [~(thrown)]]')).toBe(true);
+    expect(await answerIn(notebook, '1 | thrown | add 1 !| get [~(tag) /actualValue ~(trace | map ~failed)] | eq [::trace/PayloadKindNotTakenError "at Foo.bar(Foo.java:1)" [~(thrown)]]')).toBe(true);
     expect(await answerIn(notebook, '1 | thrown | add 1 !| 0')).toBe(0);
   });
 
@@ -79,12 +79,12 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     const answered = await hostHanding([makeFrame(0, parseSource('pre'))]);
     expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~path | eq [null null /0]')).toBe(true);
     const thrown = await hostHanding('at Foo.bar(Foo.java:1)');
-    expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | path)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
+    expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(tag) ~(trace | last | path)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
   });
 
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
     const notebook = await hostHanding('at Foo.bar(Foo.java:1)');
-    expect(await answerIn(notebook, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+    expect(await answerIn(notebook, '::Built{:a 1} | raise !| tag !| tag')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
 
   it('carries no path of a fold\'s call of a host\'s word into another call that answers the same failure, the path a fact of its call', async () => {
@@ -96,7 +96,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('a refusal the constructor of a host\'s kind throws inside a literal with an empty trace holds none, the literal\'s frame its first', async () => {
     const notebook = await hostHanding(makeTrace([]));
-    expect(await answerIn(notebook, '::Outer::Built"x" !| get [~(type) ~(trace | map ~failed)] | eq [::Built/RefusedError [~(::Outer::Built"x")]]')).toBe(true);
+    expect(await answerIn(notebook, '::Outer::Built"x" !| get [~(tag) ~(trace | map ~failed)] | eq [::Built/RefusedError [~(::Outer::Built"x")]]')).toBe(true);
   });
 
   it('a failure a host hands as the first value of its pipe holds its trace as the kind takes it', async () => {
@@ -110,15 +110,15 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     const bound = makeErrorValue(makeTag('error'), new Map([['trace', 5]]));
     const scope = new Map(await langRuntime()).set('f', makeBinding({ name: makeKeyword('f'), value: bound }));
     const notebook = await createNotebook({ scope });
-    expect(await answerIn(notebook, 'f | count !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+    expect(await answerIn(notebook, 'f | count !| tag')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
     expect(await answerIn(notebook, 'f !| 0')).toBe(0);
-    expect(await evalQuery('get [~(f)] !| type', scope)).toEqual(makeTag('trace/PayloadKindNotTakenError'));
+    expect(await evalQuery('get [~(f)] !| tag', scope)).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
 
   it('a trace a host stamps `::trace` over by hand is read to its frames, an element that is no frame refused at its index', async () => {
     const trace = [makeFrame(0, parseSource('pre')), [1, parseSource('post')]];
     stampTagHeader(trace, makeTag('trace'));
-    expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
+    expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(tag) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
   });
 
   it('a frame a host stamps `::frame` over a vector of another layout and a frame its trace leaves undefined are no frames, refused at their index', async () => {
@@ -130,16 +130,16 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     const holed = [makeFrame(0, parseSource('pre')), undefined, makeFrame(2, parseSource('post'))];
     const laidOut = [[1], [1, [1, 2]], [1, makeQuote([])], [1, steps, 5], [1, steps, makePath([0]), 9]].map(parts => [makeFrame(0, steps), stamped(parts)]);
     for (const trace of [...laidOut, holed]) {
-      expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(type) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
+      expect(await answerIn(await hostHanding(trace), '1 | answered !| get [~(tag) /index] | eq [::trace/ElementKindNotTakenError 1]')).toBe(true);
     }
   });
 
   it('the refusal of a trace a host hands names the trace it refused, whatever the subject of its step', async () => {
-    expect(await answerIn(await hostHanding(5), '7 | answered !| get [~(type) /actualValue] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
+    expect(await answerIn(await hostHanding(5), '7 | answered !| get [~(tag) /actualValue] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
   });
 });
 
 it('the steps skipped past a comment run again by apply as the call after it', async () => {
-  const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| type');
+  const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| trace | last | skipped | :t it | 42 | apply t !| tag');
   expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
 });

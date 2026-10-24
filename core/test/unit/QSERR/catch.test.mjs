@@ -3,7 +3,7 @@ import { evalQuery } from '../../../src/notebook.mjs';
 import { makeKeyword, makeTag } from '../../../src/types.mjs';
 
 it('a failure in the pipe skips raise', async () => {
-  const evalResult = await evalQuery('("not-a-number" | add 1) | raise !| type');
+  const evalResult = await evalQuery('("not-a-number" | add 1) | raise !| tag');
   expect(evalResult).toEqual(makeTag('number/add/SubjectNotNumberError'));
 });
 

@@ -8,7 +8,7 @@
 {"name":"an-exponent-of-zero-leaves-the-number-as-it-is","query":"1e0","expect":"1"}
 {"name":"an-exponent-follows-an-integer-with-no-fraction","query":"2e3","expect":"2000"}
 {"name":"a-capital-e-writes-an-exponent-with-no-sign","query":"5E10","expect":"50000000000"}
-{"name":"a-number-literal-past-the-finite-doubles-is-refused-by-the-parser","query":"\"1e400\" | parse !| get [~(type) /found /location]","expect":"[::quote/ParseError \"1\" ::span[0 1 1 1 1 2]]"}
+{"decision":"D442","name":"a-number-literal-past-the-finite-doubles-is-refused-by-the-parser","query":"\"1e400\" | parse !| get [~(tag) /found /location]","expect":"[::quote/ParseError \"1\" ::span[0 1 1 1 1 2]]"}
 {"name":"number-literal-inside-the-finite-domain-parses","query":"\"1e308\" | parse | open | gt 1e307","expect":"true"}
 {"name":"a-leading-zero-is-refused-naming-the-number","query":"\"[01]\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `1`\""}
 {"name":"a-leading-zero-after-a-minus-is-refused","query":"\"-007\" | parse !| get /message","expect":"\"a number is written without a leading zero: write `-7`\""}

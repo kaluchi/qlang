@@ -11,13 +11,13 @@ it('`minus` takes off a map the keys a set of keywords names', async () => {
 describe('minus and inter over a set of keywords and other values', async () => {
   it('Map×Set minus refuses an element that names no key, under the verb of the fold', async () => {
     const { evalQuery } = await import('../../../src/notebook.mjs');
-    const result = await evalQuery('[{:a 1 :b 2}, #[:a true]] | minus !| type');
+    const result = await evalQuery('[{:a 1 :b 2}, #[:a true]] | minus !| tag');
     expect(result.name).toBe('vec/minus/KeyKindNotTakenError');
   });
 
   it('Map×Set inter refuses an element that names no key, under the verb of the fold', async () => {
     const { evalQuery } = await import('../../../src/notebook.mjs');
-    const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b true]] | inter !| type');
+    const result = await evalQuery('[{:a 1 :b 2 :c 3}, #[:b true]] | inter !| tag');
     expect(result.name).toBe('vec/inter/KeyKindNotTakenError');
   });
 });

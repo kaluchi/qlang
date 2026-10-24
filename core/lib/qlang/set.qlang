@@ -57,7 +57,7 @@
         ~("#{1}" | parse !| get /message | contains "#[")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| get [~(type) /actualType] | eq [::set/PayloadKindNotTakenError ::map])
+        ~(::set{:not :a-vec} !| get [~(tag) /actualTag] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :set/sort
@@ -101,7 +101,7 @@
         ~(#[1 2 3] | sort ~(desc) | toSet | eq #[1 2 3])
     | proves :key/KindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 2] | sort (desc) !| type | eq ::set/sort/key/KindNotTakenError)
+        ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/key/KindNotTakenError)
     | impl ::builtin{}
 
 :set/reverse
@@ -146,7 +146,7 @@
         ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | path) /expected] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
+        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) /expected] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
         ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])
@@ -200,7 +200,7 @@
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,
-            `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
+            `~(get /id | if (tag | eq ::string) ~(it) ~(print))`.
         ~~|
     | carries :KeyTakenError/key
         |~~ The keyword both values file under. ~~|
@@ -230,20 +230,20 @@
         ~(#[null 1] | groupBy | keys | eq #[:"1" :null])
     | proves :filesATagUnderItsName
         |~~ A tag name key files under the keyword of its name. ~~|
-        ~(#[1 "a"] | groupBy ~(type) | eq {:number #[1] :string #["a"]})
+        ~(#[1 "a"] | groupBy ~(tag) | eq {:number #[1] :string #["a"]})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~(#[1 "1"] | groupBy !| get [~(type) /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
+        ~(#[1 "1"] | groupBy !| get [~(tag) /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
     | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
         ~~|
-        ~(#[{:k 1}] | groupBy (get /k) !| type | eq ::set/groupBy/key/KindNotTakenError)
+        ~(#[{:k 1}] | groupBy (get /k) !| tag | eq ::set/groupBy/key/KindNotTakenError)
     | proves :KeyKindNotTakenError/refusesAVectorKey
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
         ~~|
-        ~(#[[1]] | groupBy !| get [~(type) ~(trace | last | path) /expected] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) /expected] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :set/toVec
@@ -340,13 +340,13 @@
         ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
     | proves :other/KindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | union [:b] !| type | eq ::set/union/other/KindNotTakenError)
+        ~(#[:a] | union [:b] !| tag | eq ::set/union/other/KindNotTakenError)
     | proves :other/NotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1] #[2]] | union !| type | eq ::set/union/other/NotGivenError)
+        ~(#[#[1] #[2]] | union !| tag | eq ::set/union/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
-        ~(#[1] | union #[2] #[3] !| type | eq ::set/union/ArgsBeyondInputsError)
+        ~(#[1] | union #[2] #[3] !| tag | eq ::set/union/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/minus
@@ -387,13 +387,13 @@
         ~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
     | proves :other/KindNotTakenError/refusesAMap
         |~~ A map beside a set is refused under the input. ~~|
-        ~(#[:a] | minus {:a 1} !| type | eq ::set/minus/other/KindNotTakenError)
+        ~(#[:a] | minus {:a 1} !| tag | eq ::set/minus/other/KindNotTakenError)
     | proves :other/NotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1] #[2]] | minus !| type | eq ::set/minus/other/NotGivenError)
+        ~(#[#[1] #[2]] | minus !| tag | eq ::set/minus/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
-        ~(#[1 2 3] | minus #[2] #[3] !| type | eq ::set/minus/ArgsBeyondInputsError)
+        ~(#[1 2 3] | minus #[2] #[3] !| tag | eq ::set/minus/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :set/inter
@@ -435,11 +435,11 @@
         ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
     | proves :other/KindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | inter [:a] !| type | eq ::set/inter/other/KindNotTakenError)
+        ~(#[:a] | inter [:a] !| tag | eq ::set/inter/other/KindNotTakenError)
     | proves :other/NotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1 2] #[2 3]] | inter !| type | eq ::set/inter/other/NotGivenError)
+        ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/other/NotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
-        ~(#[1 2] | inter #[1] #[2] !| type | eq ::set/inter/ArgsBeyondInputsError)
+        ~(#[1 2] | inter #[1] #[2] !| tag | eq ::set/inter/ArgsBeyondInputsError)
     | impl ::builtin{}

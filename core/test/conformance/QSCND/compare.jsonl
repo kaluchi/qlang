@@ -12,10 +12,10 @@
 {"name":"lte-answers-true-for-a-value-equal-to-the-subject","query":"10 | lte 10","expect":"true"}
 {"name":"the-test-for-null-is-eq-null","query":"[null 1] | filter ~(eq null)","expect":"[null]"}
 {"name":"eq-keeps-a-keyword-apart-from-its-string","query":":a | eq \"a\"","expect":"false"}
-{"name":"a-value-of-another-kind-is-refused-as-the-pair","query":"5 | gt \"a\" !| get [~(type) /leftType /rightType]","expect":"[::call/KindsMismatchedError ::number ::string]"}
+{"decision":"D442","name":"a-value-of-another-kind-is-refused-as-the-pair","query":"5 | gt \"a\" !| get [~(tag) /leftTag /rightTag]","expect":"[::call/KindsMismatchedError ::number ::string]"}
 {"name":"every-kind-compares-two-of-its-values-by-the-one-order","query":"get [~(true | gt false) ~([1 2] | gt [1]) ~({:b 1} | gt {:a 1}) ~(#[2] | gt #[1]) ~(null | gte null) ~(/b | gt /a) ~(::Width#5 | gt ::Width#3)]","expect":"[true true true true true true true]"}
 {"name":"strings-keywords-and-tag-names-compare-within-their-kind","query":"get [~(\"b\" | gt \"a\") ~(:b | gt :a) ~(::b | gt ::a)]","expect":"[true true true]"}
 {"name":"eq-answers-the-tie-of-the-one-order-over-every-kind","query":"get [~(#\"a\"i | eq #\"a\"i) ~(#\"a\"i | eq #\"a\") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]","expect":"[true false true true true true]"}
-{"name":"the-order-ranks-every-value-while-max-and-a-comparison-relate-two-of-one-kind","query":"get [~([1 \"a\"] | sort) ~([1 \"a\"] | max !| type) ~(\"a\" | gt 1 !| type)]","expect":"[[1 \"a\"] ::call/KindsMismatchedError ::call/KindsMismatchedError]"}
-{"name":"a-comparison-refuses-two-tags-and-a-tag-beside-its-payload","query":"get [~(::Cents#100 | gt ::Dollars#50 !| get [~(type) /leftType /rightType]) ~(::Width#5 | gt 3 !| get [/leftType /rightType]) ~(::Width#5 | payload | gt 3)]","expect":"[[::call/KindsMismatchedError ::Cents ::Dollars] [::Width ::number] true]"}
+{"decision":"D442","name":"the-order-ranks-every-value-while-max-and-a-comparison-relate-two-of-one-kind","query":"get [~([1 \"a\"] | sort) ~([1 \"a\"] | max !| tag) ~(\"a\" | gt 1 !| tag)]","expect":"[[1 \"a\"] ::call/KindsMismatchedError ::call/KindsMismatchedError]"}
+{"decision":"D442","name":"a-comparison-refuses-two-tags-and-a-tag-beside-its-payload","query":"get [~(::Cents#100 | gt ::Dollars#50 !| get [~(tag) /leftTag /rightTag]) ~(::Width#5 | gt 3 !| get [/leftTag /rightTag]) ~(::Width#5 | payload | gt 3)]","expect":"[[::call/KindsMismatchedError ::Cents ::Dollars] [::Width ::number] true]"}
 {"name":"two-maps-that-differ-in-a-value-are-not-equal","query":"{:a 1} | eq {:a 2}","expect":"false"}

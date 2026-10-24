@@ -1,58 +1,58 @@
-{"name":"the-kind-of-a-value-has-its-page","query":"5 | type | doc | type | eq ::doc","expect":"true"}
-{"name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | type","expect":"::doc"}
-{"name":"a-comparison-has-its-page-on-any","query":"::any/gt | doc | type | eq ::doc","expect":"true"}
-{"name":"an-anchor-a-value-holds-no-node-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
-{"name":"an-anchor-a-verb-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(type) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
-{"name":"an-unknown-name-under-a-verb-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
+{"decision":"D442","name":"the-kind-of-a-value-has-its-page","query":"5 | tag | doc | tag | eq ::doc","expect":"true"}
+{"decision":"D442","name":"the-walk-of-the-subject-comes-before-the-root","query":"[1 2] | doc | tag","expect":"::doc"}
+{"decision":"D442","name":"a-comparison-has-its-page-on-any","query":"::any/gt | doc | tag | eq ::doc","expect":"true"}
+{"decision":"D442","name":"an-anchor-a-value-holds-no-node-under-is-refused-with-no-address","query":"5 | doc :nosuch !| get [~(tag) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
+{"decision":"D442","name":"an-anchor-a-verb-declares-no-input-under-is-refused","query":"::vec/take | doc :nosuch !| get [~(tag) /name /addresses]","expect":"[::any/doc/UnknownNameError :nosuch #[]]"}
+{"decision":"D442","name":"an-unknown-name-under-a-verb-is-named-by-the-keyword-asked","query":"::vec/take | doc :\"a b\" !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError :\"a b\"]"}
 {"name":"a-declared-name-source-axis","query":":number/double ~(mul 2) | ::number/double | source | toString","expect":"\":number/double ~(mul 2)\""}
-{"name":"an-anchor-under-a-tag-that-names-nothing-is-refused-by-its-name","query":"::Nothing | doc :x !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :x]"}
+{"decision":"D442","name":"an-anchor-under-a-tag-that-names-nothing-is-refused-by-its-name","query":"::Nothing | doc :x !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError :x]"}
 {"name":"an-anchor-reads-the-input-of-a-kinds-verb","query":"::vec | doc [:take :count] | eq (::vec/take/count | doc)","expect":"true"}
-{"name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | type","expect":"::doc"}
-{"name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | type","expect":"::doc"}
-{"name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| type","expect":"::any/doc/UnknownNameError"}
+{"decision":"D442","name":"an-address-reads-its-page-whatever-the-scope-binds","query":":limit 5 | ::vec/filter | doc | tag","expect":"::doc"}
+{"decision":"D442","name":"a-tag-path-addresses-a-verb-from-the-root","query":"::vec/count | doc | tag","expect":"::doc"}
+{"decision":"D442","name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| tag","expect":"::any/doc/UnknownNameError"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | toString | contains \"::builtin{}\"","expect":"true"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
 {"name":"an-axis-reads-the-input-a-verb-holds-under-an-anchor","query":"::vec/take | binding :count | get /value | print","expect":"\"/0\""}
-{"name":"an-anchor-no-node-answers-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError :nosuch]"}
-{"name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | type","expect":"::doc"}
+{"decision":"D442","name":"an-anchor-no-node-answers-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError :nosuch]"}
+{"decision":"D442","name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | tag","expect":"::doc"}
 {"name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| get /addresses","expect":"#[::any/type]"}
 {"name":"a-keyword-is-read-by-its-kind","query":":limit | doc | eq (::keyword | doc)","expect":"true"}
-{"name":"the-source-of-an-unknown-name-is-refused","query":"::nosuchbinding | source !| type","expect":"::any/source/UnknownNameError"}
-{"name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| type","expect":"::any/doc/UnknownNameError"}
+{"decision":"D442","name":"the-source-of-an-unknown-name-is-refused","query":"::nosuchbinding | source !| tag","expect":"::any/source/UnknownNameError"}
+{"decision":"D442","name":"docs-not-found-names-the-docs-axis","query":"::nosuchbinding | doc !| tag","expect":"::any/doc/UnknownNameError"}
 {"name":"not-found-carries-the-binding-name","query":"::nosuchbinding | source !| get /name","expect":"::nosuchbinding"}
 {"name":"a-value-reads-the-page-of-its-kind","query":"5 | doc | eq (::number | doc)","expect":"true"}
-{"name":"an-undeclared-tag-is-refused-and-a-value-under-it-reads-the-kind-beneath","query":"get [~(::Late | doc !| type) ~(::Late{:a 1} | doc | eq (::map | doc))]","expect":"[::any/doc/UnknownNameError true]"}
+{"decision":"D442","name":"an-undeclared-tag-is-refused-and-a-value-under-it-reads-the-kind-beneath","query":"get [~(::Late | doc !| tag) ~(::Late{:a 1} | doc | eq (::map | doc))]","expect":"[::any/doc/UnknownNameError true]"}
 {"name":"a-verb-reads-the-pages-of-its-inputs","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | ::number/plus/by | doc | content | trim","expect":"\"How much.\""}
 {"name":"a-kind-declared-by-a-keyword-reads-its-page","query":":Box |~~ A box. ~~| | ::Box{:a 1} | doc | content","expect":"\"A box.\""}
 {"name":"a-refusal-of-a-name-leads-to-where-its-verbs-live","query":"::reduce | doc !| get /addresses","expect":"#[::map/reduce ::vec/reduce]"}
 {"name":"a-keyword-of-a-verb-of-any-value-is-refused-with-its-address","query":"::type | doc !| get /addresses","expect":"#[::any/type]"}
 {"name":"an-address-no-verb-lives-at-names-where-its-name-lives","query":"::any/content | doc !| get /addresses","expect":"#[::doc/content]"}
-{"name":"a-verb-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| type","expect":"::any/doc/UnknownNameError"}
-{"name":"the-page-of-a-kinds-verb-is-read-by-its-address","query":"::vec/reduce | doc | type","expect":"::doc"}
+{"decision":"D442","name":"a-verb-that-reads-a-name-no-declaration-names-refuses-as-a-call-does","query":"::Foo | doc !| tag","expect":"::any/doc/UnknownNameError"}
+{"decision":"D442","name":"the-page-of-a-kinds-verb-is-read-by-its-address","query":"::vec/reduce | doc | tag","expect":"::doc"}
 {"name":"an-input-carries-the-page-of-its-command","query":":any/m (::fn | takes :x |~~ How many. ~~| /0 | impl ~(x)) | ::any/m/x | doc | content","expect":"\"How many.\""}
 {"name":"the-page-of-an-input-is-reached-by-its-name","query":":number/f (::fn | takes :n |~~ how many ~~| /0 | impl ~(add n)) | ::number/f | doc :n | content","expect":"\"how many\""}
-{"name":"a-name-a-reader-verb-declares-no-input-under-is-refused-with-no-addresses","query":":number/twice (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul x)) | ::twice | doc :nosuch !| get [~(type) /addresses]","expect":"[::any/doc/UnknownNameError #[]]"}
+{"decision":"D442","name":"a-name-a-reader-verb-declares-no-input-under-is-refused-with-no-addresses","query":":number/twice (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(mul x)) | ::twice | doc :nosuch !| get [~(tag) /addresses]","expect":"[::any/doc/UnknownNameError #[]]"}
 {"name":"anchors-read-in-turn-reach-an-input-of-a-verb-under-a-label","query":":Box |~~ B ~~| | :Box/twice (::fn | takes :x |~~ The factor. ~~| /0 ::number | impl ~(mul x)) | ::Box | doc [:twice :x]","expect":"|~~ The factor. ~~|"}
 {"name":"the-source-of-an-address-holds-every-declaration-under-it","query":":Box |~~ A parcel. ~~| | :Box/put |~~ Puts a weight in. ~~| (::fn | takes :w |~~ The weight. ~~| /0 | impl ~(append w)) | ::Box | source | map /name","expect":"[:Box :Box/put]"}
 {"name":"a-tagged-vector-reads-the-page-of-its-tag","query":":Box |~~ A box. ~~| | ::Box#[3 1] | doc | content","expect":"\"A box.\""}
 {"name":"the-kind-field-of-a-map-names-nothing","query":"{:kind ::set} | doc | content | eq (::map | doc | content)","expect":"true"}
 {"name":"a-set-of-anchors-reads-several-pages","query":"::qlang | doc #[:pipeline :errors] | count","expect":"2"}
 {"name":"an-empty-vector-of-anchors-reads-the-page-of-the-subject","query":"::qlang | doc [] | eq (::qlang | doc)","expect":"true"}
-{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| type","expect":"::any/doc/anchor/ElementKindNotTakenError"}
-{"name":"an-axis-reads-a-value-under-a-tag-of-identity-by-the-kind-beneath-it","query":"::Box{:a 1} | get [~(doc | eq (::map | doc)) ~(type)]","expect":"[true ::Box]"}
+{"decision":"D442","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused","query":"::qlang | doc #[1] !| tag","expect":"::any/doc/anchor/ElementKindNotTakenError"}
+{"decision":"D442","name":"an-axis-reads-a-value-under-a-tag-of-identity-by-the-kind-beneath-it","query":"::Box{:a 1} | get [~(doc | eq (::map | doc)) ~(tag)]","expect":"[true ::Box]"}
 {"name":"an-axis-reads-a-vector-under-a-tag-of-identity-as-a-vector","query":"::Box[1 2] | doc | eq (::vec | doc)","expect":"true"}
 {"name":"a-keyword-reads-the-page-of-its-kind","query":":count 5 | :count | doc | eq (::keyword | doc)","expect":"true"}
-{"name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| type","expect":"::any/doc/anchor/KindNotTakenError"}
-{"name":"an-anchor-of-source-is-a-keyword","query":"::vec/take | source 1 !| type","expect":"::any/source/anchor/KindNotTakenError"}
+{"decision":"D442","name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| tag","expect":"::any/doc/anchor/KindNotTakenError"}
+{"decision":"D442","name":"an-anchor-of-source-is-a-keyword","query":"::vec/take | source 1 !| tag","expect":"::any/source/anchor/KindNotTakenError"}
 {"name":"every-axis-of-a-record-reads-the-node-under-an-anchor","query":"get [~(::vec | manifest :take | eq (::vec/take | manifest)) ~(::qlang | laws :errors | eq (::qlang/errors | laws))]","expect":"[true true]"}
-{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-index-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(type) /index]","expect":"[::any/doc/anchor/ElementKindNotTakenError 1]"}
+{"decision":"D442","name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-index-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(tag) /index]","expect":"[::any/doc/anchor/ElementKindNotTakenError 1]"}
 {"name":"a-set-of-anchors-takes-null-and-anchors-read-in-turn","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}
-{"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| type","expect":"::any/binding/UnknownNameError"}
-{"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| type","expect":"::any/binding/UnknownNameError"}
+{"decision":"D442","name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| tag","expect":"::any/binding/UnknownNameError"}
+{"decision":"D442","name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| tag","expect":"::any/binding/UnknownNameError"}
 {"name":"a-refusal-nothing-declares-reads-the-record-of-the-address-before-it","query":"::number/add/FooError | binding | get /name","expect":":number/add"}
 {"name":"a-name-declared-without-a-page-answers-null","query":":x 1 | ::x | doc","expect":"null"}
-{"name":"a-refusal-under-the-call-of-a-function-no-node-declares-reads-the-page-of-that-call","query":"get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) [\"x\"] !| get [~(type) ~(explain | page | eq (::fn/call | doc)) ~(type | doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]","expect":"[[::fn/call/by/KindNotTakenError true true] :fn/call/refusesArgsPastItsInputs]"}
-{"name":"a-refusal-under-an-address-nothing-declares-is-refused-as-a-name-nothing-declares","query":"::nothere/FooError | doc !| get [~(type) /name]","expect":"[::any/doc/UnknownNameError ::nothere/FooError]"}
-{"name":"a-set-of-anchors-refuses-an-element-by-the-kinds-it-takes","query":"::vec | doc #[:take 5] !| get [~(type) /index /expected]","expect":"[::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]]"}
-{"name":"a-name-read-in-turn-that-is-no-keyword-is-refused-at-its-index","query":"::vec | doc [:take 1] !| get [~(type) /index /expected]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
-{"name":"a-vector-in-a-set-of-anchors-refuses-a-name-by-its-index-in-the-vector","query":"::vec | doc #[[:take 1]] !| get [~(type) /index /expected]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
+{"decision":"D442","name":"a-refusal-under-the-call-of-a-function-no-node-declares-reads-the-page-of-that-call","query":"get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) [\"x\"] !| get [~(tag) ~(explain | page | eq (::fn/call | doc)) ~(tag | doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]","expect":"[[::fn/call/by/KindNotTakenError true true] :fn/call/refusesArgsPastItsInputs]"}
+{"decision":"D442","name":"a-refusal-under-an-address-nothing-declares-is-refused-as-a-name-nothing-declares","query":"::nothere/FooError | doc !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError ::nothere/FooError]"}
+{"decision":"D442","name":"a-set-of-anchors-refuses-an-element-by-the-kinds-it-takes","query":"::vec | doc #[:take 5] !| get [~(tag) /index /expected]","expect":"[::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]]"}
+{"decision":"D442","name":"a-name-read-in-turn-that-is-no-keyword-is-refused-at-its-index","query":"::vec | doc [:take 1] !| get [~(tag) /index /expected]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
+{"decision":"D442","name":"a-vector-in-a-set-of-anchors-refuses-a-name-by-its-index-in-the-vector","query":"::vec | doc #[[:take 1]] !| get [~(tag) /index /expected]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}

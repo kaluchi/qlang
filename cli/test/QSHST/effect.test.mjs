@@ -41,7 +41,7 @@ describe('out — the subject, written when it is a string', () => {
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalRaised(cellEntry, 'any/out/SubjectKindNotTakenError', {
-      actualType: { name: 'number' }
+      actualTag: { name: 'number' }
     });
   });
 });
@@ -60,7 +60,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalByAddress(cellEntry, 'any/out/text/KindNotTakenError', {
-      actualType: { name: 'number' }
+      actualTag: { name: 'number' }
     });
   });
 
@@ -69,7 +69,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalByAddress(cellEntry, 'string/prepend/prefix/KindNotTakenError', {
-      actualType: { name: 'number' }
+      actualTag: { name: 'number' }
     });
   });
 });
@@ -88,7 +88,7 @@ describe('err — the subject, written when it is a string', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectKindNotTakenError', {
-      actualType: { name: 'vec' }
+      actualTag: { name: 'vec' }
     });
   });
 });
@@ -105,7 +105,7 @@ describe('err — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
     expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
-      actualType: { name: 'number' }
+      actualTag: { name: 'number' }
     });
   });
 });
@@ -124,7 +124,7 @@ describe('tap', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
     expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
-      actualType: { name: 'string' }
+      actualTag: { name: 'string' }
     });
   });
 

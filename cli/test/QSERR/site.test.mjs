@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createNotebook, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, typeOf, splitAddress } from '@kaluchi/qlang-core';
+import { createNotebook, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, tagOf, splitAddress } from '@kaluchi/qlang-core';
 import { declaredRefusals } from '@kaluchi/qlang-core/errors';
 
 const ofTheCore = new Set(declaredRefusals());
@@ -15,7 +15,7 @@ const notebook = await createNotebook({
   sources: cliSources({ stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} })
 });
 const addresses = nodeAddresses(notebook.scope);
-const kindAt = address => typeOf(nodeOf(notebook.scope, address)?.get('value')).name;
+const kindAt = address => tagOf(nodeOf(notebook.scope, address)?.get('value')).name;
 
 const ruleBorn = new Set(addresses
   .filter(address => isVerb(notebook.scope, address) || kindAt(address) === 'kind')

@@ -41,7 +41,7 @@
         ~~|
     | proves :isThePageOfAName
         |~~ The page of a name is a doc. ~~|
-        ~(::number/add | doc | type | eq ::doc)
+        ~(::number/add | doc | tag | eq ::doc)
     | proves :splitsIntoSegments
         |~~ A doc of prose, code and prose has three segments. ~~|
         ~(|~~ a ~(add 1) b ~~| | segments | count | eq 3)
@@ -50,10 +50,10 @@
         ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::doc"x" !| get [~(type) /actualType] | eq [::doc/PayloadKindNotTakenError ::string])
+        ~(::doc"x" !| get [~(tag) /actualTag] | eq [::doc/PayloadKindNotTakenError ::string])
     | proves :ElementKindNotTakenError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
-        ~(["a" 1] | tag ::doc !| get [~(type) /index /expected] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
+        ~(["a" 1] | tag ::doc !| get [~(tag) /index /expected] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
     | impl ::builtin{}
 
 :doc/content
@@ -89,10 +89,10 @@
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
         ~(:x 1 | ::x | doc | content
-          !| get [~(type) /actualType] | eq [::doc/content/SubjectNotDocError ::null])
+          !| get [~(tag) /actualTag] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("x" | content !| type | eq ::doc/content/SubjectNotDocError)
+        ~("x" | content !| tag | eq ::doc/content/SubjectNotDocError)
     | impl ::builtin{}
 
 :doc/segments
@@ -126,7 +126,7 @@
         ~(|~~ a ~(add 1) b ~~| | segments | eq ["a " ~(add 1) " b"])
     | proves :keepsTheTagsOfALink
         |~~ A link stands among the segments under its tag. ~~|
-        ~(|~~ a ::link~(1) ~~| | segments | get /1 | type | eq ::link)
+        ~(|~~ a ::link~(1) ~~| | segments | get /1 | tag | eq ::link)
     | proves :answersOneStringForProseAlone
         |~~ A doc of prose alone is one segment of prose. ~~|
         ~(|~~ only prose ~~| | segments | eq ["only prose"])
@@ -138,10 +138,10 @@
         ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-        ~(|~~ see ::number~(~(x)) ~~| !| get [~(type) /actualType] | eq [::number/PayloadKindNotTakenError ::quote])
+        ~(|~~ see ::number~(~(x)) ~~| !| get [~(tag) /actualTag] | eq [::number/PayloadKindNotTakenError ::quote])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | doc/segments !| get [~(type) /actualType] | eq [::doc/segments/SubjectNotDocError ::string])
+        ~("text" | doc/segments !| get [~(tag) /actualTag] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/links
@@ -181,7 +181,7 @@
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
-          !| get [~(type) /actualType] | eq [::doc/links/SubjectNotDocError ::string])
+          !| get [~(tag) /actualTag] | eq [::doc/links/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/snippets
@@ -213,6 +213,6 @@
         ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | snippets !| get [~(type) /actualType] | eq [::doc/snippets/SubjectNotDocError ::string])
+        ~("text" | snippets !| get [~(tag) /actualTag] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}
 

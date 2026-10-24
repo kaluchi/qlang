@@ -25,7 +25,7 @@ import {
   isBindStep,
   isGroupStep,
   isFailStep,
-  typeOf,
+  tagOf,
   shownFor,
   answerKindsOf,
   kindsOfWalk,
@@ -42,7 +42,7 @@ import {
 } from '@kaluchi/qlang-core';
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
-const kindOf = value => typeOf(value).name;
+const kindOf = value => tagOf(value).name;
 
 function tidyPage(content) {
   return content.replace(/\n{3,}/g, '\n\n');
@@ -330,7 +330,7 @@ async function hoverForTag(tag, head) {
 
 async function hoverForPath(read, source) {
   const written = source.slice(read.span.start.offset, read.span.end.offset);
-  return { content: markdownHardBreaks([`path \`${written}\``, '', await contentOfThePage(typeOf(read.value).literal)].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`path \`${written}\``, '', await contentOfThePage(tagOf(read.value).literal)].join('\n')), ...spanOf(read) };
 }
 
 function nameAt(read, offset) {

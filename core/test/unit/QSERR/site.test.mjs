@@ -20,8 +20,8 @@ describe('a refusal converted to a failure', () => {
     const desc = errorVal.facts;
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
     expect(desc.get('actualValue')).toBe('the-value');
-    expect(desc.get('actualType')).toEqual(makeTag('string'));
-    expect([...desc.keys()]).toEqual(['actualType', 'actualValue']);
+    expect(desc.get('actualTag')).toEqual(makeTag('string'));
+    expect([...desc.keys()]).toEqual(['actualTag', 'actualValue']);
   });
 
   it('converts the refusal of an unknown name with the facts its label declares', async () => {

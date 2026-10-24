@@ -3,7 +3,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
-  typeOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -168,7 +168,7 @@ const PATH_NAMES = new WeakMap();
 export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
-    yield typeOf(value).name;
+    yield tagOf(value).name;
     if (isTag(value)) {
       yield value.name;
       return;

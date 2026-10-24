@@ -30,7 +30,7 @@
         ~~|
     | proves :isAKeyword
         |~~ `:k` is a keyword. ~~|
-        ~(:k | type | eq ::keyword)
+        ~(:k | tag | eq ::keyword)
     | proves :buildsAKeyword
         |~~ The constructor of a keyword answers it. ~~|
         ~(::keyword:k | eq :k)
@@ -46,7 +46,7 @@
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| get [~(type) /actualType] | eq [::keyword/PayloadKindNotTakenError ::string])
+        ~(::keyword"k" !| get [~(tag) /actualTag] | eq [::keyword/PayloadKindNotTakenError ::string])
     | impl ::builtin{}
 
 :keyword/toString
@@ -88,7 +88,7 @@
         ~([{:y 2020} {:y 2021}] | groupBy /y | keys | toVec | map ~toNumber | eq [2020 2021])
     | proves :NameNotNumberError/refusesAName
         |~~ A name that writes no number is refused. ~~|
-        ~(:a | toNumber !| type | eq ::keyword/toNumber/NameNotNumberError)
+        ~(:a | toNumber !| tag | eq ::keyword/toNumber/NameNotNumberError)
     | impl ::builtin{}
 
 :keyword/toTag
@@ -108,7 +108,7 @@
         ~(:Box | toTag | eq ::Box)
     | proves :NameNotTagError/refusesASpace
         |~~ A name with a space names no tag. ~~|
-        ~(:"a b" | toTag !| type | eq ::keyword/toTag/NameNotTagError)
+        ~(:"a b" | toTag !| tag | eq ::keyword/toTag/NameNotTagError)
     | impl ::builtin{}
 
 :keyword/toKeyword

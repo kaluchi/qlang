@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isSet, isVec, makeKeyword, typeOf, makeTagged,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, makeKeyword, tagOf, makeTagged,
   makeTag, makeQuote, makeDoc, payloadBeneath, beneathTags, NULL
 } from '../types.mjs';
 import {
@@ -38,7 +38,7 @@ function declaringRecordOf(scope, subject) {
 
 // [QSSLF#axis]
 function recordOfKind(scope, value) {
-  const name = typeOf(value).name;
+  const name = tagOf(value).name;
   return nodeOf(scope, name) ?? nodeOfRefused(scope, name) ?? recordOfKind(scope, payloadBeneath(value));
 }
 

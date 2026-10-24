@@ -1,29 +1,29 @@
-{"name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | type","expect":"::vec"}
-{"name":"null-has-a-kind-of-its-own","query":"null | type","expect":"::null"}
-{"name":"a-tag-name-has-the-kind-tag","query":"::foo | type","expect":"::tag"}
-{"name":"true-has-the-kind-boolean","query":"true | type","expect":"::boolean"}
-{"name":"false-has-the-kind-boolean","query":"false | type","expect":"::boolean"}
-{"name":"an-integer-has-the-kind-number","query":"42 | type","expect":"::number"}
-{"name":"a-decimal-has-the-kind-number","query":"3.14 | type","expect":"::number"}
-{"name":"a-negative-number-has-the-kind-number","query":"-7 | type","expect":"::number"}
-{"name":"zero-has-the-kind-number","query":"0 | type","expect":"::number"}
-{"name":"a-string-has-the-kind-string","query":"\"hello\" | type","expect":"::string"}
-{"name":"the-empty-string-has-the-kind-string","query":"\"\" | type","expect":"::string"}
-{"name":"a-keyword-has-the-kind-keyword","query":":name | type","expect":"::keyword"}
-{"name":"a-tag-name-has-the-kind-tag-whatever-the-case-of-its-letters","query":"::Foo | type","expect":"::tag"}
-{"name":"type-of-a-value-under-a-tag-is-the-tag","query":"::AutoBox[1 2 3] | type","expect":"::AutoBox"}
-{"name":"a-vector-of-numbers-has-the-kind-vec","query":"[1 2 3] | type","expect":"::vec"}
-{"name":"the-empty-vector-has-the-kind-vec","query":"[] | type","expect":"::vec"}
-{"name":"a-quote-has-the-kind-quote","query":"~(mul 2) | type","expect":"::quote"}
-{"name":"a-doc-has-the-kind-doc","query":"|~~ note ~~| | type","expect":"::doc"}
-{"name":"a-map-has-the-kind-map","query":"{:a 1} | type","expect":"::map"}
-{"name":"the-empty-map-has-the-kind-map","query":"{} | type","expect":"::map"}
-{"name":"type-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | type","expect":"::map"}
-{"name":"a-set-has-the-kind-set","query":"#[1 2] | type","expect":"::set"}
-{"name":"the-empty-set-has-the-kind-set","query":"#[] | type","expect":"::set"}
-{"name":"type-of-the-payload-reads-past-its-tag","query":"::AutoBox[1 2 3] | payload | type","expect":"::vec"}
-{"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(type) ~(payload | type)]","expect":"[::A ::B]"}
-{"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(type) ~(payload)]","expect":"[::A 1]"}
-{"name":"type-answers-a-tag","query":"5 | type | type","expect":"::tag"}
-{"name":"payload-answers-what-the-literal-of-a-kind-of-the-core-writes-after-its-tag","query":"get [~(1 | payload) ~(\"s\" | payload) ~([1] | payload) ~({:a 1} | payload) ~(#[2 1] | payload) ~(~(add 1) | payload | type) ~(|~~ a ~~| | payload)]","expect":"[1 \"s\" [1] {:a 1} [1 2] ::vec [\"a\"]]"}
+{"decision":"D442","name":"a-vector-has-the-kind-its-brackets-imply","query":"[1 2] | tag","expect":"::vec"}
+{"decision":"D442","name":"null-has-a-kind-of-its-own","query":"null | tag","expect":"::null"}
+{"decision":"D442","name":"a-tag-name-has-the-kind-tag","query":"::foo | tag","expect":"::tag"}
+{"decision":"D442","name":"true-has-the-kind-boolean","query":"true | tag","expect":"::boolean"}
+{"decision":"D442","name":"false-has-the-kind-boolean","query":"false | tag","expect":"::boolean"}
+{"decision":"D442","name":"an-integer-has-the-kind-number","query":"42 | tag","expect":"::number"}
+{"decision":"D442","name":"a-decimal-has-the-kind-number","query":"3.14 | tag","expect":"::number"}
+{"decision":"D442","name":"a-negative-number-has-the-kind-number","query":"-7 | tag","expect":"::number"}
+{"decision":"D442","name":"zero-has-the-kind-number","query":"0 | tag","expect":"::number"}
+{"decision":"D442","name":"a-string-has-the-kind-string","query":"\"hello\" | tag","expect":"::string"}
+{"decision":"D442","name":"the-empty-string-has-the-kind-string","query":"\"\" | tag","expect":"::string"}
+{"decision":"D442","name":"a-keyword-has-the-kind-keyword","query":":name | tag","expect":"::keyword"}
+{"decision":"D442","name":"a-tag-name-has-the-kind-tag-whatever-the-case-of-its-letters","query":"::Foo | tag","expect":"::tag"}
+{"decision":"D442","name":"a-value-under-a-tag-answers-that-tag","query":"::AutoBox[1 2 3] | tag","expect":"::AutoBox"}
+{"decision":"D442","name":"a-vector-of-numbers-has-the-kind-vec","query":"[1 2 3] | tag","expect":"::vec"}
+{"decision":"D442","name":"the-empty-vector-has-the-kind-vec","query":"[] | tag","expect":"::vec"}
+{"decision":"D442","name":"a-quote-has-the-kind-quote","query":"~(mul 2) | tag","expect":"::quote"}
+{"decision":"D442","name":"a-doc-has-the-kind-doc","query":"|~~ note ~~| | tag","expect":"::doc"}
+{"decision":"D442","name":"a-map-has-the-kind-map","query":"{:a 1} | tag","expect":"::map"}
+{"decision":"D442","name":"the-empty-map-has-the-kind-map","query":"{} | tag","expect":"::map"}
+{"decision":"D442","name":"the-tag-of-a-map-carrying-a-kind-field-is-map","query":"{:kind ::Foo :a 1} | tag","expect":"::map"}
+{"decision":"D442","name":"a-set-has-the-kind-set","query":"#[1 2] | tag","expect":"::set"}
+{"decision":"D442","name":"the-empty-set-has-the-kind-set","query":"#[] | tag","expect":"::set"}
+{"decision":"D442","name":"the-tag-of-the-payload-reads-past-the-outer-tag","query":"::AutoBox[1 2 3] | payload | tag","expect":"::vec"}
+{"decision":"D442","name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(tag) ~(payload | tag)]","expect":"[::A ::B]"}
+{"decision":"D442","name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(tag) ~(payload)]","expect":"[::A 1]"}
+{"decision":"D442","name":"the-tag-a-value-answers-is-a-tag-name","query":"5 | tag | tag","expect":"::tag"}
+{"decision":"D442","name":"payload-answers-what-the-literal-of-a-kind-of-the-core-writes-after-its-tag","query":"get [~(1 | payload) ~(\"s\" | payload) ~([1] | payload) ~({:a 1} | payload) ~(#[2 1] | payload) ~(~(add 1) | payload | tag) ~(|~~ a ~~| | payload)]","expect":"[1 \"s\" [1] {:a 1} [1 2] ::vec [\"a\"]]"}
 {"name":"type-reads-the-kind-as-tag-reads-it","query":"[5 ::Width#5 #[1] ::vec] | map ~(get [~(type) ~(tag)])","expect":"[[::number ::number] [::Width ::Width] [::set ::set] [::tag ::tag]]"}

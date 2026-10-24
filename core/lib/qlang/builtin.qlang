@@ -132,7 +132,7 @@
         ~~|
     | proves :isAValueOfItsOwn
         |~~ An empty descriptor is a value like any other. ~~|
-        ~(::builtin{} | :c it | get [1 2] | c | type | eq ::builtin)
+        ~(::builtin{} | :c it | get [1 2] | c | tag | eq ::builtin)
     | proves :endsAPrimitive
         |~~ The recipe of a verb a host answers by a primitive is an empty
             descriptor.
@@ -140,8 +140,8 @@
         ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| get [~(type) /actualType] | eq [::builtin/PayloadKindNotTakenError ::string])
+        ~(::builtin"hello" !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::string])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| get [~(type) /actualType] | eq [::builtin/PayloadKindNotTakenError ::vec]))
+        ~(::builtin[1 2 3] !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}]

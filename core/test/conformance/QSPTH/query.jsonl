@@ -1,7 +1,7 @@
 {"name":"query-answers-null-for-a-missing-key","query":"{:a 1} | query /b","expect":"null"}
 {"name":"query-answers-null-for-a-missing-index","query":"[1] | query /5","expect":"null"}
 {"name":"query-answers-null-through-null","query":"{:a null} | query /a/b","expect":"null"}
-{"name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| type","expect":"::path/SubjectHasNoPartsError"}
+{"decision":"D442","name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| tag","expect":"::path/SubjectHasNoPartsError"}
 {"name":"query-in-code-reads-softly","query":"[{:n 1} {:m 2}] | map ~(query /n)","expect":"[1 null]"}
 {"name":"query-holds-a-default-for-a-missing-index","query":"[] | query /0 7","expect":"7"}
 {"name":"query-answers-a-null-that-stands-at-the-path","query":"[null] | query /0 7","expect":"null"}
@@ -15,7 +15,7 @@
 {"name":"query-answers-null-for-an-index-past-the-end","query":"[10 20 30] | query /99","expect":"null"}
 {"name":"query-answers-null-for-a-negative-index-past-the-start","query":"[10 20 30] | query /-99","expect":"null"}
 {"name":"query-answers-null-for-an-index-of-the-empty-vector","query":"[] | query /0","expect":"null"}
-{"name":"query-preserves-element-type","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}"}
+{"decision":"D442","name":"query-answers-an-element-as-it-is","query":"[{:id 1} {:id 2}] | query /0","expect":"{:id 1}"}
 {"name":"get-reads-on-from-the-element-query-answered","query":"[{:name \"alice\"} {:name \"bob\"}] | query /1 | get /name","expect":"\"bob\""}
 {"name":"query-reads-an-index-of-the-values-vals-answers","query":"{:a 10 :b 20 :c 30} | vals | query /1","expect":"20"}
 {"name":"query-reads-a-key-of-a-map-as-get-does","query":"{:a 1 :b 2 :c 3} | query /b","expect":"2"}
@@ -25,5 +25,5 @@
 {"name":"query-answers-null-for-a-key-the-map-beneath-a-tag-lacks","query":"::json{:a 1} | query /z","expect":"null"}
 {"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42","expect":"null"}
 {"name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
-{"name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| type","expect":"::path/IndexNotIntegerError"}
+{"decision":"D442","name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| tag","expect":"::path/IndexNotIntegerError"}
 {"name":"null-beneath-the-tags-a-path-meets-on-its-way-is-a-miss","query":"{:a ::T#null} | get [~(query /a/b) ~(coalesce /a/b 0)]","expect":"[null 0]"}

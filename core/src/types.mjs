@@ -303,9 +303,9 @@ export function pairRefused(left, right) {
   const kindAt = (tags, value) => {
     if (depth < tags.length) return makeTag(tags[depth]);
     const beneath = beneathTags(value);
-    return isMap(beneath) ? CORE_KIND.map : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec : typeOf(beneath);
+    return isMap(beneath) ? CORE_KIND.map : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec : tagOf(beneath);
   };
-  return new CallKindsMismatchedError({ leftType: kindAt(lefts, left), rightType: kindAt(rights, right) });
+  return new CallKindsMismatchedError({ leftTag: kindAt(lefts, left), rightTag: kindAt(rights, right) });
 }
 
 // [QSLIT#kind]
@@ -377,12 +377,12 @@ export function makeErrorValue(tag, facts, { originalError = null } = {}) {
 export function formOf(v) {
   if (isErrorValue(v)) return 'error';
   if (isValueClass(v, 'underTag')) return 'underTag';
-  const kind = typeOf(v);
+  const kind = tagOf(v);
   return Object.hasOwn(CORE_KIND, kind.name) ? kind.name : 'underTag';
 }
 
 // [QSLIT#kind], [QSHST#door]
-export function typeOf(v) {
+export function tagOf(v) {
   if (isNull(v)) return CORE_KIND.null;
   if (isBoolean(v)) return CORE_KIND.boolean;
   if (isNumber(v)) return CORE_KIND.number;

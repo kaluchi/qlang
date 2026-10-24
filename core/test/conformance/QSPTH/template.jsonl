@@ -2,41 +2,41 @@
 {"name":"a-template-held-in-a-name-builds-the-shape-of-each-element","query":":view {:who /first :n ~(get /tags | count)} | [{:first \"A\" :tags [1 2]} {:first \"B\" :tags []}] | map ~(get view)","expect":"[{:who \"A\" :n 2} {:who \"B\" :n 0}]"}
 {"name":"query-reads-the-paths-of-its-template-softly","query":"{:a 1} | query [~(get /a) /b]","expect":"[1 null]"}
 {"name":"a-template-reads-under-a-tag-runs-a-quote-and-answers-a-doc","query":"{:a 1} | get [/a ::Box[/a] ::Box#5 |~~ x ~~| ~(get /a) #[/a 2]]","expect":"[1 ::Box[1] ::Box#5 |~~ x ~~| 1 #[1 2]]"}
-{"name":"a-template-lays-a-tag-back-through-its-kind","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(type | ne ::number))) | {:a 1} | get [::P[/a]] !| type","expect":"::P/HasNumberError"}
-{"name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | type !| type","expect":"::fn"}
-{"name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | type !| type","expect":"::kind"}
+{"decision":"D442","name":"a-template-lays-a-tag-back-through-its-kind","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(tag | ne ::number))) | {:a 1} | get [::P[/a]] !| tag","expect":"::P/HasNumberError"}
+{"decision":"D442","name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | tag !| tag","expect":"::fn"}
+{"decision":"D442","name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | tag !| tag","expect":"::kind"}
 {"name":"get-reads-two-fields-of-one-record-by-a-template","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
 {"name":"get-reads-a-template","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
 {"name":"query-reads-each-path-of-a-template-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
-{"name":"get-reads-a-template-strictly","query":"{:a 1} | get [/a /b] !| type","expect":"::path/KeyNotInMapError"}
+{"decision":"D442","name":"get-reads-a-template-strictly","query":"{:a 1} | get [/a /b] !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"a-set-template-reads-its-paths","query":"{:name \"Alice\" :age 30} | get #[/name /age]","expect":"#[30 \"Alice\"]"}
 {"name":"if-inside-a-template","query":"[{:n 5} {:n 15}] | map ~(get {:value /n :tier ~(if (get /n | gt 10) ~(\"high\") ~(\"low\"))})","expect":"[{:value 5 :tier \"low\"} {:value 15 :tier \"high\"}]"}
-{"name":"a-failed-part-answers-the-template-before-a-step-after-it","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| type","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D442","name":"a-failed-part-answers-the-template-before-a-step-after-it","query":"get [1 ~(\"x\" | add 1)] | map ~(0) !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-template-reads-beneath-every-tag-over-it","query":"{:a 1} | get [::Box::Crate[/a] ::Box#[/a]]","expect":"[::Box::Crate[1] ::Box#[1]]"}
-{"name":"a-template-beneath-tags-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box::Crate[/zz] !| type","expect":"::path/KeyNotInMapError"}
+{"decision":"D442","name":"a-template-beneath-tags-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box::Crate[/zz] !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"an-atom-under-a-tag-in-a-template-is-answered-as-it-is","query":"{:a 1} | get [::Box#5 ::Box\"s\"]","expect":"[::Box#5 ::Box\"s\"]"}
 {"name":"a-template-under-three-tags-is-read","query":"{:a 1} | get ::A::B::C[/a]","expect":"::A::B::C[1]"}
-{"name":"a-set-under-a-tag-in-a-template-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box#[~(1 | add \"x\")] !| type","expect":"::number/add/addend/KindNotTakenError"}
+{"decision":"D442","name":"a-set-under-a-tag-in-a-template-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box#[~(1 | add \"x\")] !| tag","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"a-quote-in-a-set-under-a-tag-runs-as-every-quote-of-a-template","query":":k 2 | 1 | get ::Box#[~(add k)]","expect":"::Box#[3]"}
-{"name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | reads :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| type","expect":"::Box/w/KindNotTakenError"}
+{"decision":"D442","name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | reads :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| tag","expect":"::Box/w/KindNotTakenError"}
 {"name":"with-names-a-part-by-the-last-key-of-its-path","query":"{:id 7 :user {:name \"Ann\"}} | with [/id /user/name] ~(name | append (id | toString))","expect":"\"Ann7\""}
 {"name":"with-names-the-selectors-of-a-map-for-several-branches","query":"[::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]","expect":"[::Box 5 ::Box#5]"}
 {"name":"a-map-among-the-names-renames-the-parts-it-maps","query":"{:id 7 :user {:name \"Ann\"} :group {:name \"ops\"}} | with [/id {:un /user/name :gn /group/name}] ~(un | append \"@\" | append gn | append (id | toString))","expect":"\"Ann@ops7\""}
 {"name":"the-maps-of-the-names-are-one-map-in-any-order","query":"[::Box 5] | get [~(with [{:t ~first} {:p ~last}] ~(p | tag t)) ~(with [{:p ~last} {:t ~first}] ~(p | tag t)) ~(with [{:t ~first :p ~last}] ~(p | tag t))]","expect":"[::Box#5 ::Box#5 ::Box#5]"}
 {"name":"a-selector-of-with-sees-no-name-of-another-selector","query":"[::Box 5] | get [~(with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~(with [{:p ~(t)} {:t ~first}] ~(p) !| get /name)]","expect":"[:t :t]"}
-{"name":"a-selector-of-with-is-a-path-or-a-quote","query":"[::Box 5] | get [~(with {:pair ~(get [/1 /0])} ~(pair)) ~(with {:k 10} ~(k) !| get [~(type) /name])]","expect":"[[5 ::Box] [::any/with/names/SelectorKindNotTakenError :k]]"}
-{"name":"a-map-of-the-data-names-no-parts-of-with","query":"{:a 1 :b 2} | with it ~(a | mul b) !| type","expect":"::any/with/names/SelectorKindNotTakenError"}
-{"name":"a-path-of-with-reads-strictly-and-a-quote-as-it-is-written","query":"{:id 7} | get [~(with {:t /type} ~(t) !| type) ~(with {:t ~(query /type \"none\")} ~(t))]","expect":"[::path/KeyNotInMapError \"none\"]"}
+{"decision":"D442","name":"a-selector-of-with-is-a-path-or-a-quote","query":"[::Box 5] | get [~(with {:pair ~(get [/1 /0])} ~(pair)) ~(with {:k 10} ~(k) !| get [~(tag) /name])]","expect":"[[5 ::Box] [::any/with/names/SelectorKindNotTakenError :k]]"}
+{"decision":"D442","name":"a-map-of-the-data-names-no-parts-of-with","query":"{:a 1 :b 2} | with it ~(a | mul b) !| tag","expect":"::any/with/names/SelectorKindNotTakenError"}
+{"decision":"D442","name":"a-path-of-with-reads-strictly-and-a-quote-as-it-is-written","query":"{:id 7} | get [~(with {:t /type} ~(t) !| tag) ~(with {:t ~(query /type \"none\")} ~(t))]","expect":"[::path/KeyNotInMapError \"none\"]"}
 {"name":"the-subject-of-the-body-of-with-is-the-value-itself","query":"{:id 7 :n 2} | with [/id] [~(get /n | add id) /n]","expect":"[9 2]"}
 {"name":"the-body-of-with-reads-the-names-of-the-step-that-wrote-it","query":":r 10 | {:id 7} | with [/id] ~(id | add r)","expect":"17"}
 {"name":"a-name-of-with-stands-over-a-name-of-the-step","query":":t 1 | [::Box 5] | with {:t ~first} [~(t)]","expect":"[::Box]"}
-{"name":"no-name-of-with-leaves-the-call","query":"{:a 1} | with [/a] ~(a) | a !| get [~(type) /name]","expect":"[::call/UnknownNameError :a]"}
-{"name":"the-quotes-of-the-body-of-with-see-nothing-of-each-other","query":"{:a 1} | with [/a] [~(:z 5 | a) ~(z)] !| get [~(type) /name]","expect":"[::call/UnknownNameError :z]"}
+{"decision":"D442","name":"no-name-of-with-leaves-the-call","query":"{:a 1} | with [/a] ~(a) | a !| get [~(tag) /name]","expect":"[::call/UnknownNameError :a]"}
+{"decision":"D442","name":"the-quotes-of-the-body-of-with-see-nothing-of-each-other","query":"{:a 1} | with [/a] [~(:z 5 | a) ~(z)] !| get [~(tag) /name]","expect":"[::call/UnknownNameError :z]"}
 {"name":"a-key-of-the-data-no-name-of-with-names-is-no-name","query":"{:items [1 2] :count 9} | with [/items] ~(items | count)","expect":"2"}
-{"name":"a-name-of-with-meets-a-verb-of-the-subject-aloud","query":"{:type \"user\" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| type) ~(with [/id {:t /type}] ~(id | toString | append t))]","expect":"[::call/ValueMeetsVerbError \"7user\"]"}
-{"name":"with-refuses-names-that-are-no-vector-and-no-map","query":"{:a 1} | with /a ~(a) !| type","expect":"::any/with/names/KindNotTakenError"}
-{"name":"with-refuses-a-quote-alone-among-its-names","query":"[::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(type) /index]","expect":"[::any/with/names/ElementKindNotTakenError 1]"}
-{"name":"with-refuses-a-key-that-reads-as-no-name","query":"{:a 1 :null 2 :items [3] :a/b 4} | get [~(with [/items/0] ~(it) !| type) ~(with [/null] ~(it) !| type) ~(with {:\"a b\" /a} ~(it) !| type) ~(with [/:a/b] ~(it) !| type) ~(with {:a/b /a} ~(it) !| type)]","expect":"[::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError]"}
-{"name":"with-refuses-a-name-written-twice-among-its-names","query":"{:a {:name 1} :b {:name 2}} | get [~(with [/a/name /b/name] ~(name) !| get [~(type) /name]) ~(with [{:t /a} {:t /b}] ~(t) !| type)]","expect":"[[::any/with/names/NameWrittenTwiceError :name] ::any/with/names/NameWrittenTwiceError]"}
-{"name":"with-refuses-a-body-get-takes-not","query":"{:a 1} | with [/a] true !| type","expect":"::any/with/body/KindNotTakenError"}
-{"name":"a-failure-of-a-selector-of-with-is-its-answer","query":"{:a 1} | with {:b /b} ~(1) !| type","expect":"::path/KeyNotInMapError"}
+{"decision":"D442","name":"a-name-of-with-meets-a-verb-of-the-subject-aloud","query":"{:type \"user\" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| tag) ~(with [/id {:t /type}] ~(id | toString | append t))]","expect":"[::call/ValueMeetsVerbError \"7user\"]"}
+{"decision":"D442","name":"with-refuses-names-that-are-no-vector-and-no-map","query":"{:a 1} | with /a ~(a) !| tag","expect":"::any/with/names/KindNotTakenError"}
+{"decision":"D442","name":"with-refuses-a-quote-alone-among-its-names","query":"[::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(tag) /index]","expect":"[::any/with/names/ElementKindNotTakenError 1]"}
+{"decision":"D442","name":"with-refuses-a-key-that-reads-as-no-name","query":"{:a 1 :null 2 :items [3] :a/b 4} | get [~(with [/items/0] ~(it) !| tag) ~(with [/null] ~(it) !| tag) ~(with {:\"a b\" /a} ~(it) !| tag) ~(with [/:a/b] ~(it) !| tag) ~(with {:a/b /a} ~(it) !| tag)]","expect":"[::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError ::any/with/names/KeyNotNameError]"}
+{"decision":"D442","name":"with-refuses-a-name-written-twice-among-its-names","query":"{:a {:name 1} :b {:name 2}} | get [~(with [/a/name /b/name] ~(name) !| get [~(tag) /name]) ~(with [{:t /a} {:t /b}] ~(t) !| tag)]","expect":"[[::any/with/names/NameWrittenTwiceError :name] ::any/with/names/NameWrittenTwiceError]"}
+{"decision":"D442","name":"with-refuses-a-body-get-takes-not","query":"{:a 1} | with [/a] true !| tag","expect":"::any/with/body/KindNotTakenError"}
+{"decision":"D442","name":"a-failure-of-a-selector-of-with-is-its-answer","query":"{:a 1} | with {:b /b} ~(1) !| tag","expect":"::path/KeyNotInMapError"}

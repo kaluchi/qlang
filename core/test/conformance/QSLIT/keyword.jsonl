@@ -12,7 +12,7 @@
 {"name":"keywords-of-names-joined-by-a-slash-differ-by-their-last-name","query":":qlang/error | eq :qlang/http","expect":"false"}
 {"name":"keywords-that-share-the-name-before-the-slash-are-two-elements-of-a-set","query":"#[:qlang/a :qlang/b] | count","expect":"2"}
 {"name":"has-finds-a-keyword-of-names-joined-by-a-slash-in-a-set","query":"#[:qlang/error :qlang/http] | has :qlang/error","expect":"true"}
-{"name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null | type","expect":"::keyword"}
-{"name":"the-word-false-after-a-colon-is-a-keyword","query":":false | type","expect":"::keyword"}
-{"name":"the-word-true-after-a-colon-is-a-keyword","query":":true | type","expect":"::keyword"}
-{"name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | type)","expect":"::keyword"}
+{"decision":"D442","name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null | tag","expect":"::keyword"}
+{"decision":"D442","name":"the-word-false-after-a-colon-is-a-keyword","query":":false | tag","expect":"::keyword"}
+{"decision":"D442","name":"the-word-true-after-a-colon-is-a-keyword","query":":true | tag","expect":"::keyword"}
+{"decision":"D442","name":"the-keyword-of-a-name-stays-a-keyword","query":"{:a 1} | :r it | (:r | tag)","expect":"::keyword"}

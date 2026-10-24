@@ -71,11 +71,11 @@
 
 | (::Person{:name "Ann" :age 30} | greet "hello ")
 
-| (::Person{:name "Ann" :age 30} | greet 1 !| type)
+| (::Person{:name "Ann" :age 30} | greet 1 !| tag)
 
-| (::Person{:name 7 :age 30} !| type)
+| (::Person{:name 7 :age 30} !| tag)
 
-| ({:name "Bo" :age 15} | adult !| type)
+| ({:name "Bo" :age 15} | adult !| tag)
 
 
 |~| ── 4. Two fields of one record ───────────────────────────
@@ -123,7 +123,7 @@
 |~| `|` passes a failure by and `!|` catches it; `explain`
 |~| answers the page of what refused, which tells the repair.
 
-| ("hello" | add 1 !| type)
+| ("hello" | add 1 !| tag)
 
 | ([1 "x" 3] | map ~(add 10 !| 0))
 

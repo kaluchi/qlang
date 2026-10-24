@@ -124,13 +124,13 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
-        ~(42 | out !| get [~(type) /expected] | eq [::any/out/SubjectKindNotTakenError #[::string]])
+        ~(42 | out !| get [~(tag) /expected] | eq [::any/out/SubjectKindNotTakenError #[::string]])
     | proves :text/KindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
-        ~("hi" | out 5 !| type | eq ::any/out/text/KindNotTakenError)
+        ~("hi" | out 5 !| tag | eq ::any/out/text/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
-        ~("hi" | out "a" "b" !| type | eq ::any/out/ArgsBeyondInputsError)
+        ~("hi" | out "a" "b" !| tag | eq ::any/out/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/err
@@ -152,7 +152,7 @@
         ~~|
     | proves :text/KindNotTakenError/refusesANumber
         |~~ A text that is no string is refused. ~~|
-        ~(5 | err 7 !| type | eq ::any/err/text/KindNotTakenError)
+        ~(5 | err 7 !| tag | eq ::any/err/text/KindNotTakenError)
     | returns |~~ The subject as it came. ~~| ::any
     | throws :SubjectKindNotTakenError
         |~~ `err` alone writes its subject, a string, as a line on stderr;
@@ -166,10 +166,10 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `err` writes alone. ~~|
-        ~(42 | err !| get [~(type) /expected] | eq [::any/err/SubjectKindNotTakenError #[::string]])
+        ~(42 | err !| get [~(tag) /expected] | eq [::any/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
-        ~("hi" | err "a" "b" !| type | eq ::any/err/ArgsBeyondInputsError)
+        ~("hi" | err "a" "b" !| tag | eq ::any/err/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/tap
@@ -198,10 +198,10 @@
         ~~|
     | proves :label/KindNotTakenError/refusesAString
         |~~ A string is no label. ~~|
-        ~(1 | tap "x" !| type | eq ::any/tap/label/KindNotTakenError)
+        ~(1 | tap "x" !| tag | eq ::any/tap/label/KindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
-        ~(5 | tap :a :b !| type | eq ::any/tap/ArgsBeyondInputsError)
+        ~(5 | tap :a :b !| tag | eq ::any/tap/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :vec/table
@@ -238,13 +238,13 @@
         ~({:name "alice"} | get [~(it)] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [~(tag) /actualTag] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [~(tag) /actualTag] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(type) ~(trace | last | path) /actualType /expected]
+        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) /actualTag /expected]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{}
 

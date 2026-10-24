@@ -4,7 +4,7 @@
 
 :shape
   |~~ A shape is the structure of a value beneath its tags, which `shape`
-      answers under `::shape`: the kind of each atom, as `type` answers
+      answers under `::shape`: the kind of each atom, as `tag` answers
       it, a part under a tag standing as its tag, which tells of itself on
       its page; each map with its keys, `{}` an empty one; each vector one
       element whose shape holds of all of them, `[E]`, `[]` an empty one,
@@ -21,7 +21,7 @@
       answering `::string` under a `::nullable` author. The shape of a part
       of the data is the shape of that part, `get /items | map /assignee | shape`,
       and its size, a sample and the share of its kinds are asked of the
-      data, by `count`, `get /0` and `groupBy ~(type) | map ~count`.
+      data, by `count`, `get /0` and `groupBy ~(tag) | map ~count`.
       ::link~(::any/shape | doc) ::link~(::absent | doc)
       ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|

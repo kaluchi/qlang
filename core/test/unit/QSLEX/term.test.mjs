@@ -353,19 +353,9 @@ it('refuses each retired term of the read of text into code and back, of the eli
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves marker for the signs of a comment, the end of a paste and unfinished work, tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, and `apply` of code on a subject', () => {
+it('leaves tuple for the form of a shape, `parse` of a string, `open` of a link and a snippet, `apply` of code on a subject and the elision of a view', () => {
   for (const text of [
-    'the comment markers `|~`, `|~|`, `|~~`', 'Longer markers are tried first', 'Inside a block comment the line markers are bare tokens',
-    'a-parse-error-names-no-marker-of-a-comment-among-its-continuations', '|~ doc-close marker ~~| mentioned here ~|', 'holds a |~| line marker mention here', 'plain-close marker', 'line-doc marker',
-    'The block-marker design picks', 'the marker has no addressable role there, so consuming only the marker bytes preserves', 'a block comment that holds a doc marker and code',
-    'closes a doc inside a quote of a doc at its own marker', 'paints a line-marker mention inside plain block', 'the longer marker read first', 'a marker inside it among it',
-    'a bracketed paste whose begin marker opens a chunk, read up to its end marker', 'A gathered paste lands with every bracket marker it holds taken out.', 'stripPasteMarkers',
-    'strips BPM markers from a single-chunk wrapped paste', 'inserts single-line paste content when markers arrive in separate data events', 'its bracket markers taken out',
-    'the placeholder markers', 'Forbidden framing / markers', 'leaves no marker of work undone', 'captures a parse error on the cell entry as both a host-error marker and a lifted ErrorValue',
-    'yields the marker (empty) for an empty Vec', '::Marker[]', 'the marker of a comment, `|~|`', 'the marker of the end of a paste', 'a marker of the rest of the line',
-    'the marker prints nothing of the comment', 'the paste marker counts as no character', 'the comment marker that reads a doc', 'each marker of a block comment',
-    'the read of the marker of a comment', 'a line that holds a marker of a comment', 'the size of a marker of a block comment', 'the paste ends with a marker',
-    'a doc gives way to a marker of a comment', 'the marker standing for the end of a paste', 'an ::elision whose :read continues the query', 'the elision of a text keeping its first characters',
+    'an ::elision whose :read continues the query', 'the elision of a text keeping its first characters',
     'a part whose elision prints no shorter than it stays',
     'a regex, a value of `::regex`', '`#"\\d+"` is a regex', '::string/toRegex/TextNotRegexError', '| takes :regex',
     ':needle', 'Vectors of one length that part index by index are tuples.', ':readsTuplesIndexByIndex', 'tupleOf', 'two tuples of one length index by index', 'a shape reads a tuple index by index',
@@ -373,17 +363,31 @@ it('leaves marker for the signs of a comment, the end of a paste and unfinished 
     ':readsTwoFieldsByATemplate', 'query-reads-each-path-of-a-template-softly', 'shape reads a tuple', 'a shape reads a tuple of two kinds', 'a shape reads a tuple of a string and a number',
     '"add 1" | parse', '"#[3 1 3]" | parse | open', '`open` runs a link and a snippet alike', '5 | apply ~(add 1)', '5 | apply ("add 3" | parse)', '::string/parse', '::quote/ParseError',
     'quote/ParseError', '::quote/toString', 'core/test/conformance/QSQUO/parse.jsonl', 'a-quote-written-as-text-by-toString-reads-back-by-parse',
-    'the paste marker is left out of the line the reader takes', 'a comment marker prints shorter than a doc', 'the end-of-paste marker gives way to the next chunk',
-    'the marker `|~|` of a comment reads to the end of the line, `:read` aside', 'a line comment, its marker `|~|`, runs to the end of the line; an elision prints no comment',
-    'the comment markers are left out of the highlighted span', 'the bracketed paste markers are left out of the budget of a line', 'its markers of a comment',
     'a shape reads a tuple index by index, `get /0` reading its first index',
     '`shape` writes a tuple of two fields as a shape for each index', 'a tuple is a vector of one length; `query` reads it softly as any vector', 'the template of `get` is no tuple',
-    'A gathered paste lands with every bracket marker it holds left out.', '::string/capture/RegexNamesNoGroupError', 'StringCaptureRegexNamesNoGroupError',
+    '::string/capture/RegexNamesNoGroupError', 'StringCaptureRegexNamesNoGroupError',
     ':RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone',
-    'reads a bracketed paste up to its end marker, a pause past the window inside it', 'shapes or more a tuple, vectors of one length that part index by',
-    'capture-refuses-a-regex-that-names-no-group', 'reads a bracketed paste whose begin marker\'s escape is split',
-    'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment'
+    'shapes or more a tuple, vectors of one length that part index by',
+    'capture-refuses-a-regex-that-names-no-group',
   ]) expect(refused(text), text).toBe(false);
+});
+
+it('refuses in every sense the generic word once written for the opener and the closer of a comment, the sequences of a paste, the words of unfinished work and an elision', () => {
+  for (const text of [
+    'stripPasteMarkers', 'the comment markers `|~`, `|~|`, `|~~`', 'Longer markers are tried first', 'Inside a block comment the line markers are bare tokens', 'a-parse-error-names-no-marker-of-a-comment-among-its-continuations',
+    '|~ doc-close marker ~~| mentioned here ~|', 'holds a |~| line marker mention here', 'plain-close marker', 'line-doc marker',
+    'The block-marker design picks', 'the marker has no addressable role there, so consuming only the marker bytes preserves', 'a block comment that holds a doc marker and code', 'closes a doc inside a quote of a doc at its own marker',
+    'paints a line-marker mention inside plain block', 'the longer marker read first', 'a marker inside it among it', 'a bracketed paste whose begin marker opens a chunk, read up to its end marker',
+    'A gathered paste lands with every bracket marker it holds taken out.', 'strips BPM markers from a single-chunk wrapped paste', 'inserts single-line paste content when markers arrive in separate data events', 'its bracket markers taken out',
+    'the placeholder markers', 'Forbidden framing / markers', 'leaves no marker of work undone', 'captures a parse error on the cell entry as both a host-error marker and a lifted ErrorValue',
+    'yields the marker (empty) for an empty Vec', '::Marker[]', 'the marker of a comment, `|~|`', 'the marker of the end of a paste',
+    'a marker of the rest of the line', 'the marker prints nothing of the comment', 'the paste marker counts as no character', 'the comment marker that reads a doc',
+    'each marker of a block comment', 'the read of the marker of a comment', 'a line that holds a marker of a comment', 'the size of a marker of a block comment',
+    'the paste ends with a marker', 'a doc gives way to a marker of a comment', 'the marker standing for the end of a paste', 'the paste marker is left out of the line the reader takes',
+    'a comment marker prints shorter than a doc', 'the end-of-paste marker gives way to the next chunk', 'the marker `|~|` of a comment reads to the end of the line, `:read` aside', 'a line comment, its marker `|~|`, runs to the end of the line; an elision prints no comment',
+    'the comment markers are left out of the highlighted span', 'the bracketed paste markers are left out of the budget of a line', 'its markers of a comment', 'A gathered paste lands with every bracket marker it holds left out.',
+    'reads a bracketed paste up to its end marker, a pause past the window inside it', 'reads a bracketed paste whose begin marker\'s escape is split', 'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment',
+  ]) expect(refused(text), text).toBe(true);
 });
 
 it('refuses in every sense where it is written a generic word the texts that state what holds write in no sense', () => {

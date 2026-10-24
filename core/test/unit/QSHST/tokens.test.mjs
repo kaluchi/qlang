@@ -182,7 +182,7 @@ describe('comments and docs', () => {
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
   });
 
-  it('paints a line-marker mention inside a block comment as one comment', async () => {
+  it('paints an opener of a line mentioned inside a block comment as one comment', async () => {
     const src = '|~ before |~| mention ~|';
     const tokens = tokenize(src, await rootVerbNames());
     expect(tokens[0]).toEqual({ start: 0, end: src.length, kind: 'comment' });
@@ -318,7 +318,7 @@ describe('the code a doc holds', () => {
     ]);
   });
 
-  it('closes a doc inside a quote of a doc at its own marker', async () => {
+  it('closes a doc inside a quote of a doc at its own closer', async () => {
     const tokens = await painted('|~~ ~(|~~ a ~~| | count) after ~~|');
     expect(tokens.at(-1)).toEqual([' after ~~|', 'doc']);
     expect(tokens).toContainEqual(['count', 'verb italic']);

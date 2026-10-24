@@ -66,7 +66,7 @@ describe('a block comment that nests', () => {
     });
   });
 
-  it('reads a block comment that holds a doc marker and code whole', () => {
+  it('reads a block comment that holds the opener of a doc and code whole', () => {
     const src = [
       '|~ The refusals the guards of this source raise. Each is a tag',
       '   a doc names, `:FooError |~~ ~~|`, so the axes read it,',
@@ -110,7 +110,7 @@ describe('a block comment that nests', () => {
     });
   });
 
-  describe('its content the text between its markers', () => {
+  describe('its content the text between its opener and its closer', () => {
     const cases = [
       '|~ a ~|',
       '|~ outer |~ inner ~| tail ~|',

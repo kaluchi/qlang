@@ -535,14 +535,14 @@ describe('a paste gathered from its chunks', () => {
     expect(capture.lines).toEqual(['one\ntwo']);
   });
 
-  it('takes every bracket marker out of a gathered paste', () => {
+  it('takes every start and end sequence out of a gathered paste', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_END, 'r\r\ns' + BRACKETED_PASTE_END, SUBMIT);
     expect(capture.lines).toEqual(['p\nqr\ns']);
   });
 
-  it('takes every begin marker out of a gathered paste', () => {
+  it('takes every start sequence out of a gathered paste', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'p\r\nq' + BRACKETED_PASTE_BEGIN + 'r', 's' + BRACKETED_PASTE_BEGIN + 't', SUBMIT);
@@ -639,7 +639,7 @@ describe('a paste gathered from its chunks', () => {
     expect(capture.lines).toEqual(['Xabc']);
   });
 
-  it('reads a bracketed paste whose begin marker is split after its escape', () => {
+  it('reads a bracketed paste whose start sequence is split after its escape', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, ESC, '[200~one\r\ntwo', BRACKETED_PASTE_END, SUBMIT);
@@ -653,7 +653,7 @@ describe('a paste gathered from its chunks', () => {
     expect(capture.lines).toEqual(['one\ntwx\nyo']);
   });
 
-  it('reads a bracketed paste up to its end marker, a pause past the window inside it', async () => {
+  it('reads a bracketed paste up to its end sequence, a pause past the window inside it', async () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, BRACKETED_PASTE_BEGIN + 'one\r\ntwo');
@@ -676,7 +676,7 @@ describe('a paste gathered from its chunks', () => {
     expect(capture.lines).toEqual(['{\n  "a": 1\n} | get /a']);
   });
 
-  it('strips BPM markers from a single-chunk wrapped paste', () => {
+  it('strips the start and the end sequence from a single-chunk wrapped paste', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, BRACKETED_PASTE_BEGIN + 'a\nb' + BRACKETED_PASTE_END, SUBMIT);
@@ -691,9 +691,9 @@ describe('a paste gathered from its chunks', () => {
   });
 });
 
-describe('a bracketed paste read to its end marker', () => {
+describe('a bracketed paste read to its end sequence', () => {
 
-  it('inserts single-line paste content when markers arrive in separate data events', () => {
+  it('inserts single-line paste content when its sequences arrive in separate data events', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream,

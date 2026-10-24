@@ -383,7 +383,7 @@ Pipeline
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
     { refuseCombinatorAfterCombinator(first, second); }
 
-// The `!"~"` lookahead keeps the comment markers `|~`, `|~|`, `|~~`,
+// The `!"~"` lookahead keeps the openers of a comment `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe; a pipe written before `!|` stands for it
 // at the head as between two steps [QSSYN#combinator].
 LeadingCombinator
@@ -468,7 +468,7 @@ PlainComment
 
 // ── Comment tokens ─────────────────────────────────────────────────
 //
-// Longer markers are tried first: `|~~|` before `|~|`, `|~~` before
+// Longer openers are tried first: `|~~|` before `|~|`, `|~~` before
 // `|~`. A block comment nests, and a quote span inside it is opaque,
 // so neither a nested closer nor one inside a quote ends it.
 
@@ -487,7 +487,7 @@ QuoteSpan
   = "~(" content:QuoteContent ")"
     { return '~(' + content + ')'; }
 
-// Inside a block comment the line markers are bare tokens, the block
+// Inside a block comment the openers of a line are bare tokens, the block
 // forms nest, and the closer of the other block form is content; a block
 // that failed at an offset fails there again at once [D404]. A nested block
 // is kept by the offset where it closes, where the caller asks, which names

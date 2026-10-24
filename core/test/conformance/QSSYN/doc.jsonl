@@ -44,7 +44,7 @@
 {"name":"a-span-between-backquotes-of-a-block-doc-holds-a-doc-nested-in-it","query":"|~~ a `f |~~ b ~~| c` then `~(count)` d ~~| | segments","expect":"[\"a `f |~~ b ~~| c` then `~(count)` d\"]"}
 {"name":"a-span-between-backquotes-closes-at-its-run-with-a-doc-left-open-in-it","query":"|~~ a `|~~` then `~(count)` d ~~| | segments","expect":"[\"a `|~~` then `~(count)` d\"]"}
 {"name":"a-closer-in-a-span-that-closes-none-of-its-docs-ends-the-doc","query":"[|~~ a `|~~ b ~~| ~~| |~~ c` d ~~|] | count","expect":"2"}
-{"decision":"D433","name":"the-opener-of-a-line-doc-in-a-span-opens-no-doc-there","query":"[|~~ a `|~~| ~~| |~~ b` c ~~|] | count","expect":"2"}
+{"name":"the-opener-of-a-line-doc-in-a-span-opens-no-doc-there","query":"[|~~ a `|~~| ~~| |~~ b` c ~~|] | count","expect":"2"}
 {"name":"a-span-opens-none-of-the-docs-a-span-before-it-left-open","query":"[|~~ a `|~~` then `~~| |~~ b` c ~~|] | count","expect":"2"}
 {"name":"a-doc-reads-its-prose-without-the-whitespace-at-its-edges","query":"get [~(|~~ A box. ~~| | content) ~(|~~A box.~~| | content) ~(|~~     A box.     ~~| | content)]","expect":"[\"A box.\" \"A box.\" \"A box.\"]"}
 {"name":"a-doc-reads-its-lines-without-the-indentation-they-share","query":"|~~ a\n      b\n        c ~~| | content","expect":"\"a\\nb\\n  c\""}

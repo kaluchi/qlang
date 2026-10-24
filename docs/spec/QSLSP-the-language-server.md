@@ -81,7 +81,7 @@ holds a prompt, `> `, is the queries after its prompts, each with the
 indented lines that follow it, and the answers below them. It selects a
 word by the regex of a name the core exports [QSNAM#letters], and its
 configuration of the language writes neither the regex of a word nor the
-markers of a fold, which the core and the server answer. Its grammar
+bounds of a fold, which the core and the server answer. Its grammar
 paints the spans of a source no other form reads inside alone, its
 comments, its docs, its strings and its regexes, each nesting where it
 nests, and the semantic tokens of the server paint the rest.

@@ -152,6 +152,7 @@ import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
 import { anchorsTheTreeLacks } from './anchors.mjs';
 import { namesSharedInTree } from './grep-ergonomics.mjs';
 import { parse } from 'acorn';
+import { commentRanges, linesOfComments } from './comments.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..');
@@ -699,12 +700,11 @@ function voiceOfFile(path) {
   return path.endsWith('.qlang') ? 'catalog' : 'code';
 }
 
-// The lines of a text, each split into what it holds and what it names;
-// a doc and a comment of the catalog run over lines, the longer opener
-// read first, `|~~|` before `|~|` and `|~~` before `|~`, and a string of
-// its code, `"…"` with its escapes as the grammar reads it, holds what it
-// writes, an opener inside it among it.
-function partsOfLines(voice, text) {
+// The lines of a text, each split into what it holds and what it names: the
+// prose of a document outside its fences, the line of a case whole, and the
+// comments of a file of code and the comments and the docs of a source of the
+// catalog as the parser of its language reads them [QSREQ#rigor].
+function partsOfLines(voice, text, path) {
   const lines = text.split(/\r?\n/);
   if (voice === 'case') return lines.map(line => ({ holds: line, names: '' }));
   if (voice === 'prose') {
@@ -714,36 +714,7 @@ function partsOfLines(voice, text) {
       return { holds: '', names: fenced || line.startsWith('```') ? '' : line };
     });
   }
-  if (voice === 'code') {
-    return lines.map(line => {
-      if (/^\s*(?:\/\/|\/\*|\*|#)/.test(line)) return { holds: '', names: line };
-      const comment = line.indexOf(' // ');
-      return comment === -1 ? { holds: line, names: '' } : { holds: line.slice(0, comment), names: line.slice(comment) };
-    });
-  }
-  let inside = null;
-  return lines.map(line => {
-    let holds = '';
-    let names = '';
-    for (let at = 0; at < line.length;) {
-      if (inside === '"') {
-        const step = line[at] === '\\' ? 2 : 1;
-        if (line[at] === '"') inside = null;
-        holds += line.slice(at, at + step);
-        at += step;
-      } else if (inside !== null) {
-        if (line.startsWith(inside, at)) { at += inside.length; inside = null; } else { names += line[at]; at += 1; }
-      } else if (line[at] === '"') {
-        inside = '"';
-        holds += '"';
-        at += 1;
-      } else if (line.startsWith('|~~|', at) || line.startsWith('|~|', at)) {
-        names += line.slice(at);
-        break;
-      } else if (line.startsWith('|~~', at)) { inside = '~~|'; at += 3; } else if (line.startsWith('|~', at)) { inside = '~|'; at += 2; } else { holds += line[at]; at += 1; }
-    }
-    return { holds, names };
-  });
+  return linesOfComments(path, text, { docs: voice === 'catalog' });
 }
 
 // The files of the checkout, tracked and untracked but not ignored, that a
@@ -778,7 +749,7 @@ function namesOfTakenOut() {
   const removed = new Set();
   const textsThen = treeAt(repoRoot, baseline).textsOf([...removedLines.keys()]);
   for (const [file, numbers] of removedLines) {
-    const parts = partsOfLines(voiceOfFile(file), textsThen.get(file));
+    const parts = partsOfLines(voiceOfFile(file), textsThen.get(file), file);
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the
@@ -792,7 +763,7 @@ function namesOfTakenOut() {
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
     let section = '';
-    partsOfLines(voiceOfFile(file), text).forEach(({ holds, names }, index) => {
+    partsOfLines(voiceOfFile(file), text, file).forEach(({ holds, names }, index) => {
       const line = lines[index];
       if (chapter !== undefined && line.startsWith('## ')) section = line.slice(3).trim();
       for (const token of tokensIn(holds)) held.add(token);
@@ -833,7 +804,7 @@ function retiredWordsWritten() {
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
     let section = '';
-    partsOfLines(voice, text).forEach(({ holds, names }, index) => {
+    partsOfLines(voice, text, file).forEach(({ holds, names }, index) => {
       if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
       if (chapter !== undefined && waitsForTheCloseout(waiting, chapter, section)) return;
       const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
@@ -923,9 +894,7 @@ function commentsThatAreNoMarks() {
   const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`])], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
   return files.flatMap(file => {
     const text = readText(join(repoRoot, file));
-    const comments = [];
-    parse(text, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true, onComment: comments });
-    return comments.filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value))
+    return commentRanges(file, text).filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value))
       .map(comment => ({ file, line: text.slice(0, comment.start).split('\n').length, snippet: comment.value.trim().slice(0, 100) }));
   });
 }

@@ -320,6 +320,25 @@ true
 
 ## catalog
 
+A verb enters the catalog when it expresses what was inexpressible over the
+values the language has, or shortens what every host would otherwise write;
+the verbs and the nouns of a domain belong to its host. The core carries the
+working set a shell would supply to every host, one with no shell around
+its queries among them, the site's playground: the JSON codec both ways,
+text as lines, `split` and `join`, trimming, replacing, case and search; a
+host keeps its domain, its streams and its renderings. One sequence serves
+them all, the vector, a string reading in pieces by `split`, `lines`,
+`count`, `take` and `drop`.
+
+A name a reader trained on other languages reaches for enters beside the
+verb that answers what the habit expects, as `distinct` stands beside
+`toSet`, `flatten` beside `flat`, `merge` beside `union` and `size` and
+`length` beside `count`: a function under the same label whose recipe calls
+the verb, its page naming the verb, so the fact keeps one spelling and the
+name is another road to it. Where the habit expects another answer or
+another call, the name is a verb of its own, as `concat` is, or none, since
+a name that answers otherwise than the habit expects fails in silence.
+
 The catalog is the reference of the language, and its pages follow one
 form. A page is prose about the name it is declared with: what the name
 is for and how it relates to the rest, its links and snippets standing
@@ -347,8 +366,9 @@ answer it states, in base forms. An example holds code under a bare name
 and runs it by `apply`, or hands it bare to a verb that takes code, and
 declares a verb under a label only where it shows a verb, under the
 label of the values it serves. A declaration is laid out its name on a
-line, each doc of its slot on the lines after it indented two, and its
-value after them.
+line, each doc of its slot on the lines after it indented two, a doc of one
+line on one line and a doc of several lines closing on a line of its own,
+and its value after them.
 
 ```qlang
 > [::number ::string ::vec ::map ::set] | map ~(binding | get /value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct

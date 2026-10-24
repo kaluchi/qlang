@@ -1,17 +1,17 @@
-// The rules it holds: [QSWRK#tooling].
+// The rules it holds: [QSGAT#gate].
 
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // A test that makes no assertion fails [QSWRK#tooling].
+    // A test that makes no assertion fails [QSGAT#gate].
     expect: { requireAssertions: true },
     include: ['test/**/*.test.mjs'],
     // The tests of integration under `test/integration/`, which run the
     // command line in processes of their own, run by
     // `vitest.integration.config.mjs`, the script `test:integration`.
     exclude: ['node_modules/**', 'test/integration/**'],
-    // A value of the language compares by the tie of the one order [QSWRK#tooling].
+    // A value of the language compares by the tie of the one order [QSGAT#gate].
     setupFiles: ['../core/test/helpers/language-equality.mjs'],
     // A test and a hook wait twenty seconds, the boot of the root under
     // the coverage among them, as in the core.
@@ -23,7 +23,7 @@ export default defineConfig({
       include: ['src/**/*.mjs'],
       // bin.mjs, the one file that touches the process, runs in a
       // process of its own, which the coverage of the tests does not
-      // reach; main.mjs holds every branch [QSWRK#tooling].
+      // reach; main.mjs holds every branch [QSGAT#gate].
       exclude: ['src/bin.mjs'],
       thresholds: {
         lines: 100,

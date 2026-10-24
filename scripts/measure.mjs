@@ -10,7 +10,7 @@
 // Usage:
 //   node scripts/measure.mjs [<fromRef> [<toRef>]]   from the baseline, or the root of a history that holds none, to HEAD where none is named
 //   node scripts/measure.mjs --steps <ref> <ref> [<ref>...]
-// The rules it holds: [QSWRK#diff].
+// The rules it holds: [QSMSR#diff].
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { baselineOf } from './reconciliation.mjs';
@@ -87,7 +87,7 @@ const SURFACE = [
 ];
 
 // The ratio of comment lines to code lines over the core, the command line
-// and the language server, which falls on every branch [QSWRK#code].
+// and the language server, which falls on every branch [QSLEX#code].
 const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
 function commentRatio(ref) {
   const lines = regex => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, regex, root), 0);
@@ -133,7 +133,7 @@ function printSteps(refs) {
 }
 
 // The first commit of the history, which a measure runs from where the
-// history holds no baseline [QSWRK#diff].
+// history holds no baseline [QSMSR#diff].
 const rootOfHistory = () => git(['rev-list', '--max-parents=0', 'HEAD']).trim().split('\n').at(-1).slice(0, 8);
 
 const args = process.argv.slice(2);

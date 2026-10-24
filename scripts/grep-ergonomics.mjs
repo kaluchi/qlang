@@ -1,4 +1,4 @@
-// The names a grep finds [QSLEX#grep], [D431]: no two modules of the project
+// The names a grep finds [QSLEX#grep]: no two modules of the project
 // bear one name, a test file, which the section it stands at names, and a
 // configuration of a tool aside by their form; and the false matches of a name
 // the core exports, the files that hold it as a word and neither define,

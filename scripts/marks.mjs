@@ -1,4 +1,4 @@
-// The marks of the rules the artifacts hold [QSWRK#marks]: a module and a
+// The marks of the rules the artifacts hold [QSREQ#marks]: a module and a
 // script name a section in a comment, `[QSNAM#scope]`, and a record while its
 // change is in transit, `[Dnn]`, a test file and a file of the cases name
 // their section by their path, a case the record in transit over its section
@@ -30,14 +30,14 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 // An artifact is a source, a script or a test file of a workspace, a
 // source of qlang by the comment at its head and a workflow; the files of a
 // set of the benchmark, the generator its author wrote and the data its
-// runs wrote, are none and carry no mark inside them [QSWRK#marks].
+// runs wrote, are none and carry no mark inside them [QSREQ#marks].
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\/.*\.ya?ml$/;
 const RUN_OUTPUT = /^scripts\/benchmark\/sets\//;
 const isArtifact = path => ARTIFACT.test(path) && !path.startsWith('docs/') && !RUN_OUTPUT.test(path);
 const CASES = /^core\/test\/conformance\/.*\.jsonl$/;
 
 // A mark names a record or a section of the specification, and one written
-// in backquotes is the example of a mark, which names nothing [QSWRK#marks].
+// in backquotes is the example of a mark, which names nothing [QSREQ#marks].
 const MARK = /\[((?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?)(?:,\s*(?:[DE]\d+|QS[A-Z]{3}(?:#[a-z][a-z-]*)?))*)\]/g;
 const EXAMPLE = /`[^`]*`/g;
 const SISTER_MARK = /\(qlang ((?:D\d+)(?:,\s*D?\d+)*)\)/g;
@@ -65,7 +65,7 @@ function marksOfCases(text) {
 // The data of the benchmark names the record it measures in the name of
 // its file, where no text of its own can bear a mark: a screen,
 // `screens/D395.txt`, and a run of a set, `sets/Y/runs/D395~cli~sonnet~1.json`
-// [QSWRK#marks], [QSWRK#measure].
+// [QSREQ#marks], [QSMSR#benchmark].
 const PATH_MARKS = [
   /^scripts\/benchmark\/screens\/(D\d+)(?:\.[0-9a-f]+)?\.txt$/,
   /^scripts\/benchmark\/sets\/[^/]+\/runs\/(D\d+)~[^/]+\.json$/
@@ -75,7 +75,7 @@ const PATH_MARKS = [
 // comment that holds it to the next comment that holds one, the marks of
 // one comment covering one block, and the first block reaches up to the
 // head of the file, so every line of an artifact lies under a mark; a case
-// covers its own line [QSWRK#marks].
+// covers its own line [QSREQ#marks].
 function commentLines(text, path) {
   const lines = text.split(/\r?\n/);
   const isComment = [];
@@ -124,7 +124,7 @@ export function marksOfTree(root = repoRoot) {
     }
     if (CASES.test(path)) {
       // A file of a chapter marks its section, and a case in it the record
-      // in transit over it [QSWRK#cases].
+      // in transit over it [QSREQ#cases].
       const section = /\/(QS[A-Z]{3})\/([^/]+)\.jsonl$/.exec(path);
       const found = [...(section === null ? [] : [{ name: `${section[1]}#${section[2]}`, line: 1 }]), ...marksOfCases(readText(join(root, path)))];
       marks.push(...found.map(mark => ({ path, ...mark })));
@@ -134,7 +134,7 @@ export function marksOfTree(root = repoRoot) {
     const home = homeOfPath(path);
     if (home !== null) {
       // A test file marks by its path the section its tests hold, its whole
-      // text, and a comment in it the rules it cites [QSWRK#marks].
+      // text, and a comment in it the rules it cites [QSREQ#marks].
       const name = home.section ?? home.record;
       const text = readText(join(root, path));
       const cited = marksOfText(text, MARK);
@@ -237,7 +237,7 @@ function describedIn(root) {
 // tree changed since it was read against them, each `{ name, commit,
 // files, hunks }`, the hunks of its blocks each `{ path, text }`, the
 // changes the working tree holds among them: what a move of
-// the baseline reads again against the new root [QSWRK#marks]. A record is read
+// the baseline reads again against the new root [QSREQ#marks]. A record is read
 // against the later of the commit that last described it and the
 // baseline, where the history holds one, whose move read again every record
 // its diff touched.
@@ -285,10 +285,10 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   if (command === '--touched') {
     const touched = touchedRecords(repoRoot);
     for (const { name, commit, files } of touched) console.log(`${name}\t${commit.slice(0, 8)}\t${files.length}\t${files.join(' ')}`);
-    console.log(`touched: ${touched.length} records in force whose scope the tree changed since they were read against it, the later of their description and the baseline [QSWRK#marks]`);
+    console.log(`touched: ${touched.length} records in force whose scope the tree changed since they were read against it, the later of their description and the baseline [QSREQ#marks]`);
   } else if (command === '--reread') {
     const record = touchedRecords(repoRoot).find(({ name }) => name === argument);
-    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the later of its description and the baseline [QSWRK#marks]`);
+    if (record === undefined) console.log(`${argument}: no block of it changed since it was read against the later of its description and the baseline [QSREQ#marks]`);
     else {
       console.log(`${record.name} read against ${record.commit.slice(0, 8)}; the hunks of its blocks since:`);
       for (const { path, text } of record.hunks) console.log(`\n--- ${path}\n${text}`);
@@ -311,7 +311,7 @@ if (import.meta.url === `file://${process.argv[1].replaceAll('\\', '/').replace(
   } else {
     const { orphans } = marksOfTree();
     for (const path of orphans) console.log(path);
-    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the rules it holds' : `${orphans.length} artifacts name no rule they hold [QSWRK#marks]`}`);
+    console.log(`marks: ${orphans.length === 0 ? 'every artifact names the rules it holds' : `${orphans.length} artifacts name no rule they hold [QSREQ#marks]`}`);
     process.exitCode = orphans.length === 0 ? 0 : 1;
   }
 }

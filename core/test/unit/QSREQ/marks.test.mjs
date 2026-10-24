@@ -142,7 +142,7 @@ const TREE = {
   'core/test/unit/QSNAM/scope.test.mjs': lines("import { reads, again } from '@kaluchi/qlang-core';", "import { readerOf } from '../../helpers/reader.mjs';", "it('reads', () => reads() + again() + readerOf());"),
   'core/test/unit/QSNAM/reach.test.mjs': lines("import * as core from '../../../src/index.mjs';", "import * as whole from '../../../src/whole.mjs';", "it('writes', async () => {", '  core.writes();', '  core.namedTool();',
     "  const { takenApart } = await import('../../../src/a.mjs');", "  return takenApart() + (await import('../../../src/a.mjs')).readAsAMember() + require('../../../src/lent.js').lend() + Object.keys(whole).length;", '});'),
-  'core/test/unit/QSWRK/cases.test.mjs': lines("import { third } from '../../../src/a.mjs';", "it('runs the cases', () => third());"),
+  'core/test/unit/QSREQ/cases.test.mjs': lines("import { third } from '../../../src/a.mjs';", "it('runs the cases', () => third());"),
   'core/test/conformance/QSNAM/verb.jsonl': lines('{"name":"a-case-of-the-third-rule","query":"7","expect":"7"}'),
   'docs/spec/QSNAM-names.md': lines('# QSNAM · Names', '', '## scope', '', 'The first rule.', '', '## reach', '', 'The second rule.', '', '## verb', '', 'The third rule.'),
   'docs/journal/D900.md': lines('# D900 · A record in transit', '', 'Overrides [QSNAM#scope]')
@@ -167,7 +167,7 @@ describe('the dossier of a section', () => {
       const blocks = blocksReached(tree, reachOfTree(tree));
       expect(astrayBlocks(blocks).map(({ path, from, names, holders }) => [path, from, [...names], [...holders]])).toEqual([['core/src/b.mjs', 1, ['QSNAM#scope'], ['QSNAM#reach']]]);
       expect(blocks.find(({ path, from }) => path === 'core/src/a.mjs' && from === 13).names).toEqual(new Set(['D900', 'QSNAM#scope']));
-      expect(blocks.find(({ path, from }) => path === 'core/src/a.mjs' && from === 16).holders).toEqual(new Set(['QSWRK#cases', 'QSNAM#verb']));
+      expect(blocks.find(({ path, from }) => path === 'core/src/a.mjs' && from === 16).holders).toEqual(new Set(['QSREQ#cases', 'QSNAM#verb']));
     });
   });
 

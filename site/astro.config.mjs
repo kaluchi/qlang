@@ -1,4 +1,4 @@
-// The rules it holds: [QSWRK#tooling].
+// The rules it holds: [QSGAT#hosts].
 
 import { defineConfig } from 'astro/config';
 

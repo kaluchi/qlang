@@ -14,7 +14,7 @@
 // @param {string}   code     — raw demo block text
 // @param {Set}      verbNames — Set of the names of the verbs of the language
 // @returns {string} HTML string
-// The rules it holds: [QSWRK#tooling].
+// The rules it holds: [QSGAT#hosts].
 
 import { highlightQlang } from './qlang-highlight.js';
 

@@ -2,7 +2,7 @@
 // the checkout kept while its size and its time of change stand, so a script
 // that writes a file reads what it wrote, and the tree of a commit, which never
 // changes, its paths listed by one call of git and its files read by one batch
-// [QSWRK#baseline].
+// [QSWRK#reconciliation].
 
 import { readFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';

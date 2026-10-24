@@ -1,6 +1,6 @@
 // Holds every «…» quote of the documents against the messages the
 // maintainer typed, in every transcript of the project, and says first
-// which directories it read and how many transcripts each gave [QSWRK#documents]. A
+// which directories it read and how many transcripts each gave [QSVOX#folders]. A
 // quote matches up to whitespace; an elision is written […] and each
 // fragment around it is looked up alone. Fenced blocks are code and are
 // skipped. Runs in a session on the maintainer's machine, since it reads
@@ -9,7 +9,7 @@
 // Usage: node scripts/sensors/check-quotes.mjs [document ...]
 // Without documents it reads the records of the journal, in force and
 // replaced.
-// The rules it holds: [QSWRK#journal], [QSWRK#documents].
+// The rules it holds: [QSWRK#journal], [QSVOX#folders].
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';

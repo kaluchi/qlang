@@ -1,4 +1,4 @@
-// The check of the chapters [QSWRK#review]: clean readers, each a clean Opus started
+// The check of the chapters [QSRVW#audits]: clean readers, each a clean Opus started
 // from a directory of its own as the outside audit is, with no CLAUDE.md, no
 // memory and no MCP server and no git command but the listing of the files,
 // read the specification whole and then check a group of its chapters
@@ -15,11 +15,11 @@
 // `scripts/design-check-prompt.txt`, the report landing as the next critique
 // of its record, `design-check/D329~3.md`, named after the record as the runs
 // of the benchmark are, and the session writing its reading beside it,
-// `D329~3~reading.md` [QSWRK#review]. A report stays while its record is in
+// `D329~3~reading.md` [QSRVW#audits]. A report stays while its record is in
 // force or a text in force cites it, and leaves with what holds it at the
-// move of the baseline [QSWRK#baseline]. The start of the readers, the
+// closeout [QSWRK#closeout]. The start of the readers, the
 // refusals, the numbers and the heads are the ones every run of the
-// research shares [QSWRK#review].
+// research shares [QSRVW#readers].
 //
 // A report opens with its head: what it is and the record that called for
 // it, the tree it read and the baseline that tree stood on, when it ran and
@@ -60,7 +60,7 @@ const promptPath = join(repoRoot, 'scripts', records === null ? 'spec-check-prom
 const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
 
 // The chapters in the order of the index: the chapters of the work a group
-// of their own [D430], and those of the language packed in that order into
+// of their own [QSRVW#audits], and those of the language packed in that order into
 // groups of about one weight, a chapter weighed with its cases by their
 // characters.
 const groupsAt = process.argv.indexOf('--groups');

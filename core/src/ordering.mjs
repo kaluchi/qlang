@@ -21,7 +21,7 @@ const QUOTE_KIND    = 11;
 const DOC_KIND      = 12;
 // [QSORD#order], [QSORD#desc]
 const TAGGED_KIND   = 13;
-// [QSWRK#cases]
+// [QSREQ#cases]
 const RAISED_KIND   = 14;
 
 // [QSHST#door]

@@ -1,4 +1,4 @@
-// [QSWRK#target]
+// [QSREQ#target]
 
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';

@@ -11,7 +11,7 @@ Report each finding under a heading of its kind and its place, `### <kind> · pa
 - archaism: a term of a model the language left, in a name, a doc, a comment, a title or the name of a case, read against the pages of the catalog, `qlang '… | doc' < /dev/null` and `manifest`;
 - shim: newer code reaching older code through a conversion, a wrapper, a second table, a special case, a flag or an export kept for an older form; one fact computed in two places is among them;
 - subordination: a part that depends on what should depend on it, the core holding a need of a tool or a host, a function under the wrong noun, or a concept told by a later one;
-- pentimento and drift: as the section `## documents` of docs/spec/QSWRK-the-work.md defines them.
+- pentimento and drift: as the section `## pentimento` of docs/spec/QSVOX-the-texts-and-their-voices.md defines them.
 
 The ways of looking that find the most:
 - a name that reads oddly against the first pages;

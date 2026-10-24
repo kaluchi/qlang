@@ -1,4 +1,4 @@
-// [QSWRK#catalog], [QSPRN#json]
+// [QSSLF#catalog], [QSPRN#json]
 
 import { TAG_HEADER_SYMBOL, makePath, refuseForeign } from '../types.mjs';
 import { declareRefusal, refusingTheSubject } from '../errors.mjs';

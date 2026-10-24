@@ -1,4 +1,4 @@
-// [QSWRK#tooling]
+// [QSGAT#gate]
 
 import { expect } from 'vitest';
 import { compareValues } from '../../src/ordering.mjs';

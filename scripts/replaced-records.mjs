@@ -1,7 +1,7 @@
 // The records replaced whole leave the root of the records for
 // `docs/journal/replaced/`, once, and every link of a document to a
 // record is written again from the document's place to the record's
-// [QSWRK#journal], each naming the commit it left at [QSWRK#baseline]. Run where a record
+// [QSWRK#journal], each naming the commit it left at. Run where a record
 // gains its line `Replaced by` or `Merged into`; a record moved once is
 // never moved again.
 //
@@ -23,7 +23,7 @@ mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
 // A record leaving names, under its title, the commit its text was last
 // true of, `Left at`, and each path of the tree it names in backticks
 // reads as `git show` at that commit, so nothing it names leads into
-// today's tree [QSWRK#baseline].
+// today's tree [QSWRK#journal].
 const head = git('rev-parse', '--short=8', 'HEAD').trim();
 const TREE_PATH = /`((?:core|cli|lsp|vscode|site|scripts|docs|\.claude|\.github)\/[A-Za-z0-9_./-]+)`/g;
 const atHead = path => {

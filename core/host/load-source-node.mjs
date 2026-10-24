@@ -1,4 +1,4 @@
-// [QSHST#source], [QSWRK#tooling]
+// [QSHST#source], [QSGAT#workspaces]
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';

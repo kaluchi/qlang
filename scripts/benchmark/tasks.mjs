@@ -1,4 +1,4 @@
-// The tasks whose references run in the gate as `check:benchmark` [QSWRK#measure]:
+// The tasks whose references run in the gate as `check:benchmark` [QSMSR#benchmark]:
 // each a question over a file of data in `data/`, or over the language
 // alone, the answer, as JSON the query over the data writes by `| json`
 // or as a qlang literal, and the reference, the shortest query the tree

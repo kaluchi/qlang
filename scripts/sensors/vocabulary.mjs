@@ -1,5 +1,5 @@
 // The measures of the vocabulary of the project, read in its own texts, the
-// texts that state what holds [QSWRK#documents]: the selectivity of a term, the share
+// texts that state what holds [QSLEX#term]: the selectivity of a term, the share
 // of its matches that stand in the files naming its anchor; the consistency
 // of a pair of terms that work together, the share of the files writing the
 // first that write the second; and the rivals of a concept, the matches of
@@ -8,7 +8,7 @@
 // that write it, the `node_modules` of the checkout. With `--exports`, the
 // false matches of each name `core/src` exports, the files that hold it as a
 // word and neither define, import nor re-export it, the most false first
-// [QSLEX#grep], [D431].
+// [QSLEX#grep].
 //
 // Usage: node scripts/sensors/vocabulary.mjs <term>[=<anchor>]... [--pair <a>:<b>]... [--rivals <anchor>=<word>,<word>...]... [--corpus]
 //        node scripts/sensors/vocabulary.mjs --exports [count]

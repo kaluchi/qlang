@@ -2,9 +2,9 @@
 // and how far it stands from master, what the tree leaves uncommitted,
 // the reconciliation of the tree with its baseline, the targets open and the
 // records being decided, the reach of the records in transit
-// [QSWRK#documents], the artifacts that name no rule they hold and the
-// records whose scope changed since the baseline read them [QSWRK#marks],
-// the stashes, the branches and the worktrees a merge leaves [D429], and the
+// [QSVOX#voices], the artifacts that name no rule they hold and the
+// records whose scope changed since the baseline read them [QSREQ#marks],
+// the stashes, the branches and the worktrees a merge leaves [QSWRK#closeout], and the
 // sister project's branch against its remote.
 //
 // Usage: node scripts/desk.mjs
@@ -41,7 +41,7 @@ lines.push(reconciled.baseline === undefined ? '  no baseline'
   : `  baseline ${reconciled.baseline} · ${reconciled.since.length} records since, ${span}`);
 if (reconciled.violations.length === 0) lines.push('  the reconciliation holds');
 else {
-  lines.push(`  the reconciliation breaks ${reconciled.violations.length} times [D429]:`);
+  lines.push(`  the reconciliation breaks ${reconciled.violations.length} times [QSWRK#reconciliation]:`);
   for (const { where, problem } of reconciled.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
 
@@ -54,7 +54,7 @@ if (decided !== undefined) lines.push(`  ${decided}`);
 // The reach of the records in transit, the tension of the work: a section a
 // record overrides, a case it claims and a line of code that cites it speak
 // in both voices until the closeout parts the record, so the merge that
-// lands the branch reaches none [QSWRK#documents].
+// lands the branch reaches none [QSVOX#voices].
 const transit = recordsInTransit(root);
 const conformance = join(root, 'core', 'test', 'conformance');
 // A line of a case that does not read as JSON claims nothing here; the
@@ -74,7 +74,7 @@ const citing = citingCodeOf(root)
   .map(file => new Set(citationsIn(readText(join(root, file))).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
   .reduce((sum, count) => sum + count, 0);
 lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
-  : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the closeout parts them [QSWRK#documents]`);
+  : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the closeout parts them [QSVOX#voices]`);
 
 const { orphans } = marksOfTree(root);
 if (orphans.length > 0) lines.push(`  orphans ${orphans.length}, artifacts that name no rule they hold: node scripts/marks.mjs`);
@@ -84,7 +84,7 @@ lines.push(touched.length === 0 ? '  no record touched since the baseline read i
 
 const stashes = linesOf(git(root, 'stash', 'list')).length;
 if (stashes > 0) lines.push(`  stashes ${stashes}`);
-// What a merge leaves behind it, which the closeout clears [D429]: the
+// What a merge leaves behind it, which the closeout clears [QSWRK#closeout]: the
 // branches beside master and this one, and the worktrees.
 const branches = linesOf(git(root, 'branch', '--format=%(refname:short)')).filter(name => name !== 'master' && name !== branch);
 if (branches.length > 0) lines.push(`  branches besides master and this one: ${branches.join(' ')}`);

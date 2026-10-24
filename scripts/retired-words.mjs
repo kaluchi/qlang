@@ -2,7 +2,7 @@
 // retired, each a regex of one sense, or of a generic word the texts that
 // state what holds write in no sense, with the term written in its place
 // and the record that retired it: a text that states what holds writes
-// none of them [QSWRK#documents], and a record that retires a term
+// none of them [QSLEX#term], and a record that retires a term
 // of the language adds it here in the commit that retires it.
 
 export const RETIRED_WORDS = [
@@ -100,4 +100,8 @@ export const RETIRED_WORDS = [
   { regex: /\b[a-z]\w*Drift\b|\berror-tag-catalog-drift\b|\bdrift[\s-]+tests?\b/, written: 'a check named for what it finds, and the guard of the pages of the refusals, `cli/test/QSERR/site.test.mjs`, drift naming a kind of finding alone', by: 'D378' },
   { regex: /\bbenchmark\/(?:sets\/\w+\/)?inputs\b|\bsets\/\w+\/inputs\b|(?<![\w/:])inputs\/|\binputsDir\b|\btask\.input\b|\binput[\s-]+files?\b/i, written: 'the data a task of the benchmark reads, `task.data`, in the folder `data/` of its set', by: 'D378' },
   { regex: /\.descriptor\b|\bdescriptor[\s-]+(?:of[\s-]+(?:the[\s-]+)?facts|fields?|inspection)\b|\b(?:in|on)[\s-]+(?:the|its)[\s-]+descriptor\b|\b(?:tag[\s-]+and|same)[\s-]+descriptor\b/i, written: 'the facts of an error, `facts`, a descriptor naming the `::builtin{}` of a primitive alone', by: 'D378' },
+  { regex: /\b(?:a|the|its|each|every|next|one|this|that)[\s-]+shifts?\b/i, written: 'a stint, one branch from the clean desk the last closeout left to the next', by: 'D429' },
+  { regex: /\bmov(?:e|es|ed|ing)[\s-]+(?:of[\s-]+)?the[\s-]+baselines?\b|\bbaselines?[\s-]+mov(?:e|es|ed|ing)\b/i, written: 'the closeout of a stint, its records dissolved, its chapters written and its branch landed', by: 'D429' },
+  { regex: /\bwalk(?:s|ed)?[\s-]+(?:of[\s-]+)?(?:the|a)[\s-]+baselines?\b|\bbaseline[\s-]+walk\b|\bwalkOfBaseline\b/i, written: 'the reconciliation of the tree with its baseline, `scripts/reconciliation.mjs`', by: 'D429' },
+  { regex: /\bcreateSession\b/, written: 'the notebook of a host, `createNotebook`', by: 'D431' },
 ];

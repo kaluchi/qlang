@@ -1,4 +1,4 @@
-# The rules it holds: [QSWRK#tooling].
+# The rules it holds: [QSGAT#gate].
 name: CI
 
 on:
@@ -112,7 +112,7 @@ jobs:
   # The build of the site, the `astro build` the Pages workflow runs on a
   # push to master, the one job that bundles the core by Vite's SSR,
   # `package.json#sideEffects` and `astro.config.mjs#vite.environments` among
-  # what it reads [QSWRK#tooling].
+  # what it reads [QSGAT#gate].
   site-build:
     name: Astro site build
     runs-on: ubuntu-latest

@@ -2,7 +2,7 @@
 // The length of a sentence in the texts that state what holds: the prose of
 // the chapters outside their fenced blocks and the docs of the catalog,
 // each sentence counted in words, how many run past a bound and the longest
-// [QSWRK#documents].
+// [QSVOX#chapter].
 //
 //   node scripts/sensors/sentence-lengths.mjs [bound]
 

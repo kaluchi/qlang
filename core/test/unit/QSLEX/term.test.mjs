@@ -210,7 +210,7 @@ it('leaves the words of another sense beside the boundary of a host: the code of
     'the primitives a host hands beside its source', '`{ uri, source, primitives }`', 'registerPrimitive', 'PRIMITIVE_REGISTRY.register',
     'the runtime, the evaluator with its table of primitives', '::builtin/PrimitiveNotHandedError', '::builtin/AddressRegisteredTwiceError',
     'process.env', 'the environment Node gives the process', '`env | keys` lists the names a query declared', 'state.scope', 'scopeSet', 'withScope',
-    'core/src/scope-keys.mjs', 'session.scope', 'scopeAfterCell', '`createSession({ scope?, sources? })`',
+    'core/src/scope-keys.mjs', 'notebook.scope', 'scopeAfterCell', '`createNotebook({ scope?, sources? })`',
     'a plain map', '`{:a 1}` a plain map beside `::Box{:a 1}`', 'a plain vector of what each answered', 'plain Enter (CR), which submits',
     'plain text world', 'evalOpts.uri', 'uri: cellUri', 'parse(source, { uri })', 'the host\'s field `uri`', 'fileUri', 'textDocument.uri',
     'toPlain', 'fromPlain', '::call/UnknownNameError', '::unknownTag', '::bind', '::binding',
@@ -499,5 +499,20 @@ it('leaves the defect, the drift that names a kind of finding, the input of a fu
     '::fn/inputs/SubjectNotFnError', 'the inputs a function declares, `inputs`', 'inputTokens', 'an input of none of its kinds', 'scripts/benchmark/data/users.json',
     'the descriptor of a recipe or a constructor a host answers by a primitive', 'a descriptor\'s `::builtin`', 'isBuiltinDescriptor',
     'the function whose recipe is its descriptor', 'runPrimitive(descriptor, served)', 'a-descriptor-comes-apart-by-payload-as-any-tagged-value'
+  ]) expect(refused(text), text).toBe(false);
+});
+
+it('refuses each retired word of the units of the work and of the notebook of a host where it is written', () => {
+  for (const text of [
+    'the shift of the work', 'a shift starts at a clean desk', 'each shift that wrote records', 'the next shift',
+    'the move of the baseline', 'moves the baseline', 'before the baseline moved', 'at the walk of the baseline', 'the walk of a baseline',
+    'scripts/baseline-walk.mjs', 'walkOfBaseline', '`createSession({ scope })`', 'createSession',
+  ]) expect(refused(text), text).toBe(true);
+});
+
+it('leaves the stint, the closeout and the reconciliation, the notebook, and the word shift in another sense', () => {
+  for (const text of [
+    'a stint, one branch', 'the closeout of a stint', 'the reconciliation of the tree with its baseline', 'scripts/reconciliation.mjs',
+    '`createNotebook({ scope })`', 'the public surface shifts', 'records.shift()', 'the baseline, the last merge on master',
   ]) expect(refused(text), text).toBe(false);
 });

@@ -1,11 +1,11 @@
 // Every message the maintainer typed, across the transcripts of the
 // project, one JSON line each: session, time, text, and on the standard
-// error the directories read and how many transcripts each gave [QSWRK#documents].
+// error the directories read and how many transcripts each gave [QSVOX#folders].
 // Runs in a session on the maintainer's machine, since it reads the
 // transcripts.
 //
 // Usage: node scripts/sensors/maintainer-messages.mjs
-// The rules it holds: [QSWRK#journal], [QSWRK#documents].
+// The rules it holds: [QSWRK#journal], [QSVOX#folders].
 
 import { recordsOf, transcriptCoverage, transcriptFiles, typedByMaintainer } from './transcripts.mjs';
 

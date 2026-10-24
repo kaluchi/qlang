@@ -27,7 +27,7 @@
 // Examples:
 //   node scripts/release.mjs 0.3.0
 //   node scripts/release.mjs 0.3.0-alpha
-// The rules it holds: [QSWRK#tooling].
+// The rules it holds: [QSGAT#release].
 
 import { execSync } from 'node:child_process';
 import {
@@ -61,7 +61,7 @@ function runCapture(cmd, opts = {}) {
 }
 
 function fail(message) {
-  console.error('\n✗ ' + message + ' [QSWRK#tooling]');
+  console.error('\n✗ ' + message + ' [QSGAT#release]');
   process.exit(1);
 }
 

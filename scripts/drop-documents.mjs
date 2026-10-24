@@ -1,6 +1,6 @@
 // Drops documents of the research that nothing in force holds, and gives the
 // members of each series past its two latest to the history, at the move of
-// the baseline, the one cleaning of the work of a branch [QSWRK#baseline]:
+// the baseline, the one cleaning of the work of a branch [QSWRK#closeout]:
 // each leaves the tree, which git keeps, a record replaced reading it at the
 // commit the record left at; and the lines of the fates a document holds
 // that say open are printed, for the author to carry into an open record of
@@ -26,16 +26,16 @@ const texts = textsInForce(repoRoot);
 const citersOf = unit => texts.filter(({ text }) => text.includes(unit)).map(({ path }) => path);
 for (const path of paths) {
   const holder = recordHolding(repoRoot, path);
-  if (holder !== null) { console.error(`${path} is held by ${holder}, the record in force it critiques [QSWRK#baseline]`); process.exit(2); }
+  if (holder !== null) { console.error(`${path} is held by ${holder}, the record in force it critiques [QSWRK#closeout]`); process.exit(2); }
   const citing = citersOf(unitOf(path));
-  if (citing.length > 0) { console.error(`${path} is cited by ${citing.join(', ')} [QSWRK#baseline]`); process.exit(2); }
+  if (citing.length > 0) { console.error(`${path} is cited by ${citing.join(', ')} [QSWRK#closeout]`); process.exit(2); }
   if (isReadme(path) || !existsSync(join(repoRoot, path))) { console.error(`${path} is no document to drop`); process.exit(2); }
 }
 // A member of a series is cited as the journal writes it, a run's folder or
 // a report's name from the root of the journal.
 for (const { member } of older) {
   const citing = citersOf(member.startsWith(`${JOURNAL}/`) ? member.slice(JOURNAL.length + 1) : member);
-  if (citing.length > 0) { console.error(`${member} is cited by ${citing.join(', ')} [QSWRK#baseline]`); process.exit(2); }
+  if (citing.length > 0) { console.error(`${member} is cited by ${citing.join(', ')} [QSWRK#closeout]`); process.exit(2); }
 }
 const commit = git('rev-parse', '--short=8', 'HEAD');
 

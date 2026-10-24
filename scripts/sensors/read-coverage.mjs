@@ -7,7 +7,7 @@
 //
 // Usage: node scripts/sensors/read-coverage.mjs [transcript]
 // Without a transcript it reads the running session's.
-// The rules it holds: [QSWRK#documents].
+// The rules it holds: [QSVOX#folders].
 
 import { recordsOf, sessionTranscript } from './transcripts.mjs';
 

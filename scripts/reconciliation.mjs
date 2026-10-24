@@ -1,12 +1,12 @@
-// The reconciliation of the tree with its baseline [D429], [QSWRK#journal],
+// The reconciliation of the tree with its baseline [QSWRK#reconciliation], [QSWRK#journal],
 // read once for the conventions, which fail on what it finds, and for the
 // screen of the work, which shows it. The baseline is the last commit that
 // landed a branch on master. A record of the language that the baseline's
 // tree holds is held by a case or closed by the line of its fate; the code,
 // the tests and the cases cite the records in force, the documents that hold
 // the work those in force or waiting on a target; a citation names a section
-// the specification holds or one a record in transit brings [D430]; and a
-// chapter is written at the closeout alone [QSWRK#spec].
+// the specification holds or one a record in transit brings [QSVOX#chapter]; and a
+// chapter is written at the closeout alone [QSVOX#chapter].
 
 import { existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -61,7 +61,7 @@ const byRecord = (left, right) => left[0].localeCompare(right[0]) || Number(left
 // each record and section once, a section where it first stands and the
 // records in their order in the places they hold, its separators kept where
 // they stand, a line break before any other: the run a merge or a
-// dissolution writes [QSWRK#journal], [D429].
+// dissolution writes [QSWRK#journal], [QSWRK#closeout].
 export function citedOnce(text, cited) {
   return text.replace(RUN_OF_CITATIONS, run => {
     if (!run.includes(`[${cited}]`)) return run;
@@ -99,7 +99,7 @@ const mainlineOf = repoRoot => ['master', 'origin/master'].find(ref => {
 });
 
 // baselineOf(repoRoot) → the baseline, the last commit that landed a branch
-// on master, a merge on its first parent line [D429], the root the last
+// on master, a merge on its first parent line [QSWRK#closeout], the root the last
 // closeout read every record again against.
 export function baselineOf(repoRoot) {
   const mainline = mainlineOf(repoRoot);
@@ -127,18 +127,18 @@ export function reconciliationOf(repoRoot) {
       reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `outlived the baseline ${baseline}: no case names it and no line gives its fate` });
     }
     // A record of a measurement leaves with the last of its runs and its
-    // screen, which its series gives to the history [QSWRK#measure].
+    // screen, which its series gives to the history [QSMSR#benchmark].
     if (atBaseline.has(name) && record.domain === 'benchmark' && !isHeld(record) && !replacedWhole(record)) {
       reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `outlived its runs and its screen, which its series gave to the history: its line \`Replaced by\` names the measurement after it` });
     }
   }
   // The merge that landed a branch holds no record in transit: the tension
-  // of the work relaxes at it [QSWRK#documents], [D429].
+  // of the work relaxes at it [QSVOX#voices], [QSWRK#reconciliation].
   const landedInTransit = recordsInTransitAt(repoRoot, baseline);
   for (const name of landedInTransit) reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit at the merge ${baseline} that landed it: dissolve it into its sections or set it aside before the merge` });
   // Master holds no record in transit between two closeouts: a record in
   // transit lives on the branch of its stint, with every text of the journal
-  // the stint writes [D429].
+  // the stint writes [QSWRK#reconciliation].
   const mainline = mainlineOf(repoRoot);
   for (const name of recordsInTransitAt(repoRoot, mainline).filter(name => !landedInTransit.includes(name))) {
     reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit on ${mainline} past the baseline ${baseline}: a record in transit lives on the branch of its stint, which master takes at its closeout` });
@@ -162,7 +162,7 @@ export function reconciliationOf(repoRoot) {
   }
   // A seed is a text that states what holds, read first by every session:
   // it cites the sections a record in transit overrides and never the
-  // record, which the journal keeps [QSWRK#documents].
+  // record, which the journal keeps [QSVOX#seed].
   const transit = recordsInTransit(repoRoot);
   for (const file of CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))) {
     for (const { name, line } of citationsIn(readText(join(repoRoot, file)))) {
@@ -176,7 +176,7 @@ export function reconciliationOf(repoRoot) {
   for (const { where, problem } of sectionsWrittenUnclaimed(repoRoot, baseline)) reconciled.violations.push({ where, problem });
   for (const path of uncitedDocuments(repoRoot)) {
     if (treeAt(repoRoot, baseline).holds(path)) {
-      reconciled.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [D429]' });
+      reconciled.violations.push({ where: path, problem: 'no record in force and no document of the work cites it: node scripts/drop-documents.mjs [QSWRK#closeout]' });
     }
   }
   return reconciled;
@@ -184,7 +184,7 @@ export function reconciliationOf(repoRoot) {
 
 // A citation of the specification, `[QSNAM#scope]` or `[QSNAM]`, names a
 // chapter under `docs/spec/` and a section it holds as a heading of its
-// own, `## scope` [QSWRK#spec].
+// own, `## scope` [QSVOX#chapter].
 const SECTION_CITATION = /\[(QS[A-Z]{3})(?:#([a-z][a-z-]*))?\]/g;
 // chaptersOfSpec(repoRoot) → the sections each chapter holds, by its name.
 export function chaptersOfSpec(repoRoot) {
@@ -194,14 +194,14 @@ export function chaptersOfSpec(repoRoot) {
 }
 
 // The chapters of the work, which speak of the journal and of the process,
-// the other chapters those of the language [D430].
+// the other chapters those of the language [QSVOX#chapter].
 export const WORK_CHAPTERS = ['QSWRK', 'QSVOX', 'QSLEX', 'QSREQ', 'QSMSR', 'QSRVW', 'QSGAT'];
 
 // citableOf(repoRoot) → whether a chapter, and a section of it where one is
 // named, stands in the specification or is brought by a record in transit:
 // a home is made in the stint whose work asks for it, a new chapter named
 // whole and a section of a chapter one by one in the `Overrides` of its
-// record, and the closeout writes it [D430].
+// record, and the closeout writes it [QSVOX#chapter].
 export function citableOf(repoRoot) {
   const chapters = chaptersOfSpec(repoRoot);
   const brought = [...recordsInTransit(repoRoot).values()].flat();
@@ -241,7 +241,7 @@ export function recordsInTransit(repoRoot) {
 }
 
 // The records in transit in the tree of a commit, those of its journal
-// that override a section [D429]; `git grep` ends with 1 where
+// that override a section [QSWRK#reconciliation]; `git grep` ends with 1 where
 // none does.
 export function recordsInTransitAt(repoRoot, commit) {
   try {
@@ -256,7 +256,7 @@ export function recordsInTransitAt(repoRoot, commit) {
 // The records dissolved since the baseline, each with the sections it
 // dissolved into and its file: those the baseline's tree held outside
 // `replaced/`, or lacked, whose dissolution into the sections the merge that
-// lands them seals [D429].
+// lands them seals [QSWRK#reconciliation].
 function dissolvedSince(repoRoot, baseline) {
   const replacedThen = new Set(treeAt(repoRoot, baseline).paths.filter(path => path.startsWith('docs/') && path.includes('/replaced/'))
     .map(path => RECORD_FILE.exec(path)?.[1]).filter(Boolean));
@@ -271,7 +271,7 @@ function dissolvedSince(repoRoot, baseline) {
 // case taken away is named in the record's text; a record dissolved into
 // the section since the baseline claims them until the merge that lands
 // it; and a case under a
-// chapter names no record but one in transit over its section [QSWRK#cases].
+// chapter names no record but one in transit over its section [QSREQ#cases].
 // A chapter the baseline did not hold is the work of the closeout that wrote
 // it, read from the next baseline on.
 export function casesTouchedUnclaimed(repoRoot, baseline) {
@@ -317,7 +317,7 @@ export function casesTouchedUnclaimed(repoRoot, baseline) {
 // section the baseline's chapter held otherwise, or lacked, is one a record
 // dissolved into since the baseline, a section or a chapter gone is named
 // by one, and the head of a chapter goes with any record dissolved into
-// it, so a chapter is written at the closeout, where its records dissolve [QSWRK#spec].
+// it, so a chapter is written at the closeout, where its records dissolve [QSVOX#chapter].
 export function sectionsWrittenUnclaimed(repoRoot, baseline) {
   const dissolved = [...dissolvedSince(repoRoot, baseline).values()];
   const into = (chapter, section) => dissolved.some(({ sections }) => sections.some(cited => cited === chapter || cited === `${chapter}#${section}` || (section === '' && cited.startsWith(`${chapter}#`))));
@@ -330,7 +330,7 @@ export function sectionsWrittenUnclaimed(repoRoot, baseline) {
   for (const path of new Set([...now.keys(), ...then.keys()])) {
     const chapter = path.split('/').pop().slice(0, 5);
     if (!now.has(path)) {
-      if (!naming(chapter)) unclaimed.push({ where: path, problem: `gone since the baseline ${baseline}, and no record dissolved since names it: a chapter is written at the closeout [QSWRK#spec]` });
+      if (!naming(chapter)) unclaimed.push({ where: path, problem: `gone since the baseline ${baseline}, and no record dissolved since names it: a chapter is written at the closeout [QSVOX#chapter]` });
       continue;
     }
     const sectionsNow = sectionsOfChapter(now.get(path));
@@ -339,7 +339,7 @@ export function sectionsWrittenUnclaimed(repoRoot, baseline) {
       if (sectionsNow.get(section) === sectionsThen.get(section)) continue;
       const cited = section === '' ? chapter : `${chapter}#${section}`;
       if (into(chapter, section) || (!sectionsNow.has(section) && naming(cited))) continue;
-      unclaimed.push({ where: section === '' ? path : `${path}#${section}`, problem: `written since the baseline ${baseline}, and no record dissolved into ${cited} since: a chapter is written at the closeout, where its records dissolve [QSWRK#spec]` });
+      unclaimed.push({ where: section === '' ? path : `${path}#${section}`, problem: `written since the baseline ${baseline}, and no record dissolved into ${cited} since: a chapter is written at the closeout, where its records dissolve [QSVOX#chapter]` });
     }
   }
   return unclaimed;
@@ -358,14 +358,14 @@ export function sectionsOfChapter(text) {
 }
 
 // The documents of the research that stay while something in force holds
-// them [D429]. A report a record called for is named after that
+// them [QSWRK#closeout]. A report a record called for is named after that
 // record and numbered in the order it ran, as the runs of the benchmark are,
 // a report `design-check/D329~2.md` or a run of several readers
 // `spec-check/D323~1/`, by the forms of the folders of the research, and
 // stands with the session's reading beside it, `D329~2~reading.md` or the
 // `reading.md` of the run, the two one unit held while that record is in
 // force or a text in force cites it. Any other document of the research is
-// a unit of its own, held by a citation of its path [QSWRK#review],
+// a unit of its own, held by a citation of its path [QSRVW#research],
 // and the README of a folder says what the folder holds and holds none of it.
 const RESEARCH_DOCUMENT = new RegExp(`^${RESEARCH}/[^/]+/.+`);
 const OF_A_RECORD = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/(D\\d+)~\\d+(?=(?:~reading)?\\.md$)|(?:${foldersOfForm('run')})/(D\\d+)~\\d+(?=/))`);
@@ -390,7 +390,7 @@ export function textsInForce(repoRoot) {
 // a record called for by its folder and the name it shares with its
 // reading, `design-check/D329~2` or `spec-check/D323~1`, and any other
 // document of the research by its path from the root of the journal, so a
-// citation of one document holds no other [D429].
+// citation of one document holds no other [QSWRK#closeout].
 export const unitOf = path => {
   const named = OF_A_RECORD.exec(path);
   return named === null ? path.slice(JOURNAL.length + 1) : named[0].split('/').slice(-2).join('/');
@@ -408,7 +408,7 @@ export function uncitedDocuments(repoRoot) {
 }
 
 // reportsWithoutReading(repoRoot) → each report of the research that stands
-// without the session's reading beside it [QSWRK#review]: a report a record
+// without the session's reading beside it [QSRVW#research]: a report a record
 // called for, `design-check/D329~2.md` without `D329~2~reading.md`, and a
 // run of several readers without its `reading.md`.
 export function reportsWithoutReading(repoRoot) {
@@ -430,7 +430,7 @@ export function reportsWithoutReading(repoRoot) {
 // a branch keeps every run of its own, and the closeout gives
 // the older to the history, so the merge that lands a branch holds the two
 // latest of each, while a report of the research leaves by what holds it,
-// above [D429].
+// above [QSWRK#closeout].
 const SERIES = [
   { name: 'the sets of the benchmark', memberOf: path => /^scripts\/benchmark\/sets\/[^/]+\//.exec(path)?.[0] },
   { name: 'the screens of the benchmark', memberOf: path => /^scripts\/benchmark\/screens\/[^/]+$/.exec(path)?.[0] },

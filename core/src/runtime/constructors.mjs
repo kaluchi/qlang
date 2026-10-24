@@ -1,4 +1,4 @@
-// [QSBLD#kind], [QSWRK#tooling]
+// [QSBLD#kind], [QSGAT#imports]
 
 import { registerPrimitive } from '../primitives.mjs';
 import {

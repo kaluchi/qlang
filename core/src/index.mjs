@@ -1,4 +1,4 @@
-// [QSWRK#tooling]
+// [QSGAT#workspaces]
 
 export { parseSource, SourceParseError } from './parse.mjs';
 export { langRuntime } from './runtime/lang-runtime.mjs';

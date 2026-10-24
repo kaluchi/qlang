@@ -1,4 +1,4 @@
-// [QSHST#source], [QSWRK#tooling]
+// [QSHST#source], [QSGAT#workspaces]
 
 import { makeKeyword } from './types.mjs';
 import { BuiltinSourceLoadError } from './source-load-error.mjs';

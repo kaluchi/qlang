@@ -172,7 +172,7 @@ The recipe of a function runs in the scope its call opens
 the recipe and a quote it runs are scopes of their own, where an input
 may be shadowed, and a verb the recipe calls runs in a scope its own
 call opens anew. What the recipe declares stays in it. A source is the
-scope of its text, and a cell of a session is a scope of its own, so a
+scope of its text, and a cell of a notebook is a scope of its own, so a
 cell after another declares again any name or node a reader declared,
 under the reader's noun or under one of the root.
 

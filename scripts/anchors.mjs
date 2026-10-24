@@ -1,4 +1,4 @@
-// The anchors of the texts that hold the work [QSWRK#probe], [D430]: a path
+// The anchors of the texts that hold the work [QSREQ#probe], [QSVOX#chapter]: a path
 // the seed, the aim or a chapter names in backquotes is a file of the tree or
 // of the sister project, and words they quote in “…” beside a path stand in
 // that file. A section of a chapter that a record in transit overrides waits

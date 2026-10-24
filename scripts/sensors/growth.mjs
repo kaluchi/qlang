@@ -2,7 +2,7 @@
 // The time the parser and the evaluator of the tree take over shapes of a
 // text whose size or depth n doubles, each run in a process of its own bounded
 // by a limit, the ratio of each step beside it, so a shape whose time more
-// than doubles where n doubles grows past linear [QSWRK#documents]; and the
+// than doubles where n doubles grows past linear [QSVOX#folders]; and the
 // most entries of the parser into one rule at one offset of a shape, which a
 // parse in linear time keeps the same where n doubles [D404].
 //

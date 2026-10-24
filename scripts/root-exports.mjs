@@ -2,7 +2,7 @@
 // names the root exports and each module it re-exports them from, read by the
 // parser of JavaScript the linter runs; the names a host reads from the
 // package by an import, a re-export, a namespace or a dynamic import; and the
-// names the page of the package writes [QSWRK#tooling].
+// names the page of the package writes [QSGAT#workspaces].
 
 import { parse } from 'espree';
 

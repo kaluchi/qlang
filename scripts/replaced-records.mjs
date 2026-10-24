@@ -10,13 +10,13 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
-import { JOURNAL, REPLACED } from './decision-records.mjs';
+import { FATES_OUT_OF_FORCE, JOURNAL, REPLACED, lineOfFate } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const recordsDir = join(repoRoot, JOURNAL);
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-const replacedWhole = text => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(text);
+const replacedWhole = text => lineOfFate(FATES_OUT_OF_FORCE, 'm').test(text);
 const moving = readdirSync(recordsDir)
   .filter(name => /^D\d+\.md$/.test(name) && replacedWhole(readFileSync(join(recordsDir, name), 'utf8')));
 mkdirSync(join(recordsDir, 'replaced'), { recursive: true });

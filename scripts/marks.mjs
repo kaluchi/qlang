@@ -156,7 +156,6 @@ export function marksOfTree(root = repoRoot) {
 // changed a line of it beyond a link, a statement of fate, a line of its
 // runs and a citation a merge or a move wrote anew, which leave its
 // decision as it was.
-const LINK_OR_FATE = new RegExp(`${LINK_DEFINITION.source}|^(Pruned of what|Replaced by|Merged into) `);
 const CITATIONS = /\[[DE]\d+(?:,\s*[DE]\d+)*\](?:(?:,\s*|,?\s+and\s+)\[[DE]\d+(?:,\s*[DE]\d+)*\])*/g;
 const beyondCitations = text => text.replace(CITATIONS, '').replace(/"decision":(\[[^\]]*\]|"[^"]*")/g, '"decision":D').replace(/\s+/g, ' ').trim();
 // The lines of a record's hunk that are its decision: a statement of fate,
@@ -168,7 +167,7 @@ function decisionOf(lines) {
   return beyondCitations(lines.filter(line => {
     if (FATE.test(line) || RUN_LINE.test(line)) inHistory = true;
     else if (FIELD_OR_LINK.test(line) || line.trim() === '') inHistory = false;
-    return !inHistory && !LINK_OR_FATE.test(line);
+    return !inHistory && !LINK_DEFINITION.test(line);
   }).join(' '));
 }
 

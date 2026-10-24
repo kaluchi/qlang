@@ -141,7 +141,7 @@ import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
-import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
+import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
 import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds.mjs';
@@ -503,7 +503,7 @@ function recordsWithoutDecider() {
 // [QSWRK#journal].
 
 function misplacedRecords() {
-  const replacedWhole = path => /^(Replaced by|Merged into|Dissolved into|Filed under the (?:principles|tooling) by) /m.test(readText(join(repoRoot, path)));
+  const replacedWhole = path => lineOfFate(FATES_OUT_OF_FORCE, 'm').test(readText(join(repoRoot, path)));
   const inFolder = folder => readdirSync(join(repoRoot, folder)).filter(file => /^[DE]\d+\.md$/.test(file)).map(file => `${folder}/${file}`);
   return [
     ...inFolder(JOURNAL).filter(replacedWhole).map(path => ({ path, problem: 'is replaced whole: move it by `node scripts/replaced-records.mjs`' })),
@@ -561,7 +561,7 @@ const namedIn = clause => [...clause.split(/,\s+(?:under which|whose|which)\b/)[
 function fatesOutOfStep() {
   const records = readDecisionRecords(repoRoot);
   const statementsOfRecord = new Map([...records].map(([name, record]) => [name, statementsOf(readText(record.path)).map(statement => statement.text)]));
-  const fatesOf = name => statementsOfRecord.get(name).filter(statement => /^(Replaced by|Merged into|Pruned of what|Filed under the (?:principles|tooling) by) /.test(statement));
+  const fatesOf = name => statementsOfRecord.get(name).filter(statement => lineOfFate(FATES_NAMING_A_RECORD).test(statement));
   const number = name => (name.startsWith('D') ? Number(name.slice(1)) : null);
   const violations = [];
   for (const name of records.keys()) {

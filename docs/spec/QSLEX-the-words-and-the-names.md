@@ -28,7 +28,7 @@ each with its own anchor; a concept under rival words keeps one; and a group
 of another image is chosen again as a whole. A record that retires a term
 writes it into the lexicon of retired terms, `scripts/retired-words.mjs`, in
 the commit that retires it: a regex of the one sense it had, the term
-written in its place and the record. The lexicon refuses a term by its
+to write instead and the record. The lexicon refuses a term by its
 word whole, where no sense of the word fits the texts that state what
 holds, or by the exact names its retired sense wrote; a word the texts
 still write in another sense is parted first, each live sense under a word

@@ -4,7 +4,7 @@
 {"name":"two-regexes-are-one-when-their-text-and-flags-are","query":"get [~(#\"a\" | eq #\"a\") ~(#\"a\" | eq #\"a\"i) ~(#\"a\" | eq \"a\")]","expect":"[true false false]"}
 {"name":"a-regex-the-engine-cannot-read-does-not-parse","query":"[\"#\\\"(\\\"\" \"#\\\"a\\\"x\" \"#\\\"a\\\"ii\"] | map ~(parse !| type)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
 {"name":"a-failure-to-parse-names-a-character-and-a-flag-of-a-regex-among-its-continuations","query":"get [~(\"#\\\"a\" | parse !| get /expected) ~(\"#\\\"a\\\")\" | parse !| get /expected)]","expect":"[[\"\\\\\\\"\" \"\\\\\" :\"character of a regex\" \"\\\"\"] [:\"flag of a regex\" :whitespace :end-of-source]]"}
-{"decision":"D437","name":"a-flag-written-inside-is-refused-naming-where-flags-stand","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
+{"name":"a-flag-written-inside-is-refused-naming-where-flags-stand","query":"\"#\\\"(?i)a\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}
 {"name":"a-backslash-before-a-plain-character-is-refused-with-the-reason","query":"\"#\\\"a\\\\-b\\\"\" | parse !| get /message | contains \"a backslash stands before\"","expect":"true"}
 {"name":"json-writes-a-regex-as-its-literal","query":"{:p #\"\\d+\"i} | json | parseJson | get /p","expect":"\"#\\\"\\\\d+\\\"i\""}
 {"name":"a-group-of-flags-is-refused-where-an-engine-reads-it","query":"\"#\\\"(?i:a)b\\\"\" | parse !| get /message | contains \"the flags follow the closing quote\"","expect":"true"}

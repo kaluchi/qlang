@@ -107,7 +107,7 @@ A vector `[1 2 3]`, a set `#[1 2]` and a map `{:a 1}`, each empty as
 `[]`, `#[]` and `{}`, hold literals at any depth. A set holds each
 element once in the one order [QSORD#order], a function of its literal
 alone, so `#[3 1 3]` is `#[1 3]`. A map's keys are keywords; of two
-entries of one key, the last value stands in the first entry's place.
+entries of one key, the last value stands where the first entry stood.
 
 ```qlang
 > #[3 1 3]
@@ -163,7 +163,7 @@ whose first character would continue the tag's name, take `#`:
 names after `::`, `::null`.
 
 The tag's kind lays the tag before the tags of the payload the literal
-writes and never in their place, or refuses it naming why the payload
+writes and never instead of them, or refuses it naming why the payload
 does not fit [QSBLD#value], so a label laid over a value already under it
 stands again, `::Lab::Lab[1]`, and `::desc` stacks its reversals
 [QSORD#desc]. A kind of the core reads its payload, a value of its own

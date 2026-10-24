@@ -112,7 +112,7 @@ table, a special case, a flag or an export kept for an older form; a
 subordination, a part that depends on what should depend on it; and a
 pentimento and a drift, the drift read both ways [QSVOX#pentimento]. Each
 gives the layer it keeps, what a tree built for the mission from a clean
-sheet would hold in its place, and a probe. The session's reading reads the
+sheet would hold instead, and a probe. The session's reading reads the
 layer a finding keeps by `git log -S`, searches the maintainer's words on
 its axis before a removal is weighed, and weighs the terms of a drift or an
 archaism by their measures [QSLEX#term]. A repair that moves no rule is

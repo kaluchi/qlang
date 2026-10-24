@@ -51,7 +51,7 @@ segment it could not read as `:segment`. A path reads beneath the tags
 over each value it meets, each refusal naming the value it met beneath
 them as `:actualValue`, but at the subject of the step that reads it,
 `get`, `query`, `has`, a write and a path run as code, whose kind alone
-it names [QSERR#site], the place of an input or a field holding the args
+it names [QSERR#site], the selector of an input or a field holding the args
 or the payload it met; and a vector, a set, a doc, a quote, a function
 and a kind read by index.
 
@@ -129,7 +129,7 @@ refuse the rest under their input
 that holds null is refused where it is read, and a key a modifier failed
 to compute answers its failure [QSQUO#modifier]. A boolean, null and a
 tag name are no key: a map files them under the keyword `toKeyword`
-answers [QSCND#convert], which reads that key, `get :true`. Every place
+answers [QSCND#convert], which reads that key, `get :true`. Every input
 that takes a key of a map reads a string so, and a number as the key of
 its text. The keys
 `minus` takes out of a map and `inter` keeps of it are the value of
@@ -191,13 +191,13 @@ a failure is the answer of the template, the parts after it unread
 template as `get` answers it, the names in each of its quotes beside the
 names of its step. Its first input names the parts: a vector of paths,
 each part named by the last key of its path, a map among them naming the
-parts it maps, or a map of names and the places they read. A place is a
+parts it maps, or a map of names and their selectors. A selector is a
 path or a quote, each read against the subject apart from the others, a
-path strictly and a quote as it is written, so no place sees the name of
+path strictly and a quote as it is written, so no selector sees the name of
 another and the maps of a vector are one map in any order; a shape or a
 literal is written in a quote, so a map of the data names no parts, a
-value in the place of a path or a quote refused as
-`::any/with/names/PlaceKindNotTakenError`, and an element that is neither
+value that is neither a path nor a quote refused as
+`::any/with/names/SelectorKindNotTakenError`, and an element that is neither
 path nor map as `::any/with/names/ElementKindNotTakenError`. A name is a
 name of one segment by the letters of a name [QSNAM#letters], a last key
 that is an index, a quoted key or a word of the literals refused as
@@ -228,7 +228,7 @@ subject no name names is read by its path.
 [::Box 5 ::Box#5]
 
 > get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~({:a 1 :b 2} | with it ~(a) !| type)]
-["Ann7" :t ::any/with/names/PlaceKindNotTakenError]
+["Ann7" :t ::any/with/names/SelectorKindNotTakenError]
 ```
 
 ## code
@@ -274,7 +274,7 @@ that writes no number a key, `/01` answering `[:"01"]`. `toPath` reads a
 path from a vector of keys alone, each a keyword, a string or a number,
 the segment of its text [QSPTH#key], an empty one refused as
 `::vec/toPath/SubjectEmptyError` and an element of another kind as
-`::vec/toPath/ElementKindNotTakenError` at its index, the place of the step's
+`::vec/toPath/ElementKindNotTakenError` at its index, the path of the step's
 frame naming it [QSERR#trace]; from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
 string of another form refused as `::string/toPath/NotPointerError`; and

@@ -33,15 +33,15 @@ holds a path or a quote at any depth, the template `get` reads, naming
 `get`. A question mark after a segment of a path is refused naming
 `query` and the path with its keys as written, and one inside a quoted
 key is a letter of the key. A quote whose code is a path alone, a
-leading `|` before it among it, is refused, the path given bare in its
-place, and a path followed by a word is refused naming the verb it
+leading `|` before it among it, is refused, the path given bare
+instead, and a path followed by a word is refused naming the verb it
 meant, `/ne ""` naming `ne`. The path of jq, a dot before a key, a
 quoted key or an index, is refused naming the path of its keys and its
 indices, which a step reads by `get`, `.users[0]` naming
 `get /users/0`, and a modifier writes bare, `sort .age` naming `/age`,
 and a dot alone before whitespace, a closing bracket, a pipe or the end
-of the source is refused naming `it`. A tag name in the place of a
-declaration's name is refused.
+of the source is refused naming `it`. A tag name where a
+declaration's name stands is refused.
 
 ```qlang
 > "{:a 1} | /a" | parse !| get /message

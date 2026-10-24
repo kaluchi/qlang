@@ -54,7 +54,7 @@ kinds its holder takes refused by the holder's role with those kinds as
 noun in the host's source, a refusal of the subject its call was served thrown
 through `refusingTheSubject`, which holds the kind of that value alone,
 and a refusal of a part of it through `refusingAPart` with the segments
-of the part's path, which the frame of the step places [QSERR#site],
+of the part's path, which the frame of the step names [QSERR#site],
 [QSERR#trace]; a failure of the host's own world is the error
 value `makeErrorValue` makes of a tag and a map of its facts, and a host
 lays a tag over its answer through the language, by the kind its verb
@@ -208,7 +208,7 @@ standard output and `err` as a line of standard error, each whole, and
 `tap` writes `[tap <label>]` and its subject on standard error halfway
 through a query as a host prints an answer, the print a kind declares
 among it, within the budget of every answer and past it as the refusal
-in its place, whose reads continue the query from the subject at the
+instead, whose reads continue the query from the subject at the
 `tap`; the query goes on with the subject as it came, and `err print`
 writes a look whole. What changes the world
 is a verb of its host, addressing the same names the queries read, and

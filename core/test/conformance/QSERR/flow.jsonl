@@ -32,7 +32,7 @@
 {"name":"a-predicate-error-passes-a-tag-stacked-on-a-set-as-it-is","query":":Box |~~ Box. ~~| | ::Box#[1 2 3] | filter ~(!{:x 1} | raise) !| get /x","expect":"1"}
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(x)) | 5 | m (!{:k 1} | raise) !| get /k","expect":"1"}
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)) | null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
-{"decision":"D437","name":"an-error-among-the-modifiers-answers-before-the-args-meet-the-arity","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| type","expect":"::error"}
+{"name":"an-error-among-the-modifiers-answers-before-the-args-meet-the-arity","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| type","expect":"::error"}
 {"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| type","expect":"::path/KeyNotInMapError"}
 {"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}
 {"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| type","expect":"::number/div/divisor/ZeroError"}

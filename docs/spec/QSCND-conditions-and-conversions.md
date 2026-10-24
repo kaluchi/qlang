@@ -117,7 +117,7 @@ true over an empty container. They reside on vectors and on maps, a set
 reaching those of vectors [QSDSP#residence], and over a map they read
 its values. A predicate that answers no boolean is refused as
 `::vec/every/ConditionKindNotTakenError` at its index, at its key over a
-map, the place of the step's frame naming it [QSERR#trace], and a
+map, the path of the step's frame naming it [QSERR#trace], and a
 predicate that answers a failure hands it on as the answer.
 
 ```qlang
@@ -130,7 +130,7 @@ true
 > get [~(#[true 1] | every ~(it) !| type) ~(42 | any ~(gt 0) !| get /addresses)]
 [::vec/every/ConditionKindNotTakenError #[::map/any ::vec/any]]
 
-> {:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | place)]
+> {:a true :b 1} | every ~(it) !| get [~(type) ~(trace | last | path)]
 [::map/every/ConditionKindNotTakenError /b]
 ```
 
@@ -138,11 +138,11 @@ true
 
 `coalesce` answers the first of its alternatives that answers a value,
 one at least, `::any/coalesce/alternatives/EmptyError` refusing none.
-Each alternative stands in its place: code, a quote or a path, runs
+Each alternative is read in its turn: code, a quote or a path, runs
 against the subject, and a value answers itself; the subject stands
 before the alternative where the call gives one and it is a value, so
 `query /timeout | coalesce 30` reads the timeout, else 30, while several
-values alone, which leave the place of the subject open, are refused,
+values alone, which read no subject, are refused,
 `::any/coalesce/alternatives/ValuesAloneError`, the subject first written
 by a quote, `coalesce ~(it) e 8080`, and a field by a path,
 `coalesce /t 30`. An alternative passes to the next where it answers
@@ -150,7 +150,7 @@ null, beneath the tags over it, or the refusal of a read `query` answers
 null for, a key a map
 lacks, an index past an end or null on the way [QSPTH#query], met on its
 own way and not in the code a verb ran on a part of it, whose frame
-names the place of the part [QSERR#trace]; code that answers any other
+names the path of the part [QSERR#trace]; code that answers any other
 failure answers the call with it, and so does a value computed at the
 call that is a failure [QSQUO#modifier]. Null answers where every
 alternative passes, and code after the alternative that answers stays
@@ -200,7 +200,7 @@ itself under the tag; `toVec` answers the elements of a set in its order;
 `toMap` reads pairs, the last pair of a key holding, an element that is no
 pair refused at its index and a key of another kind as
 `::vec/toMap/KeyKindNotTakenError` at the key of its pair, its `:expected`
-the kinds a key files under, the place of the step's frame naming each
+the kinds a key files under, the path of the step's frame naming each
 [QSERR#trace]. A number, a keyword, a string or
 a tag turned into a wider kind and back is itself, and so is a quote
 turned into text and read back by `parse`, while a boolean and null turn
@@ -231,7 +231,7 @@ puts a value under `::desc`, so `::Box#5 | desc` answers `::desc::Box#5`
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(type) ~(trace | last | place) /expected]
+> [[[1] 2]] | toMap !| get [~(type) ~(trace | last | path) /expected]
 [::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1] | toKeyword !| type

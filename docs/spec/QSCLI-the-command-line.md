@@ -36,8 +36,8 @@ reading the page of what refused; an error of the kind of errors, which
 no site refused, and one whose tag no declaration names are written
 without a page, and the REPL prints its cells without it. A query that
 does not parse answers `::quote/ParseError`, the line
-the reading stopped in, within an excerpt around the place its
-`:location` names, and a caret under that place drawn below the alert
+the reading stopped in, within an excerpt around the point its
+`:location` names, and a caret under that point drawn below the alert
 [QSERR#print], and a JSON text of standard input that `parseJson`
 refuses is the failure the query starts from, which its steps pass by
 [QSCLI#stdin].

@@ -25,15 +25,15 @@ reading of what each command takes: the verb of a command hands it its
 objects whole, as written, and a step of the chain written with objects
 its rules do not take is refused as `::fn/CommandNotTakenError` whether
 its verb wrote it or the literal, `:command` the command, `:index` the
-place of the object refused, from zero, or of the first left out, and
+index of the object refused, from zero, or of the first left out, and
 `:actualValue` that object: each name is written with its page, a doc,
 the name of an input of one segment, neither `answer` nor `subject`,
-which the chain lays itself, nor a word of a literal, a place is a path
+which the chain lays itself, nor a word of a literal, a selector is a path
 or a quote, and kinds are a tag or a set of one tag or more, or for an
 input a vector of one of them. A name is declared once,
 `::fn/NameDeclaredTwiceError` refusing a name declared again, an
 invariant named as a refusal the runtime raises by rule under its input
-or its answer among them, the refusal of the kinds and of a place left
+or its answer among them, the refusal of the kinds and of an input left
 out. A refusal and an invariant written with a path stand under the
 subject, an input taken before it or the answer, an invariant always
 written so, `::fn/NameUnderNoInputError` refusing one under none, and the
@@ -65,8 +65,8 @@ with it [QSHST#source]; a quote or a path takes empty args alone,
 `::any/apply/args/NotTakenError`; `fill` writes the args into the head
 of its code, refused under `::fn/call/…` as a call and, for a function
 whose recipe is no quote, a primitive's or none, as
-`::fn/fill/RecipeKindNotTakenError` at the place of the recipe; and `inputs` answers its inputs, each a
-map of its name, its page, its place and its kinds as written.
+`::fn/fill/RecipeKindNotTakenError` at the path of the recipe; and `inputs` answers its inputs, each a
+map of its name, its page, its selector and its kinds as written.
 
 ```qlang
 > ::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | print
@@ -97,7 +97,7 @@ map of its name, its page, its place and its kinds as written.
 ## input
 
 An input, `takes :by |~~ How much. ~~| /0 ::number`, has a name, a page,
-the place of the args it reads, and its kinds. The place is a path read
+its selector over the args, and its kinds. The selector is a path read
 strictly, `/0` the first arg, `/-1` counted from the end, `/0/by` the
 key `by` of the first; one of two forms read as written and never run,
 which no verb named `query` or `it` reaches, `~(query /0 3)`, the first
@@ -115,14 +115,14 @@ the value as the call gives it, its tags with it, and a primitive the
 value the walk reaches [QSDSP#answer]: a value of none is refused under
 the input as `…/by/KindNotTakenError`,
 the kinds it takes its `:expected`, a set of tags, and the value of an
-input of each element that is no vector as of no `::vec`; a place the
+input of each element that is no vector as of no `::vec`; an arg the
 call leaves out, read strictly by a path or by code, as
 `…/by/NotGivenError`, and a path that meets a value it cannot read with
 the path's refusal, `::path/SubjectHasNoPartsError`; args past the
-places the inputs read, where every input reads the arg at an index, by
-a path from it or by `query` of one, under the call as
-`…/ArgsBeyondInputsError`, while an input that reads `/-1`, the args
-whole or a place by any other code, `~(get /0)` among it, takes any
+arity of the function, the most args its inputs read where every input
+reads the arg at an index, by a path from it or by `query` of one, under
+the call as `…/ArgsBeyondInputsError` with the arity as `:arity`, while an
+input that reads `/-1`, the args whole or an arg by any other code, `~(get /0)` among it, takes any
 number; and a value that breaks an invariant under the invariant's name,
 the invariant holding of the value as the call gives it, its tags among
 it, which the refusal holds as `:actualValue`. Kinds written as a vector
@@ -186,7 +186,7 @@ each input by its name, and the names its steps declare, and what it
 reads as data is read as [QSNAM#owner] states. A value the reader bound
 to a bare name stands outside that scope, a bare step of that name
 refused as `::call/UnknownNameError`, so a value a recipe needs is an
-input. A place reads the args alone, and an invariant reads its input's
+input. A selector reads the args alone, and an invariant reads its input's
 value alone, as the call gives it. A verb calls itself by its name. A
 recipe written alone under a label takes no args, those given to it
 refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
@@ -208,7 +208,7 @@ A kind is a value of the kind `::kind`: the commands of its chain and
 its constructor. It is built from its noun by a chain, each command a
 verb of `::kind` whose subject is the kind so far: `wraps` names the
 payload, its page and its kinds, `reads` a field, its name, its page,
-its place in the payload and its kinds, `tells` a page of the kind on a
+its selector over the payload and its kinds, `tells` a page of the kind on a
 name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
 refusal, `carries` a fact, `proves` a law, a quote under `::law`, and
@@ -223,7 +223,7 @@ a reader's kind lays its tag by its commands alone, whatever its slot
 holds. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
 named as a refusal the runtime raises by rule under its field among
-them, the refusal of the kinds and of a place left out, and a step of
+them, the refusal of the kinds and of a field left out, and a step of
 the chain written with objects its rules do not take is refused as
 `::kind/CommandNotTakenError` on either road with the facts of
 `::fn/CommandNotTakenError`, the name of a field and of a page of one
@@ -259,13 +259,13 @@ the tags it is given under, which stay beneath the tag of the kind,
 refused under the kind where it holds none, `…/PayloadKindNotTakenError`
 with the kinds as `:expected`, and where its kinds are of each element
 an element of none as `…/ElementKindNotTakenError` with its `:index`. Each
-field reads its place of the payload, a place left out refused under the
-field as `…/NotGivenError` and a value of none of its kinds under the
+field reads the payload by its selector, a part it leaves out refused
+under the field as `…/NotGivenError` and a value of none of its kinds under the
 field. The invariants of the value hold of the payload beneath the tag,
 the data its page tells of, so a verb in one that keeps its subject's
 kind runs over no tag: each is refused under its name, the value under
 the tag that broke it its `:actualValue`, and an invariant that answers
-an error hands it on. `get` reads a field's place.
+an error hands it on. `get` reads a field by its selector.
 
 ```qlang
 > :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | type) ~(::Box{} !| type) ~(::Box{:w "x"} !| type) ~(::Box{:w 20} !| type)]
@@ -330,7 +330,7 @@ of what it holds is refused where it stands as
 `::bind/WrittenOutsideItsChainError`: an invariant, a quote under
 `::invariant` beneath whatever tags it stands, wherever it is declared,
 and under a verb its `answer`, its `subject` and an input, any quote or
-path a reader declares there, which a place of an input writes. A page,
+path a reader declares there, which the selector of an input writes. A page,
 a law and any other value a reader declares by name under a verb or a
 label lie there for `doc`, `manifest` and `runLaws`, a verb under a
 label among them, whatever its name.

@@ -1,6 +1,6 @@
 // The records replaced whole leave the root of the records for
 // `docs/journal/replaced/`, once, and every link of a document to a
-// record is written again from the document's place to the record's
+// record is written again from the document's folder to the record's
 // [QSWRK#journal], each naming the commit it left at. Run where a record
 // gains its line `Replaced by` or `Merged into`; a record moved once is
 // never moved again.
@@ -47,8 +47,8 @@ for (const name of moving) {
   git('mv', `${JOURNAL}/${name}`, `${REPLACED}/${name}`);
 }
 
-// A record under `replaced/` never moves again, so a link to the root's
-// place of it, from a move this run or a merge that wrote the link
+// A record under `replaced/` never moves again, so a link to where it
+// stood in the root, from a move this run or a merge that wrote the link
 // before it, points there.
 const movedTo = new Map(readdirSync(join(recordsDir, 'replaced')).filter(name => /^[DE]\d+\.md$/.test(name))
   .map(name => [`${JOURNAL}/${name}`, `${REPLACED}/${name}`]));
@@ -56,8 +56,8 @@ const movedFrom = new Map(moving.map(name => [`${REPLACED}/${name}`, `${JOURNAL}
 
 // A link of markdown, its definition `[Dnn]: Dnn.md` or its inline form
 // `(Dnn.md)`, whose target is a file of markdown, an anchor after it
-// among them, `(AIM.md#principles)`, written again once from the place
-// the document stood at.
+// among them, `(AIM.md#principles)`, written again once from the folder
+// the document stood in.
 const LINK = /(\]:[ \t]*|\]\()([^)\s#]+\.md)(#[^)\s]*)?(?=[)\s]|$)/gm;
 let relinked = 0;
 for (const path of git('ls-files', '*.md').split('\n').filter(Boolean)) {

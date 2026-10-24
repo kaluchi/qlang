@@ -54,7 +54,7 @@ describe('the parts the parser keeps', () => {
   });
 });
 
-describe('the part at a place', () => {
+describe('the part at a position', () => {
   it('returns null when the offset is outside any part', () => {
     expect(partAtOffset(rootOf('[1 2 3]'), 999)).toBeNull();
   });

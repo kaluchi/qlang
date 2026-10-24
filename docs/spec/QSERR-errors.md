@@ -115,7 +115,7 @@ subject, the path of that part; a step the failure skips joins the steps
 of the last frame. The verbs of `::frame` read its parts:
 `subject` the value its step met, `unfinished` the steps from the one
 that failed, `failed` that step and `skipped` the steps after it, and
-`place` the path of the part, or null; a path reads a frame as the vector
+`path` the path of the part, or null; a path reads a frame as the vector
 it is, `/0` its subject, so the part a step failed at is one read away.
 
 A step whose answer is a failure its subject was not passes a frame: a
@@ -124,7 +124,7 @@ it, the call of a verb, a group, a verb running a quote and the one word
 of a fold [QSCOL#reduce], while a modifier of a step, a raise written
 there among it, and a part of a literal, which is one step, answer within
 the frame of that step, and no step the reader did not write joins it.
-Where a step failed at a part of its subject is named once, by the place
+Where a step failed at a part of its subject is named once, by the path
 of its frame, the path of its index, in a set the index in the one order,
 or of its key in a map: the part the code of a verb failed on, `map`,
 `filter`, `every`, `any` and `reduce` and the keys of `sort`, `min`,
@@ -134,9 +134,9 @@ verdict of `filter`, `every` and `any` and the key of `groupBy` and
 `join`, `toPath`, `toMap` and a fold of the algebra, the key of a pair of
 `toMap` and a key a fold of `minus` or `inter` reads at its path within
 the value; the part a modifier of the step failed at; and the path
-`update` wrote. The place and whether a raise resumes its trace are facts
+`update` wrote. The path and whether a raise resumes its trace are facts
 of the call, which the step that receives the failure writes its frame
-by, a refusal carrying the place of its part on its throw, the step of
+by, a refusal carrying the path of its part on its throw, the step of
 `apply` by those of the function it runs and a declaration by those of
 the call of its body, so no value carries them from one call into
 another; a step that failed at no part names none. The
@@ -151,7 +151,7 @@ vector under a tag of another kind among them, is refused as
 `::trace/PayloadKindNotTakenError`, and an element that is no frame, a
 frame laid over a vector under a tag or over a set among them, as
 `::trace/ElementKindNotTakenError` at its index; a frame of a subject
-alone, or whose place is no path, is refused as
+alone, or whose third element is no path, is refused as
 `::frame/PayloadNotSubjectAndStepsError`. The kind holds a trace wherever
 one is laid: its literal and `tag ::trace`; `raise`, which lays the
 `:trace` of the map or the error at rest it raises through the kind's
@@ -218,7 +218,7 @@ true
 > !{:a 1 :trace 5} | trace !| type
 ::error/trace/answer/KindNotTakenError
 
-> get [~([1 "x"] | sum !| trace | first | place) ~([[1 "x"]] | map ~(sum) !| trace | map ~place) ~([1 "x"] | eq sum !| trace | map ~place) ~({:a 1} | filter ~(5) !| trace | last | place)]
+> get [~([1 "x"] | sum !| trace | first | path) ~([[1 "x"]] | map ~(sum) !| trace | map ~path) ~([1 "x"] | eq sum !| trace | map ~path) ~({:a 1} | filter ~(5) !| trace | last | path)]
 [/1 [/1 /0] [/1] /a]
 ```
 
@@ -263,11 +263,11 @@ false
 
 ## site
 
-Every place that refuses has a tag of its own, its address: the address
-of the place it guards and a last name that says in the language's
+Every site that refuses has a tag of its own, its address: the address
+of the site it guards and a last name that says in the language's
 words what was refused, `::number/add/SubjectNotNumberError` for the
 subject of `add` and `::number/add/addend/KindNotTakenError` for its
-input. The last name names the refusal alone, so two places may share
+input. The last name names the refusal alone, so two sites may share
 one, `::construct/LiteralComputesError` beside
 `::quote/LiteralComputesError`. A value of none of the kinds a holder
 takes is refused by the holder's role, `KindNotTakenError`,
@@ -286,19 +286,19 @@ only with its word, and an invariant names the roles of what it holds,
 refusal of an input's value lives under the input and that of the
 subject's under `subject`, whether an invariant or a primitive raises
 it, and what a run answers under the verb. A
-refusal is declared in the source of the place it guards, but for one the
+refusal is declared in the source of the site it guards, but for one the
 runtime raises by rule: the refusal of the kinds of an input, a field or
 a payload is a node the chain lays, with a page of its own where no
 `throws` gives one, and any other no `throws` declares reads the record
-of its place [QSSLF#axis]. The refusal of a primitive takes the address
+of its site [QSSLF#axis]. The refusal of a primitive takes the address
 of the verb that ran it, but for a pair a step relates or combines and
 cannot, which the call refuses as `::call/KindsMismatchedError`
 [QSDSP#answer], a refusal of the read of a path sits under
-`::path`, whichever verb reads it, a place of the args an input reads and
-the call leaves out refused under the input [QSBLD#input], and a refusal
+`::path`, whichever verb reads it, an arg an input reads and the call
+leaves out refused under the input [QSBLD#input], and a refusal
 of the language's own steps sits under the record or the kind that holds
 the rule, `::call`, `::bind`, `::construct`, `::fail`, `::group`,
-`::quote` and `::error`, and links the page of its place [QSQUO#step];
+`::quote` and `::error`, and links the page of its site [QSQUO#step];
 what no query reaches is a defect of the runtime declared at its site
 under `::builtin`, the descriptor of a primitive: the table of
 primitives, the declarations of refusals and their facts, the root, the
@@ -323,7 +323,7 @@ kind as `:actualType`, but a refusal of the subject its step was served,
 which holds the kind of that value alone, the first frame holding the
 subject, a host refusing its own so through `refusingTheSubject`
 [QSHST#source], and a refusal of a part of the subject holds no index and
-no key, the place of its frame naming the part [QSERR#trace]; an error a
+no key, the path of its frame naming the part [QSERR#trace]; an error a
 reader writes holds its facts as written,
 a `:trace` it writes where it stands and the trace its flight begins
 last. A fact is a value of the language: a name a step read, a key a path
@@ -338,12 +338,12 @@ a segment a path read as an index numbers.
 [::number/add/addend/KindNotTakenError #[::number] ::string]
 
 > 1 | add 1 2 !| entries | map ~first
-[:actualType :places :actualValue :trace]
+[:actualType :arity :actualValue :trace]
 
 > get [~("zz" | toRegex "zz" !| has /actualValue) ~(::W"x" | toNumber !| get [~(keys) /actualType])]
 [true [#[:actualType :trace] ::string]]
 
-> [1 "x"] | sum !| get [~(keys) ~(trace | first | place)]
+> [1 "x"] | sum !| get [~(keys) ~(trace | first | path)]
 [#[:actualType :actualValue :expected :trace] /1]
 
 > ::error | manifest | has ::error/actualType
@@ -367,15 +367,15 @@ resumes that trace; a query that does not parse flew no step and prints
 its facts alone. The answer of a host that is a failure prints as its
 alert under the line comment `|~| raised, and no !| caught it`, which a
 reading of the literal passes over, and so does the refusal a host
-prints in the place of an answer past its budget, which was no failure
+prints instead of an answer past its budget, which was no failure
 [QSPRN#budget]; the command line writes the content of the refusal's page
 below, and the REPL prints without it. An error at rest an answer gives
 prints as the value it is. A host that prints for a person's eye draws below the
 refusal of a text of one line that line within an excerpt of three
-hundred characters around the place its `:location` names, an ellipsis
-where the excerpt cuts it, and a caret under that place as far as the
+hundred characters around the point its `:location` names, an ellipsis
+where the excerpt cuts it, and a caret under that point as far as the
 excerpt reaches, whatever the length of the line; `:location` names the
-place in the whole text.
+span in the whole text.
 
 ```qlang
 > !{:a 1} | raise !| print | parse | open | raise !| keys
@@ -411,9 +411,9 @@ where it arose, and every other fact cut to an excerpt of three hundred
 characters, a string past the excerpt giving way whole with its `:head`,
 and the subject of each later frame giving way to an elision where the
 elision prints shorter, each subject measured on the one line its frame
-prints on, every frame keeping its steps and its place; each elision's
+prints on, every frame keeping its steps and its path; each elision's
 `:read` continues the query beneath `!|`, the record a word's code
-failed on standing in the subject of its frame at the place the frame
+failed on standing in the subject of its frame at the path the frame
 names, `!| get /trace/1/0/1`. An alert within the budget stands as it
 prints. Past it the failure keeps its tag and the names of its facts:
 its trace keeps its first frames within an excerpt of its own, three

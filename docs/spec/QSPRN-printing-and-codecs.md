@@ -1,7 +1,7 @@
-# QSPRN · Printing, codecs and places in text
+# QSPRN · Printing, codecs and spans of text
 
 How a value is written as text and read back, what a budget leaves out,
-and the place a reading of text stopped. The requirements of each
+and the span where a reading of text stopped. The requirements of each
 section are the cases of its file under `core/test/conformance/QSPRN/`.
 
 ## print
@@ -41,7 +41,7 @@ space, asks the printer for that form and lays no print on one line by a
 regex over its text. A kind answers `print` under
 its own label, and the print of a value finds the `print` of each part,
 a bare value among them, by the walk of that part as a verb of the root
-reads it [QSNAM#owner], an answer that is no string printed in its place:
+reads it [QSNAM#owner], an answer that is no string printed instead:
 a print a reader declares under a label of the root answers the reader's
 own calls alone, and a print a label declares serves its values and no
 tag name of it. A kind's own `print` gives the text it chooses, which
@@ -124,7 +124,7 @@ count above zero, another number refused as
 `::any/elide/budget/NotCountError` and a value of another kind as
 `::any/elide/budget/KindNotTakenError`, where it can, each part it leaves
 out giving way to an elision, a value of the kind `::elision`.
-The largest part gives way first, or in its place a part within it that
+The largest part gives way first, or instead a part within it that
 prints more than half of it, and a part gives way only where the least it
 gives way to prints shorter than it, so where no part's least is shorter
 the answer stands over the budget. Each part gives way by its kind, at
@@ -140,7 +140,7 @@ halves as its payload, its tag kept over what it keeps, and gives way
 whole with its tags. A string, a doc, a quote and a part a kind prints
 its own way give way whole, their elision holding under `:head` the first
 characters of their text or of that print, the top read back by the empty
-quote, `~()`; a frame keeps its steps and its place, its subject alone
+quote, `~()`; a frame keeps its steps and its path, its subject alone
 giving way, and an atom stands. An elision holds `:read`, the query that,
 continued from the value `elide` took, reads the part left out, and
 `:size`, the elements or the entries of a container its `:read` answers,
@@ -200,7 +200,7 @@ Every host but the REPL prints an answer within one budget,
 `count` counts a string, which is never smaller than the first screen,
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
 prints whole, and one past the budget prints as the failure
-`::qlang/AnswerBeyondBudgetError` in its place, whose facts are
+`::qlang/AnswerBeyondBudgetError` instead, whose facts are
 `:characters`, the characters of the print, `:budget`, `:actualType`,
 the kind of the answer, and `:actualValue`, its head, the answer cut to
 the excerpt of an alert [QSERR#alert], or given way whole where no cut
@@ -218,7 +218,7 @@ $ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep 
 
 ## span
 
-The place a reading of text stopped is a span: six integers under
+Where a reading of text stopped is a span: six integers under
 `::span`, the offset of its start and its line and column, then those of
 the point after its end, the parser counting the offset from zero and
 the line and the column from one, the offset and the column in the

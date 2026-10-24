@@ -213,9 +213,9 @@ function passedOver(value, read, printedOf, oneLine, rests) {
 // [QSERR#alert]
 function framesOf(trace, read, printedOf, rests) {
   return makeTrace(trace.map((frame, index) => {
-    const { subject, unfinished, place } = partsOfFrame(frame);
+    const { subject, unfinished, path } = partsOfFrame(frame);
     const subjectRead = readBelow(read, [index, SUBJECT_INDEX_OF_A_FRAME]);
-    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true, rests) : passedOver(subject, subjectRead, printedOf, true, rests), unfinished, place);
+    return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true, rests) : passedOver(subject, subjectRead, printedOf, true, rests), unfinished, path);
   }));
 }
 

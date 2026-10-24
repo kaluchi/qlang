@@ -26,14 +26,14 @@ const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name
 const isNameOfOneSegment = value => isKeyword(value) && readsAsName(value.name);
 const isInputName = value => isNameOfOneSegment(value) && value.name !== ANSWER_NAME && value.name !== SUBJECT_NAME;
 const isFieldName = value => isNameOfOneSegment(value) && value.name !== PAYLOAD_NAME;
-const isPlace = value => isPath(value) || isQuote(value);
+const isSelector = value => isPath(value) || isQuote(value);
 const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && value.every(isTag));
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
-  ['takes', { taken: [isInputName, isDoc, isPlace], optional: [isKindsOfEach] }],
+  ['takes', { taken: [isInputName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
   ['throws', { taken: [isNameOfChain, isDoc], optional: [] }],
   ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
@@ -43,7 +43,7 @@ const COMMANDS = new Map([
 
 const KIND_COMMANDS = new Map([
   ['wraps', { taken: [isDoc], optional: [isKindsOfEach] }],
-  ['reads', { taken: [isFieldName, isDoc, isPlace], optional: [isKindsOfEach] }],
+  ['reads', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
   ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
@@ -116,7 +116,7 @@ function readChainOfFn(quote) {
         names.named.add(notGivenAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        chain.inputs.push({ name: first, page: second, place: third, kinds, each, written, reading: readingOfPlace(third) });
+        chain.inputs.push({ name: first, page: second, selector: third, kinds, each, written, reading: readingOfSelector(third) });
         break;
       }
       case 'returns':
@@ -147,7 +147,7 @@ function readChainOfFn(quote) {
         chain.laws.push({ name: first.name, page: second, query: third });
     }
   }
-  chain.places = placesOfReadings(chain.inputs.map(input => input.reading));
+  chain.arity = arityOfReadings(chain.inputs.map(input => input.reading));
   return Object.freeze(chain);
 }
 
@@ -178,7 +178,7 @@ function readChainOfKind(quote) {
         names.named.add(notGivenAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        kind.fields.push({ name: first, page: second, place: third, kinds, each, written });
+        kind.fields.push({ name: first, page: second, selector: third, kinds, each, written });
         break;
       }
       case 'tells':
@@ -249,18 +249,18 @@ export function invariantsOf(chain, name) {
 }
 
 // [QSBLD#input]
-function placesOfReadings(readings) {
-  let places = 0;
+function arityOfReadings(readings) {
+  let arity = 0;
   for (const { index, ofSeveralSteps } of readings) {
     if (!Number.isInteger(index) || ofSeveralSteps) return null;
-    places = Math.max(places, index + 1);
+    arity = Math.max(arity, index + 1);
   }
-  return places;
+  return arity;
 }
 
 const READINGS = new WeakMap();
 
-function readingOfPlace(value) {
+function readingOfSelector(value) {
   let reading = READINGS.get(value);
   if (reading === undefined) {
     const path = isPath(value) ? value : isPathAlone(value) ? value[0] : null;
@@ -268,11 +268,11 @@ function readingOfPlace(value) {
     const head = steps[0];
     const call = isCallStep(head) ? { name: head.get('name').name, modifiers: head.get('modifiers') ?? [] } : null;
     const index = indexReadBy(head, call);
-    const onePlace = steps.length === 1 && Number.isInteger(index) && (path === null ? call.modifiers.length <= 2 : path.segments.length === 1);
+    const oneArg = steps.length === 1 && Number.isInteger(index) && (path === null ? call.modifiers.length <= 2 : path.segments.length === 1);
     reading = {
-      path, place: value, index, onePlace,
+      path, selector: value, index, oneArg,
       ofSeveralSteps: steps.length > 1,
-      strict: onePlace && path !== null,
+      strict: oneArg && path !== null,
       fallback: call?.modifiers.length === 2 ? call.modifiers[1] : null,
       readsArgs: steps.length === 1 && call?.name === 'it' && call.modifiers.length === 0
     };

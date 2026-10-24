@@ -75,11 +75,11 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await answerIn(notebook, '1 | thrown | add 1 !| 0')).toBe(0);
   });
 
-  it('a fold names the place of its element on its frame where its one word, a host\'s verb, answers or throws such a failure', async () => {
+  it('a fold names the path of its element on its frame where its one word, a host\'s verb, answers or throws such a failure', async () => {
     const answered = await hostHanding([makeFrame(0, parseSource('pre'))]);
-    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~place | eq [null null /0]')).toBe(true);
+    expect(await answerIn(answered, '[1 2] | reduce 0 ~(answeredToTheFold) !| trace | map ~path | eq [null null /0]')).toBe(true);
     const thrown = await hostHanding('at Foo.bar(Foo.java:1)');
-    expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | place)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
+    expect(await answerIn(thrown, '[1 2] | reduce 0 ~(thrownToTheFold) !| get [~(type) ~(trace | last | path)] | eq [::trace/PayloadKindNotTakenError /0]')).toBe(true);
   });
 
   it('a constructor of a host\'s kind that refuses the error at rest a catch holds with such a :trace answers the refusal of the kind', async () => {
@@ -87,11 +87,11 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
     expect(await answerIn(notebook, '::Built{:a 1} | raise !| type !| type')).toEqual(makeTag('trace/PayloadKindNotTakenError'));
   });
 
-  it('carries no place of a fold\'s call of a host\'s word into another call that answers the same failure, the place a fact of its call', async () => {
+  it('carries no path of a fold\'s call of a host\'s word into another call that answers the same failure, the path a fact of its call', async () => {
     const kept = makeErrorValue(makeTag('error'), new Map());
     const notebook = await createNotebook({ sources: [{ uri: 'host', source: ':any/again |~~ Answers the one failure its host keeps. ~~| (::fn | takes :x |~~ x ~~| ~(it) | impl ::builtin{})', primitives: { 'any/again': () => kept } }] });
-    expect(await answerIn(notebook, '[1 2] | reduce 0 ~(again) !| trace | last | place')).toEqual(makePath(['0']));
-    expect(await answerIn(notebook, '5 | again 1 !| trace | last | place')).toBe(null);
+    expect(await answerIn(notebook, '[1 2] | reduce 0 ~(again) !| trace | last | path')).toEqual(makePath(['0']));
+    expect(await answerIn(notebook, '5 | again 1 !| trace | last | path')).toBe(null);
   });
 
   it('a refusal the constructor of a host\'s kind throws inside a literal with an empty trace holds none, the literal\'s frame its first', async () => {

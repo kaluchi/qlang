@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseDocument, completionsAtOffset, signatureHelpAtOffset } from '../../src/features.mjs';
 import { evalQuery, isTag } from '@kaluchi/qlang-core';
 
-describe('the names offered at a place', () => {
+describe('the names offered at a position', () => {
   it('includes the names of the verbs of the language', async () => {
     const { root } = parseDocument('', 'test.qlang');
     const items = await completionsAtOffset(root, 0);

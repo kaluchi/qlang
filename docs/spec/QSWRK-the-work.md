@@ -31,7 +31,7 @@ Nothing in a stint switches the branch of the checkout, merges or writes to
 master but its closeout. A push waits for the maintainer's invitation, and
 a commit is never amended.
 
-A stint starts from the full set of places where its cause shows, found by
+A stint starts from every file and line where its cause shows, found by
 search, and its first commits delete. The work of the model on the texts is
 validation, the contradictions, the conflicts, the holes and the problems
 of what is written, and a session that finds none reads further and runs
@@ -109,7 +109,7 @@ A question the tree and the records do not answer is an open record: its
 first line names the question, and it holds `Domain.`, `Question.`, the
 question with the reading of the tree and its probes, `Source.` and
 `Alternatives.`, each with its cost. Once it is decided it is written again
-in place, its `Question.` and `Alternatives.` giving way to `Decided by.`
+where it stands, its `Question.` and `Alternatives.` giving way to `Decided by.`
 and `Decision.`, the alternatives not taken becoming what it set aside. A
 question of its own is a record of its own. `node scripts/requirements.mjs`
 shows where every record stands, the records being decided, the open ones
@@ -119,7 +119,7 @@ A record changes the rules of the specification while it is in transit: a
 line that opens with `Overrides` names the sections it overrides,
 `Overrides [QSPTH#has], [QSBLD#value]`, its later lines opening with `[QS`,
 and within them it rules over the specification and the code, a case, a
-test or a line of code its work touches citing the record in place of the
+test or a line of code its work touches citing the record instead of the
 section. A record in force is true as a whole and speaks the words of the
 tree. A newer record that takes a part of an older one writes that part out
 of it in the same commit, found by a search of the records' words, the older
@@ -183,7 +183,7 @@ At the closeout:
   whose answer the work changed is written with the answer the record
   dissolving into it holds [QSREQ#probe].
 - The structure is cut anew where the work of the stint asks, each home it
-  brought written in its place.
+  brought written where it belongs.
 - The branch lands on master and is deleted, with the worktrees of its
   cuts, and the merge holds no record in transit.
 

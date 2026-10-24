@@ -23,7 +23,7 @@ lsp/src/server.mjs:2
 
 ## reach
 
-The names the server reaches at a place, which its hover, its
+The names the server reaches at a position, which its hover, its
 goto-definition and its completion read, are the declarations visible
 there across the groups and the quotes around it [QSNAM#scope], and inside
 the body of a verb, of the declarations outside it, the verbs, the nodes

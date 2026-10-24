@@ -53,5 +53,5 @@ registerStateReader('fn/fill', async (fn, args, state) => {
   return makeQuote([...chainOfFn(fn).inputs.map(({ name, page }, at) => declarationStep(name.name, [page], values[at])), ...recipe]);
 });
 
-registerPrimitive('fn/inputs', fn => Object.freeze(chainOfFn(fn).inputs.map(({ name, page, place, written }) =>
-  new Map([['name', name], ['page', page], ['place', place], ['kinds', written]]))));
+registerPrimitive('fn/inputs', fn => Object.freeze(chainOfFn(fn).inputs.map(({ name, page, selector, written }) =>
+  new Map([['name', name], ['page', page], ['selector', selector], ['kinds', written]]))));

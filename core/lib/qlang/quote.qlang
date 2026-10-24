@@ -94,8 +94,8 @@
         |~~ The line of the text where the reading stopped. ~~|
         ::string
     | carries :ParseError/message
-        |~~ What the grammar says of the place, a bracket left open among
-            it.
+        |~~ What the grammar says where the reading stopped, a bracket
+            left open among it.
         ~~|
         ::string
     | carries :ParseError/expected

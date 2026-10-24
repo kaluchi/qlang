@@ -22,7 +22,7 @@ of the elements under the tags its strings share, `sum`, the numbers the
 elements hold beneath their tags added under the tags they share, an
 element that is no number refused at its index, at its key over a map,
 and then one under other tags than an element before it as the pair, the
-place of the step's frame naming it [QSERR#trace], a total past the
+path of the step's frame naming it [QSERR#trace], a total past the
 doubles refused as no number, and `min` and `max`, which relate the
 elements as `gt` relates two values [QSORD#sort]; `first`, `last`,
 `min`, `max` and `avg` answer null over an empty container. `avg`
@@ -51,7 +51,7 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
 
-> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | place)])]
+> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | path)])]
 [[[1 2] [1 2]] [::set/zip/ElementKindNotTakenError /0]]
 
 > get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
@@ -60,13 +60,13 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [1 2 3 4] | avg
 2.5
 
-> [1 "x"] | avg !| get [~(type) ~(trace | last | place)]
+> [1 "x"] | avg !| get [~(type) ~(trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]
 
 > [::W#2 1] | sum
 ::W#3
 
-> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(type) ~(trace | last | place)])]
+> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(type) ~(trace | last | path)])]
 [::T"a,b" [1 2] [::call/KindsMismatchedError /1]]
 
 > [] | min
@@ -106,7 +106,7 @@ a vector it answers a plain vector of what each answered; over a map a
 plain map of the answers under the same keys; over a set, which the
 `map` of vectors serves, the vector of the images in the one order, its
 answer naming `::any` [QSDSP#answer]. The first error its code answers
-is the answer of the call. A value computed at the call in place of the
+is the answer of the call. A value computed at the call instead of the
 code is refused with the repair.
 
 ```qlang
@@ -125,14 +125,14 @@ code is refused with the repair.
 `filter` keeps the elements its predicate, a quote or a path, answers
 `true` for, in their order, a map keeping its keys and a set its kind;
 a predicate that answers no boolean is refused at its index, a map's at
-its key, and one that answers a failure hands it on, the place of the
+its key, and one that answers a failure hands it on, the path of the
 step's frame naming the element on either road [QSERR#trace].
 
 ```qlang
 > {:c 3 :a 1 :b 2} | filter ~(gt 1)
 {:c 3 :b 2}
 
-> get [~([1 2] | filter ~(add 1) !| trace | last | place) ~([1 "x"] | filter ~(add 1 | gt 1) !| trace | last | place)]
+> get [~([1 2] | filter ~(add 1) !| trace | last | path) ~([1 "x"] | filter ~(add 1 | gt 1) !| trace | last | path)]
 [/0 /1]
 ```
 
@@ -152,7 +152,7 @@ Any other code runs on the pair of the value so far and the element, a
 path, a call with modifiers, a quote of more steps and a name that
 reaches no verb among it. A failure the one word answers passes a frame
 at its step, the value so far the subject that frame holds, and the step
-of `reduce` names the place of the element [QSERR#trace].
+of `reduce` names the path of the element [QSERR#trace].
 
 ```qlang
 > [1 2 3] | reduce 0 ~(add)
@@ -167,7 +167,7 @@ of `reduce` names the place of the element [QSERR#trace].
 > :add 5 | [1 2 3] | reduce 0 ~(add) !| type
 ::call/ValueMeetsVerbError
 
-> [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(place)])
+> [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
 [["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]
 ```
 
@@ -193,7 +193,7 @@ verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
 `::call/KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
 map in `union` among them, each refusal of a fold at the value or the key
-it met, the place of its frame naming its path, a key's within its value
+it met, the path of its frame naming its path, a key's within its value
 [QSERR#trace]; and a fold of nothing is refused as
 `SubjectEmptyError`, a refusal of its subject [QSERR#site]. A set of sets
 is folded by the verb of vectors,
@@ -237,7 +237,7 @@ tags they share; one part answers itself.
 > [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
 [{:b 2} {:a 1} ::call/KindsMismatchedError]
 
-> get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | place)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | place)])]
+> get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | path)])]
 [[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
 
 > get [~([::A#[1] #[2]] | union) ~({:a 1} | union ::B{:b 2}) ~({:a 1 :b 2} | minus ::T[:a])]
@@ -257,14 +257,14 @@ a key an element is its own. A key of another kind is refused at its
 element under the verb as `…/KeyKindNotTakenError`, its `:expected` the
 kinds a key files under, and two values that file under one keyword meet,
 the second refused as `KeyTakenError`, its `:key` the keyword and
-`:taken` the value that filed under it first, the place of the step's
+`:taken` the value that filed under it first, the path of the step's
 frame naming the element in each [QSERR#trace].
 
 ```qlang
 > [1 2 3] | groupBy ~(gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(type) ~(trace | last | place) /expected]
+> [{:k [1]}] | indexBy /k !| get [~(type) ~(trace | last | path) /expected]
 [::vec/indexBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| type

@@ -6,10 +6,10 @@ First bootstrap yourself from what holds: read whole docs/spec/README.md and eve
 
 Then read your group, in its order: {{group}}. A unit marked "by grep" is read by searching it, its names of cases, the titles of its tests and their comments; read every other unit whole.
 
-Report each finding under a heading of its kind and its place, `### <kind> · path:line`, the kind one of six:
+Report each finding under a heading of its kind and its file and line, `### <kind> · path:line`, the kind one of six:
 - vestige: a name, a fact, a refusal, a path, a module or a mechanism that a tree built for the mission from a clean sheet would not hold, or would hold simpler or fewer; an identifier that says what its value is not, and two mechanisms where one serves, are among them;
 - archaism: a term of a model the language left, in a name, a doc, a comment, a title or the name of a case, read against the pages of the catalog, `qlang '… | doc' < /dev/null` and `manifest`;
-- shim: newer code reaching older code through a conversion, a wrapper, a second table, a special case, a flag or an export kept for an older form; one fact computed in two places is among them;
+- shim: newer code reaching older code through a conversion, a wrapper, a second table, a special case, a flag or an export kept for an older form; one fact computed twice is among them;
 - subordination: a part that depends on what should depend on it, the core holding a need of a tool or a host, a function under the wrong noun, or a concept told by a later one;
 - pentimento and drift: as the section `## pentimento` of docs/spec/QSVOX-the-texts-and-their-voices.md defines them.
 
@@ -27,6 +27,6 @@ The ways of looking that find the most:
 What the open records of the journal hold is known; their first lines are below. Where a finding touches one, open docs/journal/Dnn.md and report the finding only where it adds to that record, naming it:
 {{open}}
 
-Under its heading a finding quotes its text short, says in one sentence the earlier layer the text keeps and in another what a clean sheet would hold in its place, and gives its evidence as a probe: a fenced block whose lines that begin with `> ` are queries and whose other lines are what qlang printed, exactly, or whose lines that begin with `$ ` are commands of the shell and the lines they printed, a blank line between two probes. End every query with `< /dev/null`, and write `MSYS_NO_PATHCONV=1 qlang '…' < /dev/null` where the query begins with `/`; list files by `git -C {{repo}} ls-files --error-unmatch`.
+Under its heading a finding quotes its text short, says in one sentence the earlier layer the text keeps and in another what a clean sheet would hold instead, and gives its evidence as a probe: a fenced block whose lines that begin with `> ` are queries and whose other lines are what qlang printed, exactly, or whose lines that begin with `$ ` are commands of the shell and the lines they printed, a blank line between two probes. End every query with `< /dev/null`, and write `MSYS_NO_PATHCONV=1 qlang '…' < /dev/null` where the query begins with `/`; list files by `git -C {{repo}} ls-files --error-unmatch`.
 
 Report at most 25 findings, the weightiest first. Answer in Russian, keeping quotes, names, paths and probes as they are: findings only, with no preamble, no praise and no summary of what holds.

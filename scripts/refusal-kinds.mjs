@@ -1,7 +1,7 @@
 // The kinds the name of a refusal carries [QSERR#site]: the words of its last name
 // after `Not` name a kind only as the label its subject resides on,
 // `number/add/SubjectNotNumberError`, or as the kind a conversion of its
-// address reads, `string/toNumber/TextNotNumberError`, a place after `NotIn`,
+// address reads, `string/toNumber/TextNotNumberError`, a container after `NotIn`,
 // `path/KeyNotInMapError`, naming none, so the name moves only with the word,
 // and any other refusal of a kind is named by the role of its holder.
 
@@ -16,8 +16,8 @@ const wordsOf = lastName => lastName.replace(/Error$/, '').split(/(?=[A-Z])/);
 const kindOf = (word, nouns) => [word.toLowerCase(), word.toLowerCase().replace(/s$/, '')].find(noun => nouns.has(noun)) ?? null;
 
 // kindsNamedOffTheirAddress(refusals, nouns) → each refusal, `{ address, … }`,
-// whose last name names after `Not` a noun of `nouns` in neither place its
-// address names it, those nouns its `kinds`.
+// whose last name names after `Not` a noun of `nouns` in neither role its
+// address names it in, those nouns its `kinds`.
 export function kindsNamedOffTheirAddress(refusals, nouns) {
   return refusals.flatMap(refusal => {
     const segments = refusal.address.split('/');

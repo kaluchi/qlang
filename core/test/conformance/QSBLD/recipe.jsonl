@@ -1,7 +1,7 @@
 {"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
 {"name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| type","expect":"::call/UnknownNameError"}
 {"name":"a-verb-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact","expect":"120"}
-{"name":"a-value-the-sentence-names-reaches-no-place-of-a-verb","query":":it 5 | 3 | is ::number","expect":"true"}
+{"name":"a-value-the-sentence-names-reaches-no-selector-of-a-verb","query":":it 5 | 3 | is ::number","expect":"true"}
 {"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-verb","query":":floor 3 | [1 2 3] | drop 1","expect":"[2 3]"}
 {"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| type","expect":"::call/UnknownNameError"}
 {"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":":by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3","expect":"8"}

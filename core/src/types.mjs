@@ -350,15 +350,15 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-export function makeFrame(subject, unfinished, place = null) {
-  return makeTagged(FRAME_TAG, place === null ? [subject, unfinished] : [subject, unfinished, place]);
+export function makeFrame(subject, unfinished, path = null) {
+  return makeTagged(FRAME_TAG, path === null ? [subject, unfinished] : [subject, unfinished, path]);
 }
 
 export const SUBJECT_INDEX_OF_A_FRAME = 0;
 
 export function partsOfFrame(frame) {
-  const [subject, unfinished, place = null] = frame;
-  return { subject, unfinished, place };
+  const [subject, unfinished, path = null] = frame;
+  return { subject, unfinished, path };
 }
 
 export function holdsTheLayoutOfAFrame(parts) {

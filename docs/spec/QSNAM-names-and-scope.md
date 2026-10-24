@@ -127,7 +127,7 @@ so a verb calls itself by its name. The evaluator counts the nesting of
 the code it runs beneath a step, its evaluation depth: the recipe of a
 verb, a modifier the call computes, `apply`, the constructor of a tag
 and each run of the code a verb runs go one deeper than the step that
-called them, an input read from its place and a modifier of an atom
+called them, an input read by its selector and a modifier of an atom
 meeting the limit one deeper than the call, while the steps of one
 pipeline and a group run at its depth and a quote written as a modifier,
 handed to the call as it is, goes no deeper; a run past the limit, a

@@ -1,6 +1,6 @@
 // The manifest surface the release rewrite and the convention check
-// share: which workspaces the repo declares, every place one of them
-// names a sibling, and the range that naming must carry.
+// share: which workspaces the repo declares, every manifest field where one
+// of them names a sibling, and the range that naming must carry.
 //
 // A workspace names a sibling by the range `^x.y.z` of the sibling's own
 // version in every map of its dependencies, the range a consumer of the
@@ -39,7 +39,7 @@ export function readWorkspaces(repoRoot) {
   });
 }
 
-// Yields one entry per place a workspace names a sibling workspace,
+// Yields one entry per field where a workspace names a sibling workspace,
 // carrying the range it declares and the version that sibling is at.
 export function* siblingDeclarations(workspaces) {
   const versionByName = new Map(

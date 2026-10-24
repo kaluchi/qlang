@@ -159,7 +159,7 @@
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
             `:leftType` and `:rightType` name their kinds where their tags
-            part, and where a fold met the second, the place of its frame
+            part, and where a fold met the second, the path of its frame
             names that part. A comparison, `min` and `max` relate two
             values of one kind as `type` answers it, so a value under a tag
             beside a bare one is a pair of two kinds, related beneath the
@@ -211,8 +211,8 @@
             the call, `apply`, a constructor of a tag and each run of the
             code a verb runs, `map ~(…)`, run one deeper in the evaluation
             depth than the step that called them, while the steps of one
-            pipeline and a group run at its depth; an input read from its
-            place and a modifier of an atom meet the limit one deeper than
+            pipeline and a group run at its depth; an input read by its
+            selector and a modifier of an atom meet the limit one deeper than
             the call, a quote written as a modifier goes no deeper, and a
             step past the limit refuses, `:depth`
             the evaluation depth refused and `:limit` the deepest one
@@ -242,7 +242,7 @@
         |~~ Values under two tags combine in no step, a sum among them, the
             frame naming the part.
         ~~|
-        ~(get [~(::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]) ~([::Cents#100 ::Dollars#1] | sum !| trace | last | place)]
+        ~(get [~(::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]) ~([::Cents#100 ::Dollars#1] | sum !| trace | last | path)]
           | eq [[::call/KindsMismatchedError ::Cents ::Dollars] /1])
     | proves :KindsMismatchedError/laysTheTagABareValueTakes
         |~~ A bare value takes the tag of the other, the answer under it. ~~|

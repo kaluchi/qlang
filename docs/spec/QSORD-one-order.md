@@ -122,7 +122,7 @@ compare within one kind [QSCND#compare].
 > [!{:k 1} 1 null] | sort
 [null 1 !{:k 1}]
 
-> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(type) ~(trace | last | place)]) ~([1 null 3] | filter ~(ne null) | max)]
+> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(type) ~(trace | last | path)]) ~([1 null 3] | filter ~(ne null) | max)]
 [1 [::call/KindsMismatchedError /1] 3]
 ```
 

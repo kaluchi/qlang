@@ -80,7 +80,7 @@ it('names the tag a tagged literal writes, a tag written before an error literal
   expect(literal.parts.map(({ value }) => value.name)).toEqual(['error']);
 });
 
-describe('the places a name stands', () => {
+describe('the occurrences of a name', () => {
   it('finds the calls of a name', () => {
     const refs = findNameOccurrences(rootOf('count | add count'), 'count');
     expect(refs.map(kindOf)).toEqual(['call', 'call']);
@@ -128,7 +128,7 @@ describe('the places a name stands', () => {
   });
 });
 
-describe('the names visible at a place', () => {
+describe('the names visible at a position', () => {
   const visibleIn = (source, offset = source.length, spelling) => bindingNamesVisibleAt(rootOf(source), offset, spelling);
 
   it('returns the names declared before the cursor', () => {

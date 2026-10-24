@@ -200,7 +200,7 @@ rule under a verb, with no page of its own, reads the page of what
 refused; a name nothing declares is refused as
 `::any/explain/UnknownNameError`, but one past an address whose last name
 ends in `Error`, which reads the record of that address [QSSLF#axis]. The page of a refusal says what
-failed, which fact or which place of the frame names the culprit and how
+failed, which fact or which path of the frame names the culprit and how
 the call is repaired, and
 the laws of a refusal a query can meet hold the recovery through `!|`,
 a defect of the runtime and a failure inside a primitive a host hands,

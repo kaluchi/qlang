@@ -53,8 +53,8 @@ among them. `::fail` and a
 declaration stand in a pipeline alone, so inside a container, a field or
 a payload a step is an element step. The parser reads a text into these
 records, building each through its constructor, and keeps beside them
-the span of every part it read, which the place of a refusal and the
-tools read.
+the span of every part it read, which a refusal and the tools
+read.
 
 Each rule a step holds stands once, in the constructor of the record or
 of `::quote` that holds the step, which `tag ::quote` and the parser both
@@ -74,7 +74,7 @@ refused by the role of its holder, `…/PayloadKindNotTakenError` with `:expecte
 whose fields break the fields of its record as `…/PayloadNotSchemaError`,
 its `:field` the field, the kind of errors over an error literal, which
 is that literal, refused by `::construct` naming its `:tag`. A text that breaks a rule of a step answers
-`::quote/ParseError` at its place with the rule's message, and a throw
+`::quote/ParseError` at the span of the step with the rule's message, and a throw
 of the parser that is no refusal of the text, the overflow of its stack
 under a nest too deep among it, passes as it is, which `parse` answers as
 `::quote/ParseError` with its message. `tag ::quote`
@@ -135,9 +135,9 @@ empty quote, and refuses any other subject under its one verb,
 `::string/parse/SubjectNotStringError`. A source that reads as no
 pipeline is refused as `::quote/ParseError` with its `:source`, the line
 where the reading stopped, the one text that holds what `parse` read
-from a string the query computed, its `:location`, the place where the
-reading stopped as a `::span` [QSPRN#span], the `:message` of the habit
-the grammar names or the `:expected` continuations of the place it
+from a string the query computed, its `:location`, where the
+reading stopped, as a `::span` [QSPRN#span], the `:message` of the habit
+the grammar names or the `:expected` continuations where it
 stopped and what it met there as `:found` [QSSYN#refusal], and its
 `:origin`, the verb that read it, `:string/parse`. `toString` writes a
 quote as the text of its code, its steps in the one spelling the printer
@@ -204,7 +204,7 @@ snippet alike.
 A step writes its modifiers, each read by its own form and computed at
 the call against the subject, a bare name and a group among them, so
 `take count` takes as many elements as there are; their values are the
-args of the call, which the inputs of its function read by their places.
+args of the call, which the inputs of its function read by their selectors.
 The modifiers of a command are forks against the subject, their values
 the args in their order, none seeing another; a call computes them in
 their order up to the first that answers a failure, and the forks of

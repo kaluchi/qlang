@@ -36,6 +36,12 @@ it('leaves a section a record in transit overrides to its closeout, and the sect
   expect(broken('QSAAA#one')).toEqual([['docs/spec/QSAAA-a.md', 'core/src/kept.mjs', 'quotes “a word”']]);
 });
 
+it('leaves the head of a chapter to its closeout with a section a record in transit overrides', () => {
+  const root = treeOf('QSAAA#two');
+  writeFileSync(join(root, 'docs/spec/QSAAA-a.md'), chapter.replace('The head names `core/src/kept.mjs`.', 'The head names `core/src/head.mjs`.'));
+  expect(anchorsTheTreeLacks(root, join(tmpdir(), 'qlang-no-sister')).map(({ file, anchor }) => [file, anchor])).toEqual([['docs/spec/QSAAA-a.md', 'core/src/gone.mjs']]);
+});
+
 it('leaves a chapter a record in transit overrides whole to its closeout, and holds the seed', () => {
   expect(broken('QSAAA')).toEqual([]);
   const root = treeOf('QSAAA');

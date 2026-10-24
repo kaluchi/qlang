@@ -496,7 +496,7 @@
   |~~ Answers the subject within a budget of characters of its print,
       what does not fit given way to elisions, values of `::elision`, and
       a value whose print fits as it is. The largest part gives way first,
-      or in its place a part within it that prints more than half of it,
+      or instead a part within it that prints more than half of it,
       each by its kind, at the top as beneath it. A vector, a set and a
       map keep the first half of their parts, and half of those until it
       fits, ending with an elision of the rest, a map's under the key
@@ -735,7 +735,7 @@
 
 :any/coalesce
   |~~ Answers the first of the alternatives the call gives that answers a
-      value, each in its place: code, a quote or a path, runs against the
+      value, each in its turn: code, a quote or a path, runs against the
       subject, and a value answers itself,
       `{:nickname null :name "alice"} | coalesce /nickname /name`
       answering `"alice"`. An alternative passes to the next where it
@@ -771,8 +771,8 @@
         ~(count | gt 0)
     | holds :alternatives/ValuesAloneError
         |~~ `coalesce` reads the subject before one value,
-            `query /t | coalesce 30`, and several values alone leave its
-            place open: the subject first is written by a quote,
+            `query /t | coalesce 30`, and several values alone read no
+            subject: the subject first is written by a quote,
             `coalesce ~(it) e 8080`, a value a name holds by a quote,
             `coalesce ~(e) 8080`, and a field by a path, `coalesce /t 30`.
         ~~|
@@ -1712,7 +1712,7 @@
       kind: `5 | tag ::number` answers `5`, a payload the kind refuses is
       refused, `"5" | tag ::number`, and a kind the reader declares holds
       its invariants. A tag over a tagged value stands before its tags and
-      never in their place, its own among them,
+      never instead of them, its own among them,
       `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` standing twice; replacing the
       tag goes through the payload, `payload | tag ::Crate`. A tag over an
       error at rest names its site, `!{:by 3} | tag ::Late` answering
@@ -1936,8 +1936,8 @@
   |~~ Answers the minuend the call computes against the subject less the
       subtrahend: what is left to pay is `subOf /total /paid`,
       `{:total 10 :paid 3} | subOf /total /paid` answering `7`. The call
-      gives the two, the minuend first; a sum subtracted is computed in
-      its place, `subOf /total (sumOf /a /b)`.
+      gives the two, the minuend first; a sum subtracted is computed as
+      the subtrahend, `subOf /total (sumOf /a /b)`.
       ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
   ~~|
   ::fn
@@ -1962,10 +1962,10 @@
     | returns |~~ The minuend less the subtrahend, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `subOf` subtracts one number from another: a sum subtracted is
-            computed in its place, `subOf /total (sumOf /a /b)`.
+            computed as the subtrahend, `subOf /total (sumOf /a /b)`.
         ~~|
-    | proves :subtractsASumInItsPlace
-        |~~ A sum subtracted is computed in its place. ~~|
+    | proves :subtractsASumComputedAsTheSubtrahend
+        |~~ A sum subtracted is computed as the subtrahend. ~~|
         ~({:total 10 :a 3 :b 2} | subOf /total (sumOf /a /b) | eq 5)
     | proves :minuend/KindNotTakenError/refusesAString
         |~~ A minuend that is a string is refused under the input. ~~|
@@ -1997,7 +1997,7 @@
       `{:sum 20 :count 4} | divOf /sum /count` answering `5`. A quotient
       that falls between whole numbers is a decimal, and a divisor of
       zero is refused as `div` refuses it. The call gives the two, the
-      dividend first; a product divided is computed in its place,
+      dividend first; a product to divide by is computed as the divisor,
       `divOf /total (mulOf /a /b)`.
       ::link~(::number/div | doc) ::link~(::any/mulOf | doc)
   ~~|
@@ -2020,8 +2020,8 @@
         ~~|
     | returns |~~ The dividend divided by the divisor, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
-        |~~ `divOf` divides one number by another: a product divided is
-            computed in its place, `divOf /total (mulOf /a /b)`.
+        |~~ `divOf` divides one number by another: a product to divide by is
+            computed as the divisor, `divOf /total (mulOf /a /b)`.
         ~~|
     | proves :dividesByTheSecond
         |~~ A mean is the sum over the count. ~~|
@@ -2369,7 +2369,7 @@
       a boolean, null and a tag name a map files under the keyword
       `toKeyword` answers, which reads that key, `get :true`. Over a template, a literal of paths
       and quotes, it answers the template with each path read and each
-      quote run against the subject in its place, the answer written in
+      quote run against the subject where it stands, the answer written in
       the shape the template takes:
       `{:price 4 :qty 3} | get [/price /qty]` answers `[4 3]`, and
       `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
@@ -2488,13 +2488,13 @@
       subject its names read named in each quote of the body:
       `{:id 7 :user {:name "Ann"}} | with [/id /user/name] ~(name | append (id | toString))`
       answers `"Ann7"`. The names are a vector of paths, each part named by
-      the last key of its path, or a map of names and the places they read,
-      a path or a quote,
+      the last key of its path, or a map of names and their selectors,
+      each a path or a quote,
       `[::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]`
       answering `[::Box 5 ::Box#5]`, and a map among the paths names the
       parts it maps, `with [/id {:un /user/name :gn /group/name}] …`. Each
-      place is read against the subject apart from the others, a path as
-      `get` reads it and a quote run on the subject, so no place sees the
+      selector is read against the subject apart from the others, a path as
+      `get` reads it and a quote run on the subject, so no selector sees the
       name of another, and each quote of the body runs on the subject as
       the quotes of a template of `get` run, the names beside the names of
       its step; no name leaves the call. A key of the subject no name names
@@ -2506,7 +2506,7 @@
   ::fn
     | takes :names
         |~~ The names of the parts, a vector of paths and maps, or a map of
-            names and the places they read.
+            names and their selectors.
         ~~|
         /0 #[::map ::vec]
     | throws :names/KindNotTakenError
@@ -2516,10 +2516,10 @@
         ~~|
     | throws :names/ElementKindNotTakenError
         |~~ Each element of the names is a path, which names its part by its
-            last key, or a map of names and their places; a quote alone
+            last key, or a map of names and their selectors; a quote alone
             names no part, and a map gives it a name, `[{:t ~first}]`.
         ~~|
-    | throws :names/PlaceKindNotTakenError
+    | throws :names/SelectorKindNotTakenError
         |~~ A name reads its part by a path or a quote, `{:t /0 :n ~count}`;
             a value of the data reads no part, so a map of the data names no
             parts, and its keys are named by their paths, `[/a /b]`.
@@ -2560,8 +2560,8 @@
             written.
         ~~|
         ~({:id 7} | get [~(with {:t /type} ~(t) !| type) ~(with {:t ~(query /type "none")} ~(t))] | eq [::path/KeyNotInMapError "none"])
-    | proves :readsEachPlaceApart
-        |~~ A place sees no name of another place. ~~|
+    | proves :readsEachSelectorApart
+        |~~ A selector sees no name of another selector. ~~|
         ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name | eq :t)
     | proves :runsTheBodyOnTheSubject
         |~~ The body runs on the subject, its other parts read by their
@@ -2582,9 +2582,9 @@
     | proves :names/ElementKindNotTakenError/refusesAQuoteAlone
         |~~ A quote alone among the names is refused at its index. ~~|
         ~([::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(type) /index] | eq [::any/with/names/ElementKindNotTakenError 1])
-    | proves :names/PlaceKindNotTakenError/refusesAMapOfTheData
+    | proves :names/SelectorKindNotTakenError/refusesAMapOfTheData
         |~~ A map of the data names no parts. ~~|
-        ~({:a 1 :b 2} | with it ~(a | mul b) !| type | eq ::any/with/names/PlaceKindNotTakenError)
+        ~({:a 1 :b 2} | with it ~(a | mul b) !| type | eq ::any/with/names/SelectorKindNotTakenError)
     | proves :names/KeyNotNameError/refusesAnIndex
         |~~ A path that ends in an index names no part. ~~|
         ~({:items [5 6]} | with [/items/0] ~(it) !| get [~(type) /name] | eq [::any/with/names/KeyNotNameError :"0"])

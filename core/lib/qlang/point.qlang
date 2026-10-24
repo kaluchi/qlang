@@ -1,9 +1,10 @@
-|~ `::point`, the kind of a place in source text, and what is declared
-   under it: the verbs that read its offset, its line and its column.
+|~ `::point`, the kind of where a span of source text starts or ends,
+   and what is declared under it: the verbs that read its offset, its
+   line and its column.
    The rules it holds: [QSPRN#span]. ~|
 
 :point
-  |~~ A point is a place in source text, where a span starts or ends:
+  |~~ A point is where a span of source text starts or ends:
       three whole numbers under its tag, the offset from zero, the line
       and the column from one, `::point[0 1 1]` before the first
       character of a text. `offset`, `line` and `column` read them.

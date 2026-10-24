@@ -41,7 +41,7 @@ it('a descriptor writes its keyword field as its name in JSON', async () => {
 });
 
 describe('a JSON text reads as its literal reads, the keys in the order it writes them', () => {
-  it('keeps a key that reads as an index in its place among the others', async () => {
+  it('keeps a key that reads as an index where it stands among the others', async () => {
     const text = '{"b": 1, "2": 2, "a": 3}';
     expect([...fromJsonText(text).keys()]).toEqual(['b', '2', 'a']);
     expect([...(await evalQuery(text)).keys()]).toEqual(['b', '2', 'a']);
@@ -56,7 +56,7 @@ describe('a JSON text reads as its literal reads, the keys in the order it write
     expect(fromJsonText('"x"')).toBe('x');
   });
 
-  it('stands a key written twice in its first place with its last value', () => {
+  it('stands a key written twice where it first stood, with its last value', () => {
     const read = fromJsonText('{"a": {"x": 1}, "b": 2, "a": {"y": 3}}');
     expect([...read.keys()]).toEqual(['a', 'b']);
     expect([...read.get('a').keys()]).toEqual(['y']);

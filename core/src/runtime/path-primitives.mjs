@@ -5,7 +5,7 @@ import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { layTag } from '../eval.mjs';
-import { atPlace } from '../eval-trace.mjs';
+import { atPath } from '../eval-trace.mjs';
 import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
@@ -97,7 +97,7 @@ registerStateReader('any/update', runsAsCode(['code'], (subject, pathOrKey, code
   const path = pathOf(pathOrKey);
   const part = async old => {
     const answer = await code(old);
-    return isErrorValue(answer) ? atPlace(code, answer, path) : answer;
+    return isErrorValue(answer) ? atPath(code, answer, path) : answer;
   };
   return written(subject, path, 0, { adds: false, removes: false, part }, state);
 }));

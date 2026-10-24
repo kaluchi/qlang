@@ -52,7 +52,7 @@ describe('a rule of a step refused where the text writes it', () => {
     }
   });
 
-  it('refuses two texts that write one error literal by one message at one place, as the one step they are', () => {
+  it('refuses two texts that write one error literal by one message at one point, as the one step they are', () => {
     const [written, short] = [refusalOf('1 | ::number::error!{:k 1}'), refusalOf('1 | ::number!{:k 1}')];
     expect(written.message).toBe(short.message);
     expect(written.location.start).toEqual(short.location.start);

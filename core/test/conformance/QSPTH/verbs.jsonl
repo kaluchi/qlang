@@ -6,7 +6,7 @@
 {"name":"segments-keep-the-text-of-a-segment-that-is-no-number","query":"/01 | get [~(segments) ~(segments | toPath | eq /01)]","expect":"[[:\"01\"] true]"}
 {"name":"toPath-takes-one-key-at-least","query":"[] | toPath !| type","expect":"::vec/toPath/SubjectEmptyError"}
 {"name":"toPath-refuses-a-string-that-is-no-json-pointer","query":"\"a\" | toPath !| type","expect":"::string/toPath/NotPointerError"}
-{"name":"toPath-refuses-an-element-that-is-no-key","query":"[:a true] | toPath !| get [~(type) /expected ~(trace | last | place)]","expect":"[::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1]"}
+{"name":"toPath-refuses-an-element-that-is-no-key","query":"[:a true] | toPath !| get [~(type) /expected ~(trace | last | path)]","expect":"[::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1]"}
 {"name":"toPath-reads-the-fragment-of-a-json-pointer","query":"\"#/a\" | toPath","expect":"/a"}
 {"name":"toPath-reads-a-number-as-the-segment-of-its-text","query":"{:a {:\"1.5\" 7}} | get [~([:a 1.5] | toPath) ~(get ([:a 1.5] | toPath))]","expect":"[/a/\"1.5\" 7]"}
 {"name":"a-path-answers-toPath-with-itself","query":"get [~(/a/0 | toPath) ~(::T#/a | toPath)]","expect":"[/a/0 ::T#/a]"}

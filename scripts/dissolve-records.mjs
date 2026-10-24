@@ -81,7 +81,7 @@ for (const name of names) {
   }
   if (left.length > 0) console.log(`${name} overrides ${sections.join(', ')}; name the section at each of:\n  ${left.join('\n  ')}`);
   // The line of its fate and the links to the sections it dissolved into,
-  // written from the place the record stands at, which
+  // written from the folder the record stands in, which
   // `scripts/replaced-records.mjs` writes again once for `replaced/`.
   rewrite(`${JOURNAL}/${name}.md`, text => {
     const lines = text.replace(/\n+$/, '').split('\n');

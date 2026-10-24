@@ -9,7 +9,7 @@ it('answers an answer whose print fits the budget as it is, a part a kind prints
   expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
 });
 
-it('answers an answer past the budget as the refusal in its place, its answer cut to an excerpt read from the answer', async () => {
+it('answers the refusal instead of an answer past the budget, its answer cut to an excerpt read from the answer', async () => {
   const scope = await core.langRuntime();
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);

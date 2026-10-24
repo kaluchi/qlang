@@ -82,7 +82,7 @@ code point; a separator at an end or two together leave empty pieces, so
 `split` and `join` round-trip by one separator string. `join` writes the
 elements of a vector, or of a set in its order, between a separator, a
 keyword written as its name; an element that is no string or keyword is
-refused at its index, the place of the step's frame naming it
+refused at its index, the path of the step's frame naming it
 [QSERR#trace].
 
 ```qlang
@@ -92,7 +92,7 @@ refused at its index, the place of the step's frame naming it
 > "a,b,c" | split "," | join ";"
 "a;b;c"
 
-> ["a" 42] | join "," !| get [~(type) ~(trace | last | place)]
+> ["a" 42] | join "," !| get [~(type) ~(trace | last | path)]
 [::vec/join/ElementKindNotTakenError /1]
 ```
 
@@ -112,8 +112,8 @@ failure to parse names a character and a flag of a regex among the
 continuations of the reading. A regex prints as its literal and reads
 back, JSON writing that literal as a string, and two are equal when their
 text and flags are. `toRegex` reads a string as the source of a regex,
-and a regex by its source, each with the flags its call gives in the
-place of its own, a regex keeping its own and a string taking none where
+and a regex by its source, each with the flags its call gives instead
+of its own, a regex keeping its own and a string taking none where
 the call gives none or null. A regex whose matching backtracks without
 end runs as long as its matching does.
 
@@ -145,7 +145,7 @@ refusing a regex that names no group as
 `::string/capture/RegexNamesNoGroupError`; `scan` the text of every
 match, an empty match met before every code point and at the end, `[]`
 where none stands. `replace` puts a text, or what code answers on each
-match's vector, in the place of every match, read by code points: the
+match's vector, instead of every match, read by code points: the
 string that replaces a match of a regex names the parts of the match by
 `$1`, `$<name>`, `$&`, the text before and after it by `` $` `` and `$'`,
 and a dollar by `$$`, a group the regex lacks standing as written, but

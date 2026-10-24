@@ -5,7 +5,7 @@ import { makeTag } from '../../../src/types.mjs';
 import { BOX } from '../../helpers/box.mjs';
 
 describe('the refusals by rule of an input that names the kinds of each element', () => {
-  it('names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
+  it('names a value that is no vector where its selector reads one arg, and an element of none of its kinds', async () => {
     const own = await createNotebook();
     await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
@@ -17,14 +17,14 @@ describe('the refusals by rule of an input that names the kinds of each element'
     ]);
   });
 
-  it('names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
+  it('names an element of none of its kinds alone where its selector reads the args whole, which are a vector', async () => {
     const own = await createNotebook();
     await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
   });
 });
 
-describe('the place of an input', () => {
+describe('the selector of an input', () => {
   const answerOf = async query => (await (await createNotebook()).evalCell(query)).result;
 
   it('fills the head of the code with the step that answers the value of each input, a value of every kind', async () => {
@@ -38,32 +38,32 @@ describe('the place of an input', () => {
     }
   });
 
-  it('reads a place of a path a quote holds alone as the path', async () => {
+  it('reads a selector of a path a quote holds alone as the path', async () => {
     expect(await answerOf(':any/h (::fn | takes :n |~~ N. ~~| ("/0" | parse) | impl ~(n)) | 1 | h 7')).toBe(7);
   });
 
-  it('runs a place that reads a part deeper than one arg as code over the args', async () => {
+  it('runs a selector that reads a part deeper than one arg as code over the args', async () => {
     expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)) | 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
   });
 
-  it('runs a place of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
+  it('runs a selector of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
     expect((await answerOf(':any/three (::fn | takes :n |~~ N. ~~| ~(query /0 1 2) | impl ~(n)) | 1 | three 9')).tag.name).toBe('any/query/ArgsBeyondInputsError');
   });
 
-  it('reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other place', async () => {
-    for (const place of ['~(it | first)', '~(it 1)']) {
-      const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${place} ::quote | impl ~(code)) | 1 | g (count)`);
-      expect(failed.tag.name, place).toBe('call/KindAnswersNoVerbError');
+  it('reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other selector', async () => {
+    for (const selector of ['~(it | first)', '~(it 1)']) {
+      const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${selector} ::quote | impl ~(code)) | 1 | g (count)`);
+      expect(failed.tag.name, selector).toBe('call/KindAnswersNoVerbError');
     }
   });
 });
 
 describe('the args of a call', () => {
-  it('refuses under the input a place the args do not hold', async () => {
+  it('refuses under the input an arg the call leaves out', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | put !| type')).toEqual(makeTag('Box/put/weight/NotGivenError'));
   });
 
-  it('reads a place softly by query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {
+  it('reads an arg softly by a selector of query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {
     expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null ::Box/tally[]] [1 ::Box/tally[2 3]]]'));
   });
 });

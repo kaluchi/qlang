@@ -5,7 +5,7 @@ import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, asCombiner } from '../primitives.mjs';
 import { underSharedTags } from '../eval.mjs';
-import { atPlace } from '../eval-trace.mjs';
+import { atPath } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
 import { writtenAsText } from './string-primitives.mjs';
 import { pathReads } from './path-primitives.mjs';
@@ -13,7 +13,7 @@ import { pathReads } from './path-primitives.mjs';
 // [QSERR#trace]
 const entriesOf = elements => [...elements.entries()];
 
-const failedAt = (code, error, segment) => atPlace(code, error, makePath([String(segment)]));
+const failedAt = (code, error, segment) => atPath(code, error, makePath([String(segment)]));
 
 registerPrimitive('string/count', text => Array.from(text).length);
 registerPrimitive('vec/count', sequence => sequence.length);

@@ -3,18 +3,18 @@
 // change is in transit, `[Dnn]`, a test file and a file of the cases name
 // their section by their path, a case the record in transit over its section
 // in its `decision`, and the sister project names a record of qlang as
-// `(qlang Dnn)`. A record lists no file; its scope is every place that marks
-// it, which this search answers.
+// `(qlang Dnn)`. A record lists no file; its scope is every artifact that
+// marks it, which this search answers.
 //
 // Usage:
 //   node scripts/marks.mjs                 the artifacts that name nothing, the orphans
-//   node scripts/marks.mjs D44             the places that mark a record
-//   node scripts/marks.mjs QSNAM#scope     the places that mark a section
+//   node scripts/marks.mjs D44             the artifacts that mark a record
+//   node scripts/marks.mjs QSNAM#scope     the artifacts that mark a section
 //   node scripts/marks.mjs <path>          the records a file marks
 //   node scripts/marks.mjs --diff <rev>    the records the files changed since a revision mark
 //   node scripts/marks.mjs --touched       the records whose scope changed since they were read against it
 //   node scripts/marks.mjs --reread D44    the hunks of the blocks of a record since it was read
-//   node scripts/marks.mjs --sister <dir>  the places of the sister project that mark a record
+//   node scripts/marks.mjs --sister <dir>  the files of the sister project that mark a record
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';

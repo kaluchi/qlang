@@ -56,7 +56,7 @@ function textOfToolResult(content) {
   return (content ?? []).map(part => part.text ?? '').join('');
 }
 
-// The reply the command line writes in place of an answer at the limit of
+// The reply the command line writes instead of an answer at the limit of
 // its use, `You've hit your session limit · resets …`.
 const LIMIT_REPLY = /^You've hit your .*limit/;
 

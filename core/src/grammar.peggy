@@ -28,7 +28,7 @@
   import { makeSet } from '../src/ordering.mjs';
   import { QlangError } from '../src/errors.mjs';
   import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, standsAsCommand, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
-  import { walkParts } from '../src/walk.mjs';
+  import { forEachPart } from '../src/parsed-parts.mjs';
 
   // A span between backquotes in the prose of a doc: its text and the span of
   // the code its runs of backquotes hold [QSHST#tokens].
@@ -152,7 +152,7 @@
   // searches the values [QSLIT#closed], [QSQUO#step].
   function computingReadsOf(read) {
     const computing = [];
-    walkParts(read, held => {
+    forEachPart(read, held => {
       if (!isComputingStep(held.value)) return partsOfALiteral(held.value).length > 0;
       computing.push(held);
       return false;

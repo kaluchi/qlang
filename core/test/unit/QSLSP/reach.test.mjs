@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { shownFor } from '../../../src/nouns.mjs';
 import { createNotebook } from '../../../src/notebook.mjs';
-import { walkParts, tagWrittenBy, tagHeadEnd, findNameOccurrences, bindingNamesVisibleAt, TAG_SPELLING } from '../../../src/walk.mjs';
+import { forEachPart, tagWrittenBy, tagHeadEnd, findNameOccurrences, bindingNamesVisibleAt, TAG_SPELLING } from '../../../src/parsed-parts.mjs';
 import { isTag } from '../../../src/types.mjs';
 import { rootOf, kindOf } from '../../helpers/read-text.mjs';
 
@@ -48,7 +48,7 @@ describe('a verb as the tooling reads it', () => {
 describe('where the head of a tag ends', () => {
   const headsOf = source => {
     const heads = [];
-    walkParts(rootOf(source), read => { if (tagHeadEnd(read) !== null) heads.push(source.slice(read.span.start.offset, tagHeadEnd(read))); });
+    forEachPart(rootOf(source), read => { if (tagHeadEnd(read) !== null) heads.push(source.slice(read.span.start.offset, tagHeadEnd(read))); });
     return heads;
   };
 

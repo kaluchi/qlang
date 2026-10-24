@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { parseSource } from '../../../src/parse.mjs';
-import { partOf, walkParts } from '../../../src/walk.mjs';
+import { partOf, forEachPart } from '../../../src/parsed-parts.mjs';
 import { isCallStep } from '../../../src/steps.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 import { isErrorValue, isQuote, isTag } from '../../../src/types.mjs';
@@ -21,7 +21,7 @@ const files = readdirSync(conformanceDir, { recursive: true })
 
 // [QSPTH#value]
 function assertLiteral(quote, testName) {
-  walkParts(raisedLiteralOf(quote) ?? partOf(quote), ({ value, content }) => {
+  forEachPart(raisedLiteralOf(quote) ?? partOf(quote), ({ value, content }) => {
     if (isQuote(value) && content !== undefined) return false;
     if (isCallStep(value)) {
       throw new Error(

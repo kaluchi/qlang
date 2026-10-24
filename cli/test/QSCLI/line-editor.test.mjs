@@ -244,7 +244,7 @@ describe('Ctrl+C and Ctrl+D', () => {
     expect(out.text()).toMatch(/\^C/);
   });
 
-  it('Ctrl+C walks the cursor down to the block bottom before printing ^C', () => {
+  it('Ctrl+C moves the cursor down to the block bottom before printing ^C', () => {
     const { stdinStream, editor, capture, out } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'a', NEWLINE, 'b',
@@ -322,14 +322,14 @@ describe('the cells submitted before', () => {
     expect(capture.lines).toEqual(['first', 'first']);
   });
 
-  it('Up walks back through submitted cells', () => {
+  it('Up moves back through submitted cells', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT, ESC + '[A', SUBMIT);
     expect(capture.lines).toEqual(['first', 'second', 'second']);
   });
 
-  it('Up twice walks two entries back', () => {
+  it('Up twice moves two entries back', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT, ESC + '[A', ESC + '[A', SUBMIT);
@@ -350,7 +350,7 @@ describe('the cells submitted before', () => {
     expect(capture.lines).toEqual(['history', 'draft']);
   });
 
-  it('Down inside history walks forward to the next stored entry', () => {
+  it('Down inside history moves forward to the next stored entry', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', SUBMIT, 'second', SUBMIT,
@@ -827,7 +827,7 @@ describe('a character beyond the basic plane, moved and erased as one', () => {
 
 describe('the redraw of a cell of several rows', () => {
 
-  it('walks Left across a newline, inserts a char in the first row, then submits', () => {
+  it('moves Left across a newline, inserts a char in the first row, then submits', () => {
     const { stdinStream, editor, capture } = makeTtySetup();
     editor.start();
     feed(stdinStream, 'first', NEWLINE, 'second',

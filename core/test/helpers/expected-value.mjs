@@ -3,7 +3,7 @@
 import { evalQuery } from '../../src/notebook.mjs';
 import { factsWithTheirTrace } from '../../src/eval.mjs';
 import { parseSource } from '../../src/parse.mjs';
-import { partOf } from '../../src/walk.mjs';
+import { partOf } from '../../src/parsed-parts.mjs';
 import { isCallStep } from '../../src/steps.mjs';
 import { rootState } from '../../src/state.mjs';
 import { langRuntime } from '../../src/runtime/lang-runtime.mjs';

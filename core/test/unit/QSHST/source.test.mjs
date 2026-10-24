@@ -8,7 +8,7 @@ import { runsAsCode } from '../../../src/primitives.mjs';
 import * as core from '../../../src/index.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { declareRefusal } from '../../../src/errors.mjs';
-import { originOf } from '../../../src/walk.mjs';
+import { originOf } from '../../../src/parsed-parts.mjs';
 import { commandStep } from '../../../src/steps.mjs';
 import { lines } from '../../helpers/box.mjs';
 

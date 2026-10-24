@@ -83,14 +83,14 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     for (const [value, path, account] of valuesOfNoKind()) expect(await refusalOf(value), account).toEqual(doorRefusal('any/answer', path, account));
   });
 
-  it('walks a container met twice in one answer once', async () => {
+  it('scans a container met twice in one answer once', async () => {
     const { vector, reads } = counted(1);
     const pair = [vector, vector];
     expect(await answerOf(pair)).toBe(pair);
     expect(reads.count).toBe(1);
   });
 
-  it('walks the answer of every call again, so a container its host changed since is refused', async () => {
+  it('scans the answer of every call again, so a container its host changed since is refused', async () => {
     const cached = [1, 2];
     const index = answering(cached);
     expect((await notebook.evalCell(`${index} | answer | count`)).result).toBe(2);
@@ -403,7 +403,7 @@ it('the printer refuses a value of no kind of the language where it reads its ki
   expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
 });
 
-describe('a notebook takes what its host hands by the walk of the door', () => {
+describe('a notebook takes what its host hands by the scan of the door', () => {
   const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: makeKeyword('held'), value }));
 
   it('takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {

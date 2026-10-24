@@ -8,7 +8,7 @@ import { importsOfCore, cyclesOf } from '../../../../scripts/core-imports.mjs';
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 const ABOVE_THE_WORDS = new Set(['core/src/notebook.mjs', 'core/src/index.mjs']);
 const isOfTheWords = path => path.startsWith('core/src/runtime/');
-const OF_THE_PARSER = new Set(['core/src/parse.mjs', 'core/gen/grammar.mjs', 'core/src/walk.mjs']);
+const OF_THE_PARSER = new Set(['core/src/parse.mjs', 'core/gen/grammar.mjs', 'core/src/parsed-parts.mjs']);
 
 const reachesIntoTheWords = imports => [...imports].filter(([path]) => !isOfTheWords(path) && !ABOVE_THE_WORDS.has(path))
   .flatMap(([path, targets]) => targets.filter(isOfTheWords).map(target => `${path} → ${target}`));
@@ -18,7 +18,7 @@ const imports = importsOfCore(repoRoot);
 it('the imports of the core form no cycle, the parser and the modules its grammar imports among them', () => {
   expect(cyclesOf(imports)).toEqual([]);
   expect(imports.get('core/src/parse.mjs')).toContain('core/gen/grammar.mjs');
-  expect(imports.get('core/gen/grammar.mjs')).toEqual(expect.arrayContaining(['core/src/steps.mjs', 'core/src/walk.mjs']));
+  expect(imports.get('core/gen/grammar.mjs')).toEqual(expect.arrayContaining(['core/src/steps.mjs', 'core/src/parsed-parts.mjs']));
 });
 
 it('the imports of the core reach the words and the root from the notebook and the root of the package alone', () => {
@@ -34,7 +34,7 @@ it('the imports of the core keep the records of the steps below the parser, reac
   expect(reached).toContain('core/src/types.mjs');
 });
 
-it('the walk of the imports finds a cycle and a reach into the words where a module writes one, the words and the notebook aside', () => {
+it('the reading of the imports finds a cycle and a reach into the words where a module writes one, the words and the notebook aside', () => {
   const written = new Map([
     ['core/src/a.mjs', ['core/src/b.mjs']],
     ['core/src/b.mjs', ['core/src/a.mjs', 'core/src/runtime/c.mjs']],
@@ -46,7 +46,7 @@ it('the walk of the imports finds a cycle and a reach into the words where a mod
   expect(reachesIntoTheWords(written)).toEqual(['core/src/b.mjs → core/src/runtime/c.mjs']);
 });
 
-it('the walk of the imports reads the loaders the imports of the package map through every condition', () => {
+it('the reading of the imports reads the loaders the imports of the package map through every condition', () => {
   expect(imports.get('core/src/runtime/bootstrap.mjs')).toEqual(expect.arrayContaining(['core/host/load-source-node.mjs', 'core/src/load-source-web.mjs']));
 });
 
@@ -63,7 +63,7 @@ const importsWritten = sources => {
   }
 };
 
-it('the walk of the imports reads a cycle a module writes in double quotes, through the parser', () => {
+it('the reading of the imports reads a cycle a module writes in double quotes, through the parser', () => {
   const written = importsWritten({
     'core/package.json': '{"imports":{}}',
     'core/src/a.mjs': 'import { b } from "./b.mjs";\n',
@@ -74,7 +74,7 @@ it('the walk of the imports reads a cycle a module writes in double quotes, thro
   expect(cyclesOf(written)).toEqual([['core/gen/grammar.mjs', 'core/src/a.mjs', 'core/src/b.mjs']]);
 });
 
-it('the walk of the imports reads a cycle a module closes through a loader the imports of the package map, a name they map to no module naming none', () => {
+it('the reading of the imports reads a cycle a module closes through a loader the imports of the package map, a name they map to no module naming none', () => {
   const written = importsWritten({
     'core/package.json': JSON.stringify({ imports: { '#load': { node: './host/load.mjs', default: './src/load.mjs' }, '#boot': './src/boot.mjs' } }),
     'core/src/boot.mjs': "import { load } from '#load';\nimport '#unmapped';\n",
@@ -86,7 +86,7 @@ it('the walk of the imports reads a cycle a module closes through a loader the i
   expect(cyclesOf(written)).toEqual([['core/host/load.mjs', 'core/src/boot.mjs']]);
 });
 
-it('the walk of the imports reads a module a module re-exports, whole or by its names, and skips a package of npm', () => {
+it('the reading of the imports reads a module a module re-exports, whole or by its names, and skips a package of npm', () => {
   const written = importsWritten({
     'core/package.json': '{"imports":{}}',
     'core/src/a.mjs': "export * from './b.mjs';\nexport { c } from './c.mjs';\nimport { parse } from 'acorn';\n",

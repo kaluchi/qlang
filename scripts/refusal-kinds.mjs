@@ -6,7 +6,7 @@
 // and any other refusal of a kind is named by the role of its holder.
 
 import { declarationsOf } from './catalog-kinds.mjs';
-import { partOf } from '../core/src/walk.mjs';
+import { partOf } from '../core/src/parsed-parts.mjs';
 import { isCallStep, isConstructStep, isGroupStep } from '../core/src/steps.mjs';
 import { isKeyword, isQuote } from '../core/src/types.mjs';
 

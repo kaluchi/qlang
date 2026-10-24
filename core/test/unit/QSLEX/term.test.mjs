@@ -480,7 +480,7 @@ it('refuses each name in which the code called the scope an environment, a pipel
 it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names', () => {
   for (const text of [
     'state.scope', 'withScope', 'scopeSet', 'scopeHas', 'recipeScope', 'core/src/scope-keys.mjs', 'RECIPE_KEY', 'evalPipeline', 'closeQuote',
-    'foldingCodeOf', 'walkParts', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',
+    'foldingCodeOf', 'forEachPart', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',
     'a node the root holds', 'nodeOf', 'nodesOfKind', 'the tree of the query', 'Astro', 'site/astro.config.mjs', 'PAST', 'FAST_PATH', 'lastIndexOf',
     'a value reads back from its print', 'resolves its names through the tree of names'
   ]) expect(refused(text), text).toBe(false);
@@ -519,4 +519,9 @@ it('leaves the stint, the closeout and the reconciliation, the notebook, and the
     'a stint, one branch', 'the closeout of a stint', 'the reconciliation of the tree with its baseline', 'scripts/reconciliation.mjs',
     '`createNotebook({ scope })`', 'the public surface shifts', 'records.shift()', 'the baseline, the last merge on master',
   ]) expect(refused(text), text).toBe(false);
+});
+
+it('refuses the names of the senses parted from the walk of the tags, and leaves that walk', () => {
+  for (const text of ['core/src/walk.mjs', 'walkParts(read, visit)', 'walkSourceTree', 'walkRefusalScanRoots', 'by the walk of the door']) expect(refused(text), text).toBe(true);
+  for (const text of ['the walk of a value\'s tags', 'is asks whether the walk reaches a kind', 'core/src/parsed-parts.mjs', 'forEachPart', 'the scan of the door']) expect(refused(text), text).toBe(false);
 });

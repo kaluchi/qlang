@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
-import { walkParts, partAtOffset } from '../../../src/walk.mjs';
+import { forEachPart, partAtOffset } from '../../../src/parsed-parts.mjs';
 import { isCallStep } from '../../../src/steps.mjs';
 import { isVec, isQuote } from '../../../src/types.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
@@ -29,16 +29,16 @@ describe('the parts of a text', () => {
   });
 });
 
-describe('the walk of the parts', () => {
+describe('the parts the parser keeps', () => {
   it('visits every part before the parts it holds', () => {
     const visited = [];
-    walkParts(rootOf('[1 2] | add 3'), ({ value }) => visited.push(isQuote(value) ? 'quote' : isVec(value) ? 'vec' : isCallStep(value) ? 'call' : value));
+    forEachPart(rootOf('[1 2] | add 3'), ({ value }) => visited.push(isQuote(value) ? 'quote' : isVec(value) ? 'vec' : isCallStep(value) ? 'call' : value));
     expect(visited).toEqual(['quote', 'vec', 1, 2, 'call', 3]);
   });
 
   it('skips the parts of a part its visitor answers false for', () => {
     const numbers = [];
-    walkParts(rootOf('[1 2] | add 3'), ({ value }) => {
+    forEachPart(rootOf('[1 2] | add 3'), ({ value }) => {
       if (typeof value === 'number') numbers.push(value);
       if (isVec(value) && !isQuote(value)) return false;
     });
@@ -47,7 +47,7 @@ describe('the walk of the parts', () => {
 
   it('passes the parent to the visitor', () => {
     const parents = [];
-    walkParts(rootOf('[1 2 3]'), ({ value }, parent) => {
+    forEachPart(rootOf('[1 2 3]'), ({ value }, parent) => {
       if (typeof value === 'number') parents.push(parent.value);
     });
     expect(parents).toEqual([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);

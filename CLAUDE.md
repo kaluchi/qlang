@@ -60,7 +60,7 @@ Tier 2, by topic, only the files the topic names:
   `core/src/runtime/manifest.mjs`, `core/src/runtime/doc-primitives.mjs`,
   `core/lib/qlang/doc.qlang`, `core/lib/qlang/builtin.qlang`
 - code as data: `core/src/steps.mjs`, `core/src/runtime/code.mjs`,
-  `core/src/walk.mjs`
+  `core/src/parsed-parts.mjs`
 - printing and codecs: `core/src/print-value.mjs`,
   `core/src/runtime/print.mjs`, `core/src/runtime/json.mjs`
 - the host boundary: `core/src/runtime/bootstrap.mjs`, `core/host/`,

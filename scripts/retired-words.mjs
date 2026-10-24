@@ -1,9 +1,10 @@
 // The terms of the earlier models of the language that its later work
 // retired, each a word whole in its spellings that the texts that state what
 // holds write in no sense, a compound term or the exact names a retired sense
-// wrote, with the term to write instead and the record that retired it: a text that states what holds writes
-// none of them [QSLEX#term], and a record that retires a term
-// of the language adds it here in the commit that retires it.
+// wrote, with the term to write instead and the record that retired it: a
+// text that states what holds writes none of them [QSLEX#term], and a record
+// that retires a term of the language adds it here in the commit that
+// retires it.
 
 export const RETIRED_WORDS = [
   { regex: /\bdeflect(?:s|ed|ing|ions?)?\b/i, written: '`skipped`, the steps a failure skips', by: 'D347' },

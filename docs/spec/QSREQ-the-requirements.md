@@ -176,8 +176,13 @@ design.
 
 A printer decides a spelling by the kind of the value, never by a regex over
 the text of a print, and a script reads a module of JavaScript by its
-parser, acorn, never by a regex over its text; a fact of a call is kept by the call and never by a
-value it received; and what a rule takes from code is withheld by a refusal
+parser, acorn, never by a regex over its text, and the comments of a file by
+the parser of its language through one reader, `scripts/comments.mjs`: a
+module by acorn, a source of the catalog by the parser of the core, its docs
+beside its comments, and the grammar by peggy, the code of its actions by
+acorn, a file of a language the tree holds no parser of read by the form of
+its comment line; a fact of a call is kept by the call and never by a value it
+received; and what a rule takes from code is withheld by a refusal
 of its own, never left to fall to another meaning of the name. A script that
 moves cases between files writes every file after it has computed them all,
 its folders made first.

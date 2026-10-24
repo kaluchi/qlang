@@ -22,6 +22,7 @@ import { join, resolve } from 'node:path';
 import { baselineOf } from './reconciliation.mjs';
 import { readText } from './tree-reads.mjs';
 import { homeOfPath } from './test-homes.mjs';
+import { linesOfComments } from './comments.mjs';
 import { FATE, FIELD_OPENS, LINK_DEFINITION, RUN_LINE, JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -77,18 +78,7 @@ const PATH_MARKS = [
 // head of the file, so every line of an artifact lies under a mark; a case
 // covers its own line [QSREQ#marks].
 function commentLines(text, path) {
-  const lines = text.split(/\r?\n/);
-  const isComment = [];
-  let inQlangComment = false;
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (path.endsWith('.qlang')) {
-      const opens = /^\|~(?!~)/.test(trimmed);
-      isComment.push(inQlangComment || opens);
-      if (opens || inQlangComment) inQlangComment = !/~\|\s*$/.test(trimmed);
-    } else isComment.push(/^(\/\/|\/\*|\*|#)/.test(trimmed));
-  }
-  return isComment;
+  return linesOfComments(path, text).map(({ holds, names, within }) => within || (names.trim() !== '' && holds.trim() === ''));
 }
 
 function blocksOf(marks, text, path) {

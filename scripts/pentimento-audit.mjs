@@ -23,6 +23,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
+import { parse as parseJavaScript } from 'acorn';
 import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './reconciliation.mjs';
 import { importsOfCore, cyclesOf } from './core-imports.mjs';
 import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
@@ -48,15 +49,33 @@ const sizeOf = path => statSync(join(repoRoot, path)).size;
 const read = path => readFileSync(join(repoRoot, path), 'utf8');
 
 // The modules of `core/src` by the noun under which they register most of
-// their addresses, the first they register under where two tie, read from the
-// calls that register their primitives in the table of `core/src/primitives.mjs`.
+// their addresses, the first they register under where two tie, read by acorn
+// from the calls that register their primitives in the table of
+// `core/src/primitives.mjs` [QSREQ#rigor].
 const code = citingCodeOf(repoRoot);
 const coreModules = code.filter(path => path.startsWith('core/src/'));
-const BOUND = /register(?:Primitive|StateReader|ReaderOfPassedTags)\(\s*(\[[^\]]*\]|'[^']*')/g;
-const nounOf = new Map(coreModules.map(path => {
+const REGISTERS = new Set(['registerPrimitive', 'registerStateReader', 'registerReaderOfPassedTags']);
+function addressesRegistered(path) {
+  const addresses = [];
+  const visit = node => {
+    if (node === null || typeof node !== 'object') return;
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (node.type === 'CallExpression' && REGISTERS.has(node.callee.name)) {
+      const [first] = node.arguments;
+      for (const element of first?.type === 'ArrayExpression' ? first.elements : [first]) {
+        if (element?.type === 'Literal' && typeof element.value === 'string') addresses.push(element.value);
+      }
+    }
+    for (const key of Object.keys(node)) if (key !== 'type') visit(node[key]);
+  };
+  visit(parseJavaScript(read(path), { ecmaVersion: 'latest', sourceType: 'module' }));
+  return addresses;
+}
+const nounOf = new Map(coreModules.filter(path => path.endsWith('.mjs')).map(path => {
   const counts = new Map();
-  for (const [, addresses] of read(path).matchAll(BOUND)) {
-    for (const [, noun] of addresses.matchAll(/'([^'/]+)\//g)) counts.set(noun, (counts.get(noun) ?? 0) + 1);
+  for (const address of addressesRegistered(path)) {
+    const [noun, ...rest] = address.split('/');
+    if (rest.length > 0) counts.set(noun, (counts.get(noun) ?? 0) + 1);
   }
   const [noun] = [...counts].sort((left, right) => right[1] - left[1])[0] ?? [];
   return [path, noun];

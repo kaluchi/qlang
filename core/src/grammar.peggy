@@ -397,7 +397,7 @@ PipelineHead
   = PipelineStep
   / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
-// A tag name in the place of a declaration's name declares nothing: a
+// A tag name where a declaration's name stands declares nothing: a
 // name is declared by its keyword, and a value under a tag touches its
 // payload [QSNAM#address], [QSSYN#step].
 TagDeclarationRefusal

@@ -6,16 +6,16 @@ import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
 import { walkToKinds } from './dispatch.mjs';
 
-export const flightOfACall = () => ({ place: null, resumes: false });
-export const flightOfThrow = thrown => ({ place: thrown?.part === undefined ? null : makePath(thrown.part.map(String)), resumes: false });
+export const flightOfACall = () => ({ path: null, resumes: false });
+export const flightOfThrow = thrown => ({ path: thrown?.part === undefined ? null : makePath(thrown.part.map(String)), resumes: false });
 
-export function atPlace(code, error, place) {
-  code.flight.place = place;
+export function atPath(code, error, path) {
+  code.flight.path = path;
   return error;
 }
 
 // [QSERR#trace]
-export const failedOnAPart = error => error.facts.get('trace').some(frame => partsOfFrame(frame).place !== null);
+export const failedOnAPart = error => error.facts.get('trace').some(frame => partsOfFrame(frame).path !== null);
 
 const TracePayloadKindNotTakenError = declareRefusal('trace/PayloadKindNotTakenError');
 const TraceElementKindNotTakenError = declareRefusal('trace/ElementKindNotTakenError');
@@ -47,20 +47,20 @@ function withTrace(error, frames) {
   return makeErrorValue(error.tag, facts, { originalError: error.originalError });
 }
 
-function withFrame(error, stepQuote, subject, scope, place) {
+function withFrame(error, stepQuote, subject, scope, path) {
   const [held, frames] = heldTrace(error, scope);
-  return withTrace(held, [...frames, makeFrame(subject, stepQuote, place)]);
+  return withTrace(held, [...frames, makeFrame(subject, stepQuote, path)]);
 }
 
 export function answerOfStep(answer, stepQuoteOf, subject, scope, flight = null) {
   if (!isErrorValue(answer)) return answer;
   if (flight?.resumes) return withTrace(answer, answer.facts.get('trace'));
-  return withFrame(answer, stepQuoteOf(), subject, scope, flight?.place ?? null);
+  return withFrame(answer, stepQuoteOf(), subject, scope, flight?.path ?? null);
 }
 
 export function skipping(error, skippedStep, scope) {
   const [held, frames] = heldTrace(error, scope);
   if (frames.length === 0) return held;
-  const { subject, unfinished, place } = partsOfFrame(frames[frames.length - 1]);
-  return withTrace(held, [...frames.slice(0, -1), makeFrame(subject, makeQuote([...unfinished, skippedStep]), place)]);
+  const { subject, unfinished, path } = partsOfFrame(frames[frames.length - 1]);
+  return withTrace(held, [...frames.slice(0, -1), makeFrame(subject, makeQuote([...unfinished, skippedStep]), path)]);
 }

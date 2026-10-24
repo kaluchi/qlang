@@ -11,7 +11,7 @@ Then check your chapters, {{group}}, section by section; the heading `## name` o
 4. Every claim, run: `qlang '<query>' < /dev/null`. End every query with `< /dev/null`, or a query that reads its subject waits on standard input, and write `MSYS_NO_PATHCONV=1 qlang '…' < /dev/null` where the query begins with `/`.
 The chapters of the work, QSWRK, QSVOX, QSLEX, QSREQ, QSMSR, QSRVW and QSGAT, have no cases: their implementation is scripts/, the package.json files, .github/workflows/ and CLAUDE.md, the seed of a session, and `grep` and `git -C {{repo}} ls-files --error-unmatch` read the files.
 
-Report each finding under a heading of its kind and its place, `### <kind> · CODE#name` or `### <kind> · path:line`, the kind one of seven:
+Report each finding under a heading of its kind and where it stands, `### <kind> · CODE#name` or `### <kind> · path:line`, the kind one of seven:
 - text: a sentence of a chapter that says other than the section's own cases, another sentence of the chapters or the page of the verb or the kind it names, so the rule it means is known from the written texts and the sentence misstates it; or a rule the cases and the pages hold that the chapter does not state;
 - implementation: the tree misses a rule that a chapter and its cases state alike;
 - design: rules the texts state, each as it is meant, that together answer as the language should not, or two roads that answer one question differently, a value computed at the call and a quote, a value and a path, a bare name and an address, a query and the recipe of a verb;

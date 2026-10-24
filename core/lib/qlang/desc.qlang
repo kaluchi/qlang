@@ -1,4 +1,4 @@
-|~ `::desc`, the kind of a value turned to descend, whose place in the
+|~ `::desc`, the kind of a value turned to descend, whose rank in the
    one order is the reverse of its payload's, and what is declared under
    it: its constructor.
    The rules it holds: [QSDSP#residence]. ~|
@@ -21,7 +21,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ Any value, its place in the one order turned around. ~~|
+    | wraps |~~ Any value, its rank in the one order turned around. ~~|
     | proves :holdsTheValue
         |~~ The payload is the value turned. ~~|
         ~(5 | desc | payload | eq 5)

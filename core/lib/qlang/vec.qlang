@@ -238,7 +238,7 @@
   ::fn
     | returns |~~ The sum of the elements, under the tags they share. ~~| ::number
     | throws :ElementKindNotTakenError
-        |~~ `sum` adds numbers; the place of its frame names the first
+        |~~ `sum` adds numbers; the path of its frame names the first
             element that is none, and a field is read first,
             `map /amount | sum`.
         ~~|
@@ -254,16 +254,16 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~([1 "two" 3] | sum
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/sum/ElementKindNotTakenError ::string /1 #[::number]])
     | proves :ElementKindNotTakenError/refusesARecord
         |~~ A record whose field was not read is refused at its index. ~~|
         ~([{:n 1} {:n 2}] | sum
-          !| get [~(type) /actualType ~(trace | last | place)]
+          !| get [~(type) /actualType ~(trace | last | path)]
           |  eq [::vec/sum/ElementKindNotTakenError ::map /0])
     | proves :ElementKindNotTakenError/refusesNull
         |~~ Null is no number to add. ~~|
-        ~([1 null] | sum !| get [~(type) ~(trace | last | place)] | eq [::vec/sum/ElementKindNotTakenError /1])
+        ~([1 null] | sum !| get [~(type) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
     | proves :addsOnceWhatASetHolds
         |~~ The set of a vector's elements adds a repeated one once. ~~|
         ~([1 1 2] | get [~(sum) ~(toSet | sum)] | eq [4 3])
@@ -271,7 +271,7 @@
         |~~ The index a set is refused at counts its one order, not where
             the element was written.
         ~~|
-        ~(["two" 1] | toSet | sum !| get [~(type) ~(trace | last | place)] | eq [::vec/sum/ElementKindNotTakenError /1])
+        ~(["two" 1] | toSet | sum !| get [~(type) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
     | impl ::builtin{}
 
 :vec/avg
@@ -294,7 +294,7 @@
         ~~|
         #[::number ::null]
     | throws :ElementKindNotTakenError
-        |~~ `avg` takes the mean of numbers; the place of its frame names
+        |~~ `avg` takes the mean of numbers; the path of its frame names
             the first element that is none, and a field is read first,
             `map /amount | avg`.
         ~~|
@@ -334,7 +334,7 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the numbers is refused at its index. ~~|
         ~([1 "two" 3] | avg
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/avg/ElementKindNotTakenError ::string /1 #[::number]])
     | proves :averagesEachElementOfASetOnce
         |~~ The set of a vector's elements counts a repeated one once. ~~|
@@ -582,7 +582,7 @@
     | returns |~~ The elements the predicate accepted, in order. ~~| ::vec
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for each element;
-            the place of its frame names the element whose predicate
+            the path of its frame names the element whose predicate
             answered another kind.
         ~~|
     | throws :ArgsBeyondInputsError
@@ -636,14 +636,14 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | filter ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::vec/filter/ConditionKindNotTakenError /0 ::number #[::boolean]])
     | proves :ConditionKindNotTakenError/namesTheIndexInTheOneOrderOfASet
         |~~ The index a set is refused at counts its one order, not where
             the element was written.
         ~~|
         ~(["two" 1] | toSet | filter ~(if (eq 1) ~(true) ~(it))
-          !| get [~(type) ~(trace | last | place)]
+          !| get [~(type) ~(trace | last | path)]
           |  eq [::vec/filter/ConditionKindNotTakenError /1])
     | proves :ArgsBeyondInputsError/refusesTwoPredicates
         |~~ Two predicates are refused under the verb. ~~|
@@ -680,7 +680,7 @@
         ::boolean
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `every` answers a boolean for each element;
-            the place of its frame names the element whose predicate
+            the path of its frame names the element whose predicate
             answered another kind.
         ~~|
     | proves :holdsOfEveryElement
@@ -712,7 +712,7 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | every ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::vec/every/ConditionKindNotTakenError /0 ::number #[::boolean]])
     | proves :asksASetInItsOneOrder
         |~~ A set asks its number before its string, and the number that
@@ -750,7 +750,7 @@
         ::boolean
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `any` answers a boolean for each element;
-            the place of its frame names the element whose predicate
+            the path of its frame names the element whose predicate
             answered another kind.
         ~~|
     | proves :holdsOfSomeElement
@@ -777,7 +777,7 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | any ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::vec/any/ConditionKindNotTakenError /0 ::number #[::boolean]])
     | proves :asksASetInItsOneOrder
         |~~ A set asks its number before its string, and the number that
@@ -936,7 +936,7 @@
             one for: a string or a number files under the keyword of its
             text, a boolean or null under that of its literal and a tag
             name under that of its name. A key of another kind, a vector,
-            a set, a map or a quote, is refused, the place of its frame
+            a set, a map or a quote, is refused, the path of its frame
             naming the element and `:expected` the kinds a key files
             under.
         ~~|
@@ -945,7 +945,7 @@
             `"1"` both under `:"1"`, and a map holds the elements of one
             value under a key: the second is refused, `:key` naming the
             keyword, `:taken` the value that filed under it first and
-            the place of its frame the element that met it. A key that
+            the path of its frame the element that met it. A key that
             means both answers one kind,
             `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
         ~~|
@@ -995,7 +995,7 @@
         ~([{:a 1}] | groupBy /k !| type | eq ::path/KeyNotInMapError)
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~([1 "1"] | groupBy !| get [~(type) /key /taken ~(trace | last | place)] | eq [::vec/groupBy/KeyTakenError :"1" 1 /1])
+        ~([1 "1"] | groupBy !| get [~(type) /key /taken ~(trace | last | path)] | eq [::vec/groupBy/KeyTakenError :"1" 1 /1])
     | proves :key/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
@@ -1008,7 +1008,7 @@
             files under.
         ~~|
         ~([{:k 2} {:k [1]}] | groupBy /k
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/groupBy/KeyKindNotTakenError ::vec /1 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
@@ -1055,7 +1055,7 @@
             one for: a string or a number files under the keyword of its
             text, a boolean or null under that of its literal and a tag
             name under that of its name. A key of another kind, a vector,
-            a set, a map or a quote, is refused, the place of its frame
+            a set, a map or a quote, is refused, the path of its frame
             naming the element and `:expected` the kinds a key files
             under.
         ~~|
@@ -1064,7 +1064,7 @@
             `"1"` both under `:"1"`, and a map holds one element of one
             value under a key: the second is refused, `:key` naming the
             keyword, `:taken` the value that filed under it first and
-            the place of its frame the element that met it. A key that
+            the path of its frame the element that met it. A key that
             means both answers one kind,
             `~(get /id | if (type | eq ::string) ~(it) ~(print))`.
         ~~|
@@ -1103,7 +1103,7 @@
         ~([:x :y] | indexBy | eq {:x :x :y :y})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~([{:id 1} {:id "1"}] | indexBy /id !| get [~(type) /key /taken ~(trace | last | place)] | eq [::vec/indexBy/KeyTakenError :"1" 1 /1])
+        ~([{:id 1} {:id "1"}] | indexBy /id !| get [~(type) /key /taken ~(trace | last | path)] | eq [::vec/indexBy/KeyTakenError :"1" 1 /1])
     | proves :key/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
@@ -1124,7 +1124,7 @@
             files under.
         ~~|
         ~([{:k [1]}] | indexBy /k
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/indexBy/KeyKindNotTakenError ::vec /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
@@ -1512,7 +1512,7 @@
   ::fn
     | returns |~~ The elements at each index, a vector each. ~~| ::vec
     | throws :ElementKindNotTakenError
-        |~~ `zip` reads vectors side by side; the place of its frame names
+        |~~ `zip` reads vectors side by side; the path of its frame names
             the first element that is no vector, the vectors read into one first,
             `get [/a /b] | zip`.
         ~~|
@@ -1531,7 +1531,7 @@
         ~({:names ["ann" "bob"] :ages [30 40]} | get [/names /ages] | zip | eq [["ann" 30] ["bob" 40]])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~([[1 2] 3] | zip !| get [~(type) ~(trace | last | place) /actualType /expected] | eq [::vec/zip/ElementKindNotTakenError /1 ::number #[::vec]])
+        ~([[1 2] 3] | zip !| get [~(type) ~(trace | last | path) /actualType /expected] | eq [::vec/zip/ElementKindNotTakenError /1 ::number #[::vec]])
     | impl ::builtin{}
 
 :vec/reduce
@@ -1564,8 +1564,8 @@
         /1 #[::path ::quote]
     | throws :reducer/KindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
-            seed: written first, `reduce ~(add) 0`, it stands in the seed's
-            place and hands the reducer's place the seed, and written
+            seed: written first, `reduce ~(add) 0`, it is read as the
+            seed and the seed as the reducer, and written
             without the tilde, `(add)`, it is computed once at the call;
             either is refused.
         ~~|
@@ -1627,8 +1627,8 @@
           !| get [~(type) /actualType]
           |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
     | proves :reducer/KindNotTakenError/refusesTheReducerFirst
-        |~~ A reducer written before the seed hands the reducer's place
-            the seed.
+        |~~ A reducer written before the seed is read as the seed, and
+            the seed as the reducer.
         ~~|
         ~([1 2 3] | reduce ~(add) 0
           !| get [~(type) /actualType]
@@ -1668,7 +1668,7 @@
             values unite as `a | union b`.
         ~~|
     | throws :ElementKindNotTakenError
-        |~~ The values `union` unites are sets or maps; the place of its
+        |~~ The values `union` unites are sets or maps; the path of its
             frame names the first that is neither, and a vector of vectors unites once
             each is a set, `map ~(toSet) | union`.
         ~~|
@@ -1693,7 +1693,7 @@
             index.
         ~~|
         ~([#[:a] 2] | union
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::vec/union/ElementKindNotTakenError /1 ::number #[::map ::set]])
     | proves :ElementKindNotTakenError/unitesVectorsMadeSets
         |~~ A vector of vectors unites once each is a set. ~~|
@@ -1739,13 +1739,13 @@
             of two values `a | minus b` takes `b` from `a`.
         ~~|
     | throws :ElementKindNotTakenError
-        |~~ The value `minus` takes from is a set or a map; the place of
+        |~~ The value `minus` takes from is a set or a map; the path of
             its frame names the first value of the vector, which is
             neither.
         ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `minus` takes out of a map is a keyword, a number or a
-            string, as `get` reads a key alone; the place of its frame
+            string, as `get` reads a key alone; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
@@ -1772,7 +1772,7 @@
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~([1 #[1]] | minus !| get [~(type) ~(trace | last | place) /expected] | eq [::vec/minus/ElementKindNotTakenError /0 #[::map ::set]])
+        ~([1 #[1]] | minus !| get [~(type) ~(trace | last | path) /expected] | eq [::vec/minus/ElementKindNotTakenError /0 #[::map ::set]])
     | proves :refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | minus
@@ -1783,7 +1783,7 @@
             kinds of a key.
         ~~|
         ~([{:a 1} [:a true]] | minus
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/minus/KeyKindNotTakenError ::boolean /1/1 #[::keyword ::number ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the verb. ~~|
@@ -1819,13 +1819,13 @@
             two values `a | inter b` keeps what `a` shares with `b`.
         ~~|
     | throws :ElementKindNotTakenError
-        |~~ The value `inter` keeps from is a set or a map; the place of
+        |~~ The value `inter` keeps from is a set or a map; the path of
             its frame names the first value of the vector, which is
             neither.
         ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `inter` keeps of a map is a keyword, a number or a
-            string, as `get` reads a key alone; the place of its frame
+            string, as `get` reads a key alone; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
@@ -1850,7 +1850,7 @@
         |~~ A first value that is neither a set nor a map is refused at
             its index.
         ~~|
-        ~([1 #[1]] | inter !| get [~(type) ~(trace | last | place) /expected] | eq [::vec/inter/ElementKindNotTakenError /0 #[::map ::set]])
+        ~([1 #[1]] | inter !| get [~(type) ~(trace | last | path) /expected] | eq [::vec/inter/ElementKindNotTakenError /0 #[::map ::set]])
     | proves :refusesAMapAfterASet
         |~~ A map after a set is refused with the pair. ~~|
         ~([#[:a] {:b 1}] | inter
@@ -1861,7 +1861,7 @@
             of a key.
         ~~|
         ~([{:a 1} [[:a]]] | inter
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/inter/KeyKindNotTakenError ::vec /1/0 #[::keyword ::number ::string]])
     | proves :ArgsBeyondInputsError/refusesAValueGiven
         |~~ A value the call gives is refused under the verb. ~~|
@@ -1909,7 +1909,7 @@
         ~~|
     | throws :ElementKindNotTakenError
         |~~ Every element `join` writes is a string or a keyword, written
-            as its name; the place of its frame names the first that is
+            as its name; the path of its frame names the first that is
             neither, and
             `map ~toString` makes a number its text first, `map ~print`
             writing any value as its literal.
@@ -1959,7 +1959,7 @@
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ A number among the strings is refused at its index. ~~|
         ~(["a" 42 "c"] | join ","
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::vec/join/ElementKindNotTakenError ::number /1 #[::keyword ::string]])
     | impl ::builtin{}
 
@@ -2074,12 +2074,12 @@
     | returns |~~ The map of the pairs. ~~| ::map
     | throws :ElementNotPairError
         |~~ Each element of the vector `toMap` reads is a pair
-            `[key value]`; the place of its frame names the first that is
+            `[key value]`; the path of its frame names the first that is
             not.
         ~~|
     | throws :KeyKindNotTakenError
         |~~ The key of a pair is a value `toKeyword` names, a keyword, a
-            string, a number, a boolean, null or a tag name; the place of
+            string, a number, a boolean, null or a tag name; the path of
             its frame names the key of the pair that is another value, and
             `:expected` the kinds a key files under.
         ~~|
@@ -2099,15 +2099,15 @@
         |~~ An element that holds one value is no pair, and is refused at
             its index.
         ~~|
-        ~([[:a 1] [:b]] | toMap !| get [~(type) ~(trace | last | place)] | eq [::vec/toMap/ElementNotPairError /1])
+        ~([[:a 1] [:b]] | toMap !| get [~(type) ~(trace | last | path)] | eq [::vec/toMap/ElementNotPairError /1])
     | proves :ElementNotPairError/refusesAPairOfThree
         |~~ An element that holds three values is no pair either. ~~|
-        ~([[:a 1 2]] | toMap !| get [~(type) ~(trace | last | place)] | eq [::vec/toMap/ElementNotPairError /0])
+        ~([[:a 1 2]] | toMap !| get [~(type) ~(trace | last | path)] | eq [::vec/toMap/ElementNotPairError /0])
     | proves :KeyKindNotTakenError/refusesAVectorKey
         |~~ A vector names no key, and is refused at its pair with the
             kinds a key files under.
         ~~|
-        ~([[[1] 2]] | toMap !| get [~(type) /actualType ~(trace | last | place) /expected] | eq [::vec/toMap/KeyKindNotTakenError ::vec /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~([[[1] 2]] | toMap !| get [~(type) /actualType ~(trace | last | path) /expected] | eq [::vec/toMap/KeyKindNotTakenError ::vec /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :vec/toVec
@@ -2153,6 +2153,6 @@
         ~([] | toPath !| type | eq ::vec/toPath/SubjectEmptyError)
     | proves :ElementKindNotTakenError/refusesABoolean
         |~~ A boolean is no key alone, and is refused at its index. ~~|
-        ~([:a true] | toPath !| get [~(type) /expected ~(trace | last | place)] | eq [::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1])
+        ~([:a true] | toPath !| get [~(type) /expected ~(trace | last | path)] | eq [::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1])
     | impl ::builtin{}
 

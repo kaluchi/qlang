@@ -8,7 +8,7 @@ Deliver your audit in Russian (keep code, names and file paths as they are), con
 
 1. What the language is and what it is for, as you read it — one paragraph.
 2. Its real strengths: what is genuinely good and distinctive, and worth protecting.
-3. The main problems now, most severe first: incoherences of design; names, forms, prose and code paths that do not fit the model the language holds; complexity that does not pay for itself; places where a newcomer or an agent would stumble. Give each a file:line or a query that shows it.
+3. The main problems now, most severe first: incoherences of design; names, forms, prose and code paths that do not fit the model the language holds; complexity that does not pay for itself; spots where a newcomer or an agent would stumble. Give each a file:line or a query that shows it.
 4. Where effort should go next, in order, and why.
 5. Improvements that would complement and strengthen the language — features, simplifications, tooling — each with its rough cost and what it would buy.
 6. Where you disagree with the project's aim and its open records, once you have read them.

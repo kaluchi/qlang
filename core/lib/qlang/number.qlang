@@ -502,7 +502,7 @@
             `toNumber`, `"2.5" | toNumber | round`.
         ~~|
     | proves :keepsTheDigitsGiven
-        |~~ Two digits keep two places after the point. ~~|
+        |~~ `round 2` keeps two digits after the point. ~~|
         ~(3.14159 | round 2 | eq 3.14)
     | proves :roundsAHalfAwayFromZero
         |~~ A half rounds away from zero. ~~|

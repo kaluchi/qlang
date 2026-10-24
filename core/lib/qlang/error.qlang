@@ -72,8 +72,8 @@
         ~~|
         ::vec
     | carries :repair
-        |~~ The step the call was likely meant as, where a path stands in
-            the place of the value it names: the step again with the path
+        |~~ The step the call was likely meant as, where a path stands
+            instead of the value it names: the step again with the path
             read by `get`, `/tags | count` repaired as `get /tags | count`
             and `mul /qty` as `mul (get /qty)`.
         ~~|
@@ -89,7 +89,7 @@
         |~~ The index, from zero, of the element refused in a value no
             frame holds as its subject, an input, a payload, the args or
             the conditions of `allOf`, `anyOf` and `cond`; a part of the
-            subject a step refused is named by the place of its frame.
+            subject a step refused is named by the path of its frame.
         ~~|
         ::number
     | carries :expected
@@ -98,9 +98,9 @@
         ~~|
         #[::tag]
     | carries :actualType |~~ The kind of the value refused. ~~| ::tag
-    | carries :places
-        |~~ How many places the inputs of the verb read, where the call
-            gave more values.
+    | carries :arity
+        |~~ The arity of the verb, how many args its inputs read, where
+            the call gave more.
         ~~|
         ::number
     | carries :actualValue

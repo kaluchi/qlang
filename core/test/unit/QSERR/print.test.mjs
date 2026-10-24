@@ -58,7 +58,7 @@ describe('the caret under the line where the reading stopped', () => {
     expect(await caretOfQuery(refusalAt('xyz', '1 1 2 1000000000 1 1000000000'))).toBe('|~| xyz\n|~|  ^~');
   });
 
-  it('draws a line past the excerpt within an excerpt around the place, an ellipsis where it cuts, the caret under the place as far as the excerpt reaches', async () => {
+  it('draws a line past the excerpt within an excerpt around the point, an ellipsis where it cuts, the caret under the point as far as the excerpt reaches', async () => {
     const [tail, under] = (await caretOfQuery(refusalAt('x'.repeat(400), '349 1 350 349 1 351'))).split('\n');
     expect(tail).toBe(`|~| …${'x'.repeat(300)}`);
     expect(under).toBe(`|~| ${' '.repeat(250)}^`);

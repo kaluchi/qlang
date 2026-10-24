@@ -15,7 +15,7 @@
       last:
       `::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)`.
       `on` names the subject, its page and its kinds; `takes` an input, its
-      name, its page, the place of the args it reads, `/0` the first arg
+      name, its page, its selector over the args, `/0` the first arg
       and `~(query /0 1)` the first or one, and its kinds; `returns` the
       answer, its page and its kinds; `throws` a refusal and its page;
       `carries` a fact a refusal carries, its page and its kinds; `holds`
@@ -54,7 +54,7 @@
             takes, written with the objects the page of its verb names in
             their order, `::fn/takes | doc` those of `takes`, whether the
             verb wrote it or the literal: `:command` holds the command as
-            written, `:index` the place of the object refused, from zero,
+            written, `:index` the index of the object refused, from zero,
             or of the first left out, and `:actualValue` the object.
             ::link~(::fn/on | doc) ::link~(::fn/takes | doc)
             ::link~(::fn/returns | doc) ::link~(::fn/throws | doc)
@@ -144,7 +144,7 @@
           |  eq ::path/SubjectHasNoPartsError)
     | proves :answersTheFailureOfAModifier
         |~~ A modifier computed at the call that failed is the answer,
-            where no input that reads its place takes a quote.
+            where the input that reads it takes no quote.
         ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
           | :number/one (::fn | returns |~~ One. ~~| ::number | impl ~(1))
@@ -206,8 +206,8 @@
     | proves :CommandNotTakenError/refusesTheSubjectAsAnInput
         |~~ The subject is no input. ~~|
         ~(::fn[~(takes :subject |~~ A subject. ~~| /0) ~(1)] !| type | eq ::fn/CommandNotTakenError)
-    | proves :CommandNotTakenError/refusesAPlaceThatIsNoPathOrQuote
-        |~~ A place is a path or a quote. ~~|
+    | proves :CommandNotTakenError/refusesASelectorThatIsNoPathOrQuote
+        |~~ A selector is a path or a quote. ~~|
         ~(::fn[~(takes :by |~~ How much. ~~| 0) ~(add by)] !| type | eq ::fn/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesKindsThatAreNoTags
         |~~ Kinds are tags. ~~|
@@ -270,10 +270,10 @@
             names them under its address, where each reads its own.
         ~~|
     | proves :call/refusesArgsPastItsInputs
-        |~~ Args past the places its inputs read are refused. ~~|
+        |~~ Args past its arity are refused. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [1 2] !| type | eq ::fn/call/ArgsBeyondInputsError)
     | proves :call/refusesAnInputLeftOut
-        |~~ An input whose place the args leave out is refused. ~~|
+        |~~ An input the args leave out is refused. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) !| type | eq ::fn/call/by/NotGivenError)
     | proves :call/explainsTheRefusalsNamedUnderIt
         |~~ A refusal named under the call reads its page. ~~|
@@ -319,10 +319,10 @@
     ::builtin{}]
 
 :fn/takes
-  |~~ Adds an input to a function: its name, its page, the place of the
-      args it reads, and the kinds it holds where they are given, a value
-      of none refused under the name of the input,
-      `::fn | takes :by |~~ How much. ~~| /0 ::number`. The place is a
+  |~~ Adds an input to a function: its name, its page, its selector over
+      the args, and the kinds it holds where they are given, a value of
+      none refused under the name of the input,
+      `::fn | takes :by |~~ How much. ~~| /0 ::number`. The selector is a
       path into the args, read strictly, `/0` the first and `/0/by` the key
       `by` of a map handed first; one of two forms, read as written and
       never run, `~(query /0 1)` the first or, where the call gives none,
@@ -336,7 +336,7 @@
         |~~ The objects of the command as written: the name of the input, a
             keyword its recipe reads as a step, of one segment, neither `answer`
             nor `subject`, which the chain lays itself, nor a word of a literal;
-            its page, a doc; the place of the args it reads, a path or a quote;
+            its page, a doc; its selector over the args, a path or a quote;
             and its kinds, a tag or a set of one tag or more, or a vector of one
             of them for the kinds of each element, any value where none is
             written.
@@ -349,7 +349,7 @@
         |~~ `takes` builds from the noun, `::fn | takes …`, or a function.
         ~~|
     | proves :addsAnInput
-        |~~ An input is added by its name, its page and its place. ~~|
+        |~~ An input is added by its name, its page and its selector. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | inputs | map /name | eq [:by])
     | proves :holdsTheKinds
         |~~ An input of kinds refuses a value of none under its name. ~~|
@@ -408,16 +408,16 @@
         |~~ A path into the args reads an input by its key. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0/by | impl ~(add by)) [{:by 3}] | eq 8)
     | proves :givesADefault
-        |~~ A place read by `query` gives a default. ~~|
+        |~~ A selector written as `query` gives a default. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by)) | eq 6)
     | proves :readsTheArgsWhole
-        |~~ A place written `~(it)` reads the args whole. ~~|
+        |~~ A selector written `~(it)` reads the args whole. ~~|
         ~(5 | apply (::fn | takes :xs |~~ Values. ~~| ~(it) | impl ~(xs | count)) [1 2 3] | eq 3)
     | proves :readsItsFormsByNoVerbOfTheirNames
-        |~~ A verb named `query` reaches no place written in its form. ~~|
+        |~~ A verb named `query` reaches no selector written in its form. ~~|
         ~(:vec/query ~(99) | 5 | apply (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by)) | eq 6)
-    | proves :answersTheFailureOfItsPlace
-        |~~ A place that reads the args by code and fails answers its
+    | proves :answersTheFailureOfItsSelector
+        |~~ A selector that reads the args by code and fails answers its
             failure.
         ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(first | sub "x") | impl ~(add by)) [3]
@@ -425,7 +425,7 @@
           |  eq ::number/sub/subtrahend/KindNotTakenError)
     | proves :refusesAStepWrittenForItsQuote
         |~~ A modifier computed at the call that failed, where the input
-            that reads its place takes a quote, is refused under its
+            that reads it takes a quote, is refused under its
             kinds.
         ~~|
         ~(:vec/each (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code))
@@ -433,9 +433,9 @@
           | each (add 1)
           !| type
           |  eq ::vec/each/code/KindNotTakenError)
-    | proves :refusesAStepWrittenForAQuoteOfTheArgsByItsPlace
+    | proves :refusesAStepWrittenForAQuoteOfTheArgsAtItsIndex
         |~~ Where the input that reads the args whole takes quotes, a
-            modifier that failed is refused by its place.
+            modifier that failed is refused at its index.
         ~~|
         ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
           | 5
@@ -758,12 +758,12 @@
         ~(5 | fill 3 !| type | eq ::fn/fill/SubjectNotFnError)
     | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(type) /expected ~(trace | last | place)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(type) /expected ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
     ::builtin{}]
 
 :fn/inputs
   |~~ Answers the inputs of a function, each a map of its name, its page,
-      its place and its kinds as written, null where it names none.
+      its selector and its kinds as written, null where it names none.
   ~~|
   ::fn[~(returns |~~ The inputs, a map for each. ~~| ::vec
     | throws :SubjectNotFnError |~~ `inputs` reads a function. ~~|

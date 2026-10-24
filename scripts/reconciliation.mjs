@@ -59,7 +59,7 @@ const byRecord = (left, right) => left[0].localeCompare(right[0]) || Number(left
 
 // citedOnce(text, cited) → the text with each run that cites `cited` naming
 // each record and section once, a section where it first stands and the
-// records in their order in the places they hold, its separators kept where
+// records in their order where they stand, its separators kept where
 // they stand, a line break before any other: the run a merge or a
 // dissolution writes [QSWRK#journal], [QSWRK#closeout].
 export function citedOnce(text, cited) {
@@ -238,6 +238,16 @@ export function recordsInTransit(repoRoot) {
     const line = readText(join(recordsDir, name)).match(/^Overrides ((?:[^\r\n]|\r?\n(?=\[QS))+)/m)?.[1];
     return line === undefined ? [] : [[name.slice(0, -3), [...line.matchAll(/\[(QS[A-Z]{3}(?:#[a-z][a-z-]*)?)\]/g)].map(match => match[1])]];
   }));
+}
+
+// waitsForTheCloseout(overridden, chapter, section) → whether the text of a
+// section waits for the closeout: one a record in transit overrides, every
+// one of a chapter it overrides whole, and the head of a chapter, `''`, with
+// any section of it, as the head goes with a record dissolved into the chapter
+// [QSVOX#chapter].
+export function waitsForTheCloseout(overridden, chapter, section) {
+  const cited = [...overridden];
+  return cited.includes(chapter) || cited.includes(`${chapter}#${section}`) || (section === '' && cited.some(each => each.startsWith(`${chapter}#`)));
 }
 
 // The records in transit in the tree of a commit, those of its journal

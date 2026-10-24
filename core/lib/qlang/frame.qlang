@@ -15,7 +15,7 @@
       A trace holds a frame for each step that raised a failure or handed
       it on, a frame a line, and a frame prints on one line whatever its
       subject holds. `subject`, `unfinished`, `failed`, `skipped` and
-      `place` read a frame, and a path reads it as the vector it is, `/0`
+      `path` read a frame, and a path reads it as the vector it is, `/0`
       its subject, so `!| get /trace/1/0/1` reads the element the code of
       `map` failed on. The steps skipped at the level that reads a failure
       run again on another value by `apply`.
@@ -23,7 +23,7 @@
       ::link~(::trace | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The subject, the steps and the place. ~~| ::vec
+    | wraps |~~ The subject, the steps and the path. ~~| ::vec
     | holds :PayloadNotSubjectAndStepsError
         |~~ A frame holds the subject a step met and the quote of the
             steps from the one that failed, one step at least, and after
@@ -35,8 +35,8 @@
     | proves :holdsTheStepThatFailedAndTheValueItMet
         |~~ The frame of `add 1` holds the value it met. ~~|
         ~("x" | add 1 !| trace | first | eq ::frame["x" ~(add 1)])
-    | proves :holdsThePlaceOfThePart
-        |~~ The frame of `map` holds the place of the element its code
+    | proves :holdsThePathOfThePart
+        |~~ The frame of `map` holds the path of the element its code
             failed on.
         ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | eq ::frame[[1 "x" 3] ~(map ~(mul 2)) /1])
@@ -46,8 +46,8 @@
     | proves :PayloadNotSubjectAndStepsError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
         ~(::frame["x"] !| type | eq ::frame/PayloadNotSubjectAndStepsError)
-    | proves :PayloadNotSubjectAndStepsError/refusesAPlaceThatIsNoPath
-        |~~ A place that is no path is refused. ~~|
+    | proves :PayloadNotSubjectAndStepsError/refusesAThirdElementThatIsNoPath
+        |~~ A third element that is no path is refused. ~~|
         ~(::frame["x" ~(add 1) 1] !| type | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no frame. ~~|
@@ -58,8 +58,8 @@
       there met, `::frame["x" ~(add 1)] | subject` answering `"x"`: the
       first frame of a trace holds the subject the step that failed met, and the
       frame of a verb that ran its code on a part of its subject the whole
-      subject, its `place` naming the part.
-      ::link~(::frame/place | doc) ::link~(::frame/failed | doc)
+      subject, its `path` naming the part.
+      ::link~(::frame/path | doc) ::link~(::frame/failed | doc)
   ~~|
   ::fn
     | returns |~~ The value the step met, of any kind. ~~| ::any
@@ -170,10 +170,10 @@
         ~([1 2] | skipped !| type | eq ::frame/skipped/SubjectNotFrameError)
     | impl ~(unfinished | drop 1)
 
-:frame/place
+:frame/path
   |~~ Answers the path of the part of the subject the step failed at,
       null where it failed at no part:
-      `[1 "x" 3] | map ~(mul 2) !| trace | last | place` answers `/1`. A
+      `[1 "x" 3] | map ~(mul 2) !| trace | last | path` answers `/1`. A
       verb names the part its code failed on, `map`, `filter`, `every`,
       `any` and `reduce` and the keys of `sort`, `min`, `max`, `groupBy`
       and `indexBy`, the part whose answer it refused, the verdict of a
@@ -182,37 +182,37 @@
       `toMap` and a fold of the algebra, each by the path of its index or
       of its key, `update` the path it wrote, and a step the part its
       modifier failed at; the subject reads the part by it,
-      `get (f | place)` with `f` the frame.
+      `get (f | path)` with `f` the frame.
       ::link~(::frame/subject | doc) ::link~(::path | doc)
   ~~|
   ::fn
     | returns |~~ The path of the part, null where the step failed at none. ~~| #[::null ::path]
     | throws :SubjectNotFrameError
-        |~~ `place` reads a frame, which the trace of a failure holds,
-            `[1 "x"] | map ~(mul 2) !| trace | last | place`.
+        |~~ `path` reads a frame, which the trace of a failure holds,
+            `[1 "x"] | map ~(mul 2) !| trace | last | path`.
         ~~|
     | proves :namesTheElementTheCodeFailedOn
         |~~ `map` names the index of the element its code failed on. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | last | place | eq /1)
+        ~([1 "x" 3] | map ~(mul 2) !| trace | last | path | eq /1)
     | proves :namesTheKeyOfAMap
         |~~ Over a map it names the key. ~~|
-        ~({:a 1 :b "x"} | map ~(add 1) !| trace | last | place | eq /b)
+        ~({:a 1 :b "x"} | map ~(add 1) !| trace | last | path | eq /b)
     | proves :namesThePathUpdateWrote
         |~~ `update` names the path it wrote. ~~|
-        ~({:a {:n "x"}} | update /a/n ~(add 1) !| trace | last | place | eq /a/n)
+        ~({:a {:n "x"}} | update /a/n ~(add 1) !| trace | last | path | eq /a/n)
     | proves :namesTheElementAVerbRefused
         |~~ `sum` names the element it refused. ~~|
-        ~([1 "x"] | sum !| trace | first | place | eq /1)
+        ~([1 "x"] | sum !| trace | first | path | eq /1)
     | proves :namesThePartAModifierFailedAt
         |~~ A step names the part its modifier failed at. ~~|
-        ~([1 "x"] | eq sum !| trace | first | place | eq /1)
+        ~([1 "x"] | eq sum !| trace | first | path | eq /1)
     | proves :answersNullWhereTheStepFailedAtNoPart
         |~~ A step that failed at no part names none. ~~|
-        ~("x" | add 1 !| trace | first | place | eq null)
+        ~("x" | add 1 !| trace | first | path | eq null)
     | proves :readsThePartFromTheSubject
-        |~~ The subject of the frame reads the part by its place. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | place) | eq "x")
+        |~~ The subject of the frame reads the part by its path. ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path) | eq "x")
     | proves :SubjectNotFrameError/refusesANumber
         |~~ A number is no frame. ~~|
-        ~(5 | place !| type | eq ::frame/place/SubjectNotFrameError)
+        ~(5 | path !| type | eq ::frame/path/SubjectNotFrameError)
     | impl ~(query /2)

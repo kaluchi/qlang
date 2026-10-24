@@ -152,7 +152,7 @@ describe('the refusals a verb that is a function raises by rule', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
   });
 
-  it('names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
+  it('names no refusal of an answer it does not name, nor of an input its selector reads softly', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
 
@@ -184,7 +184,7 @@ describe('a refusal names a kind only where its address names it', () => {
     ]);
   });
 
-  it('leaves the label of a subject, the kind a conversion reads, a place a key is missing from, a word of no kind and a name by the role', () => {
+  it('leaves the label of a subject, the kind a conversion reads, a map a key is missing from, a word of no kind and a name by the role', () => {
     expect(named(['number/add/SubjectNotNumberError', 'string/toNumber/TextNotNumberError', 'path/KeyNotInMapError', 'vec/toMap/ElementNotPairError', 'vec/sum/ElementKindNotTakenError'])).toEqual([]);
   });
 

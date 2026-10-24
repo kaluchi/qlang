@@ -7,7 +7,7 @@
   |~~ A regex, `#"\d+ms"`, which the verbs of a string read text by:
       whether a match stands, `"took 12ms" | contains #"\d+ms"`, the
       first match and its groups, `match`, the groups it names, `capture`,
-      the text of every match, `scan`, the text put in the place of every
+      the text of every match, `scan`, the text put instead of every
       match, `replace`, and the pieces between the matches, `split`.
 
       What stands between the quotes reaches the engine as it is written:

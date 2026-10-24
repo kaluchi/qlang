@@ -139,7 +139,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
-import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
+import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, waitsForTheCloseout, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
@@ -252,7 +252,7 @@ function scanForbiddenWords() {
 //
 // A refusal's address is the one key the implementation and its page in the
 // catalog share: every declaration of a refusal and every recording of an
-// address outside one takes it as a literal, the path of the place that
+// address outside one takes it as a literal, the path of the site that
 // refused and a last name ending in `Error`, `vec/sum/ElementKindNotTakenError`,
 // and the constant that holds the class is named by the address without its
 // slashes, `VecSumElementKindNotTakenError`, so a grep for either finds the
@@ -798,7 +798,7 @@ function namesOfTakenOut() {
       for (const token of tokensIn(holds)) held.add(token);
       // A keyword holds the address of the name it names [QSNAM#address].
       for (const [keyword] of holds.matchAll(KEYWORD)) held.add(`:${keyword}`);
-      const waits = chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`));
+      const waits = chapter !== undefined && waitsForTheCloseout(waiting, chapter, section);
       if (names !== '' && !waits) naming.push({ file, line: index + 1, names, text: line.trim() });
     });
   }
@@ -835,7 +835,7 @@ function retiredWordsWritten() {
     let section = '';
     partsOfLines(voice, text).forEach(({ holds, names }, index) => {
       if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
-      if (chapter !== undefined && (waiting.has(chapter) || waiting.has(`${chapter}#${section}`))) return;
+      if (chapter !== undefined && waitsForTheCloseout(waiting, chapter, section)) return;
       const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
       for (const part of read) {
         for (const { regex, written, by } of RETIRED_WORDS) {

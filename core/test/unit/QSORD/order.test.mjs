@@ -50,7 +50,7 @@ const LADDER = [
   '::Z!{:a 1} | raise', '!{:a 1} | raise', '!{:a 2} | raise'
 ];
 
-it('ranks each value of a ladder after the one before it, the sign of the places of every two values', async () => {
+it('ranks each value of a ladder after the one before it, the sign of the ranks of every two values', async () => {
   const values = [];
   for (const query of LADDER) values.push(await evalQuery(query));
   for (const [at, value] of values.entries()) {

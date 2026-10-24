@@ -33,7 +33,7 @@ registerPrimitive('number/round', (subject, digits) => {
   return rounded === 0 ? 0 : rounded;
 });
 
-function shiftedBy(number, places) {
+function shiftedBy(number, by) {
   const [digits, exponent = '0'] = String(number).split('e');
-  return Number(`${digits}e${Number(exponent) + places}`);
+  return Number(`${digits}e${Number(exponent) + by}`);
 }

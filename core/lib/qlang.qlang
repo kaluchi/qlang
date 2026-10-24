@@ -7,8 +7,8 @@
   |~~ qlang is a pipeline query language over values. A query starts
       from a subject, the value it is given, and passes it through steps:
       each step takes the value the step before answered and answers a
-      new one, and the last answer is the answer of the query. Nothing
-      changes in place. Everything the language handles is a value with
+      new one, and the last answer is the answer of the query. No value
+      ever changes. Everything the language handles is a value with
       a literal that prints and reads back as itself, data, code, prose
       and failures alike, so the language describes itself in its own
       values: every name has a page, the pages grow from ::qlang, and a
@@ -201,8 +201,8 @@
   ::kind
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
-            characters of its print `:budget` names, and prints this in its
-            place: `:characters` tells the characters of the print, and
+            characters of its print `:budget` names, and prints this
+            instead of it: `:characters` tells the characters of the print, and
             `:actualValue` the head of the answer, each `::elision` in it a
             `:read` that continues the query to the part. Narrow the answer
             by `get`, `take`, `keys`, `count` or `shape`, or, where the host
@@ -241,7 +241,7 @@
         |~~ `query` reads a missing key as null. ~~|
         ~({:a 1} | query /b | eq null)
     | proves :fallsBack
-        |~~ `coalesce` puts a fallback in the place of null. ~~|
+        |~~ `coalesce` answers a fallback for null. ~~|
         ~({:a 1} | query /b | coalesce 0 | eq 0)
     | proves :multipliesTwoFields
         |~~ Two fields of one record multiply by `mulOf`. ~~|
@@ -460,7 +460,7 @@
     | proves :values/readsTheOuterTag
         |~~ The type is the outer tag. ~~|
         ~(::Box::Crate{:a 1} | type | eq ::Box)
-    | proves :values/changesNothingInPlace
+    | proves :values/leavesTheOldValueAsItWas
         |~~ Appending leaves the old vector as it was. ~~|
         ~([1 2] | :v it | append 3 | get [~(v) ~(it)] | eq [[1 2] [1 2 3]])
     | proves :values/readsBackItsPrint
@@ -666,8 +666,8 @@
             function named under a label, built from `::fn` by a chain of
             commands with its recipe last,
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
-            `on` names its subject, `takes` an input with its page, the
-            place of the args it reads and its kinds, `returns` its
+            `on` names its subject, `takes` an input with its page, its
+            selector over the args and its kinds, `returns` its
             answer, `throws` a refusal, `carries` a fact it carries,
             `holds` an invariant and `proves` a law, and its call reads
             them from the function, each input bound by its name in the
@@ -691,8 +691,8 @@
             name, by the chain that builds it from `::kind`,
             `:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)`,
             or by its page alone, a kind of no commands: `wraps` names its
-            payload and its kinds, `reads` a field the payload holds at a
-            place and its kinds, `holds` an invariant of the value or of a
+            payload and its kinds, `reads` a field the payload holds, its
+            selector and its kinds, `holds` an invariant of the value or of a
             field, `throws` a refusal, `carries` a fact and `proves` a law,
             and a kind of the core `impl` its constructor, which its host
             hands; the kind attaches the tag to the payload or refuses
@@ -818,11 +818,11 @@
     | proves :errors/runsTheSkippedStepsAgain
         |~~ The steps a failure skipped run again by `apply`. ~~|
         ~("x" | add 1 | mul 2 !| trace | last | skipped | :rest it | 5 | apply rest | eq 10)
-    | proves :errors/namesThePlaceOfThePart
+    | proves :errors/namesThePathOfThePart
         |~~ The frame of a verb that ran its code on an element names the
-            place of the element.
+            path of the element.
         ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | last | place | eq /1)
+        ~([1 "x" 3] | map ~(mul 2) !| trace | last | path | eq /1)
     | proves :errors/resumesItsTrace
         |~~ A map raised again resumes its trace. ~~|
         ~(!{:a 1} | raise | count !| raise | add 1 !| trace | last | skipped | eq ~(count | add 1))
@@ -920,7 +920,7 @@
             budget of characters of its print, but the REPL of the command
             line, which prints it whole: an answer that fits prints
             whole, and one past it prints as the failure
-            `::qlang/AnswerBeyondBudgetError` in its place, its head an
+            `::qlang/AnswerBeyondBudgetError` instead, its head an
             excerpt where each part left out is an `::elision`, whose
             `:read` continues the query to the part; `print | out` writes
             an answer whole, and `elide` cuts a value on purpose. A failure

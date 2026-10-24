@@ -8,7 +8,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { readText } from './tree-reads.mjs';
-import { recordsInTransit, sectionsOfChapter } from './reconciliation.mjs';
+import { recordsInTransit, sectionsOfChapter, waitsForTheCloseout } from './reconciliation.mjs';
 
 const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md'];
 const SPEC_DIR = 'docs/spec';
@@ -16,15 +16,13 @@ const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.gi
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 
 // anchorTexts(repoRoot) → each `{ documentPath, text }`: the seed and the aim
-// whole, and a chapter by the sections no record in transit overrides, none
-// of it where one overrides the chapter whole.
+// whole, and a chapter by the sections whose text waits for no closeout.
 export function anchorTexts(repoRoot) {
   const overridden = [...recordsInTransit(repoRoot).values()].flat();
   const chapterFiles = existsSync(join(repoRoot, SPEC_DIR)) ? readdirSync(join(repoRoot, SPEC_DIR)).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(name)) : [];
   const chapters = chapterFiles.map(name => {
     const chapter = name.slice(0, 5);
-    const kept = overridden.includes(chapter) ? []
-      : [...sectionsOfChapter(readText(join(repoRoot, SPEC_DIR, name)))].filter(([section]) => !overridden.includes(`${chapter}#${section}`));
+    const kept = [...sectionsOfChapter(readText(join(repoRoot, SPEC_DIR, name)))].filter(([section]) => !waitsForTheCloseout(overridden, chapter, section));
     return { documentPath: `${SPEC_DIR}/${name}`, text: kept.map(([, body]) => body).join('\n') };
   });
   const documents = ANCHOR_DOCUMENTS.filter(documentPath => existsSync(join(repoRoot, documentPath)));

@@ -1,7 +1,7 @@
 // What a page shows for a cell of a notebook: its answer as a host prints it,
-// within the budget of every answer, an answer past it as the refusal in its
-// place and a failure as its alert under the line that says it was raised,
-// the caret under the place a parse stopped below it, and a defect raised
+// within the budget of every answer, an answer past it as the refusal shown
+// instead and a failure as its alert under the line that says it was raised,
+// the caret under the point a parse stopped at below it, and a defect raised
 // past the fail track, as the cell ran or as its answer printed, written as
 // `qlang:` and its message [QSHST#notebook], [QSERR#print], [QSPRN#budget].
 

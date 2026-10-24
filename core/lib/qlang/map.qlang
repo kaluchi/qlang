@@ -205,7 +205,7 @@
 :map/sum
   |~~ Answers the sum of the values, each a number, `{:a 10 :b 20} | sum`
       answering `30` and the empty map `0`; it takes no value. A value
-      that is no number is refused, the place of its frame naming its key,
+      that is no number is refused, the path of its frame naming its key,
       and a field of each value is read first by `map`,
       `map /amount | sum`. A vector and a set sum
       their elements by the `sum` of vectors, and two fields of one record
@@ -216,7 +216,7 @@
   ::fn
     | returns |~~ The sum of the values, `0` for the empty map. ~~| ::number
     | throws :ElementKindNotTakenError
-        |~~ `sum` adds the numbers the map holds; the place of its frame
+        |~~ `sum` adds the numbers the map holds; the path of its frame
             names the first entry whose value is none, and a field is
             read first, `map /amount | sum`.
         ~~|
@@ -236,11 +236,11 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | sum
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::map/sum/ElementKindNotTakenError ::string /b #[::number]])
     | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:a null} | sum !| get [~(type) ~(trace | last | place)] | eq [::map/sum/ElementKindNotTakenError /a])
+        ~({:a null} | sum !| get [~(type) ~(trace | last | path)] | eq [::map/sum/ElementKindNotTakenError /a])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
         ~({:a 1} | sum (get /a) !| type | eq ::map/sum/ArgsBeyondInputsError)
@@ -251,7 +251,7 @@
       answering `1.5`, or null for the empty map, which has no mean, the
       mean of numbers staying among the finite doubles,
       `{:a 1e308 :b -1e308} | avg` answering `0`; it takes no value. A
-      value that is no number is refused, the place of its frame naming its
+      value that is no number is refused, the path of its frame naming its
       key, and a field of each value is read first by `map`,
       `map /amount | avg`. A vector and a
       set answer by the `avg` of vectors.
@@ -262,7 +262,7 @@
         |~~ The mean of the values, null for the empty map. ~~|
         #[::number ::null]
     | throws :ElementKindNotTakenError
-        |~~ `avg` takes the mean of the numbers the map holds; the place
+        |~~ `avg` takes the mean of the numbers the map holds; the path
             of its frame names the first entry whose value is none.
         ~~|
     | proves :answersTheMean
@@ -279,7 +279,7 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
         ~({:a 1 :b "two"} | avg
-          !| get [~(type) /actualType ~(trace | last | place) /expected]
+          !| get [~(type) /actualType ~(trace | last | path) /expected]
           |  eq [::map/avg/ElementKindNotTakenError ::string /b #[::number]])
     | impl ::builtin{}
 
@@ -444,7 +444,7 @@
         ::map
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for the value of
-            each entry; the place of its frame names the entry whose
+            each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
     | proves :keepsTheKeys
@@ -467,7 +467,7 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | filter ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::map/filter/ConditionKindNotTakenError /a ::number #[::boolean]])
     | impl ::builtin{}
 
@@ -496,7 +496,7 @@
         ::boolean
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `every` answers a boolean for the value of
-            each entry; the place of its frame names the entry whose
+            each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
     | proves :holdsOfEveryValue
@@ -513,7 +513,7 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | every ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::map/every/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -547,7 +547,7 @@
         ::boolean
     | throws :ConditionKindNotTakenError
         |~~ The predicate of `any` answers a boolean for the value of each
-            entry; the place of its frame names the entry whose predicate
+            entry; the path of its frame names the entry whose predicate
             answered another kind.
         ~~|
     | proves :holdsOfSomeValue
@@ -559,7 +559,7 @@
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:a 1} | any ~(1)
-          !| get [~(type) ~(trace | last | place) /actualType /expected]
+          !| get [~(type) ~(trace | last | path) /actualType /expected]
           |  eq [::map/any/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -735,8 +735,8 @@
         /1 #[::path ::quote]
     | throws :reducer/KindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
-            seed: written first, `reduce ~(add) 0`, it stands in the seed's
-            place and hands the reducer's place the seed, and written
+            seed: written first, `reduce ~(add) 0`, it is read as the
+            seed and the seed as the reducer, and written
             without the tilde, `(add)`, it is computed once at the call;
             either is refused.
         ~~|
@@ -756,8 +756,8 @@
         |~~ A reducer written without its quote is refused. ~~|
         ~({:a 1} | reduce 0 (add) !| type | eq ::map/reduce/reducer/KindNotTakenError)
     | proves :reducer/KindNotTakenError/refusesTheReducerFirst
-        |~~ A reducer written before the seed hands the reducer's place
-            the seed.
+        |~~ A reducer written before the seed is read as the seed, and
+            the seed as the reducer.
         ~~|
         ~({:a 1} | reduce ~(add) 0
           !| get [~(type) /actualType]

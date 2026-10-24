@@ -326,7 +326,7 @@ it('lifts an error of JavaScript and any other value a primitive throws to a fai
   expect(entry.result.tag.name).toBe('call/HostFailureError');
   expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
   expect(entry.result.facts.get('message')).toBe('raw boom');
-  expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | place)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
+  expect((await s.evalCell('42 | hollow !| get [~(type) /message ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
 });
 
 it('a parsed document lifts into the same map a literal reads into', async () => {

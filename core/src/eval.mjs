@@ -275,8 +275,8 @@ function nodesOfFunction(fn, address, scope, origin) {
   const standsUnder = role => [...chain.invariants.map(({ name }) => name), ...chain.pages.keys()].some(name => name.startsWith(`${role}/`));
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
   else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
-  for (const { name, page, place, kinds, each } of inputs) {
-    lay(name.name, page, place);
+  for (const { name, page, selector, kinds, each } of inputs) {
+    lay(name.name, page, selector);
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
@@ -413,11 +413,11 @@ async function invariantRefusal(invariants, address, value, state, scope, held =
 }
 
 // [QSBLD#input], [QSNAM#verb]
-function placeRead({ path, place, index, onePlace, strict, fallback, readsArgs }, values, overArgs) {
+function selectedValue({ path, selector, index, oneArg, strict, fallback, readsArgs }, values, overArgs) {
   if (readsArgs) return overArgs().pipeValue;
-  if (!onePlace) return path !== null ? pathOfArgs(path, overArgs()) : answerOfPipeline(place, overArgs());
+  if (!oneArg) return path !== null ? pathOfArgs(path, overArgs()) : answerOfPipeline(selector, overArgs());
   if (index < values.length) return values[index];
-  if (strict) return MISSED_PLACE;
+  if (strict) return MISSED_ARG;
   return fallback === null ? null : answerOfPipeline([fallback], overArgs());
 }
 
@@ -434,7 +434,7 @@ async function answerOfPipeline(steps, state) {
   return (await evalPipeline(steps, state)).pipeValue;
 }
 
-const MISSED_PLACE = Symbol('missedPlace');
+const MISSED_ARG = Symbol('missedArg');
 
 const OPENED_SCOPES = [new WeakMap(), new WeakMap()];
 
@@ -699,7 +699,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   const called = withCall(state, origins);
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
-  if (chain.places !== null && values.length > chain.places) return refusalUnder(argsBeyondInputsAddress(address), { places: chain.places, actualValue: argsValue() }, scope);
+  if (chain.arity !== null && values.length > chain.arity) return refusalUnder(argsBeyondInputsAddress(address), { arity: chain.arity, actualValue: argsValue() }, scope);
   const recipeScope = recipeSteps === null ? null : scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() }))
     .set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name)]) });
   const overArgs = () => nestState(called, argsValue(), scope);
@@ -709,9 +709,9 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     const { name } = input;
     const inputAddress = `${address}/${name.name}`;
     depthBelow(state);
-    const reached = placeRead(input.reading, values, overArgs);
+    const reached = selectedValue(input.reading, values, overArgs);
     const read = isThenable(reached) ? await reached : reached;
-    if (read === MISSED_PLACE || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
+    if (read === MISSED_ARG || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
     if (isErrorValue(read)) return read;
     given.push(read);
     const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope, recipeSteps !== null);
@@ -769,9 +769,9 @@ async function underKind(tagName, kind, payload, state) {
 
 async function fieldRefusal(tagName, field, payload, invariants, state, opened) {
   const fieldAddress = `${tagName}/${field.name.name}`;
-  const read = isPath(field.place)
-    ? pathOfArgs(field.place, withPipeValue(state, payload))
-    : await answerOfPipeline(field.place, nestState(state, payload, opened()));
+  const read = isPath(field.selector)
+    ? pathOfArgs(field.selector, withPipeValue(state, payload))
+    : await answerOfPipeline(field.selector, nestState(state, payload, opened()));
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
   if (isErrorValue(read)) return read;
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);
@@ -783,7 +783,7 @@ async function fieldRefusal(tagName, field, payload, invariants, state, opened) 
 // [QSNAM#scope], [QSNAM#verb], [QSQUO#held], [QSERR#trace]
 const closeStep = (step, state) => async (subject, flight) => {
   const answered = await evalStep(step, nestState(state, subject, state.scope));
-  if (answered.flight?.place) flight.place = answered.flight.place;
+  if (answered.flight?.path) flight.path = answered.flight.path;
   return answered.pipeValue;
 };
 

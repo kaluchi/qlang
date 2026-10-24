@@ -149,7 +149,7 @@ describe('a host\'s primitive under a label', () => {
     expect((await notebook.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
   });
 
-  it('hands a primitive its inputs in the order its chain takes them, whatever their places', async () => {
+  it('hands a primitive its inputs in the order its chain takes them, whatever their selectors', async () => {
     const notebook = await createNotebook({
       sources: [{
         uri: 'probe/pair',

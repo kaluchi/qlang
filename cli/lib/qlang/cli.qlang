@@ -221,7 +221,7 @@
             first, `{:name "alice"} | get [~(it)] | table`.
         ~~|
     | throws :RowKindNotTakenError
-        |~~ Every row of `table` is a map, its keys the columns; the place
+        |~~ Every row of `table` is a map, its keys the columns; the path
             of its frame names the first that is not.
         ~~|
     | proves :drawsEachRow
@@ -244,7 +244,7 @@
         ~(42 | table !| get [~(type) /actualType] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(type) ~(trace | last | place) /actualType /expected]
+        ~([42 "hello"] | table !| get [~(type) ~(trace | last | path) /actualType /expected]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{}
 

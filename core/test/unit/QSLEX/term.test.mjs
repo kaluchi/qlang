@@ -17,7 +17,7 @@ it('refuses each retired term of the chain, of the slot of a kind and of the nod
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('refuses each retired term of the trace, of the step that failed and of the evaluation depth where it is written', () => {
+it('refuses each retired term of the trace and of the step that failed, and the name the evaluation depth once had, where it is written', () => {
   for (const text of [
     'the trail of a failure', 'Trails are read by trail', '`:trail` among the facts', '`::trail[]`', '`!| get /trail/1/0`',
     'core/src/eval-trail.mjs', 'a-raised-error-holds-its-trail', 'quote-with-leading-combinator-trail-style',
@@ -27,28 +27,14 @@ it('refuses each retired term of the trace, of the step that failed and of the e
     'the step that broke', 'the steps from the one that broke', 'the element its code broke on', 'its predicate broke at',
     'the-frame-of-map-names-the-index-of-the-element-its-code-broke-on', 'the-frame-of-sort-names-the-index-its-key-broke-at',
     'the reducer that broke', 'its reducer broke on the element', 'the key that broke', 'brokeAt',
-    'frameBelow', 'the budget of frames', 'one frame below the call', 'a-modifier-of-an-atom-meets-the-budget-a-frame-below-its-call',
-    'the frames of a runaway meet a budget', 'one more nested frame of evaluation', 'the frames one evaluation may nest',
-    'the evaluation depth budget', 'a location set by a deeper frame', 'the deepest frame nestState admits', 'the refused frame',
-    'a-quote-written-as-a-modifier-runs-no-frame',
+    'frameBelow',
     '`subject`, `step`, `skipped` and `place`, verbs of `::frame`, read a frame', '`::frame["x" ~(add 1 | mul 2)] | step` answering `~(add 1)`',
     '`step` reads a frame, which the trace of a failure holds', 'the element the code of `map` broke on',
-    'The frame the budget refused.', 'itself without end, is refused on the frame past it', 'the frame past the budget refuses',
-    'depth of the frames nested under the query', 'meet the budget of frames one below',
-    'rootState opens depth 0; withPipeValue and withScope stay on the frame', 'nestState descends one frame with the inner pair',
-    'nestState admits the frame at EVAL_DEPTH_LIMIT', 'Each call runs a frame: an input',
     '`add 1`, which broke on `"x"`', '`map`, which broke where its code ran', '`mul 2`, which broke on',
     'the path of the part, where it broke, null where it ran it on no part', 'that broke, the first broken and the rest left unrun',
-    'an input read from its place meets the budget', 'a read with no state meets the budget by it alone.',
-    'leaves the budget intact for recursion that terminates', 'the frames of the evaluator', 'the budget of the evaluator',
+    'an input read from its place meets the budget',
     'QSERR#trail', 'Trail of a failure', 'the trails of two failures', 'makeTrails', 'theTrailEnd', 'TRAILS_KEY', 'KEY_TRAILS'
   ]) expect(refused(text), text).toBe(true);
-});
-
-it('refuses a frame for the scope of a source where it is written', () => {
-  for (const text of ['no frame of its source before them', 'each source a cell run in a frame over the root', 'the frames of the sources']) {
-    expect(refused(text), text).toBe(true);
-  }
 });
 
 it('leaves the words of another sense, the help of the language server and the series of the benchmark among them', () => {
@@ -101,8 +87,10 @@ it('refuses each retired term of a refusal, of a conversion, of an empty subject
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('refuses the position of an element named as a place where it is written', () => {
+it('refuses in every sense and every spelling the generic word once written for the selector, the path of a frame, the arity, the index, the rank, a span and a point of a text, the site of a refusal and what stands instead of another', () => {
   for (const text of [
+    'The place of the args the input reads, a path or a quote.', 'An input whose place the args leave out is refused.', 'A place read by `query` gives a default.', 'a modifier that failed is refused by its place', 'The input `multiplier` reads the first place of the args', 'How many places the inputs of the verb read', 'Args past the places its inputs read are refused.', '`place` reads a frame, which the trace of a failure holds', 'The frame of `map` holds the place of the element its code failed on', 'The subject of the frame reads the part by its place.', 'the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place', 'The place of the payload the field reads, a path or a quote.', 'A point is a place in source text', 'the place where a reading stopped', 'a caret under the place its `:location` names', 'scan-meets-an-empty-match-at-every-place', 'an empty match met at every place', 'is declared under the noun of its place', '`coalesce` puts a fallback in the place of null.', 'A sum subtracted is computed in its place.', 'the text that takes the place of each match', 'where a path stands in the place of the value it names', 'Two digits keep two places after the point.', 'Any value, its place in the one order turned around.', 'saves the draft of the place it leaves and loads the next place\'s', 'a key written twice standing in its first place with its last value', 'the values change nothing in place', 'the args of the call, which the inputs of its function read by their places', 'its inputs read from the args by their places', 'its own place read through the field again',
+    'Every place that refuses has a tag of its own', 'the place it guards', 'takes place', 'MISSED_PLACE', 'PLACES',
     'get-refuses-a-place-past-the-end', 'A vector grows by `append`, not by a place past its end.', 'A negative place past the start is refused as it was written.',
     '`/-1`, a negative place counting from the end', ':readsTuplesPlaceByPlace', 'a vector key place by place', 'two tuples of one length place by place',
     'segments-answers-the-keys-and-places-of-a-path', 'Answers the keys and places of the path', 'a vector of keys and places becomes',
@@ -136,24 +124,21 @@ it('refuses the position of an element named as a place where it is written', ()
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the words of another sense beside a refusal: the place of the args, of a frame, of a payload and of a text, the read of an elision, a bracket opened and the end of the source', () => {
+it('leaves the words written instead of that generic word and beside a refusal: the selector, the path of a frame, the arity, a span and a point of a text, the site, the rank, the read of an elision, a bracket opened and the end of the source', () => {
   for (const text of [
-    'The place of the args the input reads, a path or a quote.', 'An input whose place the args leave out is refused.', 'A place read by `query` gives a default.',
-    'a modifier that failed is refused by its place', 'The input `multiplier` reads the first place of the args', 'How many places the inputs of the verb read', 'Args past the places its inputs read are refused.',
-    '`place` reads a frame, which the trace of a failure holds', 'The frame of `map` holds the place of the element its code failed on', 'The subject of the frame reads the part by its place.',
-    'the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-place', 'The place of the payload the field reads, a path or a quote.',
-    'A point is a place in source text', 'the place where a reading stopped', 'a caret under the place its `:location` names', 'scan-meets-an-empty-match-at-every-place', 'an empty match met at every place',
-    'is declared under the noun of its place', '`coalesce` puts a fallback in the place of null.', 'A sum subtracted is computed in its place.', 'the text that takes the place of each match',
-    'where a path stands in the place of the value it names', 'Two digits keep two places after the point.', 'Any value, its place in the one order turned around.',
-    'saves the draft of the place it leaves and loads the next place\'s', 'a key written twice standing in its first place with its last value', 'the values change nothing in place',
+    'The selector over the args the input reads, a path or a quote.', 'An input the args leave out is refused.', 'A selector written as `query` gives a default.',
+    '`path` reads a frame, which the trace of a failure holds', '::frame/path', 'the path of its frame names the element', 'How many args its inputs read, `:arity`',
+    'Args past its arity are refused.', 'its selector over the payload', 'A point is where a span of source text starts or ends', 'where a reading stopped, its span',
+    'a caret under the point its `:location` names', 'Every site that refuses has a tag of its own', '`coalesce` answers a fallback for null.', 'the text that replaces each match',
+    'where a path stands instead of the value it names', '`round 2` keeps two digits after the point.', 'Any value, its rank in the one order turned around.',
+    'replace', 'replaced', 'a placeholder', 'Placeholder', 'workplace', 'placement',
     '`:read` continues the query to it, `!| get /trace/1/0`', 'an ::elision whose :read continues the query', 'the-read-of-an-elision-answers-what-it-left-out', 'elide 10 | last | get /read',
     'the elision of a text', 'the read of a part before a word', 'answers the refusal of its read', 'an-input-given-a-path-names-its-repair', ':repair/namesAWrittenPathAlone',
     '`[` opened at line 1, column 1 is never closed', 'an-unclosed-bracket-names-where-it-opened', 'closes a span at a run of as many backquotes as opened it',
     'the scope a call opens', '`open` runs a quote, a link or a snippet', 'the error at rest a catch holds', ':raisesAnErrorAtRestAsItself',
     '::keyword/toNumber/NameNotNumberError', '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':SubjectEmptyError/refusesTheEmptyVector', ':numbers/EmptyError/refusesNoNumber',
     'a valid identifier', 'IdentStart', ':any-character', ':end-of-source', ':"letters of a name"', 'findNameOccurrences', 'a character class of a regex',
-    'the args of the call, which the inputs of its function read by their places', 'its inputs read from the args by their places',
-    'its own place read through the field again', 'a link opens to the answer of its query', 'a value turned by `desc` opens to the value it turned',
+    'a link opens to the answer of its query', 'a value turned by `desc` opens to the value it turned',
     'a leading `!|` opens a step of the fail track', 'A link opens to a value its query answers',
     'an-error-literal-a-kind-refuses-is-caught-at-rest-as-a-value-that-prints', 'the-frame-of-map-over-a-set-names-the-index-in-its-one-order'
   ]) expect(refused(text), text).toBe(false);
@@ -163,18 +148,8 @@ it('refuses each retired term of the boundary of a host where it is written', ()
   for (const text of [
     'A source is `{ uri, source, impls? }`', 'the `impls` of its sources', 'Object.keys(cliSource.impls)', 'const impls = {};', 'impls: {}',
     '`impls?` names what a source hands', 'the source { uri, source, impls } a host hands',
-    'a failure of a host\'s implementation', 'A failure of the host\'s implementation: an error', 'the implementation its host handed.',
-    'runs the implementation the host handed beside the source', 'runs a host name through the implementation handed beside its source',
-    'no implementation is handed for any/hello', 'Two modules of the runtime bound an implementation under one address',
-    'a module of the runtime binds its implementations as it loads', 'The table of the language\'s implementations is sealed',
-    'the answers of its implementations', 'an implementation of a host that fails in a call', 'A JavaScript error escaping an implementation',
-    'The implementations of the language by the address of the verb', 'The implementations under a noun, by address',
-    'Each module binds the implementations of the language\'s verbs', 'which alone reaches an implementation',
-    'The descriptor of an implementation a host hands', 'refuses it by the implementation a host hands beside its source',
-    'each implementation is a plain function over the subject', 'Each implementation is bound under the address of the verb',
-    'A host verb whose implementation throws a raw Error',
-    'the implementations stay readable after seal', 'hands a source of the language the implementations under its noun',
-    'refuses an implementation handed for a verb of steps', 'hostImplOf', 'HOST_IMPLS', 'declareHostValue', 'isHostDeclared',
+    'each implementation is a plain function over the subject',
+    'hostImplOf', 'HOST_IMPLS', 'declareHostValue', 'isHostDeclared',
     'bindPrim', 'bindStateReader', 'bindReaderOfPassedTags', 'implsUnder', 'The idiom: `export const add = PRIMITIVE_REGISTRY.bind(key, impl);`',
     'the refusals of the kernel no reader reaches by a query', 'The kernel is the evaluator with its table of primitives',
     '::builtin/ImplementationNotHandedError', 'BuiltinImplementationNotHandedError', '::builtin/ImplementationNamesNoBuiltinError',
@@ -190,11 +165,6 @@ it('refuses each retired term of the boundary of a host where it is written', ()
     'a function a host bound in the environment prints as a string', 'a failure a host binds as the value of a name', 'The host-bound tally counts the depths',
     'highlightAnsi(src, builtinNames)', 'const noBuiltins = new Set();', 'With no builtin names supplied', 'returns more than 60 builtin completions',
     'makeIoImpls', 'formatImpls',
-    'a module binding its implementations as it loads', 'the host hands the implementations beside its source', 'a host handed an implementation for it',
-    'Two modules bound an implementation', 'a descriptor that binds no implementation', 'it binds the implementations once', 'the modules bind their implementations',
-    'the verb runs by its host\'s implementation', 'the implementations of the language\'s verbs are registered', 'an implementation is a plain closure over the subject',
-    'the implementations under one address', 'the implementation under an address', 'the implementations under its noun', 'an implementation handed beside its source',
-    'the implementations of the host', 'the implementation of its host', 'the implementation a host hands', 'the implementation its host hands', 'the answers of the implementations',
     'each a plain function over the value the walk served', 'Their primitives are plain functions over the served subject',
     'Expression language for transforming immutable values through pipelines.', 'qlang — pipeline expression language',
     'PEG grammar for the qlang expression language.'
@@ -368,7 +338,7 @@ it('leaves tuple for the form of a shape, `parse` of a string, `open` of a link 
     '::string/capture/RegexNamesNoGroupError', 'StringCaptureRegexNamesNoGroupError',
     ':RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone',
     'shapes or more a tuple, vectors of one length that part index by',
-    'capture-refuses-a-regex-that-names-no-group',
+    'capture-refuses-a-regex-that-names-no-group'
   ]) expect(refused(text), text).toBe(false);
 });
 
@@ -386,7 +356,7 @@ it('refuses in every sense the generic word once written for the opener and the 
     'the paste ends with a marker', 'a doc gives way to a marker of a comment', 'the marker standing for the end of a paste', 'the paste marker is left out of the line the reader takes',
     'a comment marker prints shorter than a doc', 'the end-of-paste marker gives way to the next chunk', 'the marker `|~|` of a comment reads to the end of the line, `:read` aside', 'a line comment, its marker `|~|`, runs to the end of the line; an elision prints no comment',
     'the comment markers are left out of the highlighted span', 'the bracketed paste markers are left out of the budget of a line', 'its markers of a comment', 'A gathered paste lands with every bracket marker it holds left out.',
-    'reads a bracketed paste up to its end marker, a pause past the window inside it', 'reads a bracketed paste whose begin marker\'s escape is split', 'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment',
+    'reads a bracketed paste up to its end marker, a pause past the window inside it', 'reads a bracketed paste whose begin marker\'s escape is split', 'a line that holds a marker of a block comment', 'a doc gives way to a marker of a block comment'
   ]) expect(refused(text), text).toBe(true);
 });
 
@@ -398,7 +368,7 @@ it('refuses in every sense where it is written a generic word the texts that sta
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the words written in its place: the shape, the leaves, the symbols of a document and the schema of a step', () => {
+it('leaves the words written instead: the shape, the leaves, the symbols of a document and the schema of a step', () => {
   for (const text of [
     'Answers the shape of a value, its structure beneath its tags', '`paths` answers the leaves of a value', ':answersTheLeaves',
     '// ── Document Symbols ──', '4. Ctrl+Shift+O — Document Symbols', 'the fields a record of a step holds against its schema',
@@ -415,7 +385,7 @@ it('refuses each name the shape and its other senses gave way to where it is wri
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the words written in their place and the shape of a value: the read every value takes, the schema of a step, the kind of the core, the form of a folder and of code, the template of the atoms and the kinds of the codec', () => {
+it('leaves the words written instead and the shape of a value: the read every value takes, the schema of a step, the kind of the core, the form of a folder and of code, the template of the atoms and the kinds of the codec', () => {
   for (const text of [
     'A shape is read as every value is: a path reads it beneath the tags over each part it meets, its marks among them', ':readsAPartBeneathItsTag',
     ':answersAPartBeneathItWithoutTheMark', ':readsByTheKeyItShows', ':readsAListByItsOneElement', 'a-shape-reads-a-list-by-its-one-element',
@@ -453,7 +423,7 @@ it('refuses each name and phrase in which the code called a tag over a payload a
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written in its place', () => {
+it('leaves the word in its other senses, the command `wraps` and a line wrapped at its width, and the words written instead', () => {
   for (const text of [
     'newer code reaching older code through a conversion, a wrapper, a second table', 'a wrapper a query lays over its answer',
     'the wrapper the host would take off before it prints', '`wraps` names its payload and its kinds', '::kind | wraps |~~ The sizes. ~~| ::map',
@@ -477,7 +447,7 @@ it('refuses each name in which the code called the scope an environment, a pipel
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the words written in their place, the verb `env`, the environment of a process and the nodes of the tree of names', () => {
+it('leaves the words written instead, the verb `env`, the environment of a process and the nodes of the tree of names', () => {
   for (const text of [
     'state.scope', 'withScope', 'scopeSet', 'scopeHas', 'recipeScope', 'core/src/scope-keys.mjs', 'RECIPE_KEY', 'evalPipeline', 'closeQuote',
     'foldingCodeOf', 'forEachPart', 'partAtOffset', 'partOf', '`env` lists what the reader declared', 'process.env', 'the body of a declaration',
@@ -510,14 +480,14 @@ it('refuses each retired word of the units of the work and of the notebook of a 
   for (const text of [
     'the shift of the work', 'a shift starts at a clean desk', 'each shift that wrote records', 'the next shift',
     'the move of the baseline', 'moves the baseline', 'before the baseline moved', 'at the walk of the baseline', 'the walk of a baseline',
-    'scripts/baseline-walk.mjs', 'walkOfBaseline', '`createSession({ scope })`', 'createSession',
+    'scripts/baseline-walk.mjs', 'walkOfBaseline', '`createSession({ scope })`', 'createSession'
   ]) expect(refused(text), text).toBe(true);
 });
 
 it('leaves the stint, the closeout and the reconciliation, the notebook, and the word shift in another sense', () => {
   for (const text of [
     'a stint, one branch', 'the closeout of a stint', 'the reconciliation of the tree with its baseline', 'scripts/reconciliation.mjs',
-    '`createNotebook({ scope })`', 'the public surface shifts', 'records.shift()', 'the baseline, the last merge on master',
+    '`createNotebook({ scope })`', 'the public surface shifts', 'records.shift()', 'the baseline, the last merge on master'
   ]) expect(refused(text), text).toBe(false);
 });
 

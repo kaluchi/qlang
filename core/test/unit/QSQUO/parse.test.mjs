@@ -13,7 +13,7 @@ it('refuses a source that is no string, a number and undefined among them', () =
   }
 });
 
-it('a source a host hands that is no string is refused by the parser with its message alone, naming no origin and no place', async () => {
+it('a source a host hands that is no string is refused by the parser with its message alone, naming no origin and no span', async () => {
   const { result } = await (await createNotebook()).evalCell(42);
   const refusal = makeErrorValue(makeTag('quote/ParseError'), new Map([['message', 'parse() expects a string source']]));
   expect(compareValues(result, refusal)).toBe(0);

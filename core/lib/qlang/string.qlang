@@ -1131,7 +1131,7 @@
     | impl ::builtin{}
 
 :string/replace
-  |~~ Answers the text with the replacement the call gives in the place of
+  |~~ Answers the text with the replacement the call gives instead of
       every match of the needle: `"a-b-c" | replace "-" "+"` answers
       `"a+b+c"`. The needle is a regex, `#"…"`, or a text looked for as it
       is. The replacement is a string, in which `$1`, `$<name>` and `$&`
@@ -1140,7 +1140,7 @@
       `"12.10.2026"`, a `$<name>` of a group the regex lacks standing as
       written, while the replacement of a text stands as written; or code,
       which runs on the vector `match` answers for each match and answers
-      the text that takes its place,
+      the text that replaces it,
       `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)` doubling
       every number, a path among it, `replace #"(\d)x" /1` keeping the
       digit of each match.
@@ -1158,7 +1158,7 @@
         |~~ A needle that is no regex and no string is refused. ~~|
         ~("a" | replace 5 "b" !| type | eq ::string/replace/needle/KindNotTakenError)
     | takes :with
-        |~~ What takes the place of each match: a string, or code that
+        |~~ What replaces each match: a string, or code that
             answers one from the match, a quote or a path.
         ~~|
         /1 #[::path ::quote ::string]
@@ -1172,7 +1172,7 @@
         |~~ A replacement that is no string and no quote is refused. ~~|
         ~("a" | replace "a" 5 !| type | eq ::string/replace/with/KindNotTakenError)
     | throws :with/AnswerKindNotTakenError
-        |~~ The code of `replace` answers the text that takes the place of
+        |~~ The code of `replace` answers the text that replaces
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
@@ -1194,10 +1194,10 @@
         ~~|
         ~("a😀" | get [~(replace "" "-") ~(replace "" ~("-"))] | eq ["-a-😀-" "-a-😀-"])
     | proves :runsCodeOnEachMatch
-        |~~ Code answers the text that takes the place of each match. ~~|
+        |~~ Code answers the text that replaces each match. ~~|
         ~("2 and 30" | replace #"\d+" ~(get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
     | proves :readsAGroupByAPath
-        |~~ A path reads the text that takes the place of each match from
+        |~~ A path reads the text that replaces each match from
             the vector of the match.
         ~~|
         ~("1x 2x" | replace #"(\d)x" /1 | eq "1 2")

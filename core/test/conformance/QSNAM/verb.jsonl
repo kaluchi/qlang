@@ -25,7 +25,7 @@
 {"name":"a-runaway-self-call-meets-the-limit-of-the-evaluation-depth","query":":number/inf ~(add 1 | inf) | 0 | inf !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"the-refusal-of-a-runaway-self-call-holds-a-depth-past-its-limit","query":":number/inf ~(add 1 | inf) | 0 | inf !| :e it | get /depth | gt (e | get /limit)","expect":"true"}
 {"name":"a-verb-that-recurses-through-map-meets-the-evaluation-depth","query":":number/f ~(get [~(it)] | map ~f | first) | 1 | f !| type","expect":"::call/EvaluationDepthExceededError"}
-{"name":"an-input-read-from-its-place-meets-the-limit-one-deeper-than-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
+{"decision":"D437","name":"an-input-read-by-its-selector-meets-the-limit-one-deeper-than-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | map ~(x))))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"a-modifier-of-an-atom-meets-the-limit-one-deeper-than-its-call","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count 1)))) | 498 | down !| type","expect":"::call/EvaluationDepthExceededError"}
 {"name":"a-quote-written-as-a-modifier-goes-no-deeper","query":":number/down ~(if (gt 0) ~(sub 1 | down) ~(apply ~(apply ~([] | count ~(x))))) | 498 | down !| type","expect":"::vec/count/ArgsBeyondInputsError"}
 {"name":"each-run-of-the-code-a-verb-runs-goes-one-deeper","query":":number/down ~(if (gt 0) ~(get [~(it)] | map ~(sub 1 | down) | first) ~(0)) | 333 | down !| type","expect":"::call/EvaluationDepthExceededError"}

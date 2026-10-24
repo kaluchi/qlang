@@ -295,10 +295,10 @@ export function ruleRefusalsOf(scope, address) {
 
 function functionRuleRefusalsOf(chain, address, labelName) {
   const refusals = [subjectRefusalAddress(address, labelName)];
-  if (chain.places !== null) refusals.push(argsBeyondInputsAddress(address));
+  if (chain.arity !== null) refusals.push(argsBeyondInputsAddress(address));
   for (const { name, kinds, each, reading } of chain.inputs) {
     const inputAddress = `${address}/${name.name}`;
-    if (!reading.readsArgs && (reading.strict || !reading.onePlace)) refusals.push(notGivenAddress(inputAddress));
+    if (!reading.readsArgs && (reading.strict || !reading.oneArg)) refusals.push(notGivenAddress(inputAddress));
     if (each && !reading.readsArgs) refusals.push(kindsRefusalAddress(inputAddress));
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
   }

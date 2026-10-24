@@ -202,6 +202,7 @@
       budget of an answer.
   ~~|
   ::kind
+    | wraps |~~ No value: `::qlang` names the topic of the language. ~~| #[]
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
             characters of its print `:budget` names, and prints this
@@ -220,14 +221,14 @@
     | carries :AnswerBeyondBudgetError/budget
         |~~ The budget every host prints an answer within. ~~|
         ::number
-    | throws :PayloadNotTakenError
+    | throws :PayloadKindNotTakenError
         |~~ `::qlang` names the topic of the language, its page and its
             chapters, and takes no payload: it is asked by itself,
             `::qlang | doc :values`.
         ~~|
-    | proves :PayloadNotTakenError/refusesAValue
+    | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::qlang`. ~~|
-        ~(1 | tag ::qlang !| tag | eq ::qlang/PayloadNotTakenError)
+        ~(1 | tag ::qlang !| tag | eq ::qlang/PayloadKindNotTakenError)
     | proves :runsAGroup
         |~~ A group runs its steps on the value in the pipe. ~~|
         ~(5 | (add 1 | mul 2) | eq 12)

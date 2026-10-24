@@ -1,14 +1,14 @@
 {"decision":"D442","name":"a-word-of-the-literals-after-two-colons-is-a-tag-name","query":"::null | tag","expect":"::tag"}
 {"name":"the-constructor-of-a-kind-reads-its-payload-as-the-value","query":"::vec[1 2]","expect":"[1 2]"}
-{"decision":"D442","name":"the-vector-kind-refuses-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] !| tag) ~(#[2 1] | toVec)]","expect":"[::vec/PayloadKindNotTakenError [1 2]]"}
-{"decision":"D442","name":"the-vector-kind-refuses-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) !| tag) ~(~(a | b) | payload | tag)]","expect":"[::vec/PayloadKindNotTakenError ::vec]"}
-{"decision":"D442","name":"the-map-kind-refuses-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} !| tag) ~(::Box{:a 1} | payload | tag)]","expect":"[::map/PayloadKindNotTakenError ::map]"}
+{"decision":"D422","name":"the-vector-kind-keeps-a-set-which-toVec-turns","query":"get [~(::vec#[2 1] | tag) ~(#[2 1] | toVec)]","expect":"[::set [1 2]]"}
+{"decision":"D422","name":"the-vector-kind-keeps-a-quote-whose-steps-payload-reads","query":"get [~(::vec~(a | b) | tag) ~(~(a | b) | payload | tag)]","expect":"[::quote ::vec]"}
+{"decision":"D422","name":"the-map-kind-keeps-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} | tag) ~(::Box{:a 1} | payload | tag)]","expect":"[::Box ::map]"}
 {"decision":"D442","name":"no-kind-reads-text","query":"::number\"5\" !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
 {"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | open","expect":"5"}
 {"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | open | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
 {"decision":"D442","name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(tag) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
-{"decision":"D442","name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| tag) ~(#[2 1] | tag ::vec !| tag)]","expect":"[::map/PayloadKindNotTakenError ::vec/PayloadKindNotTakenError]"}
+{"decision":"D422","name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| tag) ~(#[2 1] | tag ::vec | tag)]","expect":"[::map/PayloadKindNotTakenError ::set]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
 {"name":"tag-alone-reads-the-outermost-tag-of-its-subject","query":"get [~(1 | tag) ~(::A::B{} | tag) ~([::Box 5] | tag) ~(::Box | tag) ~(\"x\" | add 1 !| tag)]","expect":"[::number ::A ::vec ::tag ::number/add/SubjectNotNumberError]"}
 {"name":"tag-lays-its-name-over-the-subject","query":"5 | tag ::Foo","expect":"::Foo#5"}
@@ -31,4 +31,5 @@
 {"decision":"D442","name":"a-kind-of-the-core-refuses-a-payload-under-a-tag-of-another-kind","query":"get [~(::T[2 1] | tag ::set !| tag) ~(::T[\"a\"] | tag ::doc !| tag) ~(::T[1] | tag ::quote !| tag) ~(::T{} | tag ::builtin !| tag) ~(::T[~() null] | tag ::fn !| tag) ~(::T[~() null] | tag ::kind !| tag) ~(::T{:name :x} | tag ::call !| tag)]","expect":"[::set/PayloadKindNotTakenError ::doc/PayloadKindNotTakenError ::quote/PayloadKindNotTakenError ::builtin/PayloadKindNotTakenError ::fn/PayloadNotPairError ::kind/PayloadNotPairError ::call/PayloadKindNotTakenError]"}
 {"decision":"D442","name":"a-kind-of-the-core-reads-a-payload-of-its-own-kind-as-the-value-itself","query":"get [~(#[2 1] | tag ::set) ~(~(a) | tag ::quote) ~(::builtin{} | tag ::builtin) ~(::trace[] | tag ::trace) ~(::fn[~() ~(1)] | tag ::fn | tag) ~(|~~ x ~~| | tag ::doc | tag) ~(~(a) | first | tag ::call | tag) ~(::kind[~() null] | tag ::kind | tag)]","expect":"[#[1 2] ~(a) ::builtin{} ::trace[] ::fn ::doc ::call ::kind]"}
 {"decision":"D422","name":"a-kind-of-the-core-and-a-kind-of-the-reader-refuse-a-payload-under-another-tag","query":":Nums |~~ n ~~| (::kind | wraps |~~ v ~~| ::vec) | get [~(::Nums::T[1 2] !| get [~(tag) /actualTag]) ~(::set::T[1 2] !| get [~(tag) /actualTag]) ~(::T[1 2] | payload | tag ::Nums)]","expect":"[[::Nums/PayloadKindNotTakenError ::T] [::set/PayloadKindNotTakenError ::T] ::Nums[1 2]]"}
-{"decision":"D422","name":"a-kind-whose-chain-names-no-payload-takes-none","query":"get [~(5 | tag ::any !| tag) ~(::Box#5 | tag ::tagged !| tag) ~(1 | tag ::qlang !| tag)]","expect":"[::any/PayloadNotTakenError ::tagged/PayloadNotTakenError ::qlang/PayloadNotTakenError]"}
+{"decision":"D422","name":"a-tag-the-value-is-of-changes-nothing","query":"get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[1] | tag ::vec) ~(::Box#5 | tag ::number) ~(::Box#5 | tag ::tagged)]","expect":"[5 5 #[1] ::Box#5 ::Box#5]"}
+{"decision":"D422","name":"a-kind-whose-wraps-names-no-kind-takes-no-payload","query":"get [~(5 | tag ::tagged !| tag) ~(1 | tag ::qlang !| tag)]","expect":"[::tagged/PayloadKindNotTakenError ::qlang/PayloadKindNotTakenError]"}

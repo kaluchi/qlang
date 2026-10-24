@@ -3,7 +3,7 @@
 import { registerPrimitive } from '../primitives.mjs';
 import {
   isVec, isKeyword, isRegex, isPath, isMap, isNull, isBoolean, isNumber, isString, isDocSegment, makeDoc,
-  isTag, makeTagged, makeTrace, holdsNoOtherTag, TAG_HEADER_SYMBOL, BUILTIN_TAG, DESC_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
+  isTag, makeTrace, holdsNoOtherTag, TAG_HEADER_SYMBOL, BUILTIN_TAG, SET_TAG_NAME, DOC_TAG_NAME, stampTagHeader
 } from '../types.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -64,9 +64,6 @@ registerPrimitive('map',     coreKindConstructor(isBareMap, MapPayloadKindNotTak
 
 // [QSERR#rest]
 registerPrimitive('error', facts => facts);
-
-// [QSORD#desc]
-registerPrimitive('desc', payload => makeTagged(DESC_TAG, payload));
 
 // [QSSLF#doc]
 const DocPayloadKindNotTakenError = declareRefusal('doc/PayloadKindNotTakenError');

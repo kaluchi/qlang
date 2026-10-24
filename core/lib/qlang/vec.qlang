@@ -19,7 +19,8 @@
       `[1 2 3]`, or by commas as JSON writes them, `[1, 2, 3]`, one form
       a literal; and `::vec[1 2]` is `[1 2]`. A set, a quote and a doc
       are vectors under their tags and read as vectors wherever a vector
-      is read. JSON writes a vector as an array, and vectors rank after
+      is read but as the payload of a kind, which a kind takes by its own
+      tag. JSON writes a vector as an array, and vectors rank after
       paths and before sets, element by element.
 
       Its verbs count and cut, `count`, `first`, `last`, `take`, `drop`,
@@ -33,17 +34,15 @@
   ~~|
   ::kind
     | wraps
-        |~~ A vector, read as itself. A set turns into a vector by
-            `toVec`, and a vector under a tag of its own, a quote and a
-            doc among them, gives the vector beneath by `payload`, each
-            refused here.
+        |~~ A vector, read as itself. A value of `::vec` already, a set, a
+            quote, a doc and a vector under a tag of its own among them,
+            stays as it is, `toVec` answering the vector it holds.
             ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
         ~~|
     | throws :PayloadKindNotTakenError
-        |~~ `::vec` reads its payload as the vector it is: a set turns
-            into a vector by `toVec`, `#[2 1] | toVec`, and a vector under
-            a tag of its own, a quote and a doc among them, gives the
-            vector beneath by `payload`.
+        |~~ `::vec` reads its payload as the vector it is, and a value of
+            no vector is refused: the pairs of a map are a vector by
+            `entries`, `{:a 1} | entries`.
         ~~|
     | proves :takesCommas
         |~~ A comma between every two elements writes the same vector. ~~|
@@ -53,9 +52,12 @@
             none.
         ~~|
         ~("[1, 2 3]" | parse !| tag | eq ::quote/ParseError)
-    | proves :PayloadKindNotTakenError/refusesASet
-        |~~ A set is refused; `toVec` turns it into a vector. ~~|
-        ~(#[2 1] | tag ::vec !| get [~(tag) /actualTag] | eq [::vec/PayloadKindNotTakenError ::set])
+    | proves :keepsAValueOfItsKind
+        |~~ A value of `::vec` already, a set, a quote and a vector under a
+            tag of its own, stays as it is; `toVec` answers the vector it
+            holds.
+        ~~|
+        ~([#[2 1] ~(a | b) ::Box[1]] | map ~(tag ::vec | tag) | eq [::set ::quote ::Box])
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::vec{:a 1} !| get [~(tag) /actualTag] | eq [::vec/PayloadKindNotTakenError ::map])

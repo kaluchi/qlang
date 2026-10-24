@@ -70,7 +70,8 @@
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
-    | throws :PayloadNotTakenError
+    | wraps |~~ No value: `::cli` names the command line. ~~| #[]
+    | throws :PayloadKindNotTakenError
         |~~ `::cli` names the command line, its page and its words, and
             takes no payload: it is asked by itself, `::cli | doc`.
         ~~|
@@ -80,9 +81,9 @@
     | proves :declaresTheStreams
         |~~ The command line declares the streams under any value. ~~|
         ~(::any | manifest | has ::any/out)
-    | proves :PayloadNotTakenError/refusesAValue
+    | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::cli`. ~~|
-        ~(5 | tag ::cli !| tag | eq ::cli/PayloadNotTakenError)
+        ~(5 | tag ::cli !| tag | eq ::cli/PayloadKindNotTakenError)
 
 :any/in
   |~~ Answers the text stdin holds, read to its end whatever the subject,

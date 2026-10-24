@@ -19,6 +19,5 @@ export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`
 export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
 export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;
 export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
-export const PAYLOAD_NOT_TAKEN_NAME = 'PayloadNotTakenError';
 
 const capitalOf = name => { const [, word] = splitAddress(name); return word[0].toUpperCase() + word.slice(1); };

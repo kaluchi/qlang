@@ -29,7 +29,8 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | throws :PayloadNotTakenError
+    | wraps |~~ No value: `::tagged` names verbs. ~~| #[]
+    | throws :PayloadKindNotTakenError
         |~~ `::tagged` names the verbs of every value under a tag and takes
             no payload: a value goes under a tag by naming the tag,
             `5 | tag ::Box`.
@@ -40,9 +41,11 @@
     | proves :readsAsAConstructStep
         |~~ The step `::Box[1 2]` is a `::construct`. ~~|
         ~(~(::Box[1 2]) | first | tag | eq ::construct)
-    | proves :PayloadNotTakenError/refusesAValue
-        |~~ No value is put under `::tagged`. ~~|
-        ~(::Box#5 | tag ::tagged !| tag | eq ::tagged/PayloadNotTakenError)
+    | proves :PayloadKindNotTakenError/refusesAValue
+        |~~ No value is put under `::tagged`, and a value under a tag is of
+            it already.
+        ~~|
+        ~(get [~(5 | tag ::tagged !| tag) ~(::Box#5 | tag ::tagged)] | eq [::tagged/PayloadKindNotTakenError ::Box#5])
 
 :tagged/within
   |~~ Answers the subject with code run beneath its tag: the quote the

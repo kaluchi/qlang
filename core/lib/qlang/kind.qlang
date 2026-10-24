@@ -225,11 +225,11 @@
     | proves :CommandNotTakenError/refusesAWordOfALiteralAsAField
         |~~ A word of a literal is no field, which the chain refuses. ~~|
         ~(::kind | reads :null |~~ Nothing. ~~| /n !| tag | eq ::kind/CommandNotTakenError)
-    | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfThePayload
-        |~~ The payload names one kind at least, a set of none refused by
-            the chain.
+    | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfEachElement
+        |~~ The kinds of each element are one kind at least, a vector of the
+            set of none refused by the chain.
         ~~|
-        ~(::kind | wraps |~~ w ~~| #[] !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind | wraps |~~ w ~~| [#[]] !| tag | eq ::kind/CommandNotTakenError)
     | proves :NameDeclaredTwiceError/refusesTwoFieldsOfOneName
         |~~ Two fields of one name are refused. ~~|
         ~(::kind[~(reads :w |~~ A w. ~~| /w | reads :w |~~ Again. ~~| /x) null] !| tag | eq ::kind/NameDeclaredTwiceError)
@@ -261,16 +261,16 @@
       names none of them is refused under the kind, a payload under another
       tag among them, and a `wraps` that writes no kinds takes any payload;
       a vector of kinds names the kinds of each element, each read through
-      its tags, and a payload that is no vector is refused. A kind whose
-      chain names no payload, by `wraps`, `reads` or `holds`, and holds no
-      constructor takes none.
+      its tags, and a payload that is no vector is refused. A set of no
+      kinds, `#[]`, takes no payload, as a tag that names verbs or pages
+      alone writes it, `::tagged`.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the page of the payload, a
-            doc, and its kinds, a tag or a set of one tag or more, or a vector of
-            one of them for the kinds of each element, any value where none is
-            written.
+            doc, and its kinds, a tag or a set of tags, the set of none taking
+            no payload, or a vector of one tag or set of one tag or more for
+            the kinds of each element, any value where none is written.
         ~~|
         ~(it)
     | returns |~~ The kind with its payload. ~~| ::kind
@@ -288,6 +288,12 @@
           | content
           | trim
           | eq "The sizes.")
+    | proves :takesNoPayloadOfASetOfNoKinds
+        |~~ A set of no kinds takes no payload. ~~|
+        ~(:Topic |~~ A topic. ~~| (::kind | wraps |~~ None. ~~| #[])
+          | 5 | tag ::Topic
+          !| get [~(tag) /expected]
+          |  eq [::Topic/PayloadKindNotTakenError #[]])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | wraps |~~ A number. ~~| !| tag | eq ::kind/wraps/SubjectNotKindError))

@@ -15,19 +15,15 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | throws :PayloadNotTakenError
-        |~~ `::any` names the verbs every value answers and takes no
-            payload: a value answers them as it is, `5 | eq 5`.
-        ~~|
     | proves :holdsTag
         |~~ `tag` lives on `::any`. ~~|
         ~(::any | manifest | has ::any/tag)
-    | proves :PayloadNotTakenError/refusesAValue
-        |~~ No value is put under `::any`. ~~|
-        ~(5 | tag ::any !| tag | eq ::any/PayloadNotTakenError)
     | proves :isTheKindOfNoValue
         |~~ No value's tag is `::any`. ~~|
         ~(5 | tag | eq ::any | not)
+    | proves :isTheKindOfEveryValue
+        |~~ Every value is of `::any`, so laying it changes nothing. ~~|
+        ~([5 ::Box#5 #[1]] | map ~(:v it | get [~(is ::any) ~(tag ::any | eq v)]) | eq [[true true] [true true] [true true]])
 
 :any/desc
   |~~ Turns the subject: a value under `::desc` back to its payload, and
@@ -1718,16 +1714,18 @@
       its kind as the literal does where it is written: `5 | tag ::Box`
       answers `::Box#5`, its tag the name and its payload the subject, so
       a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`. A tag the subject already answers
-      changes nothing, `5 | tag ::number` answering `5` and
-      `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` answering `::Lab[1]`, and any
-      other stands before the tags of the subject and never instead of
-      them; replacing the tag goes through the payload,
-      `payload | tag ::Crate`. A tag is laid through its kind, which takes
-      the payload its chain names by the payload's own tag, so a payload
-      of another kind or under another tag is refused, `"5" | tag ::number`,
-      a kind the reader declares holds its invariants, and a kind whose
-      chain names no payload takes none, `5 | tag ::any`. A tag over an
+      `:t (tag) | payload | tag t`. A tag the subject is already of, as
+      `is` answers, changes nothing, `5 | tag ::number`, `5 | tag ::any`
+      and `#[1] | tag ::vec` answering the subject and
+      `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` answering `::Lab[1]`, a subject
+      that holds it at its head held to its kind again; any other stands
+      before the tags of the subject and never instead of them, and
+      replacing the tag goes through the payload, `payload | tag ::Crate`.
+      A tag is laid through its kind, which takes the payload its `wraps`
+      names by the payload's own tag, so a payload of another kind or
+      under another tag is refused, `"5" | tag ::number`, a kind the reader
+      declares holds its invariants, and a kind whose `wraps` names no kind
+      takes none, `5 | tag ::tagged`. A tag over an
       error at rest names its site, `!{:by 3} | tag ::Late` answering
       `::Late!{:by 3}`, and `raise` raises it under that tag. The call
       takes one name; a keyword, `:box`, names a field and no kind.
@@ -1785,9 +1783,20 @@
     | proves :holdsTheInvariantsOfAReadersKind
         |~~ A kind the reader declares holds its invariants. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | -3 | tag ::Pos !| tag | eq ::Pos/NotPositiveError)
-    | proves :laysATagOnce
-        |~~ A tag the subject already answers changes nothing. ~~|
-        ~(:Lab |~~ A lab. ~~| | get [~(::Lab[1] | tag ::Lab) ~(::Lab::Lab[1])] | eq [::Lab[1] ::Lab[1]])
+    | proves :laysNoTagTheSubjectIsOf
+        |~~ A tag the subject is already of, as `is` answers, changes
+            nothing, and one at its head stands once.
+        ~~|
+        ~(:Lab |~~ A lab. ~~| | get [~(5 | tag ::number) ~(#[1] | tag ::vec) ~(::Box#5 | tag ::number) ~(::Lab::Lab[1] | payload)]
+          | eq [5 #[1] ::Box#5 [1]])
+    | proves :holdsTheHeadToItsKindAgain
+        |~~ A subject that holds the tag at its head is held to its kind
+            again, a value laid before its kind was declared among them.
+        ~~|
+        ~(::Pos#-3 | :Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0))
+          | tag ::Pos
+          !| tag
+          |  eq ::Pos/NotPositiveError)
     | proves :refusesAPayloadUnderAnotherTag
         |~~ A kind takes its payload by the payload's own tag. ~~|
         ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums

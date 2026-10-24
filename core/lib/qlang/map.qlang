@@ -34,16 +34,17 @@
   ~~|
   ::kind
     | wraps
-        |~~ A map, read as itself. A map under a tag of its own gives the
-            map beneath by `payload`, and the pairs of a vector build a
-            map by `toMap`, each refused here.
+        |~~ A map, read as itself. A value of `::map` already, a map under
+            a tag of its own and an error at rest among them, stays as it
+            is, `payload` reading the map beneath, and the pairs of a vector,
+            refused here, build a map by `toMap`.
             ::link~(::map | doc) ::link~(::vec/toMap | doc)
             ::link~(::any/payload | doc)
         ~~|
     | throws :PayloadKindNotTakenError
-        |~~ `::map` reads its payload as the map it is: the pairs of a
-            vector build a map by `toMap`, `entries | toMap`, and a map
-            under a tag of its own gives the map beneath by `payload`.
+        |~~ `::map` reads its payload as the map it is, and a value of no
+            map is refused: the pairs of a vector build a map by `toMap`,
+            `[[:a 1]] | toMap`.
         ~~|
     | proves :isAMap |~~ Braces make a map. ~~| ~({:a 1} | tag | eq ::map)
     | proves :buildsAMap
@@ -66,11 +67,11 @@
             map.
         ~~|
         ~([[:a 1]] | tag ::map !| get [~(tag) /actualTag] | eq [::map/PayloadKindNotTakenError ::vec])
-    | proves :PayloadKindNotTakenError/refusesAMapUnderATag
-        |~~ A map under a tag of its own is refused; `payload` reads the
-            map beneath.
+    | proves :keepsAValueOfItsKind
+        |~~ A value of `::map` already, a map under a tag of its own and an
+            error at rest, stays as it is; `payload` reads the map beneath.
         ~~|
-        ~(::map::Box{:a 1} !| get [~(tag) /actualTag] | eq [::map/PayloadKindNotTakenError ::Box])
+        ~(get [~(::map::Box{:a 1} | tag) ~(::map!{:a 1} | tag) ~(::Box{:a 1} | payload | tag)] | eq [::Box ::error ::map])
     | impl ::builtin{}
 
 :map/count

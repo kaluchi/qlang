@@ -86,7 +86,7 @@ registerPrimitive('string/toRegex', (text, written) => {
   return makeRegex(text, flags);
 });
 
-registerPrimitive(['vec/toVec', 'set/toVec'], sequence => Object.freeze([...sequence]));
+registerPrimitive(['vec/toVec', 'set/toVec', 'quote/toVec', 'doc/toVec'], sequence => Object.freeze([...sequence]));
 registerPrimitive('set/toSet', set => set);
 registerPrimitive('vec/toSet', vector => makeSet(vector));
 // [QSCND#convert]

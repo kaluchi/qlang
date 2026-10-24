@@ -230,9 +230,11 @@
   ::fn
     | returns |~~ The vector of the steps. ~~| ::vec
     | proves :answersTheVectorOfItsSteps
-        |~~ A quote answers the vector of its steps. ~~|
-        ~(~(add 1 | mul 2) | toVec | get [~(tag) ~(count)] | eq [::vec 2])
-    | impl ~(payload)
+        |~~ A quote answers the vector of its steps, under a tag of its own
+            as well.
+        ~~|
+        ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
+    | impl ::builtin{}
 
 :quote/open
   |~~ Answers what the query the quote holds answers, run beneath

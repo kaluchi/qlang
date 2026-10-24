@@ -2,18 +2,18 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
+  isValueClass, isFn, isKind, makeTag, makeTagged,
   tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
   splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
-  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName, PAYLOAD_NOT_TAKEN_NAME
+  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn, namesNoPayload } from './chain.mjs';
+import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -94,7 +94,7 @@ export function answerKindsOf(scope, record, subjectKinds) {
 
 // [QSBLD#fn]
 export function isInvariant(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(beneathTags(value.payload));
+  return isValueClass(value, 'underTag') && value.tag.name === INVARIANT_TAG_NAME && isQuote(value.payload);
 }
 
 export const INVARIANT_TAG = makeTag('invariant');
@@ -102,7 +102,7 @@ const INVARIANT_TAG_NAME = INVARIANT_TAG.name;
 
 // [QSSLF#laws]
 export function isLaw(value) {
-  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(beneathTags(value.payload));
+  return isValueClass(value, 'underTag') && value.tag.name === LAW_TAG_NAME && isQuote(value.payload);
 }
 
 export const LAW_TAG = makeTag('law');
@@ -289,7 +289,7 @@ function kindsWalkedTo(kindNames, labelName) {
 export function ruleRefusalsOf(scope, address) {
   const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(scope, address));
-  if (isKind(value)) return kindRuleRefusalsOf(value, address);
+  if (isKind(value)) return kindRuleRefusalsOf(chainOfKind(value), address);
   return functionRuleRefusalsOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
 }
 
@@ -307,10 +307,8 @@ function functionRuleRefusalsOf(chain, address, labelName) {
   return refusals;
 }
 
-// [QSBLD#kind], [D422]
-function kindRuleRefusalsOf(kind, address) {
-  if (namesNoPayload(kind)) return [`${address}/${PAYLOAD_NOT_TAKEN_NAME}`];
-  const { payload, fields } = chainOfKind(kind);
+// [QSBLD#kind]
+function kindRuleRefusalsOf({ payload, fields }, address) {
   const refusals = [];
   if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
   if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);

@@ -25,11 +25,7 @@
       ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
-        |~~ The condition its values keep, a quote beneath the tags it is
-            given under.
-        ~~|
-        ::quote
+    | wraps |~~ The condition its values keep, a quote. ~~| ::quote
     | proves :liesUnderItsRefusal
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.

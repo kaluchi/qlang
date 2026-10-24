@@ -27,11 +27,11 @@
 {"decision":"D442","name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(tag) /actualTag]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
 {"name":"the-refusal-of-a-doc-s-quote-is-caught-at-rest-as-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"decision":"D442","name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}
-{"decision":"D442","name":"a-doc-s-quote-under-the-tag-of-vectors-is-refused-by-their-label","query":"|~~ see ::vec~(::vec | doc) ~~| !| tag","expect":"::vec/PayloadKindNotTakenError"}
+{"decision":"D422","name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}
 {"decision":"D442","name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | tag","expect":"::link"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\"see ::vec~(x)\""}
 {"name":"the-quote-of-a-doc-under-the-tag-of-quotes-is-the-quote-itself","query":"|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)","expect":"true"}
-{"decision":"D442","name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":":x |~~ see ::vec~(x) ~~| 1 !| tag","expect":"::vec/PayloadKindNotTakenError"}
+{"decision":"D422","name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":":x |~~ see ::map~(x) ~~| 1 !| tag","expect":"::map/PayloadKindNotTakenError"}
 {"decision":"D442","name":"a-page-whose-quote-breaks-an-invariant-of-its-role-refuses-its-declaration","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | :x |~~ see ::Role~(x) ~~| 1 !| tag","expect":"::Role/k"}
 {"decision":"D442","name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag","expect":"::Role/k"}
 {"decision":"D442","name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)) | |~~ see ::Role~(x) ~~| | segments | get /1 | tag","expect":"::Role"}

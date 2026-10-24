@@ -246,10 +246,15 @@ describe('the refusals a kind raises by rule', () => {
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
   });
 
-  it('names the refusal of a payload for a kind whose chain names none, and none for a kind that takes any', async () => {
+  it('names no refusal of a kind that writes no wraps and no field', async () => {
     const own = await createNotebook();
     await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true)');
-    await own.evalCell(':Loose\n  |~~ Anything. ~~|\n  ::kind\n    | wraps |~~ Any value. ~~|');
-    expect([ruleRefusalsOf(own.scope, 'Mark'), ruleRefusalsOf(own.scope, 'Loose')]).toEqual([['Mark/PayloadNotTakenError'], []]);
+    expect(ruleRefusalsOf(own.scope, 'Mark')).toEqual([]);
+  });
+
+  it('names the refusal of every payload for a kind whose wraps names no kind', async () => {
+    const own = await createNotebook();
+    await own.evalCell(':Topic\n  |~~ A topic. ~~|\n  ::kind\n    | wraps |~~ None. ~~| #[]');
+    expect(ruleRefusalsOf(own.scope, 'Topic')).toEqual(['Topic/PayloadKindNotTakenError']);
   });
 });

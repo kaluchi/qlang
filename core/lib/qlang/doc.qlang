@@ -153,9 +153,11 @@
   ::fn
     | returns |~~ The vector of the segments. ~~| ::vec
     | proves :answersTheVectorOfItsSegments
-        |~~ A doc answers the vector of its segments. ~~|
-        ~(|~~ a ~(eq 1) b ~~| | toVec | get [~(tag) ~(count)] | eq [::vec 3])
-    | impl ~(segments)
+        |~~ A doc answers the vector of its segments, under a tag of its own
+            as well.
+        ~~|
+        ~([|~~ a ~(eq 1) b ~~| ::Box|~~ c ~~|] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 3] [::vec 1]])
+    | impl ::builtin{}
 
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote

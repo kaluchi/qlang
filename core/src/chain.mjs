@@ -2,7 +2,7 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, constructorOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
@@ -30,6 +30,7 @@ const isSelector = value => isPath(value) || isQuote(value);
 const isKinds = value => isTag(value) || (isSet(value) && value.length > 0 && value.every(isTag));
 const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] === undefined;
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
+const isKindsOfAPayload = value => isKindsOfEach(value) || (isSet(value) && value.length === 0);
 
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
@@ -42,7 +43,7 @@ const COMMANDS = new Map([
 ]);
 
 const KIND_COMMANDS = new Map([
-  ['wraps', { taken: [isDoc], optional: [isKindsOfEach] }],
+  ['wraps', { taken: [isDoc], optional: [isKindsOfAPayload] }],
   ['reads', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
   ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
@@ -71,8 +72,9 @@ function modifierNotTaken(step, commands) {
 }
 
 function kindsOf(value) {
-  const names = value === undefined ? [] : isTag(value) ? [value.name] : value.map(tag => tag.name);
-  return names.length === 0 || names.includes(ANY_KIND_NAME) ? null : names;
+  if (value === undefined) return null;
+  const names = isTag(value) ? [value.name] : value.map(tag => tag.name);
+  return names.includes(ANY_KIND_NAME) ? null : names;
 }
 
 function kindsWritten(written) {
@@ -237,17 +239,12 @@ export function chainOfKind(kind) {
   return chain;
 }
 
-// [D422]
-export function namesNoPayload(kind) {
-  const { payload, fields, invariants } = chainOfKind(kind);
-  return payload === null && fields.length === 0 && invariants.length === 0 && constructorOf(kind) === null;
-}
-
 // [QSBLD#recipe]
 export function pageOfKindsRefusal(name, kinds, each) {
+  const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
+  if (kinds.length === 0) return makeDoc([`${holder} holds no value.`]);
   const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
   const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
-  const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
   return makeDoc([`${holder} holds a value of ${listed}.`]);
 }
 

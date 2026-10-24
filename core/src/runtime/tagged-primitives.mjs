@@ -1,11 +1,11 @@
 // [QSDSP#walk]
 
 import { layTag } from '../eval.mjs';
-import { registerPrimitive, registerStateReader, runs } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runsAsCode } from '../primitives.mjs';
 import { isNull, isTagged, payloadBeneath, typeOf } from '../types.mjs';
 
 // [QSDSP#walk], [QSDSP#answer], [QSSLF#catalog]
-registerPrimitive('tagged/within', runs(['code'], async (subject, code) => await code(payloadBeneath(subject))));
+registerPrimitive('tagged/within', runsAsCode(['code'], async (subject, code) => await code(payloadBeneath(subject))));
 
 // [QSLIT#kind], [QSLIT#tag]
 registerPrimitive('any/payload', subject => (isTagged(subject) ? payloadBeneath(subject) : subject));

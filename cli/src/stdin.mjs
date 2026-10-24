@@ -27,9 +27,9 @@ export function memoiseStdinReader(stdinReader) {
 
 export const DEFAULT_SUBJECT = makeTag('qlang');
 
-export async function liftOfInput(session, stdinText) {
+export async function liftOfInput(notebook, stdinText) {
   if (stdinText.length === 0) return { initialPipeValue: DEFAULT_SUBJECT };
-  const read = await session.evalCell('parseJson', { initialPipeValue: stdinText, uri: 'stdin' });
+  const read = await notebook.evalCell('parseJson', { initialPipeValue: stdinText, uri: 'stdin' });
   if (read.defect !== null) return { raised: read };
   const notJson = isErrorValue(read.result) && read.result.tag.name === StringParseJsonTextNotJsonError.prototype.address;
   return { initialPipeValue: notJson ? stdinText : read.result };

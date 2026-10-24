@@ -1,13 +1,13 @@
 // [QSCND#convert]
 
-import { keyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf, beneathTags } from '../types.mjs';
+import { makeKeyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, typeOf, beneathTags } from '../types.mjs';
 import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
-import { parse } from '../parse.mjs';
+import { parseSource } from '../parse.mjs';
 import { partOf } from '../walk.mjs';
 
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
@@ -18,7 +18,7 @@ export const KINDS_A_KEY_FILES_UNDER = kindsExpected(...TO_KEYWORD_ADDRESSES.map
 
 export function keywordFiledFor(value) {
   if (!KINDS_A_KEY_FILES_UNDER.some(kind => kind.name === typeOf(value).name)) return null;
-  return isKeyword(value) ? value : keyword(textOf(value));
+  return isKeyword(value) ? value : makeKeyword(textOf(value));
 }
 
 registerPrimitive(TO_KEYWORD_ADDRESSES, keywordFiledFor);
@@ -26,7 +26,7 @@ registerPrimitive(TO_KEYWORD_ADDRESSES, keywordFiledFor);
 function literalWritten(text, isOfKind) {
   let quote;
   try {
-    quote = parse(text);
+    quote = parseSource(text);
   } catch {
     return null;
   }

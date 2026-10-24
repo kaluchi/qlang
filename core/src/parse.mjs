@@ -8,10 +8,10 @@ import { keepParts } from './walk.mjs';
 
 
 // [QSSYN#refusal]
-export class ParseError extends Error {
+export class SourceParseError extends Error {
   constructor(message, location, uri = null, opts = {}) {
     super(message);
-    this.name = 'ParseError';
+    this.name = 'SourceParseError';
     this.location = location;
     this.uri = uri;
     this.expected = opts.expected ?? null;
@@ -21,9 +21,9 @@ export class ParseError extends Error {
   }
 }
 
-export function parse(source, opts = {}) {
+export function parseSource(source, opts = {}) {
   if (typeof source !== 'string') {
-    throw new ParseError(
+    throw new SourceParseError(
       'parse() expects a string source',
       null,
       opts.uri ?? null
@@ -41,7 +41,7 @@ export function parse(source, opts = {}) {
     const unclosed = atTheEnd || (err.expected !== null && source.includes(COMMENT_OPENER)) ? bracketLeftOpen(source) : null;
     const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
     const location = unclosed === null || atTheEnd ? err.location : endOf(source, err.location.source);
-    throw new ParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), location, opts.uri ?? null, {
+    throw new SourceParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
       found: unclosed === null ? err.found : null,
       source,

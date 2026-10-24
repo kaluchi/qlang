@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { shownFor, verbsReaching } from '../../../src/nouns.mjs';
 
 describe('the verbs that live on a kind', () => {
@@ -9,12 +9,12 @@ describe('the verbs that live on a kind', () => {
   });
 
   it('a host verb declared under a kind serves its values beneath a tag', async () => {
-    const session = await createSession({ sources: [{
+    const notebook = await createNotebook({ sources: [{
       uri: 'tests/typed',
       source: ':string/shout ::builtin{}',
       primitives: { 'string/shout': text => text.toUpperCase() }
     }] });
-    expect((await session.evalCell('::Box"hi" | shout')).result).toBe('HI');
+    expect((await notebook.evalCell('::Box"hi" | shout')).result).toBe('HI');
   });
 });
 

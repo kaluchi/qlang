@@ -2,7 +2,7 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, keyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
@@ -86,7 +86,7 @@ function namesOf(quote, DeclaredTwiceError) {
   return {
     named,
     declare(name) {
-      if (declared.has(name)) throw new DeclaredTwiceError({ name: keyword(name), actualValue: quote });
+      if (declared.has(name)) throw new DeclaredTwiceError({ name: makeKeyword(name), actualValue: quote });
       declared.add(name);
       named.add(name);
     },
@@ -99,7 +99,7 @@ function readChainOfFn(quote) {
   const names = namesOf(quote, FnNameDeclaredTwiceError);
   const underAnInput = name => {
     const [head] = name.split('/');
-    if (head !== ANSWER_NAME && head !== SUBJECT_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: keyword(name), actualValue: quote });
+    if (head !== ANSWER_NAME && head !== SUBJECT_NAME && !chain.inputs.some(input => input.name.name === head)) throw new FnNameUnderNoInputError({ name: makeKeyword(name), actualValue: quote });
   };
   for (const step of quote) {
     const refused = objectNotTaken(step, COMMANDS);
@@ -156,7 +156,7 @@ function readChainOfKind(quote) {
   const names = namesOf(quote, KindNameDeclaredTwiceError);
   const underAField = name => {
     const [head] = name.split('/');
-    if (!kind.fields.some(field => field.name.name === head)) throw new KindNameUnderNoFieldError({ name: keyword(name), actualValue: quote });
+    if (!kind.fields.some(field => field.name.name === head)) throw new KindNameUnderNoFieldError({ name: makeKeyword(name), actualValue: quote });
     return head;
   };
   for (const step of quote) {

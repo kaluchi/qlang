@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { cliSources } from '../../src/cli-sources.mjs';
-import { createSession } from '@kaluchi/qlang-core';
+import { createNotebook } from '@kaluchi/qlang-core';
 import { silentStreams } from '../helpers/silent-streams.mjs';
 
 it('hands the source of the command line with the primitives of its verbs', () => {
@@ -11,8 +11,8 @@ it('hands the source of the command line with the primitives of its verbs', () =
 });
 
 const evalInCli = async (query) => {
-  const session = await createSession({ sources: cliSources(silentStreams) });
-  return (await session.evalCell(query)).result;
+  const notebook = await createNotebook({ sources: cliSources(silentStreams) });
+  return (await notebook.evalCell(query)).result;
 };
 
 it('declares the topic of the command line beside the names a reader declares', async () => {

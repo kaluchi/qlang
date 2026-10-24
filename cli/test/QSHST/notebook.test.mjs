@@ -3,7 +3,7 @@ import { isErrorValue } from '@kaluchi/qlang-core';
 import { runQuery } from '../../src/run.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
 
-it('answers a query as a cell of a fresh session', async () => {
+it('answers a query as a cell of a fresh notebook', async () => {
   const cellEntry = await runQuery('[1 2 3] | sum', captureIoContext());
   expect(cellEntry.defect).toBeNull();
   expect(cellEntry.result).toBe(6);

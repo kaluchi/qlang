@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
-import { evalQuery, createSession } from '../../../src/session.mjs';
+import { evalQuery, createNotebook } from '../../../src/notebook.mjs';
 import { fromJsonText, fromPlain, toPlain } from '../../../src/runtime/json.mjs';
 import { makeSet } from '../../../src/ordering.mjs';
-import { makeBinding, keyword, makeTag, makeTagged } from '../../../src/types.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { makeBinding, makeKeyword, makeTag, makeTagged } from '../../../src/types.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 
 it('a value crosses into JSON and back', () => {
   const lifted = core.fromPlain({ name: 'alice' });
@@ -96,9 +96,9 @@ it('writes a boolean as the boolean of JSON, which parseJson reads back', async 
 });
 
 it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {
-  const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: keyword('kindName'), value: makeTag('Foo') }));
-  const session = await createSession({ scope });
-  const parsed = JSON.parse((await session.evalCell('env | json')).result);
+  const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: makeKeyword('kindName'), value: makeTag('Foo') }));
+  const notebook = await createNotebook({ scope });
+  const parsed = JSON.parse((await notebook.evalCell('env | json')).result);
   expect(parsed.kindName.payload.value).toBe('::Foo');
 });
 

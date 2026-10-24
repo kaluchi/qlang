@@ -74,15 +74,15 @@ const EVAL = {
 async function runOne(kind, shape, n) {
   const core = await import(new URL('../../core/src/index.mjs', import.meta.url));
   const text = (kind === 'parse' ? PARSE : EVAL)[shape](n);
-  const session = kind === 'eval' ? await core.createSession() : null;
+  const notebook = kind === 'eval' ? await core.createNotebook() : null;
   const times = [];
   const started = performance.now();
   do {
     const at = performance.now();
     if (kind === 'parse') {
-      try { core.parse(text); } catch (refusal) { if (!(refusal instanceof core.ParseError)) throw refusal; }
+      try { core.parseSource(text); } catch (refusal) { if (!(refusal instanceof core.SourceParseError)) throw refusal; }
     } else {
-      const cell = await session.evalCell(text);
+      const cell = await notebook.evalCell(text);
       if (cell.defect !== null) throw cell.defect;
     }
     times.push(performance.now() - at);

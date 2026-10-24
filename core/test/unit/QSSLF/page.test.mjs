@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
 const content = await evalQuery('::qlang | doc | content');

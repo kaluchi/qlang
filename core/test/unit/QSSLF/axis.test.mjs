@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { isErrorValue, isQuote, makeTag } from '../../../src/types.mjs';
 import { QlangError } from '../../../src/errors.mjs';
 import { printQuoteSource } from '../../../src/print-value.mjs';
@@ -13,8 +13,8 @@ describe('::name | source answers the quote of the declarations under the name',
   });
 
   it('the axes of a later cell read a declaration of an earlier one', async () => {
-    const { createSession } = await import('../../../src/session.mjs');
-    const sessionInstance = await createSession();
+    const { createNotebook } = await import('../../../src/notebook.mjs');
+    const sessionInstance = await createNotebook();
     await sessionInstance.evalCell(':foo |~~ first cell ~~|');
     const cellEntry = await sessionInstance.evalCell('::foo | doc | content');
     expect(cellEntry.defect).toBeNull();
@@ -23,8 +23,8 @@ describe('::name | source answers the quote of the declarations under the name',
 
   it('the axes read a name with a path at its address, under a noun that is a name of data', async () => {
     // [QSNAM#address]
-    const { createSession } = await import('../../../src/session.mjs');
-    const sessionInstance = await createSession();
+    const { createNotebook } = await import('../../../src/notebook.mjs');
+    const sessionInstance = await createNotebook();
     const cellEntry = await sessionInstance.evalCell(
       ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content');
     expect(cellEntry.defect).toBeNull();
@@ -72,18 +72,18 @@ describe('the axes read the node a tag addresses', () => {
 
 describe('the axes read what a source of the root declared', () => {
   async function sessionOf(source) {
-    const { createSession } = await import('../../../src/session.mjs');
-    return await createSession({ sources: [{ uri: 'tests/demo', source }] });
+    const { createNotebook } = await import('../../../src/notebook.mjs');
+    return await createNotebook({ sources: [{ uri: 'tests/demo', source }] });
   }
 
   it('reads the page a source declared', async () => {
-    const session = await sessionOf(':demo |~~ A short note. ~~|\n1');
-    expect((await session.evalCell('::demo | doc | content')).result).toBe('A short note.');
+    const notebook = await sessionOf(':demo |~~ A short note. ~~|\n1');
+    expect((await notebook.evalCell('::demo | doc | content')).result).toBe('A short note.');
   });
 
   it('answers null for the page of a declaration without one', async () => {
-    const session = await sessionOf(':bare 42');
-    expect((await session.evalCell('::bare | doc')).result).toBeNull();
+    const notebook = await sessionOf(':bare 42');
+    expect((await notebook.evalCell('::bare | doc')).result).toBeNull();
   });
 });
 
@@ -102,8 +102,8 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 
   // [QSDSP#walk], [QSDSP#residence]
   it('a cell declaration of a name the root holds is the one the axes read', async () => {
-    const { createSession } = await import('../../../src/session.mjs');
-    const sessionInstance = await createSession({
+    const { createNotebook } = await import('../../../src/notebook.mjs');
+    const sessionInstance = await createNotebook({
       sources: [{ uri: 'probe/shadow', source: ':contested |~~ from the source ~~| 111' }]
     });
     const cellEntry = await sessionInstance.evalCell(

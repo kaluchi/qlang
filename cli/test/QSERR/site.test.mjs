@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createSession, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, typeOf, splitAddress } from '@kaluchi/qlang-core';
+import { createNotebook, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, typeOf, splitAddress } from '@kaluchi/qlang-core';
 import { declaredRefusals } from '@kaluchi/qlang-core/errors';
 
 const ofTheCore = new Set(declaredRefusals());
@@ -11,15 +11,15 @@ for (const file of readdirSync(srcDir).filter(name => name.endsWith('.mjs') && n
 const declared = new Set(declaredRefusals());
 const { cliSources } = await import('../../src/cli-sources.mjs');
 
-const session = await createSession({
+const notebook = await createNotebook({
   sources: cliSources({ stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} })
 });
-const addresses = nodeAddresses(session.scope);
-const kindAt = address => typeOf(nodeOf(session.scope, address)?.get('value')).name;
+const addresses = nodeAddresses(notebook.scope);
+const kindAt = address => typeOf(nodeOf(notebook.scope, address)?.get('value')).name;
 
 const ruleBorn = new Set(addresses
-  .filter(address => isVerb(session.scope, address) || kindAt(address) === 'kind')
-  .flatMap(address => ruleRefusalsOf(session.scope, address)));
+  .filter(address => isVerb(notebook.scope, address) || kindAt(address) === 'kind')
+  .flatMap(address => ruleRefusalsOf(notebook.scope, address)));
 
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && kindAt(address) === 'doc');
 
@@ -27,7 +27,7 @@ describe('every refusal a site of the core or of the command line declares has i
   for (const address of declared) {
     it(`${address} is paged under the noun it guards`, () => {
       expect(kindAt(address), `${address} is declared by a site and no source pages it under its noun`).toBe('doc');
-      if (!ofTheCore.has(address)) expect(nodeOf(session.scope, address).get('origin').name, `${address} is declared by the command line and paged outside its source`).toBe('cli');
+      if (!ofTheCore.has(address)) expect(nodeOf(notebook.scope, address).get('origin').name, `${address} is declared by the command line and paged outside its source`).toBe('cli');
     });
   }
 });

@@ -3,7 +3,7 @@
 import { regexLiteral } from './regex-read.mjs';
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { segmentIndex } from './path-read.mjs';
-import { errorFieldsOf, isOfTheKindOfErrors, isPathAlone, isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, computes, computesWithin } from './steps.mjs';
+import { errorFieldsOf, isOfTheKindOfErrors, isPathAlone, isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, isComputingStep, computesWithin } from './steps.mjs';
 import {
   isVec,
   isMap,
@@ -169,7 +169,7 @@ function stepOnLines(step, view) {
 }
 
 function printStep(step, quoting = false, view = AS_WRITTEN) {
-  if (quoting && computes(step)) return `~(${isCallStep(step) ? printCall(step) : printQuoteSource(step.payload)})`;
+  if (quoting && isComputingStep(step)) return `~(${isCallStep(step) ? printCall(step) : printQuoteSource(step.payload)})`;
   if (isCallStep(step)) return printCall(step, view);
   if (isGroupStep(step)) return `(${printQuoteSource(step.payload, view)})`;
   if (isBindStep(step)) return printBind(step, view);

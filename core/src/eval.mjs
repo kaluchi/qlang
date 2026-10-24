@@ -10,7 +10,7 @@ import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs
 import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
-  typeOf, keyword, makeErrorValue, makeDoc, makeQuote,
+  typeOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, recipeOf, constructorOf, stampTagHeader, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
@@ -193,10 +193,10 @@ async function evalBind(bind, state, at) {
   const [nounName] = splitAddress(name);
   if (nounName !== null) refuseWithheld(state.scope, nounName, true);
   if (repeatsDeclarationAt(at.steps, at.index) || declaresWhatTheCallBinds(at.steps, state.scope, name) || (nounName !== null && rootOf(state.scope).has(name))) {
-    throw new BindNameDeclaredTwiceError({ name: keyword(name) });
+    throw new BindNameDeclaredTwiceError({ name: makeKeyword(name) });
   }
   if (nounName !== null && !scopeHas(state.scope, nounName)) {
-    throw new BindNounNotDeclaredError({ name: keyword(name), noun: makeTag(nounName) });
+    throw new BindNounNotDeclaredError({ name: makeKeyword(name), noun: makeTag(nounName) });
   }
 
   const docs = [];
@@ -209,9 +209,9 @@ async function evalBind(bind, state, at) {
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (writesOutsideItsChain(state.scope, nounName, splitAddress(name)[1], answered)) {
-    throw new BindWrittenOutsideItsChainError({ name: keyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
+    throw new BindWrittenOutsideItsChainError({ name: makeKeyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
-  const origin = keyword(at.origin);
+  const origin = makeKeyword(at.origin);
   const declared = scopeSet(state.scope, name, makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin }));
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
@@ -229,7 +229,7 @@ function layerOf(scope, address, origin, pages) {
   let under = scope;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
-    under = scopeSet(under, name, makeBinding({ name: keyword(name), docs: page === null ? [] : [page], value, origin }));
+    under = scopeSet(under, name, makeBinding({ name: makeKeyword(name), docs: page === null ? [] : [page], value, origin }));
   };
   return {
     lay,
@@ -253,7 +253,7 @@ function nodesOfKind(kind, address, scope, origin) {
   const { payload, fields, tells } = roles;
   const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, roles.pages);
   if (payload !== null) {
-    const holder = keyword(PAYLOAD_NAME);
+    const holder = makeKeyword(PAYLOAD_NAME);
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
     if (payload.each) layKindsRefusal(payloadRefusalName(false), holder, ['vec'], false);
     if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), holder, payload.kinds, payload.each);
@@ -331,16 +331,16 @@ async function callByName(lookupName, modifiers, state, call) {
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.scope, addresses, state.pipeValue);
       const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : undefined;
-      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: keyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
+      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: makeKeyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
     }
     throw new CallUnknownNameError({
-      name: keyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses
+      name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses
     });
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
   const verb = residenceOnSubject(state.scope, lookupName, state.pipeValue);
   if (verb !== null && servesTheSubject(verb, state.pipeValue)) {
-    throw new CallValueMeetsVerbError({ name: keyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
+    throw new CallValueMeetsVerbError({ name: makeKeyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
   }
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
 }
@@ -351,7 +351,7 @@ async function applyBinding(entry, name, lastName, modifiers, state) {
 
   if (modifiers.length > 0) {
     throw new CallValueTakesNoModifiersError({
-      name: keyword(name),
+      name: makeKeyword(name),
       actualValue: resolved,
       addresses: addressesOf(state.scope, lastName)
     });
@@ -468,7 +468,7 @@ function isNodeOrLabel(name, record) {
 }
 
 // [QSBLD#input]
-const ARGS_NAME = keyword('args');
+const ARGS_NAME = makeKeyword('args');
 
 // [QSBLD#recipe]
 async function applyVerb(record, modifiers, state) {
@@ -838,7 +838,7 @@ export function templateClosedIn(template, callState, names = new Map()) {
 
 function scopeNaming(scope, names) {
   let named = scope;
-  for (const [name, value] of names) named = scopeSet(named, name, makeBinding({ name: keyword(name), value }));
+  for (const [name, value] of names) named = scopeSet(named, name, makeBinding({ name: makeKeyword(name), value }));
   return named;
 }
 

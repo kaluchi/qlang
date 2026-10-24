@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
 import { ruleRefusalsOf } from '../../../src/nouns.mjs';
 import { makeTag } from '../../../src/types.mjs';
 import { BOX } from '../../helpers/box.mjs';
 
 describe('the refusals by rule of an input that names the kinds of each element', () => {
   it('names a value that is no vector where its place reads one arg, and an element of none of its kinds', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
       'number/each/SubjectNotNumberError',
@@ -18,14 +18,14 @@ describe('the refusals by rule of an input that names the kinds of each element'
   });
 
   it('names an element of none of its kinds alone where its place reads the args whole, which are a vector', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
     expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
   });
 });
 
 describe('the place of an input', () => {
-  const answerOf = async query => (await (await createSession()).evalCell(query)).result;
+  const answerOf = async query => (await (await createNotebook()).evalCell(query)).result;
 
   it('fills the head of the code with the step that answers the value of each input, a value of every kind', async () => {
     for (const [value, written] of [
@@ -69,12 +69,12 @@ describe('the args of a call', () => {
 });
 
 it('a host\'s primitive under a label reads the values after its lead by code over the args', async () => {
-  const session = await createSession({
+  const notebook = await createNotebook({
     sources: [{
       uri: 'probe/zap',
       source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
       primitives: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
     }]
   });
-  expect((await session.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
+  expect((await notebook.evalCell('[9] | zap 1 2 3')).result).toEqual([1, 2]);
 });

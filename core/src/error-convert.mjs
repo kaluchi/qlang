@@ -1,4 +1,4 @@
-import { keyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
+import { makeKeyword, makeErrorValue, makeTag, makeTagged, typeOf, ERROR_TAG } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './nouns.mjs';
 import { nameOfContinuation } from './parse.mjs';
@@ -30,7 +30,7 @@ export function factsInOrder(tag, facts, scope) {
     if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
   }
   for (const name of facts.keys()) {
-    if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: keyword(name) });
+    if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: makeKeyword(name) });
   }
   return ordered;
 }
@@ -52,7 +52,7 @@ export function errorFromParse(parseError, scope, uri = parseError.uri) {
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
   if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
-  if (uri) d.set('origin', keyword(uri));
+  if (uri) d.set('origin', makeKeyword(uri));
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });
 }
@@ -71,7 +71,7 @@ function liftExpectedAlternatives(expected) {
 }
 
 function liftExpectedAlternative(alt) {
-  return alt.type === 'literal' ? alt.text : keyword(nameOfContinuation(alt));
+  return alt.type === 'literal' ? alt.text : makeKeyword(nameOfContinuation(alt));
 }
 
 const CAUSES_RECOUNTED = 8;

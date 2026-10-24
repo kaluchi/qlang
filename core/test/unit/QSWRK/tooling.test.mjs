@@ -6,12 +6,12 @@ import { dirname, join } from 'node:path';
 import { importsOfCore, cyclesOf } from '../../../../scripts/core-imports.mjs';
 import * as core from '../../../src/index.mjs';
 import { tokenize } from '../../../src/highlight.mjs';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 import { codeOf, exportsOf, namesReadFrom, namesWrittenBy, unreadExports } from '../../../../scripts/root-exports.mjs';
 
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
-const ABOVE_THE_WORDS = new Set(['core/src/session.mjs', 'core/src/index.mjs']);
+const ABOVE_THE_WORDS = new Set(['core/src/notebook.mjs', 'core/src/index.mjs']);
 const isOfTheWords = path => path.startsWith('core/src/runtime/');
 const OF_THE_PARSER = new Set(['core/src/parse.mjs', 'core/gen/grammar.mjs', 'core/src/walk.mjs']);
 
@@ -27,9 +27,9 @@ describe('the imports of core/src', () => {
     expect(imports.get('core/gen/grammar.mjs')).toEqual(expect.arrayContaining(['core/src/steps.mjs', 'core/src/walk.mjs']));
   });
 
-  it('reach the words and the root from the session and the root of the package alone', () => {
+  it('reach the words and the root from the notebook and the root of the package alone', () => {
     expect(reachesIntoTheWords(imports)).toEqual([]);
-    expect(imports.get('core/src/session.mjs')).toContain('core/src/runtime/index.mjs');
+    expect(imports.get('core/src/notebook.mjs')).toContain('core/src/runtime/lang-runtime.mjs');
   });
 
   it('keep the records of the steps below the parser, reaching none of its modules', () => {
@@ -40,13 +40,13 @@ describe('the imports of core/src', () => {
     expect(reached).toContain('core/src/types.mjs');
   });
 
-  it('find a cycle and a reach into the words where a module writes one, the words and the session aside', () => {
+  it('find a cycle and a reach into the words where a module writes one, the words and the notebook aside', () => {
     const written = new Map([
       ['core/src/a.mjs', ['core/src/b.mjs']],
       ['core/src/b.mjs', ['core/src/a.mjs', 'core/src/runtime/c.mjs']],
       ['core/src/runtime/c.mjs', ['core/src/runtime/d.mjs']],
       ['core/src/runtime/d.mjs', []],
-      ['core/src/session.mjs', ['core/src/runtime/c.mjs']]
+      ['core/src/notebook.mjs', ['core/src/runtime/c.mjs']]
     ]);
     expect(cyclesOf(written)).toEqual([['core/src/a.mjs', 'core/src/b.mjs']]);
     expect(reachesIntoTheWords(written)).toEqual(['core/src/b.mjs → core/src/runtime/c.mjs']);
@@ -95,14 +95,14 @@ describe('the imports of core/src', () => {
 
 describe('the package root', () => {
   it('parses a source and evaluates a query', async () => {
-    expect([...core.parse('42')]).toEqual([42]);
+    expect([...core.parseSource('42')]).toEqual([42]);
     expect(await core.evalQuery('[1 2 3] | count')).toBe(3);
   });
 
-  it('keeps a session whose cells share their names', async () => {
-    const session = await core.createSession();
-    await session.evalCell(':x 2');
-    expect((await session.evalCell('x | add 1')).result).toBe(3);
+  it('keeps a notebook whose cells share their names', async () => {
+    const notebook = await core.createNotebook();
+    await notebook.evalCell(':x 2');
+    expect((await notebook.evalCell('x | add 1')).result).toBe(3);
   });
 
   it('prints a value as the literal that reads back as it', async () => {

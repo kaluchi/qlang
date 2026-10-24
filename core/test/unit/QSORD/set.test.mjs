@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { isSet } from '../../../src/types.mjs';
 import { makeSet } from '../../../src/ordering.mjs';
 
@@ -42,7 +42,7 @@ it('tells a set from a vector', () => {
 });
 
 it('a set literal holds a keyword once', async () => {
-  const { evalQuery } = await import('../../../src/session.mjs');
+  const { evalQuery } = await import('../../../src/notebook.mjs');
   const result = await evalQuery('#[:a :b :a]');
   expect(result.length).toBe(2);
 });

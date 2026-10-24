@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { printValue } from '../../../src/index.mjs';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 import { platformLocator, LANGUAGE_SOURCES } from '../../../src/runtime/bootstrap.mjs';
 import { kindsNamedForCommands } from '../../../../scripts/catalog-kinds.mjs';

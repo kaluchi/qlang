@@ -50,7 +50,7 @@ export function canonicalKeywordLiteral(name) {
   return literal;
 }
 
-export function keyword(name) {
+export function makeKeyword(name) {
   return Object.freeze(brandValueClass({ name, literal: canonicalKeywordLiteral(name) }, 'keyword'));
 }
 

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
 import { makeTag, isErrorValue } from '../../../src/types.mjs';
 import { BOX } from '../../helpers/box.mjs';
 
 const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 async function sessionRecordingVisits(visits) {
-  return await createSession({ sources: [{
+  return await createNotebook({ sources: [{
     uri: 'probe',
     source: ':any/visit ::builtin{}',
     primitives: {
@@ -29,8 +29,8 @@ describe('the forks of a sequence run in its order', () => {
   ]) {
     it(`${label}`, async () => {
       const visits = [];
-      const session = await sessionRecordingVisits(visits);
-      const cell = await session.evalCell(query);
+      const notebook = await sessionRecordingVisits(visits);
+      const cell = await notebook.evalCell(query);
       expect(cell.defect).toBeNull();
       expect(visits).toEqual([['start', 3], ['end', 3], ['start', 2], ['end', 2], ['start', 1], ['end', 1]]);
     });
@@ -43,10 +43,10 @@ it('a call hands on the error a modifier answers', async () => {
 
 it('computes the modifiers of a call up to the first that answers an error, and runs none after it', async () => {
   let noted = 0;
-  const session = await createSession({
+  const notebook = await createNotebook({
     sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
   });
-  expect((await session.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
+  expect((await notebook.evalCell('[1 2] | query (get /nope) ("ran" | note) !| type')).result).toEqual(makeTag('path/IndexNotIntegerError'));
   expect(noted).toBe(0);
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { keyword, formOf, makeTag, makeRegex, makePath, makeQuote, makeDoc, makeTagged, makeErrorValue, makeBinding } from '../../../src/types.mjs';
+import { makeKeyword, formOf, makeTag, makeRegex, makePath, makeQuote, makeDoc, makeTagged, makeErrorValue, makeBinding } from '../../../src/types.mjs';
 import { makeSet } from '../../../src/ordering.mjs';
 
 it('names the form a writer of the core reads each value by', () => {
@@ -9,7 +9,7 @@ it('names the form a writer of the core reads each value by', () => {
   expect(formOf(42)).toBe('number');
   expect(formOf('s')).toBe('string');
   expect(formOf(makeRegex('a', ''))).toBe('regex');
-  expect(formOf(keyword('k'))).toBe('keyword');
+  expect(formOf(makeKeyword('k'))).toBe('keyword');
   expect(formOf(makePath(['a']))).toBe('path');
   expect(formOf(makeTag('T'))).toBe('tag');
   expect(formOf([])).toBe('vec');
@@ -28,7 +28,7 @@ it('names the form of an error value `error`', () => {
 
 describe('a binding record, a vector under a tag and a descriptor are values under a tag', async () => {
   it('reads a binding record as a value under a tag', async () => {
-    const record = makeBinding({ name: keyword('x'), value: 42 });
+    const record = makeBinding({ name: makeKeyword('x'), value: 42 });
     expect(formOf(record)).toBe('underTag');
   });
 

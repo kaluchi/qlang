@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { evalQuery } from '../../src/session.mjs';
+import { evalQuery } from '../../src/notebook.mjs';
 import { isErrorValue } from '../../src/types.mjs';
 
 export async function expectErrorResult(query) {

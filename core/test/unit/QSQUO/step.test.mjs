@@ -2,18 +2,18 @@ import { describe, it, expect } from 'vitest';
 import { evalPipeline } from '../../../src/eval.mjs';
 import { callOf, isCallStep, isGroupStep, commandStep } from '../../../src/steps.mjs';
 import { asPrinted } from '../../../src/print-value.mjs';
-import { keyword, makeQuote, makeTag } from '../../../src/types.mjs';
+import { makeKeyword, makeQuote, makeTag } from '../../../src/types.mjs';
 import { rootState } from '../../../src/state.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { tokenize } from '../../../src/highlight.mjs';
-import { parse } from '../../../src/parse.mjs';
+import { parseSource } from '../../../src/parse.mjs';
 import { partOf, keepParts } from '../../../src/walk.mjs';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
 import { refusalOf, rootOf, kindOf } from '../../helpers/read-text.mjs';
 
 it('runs the verb a call record names, a step no text wrote', async () => {
-  const quote = makeQuote([callOf(new Map([['name', keyword('count')]]), asPrinted)]);
+  const quote = makeQuote([callOf(new Map([['name', makeKeyword('count')]]), asPrinted)]);
   const state = rootState([1, 2, 3], await langRuntime());
   expect((await evalPipeline(quote, state)).pipeValue).toBe(3);
 });
@@ -87,7 +87,7 @@ describe('the span of each part', () => {
 });
 
 describe('a throw of the parser that is no refusal, and the depth of a nest', () => {
-  const thrownBy = source => { try { parse(source); } catch (e) { return e; } return null; };
+  const thrownBy = source => { try { parseSource(source); } catch (e) { return e; } return null; };
   const nestOf = (depth, missing = 0) => '['.repeat(depth) + ']'.repeat(depth - missing);
 
   it('passes a throw of the parser or of a constructor of a step that is no refusal of the text as it is, the overflow of the stack of a deep nest among it', () => {
@@ -110,7 +110,7 @@ describe('a throw of the parser that is no refusal, and the depth of a nest', ()
   });
 
   it('reads a nest of literals 2300 and 2500 deep, the parts of a literal walked by a stack of their own', () => {
-    for (const depth of [2300, 2500]) expect(parse(nestOf(depth)), String(depth)).toHaveLength(1);
+    for (const depth of [2300, 2500]) expect(parseSource(nestOf(depth)), String(depth)).toHaveLength(1);
   });
 });
 
@@ -267,16 +267,16 @@ describe('the parts of a text', () => {
   });
 
   it('keeps each part by the value it read, and none for a value no text wrote', () => {
-    const quote = parse('[1 2] | count');
+    const quote = parseSource('[1 2] | count');
     expect(partOf(quote[1]).value).toBe(quote[1]);
     expect(partOf(quote[0]).parts).toHaveLength(2);
     expect(partOf(commandStep('count', []))).toBeUndefined();
   });
 
   it('keeps the steps of a group and of a step of the fail track by the part of the step', () => {
-    const [group] = parse('(1 | add 1)');
+    const [group] = parseSource('(1 | add 1)');
     expect(partOf(group.payload)).toBe(partOf(group));
-    const quote = parse('x !| get /a');
+    const quote = parseSource('x !| get /a');
     expect(partOf(quote[1].payload)).toBe(partOf(quote[1]));
   });
 

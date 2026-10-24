@@ -1,9 +1,9 @@
 // [QSHST#source], [QSDSP#walk], [QSDSP#residence], [QSQUO#modifier], [QSERR#site]
 
-import { parse } from '../parse.mjs';
+import { parseSource } from '../parse.mjs';
 import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isKind, isPrimitiveHanded, recipeOf, constructorOf, bindingValueOf, takePrimitive, keyword } from '../types.mjs';
+import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isKind, isPrimitiveHanded, recipeOf, constructorOf, bindingValueOf, takePrimitive, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
@@ -30,30 +30,30 @@ const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 export async function declareRoot(scope, sources) {
   let root = rootOf(scope);
   for (const { uri, source, primitives = {} } of sources) {
-    const origin = keyword(uri);
+    const origin = makeKeyword(uri);
     const sourceScope = new Map([[ROOT_KEY, root]]);
-    const answered = await evalPipeline(parse(source, { uri }), rootState(null, sourceScope));
+    const answered = await evalPipeline(parseSource(source, { uri }), rootState(null, sourceScope));
     if (isErrorValue(answered.pipeValue)) {
       throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: answered.pipeValue.tag.literal });
     }
     const declared = new Map([...answered.scope].filter(([, record]) => isBinding(record)));
     const again = [...declared.keys()].find(name => root.has(name));
-    if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: keyword(again) });
+    if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: makeKeyword(again) });
     const taking = new Set();
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
       const builtin = builtinOf(value);
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];
-      if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: keyword(name) });
+      if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: makeKeyword(name) });
       takePrimitive(builtin, primitive, [isFn(value) || isKind(value) ? value : functionOfRecipe(value)], splitAddress(name)[0]);
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
       if (taking.has(primitiveName) && (isUnderLabel(answered.scope, primitiveName) || isLabel(answered.scope, primitiveName))) continue;
       const held = builtinOf(bindingValueOf(declared.get(primitiveName)));
-      const facts = { origin, name: keyword(primitiveName) };
-      if (held !== null && !taking.has(primitiveName)) facts.sharedWith = keyword([...root, ...declared].find(([, record]) => builtinOf(bindingValueOf(record)) === held)[0]);
+      const facts = { origin, name: makeKeyword(primitiveName) };
+      if (held !== null && !taking.has(primitiveName)) facts.sharedWith = makeKeyword([...root, ...declared].find(([, record]) => builtinOf(bindingValueOf(record)) === held)[0]);
       throw new BuiltinPrimitiveNamesNoBuiltinError(facts);
     }
     root = new Map([...root, ...declared]);

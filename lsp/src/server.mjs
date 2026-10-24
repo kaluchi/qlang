@@ -12,7 +12,7 @@ import {
   ParameterInformation
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parse, partOf, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
+import { parseSource, partOf, langRuntime, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 import {
   parseDocument,
   buildCatalogIndex,
@@ -42,7 +42,7 @@ async function loadCatalogContext() {
   for (const { fileUri, uri } of sources) {
     try {
       const source = readFileSync(new URL(fileUri), 'utf8');
-      const root = partOf(parse(source, { uri }));
+      const root = partOf(parseSource(source, { uri }));
       const entries = buildCatalogIndex(root);
       for (const [name, range] of entries) {
         mergedIndex.set(name, { ...range, fileUri, source });

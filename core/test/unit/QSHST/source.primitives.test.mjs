@@ -42,7 +42,7 @@ describe('the table of the primitives — registering before the bootstrap', () 
   });
 });
 
-const bootstrapped = async () => (await import('../../../src/runtime/index.mjs')).langRuntime();
+const bootstrapped = async () => (await import('../../../src/runtime/lang-runtime.mjs')).langRuntime();
 
 describe('the table of the primitives — the primitives of the language by address', () => {
   it('registers one under the address of every verb and kind of the language that ends in ::builtin{}, a function whose recipe it is among them, and no other', async () => {

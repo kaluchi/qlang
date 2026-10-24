@@ -4,7 +4,7 @@
 // and `kinds` answers it, and a command one a chain takes, so no kind of the
 // catalog bears the name of a command.
 
-import { parse } from '../core/src/parse.mjs';
+import { parseSource } from '../core/src/parse.mjs';
 import { partOf } from '../core/src/walk.mjs';
 import { isBindStep, declaresKind } from '../core/src/steps.mjs';
 import { COMMAND_NAMES } from '../core/src/chain.mjs';
@@ -17,7 +17,7 @@ const READ = new Map();
 // }`, hold, each `{ path, value, span }`.
 export function declarationsOf(sources) {
   return sources.flatMap(({ path, text }) => {
-    if (!READ.has(text)) READ.set(text, partOf(parse(text, { uri: path })).parts.filter(({ value }) => isBindStep(value)));
+    if (!READ.has(text)) READ.set(text, partOf(parseSource(text, { uri: path })).parts.filter(({ value }) => isBindStep(value)));
     return READ.get(text).map(({ value, span }) => ({ path, value, span }));
   });
 }

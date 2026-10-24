@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeErrorValue, makeTag, makeTagged } from '../../../src/types.mjs';
+import { makeKeyword, isErrorValue, makeErrorValue, makeTag, makeTagged } from '../../../src/types.mjs';
 import { makeSet, compareValues } from '../../../src/ordering.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { evalQuery } from '../../../src/session.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { printAnswer, caretOf } from '../../../src/runtime/print.mjs';
 
 it('reads back the literal of an error value raised and of a tag over each kind of payload', async () => {
@@ -14,7 +14,7 @@ it('reads back the literal of an error value raised and of a tag over each kind 
   expect(restoredError.facts.get('message')).toBe('something went wrong');
   const hostBuilt = [
     makeTagged(makeTag('Box'), [1, 2, 3]),
-    makeTagged(makeTag('Keys'), makeSet([keyword('b'), keyword('a')])),
+    makeTagged(makeTag('Keys'), makeSet([makeKeyword('b'), makeKeyword('a')])),
     makeTagged(makeTag('User'), new Map([['name', 'alice']])),
     makeTagged(makeTag('Count'), 42)
   ];
@@ -25,7 +25,7 @@ it('reads back the literal of an error value raised and of a tag over each kind 
 
 describe('the print of a failure, its tag before the bang and its facts', () => {
   it('a failure that flew no step prints its facts alone, and its print raised starts its trace at the raise', async () => {
-    const err = makeErrorValue(makeTag('Foo'), new Map([['category', keyword('oops')]]));
+    const err = makeErrorValue(makeTag('Foo'), new Map([['category', makeKeyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
     expect(compareValues(await evalQuery(`${printValue(err)} | raise !| trace | map ~failed`), await evalQuery('[~(raise)]')) === 0).toBe(true);

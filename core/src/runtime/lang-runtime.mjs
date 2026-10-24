@@ -2,33 +2,33 @@
 
 // [QSDSP#residence]
 import './sequence.mjs';
-import './map.mjs';
+import './map-primitives.mjs';
 import './setops.mjs';
 import './arith.mjs';
-import './string.mjs';
+import './string-primitives.mjs';
 import './json.mjs';
 import './predicates.mjs';
 import './control.mjs';
 import './raise.mjs';
 import './convert.mjs';
-import './regex.mjs';
-import './path.mjs';
+import './regex-primitives.mjs';
+import './path-primitives.mjs';
 import './with.mjs';
-import './shape.mjs';
+import './shape-primitives.mjs';
 import './constructors.mjs';
-import './tagged.mjs';
+import './tagged-primitives.mjs';
 import './quote-steps.mjs';
 import './env.mjs';
 import './manifest.mjs';
 import './code.mjs';
-import './kind.mjs';
-import './fn.mjs';
-import './doc.mjs';
+import './kind-primitives.mjs';
+import './fn-primitives.mjs';
+import './doc-primitives.mjs';
 import './print.mjs';
 import './axis.mjs';
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';
-import { keyword } from '../types.mjs';
+import { makeKeyword } from '../types.mjs';
 import { declareRoot } from './root.mjs';
 import { platformLocator, LANGUAGE_SOURCES, BuiltinBootstrapSourceMissingError } from './bootstrap.mjs';
 
@@ -55,7 +55,7 @@ export async function buildLangRuntime(locator) {
   const sources = [];
   for (const uri of LANGUAGE_SOURCES) {
     const located = await locator(uri);
-    if (located === null) throw new BuiltinBootstrapSourceMissingError({ origin: keyword(uri) });
+    if (located === null) throw new BuiltinBootstrapSourceMissingError({ origin: makeKeyword(uri) });
     sources.push({ uri, source: located.source, primitives: PRIMITIVE_REGISTRY.primitivesUnder(nounOfSource(uri)) });
   }
   const templateScope = await declareRoot(new Map(), sources);

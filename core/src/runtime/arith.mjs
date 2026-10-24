@@ -1,17 +1,17 @@
 // [QSHST#source], [QSERR#site], [QSBLD#fn], [QSNUM#arithmetic]
 
 import { declareRefusal, refusingTheSubject } from '../errors.mjs';
-import { registerPrimitive, combines } from '../primitives.mjs';
+import { registerPrimitive, asCombiner } from '../primitives.mjs';
 const NumberRangeCountTooLargeError = declareRefusal('number/range/CountTooLargeError');
 
-registerPrimitive('number/add', combines((augend, addend) => augend + addend));
-registerPrimitive('number/sub', combines((minuend, subtrahend) => minuend - subtrahend));
-registerPrimitive('number/mul', combines((multiplicand, multiplier) => multiplicand * multiplier));
-registerPrimitive('number/div', combines((dividend, divisor) => dividend / divisor));
+registerPrimitive('number/add', asCombiner((augend, addend) => augend + addend));
+registerPrimitive('number/sub', asCombiner((minuend, subtrahend) => minuend - subtrahend));
+registerPrimitive('number/mul', asCombiner((multiplicand, multiplier) => multiplicand * multiplier));
+registerPrimitive('number/div', asCombiner((dividend, divisor) => dividend / divisor));
 
 // [QSNUM#arithmetic]
 const unsignedZero = number => (number === 0 ? 0 : number);
-registerPrimitive('number/mod', combines((dividend, divisor) => {
+registerPrimitive('number/mod', asCombiner((dividend, divisor) => {
   const remainder = dividend % divisor;
   return unsignedZero(remainder !== 0 && Math.sign(remainder) !== Math.sign(divisor) ? remainder + divisor : remainder);
 }));

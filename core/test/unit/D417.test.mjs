@@ -1,7 +1,7 @@
 import { it, expect, beforeAll } from 'vitest';
-import { createSession, evalQuery } from '../../src/session.mjs';
-import { parse } from '../../src/parse.mjs';
-import { keyword, makeBinding } from '../../src/types.mjs';
+import { createNotebook, evalQuery } from '../../src/notebook.mjs';
+import { parseSource } from '../../src/parse.mjs';
+import { makeKeyword, makeBinding } from '../../src/types.mjs';
 
 beforeAll(async () => {
   await evalQuery('1');
@@ -30,14 +30,14 @@ it('reaches a verb of the name a reader declares under its label beside the verb
 });
 
 it('reaches a verb of the name a later source of the root declares, and a root without that source does not', async () => {
-  const later = await createSession({ sources: [{ uri: 'tests/later', source: ':Crate |~~ A crate. ~~|\n:Crate/count ~(7)' }] });
+  const later = await createNotebook({ sources: [{ uri: 'tests/later', source: ':Crate |~~ A crate. ~~|\n:Crate/count ~(7)' }] });
   expect((await later.evalCell('5 | count !| get /addresses | eq #[::Crate/count ::map/count ::string/count ::vec/count]')).result).toBe(true);
   expect(await evalQuery('5 | count !| get /addresses | has ::Crate/count')).toBe(false);
 });
 
 it('reads the declaration of an address of the root that a scope a host hands holds before the root\'s', async () => {
-  const { scope } = await createSession();
-  const handed = new Map(scope).set('boolean/not', makeBinding({ name: keyword('boolean/not'), value: parse('99') }));
-  const session = await createSession({ scope: handed });
-  expect((await session.evalCell('get [~(true | not) ~(5 | not !| type)] | eq [99 ::boolean/not/SubjectNotBooleanError]')).result).toBe(true);
+  const { scope } = await createNotebook();
+  const handed = new Map(scope).set('boolean/not', makeBinding({ name: makeKeyword('boolean/not'), value: parseSource('99') }));
+  const notebook = await createNotebook({ scope: handed });
+  expect((await notebook.evalCell('get [~(true | not) ~(5 | not !| type)] | eq [99 ::boolean/not/SubjectNotBooleanError]')).result).toBe(true);
 });

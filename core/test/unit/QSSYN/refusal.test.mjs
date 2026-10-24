@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { parse, ParseError } from '../../../src/parse.mjs';
+import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
 
 describe('what a refusal of the parser says', () => {
   it('lists no class of characters among the continuations of a refusal', () => {
     for (const source of ['"\\u12"', '#"a', '#"a")', '(|~~| a', '(|~~| ``a', '[|~~ a', '|~~ ~("[.']) {
       let refusal = null;
-      try { parse(source); } catch (e) { refusal = e; }
-      expect(refusal, source).toBeInstanceOf(ParseError);
+      try { parseSource(source); } catch (e) { refusal = e; }
+      expect(refusal, source).toBeInstanceOf(SourceParseError);
       expect(refusal.expected.filter(alternative => alternative.type === 'class'), source).toEqual([]);
     }
   });
@@ -26,15 +26,15 @@ describe('what a refusal of the parser says', () => {
 
   it('names in the refusal the source its caller named', () => {
     try {
-      parse('[1 2', { uri: 'cell-7' });
+      parseSource('[1 2', { uri: 'cell-7' });
       throw new Error('expected throw');
     } catch (e) {
-      expect(e).toBeInstanceOf(ParseError);
+      expect(e).toBeInstanceOf(SourceParseError);
       expect(e.uri).toBe('cell-7');
     }
   });
 });
 
 it('refuses a bare nest left open of groups, quotes and maps reading each depth once', () => {
-  for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(ParseError);
+  for (const nest of ['('.repeat(64) + 'x ]', '~('.repeat(64) + 'x', '{:a '.repeat(64) + '1']) expect(refusalOf(nest), nest.slice(0, 8)).toBeInstanceOf(SourceParseError);
 });

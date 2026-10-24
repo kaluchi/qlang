@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { parse, ParseError } from '../../../src/parse.mjs';
+import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { stepOf, refusalOf } from '../../helpers/read-text.mjs';
 
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('holds the docs of the slot as the record of the declaration holds any doc', () => {
-    const [declaration] = parse(':x |~~ one ~~| |~~ two ~~| 42');
+    const [declaration] = parseSource(':x |~~ one ~~| |~~ two ~~| 42');
     expect(declaration.get('docs').map(doc => [...doc])).toEqual([['one'], ['two']]);
   });
 
   it('refuses a doc written before a declaration, on its line or the one above', () => {
-    expect(() => parse('|~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
-    expect(() => parse('5 | |~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
-    expect(() => parse('|~~| note\n:x 42')).toThrow(/slot of the declaration/);
-    expect(() => parse(':y 1\n|~~ note ~~|\n:x 42')).toThrow(/slot of the declaration/);
+    expect(() => parseSource('|~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
+    expect(() => parseSource('5 | |~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
+    expect(() => parseSource('|~~| note\n:x 42')).toThrow(/slot of the declaration/);
+    expect(() => parseSource(':y 1\n|~~ note ~~|\n:x 42')).toThrow(/slot of the declaration/);
   });
 });
 
@@ -27,7 +27,7 @@ describe('a quote of a doc tried as code', () => {
 
   it('reads a `~(` of a line doc that reads as no code to the `)` that pairs it on its line, as prose', () => {
     expect([...stepOf('|~~|~(0 | ~())')]).toEqual(['~(0 | ~())']);
-    expect(refusalOf('[|~~| ~(a,\n 1) 2\n]')).toBeInstanceOf(ParseError);
+    expect(refusalOf('[|~~| ~(a,\n 1) 2\n]')).toBeInstanceOf(SourceParseError);
   });
 
   it('reads a `~(` of a block doc that reads as no code to the `)` that pairs it across its lines after a line doc whose `~(` pairs none on its line', () => {
@@ -59,12 +59,12 @@ describe('a quote of a doc tried as code', () => {
       '{:a 1 "b": 2}', '{"a": 1, :b 2}', '{:k f x}', '#"("', '#{1}', '[1[2]]', 'get /a?', 'get /', 'f 01', 'f [x]', ':x [y]', ':true 1', '5 | 6', '[x]',
       'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}', '.a', 'get .a', '.', 'f; g'
     ]) {
-      expect(refusalOf(text), text).toBeInstanceOf(ParseError);
+      expect(refusalOf(text), text).toBeInstanceOf(SourceParseError);
       expect([...stepOf(`|~~ a ~(${text}) b ~~|`)], text).toEqual([`a ~(${text}) b`]);
       if (!text.includes('\n')) expect([...stepOf(`|~~| a ~(${text}) b`)], text).toEqual([`a ~(${text}) b`]);
     }
     for (const text of ['/ne :x 1', '::Box :x 1', '|~~ note ~~| :x 1', ':true :x 1']) {
-      expect(refusalOf(text), text).toBeInstanceOf(ParseError);
+      expect(refusalOf(text), text).toBeInstanceOf(SourceParseError);
       expect(stepOf(`|~~ a ~(${text}) b ~~|`), text).toHaveLength(3);
     }
   });
@@ -78,7 +78,7 @@ describe('a block doc left unbalanced, refused', () => {
   const neverClosedDoc = '`|~~` opened at line 1, column 1 is never closed; `~~|` completes the source';
   const expectRefusedAt = (src, offset, found) => {
     const refused = refusalOf(src);
-    expect(refused, src).toBeInstanceOf(ParseError);
+    expect(refused, src).toBeInstanceOf(SourceParseError);
     expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
   };
 

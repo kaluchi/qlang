@@ -1,6 +1,6 @@
 // [QSHST#tokens]
 
-import { closersCompleting, parse, ParseError } from './parse.mjs';
+import { closersCompleting, parseSource, SourceParseError } from './parse.mjs';
 import { partOf, walkParts, tagHeadEnd } from './walk.mjs';
 import { isCallStep, isBindStep, isGroupStep, errorFieldsOf } from './steps.mjs';
 import { formOf } from './types.mjs';
@@ -21,14 +21,14 @@ export function tokenize(source, verbNames) {
 function readOf(source) {
   let refusal;
   try {
-    return { root: partOf(parse(source)), source, end: source.length };
+    return { root: partOf(parseSource(source)), source, end: source.length };
   } catch (error) {
-    if (!(error instanceof ParseError)) throw error;
+    if (!(error instanceof SourceParseError)) throw error;
     refusal = error;
   }
   for (const prefix of [source, source.slice(0, refusal.location.start.offset)]) {
     const closers = closersCompleting(prefix);
-    if (closers !== null) return { root: partOf(parse(prefix + closers.join(''))), source: prefix + closers.join(''), end: prefix.length };
+    if (closers !== null) return { root: partOf(parseSource(prefix + closers.join(''))), source: prefix + closers.join(''), end: prefix.length };
   }
   return null;
 }

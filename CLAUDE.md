@@ -95,15 +95,15 @@ Tier 2, by topic, only the files the topic names:
 - the reach of a name: `core/src/nouns.mjs` for the walk
   from a subject's tags to the verb a name calls, and
   `core/lib/qlang/any.qlang` for the verbs every value answers
-- names, scope, the root, sessions: `docs/spec/QSNAM-names-and-scope.md`
+- names, scope, the root, notebooks: `docs/spec/QSNAM-names-and-scope.md`
   first, then `core/src/state.mjs`,
   `core/src/scope-keys.mjs`,
   `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
-  `core/src/session.mjs`
+  `core/src/notebook.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
   `core/src/eval-trace.mjs`
 - self-description: `core/src/runtime/axis.mjs`,
-  `core/src/runtime/manifest.mjs`, `core/src/runtime/doc.mjs`,
+  `core/src/runtime/manifest.mjs`, `core/src/runtime/doc-primitives.mjs`,
   `core/lib/qlang/doc.qlang`,
   `core/lib/qlang/builtin.qlang`
 - code as data: `core/src/steps.mjs`, `core/src/runtime/code.mjs`,

@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, typeOf, makeErrorValue } from '../types.mjs';
-import { elide, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
+import { elideToBudget, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
@@ -76,4 +76,4 @@ async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKin
 }
 
 registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));
-registerStateReader('any/elide', async (subject, budget, state) => elide(subject, budget, await printsOfKinds(subject, state.scope, state)));
+registerStateReader('any/elide', async (subject, budget, state) => elideToBudget(subject, budget, await printsOfKinds(subject, state.scope, state)));

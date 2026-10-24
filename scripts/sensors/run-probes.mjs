@@ -51,23 +51,23 @@ const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(
 const documents = process.argv.length > 2 ? process.argv.slice(2)
   : [...new Set([...openRecords, ...transitRecords, ...chapters])];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
-const { evalQuery, printValue, parse, isErrorValue, makeTag, createSession } = await core('index.mjs');
+const { evalQuery, printValue, parseSource, isErrorValue, makeTag, createNotebook } = await core('index.mjs');
 const { compareValues } = await core('ordering.mjs');
 const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
-// session of its own over the scope the command line's sources declare once,
+// notebook of its own over the scope the command line's sources declare once,
 // its streams silent, its subject the noun of the language, each query
 // answered once in a run [QSWRK#probe], [QSCLI#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
-const { scope: withTheCommandLine } = await createSession({ sources: cliSources(SILENT_STREAMS) });
+const { scope: withTheCommandLine } = await createNotebook({ sources: cliSources(SILENT_STREAMS) });
 const answers = new Map();
 function answerOf(query) {
   if (!answers.has(query)) {
-    answers.set(query, createSession({ scope: withTheCommandLine }).then(async session => {
-      const { result, defect } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+    answers.set(query, createNotebook({ scope: withTheCommandLine }).then(async notebook => {
+      const { result, defect } = await notebook.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
       if (defect !== null) throw defect;
       return result;
     }));
@@ -202,7 +202,7 @@ async function answersAsRecorded({ query, answer }) {
   }
   // A string prints raw, and its text may read as words of the command form.
   if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
-  try { parse(answer); } catch { return squash(await onCommandLine(query)) === answer; }
+  try { parseSource(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
   try { return compareValues(await answerOf(query), await evalQuery(answer)) === 0 || 'lossy'; } catch { return 'lossy'; }
 }

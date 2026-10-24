@@ -24,10 +24,10 @@
 {{
   import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
   import { canonicalFlags, regexProblem, regexRefusal, REGEX_FLAGS } from '../src/regex-read.mjs';
-  import { keyword, isKeyword, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
+  import { makeKeyword, isKeyword, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
   import { makeSet } from '../src/ordering.mjs';
   import { QlangError } from '../src/errors.mjs';
-  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, standsAsCommand, computes, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
+  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, standsAsCommand, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
   import { walkParts } from '../src/walk.mjs';
 
   // A span between backquotes in the prose of a doc: its text and the span of
@@ -153,7 +153,7 @@
   function computingReadsOf(read) {
     const computing = [];
     walkParts(read, held => {
-      if (!computes(held.value)) return partsOfALiteral(held.value).length > 0;
+      if (!isComputingStep(held.value)) return partsOfALiteral(held.value).length > 0;
       computing.push(held);
       return false;
     });
@@ -235,7 +235,7 @@
   }
 
   function callFieldsOf(name, modifiers) {
-    const fields = new Map([['name', keyword(name)]]);
+    const fields = new Map([['name', makeKeyword(name)]]);
     if (modifiers.length > 0) fields.set('modifiers', Object.freeze(modifiers.map(modifier => modifier.value)));
     return fields;
   }
@@ -968,7 +968,7 @@ MapLit
 
 JsonMapEntry
   = key:StringLit _ ":" _ value:Element
-    { return { key: part(keyword(key.value), [], key.span), value }; }
+    { return { key: part(makeKeyword(key.value), [], key.span), value }; }
 
 QlangMapEntry
   = key:Keyword __ value:Element
@@ -1106,9 +1106,9 @@ NullLit
 
 // `:name` and `:"any text"` read as the same keyword.
 Keyword
-  = ":" name:QuotedKeywordName  { return part(keyword(name)); }
-  / ":" name:NamespacedName     { return part(keyword(name)); }
-  / ":" name:KeywordName        { return part(keyword(name)); }
+  = ":" name:QuotedKeywordName  { return part(makeKeyword(name)); }
+  / ":" name:NamespacedName     { return part(makeKeyword(name)); }
+  / ":" name:KeywordName        { return part(makeKeyword(name)); }
 
 NamespacedName
   = head:KeywordName tail:("/" @KeywordName)+

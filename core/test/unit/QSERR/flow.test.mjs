@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { isErrorValue, makeTag } from '../../../src/types.mjs';
 
 it('`tag` hands on an error in the pipe and lays no tag over it', async () => {

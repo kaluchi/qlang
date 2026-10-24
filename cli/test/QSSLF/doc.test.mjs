@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { declaredPagesOf, linksOf, proseQuotesOf, quoteInProse, wrongLinksOf } from '../../../core/test/helpers/catalog-pages.mjs';
 import { runRepl } from '../../src/repl.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
-import { answerOf, names, cliNames } from '../helpers/cli-session.mjs';
+import { answerOf, names, cliNames } from '../helpers/cli-notebook.mjs';
 
 describe('the catalog of the command line', () => {
   it('leads every link of its pages to the page of another name', async () => {

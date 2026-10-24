@@ -2,7 +2,7 @@
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
-import { keyword } from '../src/types.mjs';
+import { makeKeyword } from '../src/types.mjs';
 import { BuiltinSourceLoadError } from '../src/source-load-error.mjs';
 
 export async function loadSource(uri) {
@@ -18,6 +18,6 @@ export async function loadSource(uri) {
   try {
     return await readFile(filePath, 'utf8');
   } catch (cause) {
-    throw new BuiltinSourceLoadError({ origin: keyword(uri), sourceLocation: filePath, cause });
+    throw new BuiltinSourceLoadError({ origin: makeKeyword(uri), sourceLocation: filePath, cause });
   }
 }

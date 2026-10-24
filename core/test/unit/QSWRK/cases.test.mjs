@@ -4,8 +4,8 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { evalQuery } from '../../../src/session.mjs';
-import { parse } from '../../../src/parse.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { parseSource } from '../../../src/parse.mjs';
 import { partOf, walkParts } from '../../../src/walk.mjs';
 import { isCallStep } from '../../../src/steps.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
@@ -92,7 +92,7 @@ for (const { file, cases } of casesByFile) {
   describe(`conformance: ${file}`, () => {
     for (const test of cases) {
       it(`${test.target === true ? 'target: ' : ''}${test.name}`, async () => {
-        assertLiteral(parse(test.expect), test.name);
+        assertLiteral(parseSource(test.expect), test.name);
 
         const queryResult = await evalQuery(test.query);
         const expectedValue = await expectedValueOf(test.expect);
@@ -101,7 +101,7 @@ for (const { file, cases } of casesByFile) {
           expect(test.decision, `${test.name}: a target names the decision that left it`).toBeDefined();
           expect(answersAsExpected, `${test.name}: the tree meets this target of ${test.decision}; drop its "target" mark`).toBe(false);
           expect(test.now, `${test.name}: a target records the answer the tree gives today as "now"`).toBeDefined();
-          assertLiteral(parse(test.now), test.name);
+          assertLiteral(parseSource(test.now), test.name);
           expect(await answersAsPresent(queryResult, test.now),
             `${test.name}: the target answers neither its goal nor its present "now"; tell whether a repair moved it or the case broke, then rewrite "now" or the case`).toBe(true);
         } else {

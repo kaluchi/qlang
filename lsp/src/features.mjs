@@ -1,7 +1,7 @@
 // [QSQUO#step], [QSLSP#server]
 
 import {
-  parse, ParseError,
+  parseSource, SourceParseError,
   langRuntime, evalQuery,
   partOf,
   partAtOffset,
@@ -73,9 +73,9 @@ export function parseDocument(source, uri) {
   const diagnostics = [];
   let root = null;
   try {
-    root = partOf(parse(source, { uri }));
+    root = partOf(parseSource(source, { uri }));
   } catch (e) {
-    if (e instanceof ParseError && e.location) {
+    if (e instanceof SourceParseError && e.location) {
       diagnostics.push({
         startLine: e.location.start.line - 1,
         startChar: e.location.start.column - 1,
@@ -224,7 +224,7 @@ async function subjectAt(source, offset) {
   const text = `${source.slice(0, start)}${STEP_AT_CURSOR}`;
   let root;
   try {
-    root = partOf(parse(text));
+    root = partOf(parseSource(text));
   } catch {
     return null;
   }
@@ -459,7 +459,7 @@ function callAround(root, source, offset) {
 
 function readsAsWhitespace(text) {
   try {
-    return parse(text).length === 0;
+    return parseSource(text).length === 0;
   } catch {
     return false;
   }

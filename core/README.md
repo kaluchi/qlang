@@ -24,14 +24,14 @@ refusals, and `::vec/sort | doc` the page of a name. The command line,
 
 ## Embedding
 
-A host keeps a session, whose cells share the names they declare. The
+A host keeps a notebook, whose cells share the names they declare. The
 host's sources declare the root beside the language's, each run as a
 cell before the first one a reader writes:
 
 ```js
-import { createSession, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
+import { createNotebook, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
 
-const session = await createSession({
+const notebook = await createNotebook({
   sources: [{
     uri: 'my/tools',
     source: ':string/fetch ::builtin{}',
@@ -39,13 +39,13 @@ const session = await createSession({
   }]
 });
 
-const cell = await session.evalCell('"https://example.org" | fetch');
+const cell = await notebook.evalCell('"https://example.org" | fetch');
 const shown = await boundAnswer(cell.result, cell.scopeAfterCell);
 await printAnswer(shown, cell.scopeAfterCell);  // the answer as a host prints it, within the budget
 cell.defect;              // what was raised past the fail track, else null
 ```
 
-- `createSession({ scope?, sources? })` answers a session: `evalCell(source,
+- `createNotebook({ scope?, sources? })` answers a notebook: `evalCell(source,
   { initialPipeValue?, uri? })` evaluates one cell and answers
   `{ source, uri, result, defect, scopeAfterCell }`, `result` the answer,
   a failure to parse among the failures, and `defect` a defect raised past
@@ -71,7 +71,7 @@ cell.defect;              // what was raised past the fail track, else null
   holds itself or a number past the finite doubles fails the call as
   `::call/HostFailureError`, and `fromPlain` builds a value from data the
   host holds parsed. The core takes the subject of a cell and what the
-  names of the scope `createSession({ scope })` and `evalQuery(source,
+  names of the scope `createNotebook({ scope })` and `evalQuery(source,
   scope)` are handed hold by the same walk, and a value of no kind there
   is a defect of the host, `::builtin/ForeignValueError`, raised past the
   fail track: a cell holds it as its `defect`, and the others throw it.
@@ -86,9 +86,9 @@ cell.defect;              // what was raised past the fail track, else null
   part's path, which the frame of the step places; a failure of the host's
   own world is an error value,
   `makeErrorValue(makeTag('Late'), facts)`, its facts a map, a keyword
-  made by `keyword`; and `typeOf` answers the kind of a value, the tag
+  made by `makeKeyword`; and `typeOf` answers the kind of a value, the tag
   `type` answers.
-- `evalQuery(source, scope?)` answers the value one cell of a session over
+- `evalQuery(source, scope?)` answers the value one cell of a notebook over
   the scope it is handed answers, by default over the scope of the root
   `langRuntime()` answers, a defect raised to its caller; a declaration
   it makes names its origin as every cell's does, `:cell-1`.
@@ -107,7 +107,7 @@ cell.defect;              // what was raised past the fail track, else null
   eye writes below the refusal, and null for any other answer. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
-- `parse(source)` answers the quote of the steps the text writes, the
+- `parseSource(source)` answers the quote of the steps the text writes, the
   records of its steps and its literals, and `partOf(quote)` the parts it
   read, each with its span, which the walks of the tools read;
   `tokenize(source, verbNames)` answers the tokens a highlighter paints,

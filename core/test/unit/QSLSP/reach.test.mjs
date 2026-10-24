@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { shownFor } from '../../../src/nouns.mjs';
-import { createSession } from '../../../src/session.mjs';
+import { createNotebook } from '../../../src/notebook.mjs';
 import { walkParts, tagWrittenBy, tagHeadEnd, findNameOccurrences, bindingNamesVisibleAt, TAG_SPELLING } from '../../../src/walk.mjs';
 import { isTag } from '../../../src/types.mjs';
 import { rootOf, kindOf } from '../../helpers/read-text.mjs';
@@ -39,9 +39,9 @@ describe('a verb as the tooling reads it', () => {
   });
 
   it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs', async () => {
-    const session = await createSession();
-    await session.evalCell(':number/double ~(mul 2)');
-    expect(shownFor(session.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
+    const notebook = await createNotebook();
+    await notebook.evalCell(':number/double ~(mul 2)');
+    expect(shownFor(notebook.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
 

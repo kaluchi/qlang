@@ -200,7 +200,7 @@ import Base from "../layouts/Base.astro"
   import { highlightQlang } from '../lib/qlang-highlight.js';
 
   async function initPlayground() {
-    const { createSession, cellShown, langRuntime, inlineCatalogLocator, verbNames } = await import(
+    const { createNotebook, cellShown, langRuntime, inlineCatalogLocator, verbNames } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
@@ -231,13 +231,13 @@ import Base from "../layouts/Base.astro"
       if (!source) return;
 
       // Split by blank lines into the cells it holds, which run in one
-      // session, a name one declares staying for the cells after it.
+      // notebook, a name one declares staying for the cells after it.
       const cells = source.split(/\n\s*\n/).filter(s => s.trim());
-      const session = await createSession({ scope });
+      const notebook = await createNotebook({ scope });
 
       const entries: HTMLElement[] = [];
       for (const cell of cells) {
-        const { text: printed, failed } = await cellShown(await session.evalCell(cell.trim()));
+        const { text: printed, failed } = await cellShown(await notebook.evalCell(cell.trim()));
         const entry = document.createElement('div');
         entry.className = 'pg-entry';
         const highlighted = highlightQlang(cell.trim(), rootVerbNames)

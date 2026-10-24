@@ -1,12 +1,12 @@
 // [QSPTH#get], [QSPTH#query], [QSPTH#template], [QSPTH#write], [QSPTH#verbs]
 
-import { registerPrimitive, registerStateReader, runs, runsWithin } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } from '../primitives.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { layTag } from '../eval.mjs';
 import { atPlace } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, keyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
@@ -51,8 +51,8 @@ async function readParts(subject, templates, soft, fallback, state) {
   return parts;
 }
 
-registerStateReader('any/get', runsWithin(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
-registerStateReader('any/query', runsWithin(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
+registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
+registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
 // [QSPTH#write], [QSERR#trace]
 async function written(value, path, at, write, state) {
@@ -93,7 +93,7 @@ async function relaid(original, rebuilt, state) {
 
 registerStateReader('any/put', (subject, pathOrKey, value, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
-registerStateReader('any/update', runs(['code'], (subject, pathOrKey, code, state) => {
+registerStateReader('any/update', runsAsCode(['code'], (subject, pathOrKey, code, state) => {
   const path = pathOf(pathOrKey);
   const part = async old => {
     const answer = await code(old);
@@ -115,7 +115,7 @@ export function pathReads(subject, path) {
 
 registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segment => {
   const index = segmentIndex(segment);
-  return Number.isNaN(index) || String(index) !== segment ? keyword(segment) : index;
+  return Number.isNaN(index) || String(index) !== segment ? makeKeyword(segment) : index;
 })));
 
 // [QSPTH#value], [QSPTH#key], [QSPTH#verbs]

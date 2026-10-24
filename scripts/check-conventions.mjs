@@ -139,6 +139,7 @@ import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
 import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
 import { anchorsTheTreeLacks } from './anchors.mjs';
+import { namesSharedInTree } from './grep-ergonomics.mjs';
 import { parse } from 'acorn';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -901,6 +902,12 @@ function commentsThatAreNoMarks() {
   });
 }
 
+// ── (23) No two modules bear one name ──────────────────────────
+//
+// A module is found by its name: no two modules of the project bear one, a
+// test file and a configuration of a tool aside by their form,
+// `scripts/grep-ergonomics.mjs` [QSLEX#grep], [D431].
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -925,7 +932,8 @@ const { text, failed } = verdictOf({
   commandKinds: kindsOfCommands(),
   unreadExports: exportsNoHostReads(),
   testsOffTheirSection: testsOffTheirSection(),
-  commentsNoMarks: commentsThatAreNoMarks()
+  commentsNoMarks: commentsThatAreNoMarks(),
+  sharedNames: namesSharedInTree(repoRoot)
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

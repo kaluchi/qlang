@@ -28,7 +28,13 @@ each with its own anchor; a concept under rival words keeps one; and a group
 of another image is chosen again as a whole. A record that retires a term
 writes it into the lexicon of retired terms, `scripts/retired-words.mjs`, in
 the commit that retires it: a regex of the one sense it had, the term
-written in its place and the record. The lexicon holds the terms of the
+written in its place and the record. The lexicon refuses a term by its
+word whole, where no sense of the word fits the texts that state what
+holds, or by the exact names its retired sense wrote; a word the texts
+still write in another sense is parted first, each live sense under a word
+of its own or the word kept to its one narrow scope. A list of phrases that
+refuses one sense of a word the texts write in another is no form of the
+lexicon but the debt of a word not yet parted, which the parting pays. The lexicon holds the terms of the
 project, each of one sense and high in entropy. A generic word of other
 projects, which a search finds in a heap of senses, stays out of it, its
 uses held by the readers of the pentimento audit, but for a generic word the

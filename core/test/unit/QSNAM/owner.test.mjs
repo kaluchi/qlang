@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 
 describe('a recipe of the root reads its verbs and its inputs by name', () => {
@@ -15,8 +15,8 @@ describe('a recipe of the root reads its verbs and its inputs by name', () => {
   });
 
   it('a name of habit answers as its verb under a verb a later source declares', async () => {
-    const session = await createSession({ sources: [{ uri: 'later', source: ':number/tag (::fn | impl ~(99))' }] });
-    expect((await session.evalCell('5 | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::number/tag/ArgsBeyondInputsError ::number/tag/ArgsBeyondInputsError]')).result).toBe(true);
+    const notebook = await createNotebook({ sources: [{ uri: 'later', source: ':number/tag (::fn | impl ~(99))' }] });
+    expect((await notebook.evalCell('5 | get [~(desc !| type) ~(tag ::desc !| type)] | eq [::number/tag/ArgsBeyondInputsError ::number/tag/ArgsBeyondInputsError]')).result).toBe(true);
   });
 
   it('the inputs of `subOf` and `divOf` shadow a value of the reader of their names, and a verb under a noun of the root stays in the reader\'s queries', async () => {
@@ -33,17 +33,17 @@ describe('what a verb reads and runs as data reads the tree of the query', () =>
   });
 
   it('a verb of a source reads the reader\'s name before the source\'s own, and the source\'s where the reader declares none', async () => {
-    const session = await createSession({ sources: [pages] });
-    expect((await session.evalCell('::k | pageOf')).result).toBe('the source\'s own');
-    expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe('the reader\'s');
+    const notebook = await createNotebook({ sources: [pages] });
+    expect((await notebook.evalCell('::k | pageOf')).result).toBe('the source\'s own');
+    expect((await notebook.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe('the reader\'s');
   });
 
   it('a verb of a source reads a name a later source declares, under the reader\'s', async () => {
     const reading = { uri: 'reading', source: ':reading |~~ Reading. ~~|\n:any/pageOf ~(doc | content)' };
     const later = { uri: 'later', source: ':later |~~ Later. ~~|\n:k |~~ the later source\'s ~~| 3' };
-    const session = await createSession({ sources: [reading, later] });
-    expect((await session.evalCell('::k | pageOf')).result).toBe('the later source\'s');
-    expect((await session.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe('the reader\'s');
+    const notebook = await createNotebook({ sources: [reading, later] });
+    expect((await notebook.evalCell('::k | pageOf')).result).toBe('the later source\'s');
+    expect((await notebook.evalCell(':k |~~ the reader\'s ~~| 2 | ::k | pageOf')).result).toBe('the reader\'s');
   });
 
   it('a verb the reader declares reads no declaration of its own recipe as data, and runs held code in a lane of its own', async () => {

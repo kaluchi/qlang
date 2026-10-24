@@ -1,8 +1,8 @@
-// A clean child [QSWRK#measure]: `claude -p` started from a directory of its own,
+// A clean child [QSMSR#benchmark]: `claude -p` started from a directory of its own,
 // with no settings, no memory, no MCP server and a one-line system
 // prompt, so its context is the prompt it is handed and nothing the
 // session that runs it knows. It runs `qlang` alone, on the data files
-// copied beside it [QSWRK#measure], and its record keeps every call it made and
+// copied beside it [QSMSR#benchmark], and its record keeps every call it made and
 // what the language answered, the frictions a reading of the run looks
 // for.
 
@@ -21,16 +21,16 @@ export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
 
 // The effort a child and an author of the benchmark run at, `medium`, which
 // no run changes, set by `CLAUDE_CODE_EFFORT_LEVEL` in the environment of their
-// start, where no flag and no settings file overrides it [QSWRK#measure].
+// start, where no flag and no settings file overrides it [QSMSR#benchmark].
 export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'medium' });
 
 // The environment a child of the benchmark adds to the session's, which its
-// run fixes [QSWRK#measure].
+// run fixes [QSMSR#benchmark].
 export const RUN_ENVIRONMENT = Object.freeze({ ...CHILD_ENVIRONMENT, ...BENCHMARK_EFFORT });
 
 // The environment with the command line of a tree first on the PATH as
 // `qlang`, so a reader of a worktree runs the language of the tree it reads
-// [QSWRK#review].
+// [QSRVW#readers].
 export function withTheLanguageOf(repoRoot, env) {
   const commands = mkdtempSync(join(tmpdir(), 'qlang-of-the-tree-'));
   const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
@@ -107,7 +107,7 @@ function recordOfStream(streamText) {
 // runChild({ prompt, model, workDir }) → the record of the run;
 // `workDir` the directory the child starts in, which holds the data
 // files, its `qlang` the command line of the tree the run measures
-// [QSWRK#measure].
+// [QSMSR#benchmark].
 export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });
   const flags = ['-p', '--model', model, '--tools', 'Bash', '--allowedTools', ...COMMAND_LINE_TOOLS, '--strict-mcp-config', '--restricted',

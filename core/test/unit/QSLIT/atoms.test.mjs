@@ -1,12 +1,12 @@
 import { it, expect, beforeAll } from 'vitest';
 import {
-  RING_TIMEOUT, ringSession, unbuiltOf, conformanceLiterals
+  RING_TIMEOUT, ringNotebook, unbuiltOf, conformanceLiterals
 } from '../../helpers/ring-of-atoms.mjs';
 
 let ringSessionOfFile;
 
 beforeAll(async () => {
-  ringSessionOfFile = await ringSession();
+  ringSessionOfFile = await ringNotebook();
 }, RING_TIMEOUT);
 
 it('the ring of atoms keeps the examples of its own verbs true', async () => {

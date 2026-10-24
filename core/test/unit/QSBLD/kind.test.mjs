@@ -1,8 +1,8 @@
 import { it, expect } from 'vitest';
-import { parse } from '../../../src/parse.mjs';
+import { parseSource } from '../../../src/parse.mjs';
 import { isConstructStep, builtFrom } from '../../../src/steps.mjs';
 
-const bodyOf = source => parse(source)[0].get('body');
+const bodyOf = source => parseSource(source)[0].get('body');
 
 it('reads a literal of a kind as the body of a bare name, which no chain heads', () => {
   expect(isConstructStep(bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind[~() null]'))).toBe(true);

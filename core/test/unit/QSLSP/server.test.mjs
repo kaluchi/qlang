@@ -6,7 +6,7 @@ import { isVec, isQuote } from '../../../src/types.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
 it('hands the tools the parts of a text and the letters of a name', () => {
-  const root = core.partOf(core.parse(':x 1 | x'));
+  const root = core.partOf(core.parseSource(':x 1 | x'));
   expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
   expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
 });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
-import { parse } from '../../../src/parse.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { parseSource } from '../../../src/parse.mjs';
 import { isMap, makeTag } from '../../../src/types.mjs';
 import { isConstructStep } from '../../../src/steps.mjs';
 
@@ -9,7 +9,7 @@ it('a number payload touches its tag by `#`', async () => {
 });
 
 it('the parser reads a map touching a tag as its payload', () => {
-  const [step] = parse('::Box{:k 1}');
+  const [step] = parseSource('::Box{:k 1}');
   expect(isConstructStep(step)).toBe(true);
   expect(isMap(step.get('payload'))).toBe(true);
 });

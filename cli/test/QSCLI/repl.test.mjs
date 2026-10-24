@@ -19,14 +19,14 @@ describe('the commands of the REPL', () => {
   });
 });
 
-describe('a cell run in one session', () => {
+describe('a cell run in one notebook', () => {
   it('starts every cell from the noun of the language, `::qlang`', async () => {
     const replHarness = captureRepl('42\neq ::qlang\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> 42\nqlang> true\nqlang> ');
   });
 
-  it('preserves bindings between cells within the same session', async () => {
+  it('preserves bindings between cells within the same notebook', async () => {
     const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
@@ -102,7 +102,7 @@ it('prints a failure with the steps its trace holds, the steps it skipped among 
   expect(out).toMatch(/mul 2/);
 });
 
-it('runs the query given on the command line before the typed cells, in the same session', async () => {
+it('runs the query given on the command line before the typed cells, in the same notebook', async () => {
   const replHarness = captureRepl('x | add 1\n.exit\n');
   await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
   const printed = stripAnsi(replHarness.stdoutText());

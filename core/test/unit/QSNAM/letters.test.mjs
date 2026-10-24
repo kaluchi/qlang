@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
-import { parse, ParseError } from '../../../src/parse.mjs';
+import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { stepOf } from '../../helpers/read-text.mjs';
 
 describe('the regex of a name', () => {
@@ -19,17 +19,17 @@ describe('the regex of a name', () => {
 
 describe('the letters that begin a name', () => {
   it('refuses a digit at the start of a bare keyword', () => {
-    for (const source of [':0', ':1name']) expect(() => parse(source), source).toThrow(ParseError);
+    for (const source of [':0', ':1name']) expect(() => parseSource(source), source).toThrow(SourceParseError);
   });
 
   it('rejects a bracket or a punctuation mark as the start of a name (not in ID_Start)', () => {
-    expect(() => parse(':<tag')).toThrow(ParseError);
-    expect(() => parse(':{key')).toThrow(ParseError);
-    expect(() => parse(':!mark')).toThrow(ParseError);
+    expect(() => parseSource(':<tag')).toThrow(SourceParseError);
+    expect(() => parseSource(':{key')).toThrow(SourceParseError);
+    expect(() => parseSource(':!mark')).toThrow(SourceParseError);
   });
 
   it('reads no letter past the first plane of Unicode as the start of a bare name, and its quoted form takes it', () => {
-    expect(() => parse(':\u{10400}')).toThrow(ParseError);
+    expect(() => parseSource(':\u{10400}')).toThrow(SourceParseError);
     expect(stepOf(':"\u{10400}"').name).toBe('\u{10400}');
   });
 });

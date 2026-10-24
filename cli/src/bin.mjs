@@ -1,4 +1,4 @@
-// [QSWRK#tooling]
+// [QSGAT#hosts]
 
 import { main } from './main.mjs';
 

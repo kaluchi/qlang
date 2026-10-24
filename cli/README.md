@@ -48,7 +48,7 @@ qlang '#[:admin :user] | print | out' | qlang 'in | parse | open | count'
 
 ## REPL
 
-`qlang -i` opens a session whose cells share the names they declare;
+`qlang -i` opens a notebook whose cells share the names they declare;
 a query after `-i` runs as its first cell. `.help` lists the meta
 commands and the keys of the editor. `in` answers the empty string
 inside the REPL, since the prompt reads stdin.

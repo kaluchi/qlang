@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Mechanise the rules of the work that a pass over the tree can hold
-// [QSWRK#tooling]: the checks catch the
+// [QSGAT#gate]: the checks catch the
 // plain breaches, so a review reads for the deep ones, the habits words
 // wake, the completeness of a concept, a half measure.
 //
@@ -34,16 +34,16 @@
 //       workspace — in any dependency map — must read
 //       `^<that workspace's version>`.
 //
-//   (5) Anchors of the texts that hold the work: a path the
-//       instruction file, the aim or the chapter of
-//       the work names exists, and words they
-//       quote from the tree, “…” beside the path of their file, stand
-//       in that file. A path under a folder the repository lacks is the
-//       sister project's, checked where its checkout sits beside this
-//       one.
+//   (5) Anchors of the texts that hold the work: a path the seed, the
+//       aim or a chapter names exists, and words they quote from the
+//       tree, “…” beside the path of their file, stand in that file, a
+//       section a record in transit overrides waiting for its closeout,
+//       `scripts/anchors.mjs`. A path under a folder the repository lacks
+//       is the sister project's, checked where its checkout sits beside
+//       this one [QSREQ#probe].
 //
 //   (6) Decisions kept out of the catalog: a source of the catalog
-//       names a record in the comment at its head alone [QSWRK#marks].
+//       names a record in the comment at its head alone [QSREQ#marks].
 //
 //   (7) Who decided: a record from D155 on names in a line of its
 //       own, `Decided by.`, the maintainer or the model [QSWRK#journal].
@@ -52,12 +52,14 @@
 //       records in force, and `replaced/` those replaced whole
 //       [QSWRK#journal].
 //
-//   (9) The walk of a baseline: a record of the language the
+//   (9) The reconciliation of the tree with its baseline,
+//       `scripts/reconciliation.mjs`: a record of the language the
 //       baseline holds is held by a case or closed by the line of its
-//       fate, no more than twenty records wait for the next walk, and the code, the tests and the cases cite the records in
-//       force, the documents that hold the work those in force or
-//       waiting on a target; a section of a chapter is
-//       written since the baseline by a record dissolved into it [QSWRK#baseline].
+//       fate; the code, the tests and the cases cite the records in force,
+//       the documents that hold the work those in force or waiting on a
+//       target; a citation names a section the specification holds or
+//       one a record in transit brings; and a section of a chapter is
+//       written since the baseline by a record dissolved into it [QSWRK#reconciliation].
 //
 //   (10) The links of the documents: a link of a document to a file of
 //       markdown leads to a file the tree holds [QSWRK#journal].
@@ -70,33 +72,33 @@
 //   (12) A text that states what holds tells no history: a chapter
 //       cites no record, tells no history of a form, says nothing of
 //       what it leaves out, and but for the chapter of the work speaks
-//       no word and no path of the journal [QSWRK#spec]; and no month
+//       no word and no path of the journal [QSVOX#chapter]; and no month
 //       of the history stands in a chapter, a seed, a page of the
-//       catalog, a case or the code [QSWRK#documents].
+//       catalog, a case or the code [QSVOX#pentimento].
 //
 //   (13) The marks of the artifacts: every module, script, test file,
 //       source of qlang and workflow names the rules it holds
-//       [QSWRK#marks].
+//       [QSREQ#marks].
 //
 //   (14) A series of the benchmark keeps its two latest at the merge that
 //       landed a branch: its sets and its screens, a branch keeping every
-//       run of its own [QSWRK#baseline].
+//       run of its own [QSWRK#closeout].
 //
 //   (15) A report of the research stands with the session's reading
 //       beside it, every finding with its fate: a critique of an open
 //       record, a review of the work a record did, a run of the check
-//       of the chapters and an outside audit [QSWRK#review].
+//       of the chapters and an outside audit [QSRVW#research].
 //
 //   (16) A comment, a doc of the catalog and a sentence of the prose
 //       that states what holds name no token the branch took out of the
 //       code, the catalog and the cases, the name of what its reader
 //       finds nowhere, but in a section a record in transit overrides
-//       [QSWRK#documents].
+//       [QSVOX#pentimento].
 //
 //   (17) A text that states what holds writes no word the language
 //       retired, `scripts/retired-words.mjs`: the prose of the chapters
 //       and the seeds, the comments and docs of the code and the catalog,
-//       the names of the cases and the titles of the tests [QSWRK#documents].
+//       the names of the cases and the titles of the tests [QSLEX#term].
 //
 //   (18) No kind of the catalog bears the name of a command of a chain, one
 //       the chain of a function or of a kind takes, the command named by its
@@ -105,7 +107,7 @@
 //   (19) The root of the package exports what a host builds on, a name a
 //       workspace beside the core reads from the package or the page of the
 //       package writes, by name from a module no other door opens
-//       [QSWRK#tooling].
+//       [QSGAT#workspaces].
 //
 //   (20) A refusal names a kind after `Not` only as the label its subject
 //       resides on or the kind a conversion of its address reads; any other
@@ -118,7 +120,16 @@
 //       at a record in force of a domain its tests hold, the title of a test
 //       or of a group cites no rule and names no binding its file imports
 //       from the code, and a group holds two tests or more in a file of two
-//       groups or more [QSWRK#marks].
+//       groups or more; a section a record in transit brings is one a test
+//       file stands at until its closeout [QSREQ#marks].
+//
+//   (22) A comment of the sources and the tests of the core, the command
+//       line and the language server is a mark alone, one line of the
+//       citations its block holds, or a directive of a tool [QSLEX#code].
+//
+//   (23) No two modules of the project, its `.mjs`, `.js`, `.qlang` and
+//       `.peggy` files, bear one name, a test file and a configuration of
+//       a tool aside by their form [QSLEX#grep].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -128,7 +139,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep } from 'node:path';
 import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
-import { baselineOf, chaptersOfSpec, isCitingCode, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, walkOfBaseline, CITING_DOCUMENTS } from './baseline-walk.mjs';
+import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, OPEN_RECORD_FIELDS, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
@@ -138,6 +149,8 @@ import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
 import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
+import { anchorsTheTreeLacks } from './anchors.mjs';
+import { namesSharedInTree } from './grep-ergonomics.mjs';
 import { parse } from 'acorn';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -155,11 +168,11 @@ const IGNORE_DIRS = new Set([
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
   'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
-  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSWRK#measure]
+  'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSMSR#benchmark]
   'vscode'
 ]);
 // A review of a branch, named by its date, stands as its reviewer wrote it,
-// and the README of its folder is checked [QSWRK#review].
+// and the README of its folder is checked [QSRVW#review].
 const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/reviews/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
 // Files that quote the forbidden list verbatim — exempt from the
 // forbidden-word scan, still in scope for every other check.
@@ -183,7 +196,7 @@ const FORBIDDEN_REGEXES = [
 
 // The sources a scan reads, the code, the pages and the texts, and those
 // the words that tell when a text changed are sought in, the grammar, the
-// pages of the site and the workflows among them [QSWRK#tooling].
+// pages of the site and the workflows among them [QSVOX#pentimento].
 const SOURCE_FILE = /\.(mjs|js|md|qlang)$/;
 const TEXT_FILE = /\.(mjs|js|md|qlang|peggy|astro|yml)$/;
 
@@ -351,7 +364,7 @@ const FENCE_RE = /^\s*```/;
 const INLINE_CODE_RE = /`[^`]*`/g;
 
 // A report of the research stands as its outside reader wrote it
-// [QSWRK#review], so the prose held to its tallies is the work's own, the
+// [QSRVW#research], so the prose held to its tallies is the work's own, the
 // session's reading of the report among it, by the forms of the folders of
 // the research.
 const OUTSIDE_REPORT = new RegExp(`^${RESEARCH}/(?:(?:${foldersOfForm('report')})/D\\d+~\\d+\\.md|(?:${foldersOfForm('run')})/D\\d+~\\d+/(?!reading\\.md)[^/]+\\.md)$`);
@@ -409,49 +422,16 @@ function rangesOffTheirSibling() {
 }
 
 // ── (5) Anchors of the texts that hold the work ────────────────
-
-const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md', 'docs/spec/QSWRK-the-work.md'];
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
-const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
-const sisterRoot = join(repoRoot, '..', 'eclipse-jdt-search');
-
-// The checkout that holds a path: this one when its folder is here, the
-// sister project's where it sits beside this one, and none otherwise.
-function anchorRootOf(anchorPath) {
-  const folder = anchorPath.split('/').slice(0, -1).join('/');
-  if (existsSync(join(repoRoot, folder))) return repoRoot;
-  return existsSync(sisterRoot) ? sisterRoot : null;
-}
-
-function anchorsTheTreeLacks() {
-  const violations = [];
-  for (const documentPath of ANCHOR_DOCUMENTS) {
-    const text = readText(join(repoRoot, documentPath));
-    for (const [, anchorPath] of text.matchAll(ANCHOR_PATH_RE)) {
-      if (/\/(?:Dnn|En)\.md$/.test(anchorPath)) continue;
-      const root = anchorRootOf(anchorPath);
-      if (root !== null && !existsSync(join(root, anchorPath))) {
-        violations.push({ file: documentPath, anchor: anchorPath, problem: 'names a file the tree lacks' });
-      }
-    }
-    for (const [, quoted, anchorPath] of text.replace(/\s+/g, ' ').matchAll(TREE_QUOTE_RE)) {
-      const root = anchorRootOf(anchorPath);
-      if (root === null || !existsSync(join(root, anchorPath))) continue;
-      const anchored = readText(join(root, anchorPath)).replace(/\s+/g, ' ');
-      if (!anchored.includes(quoted.trim())) {
-        violations.push({ file: documentPath, anchor: anchorPath, problem: `quotes “${quoted}”, which the file no longer holds` });
-      }
-    }
-  }
-  return violations;
-}
+//
+// A path the seed, the aim or a chapter names is a file, and words they quote
+// beside it stand in it, `scripts/anchors.mjs` [QSREQ#probe], [QSVOX#chapter].
 
 // ── (6) Decisions kept out of the catalog ──────────────────────
 //
 // A page of the catalog is read by a reader of the language, which
 // follows what the page names by a query; a decision of the process is
 // no page of the language, so a reference to one is a link that leads
-// nowhere, and the reason of a sentence lives with its decision [QSWRK#marks].
+// nowhere, and the reason of a sentence lives with its decision [QSREQ#marks].
 
 const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
 
@@ -462,7 +442,7 @@ function catalogFiles(dir) {
 }
 
 // The comment at the head of a source, `|~ … ~|`, is no page a reader
-// reads: it marks the rules the source holds [QSWRK#marks].
+// reads: it marks the rules the source holds [QSREQ#marks].
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
@@ -514,24 +494,23 @@ function misplacedRecords() {
   ];
 }
 
-// ── (9) The walk of a baseline ─────────────────────────────────
+// ── (9) The reconciliation of the tree with its baseline ───────
 //
 // The baseline is the last commit that landed a branch on master. A record
 // of the language that the baseline's tree holds is held by a case or closed
-// by the line of its fate, and the records written since wait for the walk,
-// twenty at most; the code, the tests and the
-// cases cite the records in force, and the documents that hold the work
-// those in force or waiting on a target [QSWRK#baseline].
+// by the line of its fate; the code, the tests and the cases cite the records
+// in force, and the documents that hold the work those in force or waiting
+// on a target [QSWRK#reconciliation].
 
-function baselineUnwalked() {
-  return walkOfBaseline(repoRoot).violations;
+function baselineUnreconciled() {
+  return reconciliationOf(repoRoot).violations;
 }
 
 // ── (10) The links of the documents ────────────────────────────
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
 // Dnn.md` or its inline form, leads to a file the tree holds, so the graph
-// of the records walks from any document into the past [QSWRK#journal], [QSWRK#marks].
+// of the records walks from any document into the past [QSWRK#journal], [QSREQ#marks].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
 
@@ -596,17 +575,17 @@ function fatesOutOfStep() {
 //
 // A chapter of the specification states what the language is: it cites
 // no record of the journal, speaks none of the journal's words, tells no
-// history of a form, and says nothing of what it leaves out [QSWRK#spec]. The
+// history of a form, and says nothing of what it leaves out [QSVOX#chapter]. The
 // prose is read outside its fenced blocks, whose probes may hold any text.
-// The chapter of the work speaks the words and the paths of the journal,
-// and no chapter cites a record [QSWRK#spec].
+// The chapters of the work speak the words and the paths of the journal,
+// and no chapter cites a record [QSVOX#chapter].
 // A month written in a text that states what holds dates a story, which the
-// history keeps [QSWRK#documents].
+// history keeps [QSVOX#pentimento].
 const HISTORY_DATE = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
 const SPEC_INTRUSIONS = [
   { rule: 'a record of the journal', regex: /\[[DE]\d+\]|\bdecisions? [DE]\d+\b/ },
-  { rule: 'a record of the journal', regex: /docs\/journal/, besides: 'QSWRK' },
-  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: 'QSWRK' },
+  { rule: 'a record of the journal', regex: /docs\/journal/, besides: WORK_CHAPTERS },
+  { rule: 'a word of the journal', regex: /\b(journal|records? in (force|transit)|baselines?|dissolves?|dissolved|in transit|replaced\/)\b/i, besides: WORK_CHAPTERS },
   { rule: 'the history of a form', regex: /\b(left|leaves|leave) the language\b|\bno longer\b|\bused to\b|\bformerly\b|\banymore\b/i },
   { rule: 'what the text leaves out', regex: /\bnothing else\b|\bno history\b/i },
   { rule: 'a date of the history', regex: HISTORY_DATE },
@@ -621,7 +600,7 @@ function specIntrusions() {
       if (line.startsWith('```')) { fenced = !fenced; return; }
       if (fenced) return;
       for (const { rule, regex, besides } of SPEC_INTRUSIONS) {
-        if (besides !== undefined && name.startsWith(besides)) continue;
+        if (besides !== undefined && besides.includes(name.slice(0, 5))) continue;
         const match = regex.exec(line);
         if (match) found.push({ file: `docs/spec/${name}`, line: index + 1, rule, text: match[0] });
       }
@@ -640,7 +619,7 @@ function specIntrusions() {
 }
 
 // Beside the chapters and the seeds, the catalog, the cases and the code
-// state what holds [QSWRK#documents].
+// state what holds [QSVOX#voices].
 const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
   ['core/src', /\.(mjs|peggy)$/], ['cli/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
 
@@ -648,7 +627,7 @@ const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['c
 //
 // Every module, script, test file, source of qlang and workflow names
 // the rules it holds, so the scope of a record or a section is found by its
-// marks and an artifact that names no rule it holds is seen [QSWRK#marks].
+// marks and an artifact that names no rule it holds is seen [QSREQ#marks].
 
 function unmarkedArtifacts() {
   return marksOfTree(repoRoot).orphans;
@@ -658,8 +637,8 @@ function unmarkedArtifacts() {
 //
 // The sets of the benchmark with their runs and its screens keep their two
 // latest at the merge that landed a branch, a branch keeping every run of
-// its own and the move of the baseline giving the older to the history,
-// `node scripts/drop-documents.mjs` [QSWRK#baseline].
+// its own and the closeout giving the older to the history,
+// `node scripts/drop-documents.mjs` [QSWRK#closeout].
 
 function seriesBeyondTwo() {
   const baseline = baselineOf(repoRoot);
@@ -679,13 +658,13 @@ function unreadReports() {
 // token the branch took out of the code, the catalog and the cases since
 // the baseline: a name the reader finds nowhere is a turn of that dialogue
 // answering a past the reader never sees, which the record and the commit
-// keep [QSWRK#documents]. A token is a name with a lowercase letter and a capital, a
+// keep [QSVOX#pentimento]. A token is a name with a lowercase letter and a capital, a
 // digit or an underscore inside it, or an address under `::`. A line of
 // code holds what stands before its comment, a source of the catalog
 // holds what stands outside its docs and comments, a case holds the whole
 // line, and the prose of a chapter and of a seed names what stands outside
 // its fenced blocks; a section a record in transit overrides waits for the
-// move that writes it anew, as its probes wait [QSWRK#probe].
+// move that writes it anew, as its probes wait [QSREQ#probe].
 
 const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
@@ -786,7 +765,7 @@ function namesOfTakenOut() {
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSWRK#spec].
+  // move [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const files = filesThatSpeak();
   const held = new Set();
@@ -823,11 +802,11 @@ const nameOfCase = line => {
 
 // The words the language retired, read where a text states what holds:
 // the prose, the comments and docs, the name of a case and the title of a
-// test [QSWRK#documents].
+// test [QSLEX#term].
 function retiredWordsWritten() {
   const files = filesThatSpeak();
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSWRK#spec].
+  // move [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const found = [];
   for (const file of files) {
@@ -870,7 +849,7 @@ function kindsOfCommands() {
 // The root of the core, its manifest's `.`, exports what the workspaces beside
 // it read from the package by its name or its page, the README of the core,
 // writes, each by name from a module no other door of the manifest opens
-// [QSWRK#tooling].
+// [QSGAT#workspaces].
 
 function exportsNoHostReads() {
   const workspaces = readWorkspaces(repoRoot);
@@ -896,11 +875,14 @@ function exportsNoHostReads() {
 // path as a file of the cases is, or at the record in force of a domain whose
 // tests hold it where no chapter states the rule, the title of a test cites
 // no rule, which the path names, and its groups and its titles say its rules
-// in the words of its section [QSWRK#marks].
+// in the words of its section [QSREQ#marks].
 
 function testsOffTheirSection() {
   const records = readDecisionRecords(repoRoot);
-  const sections = new Set([...chaptersOfSpec(repoRoot)].flatMap(([chapter, names]) => [...names].map(name => `${chapter}#${name}`)));
+  // A section the specification holds, or one a record in transit brings,
+  // where its test file stands until the closeout writes it [QSVOX#chapter].
+  const citable = citableOf(repoRoot);
+  const sections = { has: cited => citable(...cited.split('#')) };
   const heldByItsTests = name => {
     const record = records.get(name);
     return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
@@ -913,7 +895,7 @@ function testsOffTheirSection() {
 //
 // A comment of the sources and the tests of the core, the command line and
 // the language server, read by acorn, is a mark alone, one line of the
-// citations its block holds, or a directive of a tool [QSWRK#code].
+// citations its block holds, or a directive of a tool [QSLEX#code].
 
 const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;
@@ -931,6 +913,12 @@ function commentsThatAreNoMarks() {
   });
 }
 
+// ── (23) No two modules bear one name ──────────────────────────
+//
+// A module is found by its name: no two modules of the project bear one, a
+// test file and a configuration of a tool aside by their form,
+// `scripts/grep-ergonomics.mjs` [QSLEX#grep].
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -939,14 +927,14 @@ const { text, failed } = verdictOf({
   kindNames: refusalsNamingKinds(),
   proseTallies: scanProseTallies(),
   workspaceRanges: rangesOffTheirSibling(),
-  anchors: anchorsTheTreeLacks(),
+  anchors: anchorsTheTreeLacks(repoRoot),
   catalogDecisions: decisionsInCatalog(),
   undecided: recordsWithoutDecider(),
   unmarked: unmarkedArtifacts(),
   misplaced: misplacedRecords(),
   broken: brokenLinks(),
   outOfStep: fatesOutOfStep(),
-  unwalked: baselineUnwalked(),
+  unreconciled: baselineUnreconciled(),
   intrusions: specIntrusions(),
   swollen: seriesBeyondTwo(),
   unread: unreadReports(),
@@ -955,7 +943,8 @@ const { text, failed } = verdictOf({
   commandKinds: kindsOfCommands(),
   unreadExports: exportsNoHostReads(),
   testsOffTheirSection: testsOffTheirSection(),
-  commentsNoMarks: commentsThatAreNoMarks()
+  commentsNoMarks: commentsThatAreNoMarks(),
+  sharedNames: namesSharedInTree(repoRoot)
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

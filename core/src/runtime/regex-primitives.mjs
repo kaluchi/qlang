@@ -1,6 +1,6 @@
 // [QSTXT#match]
 
-import { registerPrimitive, runs } from '../primitives.mjs';
+import { registerPrimitive, runsAsCode } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { isRegex, isErrorValue, beneathTags } from '../types.mjs';
@@ -53,7 +53,7 @@ async function replacedByCode(text, engine, code) {
   return replaced + text.slice(from);
 }
 
-registerPrimitive('string/replace', runs(['with'], (text, needle, replacement) => {
+registerPrimitive('string/replace', runsAsCode(['with'], (text, needle, replacement) => {
   const engine = isRegex(needle) ? engineFor(needle, 'g') : engineOfText(needle);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
   return text.replace(engine, isRegex(needle) ? withGroupsOf(needle, replacement) : () => replacement);

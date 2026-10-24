@@ -3,7 +3,7 @@
 import { isSet, isVec, isMap, beneathTags, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
-import { registerPrimitive, registerStateReader, combines } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, asCombiner } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { underSharedTags } from '../eval.mjs';
 
@@ -106,8 +106,8 @@ const VEC_UNION = {
 };
 
 registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
-registerPrimitive('set/union', combines((set, other) => mergeSets(set, other, UNION_KEEPS)));
-registerPrimitive('map/union', combines((map, other) => unionOfMaps(map, other)));
+registerPrimitive('set/union', asCombiner((set, other) => mergeSets(set, other, UNION_KEEPS)));
+registerPrimitive('map/union', asCombiner((map, other) => unionOfMaps(map, other)));
 
 const MapMinusKeysElementKindNotTakenError = declareRefusal('map/minus/keys/ElementKindNotTakenError');
 
@@ -118,7 +118,7 @@ const VEC_MINUS = {
 };
 
 registerStateReader('vec/minus', (vector, state) => foldOf(vector, minusPair, VEC_MINUS, false, state));
-registerPrimitive('set/minus', combines((set, other) => mergeSets(set, other, MINUS_KEEPS)));
+registerPrimitive('set/minus', asCombiner((set, other) => mergeSets(set, other, MINUS_KEEPS)));
 registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
 
 const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/keys/ElementKindNotTakenError');
@@ -130,5 +130,5 @@ const VEC_INTER = {
 };
 
 registerStateReader('vec/inter', (vector, state) => foldOf(vector, interPair, VEC_INTER, false, state));
-registerPrimitive('set/inter', combines((set, other) => mergeSets(set, other, INTER_KEEPS)));
+registerPrimitive('set/inter', asCombiner((set, other) => mergeSets(set, other, INTER_KEEPS)));
 registerPrimitive('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeysElementKindNotTakenError));

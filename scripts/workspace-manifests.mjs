@@ -4,8 +4,8 @@
 //
 // A workspace names a sibling by the range `^x.y.z` of the sibling's own
 // version in every map of its dependencies, the range a consumer of the
-// registry resolves [QSWRK#tooling].
-// The rules it holds: [QSWRK#tooling].
+// registry resolves [QSGAT#workspaces].
+// The rules it holds: [QSGAT#workspaces].
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

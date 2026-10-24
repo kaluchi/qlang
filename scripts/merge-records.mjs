@@ -14,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { FATE, LINK_DEFINITION, recordPathOf, statementsOf, JOURNAL } from './decision-records.mjs';
-import { CITATION_IN_WORDS, CITING_DOCUMENTS, citedOnce } from './baseline-walk.mjs';
+import { CITATION_IN_WORDS, CITING_DOCUMENTS, citedOnce } from './reconciliation.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -145,7 +145,7 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // A mark of an artifact, a citation of a document of the work and one of a
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
-// The documents the walk holds to the records in force [QSWRK#baseline].
+// The documents the walk holds to the records in force [QSWRK#reconciliation].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
 const RECORD_IN_FORCE = /^docs\/journal\/D\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `${JOURNAL}/${name}.md`);

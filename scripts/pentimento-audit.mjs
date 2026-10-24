@@ -1,4 +1,4 @@
-// The pentimento audit [QSWRK#review]: clean readers, started at once
+// The pentimento audit [QSRVW#audits]: clean readers, started at once
 // as every run of the research starts them, read the texts that state what
 // holds beyond the chapters, each a group of the tree, for the earlier layer
 // that shows through them, a vestige, an archaism, a shim, a subordination,
@@ -8,8 +8,8 @@
 // numbered in the order the runs of that record ran; each report is written
 // into the run, named after the units of its group, and the session writes
 // its reading beside them, `reading.md`, every finding with its probe and
-// its fate. The units are the texts the walk of the baseline cites, taken in
-// the order the texts rank [QSWRK#documents]: the topic of the language;
+// its fate. The units are the texts the reconciliation cites, taken in
+// the order the texts rank [QSVOX#order]: the topic of the language;
 // each source of the catalog with the modules of `core/src` that register
 // most of their addresses under its noun; the names of the cases and the titles
 // of the tests, read by grep; the other code of the core with the grammar;
@@ -23,7 +23,7 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix, relative } from 'node:path';
-import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './baseline-walk.mjs';
+import { CITING_CODE_FILES, CITING_DOCUMENTS, citingCodeOf } from './reconciliation.mjs';
 import { importsOfCore, cyclesOf } from './core-imports.mjs';
 import { JOURNAL, RESEARCH, isOpenText } from './decision-records.mjs';
 import {

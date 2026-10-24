@@ -1,4 +1,4 @@
-// The task sets of the benchmark [QSWRK#measure]: each written by a clean author
+// The task sets of the benchmark [QSMSR#benchmark]: each written by a clean author
 // who never saw the language, its answers computed by a script of the
 // author's own, and run once fresh. A reading of what children missed
 // marks the set seen, after which it serves the work and no longer
@@ -8,7 +8,7 @@
 // was seen), `tasks.json`, `data/`, the author's record under
 // `author/`, and the runs under `runs/`, each named
 // `<screen>~<mode>~<model>~<n>.json`, the screen of a measurement the
-// number of the decision it measures [QSWRK#measure].
+// number of the decision it measures [QSMSR#benchmark].
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -47,7 +47,7 @@ function markSeen(setId, reason) {
 // and generator are copied under `sets/<id>/`, the scratch directory lying on
 // any drive.
 export async function author(setId, model = 'sonnet') {
-  if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists: a set is authored once and its reader never saw it [QSWRK#measure]`);
+  if (existsSync(setDirOf(setId))) throw new Error(`set ${setId} exists: a set is authored once and its reader never saw it [QSMSR#benchmark]`);
   const workDir = join(scratchRoot, 'author', setId);
   rmSync(workDir, { recursive: true, force: true });
   mkdirSync(workDir, { recursive: true });
@@ -114,23 +114,23 @@ function changesOutsideCommit() {
 }
 
 // run(setId, { decision, model, runs, reason }) — a measurement of a
-// decision [QSWRK#measure]: the numbers measured grow, a decision measured before is
+// decision [QSMSR#benchmark]: the numbers measured grow, a decision measured before is
 // measured again with a reason alone, and each run fixes the screen the
 // tree printed, the commit of a clean tree, the model that answered, the
 // environment its child was started with, its effort among it, and its score.
 export async function run(setId, { decision, model, runs, reason }) {
   const mode = 'cli';
   if (!/^D\d+$/.test(decision ?? '') || !existsSync(join(repoRoot, JOURNAL, `${decision}.md`))) {
-    throw new Error(`--decision names no decision: ${decision}; a measurement belongs to a decision [QSWRK#measure]`);
+    throw new Error(`--decision names no decision: ${decision}; a measurement belongs to a decision [QSMSR#benchmark]`);
   }
-  if (setRecordOf(setId).seen) throw new Error(`set ${setId} is seen: a set measures once, and the next measurement orders a new set [QSWRK#measure]`);
+  if (setRecordOf(setId).seen) throw new Error(`set ${setId} is seen: a set measures once, and the next measurement orders a new set [QSMSR#benchmark]`);
   const changes = changesOutsideCommit();
-  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit, which a run fixes [QSWRK#measure]:\n${changes.join('\n')}`);
+  if (changes.length > 0) throw new Error(`the tree holds changes outside its commit, which a run fixes [QSMSR#benchmark]:\n${changes.join('\n')}`);
   const measured = measuredNumbers();
   const number = Number(decision.slice(1));
   const last = Math.max(0, ...measured);
-  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it, and the numbers of the measured decisions grow [QSWRK#measure]`);
-  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason [QSWRK#measure]`);
+  if (number < last) throw new Error(`D${last} is measured; ${decision} comes before it, and the numbers of the measured decisions grow [QSMSR#benchmark]`);
+  if (measured.includes(number) && !reason) throw new Error(`${decision} is measured; another measurement states its --reason [QSMSR#benchmark]`);
   const screen = fixScreen(decision);
   const runsDir = join(setDirOf(setId), 'runs');
   mkdirSync(runsDir, { recursive: true });
@@ -195,7 +195,7 @@ function sameJson(one, other) {
 }
 
 // The score of a reply, each task's final query run by the tree of the
-// run against the answer of the task [QSWRK#measure].
+// run against the answer of the task [QSMSR#benchmark].
 function scoreOf(setId, reply) {
   const finals = finalQueriesOf(setId, reply);
   return tasksOf(setId).map(task => {

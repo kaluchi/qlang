@@ -1,7 +1,7 @@
 // [QSHST#tokens]
 
 import { verbNames } from '../../src/nouns.mjs';
-import { langRuntime } from '../../src/runtime/index.mjs';
+import { langRuntime } from '../../src/runtime/lang-runtime.mjs';
 
 let verbNamesOfTheRoot;
 

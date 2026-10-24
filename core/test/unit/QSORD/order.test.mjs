@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { keyword, makeErrorValue, makeTag, makeTagged } from '../../../src/types.mjs';
+import { makeKeyword, makeErrorValue, makeTag, makeTagged } from '../../../src/types.mjs';
 import { makeSet, compareValues } from '../../../src/ordering.mjs';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 
 describe('the one order ranks a failure raised after every value, by its tag and then its facts', () => {
   it('ties two failures of one tag and one set of facts', () => {
@@ -19,7 +19,7 @@ describe('the one order ranks a failure raised after every value, by its tag and
 
   it('ranks a failure raised after its error at rest, a value under its tag and every value', async () => {
     const raised = await evalQuery('::Foo!{:a 1} | raise');
-    for (const value of [null, 42, keyword('oops'), new Map([['a', 1]])]) expect(compareValues(raised, value)).toBe(1);
+    for (const value of [null, 42, makeKeyword('oops'), new Map([['a', 1]])]) expect(compareValues(raised, value)).toBe(1);
     for (const query of ['::Foo!{:a 1} | raise !| it', '::Foo{:a 1}', '!{:a 1}', '1 | desc']) expect(compareValues(raised, await evalQuery(query))).toBe(1);
     expect(compareValues(await evalQuery('!{:a 1} | raise'), await evalQuery('!{:a 1} | raise !| it'))).toBe(1);
   });
@@ -62,7 +62,7 @@ it('ranks each value of a ladder after the one before it, the sign of the places
 
 describe('the one order over keywords and tags', async () => {
   it('gt / lt / gte / lte on Keywords compare by .name', async () => {
-    const { evalQuery } = await import('../../../src/session.mjs');
+    const { evalQuery } = await import('../../../src/notebook.mjs');
     expect(await evalQuery(':a | gt :b')).toBe(false);
     expect(await evalQuery(':a | lt :b')).toBe(true);
     expect(await evalQuery(':a | gte :a')).toBe(true);
@@ -70,7 +70,7 @@ describe('the one order over keywords and tags', async () => {
   });
 
   it('lt on tags compares by .name', async () => {
-    const { evalQuery } = await import('../../../src/session.mjs');
+    const { evalQuery } = await import('../../../src/notebook.mjs');
     expect(await evalQuery('::A | lt ::B')).toBe(true);
   });
 });

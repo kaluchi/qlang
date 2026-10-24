@@ -22,14 +22,14 @@
 // run, which `npm run ci` and the checks of a push make; a
 // probe of a section a record in transit overrides is the record's, and an
 // answer its work changed waits for the move where the record holds a
-// probe of the same query [QSWRK#probe].
+// probe of the same query [QSREQ#probe].
 //
 // Usage: node scripts/sensors/run-probes.mjs [document ...]
 // Without documents it reads the open records, whose questions hold
 // probes [QSWRK#journal], the records in transit, whose probes hold the
-// answers their work changed [QSWRK#probe], and the
+// answers their work changed [QSREQ#probe], and the
 // chapters of the specification, whose sections show their rules by
-// probes [QSWRK#spec].
+// probes [QSVOX#chapter].
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { delimiter, dirname, join, relative, resolve } from 'node:path';
@@ -38,7 +38,7 @@ import { execFile, execFileSync } from 'node:child_process';
 import { Readable } from 'node:stream';
 import { pipeEnv } from '../pipe-env.mjs';
 import { isOpenText, JOURNAL } from '../decision-records.mjs';
-import { recordsInTransit } from '../baseline-walk.mjs';
+import { recordsInTransit } from '../reconciliation.mjs';
 
 const repoRoot = join(import.meta.dirname, '..', '..');
 const recordsDir = join(repoRoot, JOURNAL);
@@ -51,23 +51,23 @@ const chapters = readdirSync(specDir).filter(name => /^QS[A-Z]{3}-.+\.md$/.test(
 const documents = process.argv.length > 2 ? process.argv.slice(2)
   : [...new Set([...openRecords, ...transitRecords, ...chapters])];
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
-const { evalQuery, printValue, parse, isErrorValue, makeTag, createSession } = await core('index.mjs');
+const { evalQuery, printValue, parseSource, isErrorValue, makeTag, createNotebook } = await core('index.mjs');
 const { compareValues } = await core('ordering.mjs');
 const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
 const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
-// session of its own over the scope the command line's sources declare once,
+// notebook of its own over the scope the command line's sources declare once,
 // its streams silent, its subject the noun of the language, each query
-// answered once in a run [QSWRK#probe], [QSCLI#stdin].
+// answered once in a run [QSREQ#probe], [QSCLI#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
-const { scope: withTheCommandLine } = await createSession({ sources: cliSources(SILENT_STREAMS) });
+const { scope: withTheCommandLine } = await createNotebook({ sources: cliSources(SILENT_STREAMS) });
 const answers = new Map();
 function answerOf(query) {
   if (!answers.has(query)) {
-    answers.set(query, createSession({ scope: withTheCommandLine }).then(async session => {
-      const { result, defect } = await session.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
+    answers.set(query, createNotebook({ scope: withTheCommandLine }).then(async notebook => {
+      const { result, defect } = await notebook.evalCell(query, { initialPipeValue: LANGUAGE_NOUN });
       if (defect !== null) throw defect;
       return result;
     }));
@@ -125,7 +125,7 @@ const readsTheRepositoryAlone = command => !/\bjdt\b|scripts\/sensors|^env\b|\$[
 // The shell of a shell probe, one on every machine: bash, on Windows the bash
 // of Git for Windows beside the git that reads the tree, where the first bash
 // of the path may be another system's, with the node that runs the probes
-// first on its path [QSWRK#probe].
+// first on its path [QSREQ#probe].
 function bashOfGit() {
   const bash = resolve(execFileSync('git', ['--exec-path'], { encoding: 'utf8' }).trim(), '..', '..', '..', 'bin', 'bash.exe');
   return existsSync(bash) ? bash : 'bash';
@@ -135,11 +135,11 @@ const PATH_KEY = Object.keys(pipeEnv).find(key => key.toUpperCase() === 'PATH') 
 const shellEnv = { ...pipeEnv, MSYS_NO_PATHCONV: '1', [PATH_KEY]: [dirname(process.execPath), pipeEnv[PATH_KEY]].join(delimiter) };
 
 // A shell whose node is another than the one that runs the probes answers
-// them otherwise, so the run refuses it before any probe [QSWRK#probe].
+// them otherwise, so the run refuses it before any probe [QSREQ#probe].
 function refuseAnotherNode() {
   const nodeOfTheShell = execFileSync(SHELL, ['-c', 'node --version'], { env: shellEnv, encoding: 'utf8' }).trim();
   if (nodeOfTheShell === process.version) return;
-  console.log(`the shell of the probes, ${SHELL}, runs node ${nodeOfTheShell} where the probes run on node ${process.version}: run them where the two are one [QSWRK#probe]`);
+  console.log(`the shell of the probes, ${SHELL}, runs node ${nodeOfTheShell} where the probes run on node ${process.version}: run them where the two are one [QSREQ#probe]`);
   process.exit(1);
 }
 
@@ -186,7 +186,7 @@ const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-
 // compares as the text the command line prints. An answer with … holds
 // only where the print is an error exactly when the answer is one, so
 // the words of a page do not match inside the error that carries the
-// page as its subject [QSWRK#probe].
+// page as its subject [QSREQ#probe].
 async function answersAsRecorded({ query, answer }) {
   if (answer === '') return !isErrorValue(await answerOf(query));
   if (answer.includes('…')) {
@@ -202,7 +202,7 @@ async function answersAsRecorded({ query, answer }) {
   }
   // A string prints raw, and its text may read as words of the command form.
   if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
-  try { parse(answer); } catch { return squash(await onCommandLine(query)) === answer; }
+  try { parseSource(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
   try { return compareValues(await answerOf(query), await evalQuery(answer)) === 0 || 'lossy'; } catch { return 'lossy'; }
 }
@@ -211,7 +211,7 @@ const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // The records in transit over the section of a chapter's probe, and the
 // one of them that holds a probe of its query, whose answer the move
-// writes into the section [QSWRK#probe].
+// writes into the section [QSREQ#probe].
 function holdersOf(chapter, probe) {
   const over = [...transit].filter(([, sections]) => sections.some(cited => cited === chapter || cited === `${chapter}#${probe.section}`)).map(([name]) => name);
   const holding = over.find(name => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(probe.query)));
@@ -242,4 +242,4 @@ for (const [documentPath, probes] of probesByDocument) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSWRK#probe], [QSWRK#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its section, a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');

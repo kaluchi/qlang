@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
 import { EVAL_DEPTH_LIMIT, rootState, withPipeValue, withScope, nestState, scopeSet } from '../../../src/state.mjs';
 import { CallEvaluationDepthExceededError } from '../../../src/errors.mjs';
 import { catchOriginalError } from '../../helpers/error-assertions.mjs';
@@ -33,7 +33,7 @@ describe('the limit of the evaluation depth — every re-entry seam', () => {
 
 it('runLaws runs each law one deeper than its step, so a law that runs its own laws terminates', async () => {
   let depthTally = 0;
-  const sessionInstance = await createSession({
+  const sessionInstance = await createNotebook({
     sources: [{
       uri: 'tests/tally',
       source: ':any/tallyDepth ::builtin{}',

@@ -3,7 +3,7 @@ import { Readable } from 'node:stream';
 import { main } from '../../src/main.mjs';
 import { runQuery } from '../../src/run.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
-import { createSession } from '@kaluchi/qlang-core';
+import { createNotebook } from '@kaluchi/qlang-core';
 import { readStdinToString, memoiseStdinReader, DEFAULT_SUBJECT, liftOfInput } from '../../src/stdin.mjs';
 import { captureStreams } from '../helpers/main-streams.mjs';
 
@@ -163,23 +163,23 @@ it('reads standard input once however often the query reads it', async () => {
 
 describe('the lift of a text by `parseJson`', () => {
   it('starts from the noun of the language when stdin carries no bytes', async () => {
-    expect(await liftOfInput(await createSession(), '')).toEqual({ initialPipeValue: DEFAULT_SUBJECT });
+    expect(await liftOfInput(await createNotebook(), '')).toEqual({ initialPipeValue: DEFAULT_SUBJECT });
     expect(DEFAULT_SUBJECT.name).toBe('qlang');
   });
 
   it('reads a JSON text as its value, the keys of an object in the order the text writes them', async () => {
-    const { initialPipeValue } = await liftOfInput(await createSession(), '{"b": 1, "2": 2, "a": 3}');
+    const { initialPipeValue } = await liftOfInput(await createNotebook(), '{"b": 1, "2": 2, "a": 3}');
     expect([...initialPipeValue.keys()]).toEqual(['b', '2', 'a']);
   });
 
   it('reads a text that is no JSON as one string', async () => {
-    expect(await liftOfInput(await createSession(), 'plain text')).toEqual({ initialPipeValue: 'plain text' });
+    expect(await liftOfInput(await createNotebook(), 'plain text')).toEqual({ initialPipeValue: 'plain text' });
   });
 
-  it('lifts a JSON text parseJson refuses to the failure it answered, the session numbering no cell for the lift', async () => {
-    const session = await createSession();
-    const { initialPipeValue } = await liftOfInput(session, '[1e400]');
+  it('lifts a JSON text parseJson refuses to the failure it answered, the notebook numbering no cell for the lift', async () => {
+    const notebook = await createNotebook();
+    const { initialPipeValue } = await liftOfInput(notebook, '[1e400]');
     expect(initialPipeValue.tag.name).toBe('string/parseJson/NumberNotFiniteError');
-    expect((await session.evalCell('1')).uri).toBe('cell-1');
+    expect((await notebook.evalCell('1')).uri).toBe('cell-1');
   });
 });

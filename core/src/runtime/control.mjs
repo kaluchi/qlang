@@ -3,7 +3,7 @@
 import { isNull, isErrorValue, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
-import { registerPrimitive, runs } from '../primitives.mjs';
+import { registerPrimitive, runsAsCode } from '../primitives.mjs';
 import { isMissedRead } from '../path-read.mjs';
 import { failedOnAPart } from '../eval-trace.mjs';
 
@@ -11,7 +11,7 @@ const AnyCondConditionKindNotTakenError = declareRefusal('any/cond/ConditionKind
 const AnyAllOfConditionKindNotTakenError = declareRefusal('any/allOf/ConditionKindNotTakenError');
 const AnyAnyOfConditionKindNotTakenError = declareRefusal('any/anyOf/ConditionKindNotTakenError');
 
-registerPrimitive('any/if', runs(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
+registerPrimitive('any/if', runsAsCode(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
 
 // [QSCND#boolean]
@@ -25,11 +25,11 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionKindN
   return !decisive;
 }
 
-registerPrimitive('any/allOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionKindNotTakenError)));
-registerPrimitive('any/anyOf', runs(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionKindNotTakenError)));
+registerPrimitive('any/allOf', runsAsCode(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, false, AnyAllOfConditionKindNotTakenError)));
+registerPrimitive('any/anyOf', runsAsCode(['conditions'], (subject, conditions) => verdictOfConditions(subject, conditions, true, AnyAnyOfConditionKindNotTakenError)));
 
 // [QSCND#coalesce]
-registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alternatives) => {
+registerPrimitive('any/coalesce', runsAsCode(['alternatives'], async (subject, alternatives) => {
   const isCode = alternative => typeof alternative === 'function';
   const candidates = alternatives.some(isCode) ? alternatives : [subject, ...alternatives];
   for (const alternative of candidates) {
@@ -41,7 +41,7 @@ registerPrimitive('any/coalesce', runs(['alternatives'], async (subject, alterna
 }));
 
 // [QSCND#branch]
-registerPrimitive('any/cond', runs(['clauses'], async (subject, clauses) => {
+registerPrimitive('any/cond', runsAsCode(['clauses'], async (subject, clauses) => {
   let clauseIndex = 0;
   while (clauseIndex + 1 < clauses.length) {
     const answer = await clauses[clauseIndex](subject);

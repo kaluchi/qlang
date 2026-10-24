@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 
 it('an address reads the verb of the root whatever the reader binds under its last name', async () => {

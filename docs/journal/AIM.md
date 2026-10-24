@@ -5,7 +5,7 @@ the principles a change is judged by: the yardstick of the work, which a
 choice reads, in the dialogue and in the records, and which a session
 reads at its landing with the records in transit and the open records.
 It measures the distance between the tree and what the work wants; what
-holds is the specification's to say [QSWRK#documents].
+holds is the specification's to say [QSVOX#order].
 
 ## mission
 
@@ -47,7 +47,7 @@ the language says about itself, writes a correct query on the first
 attempt. Every construct is judged by whether it makes that first
 attempt likelier, every text by whether it is something the language
 could say about itself, and the round trips and the token bill of a whole
-task count it [QSWRK#measure]. Need is measured by tasks and by the pain
+task count it [QSMSR#benchmark]. Need is measured by tasks and by the pain
 a session meets, and the code of a host is no measure of what the
 language needs.
 
@@ -80,13 +80,13 @@ the seventh yields only to a branch that introduces a model.
 7. The work deletes more than it adds: the diff of a piece of work is
    negative in the core sources, the texts that state what holds and the
    tests, and the catalog grows by the words a task asks for and the pages
-   that tell them [QSWRK#diff]; the journal stands outside that count,
+   that tell them [QSMSR#diff]; the journal stands outside that count,
    growing by the history of every decision, and every record lies in
    `replaced/`.
 
 ## principles
 
-What a change is judged by, in a review [QSWRK#review] and in the choice
+What a change is judged by, in a review [QSRVW#review] and in the choice
 a record makes.
 
 One model. Everything the language does is a step over the state pair
@@ -127,7 +127,7 @@ a case; what stays prose is what no command computes, intentions,
 reasons and the order of work.
 
 Composition multiplies. A primitive enters where it expresses what was
-inexpressible or shortens what exists [QSWRK#catalog]; the catalog grows
+inexpressible or shortens what exists [QSSLF#catalog]; the catalog grows
 by names, few verbs over many addressable nouns, tags, keys and
 namespaces.
 
@@ -144,7 +144,7 @@ project writes gives way to it, as `::builtin` strikes its own domain where
 `word` strikes a heap of senses. One concept goes by one term and one
 image; a term is weighed in the texts of the project before it is chosen,
 kept or split, and where two tie there, the one a reader knows outside in
-the right pair wins [QSWRK#documents].
+the right pair wins [QSLEX#term].
 
 Borrow concepts, not formats. The lessons of the history of interfaces
 are taken, levels of help, the procedure behind an alert, typed link
@@ -161,10 +161,11 @@ The host boundary. The needs of a terminal, an editor, an observability
 backend and byte-exact JSON live beyond the embedding boundary and shape
 no semantics of the core.
 
-[QSWRK#documents]: ../spec/QSWRK-the-work.md#documents
-[QSSLF]: ../spec/QSSLF-the-language-describes-itself.md
 [QSHST#source]: ../spec/QSHST-hosts.md#source
-[QSWRK#measure]: ../spec/QSWRK-the-work.md#measure
-[QSWRK#diff]: ../spec/QSWRK-the-work.md#diff
-[QSWRK#review]: ../spec/QSWRK-the-work.md#review
-[QSWRK#catalog]: ../spec/QSWRK-the-work.md#catalog
+[QSLEX#term]: ../spec/QSLEX-the-words-and-the-names.md#term
+[QSMSR#benchmark]: ../spec/QSMSR-the-measures.md#benchmark
+[QSMSR#diff]: ../spec/QSMSR-the-measures.md#diff
+[QSRVW#review]: ../spec/QSRVW-the-reviews-and-the-research.md#review
+[QSSLF#catalog]: ../spec/QSSLF-the-language-describes-itself.md#catalog
+[QSSLF]: ../spec/QSSLF-the-language-describes-itself.md
+[QSVOX#order]: ../spec/QSVOX-the-texts-and-their-voices.md#order

@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isSet, isVec, keyword, typeOf, makeTagged,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, makeKeyword, typeOf, makeTagged,
   makeTag, makeQuote, makeDoc, payloadBeneath, beneathTags, NULL
 } from '../types.mjs';
 import {
@@ -55,7 +55,7 @@ function nodeUnderAnchor(scope, subject, anchorName) {
 
 function anchorRefusalOf(scope, subject, anchorName) {
   return {
-    name: keyword(anchorName),
+    name: makeKeyword(anchorName),
     addresses: addressesOf(scope, anchorName),
     nearest: nearestNodes(scope, subject, anchorName)
   };

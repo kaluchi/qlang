@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { alertOf, alertWithin } from '../../../src/elide.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { isErrorValue, TAG_HEADER_SYMBOL } from '../../../src/types.mjs';

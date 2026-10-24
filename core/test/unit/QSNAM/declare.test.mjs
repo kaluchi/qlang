@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { isBindStep } from '../../../src/steps.mjs';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { stepOf } from '../../helpers/read-text.mjs';
 
 it('reads `:name it` as a declaration over the word `it`', () => {

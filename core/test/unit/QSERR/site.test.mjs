@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { keyword, isErrorValue, makeTag } from '../../../src/types.mjs';
+import { makeKeyword, isErrorValue, makeTag } from '../../../src/types.mjs';
 import { makeSet } from '../../../src/ordering.mjs';
 import { errorFromQlang } from '../../../src/error-convert.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { CallUnknownNameError, declareRefusal, QlangError, CallEvaluationDepthExceededError, QlangDefect, BuiltinRefusalDeclaredTwiceError, declareForeignError, declaredRefusals } from '../../../src/errors.mjs';
 import { catchOriginalError } from '../../helpers/error-assertions.mjs';
-import { createSession } from '../../../src/session.mjs';
+import { createNotebook } from '../../../src/notebook.mjs';
 import { ruleRefusalsOf } from '../../../src/nouns.mjs';
 import { kindsDeclaredBy } from '../../../../scripts/catalog-kinds.mjs';
 import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../../scripts/refusal-kinds.mjs';
@@ -25,7 +25,7 @@ describe('a refusal converted to a failure', () => {
   });
 
   it('converts the refusal of an unknown name with the facts its label declares', async () => {
-    const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: keyword('myName') });
+    const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: makeKeyword('myName') });
     const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
     expect([...errorVal.facts.keys()]).toEqual(['name', 'addresses']);
@@ -49,7 +49,7 @@ const TestsProbeError = declareRefusal('tests/ProbeError');
 
 describe('a refusal declared by its address', () => {
   it('carries the facts its site hands, named by the last name of its address', () => {
-    const unresolvedErr = new CallUnknownNameError({ name: keyword('foo') });
+    const unresolvedErr = new CallUnknownNameError({ name: makeKeyword('foo') });
     expect(unresolvedErr).toBeInstanceOf(QlangError);
     expect(unresolvedErr.facts.name.name).toBe('foo');
     expect(unresolvedErr.name).toBe('UnknownNameError');
@@ -130,8 +130,8 @@ it('every refusal of the runtime is one kind of error, its message its address',
   }
 });
 
-const session = await createSession();
-await session.evalCell([
+const notebook = await createNotebook();
+await notebook.evalCell([
   ':number/pick (::fn | takes :by |~~ How much. ~~| /0 ::number | returns |~~ A boolean or a string. ~~| #[::boolean ::string] | impl ~(gt by))',
   ':number/keep (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(add 1))',
   ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by))'
@@ -139,7 +139,7 @@ await session.evalCell([
 
 describe('the refusals a verb that is a function raises by rule', () => {
   it('names an answer of none of several kinds where its label is none of them', () => {
-    expect(ruleRefusalsOf(session.scope, 'number/pick')).toEqual([
+    expect(ruleRefusalsOf(notebook.scope, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
       'number/pick/by/NotGivenError',
@@ -149,15 +149,15 @@ describe('the refusals a verb that is a function raises by rule', () => {
   });
 
   it('names no refusal of an answer whose kinds hold its label', () => {
-    expect(ruleRefusalsOf(session.scope, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
+    expect(ruleRefusalsOf(notebook.scope, 'number/keep')).toEqual(['number/keep/SubjectNotNumberError', 'number/keep/ArgsBeyondInputsError']);
   });
 
   it('names no refusal of an answer it does not name, nor of an input its place reads softly', () => {
-    expect(ruleRefusalsOf(session.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
+    expect(ruleRefusalsOf(notebook.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell(':number/v ~(1)');
     expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
@@ -219,7 +219,7 @@ describe('a refusal names a kind only where its address names it', () => {
 
 describe('the refusals a kind raises by rule', () => {
   it('names the payload of none of its kinds, each field left out and of none of its kinds, and a field of no kinds left out alone', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell([
       ':Box',
       '  |~~ A parcel. ~~|',
@@ -241,13 +241,13 @@ describe('the refusals a kind raises by rule', () => {
   });
 
   it('names a payload that is no vector where it names the kinds of each element', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
   });
 
   it('names no refusal of a kind of no payload and no field', async () => {
-    const own = await createSession();
+    const own = await createNotebook();
     await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true)');
     expect(ruleRefusalsOf(own.scope, 'Mark')).toEqual([]);
   });

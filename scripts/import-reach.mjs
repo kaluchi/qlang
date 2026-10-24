@@ -1,4 +1,4 @@
-// What the tests reach of the code through its imports [QSWRK#marks]: every
+// What the tests reach of the code through its imports [QSREQ#marks]: every
 // module of the workspaces read by the parser of JavaScript into its
 // declarations, the names each reads and the code it runs as it loads, and
 // the declarations a test file reaches from what it imports, through the

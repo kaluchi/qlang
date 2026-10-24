@@ -1,12 +1,12 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
-import { keyword, makeTagged, makeBinding, ERROR_TAG, makeTag, makeErrorValue } from '../../../src/types.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
+import { makeKeyword, makeTagged, makeBinding, ERROR_TAG, makeTag, makeErrorValue } from '../../../src/types.mjs';
 import { errorFromQlang } from '../../../src/error-convert.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
-const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
+const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: makeKeyword('held'), value }));
 
 it('prints a value a host hands under `::error` over a payload that is no map as the payload under its tag, the error literal writing a map alone', async () => {
   expect(await evalQuery('held | print', await scopeHolding(makeTagged(ERROR_TAG, 5)))).toBe('::error#5');

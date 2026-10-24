@@ -5,7 +5,7 @@
 // marked astray, whose mark names a section no test of which reaches them
 // through its imports while the tests of another do. A test reaches the code
 // its imports read, the runner of the cases reaching it for each section that
-// holds cases, since a case runs its query through the evaluator [QSWRK#marks].
+// holds cases, since a case runs its query through the evaluator [QSREQ#marks].
 //
 // Usage:
 //   node scripts/dossier.mjs QSNAM#scope   the dossier of a section, or of a record its tests hold
@@ -17,11 +17,11 @@ import { join, resolve } from 'node:path';
 import { graphOfTree, reachOf } from './import-reach.mjs';
 import { marksOfTree } from './marks.mjs';
 import { homeOfPath, testsOfSource } from './test-homes.mjs';
-import { recordsInTransit } from './baseline-walk.mjs';
+import { recordsInTransit } from './reconciliation.mjs';
 import { readText } from './tree-reads.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
-const RUNNER_OF_THE_CASES = 'core/test/unit/QSWRK/cases.test.mjs';
+const RUNNER_OF_THE_CASES = 'core/test/unit/QSREQ/cases.test.mjs';
 const lsFiles = (root, ...patterns) => execFileSync('git', ['ls-files', ...patterns], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean);
 
 // The section a file of the cases holds.
@@ -141,7 +141,7 @@ const spanOf = ({ from, to }) => `${from}-${to === Infinity ? 'end' : to}`;
 const listed = names => [...names].sort().join(', ');
 
 function printDossier({ name, text, transit, cases, tests, imports, blocks, alone }) {
-  console.log(`${name}, the dossier of a section [QSWRK#marks]`);
+  console.log(`${name}, the dossier of a section [QSREQ#marks]`);
   console.log(`\nthe text  ${text === null ? 'none: no chapter holds the section and no record bears the name' : `${text.path}:${text.from}-${text.from + text.lines.length - 1}`}`);
   for (const line of text?.lines ?? []) console.log(`  ${line}`);
   if (transit.length > 0) console.log(`\nthe records in transit over it  ${transit.join(' ')}`);
@@ -176,7 +176,7 @@ if (process.argv[1]?.endsWith('dossier.mjs')) {
   if (command === '--astray') {
     const astray = astrayBlocks(blocksReached(repoRoot));
     for (const { path, from, to, names, holders } of astray) console.log(`${path}:${spanOf({ from, to })}  marked ${listed(names)}, reached by the tests of ${listed(holders)}`);
-    console.log(`astray: ${astray.length} blocks whose mark names a section no test of which reaches them, while the tests of another do [QSWRK#marks]`);
+    console.log(`astray: ${astray.length} blocks whose mark names a section no test of which reaches them, while the tests of another do [QSREQ#marks]`);
   } else if (/^(?:QS[A-Z]{3}#[a-z][a-z-]*|[DE]\d+)$/.test(command ?? '')) {
     printDossier(dossierOf(repoRoot, command));
   } else {

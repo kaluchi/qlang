@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { platformLocator, BuiltinBootstrapSourceMissingError } from '../../../src/runtime/bootstrap.mjs';
-import { ParseError, parse } from '../../../src/parse.mjs';
-import { buildLangRuntime } from '../../../src/runtime/index.mjs';
-import { keyword, makeTag, makeTagged, makeQuote } from '../../../src/types.mjs';
-import { createSession, evalQuery } from '../../../src/session.mjs';
-import { runs } from '../../../src/primitives.mjs';
+import { SourceParseError, parseSource } from '../../../src/parse.mjs';
+import { buildLangRuntime } from '../../../src/runtime/lang-runtime.mjs';
+import { makeKeyword, makeTag, makeTagged, makeQuote } from '../../../src/types.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
+import { runsAsCode } from '../../../src/primitives.mjs';
 import * as core from '../../../src/index.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { declareRefusal } from '../../../src/errors.mjs';
@@ -26,7 +26,7 @@ describe('the locator of the sources of the language', () => {
 
 describe('a source of the language no locator serves', () => {
   it('names the source it missed as its origin, and where a host maps it', () => {
-    const err = new BuiltinBootstrapSourceMissingError({ origin: keyword('qlang/vec') });
+    const err = new BuiltinBootstrapSourceMissingError({ origin: makeKeyword('qlang/vec') });
     expect(err.name).toBe('BootstrapSourceMissingError');
     expect(err.message).toContain('#qlang/vec');
     expect(err.message).toContain('package.json#imports');
@@ -35,14 +35,14 @@ describe('a source of the language no locator serves', () => {
   it('fires as the runtime is built where the locator serves no source, naming the first as its origin', async () => {
     const refused = await buildLangRuntime(async () => null).catch(error => error);
     expect(refused).toBeInstanceOf(BuiltinBootstrapSourceMissingError);
-    expect(refused).toMatchObject({ name: 'BootstrapSourceMissingError', facts: { origin: keyword('qlang/builtin') } });
+    expect(refused).toMatchObject({ name: 'BootstrapSourceMissingError', facts: { origin: makeKeyword('qlang/builtin') } });
   });
 });
 
 it('a source of the language the parser refuses raises its parse error, which names the source', async () => {
   let thrown = null;
   try { await buildLangRuntime(async () => ({ source: ':unclosed (mul 2' })); } catch (caught) { thrown = caught; }
-  expect(thrown).toBeInstanceOf(ParseError);
+  expect(thrown).toBeInstanceOf(SourceParseError);
   expect(thrown.uri).toBe('qlang/builtin');
 });
 
@@ -51,30 +51,30 @@ describe('the facts and the message of SourceLoadError', () => {
   it('carries the origin, the location and the cause, and names no platform', async () => {
     const { BuiltinSourceLoadError } = await import('../../../src/source-load-error.mjs');
     const cause = new Error('EACCES: permission denied');
-    const err = new BuiltinSourceLoadError({ origin: keyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
+    const err = new BuiltinSourceLoadError({ origin: makeKeyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
     expect(err.name).toBe('SourceLoadError');
     expect(err.message).toBe("failed to read qlang source 'qlang/vec' from /locked/vec.qlang — EACCES: permission denied");
-    expect(err.facts).toEqual({ origin: keyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
+    expect(err.facts).toEqual({ origin: makeKeyword('qlang/vec'), sourceLocation: '/locked/vec.qlang', cause });
   });
 
   it('writes a cause that is no error as its text', async () => {
     const { BuiltinSourceLoadError } = await import('../../../src/source-load-error.mjs');
-    const err = new BuiltinSourceLoadError({ origin: keyword('qlang/vec'), sourceLocation: '/x.qlang', cause: 'raw-string-cause' });
+    const err = new BuiltinSourceLoadError({ origin: makeKeyword('qlang/vec'), sourceLocation: '/x.qlang', cause: 'raw-string-cause' });
     expect(err.message).toBe("failed to read qlang source 'qlang/vec' from /x.qlang — raw-string-cause");
   });
 });
 
 describe('a host\'s verb written as the chain of its function', () => {
   it('runs the code inputs of a host\'s verb, a quote written in the step in the scope of the step', async () => {
-    const hosted = await createSession({ sources: [{
+    const hosted = await createNotebook({ sources: [{
       uri: 'test/declared',
       source: [
         ':number/twice |~~ Runs the code twice. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{})',
         '| :number/each |~~ Runs each code. ~~| (::fn | takes :codes |~~ The codes. ~~| ~(it) [#[::path ::quote]] | impl ::builtin{})'
       ].join('\n'),
       primitives: {
-        'number/twice': runs(['code'], async (subject, code) => await code(await code(subject))),
-        'number/each': runs(['codes'], async (subject, codes) => await Promise.all(codes.map(code => code(subject))))
+        'number/twice': runsAsCode(['code'], async (subject, code) => await code(await code(subject))),
+        'number/each': runsAsCode(['codes'], async (subject, codes) => await Promise.all(codes.map(code => code(subject))))
       }
     }] });
     expect((await hosted.evalCell('5 | twice ~(add 1)')).result).toBe(7);
@@ -82,7 +82,7 @@ describe('a host\'s verb written as the chain of its function', () => {
   });
 
   it('hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
-    const hosted = await createSession({ sources: [{
+    const hosted = await createNotebook({ sources: [{
       uri: 'test/declared-values',
       source: [
         ':any/both |~~ Runs the code on the subject for each of two. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{})',
@@ -90,9 +90,9 @@ describe('a host\'s verb written as the chain of its function', () => {
         '| :any/each |~~ Runs each code, and keeps each other value. ~~| (::fn | takes :items |~~ The codes and the values. ~~| ~(it) | impl ::builtin{})'
       ].join('\n'),
       primitives: {
-        'any/both': runs(['code'], async (subject, code) => [await code(subject), await code(subject)]),
+        'any/both': runsAsCode(['code'], async (subject, code) => [await code(subject), await code(subject)]),
         'any/pair': (subject, value) => [subject, value],
-        'any/each': runs(['items'], async (subject, items) => await Promise.all(items.map(item => (typeof item === 'function' ? item(subject) : item))))
+        'any/each': runsAsCode(['items'], async (subject, items) => await Promise.all(items.map(item => (typeof item === 'function' ? item(subject) : item))))
       }
     }] });
     expect((await hosted.evalCell('{:x 3} | both /x')).result).toEqual([3, 3]);
@@ -103,13 +103,13 @@ describe('a host\'s verb written as the chain of its function', () => {
 
 it('hands a word of a host the state of its call where it marks its primitive as a reader of it', async () => {
   const primitive = core.readingState((subject, state) => state.scope.has('k'));
-  const session = await core.createSession({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
-  expect((await session.evalCell('1 | where')).result).toBe(false);
-  expect((await session.evalCell(':k 5 | 1 | where')).result).toBe(true);
+  const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
+  expect((await notebook.evalCell('1 | where')).result).toBe(false);
+  expect((await notebook.evalCell(':k 5 | 1 | where')).result).toBe(true);
 });
 
 it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
-  const hosted = await createSession({ sources: [{
+  const hosted = await createNotebook({ sources: [{
     uri: 'test/hosted-kind',
     source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :seen (::Hk#1 | payload)',
     primitives: { 'Hk': payload => payload + 1 }
@@ -118,7 +118,7 @@ it('lays the tag of a kind over the payload as it is until its host hands the co
   expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
 });
 
-const gaugeSession = () => createSession({
+const gaugeSession = () => createNotebook({
   sources: [{
     uri: 'probe/gauge',
     source: lines(
@@ -129,7 +129,7 @@ const gaugeSession = () => createSession({
     ),
     primitives: {
       'Gauge': payload => payload * 2,
-      'Gauge/over': runs(['test'], async (reading, test) => test(reading)),
+      'Gauge/over': runsAsCode(['test'], async (reading, test) => test(reading)),
       'Gauge/shifted': (reading, by) => reading.payload + by,
       'Dial': payload => makeTagged(makeTag('Dial'), payload + 1)
     }
@@ -138,26 +138,26 @@ const gaugeSession = () => createSession({
 
 describe('a host\'s primitive under a label', () => {
   it('builds the payload of its kind by the constructor its host hands, a value it answers under the kind taken as it is', async () => {
-    const session = await gaugeSession();
-    expect((await session.evalCell('::Gauge#5 | payload')).result).toBe(10);
-    expect((await session.evalCell('::Dial#1 | payload')).result).toBe(2);
+    const notebook = await gaugeSession();
+    expect((await notebook.evalCell('::Gauge#5 | payload')).result).toBe(10);
+    expect((await notebook.evalCell('::Dial#1 | payload')).result).toBe(2);
   });
 
   it('runs over the served value and the values of its inputs, a quote closed at the call where the input is run', async () => {
-    const session = await gaugeSession();
-    expect((await session.evalCell('::Gauge#5 | over ~(payload | gt 9)')).result).toBe(true);
-    expect((await session.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
+    const notebook = await gaugeSession();
+    expect((await notebook.evalCell('::Gauge#5 | over ~(payload | gt 9)')).result).toBe(true);
+    expect((await notebook.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
   });
 
   it('hands a primitive its inputs in the order its chain takes them, whatever their places', async () => {
-    const session = await createSession({
+    const notebook = await createNotebook({
       sources: [{
         uri: 'probe/pair',
         source: ':vec/pair2 (::fn | takes :b |~~ The second. ~~| /1 | takes :a |~~ The first. ~~| /0 | impl ::builtin{})',
         primitives: { 'vec/pair2': (subject, b, a) => [a, b] }
       }]
     });
-    expect((await session.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);
+    expect((await notebook.evalCell('[0] | pair2 1 2')).result).toEqual([1, 2]);
   });
 });
 
@@ -179,36 +179,36 @@ describe('the sources a host hands', () => {
   }];
 
   it('runs a host name through the primitive handed beside its source', async () => {
-    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| type')).result)
       .toEqual(makeTag('number/less/by/KindNotTakenError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
-    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('doubled')).result).toBe('fetchedfetched');
   });
 
   it('answers a host name as the function whose recipe is its descriptor, and refuses an answer of a kind it does not return', async () => {
-    const sessionInstance = await createSession({ sources: HOST_SOURCES });
+    const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(type) ~(get /1 | type)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
-    const misanswering = await createSession({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
+    const misanswering = await createNotebook({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
     expect((await misanswering.evalCell('fetch !| type')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
   });
 
   it('records the source a host name came from as its origin', async () => {
-    const sessionInstance = await createSession({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::number/less | binding | get /origin')).result).toEqual(keyword('tests/host'));
+    const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
+    expect((await sessionInstance.evalCell('::number/less | binding | get /origin')).result).toEqual(makeKeyword('tests/host'));
   });
 
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
-      .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: keyword('tests/bare'), name: keyword('any/hello') } });
+    await expect(createNotebook({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
+      .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: makeKeyword('tests/bare'), name: makeKeyword('any/hello') } });
   });
 
   it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s where it holds that name\'s value, and refuses one handed for it, naming the name whose ::builtin{} it holds', async () => {
-    const aliasing = primitives => createSession({ sources: [{
+    const aliasing = primitives => createNotebook({ sources: [{
       uri: 'tests/alias',
       source: ':any/plus (::number/add | binding | get /value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | get /value)',
       primitives
@@ -217,15 +217,15 @@ describe('the sources a host hands', () => {
     for (const [name, sharedWith] of [['any/plus', 'number/add'], ['any/hail', 'any/greet']]) {
       await expect(aliasing({ 'any/greet': () => 'hi', [name]: () => 0 })).rejects.toMatchObject({
         name: 'PrimitiveNamesNoBuiltinError',
-        facts: { origin: keyword('tests/alias'), name: keyword(name), sharedWith: keyword(sharedWith) },
+        facts: { origin: makeKeyword('tests/alias'), name: makeKeyword(name), sharedWith: makeKeyword(sharedWith) },
         message: `qlang root: the source tests/alias is handed a primitive for :${name}, whose ::builtin{} is another name's, :${sharedWith}, which took it first`
       });
     }
-    expect((await (await createSession()).evalCell('1 | add 2')).result).toBe(3);
+    expect((await (await createNotebook()).evalCell('1 | add 2')).result).toBe(3);
   });
 
   it('refuses a primitive handed for a verb of steps', async () => {
-    await expect(createSession({ sources: [{
+    await expect(createNotebook({ sources: [{
       uri: 'tests/over', source: ':any/many ~(count)', primitives: { 'any/many': () => 0 }
     }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', address: 'builtin/PrimitiveNamesNoBuiltinError' });
   });
@@ -233,36 +233,36 @@ describe('the sources a host hands', () => {
   it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so', async () => {
     const refusal = (uri, name) => `qlang root: the source ${uri} is handed a primitive for :${name}, which it declares as no ::builtin{} under a label`;
     for (const [uri, source, name] of [['tests/bare', ':shout ::builtin{}', 'shout'], ['tests/map', ':x {} | :x/shout ::builtin{}', 'x/shout'], ['tests/stray', ':limit 10', 'limit']]) {
-      const refused = await createSession({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
+      const refused = await createNotebook({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
       expect(refused).toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', message: refusal(uri, name) });
-      expect(refused.facts).toEqual({ origin: keyword(uri), name: keyword(name) });
+      expect(refused.facts).toEqual({ origin: makeKeyword(uri), name: makeKeyword(name) });
     }
   });
 
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin', async () => {
     for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
-      await expect(createSession({ sources: [{ uri: 'tests/twice', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: keyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
+      await expect(createNotebook({ sources: [{ uri: 'tests/twice', source }] }))
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
     }
   });
 
-  it('declares a refusal of the host at its address again in every session of the process', async () => {
+  it('declares a refusal of the host at its address again in every notebook of the process', async () => {
     declareRefusal('Probe/SessionProbeRefusalError');
     const sources = [{ uri: 'tests/refusal', source: ':Probe {} | :Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|' }];
-    await createSession({ sources });
-    expect((await (await createSession({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);
+    await createNotebook({ sources });
+    expect((await (await createNotebook({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);
   });
 
   it('refuses a source whose run answers an error', async () => {
-    await expect(createSession({ sources: [{ uri: 'tests/broken', source: ':a 1 | 1 | add "x" | :b 2' }] }))
+    await expect(createNotebook({ sources: [{ uri: 'tests/broken', source: ':a 1 | 1 | add "x" | :b 2' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', message: expect.stringContaining('the source tests/broken is refused') });
   });
 });
 
 describe('a kind whose constructor is a primitive of the host', () => {
   it('puts a payload under the tag through the constructor its host hands', async () => {
-    const { createSession } = await import('../../../src/session.mjs');
-    const sessionInstance = await createSession({
+    const { createNotebook } = await import('../../../src/notebook.mjs');
+    const sessionInstance = await createNotebook({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType': payload => payload * 2 } }]
     });
     expect((await sessionInstance.evalCell('::myType#4 | get [~(type) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
@@ -275,6 +275,6 @@ describe('a kind whose constructor is a primitive of the host', () => {
 });
 
 it('names the source of a quote by the name its reader gave it, `quote` for one no text wrote', () => {
-  expect(originOf(parse('add 1', { uri: 'cell-3' }))).toBe('cell-3');
+  expect(originOf(parseSource('add 1', { uri: 'cell-3' }))).toBe('cell-3');
   expect(originOf(makeQuote([commandStep('count', [])]))).toBe('quote');
 });

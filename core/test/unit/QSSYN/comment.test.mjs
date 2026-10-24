@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parse, ParseError } from '../../../src/parse.mjs';
+import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { isBindStep } from '../../../src/steps.mjs';
 import { stepOf, refusalOf, rootOf } from '../../helpers/read-text.mjs';
 
@@ -12,7 +12,7 @@ describe('a comment read as whitespace', () => {
   });
 
   it('reads a comment where a word would touch another as no pipe', () => {
-    expect(() => parse('[1] |~ note ~| count')).toThrow('steps are joined by `|`: write `a | b`');
+    expect(() => parseSource('[1] |~ note ~| count')).toThrow('steps are joined by `|`: write `a | b`');
   });
 
   it('reads a declaration after a comment on its line with its doc in its slot and its body on the next line', () => {
@@ -83,13 +83,13 @@ describe('a block comment that nests', () => {
   describe('a nest left unbalanced, refused', () => {
     const expectRefusedAt = (src, offset, found) => {
       const refused = refusalOf(src);
-      expect(refused, src).toBeInstanceOf(ParseError);
+      expect(refused, src).toBeInstanceOf(SourceParseError);
       expect([refused.location.start.offset, refused.found], src).toEqual([offset, found]);
     };
 
     const expectLeftOpen = (src, message) => {
       const refused = refusalOf(src);
-      expect(refused, src).toBeInstanceOf(ParseError);
+      expect(refused, src).toBeInstanceOf(SourceParseError);
       expect([refused.message, refused.location.start.offset, refused.found], src).toEqual([message, src.length, null]);
     };
 

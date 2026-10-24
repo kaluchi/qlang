@@ -194,7 +194,7 @@ function elideWithin(value, budget, start, printedOf, oneLine = false, rests = n
   return inOrder(shown, view);
 }
 
-export function elide(value, budget, printedOf = printedByTheCore) {
+export function elideToBudget(value, budget, printedOf = printedByTheCore) {
   return elideWithin(value, budget, OF_THE_VALUE, printedOf);
 }
 

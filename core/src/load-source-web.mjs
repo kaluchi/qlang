@@ -1,6 +1,6 @@
-// [QSHST#source], [QSWRK#tooling]
+// [QSHST#source], [QSGAT#workspaces]
 
-import { keyword } from './types.mjs';
+import { makeKeyword } from './types.mjs';
 import { BuiltinSourceLoadError } from './source-load-error.mjs';
 
 /* global fetch */
@@ -13,7 +13,7 @@ export async function loadSource(uri) {
   }
   const res = await fetch(url);
   if (!res.ok) {
-    throw new BuiltinSourceLoadError({ origin: keyword(uri), sourceLocation: url, cause: new Error(`HTTP ${res.status}`) });
+    throw new BuiltinSourceLoadError({ origin: makeKeyword(uri), sourceLocation: url, cause: new Error(`HTTP ${res.status}`) });
   }
   return res.text();
 }

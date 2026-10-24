@@ -35,8 +35,8 @@ export {
   boundAnswer,
   caretOf,
   langRuntime,
-  parse,
-  createSession,
+  parseSource,
+  createNotebook,
   isErrorValue,
   verbNames
 } from '@kaluchi/qlang-core';

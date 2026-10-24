@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 
 const answers = async query => printValue(await evalQuery(query));

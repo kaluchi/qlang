@@ -3,14 +3,14 @@
 // pentimento audit share the start of a reader, the refusals of a run, the
 // number of the next run of a record, the head of a report, the packing of
 // what they read into groups and the line under `Runs.` of the record that
-// called for the run [QSWRK#review].
+// called for the run [QSRVW#readers].
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CHILD_ENVIRONMENT, withTheLanguageOf } from './benchmark/child.mjs';
-import { baselineOf } from './baseline-walk.mjs';
+import { baselineOf } from './reconciliation.mjs';
 import { JOURNAL, isOpenText } from './decision-records.mjs';
 
 // runLine({ report, kind, tree, baseline, date, from, to, why }) → the line
@@ -107,14 +107,14 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 // own, with no instruction file, memory or server, the tree's `qlang` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
 // allows and the commands that only read, which the harness passes unasked,
-// and no git command but the listing of the files a caller gives it [QSWRK#review].
+// and no git command but the listing of the files a caller gives it [QSRVW#readers].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
 export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
 // The effort a clean reader runs at, `max` unless its run names another of
 // the efforts by `--effort`, which `CLAUDE_CODE_EFFORT_LEVEL` sets in the
 // environment of its start, where no flag and no settings file overrides it,
-// so the effort of the session that starts it reaches no reader [QSWRK#review].
+// so the effort of the session that starts it reaches no reader [QSRVW#readers].
 export const READER_EFFORT = 'max';
 const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'];
 

@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 import { BOX } from '../../helpers/box.mjs';
 

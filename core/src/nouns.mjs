@@ -3,7 +3,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, beneathTags,
-  typeOf, bindingValueOf, keyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  typeOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -34,7 +34,7 @@ export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 export function refuseWithheld(scope, name, readByTag = false) {
   if (scope.has(name) || !scope.get(WITHHELD_KEY)?.has(name)) return;
   if (readByTag && declaresALabel(rootOf(scope).get(name))) return;
-  throw new CallValueWithheldError({ name: keyword(name) });
+  throw new CallValueWithheldError({ name: makeKeyword(name) });
 }
 
 // [QSNAM#address]

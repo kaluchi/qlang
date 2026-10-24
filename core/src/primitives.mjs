@@ -87,15 +87,15 @@ const marking = way => (names, primitive) => {
   return primitive;
 };
 
-export const runs = marking('run');
-export const runsWithin = marking('within');
-export const folds = marking('folded');
+export const runsAsCode = marking('run');
+export const runsWithinAsCode = marking('within');
+export const foldsAsCode = marking('folded');
 export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);
 
 // [QSDSP#answer]
 const COMBINERS = new WeakSet();
 
-export function combines(primitive) {
+export function asCombiner(primitive) {
   COMBINERS.add(primitive);
   return primitive;
 }

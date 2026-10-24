@@ -2,7 +2,7 @@
 // paints a block of qlang in a preview of markdown by the core's tokens and
 // selects a word by the regex of a name the core exports, each once the module
 // that holds it has loaded [QSLSP#extension].
-// The rules it holds: [QSWRK#tooling], [QSLSP#extension].
+// The rules it holds: [QSGAT#hosts], [QSLSP#extension].
 
 const path = require('path');
 const vscode = require('vscode');

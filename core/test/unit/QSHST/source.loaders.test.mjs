@@ -1,5 +1,5 @@
 import { it, expect, vi, afterEach } from 'vitest';
-import { keyword } from '../../../src/types.mjs';
+import { makeKeyword } from '../../../src/types.mjs';
 
 const { unreadable } = vi.hoisted(() => ({ unreadable: new Error('EACCES: permission denied') }));
 
@@ -14,7 +14,7 @@ it('raises it on Node for a file the package maps that does not read, its origin
   const raised = await loadSource('qlang/vec').catch(error => error);
   expect(raised.address).toBe('builtin/SourceLoadError');
   expect(Object.keys(raised.facts)).toEqual(['origin', 'sourceLocation', 'cause']);
-  expect(raised.facts.origin).toEqual(keyword('qlang/vec'));
+  expect(raised.facts.origin).toEqual(makeKeyword('qlang/vec'));
   expect(raised.facts.sourceLocation.replaceAll('\\', '/')).toMatch(/\/lib\/qlang\/vec\.qlang$/);
   expect(raised.facts.cause).toBe(unreadable);
 });
@@ -25,7 +25,7 @@ it('raises it in a browser for a response that fails, its status the cause', asy
   const raised = await loadSource('qlang/vec').catch(error => error);
   expect(raised.address).toBe('builtin/SourceLoadError');
   expect(Object.keys(raised.facts)).toEqual(['origin', 'sourceLocation', 'cause']);
-  expect(raised.facts.origin).toEqual(keyword('qlang/vec'));
+  expect(raised.facts.origin).toEqual(makeKeyword('qlang/vec'));
   expect(raised.facts.sourceLocation).toMatch(/\/lib\/qlang\/vec\.qlang$/);
   expect(raised.facts.cause.message).toBe('HTTP 404');
 });

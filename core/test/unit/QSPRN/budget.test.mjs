@@ -2,8 +2,8 @@ import { it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
 
 it('answers an answer whose print fits the budget as it is, a part a kind prints its own way counted as it prints', async () => {
-  const session = await core.createSession();
-  const cell = await session.evalCell(`:Box |~~ B ~~| | :Box/print ~("b") | ${core.ANSWER_BUDGET} | range | map ~(tag ::Box) | take ${core.ANSWER_BUDGET / 2 - 1}`);
+  const notebook = await core.createNotebook();
+  const cell = await notebook.evalCell(`:Box |~~ B ~~| | :Box/print ~("b") | ${core.ANSWER_BUDGET} | range | map ~(tag ::Box) | take ${core.ANSWER_BUDGET / 2 - 1}`);
   const shown = await core.boundAnswer(cell.result, cell.scopeAfterCell);
   expect(shown).toBe(cell.result);
   expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);

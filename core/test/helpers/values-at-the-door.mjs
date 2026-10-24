@@ -1,17 +1,17 @@
 // [QSHST#door]
 
-import { evalQuery } from '../../src/session.mjs';
-import { langRuntime } from '../../src/runtime/index.mjs';
+import { evalQuery } from '../../src/notebook.mjs';
+import { langRuntime } from '../../src/runtime/lang-runtime.mjs';
 import { nodeOf } from '../../src/nouns.mjs';
 import { makeSet } from '../../src/ordering.mjs';
 import {
-  keyword, makeTag, makeTagged, makeDoc, makePath, makeRegex, makeErrorValue, bindingValueOf, stampTagHeader
+  makeKeyword, makeTag, makeTagged, makeDoc, makePath, makeRegex, makeErrorValue, bindingValueOf, stampTagHeader
 } from '../../src/types.mjs';
 
 export async function valuesOfTheLanguage() {
   const root = await langRuntime();
   return [
-    null, undefined, [1, undefined, 3], true, 'text', 42, -0.5, keyword('k'), makeTag('T'), makePath(['a', '0']), makeRegex('a+', 'i'),
+    null, undefined, [1, undefined, 3], true, 'text', 42, -0.5, makeKeyword('k'), makeTag('T'), makePath(['a', '0']), makeRegex('a+', 'i'),
     [1, [2]], new Map([['a', 1]]), makeSet([1, 2]), makeTagged(makeTag('Box'), 5), makeTagged(makeTag('Box'), [1]),
     makeTagged(makeTag('Box'), new Map([['w', 2]])), makeDoc([' a page ']), await evalQuery('~(add 1)'),
     await evalQuery('!{:a 1}'), await evalQuery('::trace[::frame[1 ~(add 1)]]'),

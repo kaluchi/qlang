@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { runRepl } from '../../src/repl.mjs';
 import { runQuery } from '../../src/run.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
-import { expectRefusalRaised, expectRefusalByAddress } from '../helpers/error-assertions.mjs';
+import { expectRefusalRaised, expectRefusalByAddress } from '../helpers/cli-error-assertions.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
 it('answers `in` in the REPL with the empty string, the prompt holding standard input', async () => {

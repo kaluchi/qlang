@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { tokenize } from '../../../src/highlight.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { verbNames } from '../../../src/nouns.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
 

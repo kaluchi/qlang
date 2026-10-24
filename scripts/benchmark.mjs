@@ -2,7 +2,7 @@
 // alone, a run handing a clean child the first screen and the tasks a clean
 // author wrote, the tree grading the queries the child wrote, while the
 // references of `benchmark/tasks.mjs` run in the gate as `check:benchmark`
-// and no child reads them [QSWRK#measure].
+// and no child reads them [QSMSR#benchmark].
 //
 // Usage:
 //   node scripts/benchmark.mjs check                  the references of tasks.mjs answer their tasks
@@ -63,7 +63,7 @@ async function check() {
     console.log(`${task.id}: the reference answers ${given}, the task ${task.answer}`);
   }
   if (wrong.length > 0) {
-    console.log('a reference answers its task, or the task is written again with it [QSWRK#measure]');
+    console.log('a reference answers its task, or the task is written again with it [QSMSR#benchmark]');
     process.exit(1);
   }
   console.log(`check:benchmark — ${TASKS.length} references answer their tasks`);

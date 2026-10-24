@@ -2,7 +2,7 @@
 
 What a host hands the language and what the language leaves to it: the
 sources and the primitives a host hands, the doors a value enters by, the
-session a query runs in, the verbs of a host for the streams of its
+notebook a query runs in, the verbs of a host for the streams of its
 process, and the tokens the core hands its painters. The cases of
 `core/test/conformance/QSHST/` and the tests of the core's host hold its
 sections; the command line is [QSCLI], and the language server and the
@@ -71,10 +71,10 @@ address, which the axis `source` reads, null for a binding no
 declaration wrote, a node a chain lays among them. Where a text came from
 is its `:origin`, a keyword naming the source, the cell or the verb that
 read it: a binding holds the source or the cell it was read from, a cell
-the session numbers among them, `:cell-1`, and a declaration of code
+the notebook numbers among them, `:cell-1`, and a declaration of code
 assembled from data, which no text wrote, `:quote`; a failure to parse and a
 refusal of the root the source a host named or the verb that read the
-text, a cell the session numbers naming none; the root records the `uri`
+text, a cell the notebook numbers naming none; the root records the `uri`
 a host hands as that origin. The
 core is a host of its own sources, listed once in `LANGUAGE_SOURCES`, and
 hands beside each the primitives of its verbs and of the constructor of
@@ -133,7 +133,7 @@ true
 ```
 
 ```sh
-$ node --input-type=module -e "const { createSession, readingState } = await import('./core/src/index.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('x')) } }] }); console.log((await s.evalCell(':x 1 | named')).result)"
+$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('x')) } }] }); console.log((await s.evalCell(':x 1 | named')).result)"
 true
 ```
 
@@ -154,7 +154,7 @@ the
 primitives of the core are never walked. A
 value JavaScript leaves undefined is null wherever the language reads
 it. The subject a host hands a cell and the values of the scope it hands
-a session or `evalQuery` are held where the core takes them, by the same
+a notebook or `evalQuery` are held where the core takes them, by the same
 walk: a value of no kind there is a defect of the host, raised past the
 fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
 the value as JavaScript holds it, its type and its name or its maker,
@@ -166,36 +166,36 @@ The doors hold the shape of a value, and `fromPlain` is the road a host
 builds a lawful answer by from data it holds parsed.
 
 ```sh
-$ node --input-type=module -e "const { createSession } = await import('./core/src/index.mjs'); const s = await createSession({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
+$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
 call/HostFailureError true true
-$ node --input-type=module -e "const { createSession } = await import('./core/src/index.mjs'); const s = await createSession(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
+$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
 builtin/ForeignValueError function hello
 ```
 
-## session
+## notebook
 
-A query runs as a cell of a session. A scope is the names a step reads
-over the root, and the interface of the package names it so: a session
-keeps the scope its cells write, `createSession({ scope })` and
-`session.scope`, and the entry of a cell is
+A query runs as a cell of a notebook. A scope is the names a step reads
+over the root, and the interface of the package names it so: a notebook
+keeps the scope its cells write, `createNotebook({ scope })` and
+`notebook.scope`, and the entry of a cell is
 `{ source, uri, result, defect, scopeAfterCell }`, its `result` the
 answer, a failure to parse among the failures, and its `defect` a defect
 raised past the fail track, null where none was; `evalQuery(source,
-scope?)` answers the value one cell of a session over the scope answers,
+scope?)` answers the value one cell of a notebook over the scope answers,
 booting the root where none is handed, a declaration it makes naming its
 origin as every cell's does, `:cell-1`, and raises a defect to its
 caller; and `langRuntime` answers the scope of the root. A host puts its
 names into the scope by its sources alone, and a reader by a declaration.
 
-The REPL of the site keeps one session across its cells, a name one cell
+The REPL of the site keeps one notebook across its cells, a name one cell
 declares staying for the cells after it, and its playground runs the cells
-of one run in one session, each printing its answer within the budget of
+of one run in one notebook, each printing its answer within the budget of
 every answer [QSPRN#budget], a failure as its alert under the line that
 says it was raised [QSERR#print], and showing a defect as `qlang:` and its
 message.
 
 ```sh
-$ node --input-type=module -e "const { createSession, evalQuery } = await import('./core/src/index.mjs'); const s = await createSession(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | get /origin')).name)"
+$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | get /origin')).name)"
 source uri result defect scopeAfterCell quote/ParseError null cell-1
 ```
 

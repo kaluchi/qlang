@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { parse, readsItsSubject, splitAddress } from '@kaluchi/qlang-core';
+import { parseSource, readsItsSubject, splitAddress } from '@kaluchi/qlang-core';
 import { parseArgv, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
@@ -37,7 +37,7 @@ const VERBS_OF_NO_SUBJECT = new Set([IN_ADDRESS, splitAddress(IN_ADDRESS)[1]]);
 function queryReadsStdin(queryText) {
   let quote;
   try {
-    quote = parse(queryText);
+    quote = parseSource(queryText);
   } catch {
     return false;
   }

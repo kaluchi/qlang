@@ -2,7 +2,7 @@
 // weigh them: each record with its domain, the records that replace it
 // whole or in part, and the cases of the conformance suite that name it,
 // met or open. A record of the language that no case names and no record
-// replaces whole is still being decided [QSWRK#baseline].
+// replaces whole is still being decided [QSWRK#reconciliation].
 
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,7 +10,7 @@ import { readText as textOf } from './tree-reads.mjs';
 
 const readText = path => textOf(path).replace(/\r\n/g, '\n');
 
-// The journal, the apophatic texts of the tree [QSWRK#documents]: the records
+// The journal, the apophatic texts of the tree [QSVOX#folders]: the records
 // in force at its root, those out of force under `replaced/`, each moved
 // there once, and the research under `research/` [QSWRK#journal].
 export const JOURNAL = 'docs/journal';
@@ -19,7 +19,7 @@ export const RESEARCH = `${JOURNAL}/research`;
 const recordFolders = root => [join(root, JOURNAL), join(root, REPLACED)];
 
 // The folders of the research by the form of what each holds
-// [QSWRK#review]: a report named after the record that called for it, `D329~2.md`,
+// [QSRVW#research]: a report named after the record that called for it, `D329~2.md`,
 // beside the session's reading, `D329~2~reading.md`, or a run of several
 // readers, `D323~1/`, its reports and the session's `reading.md` within it.
 export const RESEARCH_FOLDERS = [
@@ -74,7 +74,7 @@ export function recordPathOf(root, name) {
 
 // The records the runs and the screens of the benchmark the tree holds are
 // named after, `D395~cli~sonnet~1.json` and `D395.txt`, the hash of another
-// screen beside the number where a run read one [QSWRK#measure].
+// screen beside the number where a run read one [QSMSR#benchmark].
 function measuredIn(root) {
   const benchmark = join(root, 'scripts', 'benchmark');
   const filesOf = dir => (existsSync(dir) ? readdirSync(dir) : []);
@@ -112,7 +112,7 @@ export function readDecisionRecords(root) {
           .flatMap(line => [...line[1].split(', under which')[0].matchAll(/[DE]\d+/g)].map(match => match[0])),
         mergedInto: [...recordText.matchAll(/^Merged into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/[DE]\d+/g)].map(match => match[0])),
         // The sections of the specification a record of the journal
-        // dissolved into, its change made the order of the baseline [QSWRK#spec].
+        // dissolved into, its change made the order of the baseline [QSVOX#chapter].
         dissolvedInto: [...recordText.matchAll(/^Dissolved into (.+)$/gm)].flatMap(line => [...line[1].matchAll(/QS[A-Z]{3}(?:#[a-z-]+)?/g)].map(match => match[0])),
         open: isOpenText(recordText),
         measured: measured.has(name),
@@ -128,7 +128,7 @@ export function readDecisionRecords(root) {
       for (const decision of [conformanceCase.decision ?? []].flat()) {
         const record = records.get(decision);
         if (record === undefined) {
-          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in ${JOURNAL}: a case names the record it holds [QSWRK#cases]`);
+          throw new Error(`${caseFile}: ${conformanceCase.name} names ${decision}, which has no file in ${JOURNAL}: a case names the record it holds [QSREQ#cases]`);
         }
         (conformanceCase.target === true ? record.targets : record.met).push(conformanceCase.name);
       }
@@ -151,6 +151,6 @@ export const isBeingDecided = record => !replacedWhole(record)
 // Whether the tree holds a record: one of the language a case it meets
 // names, one of the benchmark a run or the screen of its measurement, or
 // one of another domain, which the tests of its domain hold, and neither
-// replaced whole [QSWRK#baseline], [QSWRK#measure].
+// replaced whole [QSWRK#reconciliation], [QSMSR#benchmark].
 export const isHeld = record => !replacedWhole(record)
   && (record.domain === 'language' ? record.met.length > 0 : record.domain !== 'benchmark' || record.measured);

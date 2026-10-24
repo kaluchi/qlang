@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createSession, evalQuery } from '../../../src/session.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { toPlain, fromPlain } from '../../../src/runtime/json.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 import { declareRefusal, declareDefect } from '../../../src/errors.mjs';
 import { WITHHELD_KEY } from '../../../src/scope-keys.mjs';
-import { keyword, makeTag, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, isErrorValue, isMap } from '../../../src/types.mjs';
+import { makeKeyword, makeTag, makeErrorValue, makeBinding, typeOf, accountOfForeign, BuiltinForeignValueError, isErrorValue, isMap } from '../../../src/types.mjs';
 import { valuesOfTheLanguage, valuesOfNoKind } from '../../helpers/values-at-the-door.mjs';
 import { errorFromQlang, errorFromForeign } from '../../../src/error-convert.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
@@ -15,11 +15,11 @@ const ANSWERS = [];
 const answering = value => ANSWERS.push(value) - 1;
 const AnyRefuseRefusedError = declareRefusal('any/refuse/RefusedError');
 const AnyBreakBrokenError = declareDefect('any/break/BrokenError', () => 'the host broke');
-let session;
+let notebook;
 let lawful;
 
 beforeAll(async () => {
-  session = await createSession({ sources: [{
+  notebook = await createNotebook({ sources: [{
     uri: 'tests/door',
     source: [
       ':any/answer ::builtin{}',
@@ -50,8 +50,8 @@ beforeAll(async () => {
   lawful = await valuesOfTheLanguage();
 });
 
-const answerOf = async (value, verb = 'answer') => (await session.evalCell(`${answering(value)} | ${verb}`)).result;
-const refusalOf = async (value, verb = 'answer') => (await session.evalCell(`${answering(value)} | ${verb} !| get [~(type) /message]`)).result;
+const answerOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb}`)).result;
+const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(type) /message]`)).result;
 const doorRefusal = (address, path, account) =>
   [HOST_FAILURE, `the answer of ::${address} ${path === '' ? 'is' : `holds at ${path}`} ${account}, a value of no kind of the language`];
 
@@ -76,7 +76,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   it('passes a failure the primitive answers, whose facts are values', async () => {
     const failure = makeErrorValue(makeTag('error'), new Map([['a', 1]]));
     expect((await answerOf(failure)).facts.get('a')).toBe(1);
-    expect((await session.evalCell(`${answering(failure)} | answer !| get /a`)).result).toBe(1);
+    expect((await notebook.evalCell(`${answering(failure)} | answer !| get /a`)).result).toBe(1);
   });
 
   it('refuses each value of no kind as a failure of the host, naming the verb and the path where it stands', async () => {
@@ -93,18 +93,18 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   it('walks the answer of every call again, so a container its host changed since is refused', async () => {
     const cached = [1, 2];
     const index = answering(cached);
-    expect((await session.evalCell(`${index} | answer | count`)).result).toBe(2);
+    expect((await notebook.evalCell(`${index} | answer | count`)).result).toBe(2);
     cached.push(function leaked() {});
-    expect((await session.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
     cached[2] = cached;
-    expect((await session.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(type) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
   it('passes back unwalked a value the call handed in', async () => {
     const { vector, reads } = counted(1);
-    expect((await session.evalCell('same', { initialPipeValue: vector })).result).toBe(vector);
+    expect((await notebook.evalCell('same', { initialPipeValue: vector })).result).toBe(vector);
     expect(reads.count).toBe(1);
-    expect((await session.evalCell('twice | count', { initialPipeValue: vector })).result).toBe(2);
+    expect((await notebook.evalCell('twice | count', { initialPipeValue: vector })).result).toBe(2);
     expect(reads.count).toBe(2);
   });
 
@@ -116,7 +116,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
       deepest = [deepest];
     }
     expect(await answerOf(nested)).toBe(nested);
-    expect((await session.evalCell(`${answering(deepest)} | answer !| type`)).result).toEqual(HOST_FAILURE);
+    expect((await notebook.evalCell(`${answering(deepest)} | answer !| type`)).result).toEqual(HOST_FAILURE);
   });
 
   it('holds an answer a primitive waits on as it holds any', async () => {
@@ -130,21 +130,21 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
-    expect((await session.evalCell(`${answering('late')} | refuse !| get [~(type) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
-    expect((await session.evalCell(`${answering(undefined)} | refuse !| type`)).result).toEqual(makeTag('any/refuse/RefusedError'));
+    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(type) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
+    expect((await notebook.evalCell(`${answering(undefined)} | refuse !| type`)).result).toEqual(makeTag('any/refuse/RefusedError'));
     expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/actualValue', 'object Object'));
     expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/actualValue', 'object Object'));
   });
 
   it('raises past the fail track a defect a host\'s primitive throws, whatever its facts hold', async () => {
-    const cell = await session.evalCell(`${answering({ status: 404 })} | break !| 0`);
+    const cell = await notebook.evalCell(`${answering({ status: 404 })} | break !| 0`);
     expect([cell.result, cell.defect]).toEqual([null, expect.any(AnyBreakBrokenError)]);
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
-    expect((await session.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
-    expect((await session.evalCell('::Kept[1] | payload')).result).toEqual([1]);
-    expect((await session.evalCell('::Counted[7] | payload')).result).toBe(1);
+    expect((await notebook.evalCell('::Raw[1] !| get [~(type) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
+    expect((await notebook.evalCell('::Kept[1] | payload')).result).toEqual([1]);
+    expect((await notebook.evalCell('::Counted[7] | payload')).result).toBe(1);
   });
 });
 
@@ -153,49 +153,49 @@ describe('a primitive of the core runs within the function its host handed it wi
 
   it('refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
     for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
-      expect((await session.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('fn/RecipeMissingError'));
+      expect((await notebook.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| type`)).result).toEqual(makeTag('fn/RecipeMissingError'));
     }
   });
 
   it('brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
     for (const fn of ['(::number/add | binding | get /value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
-      expect((await session.evalCell(`1e308 | apply ${fn} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
+      expect((await notebook.evalCell(`1e308 | apply ${fn} [1e308] !| type`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
   });
 });
 
 describe('the second door: what a host hands where the core takes it', () => {
-  const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
+  const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: makeKeyword('held'), value }));
 
   it('takes each kind of value of the language as the subject of a cell and as what a name of a scope holds', async () => {
     for (const value of lawful) {
-      expect((await session.evalCell('it', { initialPipeValue: value })).result).toBe(value);
+      expect((await notebook.evalCell('it', { initialPipeValue: value })).result).toBe(value);
       expect(await evalQuery('held', await scopeHolding(value))).toBe(value);
-      expect((await (await createSession({ scope: await scopeHolding(value) })).evalCell('held')).result).toBe(value);
+      expect((await (await createNotebook({ scope: await scopeHolding(value) })).evalCell('held')).result).toBe(value);
     }
   });
 
   it('raises each value of no kind as the subject of a cell, naming it as JavaScript holds it', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
-      const cell = await session.evalCell('type', { initialPipeValue: value });
+      const cell = await notebook.evalCell('type', { initialPipeValue: value });
       expect([cell.result, cell.defect], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
       expect(cell.defect.facts, account).toEqual({ actualValue: account });
       expect(cell.defect.message).toBe(`the core met ${account}, a value of no kind of the language`);
     }
   });
 
-  it('raises each value of no kind a name of a scope holds, as a record or as it lies, where a query or a session takes the scope', async () => {
+  it('raises each value of no kind a name of a scope holds, as a record or as it lies, where a query or a notebook takes the scope', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       for (const scope of [await scopeHolding(value), new Map(await langRuntime()).set('held', value)]) {
         await expect(evalQuery('1', scope), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
-        await expect(createSession({ scope }), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
+        await expect(createNotebook({ scope }), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
       }
     }
   });
 
   it('reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
-    expect((await session.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
-    expect((await session.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
+    expect((await notebook.evalCell('get [~(type) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
+    expect((await notebook.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
 
   it('leaves the keys of the runtime\'s own out of the walk of a scope', async () => {
@@ -286,7 +286,7 @@ it('leaves out a fact its site hands as undefined', async () => {
 describe('the answer of a primitive a host hands', () => {
   it('waits on a thenable a primitive answers and on a promise of another realm', async () => {
     const vm = await import('node:vm');
-    const s = await createSession({
+    const s = await createNotebook({
       sources: [{
         uri: 'tests/later',
         source: ':number/later ::builtin{}\n:number/elsewhere ::builtin{}',
@@ -300,7 +300,7 @@ describe('the answer of a primitive a host hands', () => {
   });
 
   it('refuses a number past the finite doubles a host\'s primitive answers at the door, under several kinds as under one', async () => {
-    const s = await createSession({
+    const s = await createNotebook({
       sources: [{
         uri: 'tests/past',
         source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})\n:any/pastOne (::fn | returns |~~ A number. ~~| ::number | impl ::builtin{})',
@@ -314,7 +314,7 @@ describe('the answer of a primitive a host hands', () => {
 });
 
 it('lifts an error of JavaScript and any other value a primitive throws to a failure of the host', async () => {
-  const s = await createSession({
+  const s = await createNotebook({
     sources: [{
       uri: 'tests/bomb',
       source: ':any/bomb ::builtin{}\n:any/hollow ::builtin{}',
@@ -403,19 +403,19 @@ it('the printer refuses a value of no kind of the language where it reads its ki
   expect(() => printValue(Symbol('x'))).toThrow('the core met symbol Symbol(x), a value of no kind of the language');
 });
 
-describe('a session takes what its host hands by the walk of the door', () => {
-  const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: keyword('held'), value }));
+describe('a notebook takes what its host hands by the walk of the door', () => {
+  const scopeHolding = async value => new Map(await langRuntime()).set('held', makeBinding({ name: makeKeyword('held'), value }));
 
   it('takes a value of each kind of the language as the subject of a cell and in the scope it starts from, as it is', async () => {
-    const sessionInstance = await createSession();
+    const sessionInstance = await createNotebook();
     for (const value of await valuesOfTheLanguage()) {
       expect((await sessionInstance.evalCell('it', { initialPipeValue: value })).result).toBe(value);
-      expect((await (await createSession({ scope: await scopeHolding(value), sources: [] })).evalCell('held')).result).toBe(value);
+      expect((await (await createNotebook({ scope: await scopeHolding(value), sources: [] })).evalCell('held')).result).toBe(value);
     }
   });
 
   it('answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
-    const sessionInstance = await createSession();
+    const sessionInstance = await createNotebook();
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await sessionInstance.evalCell(':late 1 | type', { initialPipeValue: value });
       expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
@@ -426,7 +426,7 @@ describe('a session takes what its host hands by the walk of the door', () => {
 
   it('refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
-      await expect(createSession({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
+      await expect(createNotebook({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
         .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
     }
   });

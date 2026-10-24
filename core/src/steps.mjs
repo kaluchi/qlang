@@ -4,7 +4,7 @@ import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
 import { declareRefusal } from './errors.mjs';
 import { kindsExpected, makeSet } from './ordering.mjs';
 import {
-  keyword, isKeyword, isTag, isRegex, isPath, isDoc, isQuote, isVec, isMap, isSet, isTagged, isValueClass,
+  makeKeyword, isKeyword, isTag, isRegex, isPath, isDoc, isQuote, isVec, isMap, isSet, isTagged, isValueClass,
   makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, holdsNoOtherTag, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
@@ -38,9 +38,9 @@ export const isOfTheKindOfErrors = value => isMap(value) && tagNameOf(value) ===
 export const errorFieldsOf = value => (isOfTheKindOfErrors(value) ? value : null);
 
 // [QSLIT#closed]
-export const computes = value => isCallStep(value) || isGroupStep(value);
+export const isComputingStep = value => isCallStep(value) || isGroupStep(value);
 
-const isPartOfALiteral = value => isLiteral(value) || isConstructStep(value) || computes(value);
+const isPartOfALiteral = value => isLiteral(value) || isConstructStep(value) || isComputingStep(value);
 
 // [QSQUO#step]
 function partsOfAContainer(value) {
@@ -57,7 +57,7 @@ export function isLiteral(value) {
     if (isAtom(part) || (isQuote(part) && !isPathAlone(part)) || isDoc(part)) continue;
     const parts = partsOfAContainer(part);
     if (parts === null) return false;
-    for (const held of parts) if (!isConstructStep(held) && !computes(held)) pending.push(held);
+    for (const held of parts) if (!isConstructStep(held) && !isComputingStep(held)) pending.push(held);
   }
   return true;
 }
@@ -89,7 +89,7 @@ function holdsWithin(value, test) {
   return false;
 }
 
-export const computesWithin = value => holdsWithin(value, computes);
+export const computesWithin = value => holdsWithin(value, isComputingStep);
 
 function literalMessage(literal, written) {
   const template = written.quoting(literal);
@@ -165,9 +165,9 @@ const CONSTRUCT = {
 // [QSQUO#step]
 function recordFrom(payload, record) {
   if (!isMap(payload) || !holdsNoOtherTag(payload, record.tag.name)) throw new record.PayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
-  for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: keyword(name), actualValue: null });
+  for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: null });
   for (const [name, value] of payload) {
-    if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: keyword(name), actualValue: value });
+    if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: value });
   }
   return makeTagged(record.tag, new Map(payload));
 }
@@ -185,7 +185,7 @@ export function callOf(payload, written) {
 
 export function bindOf(payload, written) {
   const bind = recordFrom(payload, BIND);
-  if (!bind.has('docs') && !bind.has('body')) throw new BindPayloadNotSchemaError({ field: keyword('body'), actualValue: null });
+  if (!bind.has('docs') && !bind.has('body')) throw new BindPayloadNotSchemaError({ field: makeKeyword('body'), actualValue: null });
   const name = bind.get('name');
   if (!readsAsBareKeyword(name.name) || (!declaresKind(bind) && LITERAL_WORDS.has(name.name))) throw new BindNameNotCallableError({ name, message: nameMessage(name, written) });
   if (holdsALiteral(bind.get('body'))) heldAsALiteral(bind.get('body'), BindLiteralComputesError, {}, written);
@@ -195,7 +195,7 @@ export function bindOf(payload, written) {
 // [QSQUO#step], [QSLIT#closed]
 export function constructOf(payload) {
   const construct = recordFrom(payload, CONSTRUCT);
-  if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: keyword('tag'), actualValue: construct.get('tag') });
+  if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: makeKeyword('tag'), actualValue: construct.get('tag') });
   return construct;
 }
 
@@ -255,7 +255,7 @@ export function builtFrom(body) {
 export const declaresKind = bind => !bind.has('body') || builtFrom(bind.get('body')) === 'kind';
 
 export function commandStep(name, modifiers) {
-  return makeTagged(CALL_TAG, new Map([['name', keyword(name)], ['modifiers', Object.freeze([...modifiers])]]));
+  return makeTagged(CALL_TAG, new Map([['name', makeKeyword(name)], ['modifiers', Object.freeze([...modifiers])]]));
 }
 
 export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));
@@ -274,5 +274,5 @@ function stepOfValue(value) {
 
 export function declarationStep(name, docs, value) {
   const body = isDoc(value) ? groupStep([value]) : stepOfValue(value);
-  return makeTagged(BIND_TAG, new Map([['name', keyword(name)], ['docs', Object.freeze([...docs])], ['body', body]]));
+  return makeTagged(BIND_TAG, new Map([['name', makeKeyword(name)], ['docs', Object.freeze([...docs])], ['body', body]]));
 }

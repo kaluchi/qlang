@@ -1,7 +1,7 @@
 // [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
-import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, keyword, CORE_KIND } from './types.mjs';
+import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
@@ -65,13 +65,13 @@ const refusalAt = (refusal, depth) => (depth === 0 ? refusingTheSubject(refusal)
 
 // [QSSLF#near]
 export function keyNotInMap(container, segment, path, depth) {
-  const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => keyword(name)));
-  return refusalAt(new PathKeyNotInMapError({ key: keyword(segment), nearest, path, actualValue: container }), depth);
+  const nearest = Object.freeze(nearestOf(container.keys(), segment).map(name => makeKeyword(name)));
+  return refusalAt(new PathKeyNotInMapError({ key: makeKeyword(segment), nearest, path, actualValue: container }), depth);
 }
 
 export function indexIn(container, segment, path, depth, soft = false) {
   const index = segmentIndex(segment);
-  if (Number.isNaN(index)) throw refusalAt(new PathIndexNotIntegerError({ segment: keyword(segment), path, actualValue: container }), depth);
+  if (Number.isNaN(index)) throw refusalAt(new PathIndexNotIntegerError({ segment: makeKeyword(segment), path, actualValue: container }), depth);
   const at = index < 0 ? container.length + index : index;
   if (at >= 0 && at < container.length) return at;
   if (soft) return MISSED;
@@ -80,7 +80,7 @@ export function indexIn(container, segment, path, depth, soft = false) {
 
 export function noPartsOn(value, segment, path, depth) {
   return refusalAt(new PathSubjectHasNoPartsError({
-    segment: Number.isNaN(segmentIndex(segment)) ? keyword(segment) : segmentIndex(segment),
+    segment: Number.isNaN(segmentIndex(segment)) ? makeKeyword(segment) : segmentIndex(segment),
     path,
     actualValue: value
   }), depth);

@@ -1,13 +1,13 @@
 // [QSTXT#string]
 
-import { registerPrimitive, combines } from '../primitives.mjs';
+import { registerPrimitive, asCombiner } from '../primitives.mjs';
 import { isKeyword, isRegex } from '../types.mjs';
-import { containsMatch, piecesBetweenMatches } from './regex.mjs';
+import { containsMatch, piecesBetweenMatches } from './regex-primitives.mjs';
 
 export const writtenAsText = value => (isKeyword(value) ? value.name : value);
 
-registerPrimitive('string/prepend', combines((text, prefix) => writtenAsText(prefix) + text));
-registerPrimitive('string/append', combines((text, suffix) => text + writtenAsText(suffix)));
+registerPrimitive('string/prepend', asCombiner((text, prefix) => writtenAsText(prefix) + text));
+registerPrimitive('string/append', asCombiner((text, suffix) => text + writtenAsText(suffix)));
 
 // [QSTXT#split]
 registerPrimitive('string/split', (subject, separator) => {

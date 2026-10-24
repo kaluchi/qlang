@@ -1,9 +1,9 @@
 import { it, expect } from 'vitest';
-import { createSession } from '../../../src/session.mjs';
+import { createNotebook } from '../../../src/notebook.mjs';
 
 it('`coalesce` leaves the alternatives after the first value unrun', async () => {
   let runs = 0;
-  const counting = await createSession({
+  const counting = await createNotebook({
     sources: [{
       uri: 'tests/counted',
       source: ':any/counted ::builtin{}',

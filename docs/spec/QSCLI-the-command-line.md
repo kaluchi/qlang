@@ -2,7 +2,7 @@
 
 How the command line reads a query and writes its answer, and its REPL:
 the host of the language in a shell, `cli/`. The tests of `cli/` hold its
-sections; the sources, the doors and the session it runs a query in are
+sections; the sources, the doors and the notebook it runs a query in are
 [QSHST].
 
 ## answer
@@ -144,7 +144,7 @@ where the shell hands its arguments.
 
 ## repl
 
-The REPL runs a cell at a time in one session, each cell a scope of its
+The REPL runs a cell at a time in one notebook, each cell a scope of its
 own [QSNAM#scope], its first the query `-i` is given, and prints the
 answer of each cell whole, as its literal, a string among them and an
 answer past the budget of every answer [QSPRN#budget] as well, and a

@@ -1,7 +1,7 @@
 // [QSCLI#repl]
 
 import {
-  createSession,
+  createNotebook,
   printAnswer,
   boundAnswer,
   caretOf,
@@ -44,7 +44,7 @@ block across as many rows as the content needs, so an appended
 step like \`| get /key\` can land on the same cell as the paste.
 
 Names a cell declares, \`:name body\` and \`:name it\` among them,
-persist across the cells of one REPL session.
+persist across the cells of one run of the REPL.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQuery = null, terminal } = {}) {
@@ -59,7 +59,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     : stderrWrite;
 
   let wroteByOut = false;
-  const session = await createSession({
+  const notebook = await createNotebook({
     sources: cliSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
@@ -110,7 +110,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
       }
 
       wroteByOut = false;
-      const cellEntry = await session.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
+      const cellEntry = await notebook.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
       await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
       lineEditor.prompt();
     }

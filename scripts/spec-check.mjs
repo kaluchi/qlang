@@ -1,4 +1,4 @@
-// The check of the chapters [QSWRK#review]: clean readers, each a clean Opus started
+// The check of the chapters [QSRVW#audits]: clean readers, each a clean Opus started
 // from a directory of its own as the outside audit is, with no CLAUDE.md, no
 // memory and no MCP server and no git command but the listing of the files,
 // read the specification whole and then check a group of its chapters
@@ -15,11 +15,11 @@
 // `scripts/design-check-prompt.txt`, the report landing as the next critique
 // of its record, `design-check/D329~3.md`, named after the record as the runs
 // of the benchmark are, and the session writing its reading beside it,
-// `D329~3~reading.md` [QSWRK#review]. A report stays while its record is in
+// `D329~3~reading.md` [QSRVW#audits]. A report stays while its record is in
 // force or a text in force cites it, and leaves with what holds it at the
-// move of the baseline [QSWRK#baseline]. The start of the readers, the
+// closeout [QSWRK#closeout]. The start of the readers, the
 // refusals, the numbers and the heads are the ones every run of the
-// research shares [QSWRK#review].
+// research shares [QSRVW#readers].
 //
 // A report opens with its head: what it is and the record that called for
 // it, the tree it read and the baseline that tree stood on, when it ran and
@@ -35,6 +35,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { RESEARCH } from './decision-records.mjs';
+import { WORK_CHAPTERS } from './reconciliation.mjs';
 import {
   allowedReading, effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoOpenRecord,
   refuseNoRecordInForce, runLine, startReaders, stillTheTree, treeOfTheRun
@@ -58,9 +59,10 @@ const checksDir = join(repoRoot, RESEARCH, records === null ? 'spec-check' : 'de
 const promptPath = join(repoRoot, 'scripts', records === null ? 'spec-check-prompt.txt' : 'design-check-prompt.txt');
 const shown = path => relative(repoRoot, path).replaceAll('\\', '/');
 
-// The chapters in the order of the index: the chapter of the work a group of
-// its own, and those of the language packed in that order into groups of
-// about one weight, a chapter weighed with its cases by their characters.
+// The chapters in the order of the index: the chapters of the work a group
+// of their own [QSRVW#audits], and those of the language packed in that order into
+// groups of about one weight, a chapter weighed with its cases by their
+// characters.
 const groupsAt = process.argv.indexOf('--groups');
 const groupCount = groupsAt === -1 ? 6 : Number(process.argv[groupsAt + 1]);
 const specDir = join(repoRoot, 'docs', 'spec');
@@ -68,9 +70,11 @@ const chapters = [...readFileSync(join(specDir, 'README.md'), 'utf8').matchAll(/
 const casesDir = code => join(repoRoot, 'core', 'test', 'conformance', code);
 const weightOf = file => statSync(join(specDir, file)).size
   + (existsSync(casesDir(file.slice(0, 5))) ? readdirSync(casesDir(file.slice(0, 5))).reduce((sum, name) => sum + statSync(join(casesDir(file.slice(0, 5)), name)).size, 0) : 0);
-const language = chapters.filter(file => !file.startsWith('QSWRK')).map(file => ({ file, weight: weightOf(file) }));
+const ofTheWork = file => WORK_CHAPTERS.includes(file.slice(0, 5));
+const language = chapters.filter(file => !ofTheWork(file)).map(file => ({ file, weight: weightOf(file) }));
+const work = chapters.filter(ofTheWork);
 const groups = records !== null ? records.map(record => [record])
-  : [...packByWeight(language, groupCount).map(group => group.map(({ file }) => file)), ...chapters.filter(file => file.startsWith('QSWRK')).map(file => [file])];
+  : [...packByWeight(language, groupCount).map(group => group.map(({ file }) => file)), ...(work.length === 0 ? [] : [work])];
 for (const record of records ?? []) refuseNoOpenRecord(repoRoot, record);
 if (process.argv.includes('--dry')) {
   for (const group of groups) console.log(group.join(' '));

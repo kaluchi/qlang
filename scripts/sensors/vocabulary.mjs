@@ -1,24 +1,35 @@
 // The measures of the vocabulary of the project, read in its own texts, the
-// texts that state what holds [QSWRK#documents]: the selectivity of a term, the share
+// texts that state what holds [QSLEX#term]: the selectivity of a term, the share
 // of its matches that stand in the files naming its anchor; the consistency
 // of a pair of terms that work together, the share of the files writing the
 // first that write the second; and the rivals of a concept, the matches of
 // each word that names it in the files naming its anchor. With `--corpus`,
 // the prior of a term beside them, the files of a corpus of other projects
-// that write it, the `node_modules` of the checkout.
+// that write it, the `node_modules` of the checkout. With `--exports`, the
+// false matches of each name `core/src` exports, the files that hold it as a
+// word and neither define, import nor re-export it, the most false first
+// [QSLEX#grep].
 //
 // Usage: node scripts/sensors/vocabulary.mjs <term>[=<anchor>]... [--pair <a>:<b>]... [--rivals <anchor>=<word>,<word>...]... [--corpus]
+//        node scripts/sensors/vocabulary.mjs --exports [count]
 // e.g.   node scripts/sensors/vocabulary.mjs frame=::frame --pair trace:frame --rivals ::trace=trace,path
 
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { falseMatchesInTree } from '../grep-ergonomics.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 const TEXTS = ['docs/spec', 'core/lib', 'cli/lib', 'core/src', 'cli/src', 'lsp/src', 'site/src', 'core/test', 'cli/test', 'lsp/test', 'CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
 const CORPUS = join(repoRoot, 'node_modules');
 
 const args = process.argv.slice(2);
+if (args[0] === '--exports') {
+  for (const { name, module, users, falseFiles, falseLines } of falseMatchesInTree(repoRoot).slice(0, Number(args[1] ?? 30))) {
+    console.log(`${name} (${module}): ${falseFiles} files hold it falsely, ${falseLines} matches, beside the ${users} that define or take it`);
+  }
+  process.exit(0);
+}
 const terms = [];
 const pairs = [];
 const rivals = [];

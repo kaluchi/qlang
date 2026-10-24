@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
-import { evalQuery, createSession } from '../../../src/session.mjs';
+import { evalQuery, createNotebook } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { makeBinding, keyword, makeTag, makeTagged, makeErrorValue } from '../../../src/types.mjs';
+import { makeBinding, makeKeyword, makeTag, makeTagged, makeErrorValue } from '../../../src/types.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
 it('prints every part of a kind of the root by the print a host source declares under its label, bare or under a tag', async () => {
-  const session = await core.createSession({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
-  expect((await session.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
+  const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
+  expect((await notebook.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
 });
 
 const NUMBERS = ['0', '-0', '1', '-1.5', '0.1', '1e10', '1e21', '1e-7', '5e-324', '1.7976931348623157e308', '-2.5e-3'];
@@ -121,7 +121,7 @@ it('reads every value back from its print as itself', async () => {
 
 describe('a binding record and a vector under a tag', () => {
   it('renders a binding record as the tagged Map it is', () => {
-    const record = makeBinding({ name: keyword('nums'), value: [1, 2, 3] });
+    const record = makeBinding({ name: makeKeyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
       '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :origin null\n}');
   });
@@ -146,24 +146,24 @@ describe('the print declared under a kind', () => {
   ].join('\n');
 
   async function badgeSession() {
-    return await createSession({ sources: [{ uri: 'badge', source: BADGE_SOURCE }] });
+    return await createNotebook({ sources: [{ uri: 'badge', source: BADGE_SOURCE }] });
   }
 
   it('takes the print of a part from the kind of that part', async () => {
-    const session = await badgeSession();
-    const printed = await session.evalCell('[::badge{:name "ok"} {:k ::badge{:name "no"}} 1] | print');
+    const notebook = await badgeSession();
+    const printed = await notebook.evalCell('[::badge{:name "ok"} {:k ::badge{:name "no"}} 1] | print');
     expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
   });
 
   it('takes the print of a kind for a part inside an error at rest, under a tag of its own or none', async () => {
-    const session = await badgeSession();
-    expect((await session.evalCell('[::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  !{\n    :k in\n  }\n]');
-    expect((await session.evalCell('[::Box::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  ::Box!{\n    :k in\n  }\n]');
+    const notebook = await badgeSession();
+    expect((await notebook.evalCell('[::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  !{\n    :k in\n  }\n]');
+    expect((await notebook.evalCell('[::Box::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  ::Box!{\n    :k in\n  }\n]');
   });
 
   it('prints what a kind answers that is no string as the value it is', async () => {
-    const session = await badgeSession();
-    const printed = await session.evalCell('get [~(5 | tag ::badge)] | print');
+    const notebook = await badgeSession();
+    const printed = await notebook.evalCell('get [~(5 | tag ::badge)] | print');
     expect(printed.result).toContain('::path/SubjectHasNoPartsError!{');
   });
 });
@@ -191,7 +191,7 @@ describe('the printer writes the literal of a value', () => {
   });
 
   it('prints a keyword of names joined by a slash bare', () => {
-    expect(printValue(keyword('qlang/error'))).toBe(':qlang/error');
+    expect(printValue(makeKeyword('qlang/error'))).toBe(':qlang/error');
   });
 
   it('prints the empty vector', () => {

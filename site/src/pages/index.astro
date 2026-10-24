@@ -196,16 +196,16 @@ const features = [
   import { highlightQlang as hl } from '../lib/qlang-highlight.js';
 
   async function initRepl() {
-    const { createSession, cellShown, langRuntime, inlineCatalogLocator, verbNames } = await import(
+    const { createNotebook, cellShown, langRuntime, inlineCatalogLocator, verbNames } = await import(
       /* @vite-ignore */
       `${import.meta.env.BASE_URL}/qlang.js`
     );
     const scope = await langRuntime({ locator: inlineCatalogLocator });
     const rootVerbNames = verbNames(scope);
     const hi = (src: string) => hl(src, rootVerbNames);
-    // One session across the cells, so a name one cell declares stays for
+    // One notebook across the cells, so a name one cell declares stays for
     // the cells after it.
-    const session = await createSession({ scope });
+    const notebook = await createNotebook({ scope });
 
     const input = document.getElementById('repl-input') as HTMLTextAreaElement;
     const history = document.getElementById('repl-history')!;
@@ -255,7 +255,7 @@ const features = [
       '{:name "alice" :age 30} | get /age | mul 2',
     ];
     for (const src of demos) {
-      history.appendChild(await makeEntry(src, await session.evalCell(src)));
+      history.appendChild(await makeEntry(src, await notebook.evalCell(src)));
       cmdHistory.unshift(src);   // oldest demo ends up deepest in history
     }
 
@@ -276,7 +276,7 @@ const features = [
         cmdHistory.unshift(source);   // newest first
         histIdx = -1;
         savedDraft = '';
-        history.appendChild(await makeEntry(source, await session.evalCell(source)));
+        history.appendChild(await makeEntry(source, await notebook.evalCell(source)));
         history.scrollTop = history.scrollHeight;
         input.value = '';
         updateReplHighlight();

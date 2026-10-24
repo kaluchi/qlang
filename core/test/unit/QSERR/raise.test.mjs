@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { isErrorValue, makeTag } from '../../../src/types.mjs';
 
 it('an error literal under the address of a refusal, raised, keeps every fact it writes', async () => {

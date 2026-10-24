@@ -1,8 +1,8 @@
-// [QSNAM#root], [QSDSP#residence], [QSHST#session]
+// [QSNAM#root], [QSDSP#residence], [QSHST#notebook]
 
-import { parse, ParseError } from './parse.mjs';
+import { parseSource, SourceParseError } from './parse.mjs';
 import { evalPipeline } from './eval.mjs';
-import { langRuntime } from './runtime/index.mjs';
+import { langRuntime } from './runtime/lang-runtime.mjs';
 import { rootState } from './state.mjs';
 import { errorFromParse } from './error-convert.mjs';
 import { declareRoot } from './runtime/root.mjs';
@@ -22,7 +22,7 @@ function scopeTakenFromAHost(scope) {
 }
 
 // [QSDSP#residence]
-export async function createSession(opts = {}) {
+export async function createNotebook(opts = {}) {
   let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();
   if (opts.sources) scope = await declareRoot(scope, opts.sources);
   let cellCount = 0;
@@ -32,14 +32,14 @@ export async function createSession(opts = {}) {
       const uri = evalOpts.uri ?? `cell-${++cellCount}`;
       const entry = (result, defect) => ({ source, uri, result, defect, scopeAfterCell: scope });
       try {
-        const quote = parse(source, { uri });
+        const quote = parseSource(source, { uri });
         const subject = 'initialPipeValue' in evalOpts ? takenFromAHost(evalOpts.initialPipeValue) : null;
         const answered = await evalPipeline(quote, rootState(subject, scope));
         scope = answered.scope;
         return entry(answered.pipeValue, null);
       } catch (thrown) {
-        // [QSHST#session]
-        return thrown instanceof ParseError ? entry(errorFromParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
+        // [QSHST#notebook]
+        return thrown instanceof SourceParseError ? entry(errorFromParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
       }
     },
 
@@ -48,7 +48,7 @@ export async function createSession(opts = {}) {
 }
 
 export async function evalQuery(source, scope) {
-  const { result, defect } = await (await createSession({ scope })).evalCell(source);
+  const { result, defect } = await (await createNotebook({ scope })).evalCell(source);
   if (defect !== null) throw defect;
   return result;
 }

@@ -1,4 +1,4 @@
-// [QSWRK#tooling], [QSCLI#colour]
+// [QSGAT#hosts], [QSCLI#colour]
 
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 

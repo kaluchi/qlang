@@ -1,6 +1,6 @@
 // [QSSLF#near]
 
-import { keyword, makeTag, isTag } from './types.mjs';
+import { makeKeyword, makeTag, isTag } from './types.mjs';
 import { addressesOf, answerOf, kindsOfWalk, namesDeclaredUnder, nodeAddresses, nodeOf, residenceOnSubject, scopeNamesOf, verbNames, verbsReaching, isLabel } from './nouns.mjs';
 import { linkedAddressesOf } from './doc-parts.mjs';
 import { splitAddress, ANY_KIND_NAME } from './address.mjs';
@@ -32,7 +32,7 @@ export function nearestNames(scope, typedName) {
   const onlyItsTag = name => !scope.has(name) && !verbs.has(name) && isLabel(scope, name);
   const spelled = nearestOf(namesOfSteps(scope), typedName);
   const near = [...new Set([...spelled, ...linkedFromBegun(scope, typedName, spelled)])].sort()
-    .map(name => onlyItsTag(name) ? makeTag(name) : keyword(name));
+    .map(name => onlyItsTag(name) ? makeTag(name) : makeKeyword(name));
   return Object.freeze(onlyItsTag(typedName) ? [makeTag(typedName), ...near] : near);
 }
 
@@ -45,7 +45,7 @@ export function nearestTagNames(scope, typedName) {
 export function nearestNodes(scope, subject, anchorName) {
   const declared = isTag(subject) ? namesDeclaredUnder(scope, subject.name) : [];
   const reached = verbsReaching(scope, [...kindsOfWalk(subject)]).keys();
-  return Object.freeze(nearestOf(new Set([...declared, ...reached]), anchorName).map(name => keyword(name)));
+  return Object.freeze(nearestOf(new Set([...declared, ...reached]), anchorName).map(name => makeKeyword(name)));
 }
 
 const answeredKinds = (scope, addresses) => new Set(addresses.flatMap(address => answerOf(scope, address)?.kinds ?? []).filter(kind => kind !== ANY_KIND_NAME));
@@ -63,5 +63,5 @@ export function nearestVerbs(scope, addresses, subject) {
       }
     }
   }
-  return Object.freeze([...names].sort().map(name => keyword(name)));
+  return Object.freeze([...names].sort().map(name => makeKeyword(name)));
 }

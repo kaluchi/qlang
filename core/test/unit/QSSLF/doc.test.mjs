@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { evalQuery } from '../../../src/session.mjs';
-import { langRuntime } from '../../../src/runtime/index.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { rootAddressesOf } from '../../helpers/root-addresses.mjs';
 import { declaredPagesOf, linksOf, wrongLinksOf, wrongTarget } from '../../helpers/catalog-pages.mjs';

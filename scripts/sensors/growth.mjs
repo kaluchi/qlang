@@ -2,7 +2,7 @@
 // The time the parser and the evaluator of the tree take over shapes of a
 // text whose size or depth n doubles, each run in a process of its own bounded
 // by a limit, the ratio of each step beside it, so a shape whose time more
-// than doubles where n doubles grows past linear [QSWRK#documents]; and the
+// than doubles where n doubles grows past linear [QSVOX#folders]; and the
 // most entries of the parser into one rule at one offset of a shape, which a
 // parse in linear time keeps the same where n doubles [D404].
 //
@@ -74,15 +74,15 @@ const EVAL = {
 async function runOne(kind, shape, n) {
   const core = await import(new URL('../../core/src/index.mjs', import.meta.url));
   const text = (kind === 'parse' ? PARSE : EVAL)[shape](n);
-  const session = kind === 'eval' ? await core.createSession() : null;
+  const notebook = kind === 'eval' ? await core.createNotebook() : null;
   const times = [];
   const started = performance.now();
   do {
     const at = performance.now();
     if (kind === 'parse') {
-      try { core.parse(text); } catch (refusal) { if (!(refusal instanceof core.ParseError)) throw refusal; }
+      try { core.parseSource(text); } catch (refusal) { if (!(refusal instanceof core.SourceParseError)) throw refusal; }
     } else {
-      const cell = await session.evalCell(text);
+      const cell = await notebook.evalCell(text);
       if (cell.defect !== null) throw cell.defect;
     }
     times.push(performance.now() - at);

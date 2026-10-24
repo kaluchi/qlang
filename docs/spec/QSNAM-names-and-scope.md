@@ -45,7 +45,7 @@ against the subject at the declaration.
 > ":s ::vec it" | parse !| get /message
 "steps are joined by `|`: write `a | b`"
 
-> :k 10 | :q ~(add k) | 5 | apply q !| type
+> :k 10 | :q ~(add k) | 5 | apply q !| tag
 ::call/ValueWithheldError
 ```
 
@@ -77,7 +77,7 @@ under a noun, which its address calls.
 > :false |~~ F. ~~| | :false/x 3 | ::false/x | binding | get /value
 3
 
-> "false/x" | parse !| type
+> "false/x" | parse !| tag
 ::quote/ParseError
 
 > {"1a": 1} | get /1a
@@ -105,7 +105,7 @@ its last name.
 > :double ~(mul 2) | [1 2 3] | map double
 [2 4 6]
 
-> 5 | :five it | five 42 !| get [~(type) /actualValue]
+> 5 | :five it | five 42 !| get [~(tag) /actualValue]
 [::call/ValueTakesNoModifiersError 5]
 
 > :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get /name
@@ -144,7 +144,7 @@ call that recurses without end among them, is refused as
 > :number/plus10 ~(add 10) | [1 2 3] | map ~plus10
 [11 12 13]
 
-> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(type) ~(keys | has :depth) ~(keys | has :limit)]
+> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(tag) ~(keys | has :depth) ~(keys | has :limit)]
 [::call/EvaluationDepthExceededError true true]
 ```
 
@@ -177,10 +177,10 @@ cell after another declares again any name or node a reader declared,
 under the reader's noun or under one of the root.
 
 ```qlang
-> :k 1 | :k 2 | k !| get [~(type) /name]
+> :k 1 | :k 2 | k !| get [~(tag) /name]
 [::bind/NameDeclaredTwiceError :k]
 
-> {} | raise | :x 1 !| :x 2 | x !| type
+> {} | raise | :x 1 !| :x 2 | x !| tag
 ::bind/NameDeclaredTwiceError
 
 > :k 1 | (:k 2 | k)
@@ -192,7 +192,7 @@ under the reader's noun or under one of the root.
 > :k 1 | get [~(:k 2 | k) ~(k)]
 [2 1]
 
-> :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(type) /name]
+> :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) /name]
 [::bind/NameDeclaredTwiceError :x]
 
 > :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~((:x 3 | x) | add x)) | 1 | m 2
@@ -231,7 +231,7 @@ so it is read under another name.
 > 5 | string !| get /nearest
 [::string]
 
-> 5 | pipeline !| type
+> 5 | pipeline !| tag
 ::call/UnknownNameError
 
 > :vec 5 | vec
@@ -240,7 +240,7 @@ so it is read under another name.
 > :count 5 | 7 | count
 5
 
-> :count 5 | [1 2] | count !| type
+> :count 5 | [1 2] | count !| tag
 ::call/ValueMeetsVerbError
 
 > :count 5 | [1 2] | vec/count
@@ -293,7 +293,7 @@ declaration; a bare name of the root it may declare over [QSNAM#reach].
 > :Box |~~ Box. ~~| | :Box/side 3 | Box/side
 3
 
-> :Box/side 3 !| type
+> :Box/side 3 !| tag
 ::bind/NounNotDeclaredError
 
 > :vec/second ~(get /1) | [7 8 9] | second
@@ -305,13 +305,13 @@ true
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :TooBigError |~~ t ~~| | returns |~~ r ~~| ::number | impl ~(add by)) | ::number/plus | manifest
 #[::number/plus/TooBigError ::number/plus/answer ::number/plus/by]
 
-> ::Nobody[1 2] | type
+> ::Nobody[1 2] | tag
 ::Nobody
 
-> :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | type) ~(::number/b | binding | get /value | type) ~(5 | a) ~(5 | b)]
+> :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | tag) ~(::number/b | binding | get /value | tag) ~(5 | a) ~(5 | b)]
 [::fn ::quote 6 6]
 
-> get [~(5 | number/add 1) ~("x" | number/add 1 !| type) ~(::vec/take/count/NotIntegerError#5 | type)]
+> get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/count/NotIntegerError#5 | tag)]
 [6 ::number/add/SubjectNotNumberError ::vec/take/count/NotIntegerError]
 ```
 
@@ -342,7 +342,7 @@ its page.
 > :Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box)]
 [true true]
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang | manifest | map ~(binding | get /value | type) | toSet) ~(::qlang/values[1] !| type)]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | tag) ~(::qlang | manifest | map ~(binding | get /value | tag) | toSet) ~(::qlang/values[1] !| tag)]
 [true ::kind #[::doc ::set] ::construct/TagNamesAValueError]
 ```
 
@@ -366,7 +366,7 @@ subject holds under it [QSSLF#axis].
 > :x |~~ note ~~| 1 | ::x | binding | keys
 #[:docs :name :origin :source :value]
 
-> get [~(::binding{:name :x} !| type) ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)]
+> get [~(::binding{:name :x} !| tag) ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)]
 [::binding/docs/NotGivenError true]
 
 > :x 1 | env | get [~(has :x) ~(has :vec)]
@@ -409,7 +409,7 @@ reaches the recipe as data alone.
 > :vec/doc ~("a reader page") | [1 2] | doc
 "a reader page"
 
-> :vec/doc ~("a reader page") | [1 2] | tutorial | first | type
+> :vec/doc ~("a reader page") | [1 2] | tutorial | first | tag
 ::doc
 
 > :x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names

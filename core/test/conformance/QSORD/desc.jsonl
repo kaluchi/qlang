@@ -1,9 +1,9 @@
 {"name":"desc-turns-one-index-of-a-vector-key-to-descend","query":"[{:n 1 :s \"b\"} {:n 2 :s \"c\"} {:n 2 :s \"a\"}] | sort ~(get [~(get /n | desc) /s]) | map /s","expect":"[\"a\" \"c\" \"b\"]"}
 {"name":"a-key-of-desc-sorts-strings-in-the-reverse-order","query":"[\"b\" \"c\" \"a\"] | sort ~(desc)","expect":"[\"c\" \"b\" \"a\"]"}
 {"name":"every-comparison-agrees-on-desc","query":"get [~(1 | desc | gt (2 | desc)) ~([1 2] | map ~desc | max | payload)]","expect":"[true 1]"}
-{"decision":"D442","name":"desc-lays-its-kind","query":"5 | desc | get [~(tag) ~(payload)]","expect":"[::desc 5]"}
+{"name":"desc-lays-its-kind","query":"5 | desc | get [~(tag) ~(payload)]","expect":"[::desc 5]"}
 {"name":"a-map-sorts-by-a-descending-key-and-keeps-its-keys","query":"{:a 1 :b 3 :c 2} | sort ~(desc) | vals","expect":"[3 2 1]"}
 {"name":"desc-reverses-the-rank-of-two-kinds","query":"1 | desc | gt (\"a\" | desc)","expect":"true"}
 {"name":"a-desc-of-a-desc-ranks-as-the-value-does","query":"[1 3 2] | sort ~(desc | desc)","expect":"[1 2 3]"}
-{"decision":"D422","name":"a-turned-value-compares-with-a-turned-one-and-refuses-another-kind","query":"get [~(1 | desc | gt (2 | desc)) ~(1 | desc | gt (\"a\" | desc)) ~(1 | desc | gt 2 !| tag) ~(2 | gt (1 | desc | desc)) ~(get [2 ~(1 | desc | desc)] | sort)]","expect":"[true true ::call/KindsMismatchedError true [1 2]]"}
-{"decision":"D422","name":"a-value-turned-twice-is-the-value","query":"get [~(5 | desc | desc) ~({:n 1} | desc | desc)]","expect":"[5 {:n 1}]"}
+{"name":"a-turned-value-compares-with-a-turned-one-and-refuses-another-kind","query":"get [~(1 | desc | gt (2 | desc)) ~(1 | desc | gt (\"a\" | desc)) ~(1 | desc | gt 2 !| tag) ~(2 | gt (1 | desc | desc)) ~(get [2 ~(1 | desc | desc)] | sort)]","expect":"[true true ::call/KindsMismatchedError true [1 2]]"}
+{"name":"a-value-turned-twice-is-the-value","query":"get [~(5 | desc | desc) ~({:n 1} | desc | desc)]","expect":"[5 {:n 1}]"}

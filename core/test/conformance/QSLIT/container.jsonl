@@ -5,6 +5,6 @@
 {"name":"a-vector-holds-vectors-at-any-depth","query":"[[1 2] [3 4]]","expect":"[[1 2] [3 4]]"}
 {"name":"a-set-written-with-nothing-between-its-brackets-is-empty","query":"#[]","expect":"#[]"}
 {"name":"a-map-written-with-nothing-between-its-braces-is-empty","query":"{}","expect":"{}"}
-{"decision":"D442","name":"single-element-bracket-reads-as-a-vector","query":"[1] | tag","expect":"::vec"}
+{"name":"single-element-bracket-reads-as-a-vector","query":"[1] | tag","expect":"::vec"}
 {"name":"map-duplicate-key-keeps-last-value-in-first-position","query":"{:a 1 :b 2 :a 3} | vals","expect":"[3 2]"}
 {"name":"map-duplicate-key-equals-its-last-binding","query":"{:a 1 :b 2 :a 3} | eq {:a 3 :b 2}","expect":"true"}

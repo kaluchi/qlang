@@ -28,7 +28,7 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort
 [null true 1 "s" :k ::t [1] #[1] {:a 1}]
 
-> get [~(!{:a 1} | eq !{:a 2}) ~(#[!{:a 1} !{:a 2}] | count) ~(::A#1 | eq ::A::A#1) ~(#[::A#1 ::A::A#1] | count) ~(#[1 2] | eq [1 2])]
+> get [~(!{:a 1} | eq !{:a 2}) ~(#[!{:a 1} !{:a 2}] | count) ~(::A#1 | eq ::A::B#1) ~(#[::A#1 ::A::B#1] | count) ~(#[1 2] | eq [1 2])]
 [false 2 false 2 false]
 
 > ["b" "B" "a"] | sort
@@ -40,7 +40,7 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > [/b /a/c /a] | sort | map ~(print)
 ["/a" "/a/c" "/b"]
 
-> get [~([::aaa#1 ::elision{:size 1}] | sort | map ~type) ~([::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~type)]
+> get [~([::aaa#1 ::elision{:size 1}] | sort | map ~tag) ~([::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
 [[::aaa ::elision] [::map ::quote ::doc ::desc ::elision]]
 ```
 
@@ -122,7 +122,7 @@ compare within one kind [QSCND#compare].
 > [!{:k 1} 1 null] | sort
 [null 1 !{:k 1}]
 
-> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(type) ~(trace | last | path)]) ~([1 null 3] | filter ~(ne null) | max)]
+> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(tag) ~(trace | last | path)]) ~([1 null 3] | filter ~(ne null) | max)]
 [1 [::call/KindsMismatchedError /1] 3]
 ```
 
@@ -130,9 +130,13 @@ compare within one kind [QSCND#compare].
 
 `::desc` is a tag whose values rank among the other tags by its name and
 within it by the reverse of their payloads' rank, under another tag as
-well, written by `desc` or by its literal, `::desc#5`, and a desc of a
-desc stands twice, its reversals undoing each other, so it ranks as the
-value does.
+well, written by `desc` or by its literal, `::desc#5`. `desc` turns its
+subject: a value under `::desc` answers its payload and any other is laid
+under `::desc`, so a value turned twice is itself and ranks, compares and
+equals as itself. `::desc` laid over a value under it stands once,
+`::desc::desc#5` being `::desc#5`, and a value of `::desc` beneath another
+tag is of it already [QSLIT#tag], `5 | desc | tag ::Box | desc` answering
+`::Box::desc#5`.
 The comparisons compare two values under `::desc` by the reverse of their
 payloads of any kinds, as `sort` ranks them, so `min`, `max` and `sort`
 read it alike, and one element of a vector key descends whatever the
@@ -152,8 +156,11 @@ true
 > 1 | desc | gt ("a" | desc)
 true
 
-> get [~(1 | desc | gt 2 !| type) ~(2 | gt (1 | desc | desc) !| type) ~(get [2 ~(1 | desc | desc)] | sort)]
-[::call/KindsMismatchedError ::call/KindsMismatchedError [2 ::desc::desc#1]]
+> get [~(1 | desc | gt 2 !| tag) ~(2 | gt (1 | desc | desc) !| tag) ~(get [2 ~(1 | desc | desc)] | sort)]
+[::call/KindsMismatchedError true [1 2]]
+
+> get [~(5 | desc | desc) ~(::desc::desc#5) ~(5 | desc | tag ::Box | desc)]
+[5 ::desc#5 ::Box::desc#5]
 
 > [1 3 2] | sort ~(desc | desc)
 [1 2 3]

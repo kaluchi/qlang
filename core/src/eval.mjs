@@ -738,7 +738,7 @@ function refusalOfFailedModifier(chain, address, index, error, scope) {
   return refusalUnder(kindsRefusalAddress(inputAddress), { expected, actualValue: atRest }, scope);
 }
 
-// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held], [D422]
+// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
 export async function layTag(tagName, laidOver, state) {
   if (isErrorValue(laidOver)) return laidOver;
   refuseWithheld(state.scope, tagName, true);
@@ -752,7 +752,7 @@ export async function layTag(tagName, laidOver, state) {
   throw new ConstructTagNamesAValueError({ tag: makeTag(tagName), actualValue: declared });
 }
 
-// [D422]
+// [QSBLD#value]
 function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   const refusalOf = each => `${tagName}/${payloadRefusalName(each)}`;
   const ownKinds = each ? ['vec'] : kinds;
@@ -765,7 +765,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source], [D422]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);

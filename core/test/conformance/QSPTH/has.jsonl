@@ -5,5 +5,5 @@
 {"name":"has-answers-true-for-a-key-that-keys-answered","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | has k","expect":"true"}
 {"name":"has-reads-a-number-as-the-key-of-its-text","query":"{:\"1\" 5} | get [~(has 1) ~(has 2)]","expect":"[true false]"}
 {"name":"has-reads-a-path-in-a-vector","query":"[1 [2]] | has /1/0","expect":"true"}
-{"decision":"D442","name":"has-of-a-map-takes-a-key-or-a-path","query":"{:a 1} | has [1] !| tag","expect":"::map/has/key/KindNotTakenError"}
+{"name":"has-of-a-map-takes-a-key-or-a-path","query":"{:a 1} | has [1] !| tag","expect":"::map/has/key/KindNotTakenError"}
 {"name":"a-key-written-in-quotes-is-the-keyword-keys-and-has-find","query":"get [~({:foo 1} | keys | has :\"foo\") ~({:\"foo\" 1} | keys | has :foo) ~({:\"weird key\" 1} | has :\"weird key\")]","expect":"[true true true]"}

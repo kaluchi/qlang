@@ -1,16 +1,16 @@
-{"decision":"D442","name":"a-kind-in-an-error-literal-is-a-fact","query":"!{:kind ::Foo} | raise !| get [~(tag) /kind]","expect":"[::error ::Foo]"}
+{"name":"a-kind-in-an-error-literal-is-a-fact","query":"!{:kind ::Foo} | raise !| get [~(tag) /kind]","expect":"[::error ::Foo]"}
 {"name":"an-error-literal-answers-the-error-at-rest-it-writes","query":"!{:kind :oops :message \"boom\"}","expect":"!{:kind :oops :message \"boom\"}"}
 {"name":"an-error-literal-may-write-no-facts","query":"!{}","expect":"!{}"}
-{"decision":"D442","name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| tag","expect":"::number/PayloadKindNotTakenError"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"an-error-literal-a-kind-refuses-is-caught-at-rest-as-a-value-that-prints","query":"::number!{:a 1} !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| get /actualValue","expect":"!{:a 1}"}
-{"decision":"D442","name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| tag","expect":"::number/PayloadKindNotTakenError"}
-{"decision":"D442","name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| tag","expect":"::vec/PayloadKindNotTakenError"}
-{"decision":"D422","name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
-{"decision":"D442","name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| tag","expect":"::Oops"}
-{"decision":"D442","name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 1} !| tag","expect":"::Box/k"}
-{"decision":"D442","name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 9} | raise !| tag","expect":"::Box"}
-{"decision":"D442","name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:actualTag ::string} | raise !| tag","expect":"::number/add/SubjectNotNumberError"}
+{"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| tag","expect":"::number/PayloadKindNotTakenError"}
+{"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| tag","expect":"::vec/PayloadKindNotTakenError"}
+{"name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
+{"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| tag","expect":"::Oops"}
+{"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 1} !| tag","expect":"::Box/k"}
+{"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 9} | raise !| tag","expect":"::Box"}
+{"name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:actualTag ::string} | raise !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"an-error-at-rest-prints-its-facts-as-it-holds-them","query":"::error{:a 1} | print","expect":"\"!{:a 1}\""}
 {"name":"an-error-at-rest-in-a-container-prints-as-it-is","query":"[::error{:a 1}] | print","expect":"\"[!{:a 1}]\""}
 {"name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"#[:a]"}
@@ -22,8 +22,8 @@
 {"name":"the-tag-before-the-bang-is-the-tag-over-the-error","query":"::Oops!{:a 1} | eq ::Oops::error{:a 1}","expect":"true"}
 {"name":"an-error-at-rest-prints-with-its-bang","query":"::Oops!{:a 1} | print","expect":"\"::Oops!{:a 1}\""}
 {"name":"an-error-value-is-no-raised-error","query":"::error{:k 1} | count","expect":"1"}
-{"decision":"D442","name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| tag","expect":"::error"}
+{"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| tag","expect":"::error"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
-{"decision":"D442","name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) /actualTag]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
+{"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) /actualTag]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
 {"name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | :v it | print | parse | open | eq v)]","expect":"[true true]"}

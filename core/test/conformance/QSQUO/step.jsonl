@@ -1,22 +1,22 @@
-{"decision":"D442","name":"map-reaches-the-quote-beneath-a-tag","query":"::Box~(add 1 | mul 2) | map ~tag","expect":"[::call ::call]"}
+{"name":"map-reaches-the-quote-beneath-a-tag","query":"::Box~(add 1 | mul 2) | map ~tag","expect":"[::call ::call]"}
 {"name":"quote-count-counts-steps","query":"~(1 | add 1 | mul 2) | count","expect":"3"}
 {"name":"quote-payload-is-its-steps","query":"~(filter ~(gt 1)) | payload","expect":"[::call{:name :filter :modifiers [~(gt 1)]}]"}
 {"name":"a-path-reads-a-step-of-a-quote-by-its-index","query":"~(mul 2) | get /0 | get /name","expect":":mul"}
-{"decision":"D442","name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | tag","expect":"::call"}
-{"decision":"D442","name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [~(tag) /name]","expect":"[::call :map]"}
+{"name":"quote-step-of-a-call-is-a-call-record","query":"~(mul 2) | first | tag","expect":"::call"}
+{"name":"a-step-on-each-element-is-a-call","query":"~(map ~inc | sort) | first | get [~(tag) /name]","expect":"[::call :map]"}
 {"name":"quote-filter-keeps-a-quote","query":"~(add 1 | mul 2) | filter ~(get /name | eq :mul)","expect":"~(mul 2)"}
 {"name":"map-over-a-quote-drops-the-tag","query":"~(add 1 | mul 2) | map /name","expect":"[:add :mul]"}
-{"decision":"D442","name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| tag","expect":"::quote/ElementNotStepError"}
+{"name":"quote-tag-refuses-a-non-step","query":"[::Box[1]] | tag ::quote !| tag","expect":"::quote/ElementNotStepError"}
 {"name":"a-quote-assembled-from-steps-writes-them-as-its-text","query":"[[1 2] ::call{:name :count}] | tag ::quote | toString","expect":"\"[1 2] | count\""}
-{"decision":"D442","name":"a-call-record-of-a-name-no-step-calls-is-refused","query":"::call{:name :\"a b\"} !| get [~(tag) /name]","expect":"[::call/NameNotCallableError :\"a b\"]"}
-{"decision":"D442","name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | tag","expect":"::construct"}
+{"name":"a-call-record-of-a-name-no-step-calls-is-refused","query":"::call{:name :\"a b\"} !| get [~(tag) /name]","expect":"[::call/NameNotCallableError :\"a b\"]"}
+{"name":"the-step-of-a-tagged-literal-is-a-construct","query":"~(::Box[1 2]) | first | tag","expect":"::construct"}
 {"name":"a-construct-step-of-a-tag-over-an-error-literal-is-the-step-its-literal-writes","query":"~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Foo!{:k 1})","expect":"true"}
-{"decision":"D442","name":"a-construct-of-the-kind-of-errors-over-an-error-literal-is-refused-naming-its-tag","query":"::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) /field]","expect":"[::construct/PayloadNotSchemaError :tag]"}
-{"decision":"D442","name":"a-quote-holds-a-tagged-error-literal-as-the-record-of-its-construction","query":"~(::number!{:a 1}) | first | get [~(tag) /tag /payload]","expect":"[::construct ::number !{:a 1}]"}
+{"name":"a-construct-of-the-kind-of-errors-over-an-error-literal-is-refused-naming-its-tag","query":"::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) /field]","expect":"[::construct/PayloadNotSchemaError :tag]"}
+{"name":"a-quote-holds-a-tagged-error-literal-as-the-record-of-its-construction","query":"~(::number!{:a 1}) | first | get [~(tag) /tag /payload]","expect":"[::construct ::number !{:a 1}]"}
 {"name":"the-print-of-the-step-of-an-error-literal-under-a-tag-its-label-refuses-reads-back-as-that-step","query":"~(::number!{:a 1}) | first | :s it | print | parse | open | eq s","expect":"true"}
-{"decision":"D442","name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | tag","expect":"::doc"}
+{"name":"the-doc-of-a-declaration-is-the-doc-literal-in-its-slot","query":"~(:x |~~ note ~~| it) | first | get /docs | first | tag","expect":"::doc"}
 {"name":"the-step-of-an-error-literal-maps-as-the-map-of-its-fields","query":"~(!{:kind :oops :trace 5}) | map ~count","expect":"[2]"}
-{"decision":"D442","name":"a-quote-holds-a-regex-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | tag) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
+{"name":"a-quote-holds-a-regex-as-a-step","query":"\"match #\\\"\\\\d\\\"\" | parse | get [~(first | get /modifiers | first | tag) ~(print)]","expect":"[::regex \"~(match #\\\"\\\\d\\\")\"]"}
 {"name":"a-call-is-held-with-its-name-as-a-keyword","query":"\"add 1 2\" | parse | first | get /name","expect":":add"}
 {"name":"a-call-is-held-with-each-modifier-it-writes","query":"\"add 1 2\" | parse | first | get /modifiers | count","expect":"2"}
 {"name":"parse-command-modifiers-are-their-steps","query":"\"add 1 2\" | parse | first | get /modifiers","expect":"[1 2]"}
@@ -25,29 +25,29 @@
 {"name":"a-string-literal-is-held-as-itself-among-the-steps","query":"\"\\\"hello\\\"\" | parse | first","expect":"\"hello\""}
 {"name":"a-keyword-literal-is-held-as-itself-among-the-steps","query":"\":foo\" | parse | first","expect":":foo"}
 {"name":"a-quote-counts-the-steps-its-pipes-join","query":"\"42 | add 1 | mul 2\" | parse | count","expect":"3"}
-{"decision":"D442","name":"a-payload-of-a-quote-is-a-vector-of-steps","query":"5 | tag ::quote !| tag","expect":"::quote/PayloadKindNotTakenError"}
+{"name":"a-payload-of-a-quote-is-a-vector-of-steps","query":"5 | tag ::quote !| tag","expect":"::quote/PayloadKindNotTakenError"}
 {"name":"a-quote-of-a-path-alone-prints-and-reads-back","query":"::quote[/age] | :q it | print | parse | open | eq q","expect":"true"}
 {"name":"the-step-of-an-error-literal-comes-back-as-the-error-at-rest-it-is","query":"~(!{:k 1}) | get [~(first)] | tag ::quote","expect":"~(!{:k 1})"}
-{"decision":"D442","name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(tag) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
-{"decision":"D442","name":"a-quote-assembled-from-data-refuses-a-value-after-its-head","query":"[[1] [2]] | tag ::quote !| get [~(tag) /index /message]","expect":"[::quote/StepNotCommandError 1 \"a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`\"]"}
-{"decision":"D442","name":"a-group-a-step-holds-reads-as-its-quote-under-group","query":"~(add (1)) | first | get /modifiers | first | tag","expect":"::group"}
+{"name":"a-declaration-assembled-from-data-names-a-keyword","query":"{:name ::Box :body 1} | tag ::bind !| get [~(tag) /field]","expect":"[::bind/PayloadNotSchemaError :name]"}
+{"name":"a-quote-assembled-from-data-refuses-a-value-after-its-head","query":"[[1] [2]] | tag ::quote !| get [~(tag) /index /message]","expect":"[::quote/StepNotCommandError 1 \"a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`\"]"}
+{"name":"a-group-a-step-holds-reads-as-its-quote-under-group","query":"~(add (1)) | first | get /modifiers | first | tag","expect":"::group"}
 {"name":"a-quote-built-over-a-path-alone-answers-the-path","query":"{:age 3} | apply ([/age] | tag ::quote)","expect":"/age"}
-{"decision":"D442","name":"a-value-after-a-call-in-a-quote-assembled-from-data-is-no-command","query":"[::call{:name :count} 1] | tag ::quote !| tag","expect":"::quote/StepNotCommandError"}
+{"name":"a-value-after-a-call-in-a-quote-assembled-from-data-is-no-command","query":"[::call{:name :count} 1] | tag ::quote !| tag","expect":"::quote/StepNotCommandError"}
 {"name":"a-path-after-the-head-of-an-assembled-quote-names-the-verb-get","query":"[1 /a] | tag ::quote !| get /message","expect":"\"a path is a value, which the verb that takes it reads: write `get /a`\""}
-{"decision":"D442","name":"a-literal-assembled-from-data-that-computes-is-refused-by-its-holder","query":"get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)]","expect":"[::construct/LiteralComputesError ::quote/LiteralComputesError]"}
-{"decision":"D442","name":"a-modifier-literal-that-computes-is-refused-by-its-call","query":"{:name :take :modifiers [[::call{:name :x}]]} | tag ::call !| get [~(tag) /index]","expect":"[::call/LiteralComputesError 0]"}
-{"decision":"D442","name":"a-declaration-assembled-from-data-binds-a-name-a-step-calls-to-a-literal-that-computes-nothing","query":"get [~({:name :\"a b\" :body 1} | tag ::bind !| tag) ~({:name :true :body 1} | tag ::bind !| tag) ~({:name :x :body [::call{:name :y}]} | tag ::bind !| tag)]","expect":"[::bind/NameNotCallableError ::bind/NameNotCallableError ::bind/LiteralComputesError]"}
-{"decision":"D442","name":"the-payload-of-a-record-of-a-step-is-refused-by-the-role-of-its-holder","query":"get [~(::call[1] !| get [~(tag) /expected]) ~(::fail[1] !| get [~(tag) /expected]) ~(::call{:name 1} !| get /field)]","expect":"[[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]"}
-{"decision":"D442","name":"a-declaration-and-a-tagged-literal-refuse-a-payload-that-is-no-map","query":"get [~(::bind[1] !| tag) ~(::construct[1] !| tag)]","expect":"[::bind/PayloadKindNotTakenError ::construct/PayloadKindNotTakenError]"}
-{"decision":"D442","name":"a-step-of-the-fail-track-holds-one-step-and-no-path","query":"get [~(~(a | b) | tag ::fail !| tag) ~([/a] | tag ::quote | tag ::fail !| tag)]","expect":"[::fail/PayloadNotOneStepError ::fail/StepNotCommandError]"}
-{"decision":"D442","name":"a-group-holds-one-step-at-least","query":"~() | tag ::group !| tag","expect":"::group/PayloadEmptyError"}
-{"decision":"D442","name":"a-quote-assembled-from-data-runs-as-the-quote-read-from-its-text","query":"~(#[::number\"b\" ::string#1]) | :q it | get [~(apply q !| tag) ~(q | payload | tag ::quote | apply it !| tag)]","expect":"[::string/PayloadKindNotTakenError ::string/PayloadKindNotTakenError]"}
-{"decision":"D442","name":"a-step-of-the-fail-track-holds-no-empty-quote-and-no-step-of-the-fail-track","query":"get [~(~() | tag ::fail !| tag) ~(~(!| get /kind) | tag ::fail !| tag)]","expect":"[::fail/PayloadNotOneStepError ::fail/PayloadNotOneStepError]"}
-{"decision":"D442","name":"a-call-record-refuses-the-word-of-a-literal-for-its-name","query":"get [~(::call{:name :null} !| get [~(tag) /name]) ~(::call{:name :true/count} !| tag)]","expect":"[[::call/NameNotCallableError :null] ::call/NameNotCallableError]"}
-{"decision":"D442","name":"a-call-record-writes-one-modifier-at-least-where-it-writes-any","query":"{:name :f :modifiers []} | tag ::call !| get [~(tag) /field]","expect":"[::call/PayloadNotSchemaError :modifiers]"}
-{"decision":"D442","name":"a-declaration-record-holds-a-body-or-a-page-and-no-doc-as-its-body","query":"get [~(::bind{:name :x} !| get [~(tag) /field]) ~({:name :x :body |~~ a ~~|} | tag ::bind !| get [~(tag) /field])]","expect":"[[::bind/PayloadNotSchemaError :body] [::bind/PayloadNotSchemaError :body]]"}
-{"decision":"D442","name":"the-quote-of-a-path-alone-is-no-step-of-a-quote","query":"get [~([/a] | tag ::quote)] | tag ::quote !| get [~(tag) /index]","expect":"[::quote/ElementNotStepError 0]"}
+{"name":"a-literal-assembled-from-data-that-computes-is-refused-by-its-holder","query":"get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)]","expect":"[::construct/LiteralComputesError ::quote/LiteralComputesError]"}
+{"name":"a-modifier-literal-that-computes-is-refused-by-its-call","query":"{:name :take :modifiers [[::call{:name :x}]]} | tag ::call !| get [~(tag) /index]","expect":"[::call/LiteralComputesError 0]"}
+{"name":"a-declaration-assembled-from-data-binds-a-name-a-step-calls-to-a-literal-that-computes-nothing","query":"get [~({:name :\"a b\" :body 1} | tag ::bind !| tag) ~({:name :true :body 1} | tag ::bind !| tag) ~({:name :x :body [::call{:name :y}]} | tag ::bind !| tag)]","expect":"[::bind/NameNotCallableError ::bind/NameNotCallableError ::bind/LiteralComputesError]"}
+{"name":"the-payload-of-a-record-of-a-step-is-refused-by-the-role-of-its-holder","query":"get [~(::call[1] !| get [~(tag) /expected]) ~(::fail[1] !| get [~(tag) /expected]) ~(::call{:name 1} !| get /field)]","expect":"[[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]"}
+{"name":"a-declaration-and-a-tagged-literal-refuse-a-payload-that-is-no-map","query":"get [~(::bind[1] !| tag) ~(::construct[1] !| tag)]","expect":"[::bind/PayloadKindNotTakenError ::construct/PayloadKindNotTakenError]"}
+{"name":"a-step-of-the-fail-track-holds-one-step-and-no-path","query":"get [~(~(a | b) | tag ::fail !| tag) ~([/a] | tag ::quote | tag ::fail !| tag)]","expect":"[::fail/PayloadNotOneStepError ::fail/StepNotCommandError]"}
+{"name":"a-group-holds-one-step-at-least","query":"~() | tag ::group !| tag","expect":"::group/PayloadEmptyError"}
+{"name":"a-quote-assembled-from-data-runs-as-the-quote-read-from-its-text","query":"~(#[::number\"b\" ::string#1]) | :q it | get [~(apply q !| tag) ~(q | payload | tag ::quote | apply it !| tag)]","expect":"[::string/PayloadKindNotTakenError ::string/PayloadKindNotTakenError]"}
+{"name":"a-step-of-the-fail-track-holds-no-empty-quote-and-no-step-of-the-fail-track","query":"get [~(~() | tag ::fail !| tag) ~(~(!| get /kind) | tag ::fail !| tag)]","expect":"[::fail/PayloadNotOneStepError ::fail/PayloadNotOneStepError]"}
+{"name":"a-call-record-refuses-the-word-of-a-literal-for-its-name","query":"get [~(::call{:name :null} !| get [~(tag) /name]) ~(::call{:name :true/count} !| tag)]","expect":"[[::call/NameNotCallableError :null] ::call/NameNotCallableError]"}
+{"name":"a-call-record-writes-one-modifier-at-least-where-it-writes-any","query":"{:name :f :modifiers []} | tag ::call !| get [~(tag) /field]","expect":"[::call/PayloadNotSchemaError :modifiers]"}
+{"name":"a-declaration-record-holds-a-body-or-a-page-and-no-doc-as-its-body","query":"get [~(::bind{:name :x} !| get [~(tag) /field]) ~({:name :x :body |~~ a ~~|} | tag ::bind !| get [~(tag) /field])]","expect":"[[::bind/PayloadNotSchemaError :body] [::bind/PayloadNotSchemaError :body]]"}
+{"name":"the-quote-of-a-path-alone-is-no-step-of-a-quote","query":"get [~([/a] | tag ::quote)] | tag ::quote !| get [~(tag) /index]","expect":"[::quote/ElementNotStepError 0]"}
 {"name":"a-value-after-a-declaration-stands-in-a-quote-assembled-from-data","query":"[::bind{:name :x :body 1} 5] | tag ::quote | get [~(toString) ~(apply it)]","expect":"[\":x 1 | 5\" 5]"}
 {"name":"a-value-after-the-head-of-an-assembled-quote-names-the-verb-of-its-kind","query":"get [~([1 ::Box] | tag ::quote !| get /message) ~([1 ~(x)] | tag ::quote !| get /message) ~([1 2] | tag ::quote !| get /message)]","expect":"[\"a tag goes over the value in the pipe by `tag`: write `tag ::Box`\" \"code runs on the value in the pipe by `apply`: write `apply ~(…)`\" \"a step is a command: a value stands at the head, where it is the subject, or as what a verb takes\"]"}
 {"name":"two-texts-that-write-one-error-literal-are-one-step","query":"[\"::E::error!{:k 1}\" \"::error::error!{}\" \"::A::B::error!{}\"] | map ~parse | eq [~(::E!{:k 1}) ~(!{}) ~(::A::B!{})]","expect":"true"}
-{"decision":"D442","name":"a-payload-of-code-refused-under-construct-holds-the-map-of-its-record","query":"get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) /actualTag ~(print | parse | open | eq e)]","expect":"[::construct/LiteralComputesError ::map true]"}
+{"name":"a-payload-of-code-refused-under-construct-holds-the-map-of-its-record","query":"get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) /actualTag ~(print | parse | open | eq e)]","expect":"[::construct/LiteralComputesError ::map true]"}

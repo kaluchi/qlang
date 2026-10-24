@@ -98,10 +98,10 @@ reads standard input to its end, waiting on a slow producer, and
 $ echo '{"a": [1, 2]}' | qlang 'get /a | count'
 2
 
-$ echo 'not json' | qlang 'type'
+$ echo 'not json' | qlang 'tag'
 ::string
 
-$ echo '[1, 2]' | qlang 'in | type'
+$ echo '[1, 2]' | qlang 'in | tag'
 ::string
 
 $ qlang 'eq ::qlang' < /dev/null

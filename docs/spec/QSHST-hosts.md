@@ -125,7 +125,7 @@ true
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]
 
-> get [~({:a 1} | apply (::vec/first | binding | get /value) [] !| type) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| type)]
+> get [~({:a 1} | apply (::vec/first | binding | get /value) [] !| tag) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [~("add (" | parse !| get /origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
@@ -159,15 +159,15 @@ fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
 the value as JavaScript holds it, its type and its name or its maker,
 `"function hello"`, `"number Infinity"`, or what makes a container of no
 kind, `"a map whose key number 1 is no string"`; the printer, the codec
-of JSON and every read of the kind of a value, `type` and the one order
+of JSON and every read of the kind of a value, `tag` and the one order
 among them, raise the same defect for a value of no kind no door met.
 The doors hold the shape of a value, and `fromPlain` is the road a host
 builds a lawful answer by from data it holds parsed.
 
 ```sh
-$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| type | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
+$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| tag | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
 call/HostFailureError true true
-$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('type', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
+$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('tag', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
 builtin/ForeignValueError function hello
 ```
 

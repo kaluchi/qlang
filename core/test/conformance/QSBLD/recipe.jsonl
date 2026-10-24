@@ -1,9 +1,9 @@
 {"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
-{"decision":"D442","name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| tag","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-reads-no-value-of-a-sentence","query":":n 3 | :number/times ~(mul n) | 5 | times !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-verb-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact","expect":"120"}
 {"name":"a-value-the-sentence-names-reaches-no-selector-of-a-verb","query":":it 5 | 3 | is ::number","expect":"true"}
 {"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-verb","query":":floor 3 | [1 2 3] | drop 1","expect":"[2 3]"}
-{"decision":"D442","name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| tag","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":":by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3","expect":"8"}
 {"name":"a-value-of-the-sentence-shadows-no-verb-the-recipe-of-a-function-calls","query":":twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
 {"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| get /actualValue/name","expect":":q"}
@@ -15,4 +15,4 @@
 {"name":"a-declared-verb-recurses-with-its-input-of-code","query":":map/treeMap (::fn | takes :fn |~~ The fn. ~~| /0 ::quote | impl ~(get {:label ~(get /label | apply fn) :children ~(get /children | map ~(treeMap fn))})) | {:label \"a\" :children [{:label \"b\" :children []}]} | treeMap ~(append \"!\") | get /label","expect":"\"a!\""}
 {"name":"fractal-composition-three-levels","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :keyFn/NotCodeError |~~ Code. ~~| ~(is ::quote ::path) | impl ~(sort keyFn | reverse | take n)) | :vec/topNByV (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(topBy /v n)) | :vec/top2ByV ~(topNByV 2) | [{:v 10} {:v 30} {:v 20}] | top2ByV | map /v","expect":"[30 20]"}
 {"name":"a-verb-of-no-inputs-reads-its-args","query":":any/n ~(args | count) | 5 | n","expect":"0"}
-{"decision":"D442","name":"a-recipe-written-alone-refuses-the-args-given-to-it","query":":any/n ~(args | count) | 5 | n 1 !| tag","expect":"::any/n/ArgsBeyondInputsError"}
+{"name":"a-recipe-written-alone-refuses-the-args-given-to-it","query":":any/n ~(args | count) | 5 | n 1 !| tag","expect":"::any/n/ArgsBeyondInputsError"}

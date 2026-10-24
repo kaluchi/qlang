@@ -32,16 +32,12 @@ function assertLiteral(source, testName) {
   });
 }
 
-// The answer a target gives today: a failure by its tag, any other value by
-// its print.
 async function answersAsPresent(answer, now) {
   const present = await evalQuery(now);
   if (isErrorValue(answer) && isTag(present)) return answer.tag.name === present.name;
   return printedAnswerOf(answer) === writtenAnswerOf({ expect: now });
 }
 
-// Whether the query answers what the case writes: the print alike, and the
-// tie of the one order holding where a print drops a part of its value.
 async function answersAsWritten(answer, test) {
   return printedAnswerOf(answer) === writtenAnswerOf(test) && compareValues(answer, await expectedValueOf(test)) === 0;
 }

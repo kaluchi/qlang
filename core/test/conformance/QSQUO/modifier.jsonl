@@ -1,14 +1,14 @@
-{"decision":"D442","name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| tag","expect":"::path/SubjectHasNoPartsError"}
+{"name":"a-modifier-reads-the-subject-of-its-own-step","query":"{:qty 2 :price 3} | get /qty | mul (get /price) !| tag","expect":"::path/SubjectHasNoPartsError"}
 {"name":"a-group-modifier-reads-against-the-subject-at-the-call","query":"{:items [1 2 3] :limit 2} | get /items | take (count | sub 1)","expect":"[1 2]"}
-{"decision":"D442","name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(tag) /actualTag]","expect":"[::any/apply/code/KindNotTakenError ::path/SubjectHasNoPartsError]"}
-{"decision":"D442","name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| get [~(tag) /actualTag]","expect":"[::vec/filter/predicate/KindNotTakenError ::path/IndexNotIntegerError]"}
-{"decision":"D442","name":"an-input-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f (::fn | takes :q |~~ The q. ~~| /0 ::quote | impl ~(apply q)) | 1 | f (get /x) !| tag","expect":"::any/f/q/KindNotTakenError"}
-{"decision":"D442","name":"an-input-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| tag","expect":"::path/IndexNotIntegerError"}
+{"name":"apply-code-that-fails-is-refused-by-its-input","query":"5 | apply (get /nope) !| get [~(tag) /actualTag]","expect":"[::any/apply/code/KindNotTakenError ::path/SubjectHasNoPartsError]"}
+{"name":"a-step-without-its-quote-is-refused-by-the-input-of-code","query":"[{:a true}] | filter (get /a) !| get [~(tag) /actualTag]","expect":"[::vec/filter/predicate/KindNotTakenError ::path/IndexNotIntegerError]"}
+{"name":"an-input-of-code-of-a-reader-refuses-a-failed-modifier","query":":any/f (::fn | takes :q |~~ The q. ~~| /0 ::quote | impl ~(apply q)) | 1 | f (get /x) !| tag","expect":"::any/f/q/KindNotTakenError"}
+{"name":"an-input-of-a-value-passes-a-failed-modifier-as-it-is","query":"[1 2] | take (get /x) !| tag","expect":"::path/IndexNotIntegerError"}
 {"name":"each-modifier-forks-against-the-subject-its-result-by-position","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (add 1) (mul 2)","expect":"[6 10]"}
-{"decision":"D442","name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| tag","expect":"::call/UnknownNameError"}
+{"name":"a-modifier-sees-no-name-another-declared","query":":any/pair (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(get [~(a) ~(b)])) | 5 | pair (:y 1 | y) y !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-modifier-of-a-built-in-forks-against-the-subject","query":"10 | add (sub 3)","expect":"17"}
-{"decision":"D442","name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(tag) /segment]","expect":"[::path/SubjectHasNoPartsError :qty]"}
-{"decision":"D442","name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | tag","expect":"::path/IndexNotIntegerError"}
-{"decision":"D442","name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(tag) /index]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0]"}
+{"name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [~(tag) /segment]","expect":"[::path/SubjectHasNoPartsError :qty]"}
+{"name":"code-written-without-its-quote-is-read-from-the-whole-subject","query":"[{:n 1}] | map (get /n) !| get /actualValue | tag","expect":"::path/IndexNotIntegerError"}
+{"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(tag) /index]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0]"}
 {"name":"a-verb-of-the-reader-is-a-modifier-a-bare-name-computes","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
-{"decision":"D442","name":"an-input-that-reads-from-the-end-reads-the-last-arg","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| tag) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}
+{"name":"an-input-that-reads-from-the-end-reads-the-last-arg","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| tag) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}

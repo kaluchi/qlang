@@ -32,15 +32,15 @@
 {"name":"a-line-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise |~| note\n | count !| trace | last | skipped","expect":"~(count)"}
 {"name":"a-block-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise | |~ note ~| count !| trace | last | skipped","expect":"~(count)"}
 {"name":"a-source-of-comments-alone-is-the-empty-pipeline","query":"|~ only a note ~|","expect":"null"}
-{"decision":"D442","name":"a-comment-at-the-head-keeps-a-leading-catch","query":"~(!| |~ note ~| get /kind) | first | tag","expect":"::fail"}
-{"decision":"D442","name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| tag)","expect":"::number"}
+{"name":"a-comment-at-the-head-keeps-a-leading-catch","query":"~(!| |~ note ~| get /kind) | first | tag","expect":"::fail"}
+{"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| tag)","expect":"::number"}
 {"name":"a-comment-at-the-head-of-a-group-is-whitespace","query":"[1 2] | (|~ note ~| map ~(add 1))","expect":"[2 3]"}
-{"decision":"D442","name":"a-comment-at-the-head-before-a-catch-keeps-it","query":"~(|~ note ~| !| get /kind) | first | tag","expect":"::fail"}
-{"decision":"D442","name":"a-leading-pipe-after-a-comment-is-the-combinator-of-the-head","query":"~(|~ note ~| | tag) | first | tag","expect":"::call"}
+{"name":"a-comment-at-the-head-before-a-catch-keeps-it","query":"~(|~ note ~| !| get /kind) | first | tag","expect":"::fail"}
+{"name":"a-leading-pipe-after-a-comment-is-the-combinator-of-the-head","query":"~(|~ note ~| | tag) | first | tag","expect":"::call"}
 {"name":"a-line-comment-at-the-head-of-a-group-is-whitespace","query":"[1 2] | (|~| note\nmap ~(add 1))","expect":"[2 3]"}
 {"name":"a-comment-in-the-middle-of-a-pipeline-is-whitespace","query":"[1 2] |~ note ~| | map ~(add 1)","expect":"[2 3]"}
-{"decision":"D442","name":"comment-head-keeps-leading-pipe","query":"~(| |~ note ~| count) | first | tag","expect":"::call"}
-{"decision":"D442","name":"a-comment-at-the-head-of-a-quote-leaves-its-first-step-a-call","query":"~(|~ note ~| count) | first | tag","expect":"::call"}
+{"name":"comment-head-keeps-leading-pipe","query":"~(| |~ note ~| count) | first | tag","expect":"::call"}
+{"name":"a-comment-at-the-head-of-a-quote-leaves-its-first-step-a-call","query":"~(|~ note ~| count) | first | tag","expect":"::call"}
 {"name":"a-comment-sets-off-the-modifiers-of-a-command","query":"5 | add |~ the addend ~| 1","expect":"6"}
 {"name":"a-line-break-inside-a-comment-ends-no-line","query":"5 | add |~ one\ntwo ~| 1","expect":"6"}
 {"name":"the-parse-of-a-source-of-comments-alone-is-the-empty-quote","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true"}

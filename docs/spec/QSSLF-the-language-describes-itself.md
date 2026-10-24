@@ -67,16 +67,16 @@ true
 > ::vec/sort | get [~(doc) ~(binding | doc) ~(explain | page) ~(tutorial | first) ~(::vec | doc :sort)] | toSet | count
 1
 
-> ::vec/take | source 1 !| type
+> ::vec/take | source 1 !| tag
 ::any/source/anchor/KindNotTakenError
 
-> ::nosuchbinding | doc !| get [~(type) /name]
+> ::nosuchbinding | doc !| get [~(tag) /name]
 [::any/doc/UnknownNameError ::nosuchbinding]
 
 > ::number/add/FooError | binding | get /name
 :number/add
 
-> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(type) ~(explain | page | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]
+> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(explain | page | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]
 [[::fn/call/by/KindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
@@ -112,7 +112,7 @@ true
 > ::vec/take/count | manifest
 #[::vec/take/count/KindNotTakenError ::vec/take/count/NotGivenError ::vec/take/count/NotIntegerError]
 
-> ::vec/take/count/NotIntegerError | binding | get /value | type
+> ::vec/take/count/NotIntegerError | binding | get /value | tag
 ::invariant
 
 > ::vec | manifest :take | eq (::vec/take | manifest)
@@ -124,8 +124,8 @@ true
 
 ## laws
 
-A law is a query that answers `true`, a quote under `::law` beneath the
-tags it is given under, another value refused, `::law#3` as
+A law is a query that answers `true`, a quote under `::law` by its own
+tag, a quote under another tag and any other value refused, `::law#3` as
 `::law/PayloadKindNotTakenError`, declared
 under the name whose claim it proves, by the command `proves` of a chain
 or by a name of its own, `:three/isThree ::law~(3 | eq 3)`, its page the
@@ -147,6 +147,9 @@ refuses it. Every law of the core passes.
 ```qlang
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
 [true]
+
+> ::law::Foo~(3 | eq 3) !| get [~(tag) /actualTag]
+[::law/PayloadKindNotTakenError ::Foo]
 
 > ::number/add | laws | count
 4
@@ -208,13 +211,13 @@ which no query of the language raises, holding none. An explanation
 prints the page above the value.
 
 ```qlang
-> get [~("x" | add 1 !| explain | payload | keys) ~(::explanation{} !| type)]
+> get [~("x" | add 1 !| explain | payload | keys) ~(::explanation{} !| tag)]
 [#[:page :value] ::explanation/NotPageAndValueError]
 
 > 42 | explain | value
 42
 
-> ::Nothing | explain !| type
+> ::Nothing | explain !| tag
 ::any/explain/UnknownNameError
 ```
 
@@ -241,11 +244,11 @@ kind as `::doc/ElementKindNotTakenError`. A tag gives a quote a
 role, the tags of a stack read from the outside in: `::link`, which
 `links` answers and `open` runs to what its query answers, a page where
 it reads one, and `::snippet`, which `snippets` answers and `open` runs
-to what it shows; each is a kind of the core with a page, which wraps a
-quote beneath the tags it is given under, so a tag a host or a reader
-lays over a link keeps it a link, `::link#5` refused as
-`::link/PayloadKindNotTakenError`, and a role whose quotes hold an
-invariant is a label of its own. A doc is built
+to what it shows; each is a kind of the core with a page, which holds a
+quote by its own tag, or the other role, `::link::snippet~(…)`, so a tag a
+host or a reader lays over a link keeps it a link, a quote under another
+tag and `::link#5` refused as `::link/PayloadKindNotTakenError`, and a
+role whose quotes hold an invariant is a label of its own. A doc is built
 once from the values the labels of the tags of its roles lay over its
 quotes, from the inside out, wherever it stands as a value, the docs of
 the slot of a declaration among them: a tag that takes no quote refuses
@@ -270,14 +273,17 @@ written.
 > |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open
 2
 
-> get [~(::link#5 !| type) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
+> get [~(::link#5 !| tag) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
 [::link/PayloadKindNotTakenError 1]
 
-> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| type
+> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) /actualTag])]
+[1 [::link/PayloadKindNotTakenError ::Foo]]
+
+> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag
 ::Role/k
 
-> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(:x |~~ see ::vec~(x) ~~| 1 !| type)]
-[true ::vec/PayloadKindNotTakenError]
+> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(:x |~~ see ::map~(x) ~~| 1 !| tag)]
+[true ::map/PayloadKindNotTakenError]
 ```
 
 ## page
@@ -297,19 +303,19 @@ doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 
 ```qlang
-> ::qlang | doc | links | map ~open | every ~(type | eq ::doc)
+> ::qlang | doc | links | map ~open | every ~(tag | eq ::doc)
 true
 
-> ::qlang | doc :pipeline | type
+> ::qlang | doc :pipeline | tag
 ::doc
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | type) ~(::qlang/values[1] !| type) ~(::qlang | manifest | has ::qlang/values)]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
 > ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | type | eq ::doc))]
+> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))]
 [0 true]
 
 > kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)

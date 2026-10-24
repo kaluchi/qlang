@@ -51,7 +51,7 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
 
-> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(type) ~(trace | last | path)])]
+> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path)])]
 [[[1 2] [1 2]] [::set/zip/ElementKindNotTakenError /0]]
 
 > get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
@@ -60,13 +60,13 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [1 2 3 4] | avg
 2.5
 
-> [1 "x"] | avg !| get [~(type) ~(trace | last | path)]
+> [1 "x"] | avg !| get [~(tag) ~(trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]
 
 > [::W#2 1] | sum
 ::W#3
 
-> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(type) ~(trace | last | path)])]
+> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(tag) ~(trace | last | path)])]
 [::T"a,b" [1 2] [::call/KindsMismatchedError /1]]
 
 > [] | min
@@ -116,7 +116,7 @@ code is refused with the repair.
 > ::Box[1 2] | map ~(add 1)
 [2 3]
 
-> [1 2] | map (add 1) !| type
+> [1 2] | map (add 1) !| tag
 ::vec/map/code/KindNotTakenError
 ```
 
@@ -158,13 +158,13 @@ of `reduce` names the path of the element [QSERR#trace].
 > [1 2 3] | reduce 0 ~(add)
 6
 
-> [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| type)]
+> [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
 > [1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)
 123
 
-> :add 5 | [1 2 3] | reduce 0 ~(add) !| type
+> :add 5 | [1 2 3] | reduce 0 ~(add) !| tag
 ::call/ValueMeetsVerbError
 
 > [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
@@ -191,7 +191,7 @@ refuses so a later value that is no set or map, while `minus` and
 `inter` take after a map the keys a map, a vector or a set names, as the
 verbs of a map do; a later value the algebra has no rule
 for beside the one before it is refused as the pair,
-`::call/KindsMismatchedError` with `:leftType` and `:rightType`, a set beside a
+`::call/KindsMismatchedError` with `:leftTag` and `:rightTag`, a set beside a
 map in `union` among them, each refusal of a fold at the value or the key
 it met, the path of its frame naming its path, a key's within its value
 [QSERR#trace]; and a fold of nothing is refused as
@@ -228,16 +228,16 @@ tags they share; one part answers itself.
 > #[#[1] #[2]] | union null
 |~| raised, and no !| caught it ::set/union/other/KindNotTakenError!{ … }
 
-> [1 2] | union !| type
+> [1 2] | union !| tag
 ::vec/union/ElementKindNotTakenError
 
 > ::T{:a 1} | union {:b 2}
 ::T{:a 1 :b 2}
 
-> [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| type)]
+> [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| tag)]
 [{:b 2} {:a 1} ::call/KindsMismatchedError]
 
-> get [~([#[1] #[2] {:a 1}] | union !| get [~(type) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(type) ~(trace | last | path)])]
+> get [~([#[1] #[2] {:a 1}] | union !| get [~(tag) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(tag) ~(trace | last | path)])]
 [[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
 
 > get [~([::A#[1] #[2]] | union) ~({:a 1} | union ::B{:b 2}) ~({:a 1 :b 2} | minus ::T[:a])]
@@ -264,10 +264,10 @@ frame naming the element in each [QSERR#trace].
 > [1 2 3] | groupBy ~(gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(type) ~(trace | last | path) /expected]
+> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) /expected]
 [::vec/indexBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
-> [1 "1"] | groupBy !| type
+> [1 "1"] | groupBy !| tag
 ::vec/groupBy/KeyTakenError
 
 > [{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v

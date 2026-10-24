@@ -2,7 +2,7 @@
 {"name":"a-fold-by-mul-from-one-answers-the-product","query":"[1 2 3 4 5] | reduce 1 ~(mul)","expect":"120"}
 {"name":"a-fold-by-append-from-the-empty-string-joins-the-strings","query":"[\"a\" \"b\" \"c\"] | reduce \"\" ~(append)","expect":"\"abc\""}
 {"name":"a-fold-by-union-from-the-empty-set-unites-the-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
-{"decision":"D442","name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(tag) ~(payload | tag)]","expect":"[::Bar ::Foo]"}
+{"name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(tag) ~(payload | tag)]","expect":"[::Bar ::Foo]"}
 {"name":"the-short-form-folds-by-a-verb-the-reader-declares","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))) | [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
 {"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-folds-the-elements-of-a-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
@@ -11,21 +11,21 @@
 {"name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)","expect":"123"}
 {"name":"a-reducer-names-its-verb-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6"}
 {"name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 /1","expect":"3"}
-{"decision":"D442","name":"a-value-named-as-the-verb-of-a-fold-meets-the-verb","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) /addresses]","expect":"[::call/ValueMeetsVerbError #[::number/add]]"}
+{"name":"a-value-named-as-the-verb-of-a-fold-meets-the-verb","query":":add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) /addresses]","expect":"[::call/ValueMeetsVerbError #[::number/add]]"}
 {"name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))","expect":"3"}
 {"name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
 {"name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
 {"name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
-{"decision":"D442","name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| tag","expect":"::vec/sum/ElementKindNotTakenError"}
+{"name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| tag","expect":"::vec/sum/ElementKindNotTakenError"}
 {"name":"reduce-folds-the-values","query":"{:a 1 :b 2} | reduce 0 ~(add)","expect":"3"}
 {"name":"a-reducer-of-a-literal-answers-it","query":"[1 2 3] | reduce 0 ~(42)","expect":"42"}
-{"decision":"D442","name":"a-reducer-that-gives-its-verb-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| get [~(tag) /actualTag]","expect":"[::number/add/SubjectNotNumberError ::vec]"}
-{"decision":"D442","name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| tag","expect":"::call/UnknownNameError"}
+{"name":"a-reducer-that-gives-its-verb-an-arg-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add 1) !| get [~(tag) /actualTag]","expect":"[::number/add/SubjectNotNumberError ::vec]"}
+{"name":"a-reducer-of-an-unknown-name-fails-on-the-pair","query":"[1 2 3] | reduce 0 ~(nope) !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-reducer-of-a-value-name-answers-the-value","query":"5 | :five it | get [1 2 3] | reduce 0 ~(five)","expect":"5"}
-{"decision":"D442","name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)) | [1 2 3] | reduce 0 ~bad2 !| tag","expect":"::number/bad2/b/NotGivenError"}
+{"name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)) | [1 2 3] | reduce 0 ~bad2 !| tag","expect":"::number/bad2/b/NotGivenError"}
 {"name":"a-verb-the-reader-declares-with-an-input-folds-a-vector-by-the-short-form","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)) | [1 2 3] | reduce 0 ~plus","expect":"6"}
-{"decision":"D442","name":"reduce-takes-a-reducer-as-code","query":"get [~([1] | reduce 0 !| tag) ~([1] | reduce 0 (add 1) !| tag)]","expect":"[::vec/reduce/reducer/NotGivenError ::vec/reduce/reducer/KindNotTakenError]"}
+{"name":"reduce-takes-a-reducer-as-code","query":"get [~([1] | reduce 0 !| tag) ~([1] | reduce 0 (add 1) !| tag)]","expect":"[::vec/reduce/reducer/NotGivenError ::vec/reduce/reducer/KindNotTakenError]"}
 {"name":"a-quote-of-one-word-after-a-leading-pipe-is-the-short-form","query":"[1 2 3] | reduce 0 ~(| add)","expect":"6"}
 {"name":"a-reducer-assembled-from-data-folds-by-the-short-form","query":"[1 2 3] | reduce 0 ([::call{:name :add}] | tag ::quote)","expect":"6"}
-{"decision":"D442","name":"a-reducer-of-a-call-and-a-step-after-it-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add | it) !| tag","expect":"::number/add/SubjectNotNumberError"}
+{"name":"a-reducer-of-a-call-and-a-step-after-it-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(add | it) !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"the-one-word-of-a-fold-passes-a-frame-at-the-step-that-failed","query":"[1 2] | reduce \"x\" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])","expect":"[[\"x\" ~(add) null] [[1 2] ~(reduce \"x\" ~(add)) /0]]"}

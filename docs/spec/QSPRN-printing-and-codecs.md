@@ -107,10 +107,10 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 > ::Box#1 | json
 "{\"$tag\":\"Box\",\"payload\":1}"
 
-> "[1, 2" | parseJson !| type
+> "[1, 2" | parseJson !| tag
 ::string/parseJson/TextNotJsonError
 
-> "[1e400]" | parseJson !| get [~(type) /path]
+> "[1e400]" | parseJson !| get [~(tag) /path]
 [::string/parseJson/NumberNotFiniteError /0]
 
 > "1e400" | parseJson !| keys
@@ -156,7 +156,7 @@ elision it holds. A value whose print fits is answered as it is.
 > 1000 | range | elide 120 | print
 "[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ::elision{:size 984 :read ~(drop 16)}]"
 
-> 100 | range | elide 10 | last | get [~(type) /size /read]
+> 100 | range | elide 10 | last | get [~(tag) /size /read]
 [::elision 99 ~(drop 1)]
 
 > [1 2] | elide 100
@@ -165,19 +165,19 @@ elision it holds. A value whose print fits is answered as it is.
 > [[] {:n 1} "short"] | elide 3
 [[] {:n 1} "short"]
 
-> 200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | type)]
+> 200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | tag)]
 [2 ::elision]
 
-> [1 2] | elide 0 !| type
+> [1 2] | elide 0 !| tag
 ::any/elide/budget/NotCountError
 
 > 1000 | range | map ~(get [~(it) ~(it)]) | toMap | get [~(print | count) ~(elide 2000 | print | count | lte 2000)]
 [12783 true]
 
-> 300 | range | tag ::Box | elide 100 | get [~(type) ~(print | count | lte 100)]
+> 300 | range | tag ::Box | elide 100 | get [~(tag) ~(print | count | lte 100)]
 [::Box true]
 
-> 200 | range | map ~("a") | join "" | elide 50 | get [~(type) /size /read]
+> 200 | range | map ~("a") | join "" | elide 50 | get [~(tag) /size /read]
 [::elision 200 ~()]
 
 > get [~({"a": 1, "…": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7} | elide 34 | get /"…"/size) ~({"…": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6} | elide 20 | get /read)]
@@ -189,7 +189,7 @@ elision it holds. A value whose print fits is answered as it is.
 > get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b
 ::elision{:size 300 :read ~(get /b)}
 
-> [{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| type
+> [{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| tag
 ::trace/ElementKindNotTakenError
 ```
 
@@ -201,7 +201,7 @@ Every host but the REPL prints an answer within one budget,
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` instead, whose facts are
-`:characters`, the characters of the print, `:budget`, `:actualType`,
+`:characters`, the characters of the print, `:budget`, `:actualTag`,
 the kind of the answer, and `:actualValue`, its head, the answer cut to
 the excerpt of an alert [QSERR#alert], or given way whole where no cut
 fits it, the `:read` of each elision there continuing the query from the
@@ -237,9 +237,9 @@ its numbers.
 > "[1 2" | parse !| get /location | start
 ::point[4 1 5]
 
-> ::span[0 1 1] !| type
+> ::span[0 1 1] !| tag
 ::span/PayloadNotStartAndEndError
 
-> ::span[0 1 "x" 1 1 2] !| get [~(type) /index]
+> ::span[0 1 "x" 1 1 2] !| get [~(tag) /index]
 [::span/ElementKindNotTakenError 2]
 ```

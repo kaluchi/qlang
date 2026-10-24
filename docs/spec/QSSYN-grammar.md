@@ -161,7 +161,7 @@ trace skipped.
 > 5 | |~ why ~| add 3
 8
 
-> get [~("[|~ ~(x ~|]" | parse) ~("(|~ ~(x ~|)" | parse !| type)]
+> get [~("[|~ ~(x ~|]" | parse) ~("(|~ ~(x ~|)" | parse !| tag)]
 [~([]) ::quote/ParseError]
 
 > [1 |~ middle ~| 2 3]

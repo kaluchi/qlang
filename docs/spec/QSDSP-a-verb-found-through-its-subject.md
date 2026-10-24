@@ -10,7 +10,7 @@ requirements of each section are the cases of its file under
 A name a step calls finds its verb by walking the subject's stack of
 tags from the outside in, down to the kind of the core at the bottom,
 and beneath every kind lies `::any`, where every walk ends and the verbs
-of any value live: `tag` and `payload`, the two sides of a value, `type`,
+of any value live: `tag` and `payload`, the two sides of a value,
 `eq`, `apply`, `with`, `if`, `cond`, `coalesce`, `json`, `env`, and the
 axes. A tagged value reaches `::tagged` after its own tag and before its
 payload, where `within` lives, so a tag over a value passes to the verbs
@@ -31,8 +31,11 @@ wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
 kind. `is` answers whether the walk of a value's tags reaches a value of
-one of the kinds it is given, `::any` among them; a tag name is a value
-of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
+one of the kinds it is given, one kind at least, a call of none refused
+as `::any/is/kinds/EmptyError`, `::any` among them; a tag name is a value
+of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true,
+and a tag the walk of a value reaches, laid over it, changes nothing
+[QSLIT#tag].
 
 ```qlang
 > ::Box#1 | payload
@@ -44,11 +47,11 @@ of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
 > ::Box#5 | gt 3
 |~| raised, and no !| caught it
 ::call/KindsMismatchedError!{
-  :leftType ::Box
-  :rightType ::number
+  :leftTag ::Box
+  :rightTag ::number
 …
 
-> :number/type ~("mine") | 5 | type
+> :number/tag ~("mine") | 5 | tag
 "mine"
 
 > :tagged/count ~(99) | #[1 2] | count
@@ -56,6 +59,9 @@ of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true.
 
 > get [~(5 | is ::number) ~(::vec | is ::vec) ~(::vec | is ::tag) ~(#[1] | is ::vec)]
 [true false true true]
+
+> get [~(5 | is !| tag) ~(!{} | get [~(is ::map) ~(tag ::map)])]
+[::any/is/kinds/EmptyError [true !{}]]
 
 > get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
 [::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
@@ -94,10 +100,10 @@ comparisons reside on `::any`, two values of one kind compared and a pair
 of two kinds refused [QSCND#compare].
 
 ```qlang
-> :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| type
+> :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| tag
 ::Pos/f/SubjectNotPosError
 
-> 42 | keys !| type
+> 42 | keys !| tag
 ::map/keys/SubjectNotMapError
 
 > #[1 2] | vec/count
@@ -109,10 +115,10 @@ of two kinds refused [QSCND#compare].
 > ::set | manifest
 #[::set/PayloadKindNotTakenError ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
 
-> 42 | zip !| get [~(type) /addresses]
+> 42 | zip !| get [~(tag) /addresses]
 [::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]
 
-> get [~(#[1 "a"] | sum !| type) ~(true | flat !| type) ~(::set | count !| type) ~(::set | manifest | has ::set/count)]
+> get [~(#[1 "a"] | sum !| tag) ~(true | flat !| tag) ~(::set | count !| tag) ~(::set | manifest | has ::set/count)]
 [::vec/sum/ElementKindNotTakenError ::vec/flat/SubjectNotVecError ::call/KindAnswersNoVerbError false]
 
 > ~(a | b | c) | take 2
@@ -121,7 +127,7 @@ of two kinds refused [QSCND#compare].
 > "b" | gt "a"
 true
 
-> 1 | gt "x" !| type
+> 1 | gt "x" !| tag
 ::call/KindsMismatchedError
 ```
 
@@ -130,7 +136,7 @@ true
 A name whose verbs reside on several kinds, none of which the walk of
 the subject reaches, is refused by the call as
 `::call/KindAnswersNoVerbError`, with the name as `:name`, the subject's
-outermost tag as `:actualType`, the addresses of the verbs of that name
+outermost tag as `:actualTag`, the addresses of the verbs of that name
 as `:addresses`, where the pages of those verbs lead to one, `:nearest`,
 the verbs they link that the subject answers and whose answer is a kind
 those verbs answer, and, where the subject is a path, `:repair`, the
@@ -141,10 +147,10 @@ declares under a second noun makes the refusal of a name one verb of the
 root holds the call's, its address beside the root's.
 
 ```qlang
-> 5 | count !| get [~(type) /actualType /addresses]
+> 5 | count !| get [~(tag) /actualTag /addresses]
 [::call/KindAnswersNoVerbError ::number #[::map/count ::string/count ::vec/count]]
 
-> :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(type) /addresses]
+> :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) /addresses]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]
 
 > [1 2] | toString !| get /nearest
@@ -186,22 +192,22 @@ them, and no chain of the catalog names a kind its verb does not answer
 under the rule, which the laws of each verb hold [QSSLF#laws].
 
 ```qlang
-> ::T{:a 1 :b 2} | filter ~(eq 1) | type
+> ::T{:a 1 :b 2} | filter ~(eq 1) | tag
 ::T
 
 > ::Box[1 2] | map ~(add 1)
 [2 3]
 
-> :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| type
+> :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| tag
 ::vec/n/answer/KindNotTakenError
 
-> get [~([2 1 2] | distinct | type) ~(::vec/distinct/answer | binding | get /value) ~(::vec/map/answer | binding | get /value) ~(::map/map/answer | binding | get /value)]
+> get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | get /value) ~(::vec/map/answer | binding | get /value) ~(::map/map/answer | binding | get /value)]
 [::set ::set ::any ::any]
 
 > get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
 
-> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(type) /leftType /rightType]) ~(1.234 | round ::D#2)]
+> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(tag) /leftTag /rightTag]) ~(1.234 | round ::D#2)]
 [::Cents#101 [::call/KindsMismatchedError ::Cents ::Dollars] 1.23]
 ```
 
@@ -224,12 +230,12 @@ noun is refused by them as by every verb.
 > ::number | gt ::A
 true
 
-> ::vec | count !| type
+> ::vec | count !| tag
 ::vec/count/SubjectNotVecError
 
-> :Shop |~~ A shop. ~~| | :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")) | get [~(::Shop | hours) ~(::Other | hours !| type)]
+> :Shop |~~ A shop. ~~| | :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")) | get [~(::Shop | hours) ~(::Other | hours !| tag)]
 ["9 to 5" ::Shop/hours/SubjectNotShopError]
 
-> ::number | takes :by |~~ b ~~| /0 !| type
+> ::number | takes :by |~~ b ~~| /0 !| tag
 ::fn/takes/SubjectNotFnError
 ```

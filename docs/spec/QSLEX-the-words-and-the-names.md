@@ -27,20 +27,22 @@ A term found in several senses is split into anchor terms, one a sense,
 each with its own anchor; a concept under rival words keeps one; and a group
 of another image is chosen again as a whole. A record that retires a term
 writes it into the lexicon of retired terms, `scripts/retired-words.mjs`, in
-the commit that retires it: a regex of the one sense it had, the term
-to write instead and the record. The lexicon refuses a term by its
-word whole, where no sense of the word fits the texts that state what
-holds, or by the exact names its retired sense wrote; a word the texts
+the commit that retires it: a regex of the term, the term to write instead
+and the record. An entry refuses a word whole in its spellings, where no
+sense of the word fits the texts that state what holds, a compound term the
+work retired, or the exact names a retired sense wrote; a word the texts
 still write in another sense is parted first, each live sense under a word
-of its own or the word kept to its one narrow scope. A list of phrases that
-refuses one sense of a word the texts write in another is no form of the
-lexicon but the debt of a word not yet parted, which the parting pays. The lexicon holds the terms of the
+of its own or the word kept to its one narrow scope, and no entry refuses a
+sense by the words around a word. The lexicon holds the terms of the
 project, each of one sense and high in entropy. A generic word of other
 projects, which a search finds in a heap of senses, stays out of it, its
-uses held by the readers of the pentimento audit, but for a generic word the
-texts that state what holds write in no sense at all, which it refuses
-whole. The journal and the research, which carry the change, keep the words
-they quote.
+uses held by the readers of the pentimento audit and its retired senses by
+their names, but for a generic word the texts that state what holds write
+in no sense at all, which it refuses whole. The tests of the lexicon show
+each entry by the spellings it refuses and the words beside it it leaves,
+every entry refusing a sample, and hold no sentence the texts once wrote.
+The journal and the research, which carry the change, keep the words they
+quote.
 
 ## grep
 

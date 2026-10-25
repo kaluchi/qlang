@@ -199,8 +199,10 @@ and `value` read, a map of other keys refused as
 `::explanation/NotPageAndValueError`. A name reads its own page, a value the page of the kind it
 shows, and the error at rest a catch holds the page of its site, its
 value the error at rest that `raise` raises again; a refusal the runtime raises by
-rule under a verb, with no page of its own, reads the page of what
-refused; a name nothing declares is refused as
+rule under a verb or a kind, with no page of its own, reads the page of
+what refused, the refusal of the kinds of an input, a field or a payload
+the page of that part, and every such refusal of the catalog has its page
+with its repair; a name nothing declares is refused as
 `::any/explain/UnknownNameError`, but one past an address whose last name
 ends in `Error`, which reads the record of that address [QSSLF#axis]. The page of a refusal says what
 failed, which fact or which path of the frame names the culprit and how

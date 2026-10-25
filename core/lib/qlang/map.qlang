@@ -1,5 +1,5 @@
-|~ `::map` and what is declared under it: its constructor and the
-   refusals of a payload it cannot read, and the verbs of maps. A map's
+|~ `::map` and what is declared under it: the refusals of a
+   payload it cannot read, and the verbs of maps. A map's
    elements are its values, and its keys travel with them: a verb whose
    answer names the map keeps the keys of the entries it keeps and
    answers under the tags of the map, `union` and `merge` under those it
@@ -41,6 +41,7 @@
             ::link~(::map | doc) ::link~(::vec/toMap | doc)
             ::link~(::any/payload | doc)
         ~~|
+        ::map
     | throws :PayloadKindNotTakenError
         |~~ `::map` reads its payload as the map it is, and a value of no
             map is refused: the pairs of a vector build a map by `toMap`,
@@ -48,7 +49,7 @@
         ~~|
     | proves :isAMap |~~ Braces make a map. ~~| ~({:a 1} | tag | eq ::map)
     | proves :buildsAMap
-        |~~ The constructor of a map answers it. ~~|
+        |~~ A map under its own tag is the map. ~~|
         ~(::map{:a 1} | eq {:a 1})
     | proves :readsJson
         |~~ A JSON object is a map literal. ~~|
@@ -72,7 +73,6 @@
             error at rest, stays as it is; `payload` reads the map beneath.
         ~~|
         ~(get [~(::map::Box{:a 1} | tag) ~(::map!{:a 1} | tag) ~(::Box{:a 1} | payload | tag)] | eq [::Box ::error ::map])
-    | impl ::builtin{}
 
 :map/count
   |~~ Answers how many entries the map holds, `{:a 1 :b 2} | count`

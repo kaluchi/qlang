@@ -1,5 +1,5 @@
-|~ `::boolean` and what is declared under it: its constructor and its
-   refusal, and the verbs that run on a boolean, the negation and the
+|~ `::boolean` and what is declared under it: the refusal of a
+   payload of another kind, and the verbs that run on a boolean, the negation and the
    two that join booleans.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -19,7 +19,7 @@
       ::link~(::any/if | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A boolean, read as itself. ~~|
+    | wraps |~~ A boolean, read as itself. ~~| ::boolean
     | throws :PayloadKindNotTakenError
         |~~ `::boolean` reads its payload as the boolean it is; a payload
             of another kind is refused.
@@ -28,12 +28,11 @@
         |~~ True is a boolean. ~~|
         ~(true | tag | eq ::boolean)
     | proves :buildsABoolean
-        |~~ The constructor of a boolean answers it. ~~|
+        |~~ A boolean under its own tag is the boolean. ~~|
         ~(::boolean#false | eq false)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number is no boolean and is refused. ~~|
         ~(::boolean#1 !| get [~(tag) /actualTag] | eq [::boolean/PayloadKindNotTakenError ::number])
-    | impl ::builtin{}
 
 :boolean/not
   |~~ Answers the other boolean, `true | not` answering `false`, and so

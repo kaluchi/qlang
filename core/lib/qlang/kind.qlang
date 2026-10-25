@@ -162,16 +162,16 @@
           | content
           | trim
           | eq "The width.")
-    | proves :pagesTheRefusalOfTheKindsOfAField
-        |~~ The refusal the kinds of a field name is paged by them where
-            `throws` gives it no page.
+    | proves :pagesTheRefusalOfTheKindsOfAFieldByItsField
+        |~~ The refusal the kinds of a field name reads the page of the
+            field where `throws` gives it no page.
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
           | ::Box/w/KindNotTakenError
           | doc
           | content
           | trim
-          | eq "`w` holds a value of `::number`.")
+          | eq "The width.")
     | proves :readsNoFieldAsAVerb
         |~~ A field is no verb of the values of its kind: `get` reads it
             by its selector.

@@ -2,7 +2,7 @@ import { it, expect, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { citableOf } from '../../../../scripts/reconciliation.mjs';
+import { citableOf, questionsLeftOpen } from '../../../../scripts/reconciliation.mjs';
 
 const roots = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -40,4 +40,9 @@ it('cites a chapter a record in transit brings whole, and any section of it', ()
 it('cites no section a chapter lacks where a record in transit overrides that chapter whole', () => {
   const citable = overriding('QSAAA');
   expect([citable('QSAAA', 'one'), citable('QSAAA', 'two')]).toEqual([true, false]);
+});
+
+it('leaves open no question a stint raised since the baseline, and the questions the baseline holds to the stint that takes them up', () => {
+  const records = new Map([['D1', { open: true }], ['D2', { open: true }], ['D3', { open: false }]]);
+  expect(questionsLeftOpen(records, new Set(['D1']))).toEqual(['D2']);
 });

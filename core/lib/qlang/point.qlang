@@ -12,6 +12,15 @@
   ~~|
   ::kind
     | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | throws :PayloadKindNotTakenError
+        |~~ A point is the vector of the offset, the line and the column of
+            a character of a source, `::point[0 1 1]`, which `start` and
+            `end` of a span answer.
+        ~~|
+    | throws :ElementKindNotTakenError
+        |~~ Each part of a point is a whole number, its offset from zero
+            and its line and its column from one.
+        ~~|
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
         ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)

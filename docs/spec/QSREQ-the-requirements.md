@@ -69,10 +69,9 @@ as what holds.
 A requirement is written on the side of design and met on the side of
 implementation. A target is taken in hand where landing it changes no met
 case and no record's text; otherwise a move of design with its record comes
-first. A target lives in the stint that wrote it: the stint meets it, or
-before it lands writes the record that left it again as an open one whose
-question the target states, so no target outlives the closeout that lands
-its branch. A branch that works targets, a worktree of a subagent among
+first. A target lives in the stint that wrote it: the stint meets it, or its
+record sets the change aside, the case kept as the tree answers it, so no
+target outlives the closeout that lands its branch. A branch that works targets, a worktree of a subagent among
 them, starts from the head of the branch that wrote them, its suite green;
 it changes the implementation, may add cases under its own record, and drops
 the mark of each target it met, its query and answer as they were; it keeps

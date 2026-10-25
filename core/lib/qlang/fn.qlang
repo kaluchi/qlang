@@ -362,16 +362,16 @@
           | 5
           | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(by | tag)) [::Width#3]
           | eq ::Width)
-    | proves :pagesTheRefusalOfItsKinds
-        |~~ The refusal the kinds of an input name is paged by them where
-            `throws` gives it no page.
+    | proves :pagesTheRefusalOfItsKindsByItsInput
+        |~~ The refusal the kinds of an input name reads the page of the
+            input where `throws` gives it no page.
         ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
           | ::number/plus/by/KindNotTakenError
           | doc
           | content
           | trim
-          | eq "`by` holds a value of `::number`.")
+          | eq "How much.")
     | proves :holdsEachElementAsItIsGiven
         |~~ An input of the kinds of each element holds each as the call
             gives it, where the walk of its tags reaches one of the kinds.
@@ -394,16 +394,16 @@
             kinds of each element.
         ~~|
         ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| tag | eq ::fn/call/xs/KindNotTakenError)
-    | proves :pagesTheRefusalOfTheKindsOfEachElement
-        |~~ The refusal the kinds of each element name is paged by them
-            where `throws` gives it no page.
+    | proves :pagesTheRefusalOfTheKindsOfEachElementByItsInput
+        |~~ The refusal the kinds of each element name reads the page of
+            the input where `throws` gives it no page.
         ~~|
         ~(:number/w (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))
           | ::number/w/xs/ElementKindNotTakenError
           | doc
           | content
           | trim
-          | eq "Each element of `xs` holds a value of `::number`.")
+          | eq "Values.")
     | proves :readsAKeyOfAMap
         |~~ A path into the args reads an input by its key. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0/by | impl ~(add by)) [{:by 3}] | eq 8)

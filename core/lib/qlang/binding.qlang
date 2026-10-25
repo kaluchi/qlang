@@ -36,6 +36,28 @@
             binds.
         ~~|
         /origin #[::keyword ::null]
+    | throws :PayloadKindNotTakenError
+        |~~ `::binding` holds the record of a name, a map, which `binding`
+            reads from its address, `::vec/sort | binding`.
+        ~~|
+    | throws :name/KindNotTakenError
+        |~~ The name of a binding is the keyword it binds, `:sort`. ~~|
+    | throws :docs/KindNotTakenError
+        |~~ The docs of a binding are a vector, one doc for each doc of the
+            slot of its declaration.
+        ~~|
+    | throws :docs/ElementKindNotTakenError
+        |~~ Each of the docs of a binding is a doc, a page of its
+            declaration.
+        ~~|
+    | throws :source/KindNotTakenError
+        |~~ The source of a binding is the quote of the step that declared
+            it, or null for a binding no declaration wrote.
+        ~~|
+    | throws :origin/KindNotTakenError
+        |~~ The origin of a binding is the keyword of the source or the cell
+            it was read from, or null for a name a call binds.
+        ~~|
     | proves :holdsTheValue
         |~~ The record of a name holds its value. ~~|
         ~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)

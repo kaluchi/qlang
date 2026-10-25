@@ -1,5 +1,5 @@
-|~ `::null`, the kind of null, and what is declared under it: its
-   constructor and its refusal, and its text and its keyword.
+|~ `::null`, the kind of null, and what is declared under it: the
+   refusal of a payload of another kind, and its text and its keyword.
    The rules it holds: [QSDSP#residence]. ~|
 
 :null
@@ -19,19 +19,18 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ Null, read as itself. ~~|
+    | wraps |~~ Null, read as itself. ~~| ::null
     | throws :PayloadKindNotTakenError
         |~~ `::null` reads its payload as null; a payload of another kind
             is refused.
         ~~|
     | proves :isNull |~~ Null is of `::null`. ~~| ~(null | tag | eq ::null)
     | proves :buildsNull
-        |~~ The constructor of null answers null. ~~|
+        |~~ Null under its own tag is null. ~~|
         ~(::null#null | eq null)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
         ~(::null#1 !| get [~(tag) /actualTag] | eq [::null/PayloadKindNotTakenError ::number])
-    | impl ::builtin{}
 
 :null/toString
   |~~ Answers `"null"`, the text `print` and `json` write for null, as

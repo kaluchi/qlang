@@ -12,11 +12,11 @@ import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
-  isFn, isKind, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
+  isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
 } from './types.mjs';
 import { makeSet, kindsExpected } from './ordering.mjs';
-import { originOf, repeatsDeclarationAt } from './parsed-parts.mjs';
+import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
   commandStep, groupStep
@@ -25,7 +25,7 @@ import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -192,7 +192,8 @@ async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
   if (nounName !== null) refuseWithheld(state.scope, nounName, true);
-  if (repeatsDeclarationAt(at.steps, at.index) || declaresWhatTheCallBinds(at.steps, state.scope, name) || (nounName !== null && rootOf(state.scope).has(name))) {
+  if (repeatsDeclarationAt(at.steps, at.index) || declaresWhatTheCallBinds(at.steps, state.scope, name)
+    || (nounName !== null && (rootOf(state.scope).has(name) || laidByTheChainOfItsNoun(state.scope, name, nounName, at)))) {
     throw new BindNameDeclaredTwiceError({ name: makeKeyword(name) });
   }
   if (nounName !== null && !scopeHas(state.scope, nounName)) {
@@ -218,6 +219,12 @@ async function evalBind(bind, state, at) {
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
+// [QSNAM#scope]
+function laidByTheChainOfItsNoun(scope, name, nounName, at) {
+  const entry = scope.get(name);
+  return isBinding(entry) && entry.get('source') === null && declaresBefore(at.steps, at.index, nounName);
+}
+
 // [QSBLD#chain]
 function writesOutsideItsChain(scope, nounName, lastName, value) {
   if (isInvariant(value)) return true;
@@ -233,8 +240,8 @@ function layerOf(scope, address, origin, pages) {
   };
   return {
     lay,
-    layKindsRefusal(refusal, holder, kinds, each) {
-      const page = pages.get(refusal) ?? pageOfKindsRefusal(holder, kinds, each);
+    layKindsRefusal(refusal, pageOfThePart) {
+      const page = pages.get(refusal) ?? pageOfThePart;
       lay(refusal, page, page);
     },
     layRest({ facts, invariants, laws }) {
@@ -253,15 +260,14 @@ function nodesOfKind(kind, address, scope, origin) {
   const { payload, fields, tells } = roles;
   const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, roles.pages);
   if (payload !== null) {
-    const holder = makeKeyword(PAYLOAD_NAME);
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
-    if (payload.each) layKindsRefusal(payloadRefusalName(false), holder, ['vec'], false);
-    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), holder, payload.kinds, payload.each);
+    if (payload.each) layKindsRefusal(payloadRefusalName(false), payload.page);
+    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), payload.page);
   }
   for (const { name, page, kinds, each, written } of fields) {
     lay(name.name, page, written ?? page);
-    if (each) layKindsRefusal(kindsRefusalAddress(name.name), name, ['vec'], false);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
+    if (each) layKindsRefusal(kindsRefusalAddress(name.name), page);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), page);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
   return layRest(roles);
@@ -277,7 +283,7 @@ function nodesOfFunction(fn, address, scope, origin) {
   else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
   for (const { name, page, selector, kinds, each } of inputs) {
     lay(name.name, page, selector);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), page);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
   else if (standsUnder(ANSWER_NAME)) lay(ANSWER_NAME, null, null);

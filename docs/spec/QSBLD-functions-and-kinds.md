@@ -217,11 +217,15 @@ refusal, `carries` a fact, `proves` a law, a quote under `::law`, and
 `::kind/ConstructorKindNotTakenError` as the literal refuses it; a command
 written after `impl` joins the others. The slot of a kind holds
 its constructor, the `::builtin{}` `impl` gives it, or null where its
-chain writes no `impl`. The constructor a host hands with a kind beside
-its source attaches the tag to a payload or refuses it [QSHST#source],
-and a `::builtin{}` no host handed with that kind constructs nothing, so
-a reader's kind lays its tag by its commands alone, whatever its slot
-holds. A
+chain writes no `impl`. The guard of a kind is its chain, a kind of the
+core's as any other: `wraps` names the kinds of its payload, and the
+constructor a host hands with a kind beside its source builds the one form
+the kind reads its payload into [QSHST#source], the order of a set, the
+steps of a quote, the prose of a doc, the frames of a trace, which the raise
+of an error at rest reads too, and the descriptor of a builtin, or refuses a
+number past the doubles, while a kind that reads its payload as it is holds
+none. A `::builtin{}` no host handed with that kind constructs nothing, so a
+reader's kind lays its tag by its commands alone, whatever its slot holds. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
 named as a refusal the runtime raises by rule under its field among
 them, the refusal of the kinds and of a field left out, and a step of
@@ -330,8 +334,8 @@ under `::invariant`, lays itself over the value [QSNAM#address].
 > ::vec/take/count/NotIntegerError | binding | get /value | tag
 ::invariant
 
-> ::keyword | binding | get /value | get /1 | tag
-::builtin
+> get [~(::set | binding | get /value | get /1 | tag) ~(::keyword | binding | get /value | get /1)]
+[::builtin null]
 
 > :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}) | :Pos/construct ~(add 0) | get [~(::Pos#5 | construct) ~(::Pos | manifest)]
 [::Pos#5 #[::Pos/construct]]

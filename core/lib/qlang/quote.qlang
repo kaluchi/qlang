@@ -41,6 +41,7 @@
     | wraps
         |~~ A vector whose every element is a step, built into the quote.
         ~~|
+        ::vec
     | throws :PayloadKindNotTakenError
         |~~ `::quote` builds code from the vector of its steps; a payload
             of another kind is refused, a vector under another tag among

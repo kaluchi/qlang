@@ -31,6 +31,7 @@
         |~~ A path, read as itself; a vector of keys and indices becomes
             one by `toPath`, `[:items 0] | toPath`.
         ~~|
+        ::path
     | throws :PayloadKindNotTakenError
         |~~ `::path` reads its payload as the path it is; a payload of
             another kind is refused, and a vector of keys and indices is
@@ -158,7 +159,6 @@
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])
-    | impl ::builtin{}
 
 :path/segments
   |~~ Answers the keys and indices of the path, an index as its number

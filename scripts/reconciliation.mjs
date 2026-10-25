@@ -110,6 +110,11 @@ export function baselineOf(repoRoot) {
 // A record by its name in the tree of a commit, wherever its journal lay.
 const RECORD_FILE = /(?:^|\/)([DE]\d+)\.md$/;
 
+// questionsLeftOpen(records, atBaseline) → the names of the records opened
+// since the baseline that are still open, the questions a stint raised and
+// has not decided [QSWRK#stint].
+export const questionsLeftOpen = (records, atBaseline) => [...records].filter(([name, record]) => !atBaseline.has(name) && record.open).map(([name]) => name);
+
 // reconciliationOf(repoRoot) → { baseline, since, violations }: the
 // baseline, the records written since it and every breach of the
 // reconciliation, each `{ where, problem }`.
@@ -142,6 +147,11 @@ export function reconciliationOf(repoRoot) {
   const mainline = mainlineOf(repoRoot);
   for (const name of recordsInTransitAt(repoRoot, mainline).filter(name => !landedInTransit.includes(name))) {
     reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `in transit on ${mainline} past the baseline ${baseline}: a record in transit lives on the branch of its stint, which master takes at its closeout` });
+  }
+  // A stint decides the questions its work raises before it lands, and the
+  // questions the baseline holds wait for the stint that takes them up [QSWRK#reconciliation].
+  for (const name of questionsLeftOpen(records, atBaseline)) {
+    reconciled.violations.push({ where: `${JOURNAL}/${name}.md`, problem: `opened since the baseline ${baseline} and still open: the stint that raised the question decides it before it lands, asking the maintainer where the choice is his` });
   }
   reconciled.since = [...records.keys()].filter(name => !atBaseline.has(name));
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);

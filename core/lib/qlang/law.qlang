@@ -23,6 +23,11 @@
   ~~|
   ::kind
     | wraps |~~ The query that proves the claim, a quote. ~~| ::quote
+    | throws :PayloadKindNotTakenError
+        |~~ A law is a quote that answers true, `::law~(3 | eq 3)`, which
+            `proves` writes in a chain; a quote under another tag gives the
+            quote beneath by `payload`.
+        ~~|
     | proves :provesItsClaim
         |~~ A law declared under a name proves its claim when it runs. ~~|
         ~(:Box |~~ A box. ~~| | :Box/holdsItsWidth |~~ A box holds its width. ~~| ::law~(::Box{:w 1} | get /w | eq 1) | ::Box | runLaws | map /ok | eq [true])

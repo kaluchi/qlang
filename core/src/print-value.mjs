@@ -15,6 +15,7 @@ import {
   isTrace,
   ELISION_TAG,
   ERROR_TAG,
+  LEGEND_TAG,
   formOf,
   refuseForeign,
   TAG_HEADER_SYMBOL,
@@ -53,9 +54,9 @@ const PRINT_HANDLERS = {
   regex:   printRegex,
   path:    printPath,
   error:   printErrorValue,
-  vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine),
+  vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine, v.some(isLegend)),
   map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
-  set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine),
+  set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine, s.some(isLegend)),
   quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine ? { oneLine, printedOf } : AS_WRITTEN),
   doc:     (d, indent) => printDoc(d, indent),
   underTag: printUnderTag
@@ -73,6 +74,9 @@ export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine =
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
   return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
+
+// [D458]
+const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
 
 // [QSPRN#print]
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
@@ -98,7 +102,7 @@ function underTagLiteral(tagLiteral, payload, payloadPrint) {
 // [QSERR#rest]
 function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), isTrace(tagged) && tagged.length > 1);
+  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), (isTrace(tagged) && tagged.length > 1) || tagged.some(isLegend));
   if (isOfTheKindOfErrors(tagged)) return printMapLike('!{', tagged, indent, printedOf, oneLine);
   if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine || tagged[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
@@ -107,7 +111,7 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
 // [QSPRN#print]
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => (isMap(v) || isVec(v)) && v[TAG_HEADER_SYMBOL]?.name !== ELISION_TAG.name);
+  const hasComposite = entries.some(([, v]) => ((isMap(v) || isVec(v)) && v[TAG_HEADER_SYMBOL]?.name !== ELISION_TAG.name) || isLegend(v));
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }

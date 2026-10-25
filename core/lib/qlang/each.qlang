@@ -3,8 +3,8 @@
    The rules it holds: [QSDSP#residence], [QSPTH#shape]. ~|
 
 :each
-  |~~ An each stands in a shape for a map whose values are not all null,
-      every key of which is data, an id, a date, a uuid or an email, or
+  |~~ An each stands in a shape for a map of many names: one whose values
+      are not all null, every key of which is data, an id, a date, a uuid or an email, or
       which holds more than eight names whose values, containers, values
       under a tag or null, share one shape, over its least key and the
       shape of its values: `{:"42" {:id 2} :"17" {:id 1}} | shape` answers

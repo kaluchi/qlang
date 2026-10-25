@@ -1,35 +1,33 @@
-// [QSPRN#legend]
+// [D458]
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
 import { kindOfAValueOf } from '../nouns.mjs';
 import { chainOfKind } from '../chain.mjs';
-import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, wiringOf, tagOf, beneathTags, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
+import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, wiringOf, tagOf, beneathTags, payloadBeneath, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
 import { printsOfKinds } from './print.mjs';
 
-const COMMENT = '|~| ';
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
+const LEAST_COLUMN = 16;
 
 function legendOf(value, scope, printedOf) {
-  const glossOfTheHead = glossOf(pageOf(scope, value), scope);
-  const ofTheHead = glossOfTheHead === null ? null : joined(glossOfTheHead, 'doc');
+  const ofTheHead = glossOf(pageOf(scope, value), scope);
   const kind = kindOfAValueOf(scope, tagOf(value).name);
   const wiring = wiringOf(value);
   const fields = kind === null || wiring === undefined ? [] : chainOfKind(kind).fields;
   const laid = fields.length > 0 && printedOf(value) === undefined ? payloadLaidOut(value) : null;
   const atPlaces = new Map(laid === null ? [] : fields.filter(({ place }) => place?.path.segments.length === 1).map(field => [field.place.path.segments[0], field]));
-  if (atPlaces.size === 0) return linesOf([[printValue(value, 0, printedOf, true), ofTheHead]], fields, wiring, new Set(), scope, printedOf);
-  const told = new Set();
+  if (atPlaces.size === 0) return aligned([[printValue(value, 0, printedOf, true), ofTheHead]]);
   const lines = [[laid.open, ofTheHead]];
   for (const [key, part] of laid.parts) {
     const field = atPlaces.get(String(key));
-    if (field !== undefined) told.add(field.name.name);
     const printed = printValue(part, 1, printedOf, true);
-    lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, field === undefined ? null : joined(glossOf(field.page, scope), stepTo(field.name.name, part))]);
+    const said = field === undefined ? null : laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name);
+    lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
   lines.push([laid.close, null]);
-  return linesOf(lines, fields, wiring, told, scope, printedOf);
+  return aligned(lines);
 }
 
 function payloadLaidOut(value) {
@@ -40,19 +38,14 @@ function payloadLaidOut(value) {
   return atRest ? { open: `${literal}!{`, close: '}', parts: [...value.payload], keyed: true } : null;
 }
 
-function linesOf(lines, fields, wiring, told, scope, printedOf) {
-  for (const field of fields) {
-    const part = wiring.get(field.name.name);
-    if (told.has(field.name.name) || part === null) continue;
-    const step = wiringOf(part) === undefined ? null : stepTo(field.name.name, part);
-    lines.push([null, joined(`${field.name.name} ${printValue(part, 0, printedOf, true)}`, glossOf(field.page, scope), step)]);
-  }
-  const column = Math.max(...lines.map(([code]) => code?.length ?? 0).filter(length => length <= ALIGNED_WITHIN)) + 2;
-  return lines.map(([code, comment]) => (code === null ? COMMENT + comment : comment === null ? code : `${code.padEnd(Math.max(column, code.length + 2))}${COMMENT}${comment}`)).join('\n');
+function aligned(lines) {
+  const column = Math.max(LEAST_COLUMN, ...lines.map(([code]) => code.length).filter(length => length <= ALIGNED_WITHIN).map(length => length + 2));
+  return lines.map(([code, comment]) => (comment === null ? code : `${code.padEnd(Math.max(column, code.length + 2))}${closed(comment)}`)).join('\n');
 }
 
+const closed = comment => `|~ ${comment} ~|`;
+
 const joined = (...said) => said.filter(piece => piece !== null).join(' · ');
-const stepTo = (name, part) => (wiringOf(part) === undefined ? name : `${name} | legend`);
 const pageOf = (scope, subject) => {
   const record = declaringRecordOf(scope, subject);
   return record === null ? null : pageOfRecord(record);
@@ -86,4 +79,7 @@ function pageLinkedFrom(page, scope) {
   return isQuote(linked) && isTag(linked[0]) ? pageOf(scope, linked[0]) : null;
 }
 
-registerStateReader('any/legend', async (subject, state) => legendOf(subject, state.scope, await printsOfKinds(subject, state.scope, state)));
+registerStateReader('legend/print', async (subject, state) => {
+  const told = payloadBeneath(subject);
+  return legendOf(told, state.scope, await printsOfKinds(told, state.scope, state));
+});

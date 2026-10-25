@@ -7,11 +7,12 @@
       stopped: six whole numbers under its tag, the offset from zero, the
       line and the column from one of its start, then of the point after
       its end, `::span[0 1 1 1 1 2]` for the first character of a text.
-      Its kind names its two ends, `start` and `end`, each the point it
-      decodes from three of the numbers, so the line where a parse
-      stopped is read by its names,
-      `"[1" | parse !| get /location | start | line`.
-      ::snippet~("~{" | parse !| get /location)
+      Its kind names each of its six numbers by its index, `startOffset`,
+      `startLine`, `startColumn`, `endOffset`, `endLine` and `endColumn`,
+      and its two ends, `start` and `end`, each the point it decodes from
+      three of the numbers, so the line where a parse stopped is read by its
+      names, `"[1" | parse !| location | startLine`.
+      ::snippet~("~{" | parse !| location | legend)
       ::link~(::point | doc) ::link~(::quote/ParseError | doc)
       ::link~(::qlang/errors | doc)
   ~~|
@@ -31,6 +32,12 @@
             `::point[4 1 5]`.
         ~~|
         ~(drop 3 | tag ::point) ::point
+    | wires :startOffset |~~ The offset of the start, counted from zero. ~~| /0 ::number
+    | wires :startLine |~~ The line of the start, counted from one. ~~| /1 ::number
+    | wires :startColumn |~~ The column of the start, counted from one. ~~| /2 ::number
+    | wires :endOffset |~~ The offset past the end, counted from zero. ~~| /3 ::number
+    | wires :endLine |~~ The line past the end, counted from one. ~~| /4 ::number
+    | wires :endColumn |~~ The column past the end, counted from one. ~~| /5 ::number
     | throws :PayloadKindNotTakenError
         |~~ A span is the vector of six numbers, the offset, the line and
             the column of its start and of the point after its end,
@@ -52,6 +59,9 @@
             and of its last three.
         ~~|
         ~(::span[0 1 1 4 1 5] | get [~(start) ~(end)] | eq [::point[0 1 1] ::point[4 1 5]])
+    | proves :namesEachNumberAtItsPlace
+        |~~ Each of the six numbers of a span is read by its name. ~~|
+        ~(::span[0 1 1 4 1 5] | get [~(startOffset) ~(startLine) ~(startColumn) ~(endOffset) ~(endLine) ~(endColumn)] | eq [0 1 1 4 1 5])
     | proves :readsTheLineWhereAParseStopped
         |~~ The names of the span and of its point read the line where a
             parse stopped.

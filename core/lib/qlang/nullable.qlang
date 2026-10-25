@@ -4,7 +4,7 @@
 
 :nullable
   |~~ A nullable marks in a shape a part null in some of the data over the
-      shape of the rest, a part null in all of it standing as `::null`:
+      shape of the rest; a part null in all of it stands as `::null`:
       `[1 null 3] | shape` answers `::shape[::nullable::number]`.
       ::link~(::shape | doc)
   ~~|

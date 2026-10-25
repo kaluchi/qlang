@@ -26,7 +26,7 @@ function refusalOf(scope, subject) {
 }
 
 // [QSLIT#keyword], [QSQUO#held]
-function declaringRecordOf(scope, subject) {
+export function declaringRecordOf(scope, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) {
     refuseWithheld(scope, subject.name, true);

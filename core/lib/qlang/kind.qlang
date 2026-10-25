@@ -115,7 +115,7 @@
             it by its tag, `::trace/PayloadKindNotTakenError`.
             ::link~(::kind/accepts | doc)
         ~~|
-        ~(wires :expected |~~ The kinds the payload takes, `#[::map]`. ~~| ::set
+        ~(wires :expected |~~ The kinds the payload takes. ~~| ::set
           | wires :actualTag |~~ The kind of the payload refused. ~~| ::tag
           | wires :actualValue |~~ The payload refused. ~~|)
     | throws :ElementKindNotTakenError
@@ -128,7 +128,7 @@
             ::link~(::kind/accepts | doc) ::link~(::kind/wires | doc)
         ~~|
         ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
-          | wires :expected |~~ The kinds each element takes, `#[::number]`. ~~| ::set
+          | wires :expected |~~ The kinds each element takes. ~~| ::set
           | wires :actualTag |~~ The kind of the element refused. ~~| ::tag
           | wires :actualValue |~~ The element refused. ~~|)
     | throws :KindNotTakenError
@@ -139,7 +139,7 @@
             shares it by its tag, `::fn/RecipeKindNotTakenError`.
             ::link~(::kind/wires | doc)
         ~~|
-        ~(wires :expected |~~ The kinds the part takes, `#[::number]`. ~~| ::set
+        ~(wires :expected |~~ The kinds the part takes. ~~| ::set
           | wires :actualTag |~~ The kind of the part refused. ~~| ::tag
           | wires :actualValue |~~ The part refused. ~~|)
     | throws :NotGivenError

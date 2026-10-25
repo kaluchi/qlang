@@ -1,4 +1,4 @@
-// [D326]
+// [QSPRN#legend]
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
@@ -58,7 +58,7 @@ const pageOf = (scope, subject) => {
   return record === null ? null : pageOfRecord(record);
 };
 
-// [D326], [QSSLF#doc]
+// [QSPRN#legend], [QSSLF#doc]
 function glossOf(page, scope) {
   if (!isDoc(page)) return null;
   if (page.every(segment => typeof segment !== 'string' || segment.trim() === '')) return glossOf(pageLinkedFrom(page, scope), scope);

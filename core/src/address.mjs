@@ -16,7 +16,7 @@ export const FN_CALL_ADDRESS = 'fn/call';
 export const subjectKindsRefusalAddress = address => `${address}/SubjectKindNotTakenError`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;
-// [D449]
+// [QSBLD#value]
 export const notReadAddress = holderAddress => `${holderAddress}/NotReadError`;
 export const kindsRefusalAddress = address => `${address}/KindNotTakenError`;
 export const elementsRefusalAddress = address => `${address}/ElementKindNotTakenError`;

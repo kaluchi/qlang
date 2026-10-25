@@ -3,16 +3,16 @@
 {"name":"env-holds-a-name-that-holds-a-quote","query":":double ~(mul 2) | env | has :double","expect":"true"}
 {"name":"env-answers-whatever-the-subject","query":":x 1 | [1 2 3] | env | has :x","expect":"true"}
 {"name":"env-answers-the-names-of-the-scope","query":":x 1 | env | get [~(has :x) ~(has :vec) ~(has :count)]","expect":"[true false false]"}
-{"decision":"D449","name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | get /x | value","expect":"1"}
+{"name":"a-declaration-produces-a-binding-record","query":":x |~~ One. ~~| 1 | env | get /x | value","expect":"1"}
 {"name":"a-binding-record-answers-its-doc","query":":x |~~ One. ~~| 1 | env | get /x | doc | content","expect":"\"One.\""}
 {"name":"a-group-exposes-the-record-of-a-name-it-declares","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | tag","expect":"::binding"}
-{"decision":"D449","name":"a-group-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | value","expect":"2"}
-{"decision":"D449","name":"a-value-is-held-in-its-record","query":"0.07 | :taxRate it | env | get /taxRate | value","expect":"0.07"}
-{"decision":"D449","name":"a-binding-record-holds-its-name","query":":foo 2 | env | get /foo | name","expect":":foo"}
+{"name":"a-group-exposes-the-value-its-declaration-computed","query":"(:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | value","expect":"2"}
+{"name":"a-value-is-held-in-its-record","query":"0.07 | :taxRate it | env | get /taxRate | value","expect":"0.07"}
+{"name":"a-binding-record-holds-its-name","query":":foo 2 | env | get /foo | name","expect":":foo"}
 {"name":"env-answers-what-the-reader-declared","query":":x 1 | :Box {} | :Box/y 2 | env | get [~(has :x) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
 {"name":"env-answers-a-map","query":"env | tag","expect":"::map"}
 {"name":"a-node-under-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
-{"decision":"D449","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | value","expect":"10"}
+{"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | value","expect":"10"}
 {"name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\"New doc.\\nWith second remark.\""}
 {"name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\"Captured value.\""}
 {"name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| tag) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| tag) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/docs/NotGivenError ::binding/name/KindNotTakenError true]"}

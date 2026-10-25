@@ -53,7 +53,13 @@ them as `:actualValue`, but at the subject of the step that reads it,
 `get`, `query`, `has`, a write and a path run as code, whose kind alone
 it names [QSERR#site], the selector of an input or a field holding the args
 or the payload it met; and a vector, a set, a doc, a quote, a function
-and a kind read by index.
+and a kind read by index. No path reads beneath a closed tag
+[QSBLD#value]: a value whose kind wires its parts is read by their names,
+bare, and a path that reaches it is refused as `::path/TagClosedError`,
+its `:names` the names the kind wires and its `:repair`, where the path
+went by them, the read by the names, `get /location/start/line` read as
+`get /location | start | line`; `payload` answers the payload, which a path
+reads as any value.
 
 ```qlang
 > {:a {:b [10 20]}} | get /a/b/-1
@@ -71,8 +77,11 @@ and a kind read by index.
 > {:b ::T#5} | get /b/c !| get [~(tag) /actualValue]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue)]
+> get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue/actualValue)]
 [[#[:actualTag :path :segment :trace] ::number] [1 2]]
+
+> "[1" | parse !| get [~(get /location/start/line !| get [~(tag) /names /repair]) ~(get /location | start | line)]
+[[::path/TagClosedError #[:end :start] ~(get /location | start | line)] 1]
 ```
 
 ## query
@@ -81,8 +90,9 @@ and a kind read by index.
 index is missing or `null` stands on the path, beneath the tags over it
 as every value the path meets; another kind on the path
 it refuses as `get` does, a segment that is no whole number on a vector
-among it. Its second input is a default, answered as it is where the
-path misses; a `null` that stands at the path is answered as it stands.
+among it, and a closed tag as `get` does. Its second input is a default,
+answered as it is where the path misses; a `null` that stands at the path
+is answered as it stands.
 
 ```qlang
 > get [~({:a null} | query /a/b) ~({:a ::T#null} | query /a/b)]
@@ -185,7 +195,9 @@ written at that field, and such a value is built by `get` and then `tag`,
 kind are answered as they are, their parts unread, and a template held in
 a name builds the same shape wherever it is applied. A part that answers
 a failure is the answer of the template, the parts after it unread
-[QSERR#flow].
+[QSERR#flow]. A value under a closed tag is read in a template by the
+quotes of its names, `get [~took ~result]`, a path of the template
+beneath its tag refused as `get` refuses it.
 
 `with` names parts of its subject for one template and answers the
 template as `get` answers it, the names in each of its quotes beside the
@@ -206,7 +218,9 @@ that is an index, a quoted key or a word of the literals refused as
 on the subject, seeing nothing of the others but the names, and no name
 leaves the call; a name that meets a verb its step's subject answers is
 refused as every name of a value is [QSNAM#reach], and a key of the
-subject no name names is read by its path.
+subject no name names is read by its path. A path of `with` beneath a
+closed tag is refused as `get` refuses it, the names of a closed value
+being its own.
 
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
@@ -411,7 +425,8 @@ refused there, and for `update` and `delete` the part itself must be
 there; a key is the path of one segment. Every container on the way is
 built again under the tags it stood under, each laid again through its
 kind, so a set is ordered again and a value that breaks the invariant of
-its tag is refused.
+its tag is refused. No path writes beneath a closed tag, refused as
+`::path/TagClosedError`: a value of its kind is built anew at its door.
 
 ```qlang
 > {:a {:b 1}} | put /a/c 2

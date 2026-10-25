@@ -1,9 +1,9 @@
 {"name":"a-parse-refusal-holds-its-location-as-a-span","query":"\"~{\" | parse !| get /location","expect":"::span[0 1 1 1 1 2]"}
 {"name":"a-span-answers-the-point-it-starts-at","query":"\"[1 2\" | parse !| get /location | start","expect":"::point[4 1 5]"}
-{"decision":"D451","name":"a-span-answers-the-point-after-its-end","query":"::span[0 1 1 4 1 5] | end","expect":"::point[4 1 5]"}
-{"decision":"D451","name":"a-span-of-three-numbers-leaves-its-end-unread","query":"::span[0 1 1] !| get [~(tag) ~(get /actualValue | tag)]","expect":"[::span/end/NotReadError ::point/offset/NotGivenError]"}
-{"decision":"D451","name":"a-point-reads-its-offset-line-and-column","query":"::point[7 2 3] | get [~(offset) ~(line) ~(column)]","expect":"[7 2 3]"}
-{"decision":"D451","name":"a-span-reads-its-ends-by-their-names-alone","query":"::span[0 1 1 4 1 5] | get [~(start) ~(get /0 !| tag) ~(get /start !| get /repair)]","expect":"[::point[0 1 1] ::path/TagClosedError ~(start)]"}
+{"name":"a-span-answers-the-point-after-its-end","query":"::span[0 1 1 4 1 5] | end","expect":"::point[4 1 5]"}
+{"name":"a-span-of-three-numbers-leaves-its-end-unread","query":"::span[0 1 1] !| get [~(tag) ~(get /actualValue | tag)]","expect":"[::span/end/NotReadError ::point/offset/NotGivenError]"}
+{"name":"a-point-reads-its-offset-line-and-column","query":"::point[7 2 3] | get [~(offset) ~(line) ~(column)]","expect":"[7 2 3]"}
+{"name":"a-span-reads-its-ends-by-their-names-alone","query":"::span[0 1 1 4 1 5] | get [~(start) ~(get /0 !| tag) ~(get /start !| get /repair)]","expect":"[::point[0 1 1] ::path/TagClosedError ~(start)]"}
 {"name":"a-point-holds-three-whole-numbers","query":"::point[0.5 1 1] !| tag","expect":"::point/PayloadNotOffsetLineAndColumnError"}
 {"name":"a-span-refuses-a-payload-that-is-no-vector","query":"get [~(::span\"abcdef\" !| tag) ~(::span#6 !| tag) ~(::span{:a 1} !| tag)]","expect":"[::span/PayloadKindNotTakenError ::span/PayloadKindNotTakenError ::span/PayloadKindNotTakenError]"}
 {"name":"a-span-refuses-an-element-that-is-no-number","query":"::span[0 1 \"x\" 1 1 2] !| get [~(tag) /index]","expect":"[::span/ElementKindNotTakenError 2]"}

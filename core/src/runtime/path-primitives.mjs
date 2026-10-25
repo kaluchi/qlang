@@ -54,7 +54,7 @@ async function readParts(subject, templates, soft, fallback, state) {
 registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
 registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
-// [QSPTH#write], [QSERR#trace], [D449]
+// [QSPTH#write], [QSERR#trace]
 async function written(value, path, at, write, state) {
   if (wiringOf(value) !== undefined) throw tagClosed(value, path, at);
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);

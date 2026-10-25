@@ -20,7 +20,7 @@ export const failedOnAPart = error => error.facts.get('trace').some(frame => par
 const TracePayloadKindNotTakenError = declareRefusal('trace/PayloadKindNotTakenError');
 const TraceElementKindNotTakenError = declareRefusal('trace/ElementKindNotTakenError');
 
-// [D451]
+// [QSERR#trace]
 function frameOf(element) {
   const frame = walkToKinds(element, [FRAME_TAG.name])?.served;
   return frame !== undefined && wiringOf(frame) !== undefined ? frame : undefined;

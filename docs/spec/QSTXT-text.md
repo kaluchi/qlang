@@ -70,7 +70,7 @@ true
 > "abc" | contains :a !| tag
 ::string/contains/needle/KindNotTakenError
 
-> get [~(42 | contains "x" !| get [~(tag) /addresses]) ~(#[1 2] | binding :contains | get /name)]
+> get [~(42 | contains "x" !| get [~(tag) /addresses]) ~(#[1 2] | binding :contains | name)]
 [[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
 ```
 
@@ -180,6 +180,6 @@ writes a whole literal is refused as
 > "error" | toRegex "mi"
 #"error"im
 
-> get [~(::string/match | binding | get /value | inputs | map ~(get /name)) ~(::string/replace | binding | get /value | inputs | map ~(get /name)) ~("abc" | match "a" !| tag) ~("a1" | capture #"(\d)" !| tag) ~("(" | toRegex !| tag)]
+> get [~(::string/match | binding | value | inputs | map ~(get /name)) ~(::string/replace | binding | value | inputs | map ~(get /name)) ~("abc" | match "a" !| tag) ~("a1" | capture #"(\d)" !| tag) ~("(" | toRegex !| tag)]
 [[:regex] [:needle :with] ::string/match/regex/KindNotTakenError ::string/capture/RegexNamesNoGroupError ::string/toRegex/TextNotRegexError]
 ```

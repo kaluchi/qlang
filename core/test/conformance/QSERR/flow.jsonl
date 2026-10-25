@@ -37,6 +37,6 @@
 {"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| tag","expect":"::number/div/divisor/ZeroError"}
 {"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| tag","expect":"::number/div/divisor/ZeroError"}
 {"name":"a-refusal-in-a-branch-of-if-answers-the-call","query":"5 | if (gt 0) ~(add \"x\") ~(0) !| tag","expect":"::number/add/addend/KindNotTakenError"}
-{"decision":"D450","name":"an-answer-its-kind-refuses-raises-the-refusal-under-the-tags-a-walk-passed","query":":Foo |~~ F ~~| (::kind | accepts |~~ v ~~| ::vec | holds :LongError |~~ l ~~| ~(count | gt 2)) | ::Bar::Foo[1 2 3] | take 1 !| tag","expect":"::Foo/LongError"}
+{"name":"an-answer-its-kind-refuses-raises-the-refusal-under-the-tags-a-walk-passed","query":":Foo |~~ F ~~| (::kind | accepts |~~ v ~~| ::vec | holds :LongError |~~ l ~~| ~(count | gt 2)) | ::Bar::Foo[1 2 3] | take 1 !| tag","expect":"::Foo/LongError"}
 {"name":"a-set-literal-runs-its-parts-in-the-one-order-it-holds-them","query":"#[::number\"b\" ::string#1] !| tag","expect":"::string/PayloadKindNotTakenError"}
 {"name":"a-part-a-later-entry-of-its-key-replaces-runs-nowhere","query":"{:k ::number\"x\" :k 1} | count","expect":"1"}

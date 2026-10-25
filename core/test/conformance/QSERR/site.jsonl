@@ -17,17 +17,17 @@
 {"name":"drop-refuses-a-fractional-count","query":"[1 2 3] | drop 1.5 !| tag","expect":"::vec/drop/count/NotIntegerError"}
 {"name":"take-refuses-a-count-that-is-no-number","query":"[1 2 3] | take \"x\" !| tag","expect":"::vec/take/count/KindNotTakenError"}
 {"name":"a-refusal-links-the-page-of-the-site-it-guards","query":"::path/KeyNotInMapError | doc | links | map ~open | any ~(eq (::path | doc))","expect":"true"}
-{"decision":"D449","name":"a-refusal-is-declared-in-the-source-of-its-site","query":"::path/KeyNotInMapError | binding | origin","expect":":qlang/path"}
-{"decision":"D449","name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | origin","expect":":qlang/quote"}
-{"decision":"D449","name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/RefusalFactNotDeclaredError | binding | origin","expect":":qlang/builtin"}
+{"name":"a-refusal-is-declared-in-the-source-of-its-site","query":"::path/KeyNotInMapError | binding | origin","expect":":qlang/path"}
+{"name":"reading-text-as-code-is-refused-under-quote","query":"::quote/ParseError | binding | origin","expect":":qlang/quote"}
+{"name":"a-defect-of-the-runtime-sits-under-builtin","query":"::builtin/RefusalFactNotDeclaredError | binding | origin","expect":":qlang/builtin"}
 {"name":"a-refusal-carries-the-kind-of-the-value-it-refused","query":"\"hello\" | add 1 !| get /actualTag","expect":"::string"}
 {"name":"filter-over-a-map-names-the-entry-that-refused","query":"{:a true :b 1} | filter ~(it) !| trace | last | path","expect":"/b"}
 {"name":"an-input-raises-the-refusal-under-its-address","query":"1 | add \"a\" !| get [~(tag) /actualTag]","expect":"[::number/add/addend/KindNotTakenError ::string]"}
 {"name":"the-prefix-is-refused-at-its-residence","query":"\"a\" | prepend 1 !| tag","expect":"::string/prepend/prefix/KindNotTakenError"}
 {"name":"each-value-the-call-gives-is-refused-at-the-path-its-frame-names","query":"{:a 1 :b \"x\"} | sumOf /a /b !| get [~(tag) ~(trace | first | path) /actualTag]","expect":"[::vec/sum/ElementKindNotTakenError /1 ::string]"}
 {"name":"a-noun-lists-the-refusals-of-its-verbs","query":"::number | source | toString | contains \"throws :addend/KindNotTakenError\"","expect":"true"}
-{"decision":"D449","name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
-{"decision":"D449","name":"a-noun-lists-each-refusal-once","query":"::vec | binding | value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}
+{"name":"a-step-lists-its-refusals-on-its-noun","query":"::path | binding | value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :KeyNotInMapError) | count","expect":"1"}
+{"name":"a-noun-lists-each-refusal-once","query":"::vec | binding | value | get /0 | filter ~(get /name | eq :throws) | map ~(get /modifiers | first) | filter ~(eq :PayloadKindNotTakenError) | count","expect":"1"}
 {"name":"two-sites-share-the-last-name-of-the-rule-they-refuse","query":"get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)] | map ~(toString | split \"/\" | last)","expect":"[\"LiteralComputesError\" \"LiteralComputesError\"]"}
 {"name":"a-refusal-holds-the-value-it-refuses-whatever-the-subject-equals","query":"get [~([1] | :v it | v 1 !| has /actualValue) ~(:v [1] | [1] | v 1 !| has /actualValue) ~(\"zz\" | toRegex \"zz\" !| has /actualValue) ~([1] | apply ~(it) [1] !| has /actualValue) ~(\"x\" | tag ::number !| get /actualValue)]","expect":"[true true true true \"x\"]"}
 {"name":"a-refusal-of-the-subject-its-step-was-served-holds-the-kind-of-that-subject-alone","query":"get [~(::W\"x\" | toNumber !| get [~(keys) /actualTag]) ~(1e10 | range !| keys) ~(::Width#2.5 | range !| keys) ~(42 | keys !| keys) ~([] | union !| keys) ~(\"x{\" | parseJson !| keys)]","expect":"[[#[:actualTag :trace] ::string] #[:actualTag :longest :trace] #[:actualTag :trace] #[:actualTag :trace] #[:actualTag :trace] #[:actualTag :message :trace]]"}

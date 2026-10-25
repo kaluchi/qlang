@@ -13,7 +13,7 @@
 {"name":"an-axis-in-held-code-reads-no-value-of-the-reader","query":":k |~~ The k. ~~| 5 | :f ~(::k | doc) | apply f !| get [~(tag) /name]","expect":"[::call/ValueWithheldError :k]"}
 {"name":"held-code-declares-nothing-under-a-value-of-the-reader","query":":k 5 | :f ~(:k/x 1 | k/x) | apply f !| get [~(tag) /name]","expect":"[::call/ValueWithheldError :k]"}
 {"name":"a-tag-in-held-code-lays-a-tag-no-name-declares","query":":f ~(::Small#12 | payload) | apply f","expect":"12"}
-{"decision":"D449","name":"a-tag-in-held-code-reads-a-name-the-code-declares-itself","query":":k 5 | :f ~(:k |~~ Mine. ~~| 6 | ::k | binding | value) | apply f","expect":"6"}
+{"name":"a-tag-in-held-code-reads-a-name-the-code-declares-itself","query":":k 5 | :f ~(:k |~~ Mine. ~~| 6 | ::k | binding | value) | apply f","expect":"6"}
 {"name":"a-tag-in-held-code-reads-the-root-label-a-value-of-the-reader-is-named-after","query":":vec 5 | :f ~(::vec | doc | tag) | apply f","expect":"::doc"}
 {"name":"a-step-in-held-code-reads-no-value-of-the-reader-named-after-a-root-label","query":":vec 5 | :f ~(vec) | apply f !| get [~(tag) /name]","expect":"[::call/ValueWithheldError :vec]"}
 {"name":"a-name-withheld-as-the-code-of-a-verb-is-refused-under-its-name","query":":f ~(add 1) | :g ~([1 2] | map f) | apply g !| query [~(tag) /name]","expect":"[::call/ValueWithheldError :f]"}

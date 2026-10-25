@@ -16,7 +16,7 @@ as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
 `::Foo::error{…}`, the facts laid under the tag written before the bang
 through its label, a refusal of the label answering for the literal: a
 label takes the error at rest by its own tag, `::error`, so one whose
-`wraps` names maps alone refuses it and one that names
+`accepts` names maps alone refuses it and one that names
 `#[::map ::error]` holds it, while the kind of errors and the kind of
 maps over an error at rest are that error. An
 error at rest holds the facts it is written with, a `:kind` entry a fact
@@ -45,7 +45,7 @@ true
 > !{:by 3} | tag ::error | eq !{:by 3}
 true
 
-> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]
 [!{:a 1} [::Late/PayloadKindNotTakenError ::error]]
 ```
 
@@ -80,9 +80,9 @@ group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, none where the site is the kind
 of errors itself, and a label that takes no error at rest by its own tag,
-`::error`, one whose `wraps` names maps alone among them, or whose
+`::error`, one whose `accepts` names maps alone among them, or whose
 invariant the error at rest breaks, refuses it with a frame at the step
-of the catch, the refusal raised to the next catch; a label whose `wraps`
+of the catch, the refusal raised to the next catch; a label whose `accepts`
 names `#[::map ::error]` holds it. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
 taken on the way and a failure recovered by its tag in lines of
@@ -110,10 +110,10 @@ true
 > :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) /actualTag]
 [::Box/k ::Box]
 
-> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) /actualTag]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) /actualTag]
 [::Late/PayloadKindNotTakenError ::error]
 
-> :Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
 [::Late 3]
 ```
 
@@ -126,11 +126,14 @@ arose to the step where it is read. A frame is a value of `::frame`, the
 vector of the subject the step met, the quote of the steps of its level
 from the one that failed, and, where the step failed at a part of its
 subject, the path of that part; a step the failure skips joins the steps
-of the last frame. The verbs of `::frame` read its parts:
-`subject` the value its step met, `unfinished` the steps from the one
-that failed, `failed` that step and `skipped` the steps after it, and
-`path` the path of the part, or null; a path reads a frame as the vector
-it is, `/0` its subject, so the part a step failed at is one read away.
+of the last frame. Its kind wires those parts [QSBLD#value], each read by
+its name: `subject` the value its step met, `unfinished` the steps from
+the one that failed and `path` the path of the part, or null,
+`!| trace | last | path`, and the words `failed` and `skipped` read that
+step and the steps after it; no path reads beneath the tag of a frame, so
+the part a step failed at is read by the names,
+`!| trace | last | subject | get /1`. The core builds a frame by the
+wiring the root hands it [QSHST#source].
 
 A step whose answer is a failure its subject was not passes a frame: a
 step that fails, `raise`, and a step that answers a failure from inside
@@ -165,8 +168,10 @@ vector under a tag of another kind among them, is refused as
 `::trace/PayloadKindNotTakenError`, and an element that is no frame as
 `::trace/ElementKindNotTakenError` at its index; a frame takes the vector
 of its parts by its own tag, a vector under a tag and a set refused as
-`::frame/PayloadKindNotTakenError`, and a frame of a subject alone, or
-whose third element is no path, as
+`::frame/PayloadKindNotTakenError`, a frame of a subject alone as
+`::frame/unfinished/NotGivenError`, a third part that is no path as
+`::frame/path/KindNotTakenError`, and steps that hold none, a null
+written at the third part and a part past it as
 `::frame/PayloadNotSubjectAndStepsError`. The kind holds a trace wherever
 one is laid: its literal and `tag ::trace`; `raise`, which lays the
 `:trace` of the map or the error at rest it raises through the kind's
@@ -200,7 +205,7 @@ trace over at that raise.
 > "x" | add 1 | mul 2 !| trace | first | get [~(subject) ~(unfinished) ~(failed) ~(skipped)]
 ["x" ~(add 1 | mul 2) ~(add 1) ~(mul 2)]
 
-> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gt 18) !| get /trace/1/0/1
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gt 18) !| get /trace/1 | subject | get /1
 {:name "Bo" :age "15"}
 
 > [1 2 3] | take (count | sub "1") !| trace | map ~failed
@@ -222,7 +227,7 @@ true
 ~(add 1)
 
 > get [~({:trace 5} | raise !| tag) ~({:trace [5]} | raise !| get [~(tag) /index]) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag) ~(::frame[1] !| tag)]
-[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/PayloadNotSubjectAndStepsError]
+[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/unfinished/NotGivenError]
 
 > get [~(::frame::X[1 ~(a)] !| get [~(tag) /actualTag]) ~(::frame#[1 ~(a)] !| get [~(tag) /actualTag])]
 [[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]
@@ -367,10 +372,10 @@ a segment a path read as an index numbers.
 > ::error | manifest | has ::error/actualTag
 true
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | get /name) ~(::number/plus/by/NotGivenError | binding | get /name)]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | name) ~(::number/plus/by/NotGivenError | binding | name)]
 [:number/plus/by/KindNotTakenError :number/plus/by]
 
-> ::builtin | manifest | filter ~(binding | get /name | toString | endsWith "Error") | count
+> ::builtin | manifest | filter ~(binding | name | toString | endsWith "Error") | count
 12
 
 > ::qlang/AnswerBeyondBudgetError | manifest
@@ -432,8 +437,9 @@ elision prints shorter, each subject measured on the one line its frame
 prints on, every frame keeping its steps and its path; each elision's
 `:read` continues the query beneath `!|`, the record a word's code
 failed on standing in the subject of its frame at the path the frame
-names, `!| get /trace/1/0/1`. An alert within the budget stands as it
-prints. Past it the failure keeps its tag and the names of its facts:
+names, `!| get /trace/1 | subject | get /1`, the elision of a subject
+reading its frame by the name of the part. An alert within the budget
+stands as it prints. Past it the failure keeps its tag and the names of its facts:
 its trace keeps its first frames within an excerpt of its own, three
 hundred characters, and ends with the elision of the rest,
 `~(!| get /trace | drop k)`, and then each fact gives way within the
@@ -457,6 +463,6 @@ $ qlang '3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) 
 ```
 
 ```qlang
-> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gte 18) !| get /trace/1/0/1
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gte 18) !| get /trace/1 | subject | get /1
 {:name "Bo" :age "15"}
 ```

@@ -10,7 +10,7 @@ recordRefusal('call/HostFailureError');
 const BuiltinRefusalFactNotDeclaredError = declareDefect('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
-// [QSPRN#span], [D451]
+// [QSPRN#span]
 export function spanOfLocation(loc, source) {
   const point = ({ offset, line, column }) => {
     const lineStart = offset - (column - 1);
@@ -41,7 +41,7 @@ export function errorFromQlang(qlangError, subject, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
-// [QSSYN#refusal], [D451]
+// [QSSYN#refusal], [QSPRN#span]
 export function errorFromParse(parseError, scope, location, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);

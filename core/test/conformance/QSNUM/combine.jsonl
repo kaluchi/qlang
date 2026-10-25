@@ -2,11 +2,11 @@
 {"name":"subOf-subtracts-the-second-field-from-the-first","query":"{:x 10 :y 3} | subOf /x /y","expect":"7"}
 {"name":"mulOf-multiplies-two-fields-of-one-map","query":"{:x 5 :y 4} | mulOf /x /y","expect":"20"}
 {"name":"divOf-divides-the-first-field-by-the-second","query":"{:x 20 :y 4} | divOf /x /y","expect":"5"}
-{"decision":"D452","name":"a-call-takes-the-subject-in-the-pipe","query":"1 | add 1 2 !| get [~(tag) ~(doc | content | contains \"sumOf\")]","expect":"[::number/add/ArgsBeyondInputsError true]"}
+{"name":"a-call-takes-the-subject-in-the-pipe","query":"1 | add 1 2 !| get [~(tag) ~(doc | content | contains \"sumOf\")]","expect":"[::number/add/ArgsBeyondInputsError true]"}
 {"name":"mulOf-multiplies-the-args-it-is-given","query":"{:price 4 :qty 3} | mulOf /price /qty","expect":"12"}
-{"decision":"D452","name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| get [~(tag) ~(doc | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
+{"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| get [~(tag) ~(doc | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
 {"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| tag","expect":"::any/gt/ArgsBeyondInputsError"}
-{"decision":"D452","name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| doc | content | contains \"one of several\"","expect":"true"}
+{"name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| doc | content | contains \"one of several\"","expect":"true"}
 {"name":"sumOf-takes-one-number-at-least","query":"{:a 1} | sumOf !| tag","expect":"::any/sumOf/numbers/EmptyError"}
 {"name":"subOf-takes-two-values","query":"{:a 1} | subOf /a 1 1 !| tag","expect":"::any/subOf/ArgsBeyondInputsError"}
 {"name":"subOf-given-one-value-is-refused","query":"{:a 1} | subOf /a !| tag","expect":"::any/subOf/subtrahend/NotGivenError"}

@@ -58,7 +58,7 @@ export function declaresVerb(address, ofAVerb, isLabelName) {
   return ofAVerb && labelName !== null && isLabelName(labelName);
 }
 
-// [QSDSP#walk], [D449]
+// [QSDSP#walk], [QSDSP#residence]
 function residesOn(record, scope) {
   return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)) || isNodeOfAPart(record, scope), labelName => isLabel(scope, labelName));
 }
@@ -92,7 +92,7 @@ export function answerOf(scope, address) {
 
 export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 
-// [QSBLD#answer], [QSLSP#offer], [D449]
+// [QSBLD#answer], [QSLSP#offer]
 export function answerKindsOf(scope, record, subjectKinds) {
   if (isNodeOfAPart(record, scope)) return fieldOfTheNode(record, scope).kinds;
   const address = record.get('name').name;
@@ -176,7 +176,7 @@ export function pathNamesOf(scope) {
 
 const PATH_NAMES = new WeakMap();
 
-// [QSDSP#walk], [QSDSP#tagname], [D449]
+// [QSDSP#walk], [QSDSP#tagname]
 export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
@@ -403,7 +403,7 @@ export function verbNames(scope) {
   return names;
 }
 
-// [QSLSP#server], [D449]
+// [QSLSP#server], [QSLSP#offer]
 export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
   const record = reached === undefined

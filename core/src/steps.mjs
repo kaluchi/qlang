@@ -252,7 +252,7 @@ export function builtFrom(body) {
 // [QSBLD#kind]
 export const declaresKind = bind => !bind.has('body') || builtFrom(bind.get('body')) === 'kind';
 
-// [D449]
+// [QSPTH#get]
 export function commandStep(name, modifiers) {
   const fields = new Map([['name', makeKeyword(name)]]);
   if (modifiers.length > 0) fields.set('modifiers', Object.freeze([...modifiers]));

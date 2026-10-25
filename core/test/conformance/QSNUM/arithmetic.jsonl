@@ -22,7 +22,7 @@
 {"name":"a-number-under-a-tag-rounds-under-the-tag","query":"::W#2.7 | floor","expect":"::W#2"}
 {"name":"a-negative-count-of-digits-rounds-to-tens","query":"15 | round -1","expect":"20"}
 {"name":"sum-refuses-an-answer-past-the-doubles","query":"[1e308 1e308] | sum !| tag","expect":"::number/NotFiniteError"}
-{"decision":"D451","name":"sum-overflow-holds-its-subject-on-the-trace","query":"[1e308 1e308] | sum !| trace | first | subject","expect":"[1e+308 1e+308]"}
+{"name":"sum-overflow-holds-its-subject-on-the-trace","query":"[1e308 1e308] | sum !| trace | first | subject","expect":"[1e+308 1e+308]"}
 {"name":"add-refuses-a-subject-that-is-no-number","query":"\"x\" | add 1 !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"add-refuses-an-addend-that-is-no-number-under-the-addend","query":"1 | add \"x\" !| tag","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| tag","expect":"::number/round/digits/NotIntegerError"}

@@ -12,7 +12,7 @@ import {
   makeTag, makePath, tagOf, accountOfForeign, bindingValueOf, wiringOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
-// [QSLIT#number], [D449]
+// [QSLIT#number], [QSDSP#walk]
 function isOfKind(value, kindName) {
   switch (kindName) {
     case ANY_KIND_NAME: return true;
@@ -24,7 +24,7 @@ function isOfKind(value, kindName) {
   }
 }
 
-// [QSDSP#walk], [D449]
+// [QSDSP#walk]
 export function walkToKinds(value, kindNames) {
   const passedTags = [];
   let served = value;

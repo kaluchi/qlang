@@ -39,7 +39,7 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(scope, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
   });
 
-  // [D449]
+  // [QSLSP#offer]
   it('shows a part a closed tag wires as a name of its label, which answers the kinds of its field', async () => {
     const scope = await langRuntime();
     const shown = shownFor(scope, 'end', ['span', 'tagged']);

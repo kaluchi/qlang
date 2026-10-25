@@ -33,7 +33,13 @@ and a source whose run answers an error or declares again a name the
 root holds, `::builtin/RootSourceNotDeclaredError`. The root writes into
 the descriptor of each primitive it takes the address it takes it under,
 `:of`, the tag of the verb or of the kind, `::builtin{:of ::number/add}`,
-while the source writes `::builtin{}` and the axis `source` reads it so. A
+while the source writes `::builtin{}` and the axis `source` reads it so;
+and it hands the core the wiring of each kind it declares whose parts it
+reads by a path or by the soft read of one index, `~(query /2)`, the
+reading a call makes of its inputs over its args [QSBLD#input], by which
+the core builds a value of the kind outside its door, a frame of a trace
+[QSERR#trace]; a kind that decodes a part by code is built through its
+door, the span of a refusal of a parse [QSPRN#span]. A
 primitive runs within the function or the kind its host handed it with,
 and within one equal to it by the one order, a function or a kind read
 back from its print among them, where the root it runs in holds that
@@ -125,25 +131,25 @@ where the platform looked for it, and `:cause`, the host's account of
 the failure.
 
 ```qlang
-> ::vec | binding | get /origin
+> ::vec | binding | origin
 :qlang/vec
 
-> get [~(~((:x 1 | env | get /x | get /origin)) | first)] | tag ::quote | apply it
+> get [~(~((:x 1 | env | get /x | origin)) | first)] | tag ::quote | apply it
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
 true
 
-> ::number | binding | get /value | get /1
+> ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | get /value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) /of])]
+> ::vec/count | binding | value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) /of])]
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]
 
-> get [~({:a 1} | apply (::vec/first | binding | get /value) [] !| tag) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| tag)]
+> get [~({:a 1} | apply (::vec/first | binding | value) [] !| tag) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [~("add (" | parse !| get /origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
@@ -212,7 +218,7 @@ says it was raised [QSERR#print], and showing a defect as `qlang:` and its
 message.
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | get /origin')).name)"
+$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | origin')).name)"
 source uri result defect scopeAfterCell quote/ParseError null cell-1
 ```
 

@@ -37,7 +37,7 @@ const OF_THE_FACTS = { caught: true, from: [] };
 
 const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
 
-// [D451]
+// [QSPRN#elide]
 const THE_SUBJECT_OF_A_FRAME = Symbol('qlang/subjectOfAFrame');
 
 function stepsOf(segments) {
@@ -47,7 +47,7 @@ function stepsOf(segments) {
   return at === -1 ? steps : [...steps, commandStep(SUBJECT_OF_A_FRAME, []), ...stepsOf(segments.slice(at + 1))];
 }
 
-// [QSPTH#value], [D451]
+// [QSPTH#value], [QSPRN#elide]
 function readOf(start, path, kept = null) {
   const steps = stepsOf([...start.from, ...path]);
   if (kept !== null) steps.push(commandStep('drop', [kept]));

@@ -10,17 +10,17 @@ it. The requirements of each section are the cases of its file under
 The axes, verbs of every value, read a name: `doc` its page, `source`
 every declaration written under its address, null for a node a chain
 lays, a law and a chapter among them, `binding` the record of its
-binding [QSNAM#binding], `manifest` the nodes under it, `laws` its laws
-and `explain` its explanation. A value is read by its kind, `5 | doc`
-the page of `::number`, a keyword among values, a value under a tag
+binding [QSNAM#binding], `manifest` the nodes under it and `laws` its
+laws. A value is read by its kind, `5 | doc` the page of `::number`, an
+error at rest the page of the refusal it carries, the page that says how
+the call is repaired, a keyword among values, a value under a tag
 nothing declares by the first kind its stack of tags declares from the
 outside in, the kind of the core beneath them last, so
 `::Box{:a 1} | doc` is the page of `::map`; and a name by its tag, the
 address of its node, `::vec/count | doc`, a label of the root from the
 root and any other name at its nearest declaration. The page of a verb
 is one value, whichever axis reaches it: `doc`, `binding | doc`,
-`explain | page`, `tutorial | first` and the anchor of its noun,
-`::vec | doc :sort`.
+`tutorial | first` and the anchor of its noun, `::vec | doc :sort`.
 
 `binding`, `doc`, `laws`, `manifest`, `runLaws` and `source` take an
 anchor, `:anchor`, a keyword, the last name of a node, and read the node the subject holds
@@ -37,10 +37,9 @@ kin, a name read in turn that is no keyword as
 `::any/doc/anchor/NameKindNotTakenError`, its index in its vector its
 `:index`, and an element of a set that is neither null, a keyword nor a
 vector as `::any/doc/anchor/ElementKindNotTakenError`, its index in the
-one order of the set its `:index`; `explain`, which reads
-the value it explains, and `tutorial`, which pairs the page and the laws
-of the name its subject reads, take no anchor, refusing one as
-`::any/explain/ArgsBeyondInputsError` and its kin.
+one order of the set its `:index`; `tutorial`, which pairs the page and
+the laws of the name its subject reads, takes no anchor, refusing one as
+`::any/tutorial/ArgsBeyondInputsError`.
 
 A tag nothing declares whose last name ends in `Error` reads the record
 of the address before it, and under the call of a function, where no node
@@ -48,7 +47,16 @@ declares that address, the page of `::fn/call` [QSBLD#fn]; any other name nothin
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the
-keyword asked. A name declared without a page answers null. A map is
+keyword asked. A name declared without a page answers null. The error at
+rest a catch holds reads the page of its site; a refusal the runtime
+raises by rule under a verb or a kind, with no page of its own, reads the
+page of what refused, the refusal of the kinds of an input, a field or a
+payload the page of that part, and every such refusal of the catalog has
+its page with its repair. The page of a refusal says what failed, which
+fact or which path of the frame names the culprit and how the call is
+repaired, and the laws of a refusal a query can meet hold the recovery
+through `!|`, a defect of the runtime and a failure inside a primitive a
+host hands, which no query of the language raises, holding none. A map is
 read by its kind whatever its fields hold, `{:kind ::set} | doc` the
 page of maps, and a label may declare a `doc` of its own, which its
 values answer before the verb of every value. A reader adds an axis of
@@ -64,7 +72,7 @@ true
 > ::map | doc :minus | eq (::map/minus | doc)
 true
 
-> ::vec/sort | get [~(doc) ~(binding | doc) ~(explain | page) ~(tutorial | first) ~(::vec | doc :sort)] | toSet | count
+> ::vec/sort | get [~(doc) ~(binding | doc) ~(tutorial | first) ~(::vec | doc :sort)] | toSet | count
 1
 
 > ::vec/take | source 1 !| tag
@@ -73,10 +81,16 @@ true
 > ::nosuchbinding | doc !| get [~(tag) /name]
 [::any/doc/UnknownNameError ::nosuchbinding]
 
-> ::number/add/FooError | binding | get /name
+> "x" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)
+true
+
+> 5 | gte !| get [~(tag) ~(doc | content | contains "compared with")]
+[::any/gte/value/NotGivenError true]
+
+> ::number/add/FooError | binding | name
 :number/add
 
-> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(explain | page | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | get /name)]
+> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
 [[::fn/call/by/KindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
@@ -106,19 +120,19 @@ true
 > ::qlang | manifest | get [~(has ::qlang/values) ~(has ::qlang/AnswerBeyondBudgetError)]
 [true true]
 
-> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box | manifest
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box | manifest
 #[::Box/w]
 
 > ::vec/take/count | manifest
 #[::vec/take/count/KindNotTakenError ::vec/take/count/NotGivenError ::vec/take/count/NotIntegerError]
 
-> ::vec/take/count/NotIntegerError | binding | get /value | tag
+> ::vec/take/count/NotIntegerError | binding | value | tag
 ::invariant
 
 > ::vec | manifest :take | eq (::vec/take | manifest)
 true
 
-> get [~(::set | manifest | has ::set/count) ~(#[3 1 2] | count) ~(#[3 1 2] | binding :count | get /name)]
+> get [~(::set | manifest | has ::set/count) ~(#[3 1 2] | count) ~(#[3 1 2] | binding :count | name)]
 [false 3 :vec/count]
 ```
 
@@ -188,39 +202,6 @@ guess for itself.
 
 > {:a 1 :b 2} | addOf /a /b !| get /nearest
 [:add :sumOf]
-```
-
-## explain
-
-`explain`, a verb of `::any`, answers the explanation of a value, a
-value of the kind `::explanation`, the map of the page `doc` reads for
-it under `:page` and the value under `:value`, which the verbs `page`
-and `value` read, a map of other keys refused as
-`::explanation/NotPageAndValueError`. A name reads its own page, a value the page of the kind it
-shows, and the error at rest a catch holds the page of its site, its
-value the error at rest that `raise` raises again; a refusal the runtime raises by
-rule under a verb or a kind, with no page of its own, reads the page of
-what refused, the refusal of the kinds of an input, a field or a payload
-the page of that part, and every such refusal of the catalog has its page
-with its repair; a name nothing declares is refused as
-`::any/explain/UnknownNameError`, but one past an address whose last name
-ends in `Error`, which reads the record of that address [QSSLF#axis]. The page of a refusal says what
-failed, which fact or which path of the frame names the culprit and how
-the call is repaired, and
-the laws of a refusal a query can meet hold the recovery through `!|`,
-a defect of the runtime and a failure inside a primitive a host hands,
-which no query of the language raises, holding none. An explanation
-prints the page above the value.
-
-```qlang
-> get [~("x" | add 1 !| explain | payload | keys) ~(::explanation{} !| tag)]
-[#[:page :value] ::explanation/NotPageAndValueError]
-
-> 42 | explain | value
-42
-
-> ::Nothing | explain !| tag
-::any/explain/UnknownNameError
 ```
 
 ## doc
@@ -311,7 +292,7 @@ true
 > ::qlang | doc :pipeline | tag
 ::doc
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
 > ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues") ~(contains "::qlang/AnswerBeyondBudgetError")]
@@ -380,6 +361,6 @@ line on one line and a doc of several lines closing on a line of its own,
 and its value after them.
 
 ```qlang
-> [::number ::string ::vec ::map ::set] | map ~(binding | get /value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct
-#[[:wraps :proves]]
+> [::number ::string ::vec ::map ::set] | map ~(binding | value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct
+#[[:accepts :proves]]
 ```

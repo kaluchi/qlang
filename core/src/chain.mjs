@@ -241,7 +241,7 @@ export function chainOfKind(kind) {
   return chain;
 }
 
-// [D451]
+// [QSHST#source]
 export function wiringAtPlaces(kind) {
   const places = chainOfKind(kind).fields.map(({ name, selector }) => ({ name: name.name, place: placeOf(readingOfSelector(selector)) }));
   if (places.length === 0 || places.some(({ place }) => place === null)) return null;

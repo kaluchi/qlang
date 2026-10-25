@@ -243,6 +243,6 @@ taking `::desc` off a value under it and laying it over any other, so
 > [1] | toKeyword !| tag
 ::call/KindAnswersNoVerbError
 
-> get [~(::Box#5 | desc) ~(::any/desc | binding | get /value | get /1)]
+> get [~(::Box#5 | desc) ~(::any/desc | binding | value | get /1)]
 [::desc::Box#5 ~(if (tag | eq ::desc) ~(payload) ~(tag ::desc))]
 ```

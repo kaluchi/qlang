@@ -63,7 +63,7 @@ export function isTag(v) {
   return isValueClass(v, 'tag');
 }
 
-// [QSNAM#binding], [QSDSP#residence], [QSHST#source], [D449]
+// [QSNAM#binding], [QSDSP#residence], [QSHST#source]
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
@@ -222,7 +222,7 @@ export function stampTagHeader(m, tag) {
   });
 }
 
-// [D449]
+// [QSBLD#value]
 const WIRING_SYMBOL = Symbol('qlang/wiring');
 
 function stampWiring(value, parts) {
@@ -269,7 +269,7 @@ export const CORE_KIND = Object.freeze({
 
 export const isKindOfTheCore = name => Object.hasOwn(CORE_KIND, name);
 
-// [D449]
+// [QSBLD#value]
 export function makeTagged(tag, payload, parts) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
@@ -390,7 +390,7 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-// [D451]
+// [QSHST#source], [QSERR#trace]
 const WIRINGS_THE_ROOT_HANDS = new Map();
 
 export function takeWiring(kindName, wiring) {

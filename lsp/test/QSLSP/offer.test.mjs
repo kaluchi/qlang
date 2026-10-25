@@ -181,7 +181,6 @@ describe('the verbs offered after a value', () => {
       .toEqual([[true, true, false], [true, false, false]]);
   });
 
-  // [D449]
   it('offers the names a closed tag wires and the verbs of its kind, no verb of its payload, and after a part the verbs of its kinds', async () => {
     const afterAFrame = await labelsAt('::frame[1 ~(a)] | ');
     expect(['subject', 'unfinished', 'path', 'failed', 'within', 'count', 'sort'].map(label => afterAFrame.includes(label)))

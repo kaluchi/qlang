@@ -48,7 +48,10 @@ label and the walk reached it, the kinds beneath it, which the answer laid
 back may change, and the noun a tag name names left out, with the other
 kinds `returns` names beside them, and elsewhere the kinds `returns` names;
 the walk of a tag name passes the noun it names, whose verbs serve it only
-where their `on` names `::tag` [QSDSP#tagname], and where the server knows
+where their `on` names `::tag` [QSDSP#tagname]; a value under a tag its
+kind closes offers the names its kind wires beside its words and those of
+`::tagged` and `::any`, no verb of its payload, and after a part the
+verbs of the kinds of its name [QSBLD#value]; and where the server knows
 no kind it offers every name:
 
 ```qlang
@@ -66,7 +69,7 @@ a verb, and no document run to name them, so a kind built elsewhere and
 bound by name is a kind to the runtime and a value to the tools:
 
 ```qlang
-> :K (::kind | wraps |~~ x ~~| ::map) | :Box |~~ A box. ~~| K | get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag) ~(kinds | has ::Box)]
+> :K (::kind | accepts |~~ x ~~| ::map) | :Box |~~ A box. ~~| K | get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag) ~(kinds | has ::Box)]
 [::Box ::Box/PayloadKindNotTakenError true]
 ```
 

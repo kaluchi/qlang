@@ -12,7 +12,7 @@ import { ROOT_KEY } from '../scope-keys.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
 
-// [QSSYN#refusal], [QSPRN#span], [D451]
+// [QSSYN#refusal], [QSPRN#span]
 export async function refusalOfAParse(parseError, scope, uri) {
   const ofTheRoot = rootState(null, new Map([[ROOT_KEY, rootOf(scope)]]));
   const location = parseError.location ? await layTag('span', spanOfLocation(parseError.location, parseError.source), ofTheRoot) : undefined;

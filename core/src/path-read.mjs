@@ -38,10 +38,10 @@ export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
 }
 
-// [D449]
+// [QSPTH#get]
 export const PathTagClosedError = declareRefusal('path/TagClosedError');
 
-// [QSPTH#get], [D449]
+// [QSPTH#get]
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
@@ -85,7 +85,7 @@ export function indexIn(container, segment, path, depth, soft = false) {
   throw refusalAt(new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container }), depth);
 }
 
-// [D449]
+// [QSPTH#get]
 export function tagClosed(value, path, depth) {
   const read = namesRead(value, path.segments.slice(depth));
   const repair = read === null ? undefined : makeQuote([...(depth === 0 ? [] : [commandStep('get', [makePath(path.segments.slice(0, depth))])]), ...read]);

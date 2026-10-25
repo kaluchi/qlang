@@ -187,7 +187,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [D449]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -226,7 +226,7 @@ function laidByTheChainOfItsNoun(scope, name, nounName, at) {
   return isBinding(entry) && entry.get('source') === null && declaresBefore(at.steps, at.index, nounName);
 }
 
-// [D449]
+// [QSBLD#recipe]
 function refuseAnInputOfTheWiring(scope, nounName, fn) {
   const label = bindingValueOf(nodeOf(scope, nounName));
   if (!isKind(label)) return;
@@ -337,7 +337,7 @@ function withRepairOfPath(state, call, subject, scope) {
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { originalError: refused.originalError }));
 }
 
-// [QSNAM#reach], [QSQUO#held], [D449]
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence]
 async function callByName(lookupName, modifiers, state, call) {
   refuseWithheld(state.scope, lookupName);
   const reach = bareNameReach(state.scope, lookupName, state.pipeValue);
@@ -358,7 +358,7 @@ async function callByName(lookupName, modifiers, state, call) {
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
 }
 
-// [D449]
+// [QSDSP#residence]
 function readsTheValueItHolds(verb, record, state) {
   const address = verb.get('name').name;
   return isNodeOfAPart(verb, state.scope) && partReadBy(address, state.pipeValue).part === bindingValueOf(record);
@@ -382,7 +382,7 @@ async function applyBinding(entry, name, lastName, modifiers, state) {
   return valueCalled(bindingValueOf(entry), name, lastName, modifiers, state);
 }
 
-// [QSNAM#value], [D449]
+// [QSNAM#value], [QSDSP#residence]
 function valueCalled(value, name, lastName, modifiers, state) {
   if (modifiers.length > 0) throw new CallValueTakesNoModifiersError({ name: makeKeyword(name), actualValue: value, addresses: addressesOf(state.scope, lastName) });
   return withPipeValue(state, value);
@@ -497,7 +497,7 @@ function isNodeOrLabel(name, record) {
 // [QSBLD#input]
 const ARGS_NAME = makeKeyword('args');
 
-// [QSBLD#recipe], [D449]
+// [QSBLD#recipe], [QSDSP#residence]
 async function applyVerb(record, modifiers, state) {
   if (isNodeOfAPart(record, state.scope)) return partCalled(record.get('name').name, modifiers, state);
   const value = bindingValueOf(record);
@@ -565,7 +565,7 @@ export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
-// [QSBLD#fn], [QSHST#source], [D449]
+// [QSBLD#fn], [QSHST#source], [QSBLD#recipe]
 async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
@@ -730,7 +730,7 @@ function foldingCodeOf(value, originOfQuote, state) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [D449]
+// [D417], [QSBLD#input], [QSBLD#recipe]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts) {
   const values = [];
   const origins = new Map();
@@ -769,7 +769,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   return { values: inputValues, given, origins, recipeScope, state: called };
 }
 
-// [D449]
+// [QSBLD#recipe]
 function withTheParts(scope, parts) {
   if (parts !== undefined) for (const [name, part] of parts) scope.set(name, makeBinding({ name: makeKeyword(name), value: part }));
   return scope;
@@ -816,7 +816,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source], [D449]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);

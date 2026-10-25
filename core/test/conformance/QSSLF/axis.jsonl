@@ -12,7 +12,7 @@
 {"name":"a-tag-nothing-declares-is-refused-by-the-axis","query":"::count | doc !| tag","expect":"::any/doc/UnknownNameError"}
 {"name":"a-verb-by-address-reads-its-declaration","query":"::vec/count | source | toString | contains \"::builtin{}\"","expect":"true"}
 {"name":"an-axis-reads-the-verb-a-noun-holds-under-a-name","query":"::map | doc :minus | eq (::map/minus | doc)","expect":"true"}
-{"decision":"D449","name":"an-axis-reads-the-input-a-verb-holds-under-an-anchor","query":"::vec/take | binding :count | value | print","expect":"\"/0\""}
+{"name":"an-axis-reads-the-input-a-verb-holds-under-an-anchor","query":"::vec/take | binding :count | value | print","expect":"\"/0\""}
 {"name":"an-anchor-no-node-answers-is-the-refusal-of-the-axis","query":"::map | doc :nosuch !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError :nosuch]"}
 {"name":"a-refusal-reads-its-page-by-its-address","query":"::number/add/SubjectNotNumberError | doc | tag","expect":"::doc"}
 {"name":"an-address-on-a-kind-the-verb-skips-names-it-on-any-value","query":"::vec/type | doc !| get /addresses","expect":"#[::any/type]"}
@@ -49,12 +49,12 @@
 {"name":"a-set-of-anchors-takes-null-and-anchors-read-in-turn","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}
 {"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| tag","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| tag","expect":"::any/binding/UnknownNameError"}
-{"decision":"D449","name":"a-refusal-nothing-declares-reads-the-record-of-the-address-before-it","query":"::number/add/FooError | binding | name","expect":":number/add"}
+{"name":"a-refusal-nothing-declares-reads-the-record-of-the-address-before-it","query":"::number/add/FooError | binding | name","expect":":number/add"}
 {"name":"a-name-declared-without-a-page-answers-null","query":":x 1 | ::x | doc","expect":"null"}
-{"decision":"D452","name":"a-refusal-under-the-call-of-a-function-no-node-declares-reads-the-page-of-that-call","query":"get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) [\"x\"] !| get [~(tag) ~(doc | eq (::fn/call | doc)) ~(tag | doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]","expect":"[[::fn/call/by/KindNotTakenError true true] :fn/call/refusesArgsPastItsInputs]"}
-{"decision":"D452","name":"an-error-at-rest-reads-the-page-of-the-refusal-it-carries","query":"\"x\" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)","expect":"true"}
-{"decision":"D452","name":"a-refusal-raised-by-rule-reads-the-page-that-repairs-the-call","query":"5 | eq !| doc | content | contains \"with no value\"","expect":"true"}
-{"decision":"D452","name":"a-refusal-raised-by-rule-with-no-page-of-its-own-reads-the-page-of-what-refused","query":"5 | gte !| get [~(tag) ~(doc | content | contains \"compared with\")]","expect":"[::any/gte/value/NotGivenError true]"}
+{"name":"a-refusal-under-the-call-of-a-function-no-node-declares-reads-the-page-of-that-call","query":"get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) [\"x\"] !| get [~(tag) ~(doc | eq (::fn/call | doc)) ~(tag | doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]","expect":"[[::fn/call/by/KindNotTakenError true true] :fn/call/refusesArgsPastItsInputs]"}
+{"name":"an-error-at-rest-reads-the-page-of-the-refusal-it-carries","query":"\"x\" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)","expect":"true"}
+{"name":"a-refusal-raised-by-rule-reads-the-page-that-repairs-the-call","query":"5 | eq !| doc | content | contains \"with no value\"","expect":"true"}
+{"name":"a-refusal-raised-by-rule-with-no-page-of-its-own-reads-the-page-of-what-refused","query":"5 | gte !| get [~(tag) ~(doc | content | contains \"compared with\")]","expect":"[::any/gte/value/NotGivenError true]"}
 {"name":"a-refusal-under-an-address-nothing-declares-is-refused-as-a-name-nothing-declares","query":"::nothere/FooError | doc !| get [~(tag) /name]","expect":"[::any/doc/UnknownNameError ::nothere/FooError]"}
 {"name":"a-set-of-anchors-refuses-an-element-by-the-kinds-it-takes","query":"::vec | doc #[:take 5] !| get [~(tag) /index /expected]","expect":"[::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]]"}
 {"name":"a-name-read-in-turn-that-is-no-keyword-is-refused-at-its-index","query":"::vec | doc [:take 1] !| get [~(tag) /index /expected]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}

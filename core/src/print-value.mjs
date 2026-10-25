@@ -25,17 +25,10 @@ export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
   return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
 
-function escapeQlangStringLiteral(s) {
-  return `"${s
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/\t/g, '\\t')
-    .replace(/\r/g, '\\r')
-    .replace(/[\b]/g, '\\b')
-    .replace(/\f/g, '\\f')}"`;
-}
+// [D447]
+const printString = s => JSON.stringify(s);
 
+// [QSPRN#print]
 const literalOfKeyword = k => k.literal;
 
 // [QSTXT#regex]
@@ -56,7 +49,7 @@ const PRINT_HANDLERS = {
   null:    () => 'null',
   boolean: v => String(v),
   number:  v => (Number.isFinite(v) ? String(v) : refuseForeign(v)),
-  string:  escapeQlangStringLiteral,
+  string:  printString,
   keyword: literalOfKeyword,
   tag:     literalOfKeyword,
   regex:   printRegex,

@@ -1,5 +1,8 @@
 {"name":"print-writes-an-atom-as-its-literal","query":"42 | print","expect":"\"42\""}
 {"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\""}
+{"decision":"D447","name":"print-writes-a-control-character-as-its-escape","query":"\"\\u0007\" | print","expect":"\"\\\"\\\\u0007\\\"\""}
+{"decision":"D447","name":"print-writes-a-lone-surrogate-as-its-escape","query":"\"\\uD800\" | print","expect":"\"\\\"\\\\ud800\\\"\""}
+{"decision":"D447","name":"print-reads-a-lone-surrogate-back-as-the-string","query":"\"\\uD800\" | print | parse | open | eq \"\\uD800\"","expect":"true"}
 {"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\""}
 {"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~ a ~(add 1) ~~|\""}
 {"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\""}

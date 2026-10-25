@@ -20,7 +20,7 @@ export { readingState } from './primitives.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';
 export { makeKeyword, isKeyword, makeTag, isTag, isErrorValue, makeErrorValue, tagOf } from './types.mjs';
 export {
-  verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf,
+  verbsReaching, verbNames, nodeOf, nodeAddresses, bareNameReach, residencesOf, isLabel, isVerb, declaresVerb, ruleRefusalsOf, kindsSharedBy,
   shownFor, answerKindsOf, kindsOfWalk, FAMILY_OF
 } from './nouns.mjs';
 export { servesTheSubject } from './dispatch.mjs';

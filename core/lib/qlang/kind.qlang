@@ -164,7 +164,9 @@
         |~~ A value or a part an invariant of the kind does not hold of is
             refused under the name the invariant gives,
             `::Pos/NotPositiveError`: every such refusal is closed by the
-            kind of this one.
+            kind of this one, and a refusal a constructor or a primitive
+            raises of a value its rule does not hold of shares it by its
+            tag, `::group/PayloadEmptyError`.
             ::link~(::kind/holds | doc)
         ~~|
         ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag

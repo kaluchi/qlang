@@ -1091,8 +1091,7 @@
             and this regex names none: `match` answers its groups by
             their indices, `match #"(\w+)" | get /1`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/InvariantNotHeldError
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
         ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
@@ -1247,8 +1246,7 @@
             line and `s` for a dot that matches a line break, each written
             once, `toRegex "im"`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/InvariantNotHeldError
     | returns |~~ The regex the source writes, with its flags. ~~| ::regex
     | throws :TextNotRegexError
         |~~ `toRegex` reads the string as the source of a regex, and it

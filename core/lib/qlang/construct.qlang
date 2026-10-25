@@ -40,9 +40,7 @@
             itself, `!{:k 1}`.
             ::link~(::construct | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|
-          | wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
+        ::call/PayloadNotSchemaError
     | throws :LiteralComputesError
         |~~ A payload computes nothing, as every part of a literal: a name
             or a group in it is refused, and `:message` writes the template

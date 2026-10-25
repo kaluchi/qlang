@@ -39,9 +39,7 @@
             `get {:name :inc :body ~(~(add 1) | first)} | tag ::bind`.
             ::link~(::bind | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|
-          | wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
+        ::call/PayloadNotSchemaError
     | throws :NameNotCallableError
         |~~ A declaration names what a step calls, names joined by `/`,
             each a letter or `_` and the letters, digits, `_` and `-` after

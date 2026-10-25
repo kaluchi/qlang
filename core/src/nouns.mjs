@@ -333,6 +333,12 @@ export function ruleRefusalsOf(scope, address) {
   return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0]).keys()];
 }
 
+// [QSBLD#fn]
+export function kindsSharedBy(scope, address) {
+  const value = bindingValueOf(nodeOf(scope, address));
+  return [...(isKind(value) ? chainOfKind(value) : chainOfFn(isFn(value) ? value : functionOfRecipe(value))).kindsShared.values()];
+}
+
 // [QSERR#site]
 export const FAMILY_OF = Object.freeze({
   inputKinds: 'fn/KindNotTakenError',

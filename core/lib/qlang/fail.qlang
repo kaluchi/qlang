@@ -26,8 +26,7 @@
             `!| (get /kind | print)`.
             ::link~(::fail | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/InvariantNotHeldError
     | throws :StepNotCommandError
         |~~ A value after `!|` is the recovery the catch answers, but for a
             path, which the verb that takes it reads: `:message` names that

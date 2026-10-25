@@ -1075,10 +1075,7 @@
             means both answers one kind,
             `~(get /id | if (tag | eq ::string) ~(it) ~(print))`.
         ~~|
-        ~(wires :key |~~ The keyword both values file under. ~~| ::keyword
-          | wires :taken |~~ The value of the key that filed under the keyword first. ~~|
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::vec/groupBy/KeyTakenError
     | proves :filesEachUnderItsKey
         |~~ Each element files under its key. ~~|
         ~([{:id :a :n 1} {:id :b :n 2}] | indexBy /id | get /b/n | eq 2)
@@ -1673,7 +1670,7 @@
             `[a b c] | union`, so the vector holds one at least; two
             values unite as `a | union b`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag)
+        ::fn/SubjectRefusedError
     | throws :ElementKindNotTakenError
         |~~ The values `union` unites are sets or maps; the path of its
             frame names the first that is neither, and a vector of vectors unites once
@@ -1746,7 +1743,7 @@
             after it, `[a b c] | minus`, so the vector holds one at least;
             of two values `a | minus b` takes `b` from `a`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag)
+        ::fn/SubjectRefusedError
     | throws :ElementKindNotTakenError
         |~~ The value `minus` takes from is a set or a map; the path of
             its frame names the first value of the vector, which is
@@ -1829,7 +1826,7 @@
             first, `[a b c] | inter`, so the vector holds one at least; of
             two values `a | inter b` keeps what `a` shares with `b`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag)
+        ::fn/SubjectRefusedError
     | throws :ElementKindNotTakenError
         |~~ The value `inter` keeps from is a set or a map; the path of
             its frame names the first value of the vector, which is
@@ -2092,8 +2089,7 @@
             `[key value]`; the path of its frame names the first that is
             not.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/InvariantNotHeldError
     | throws :KeyKindNotTakenError
         |~~ The key of a pair is a value `toKeyword` names, a keyword, a
             string, a number, a boolean, null or a tag name; the path of

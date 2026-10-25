@@ -50,8 +50,7 @@
             of another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/InvariantNotHeldError
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain
             takes, written with the modifiers the page of its verb names in
@@ -190,7 +189,9 @@
         |~~ An input or an answer an invariant of the function does not hold
             of is refused under the name the invariant gives,
             `::number/div/divisor/ZeroError`: every such refusal is closed by
-            the kind of this one.
+            the kind of this one, and a refusal a primitive raises of an
+            input its rule does not hold of shares it by its tag,
+            `::string/toRegex/flags/NotFlagsError`.
             ::link~(::fn/holds | doc)
         ~~|
         ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag

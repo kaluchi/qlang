@@ -25,7 +25,7 @@ const FN_COMMANDS = [
   ['takes :xs |~~ The values. ~~| ~(drop 1) [#[::number ::string]]'],
   ['takes :d |~~ A default. ~~| ~(query /2 3)'],
   ['returns |~~ The answer. ~~| #[::number ::string]'],
-  ['throws :SubjectTooLargeError |~~ A subject\n    past a bound. ~~|', 'carries :SubjectTooLargeError/bound |~~ The bound. ~~| ::number'],
+  ['throws :SubjectTooLargeError |~~ A subject\n    past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number)'],
   ['proves :answers |~~ It answers. ~~| ~(5 | eq 5)']
 ];
 const KIND_COMMANDS = [
@@ -34,7 +34,7 @@ const KIND_COMMANDS = [
   ['wires :tags |~~ The tags. ~~| ~(query /tags []) [::string]'],
   ['tells :note |~~ A note. ~~|'],
   ['holds :TooWideError |~~ Narrow. ~~| ~(get /w | lt 100)'],
-  ['throws :ShapeError |~~ A shape. ~~|', 'carries :ShapeError/why |~~ Why. ~~| ::string'],
+  ['throws :ShapeError |~~ A shape. ~~| ~(wires :why |~~ Why. ~~| ::string)'],
   ['proves :holdsItself |~~ It holds. ~~| ~(true)']
 ];
 const FN_RECIPES = ['impl ~(it)', 'impl ~(get /w | add 1)'];

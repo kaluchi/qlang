@@ -17,8 +17,8 @@
       `w` and `~(query /h 1)` the key `h` or one, and its kinds; `tells` a
       page of the kind on a name, a chapter of a topic among them; `holds` an
       invariant of the value or of a field, its refusal, its page and its
-      condition; `throws` a refusal and its page; `carries` a fact a
-      refusal carries, its page and its kinds; `proves` a law, its page and
+      condition; `throws` a refusal, its page and the commands of the kind
+      of the facts it carries; `proves` a law, its page and
       its query; and `impl ::builtin{}` the constructor of a kind of the
       core. Each command hands what it is written with to the chain, which
       holds it as it holds the literal. A value put under a kind holds the value of the kinds of its
@@ -60,7 +60,7 @@
             written, `:index` the index of the modifier refused, from zero, or
             of the first left out, and `:actualValue` the modifier.
             ::link~(::kind/accepts | doc) ::link~(::kind/wires | doc)
-            ::link~(::kind/tells | doc) ::link~(::kind/carries | doc)
+            ::link~(::kind/tells | doc)
             ::link~(::kind/holds | doc) ::link~(::kind/throws | doc)
             ::link~(::kind/proves | doc)
         ~~|
@@ -91,14 +91,6 @@
             declares before it: a field, a refusal, an invariant, a fact,
             the payload, or a refusal the kinds of the payload or of a
             field name, `proves :w/KindNotTakenError/refusesAString …`.
-        ~~|
-        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
-    | throws :FactUnderNoNameError
-        |~~ A fact written with a path is named under a name the kind
-            declares before it, the refusal that carries it,
-            `carries :TooWideError/w …`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
@@ -340,9 +332,6 @@
     | proves :LawUnderNoNameError/refusesALawUnderNoName
         |~~ A law under a name the kind does not declare is refused. ~~|
         ~(::kind[~(proves :x/holds |~~ An x. ~~| ~(true)) null] !| tag | eq ::kind/LawUnderNoNameError)
-    | proves :FactUnderNoNameError/refusesAFactUnderNoName
-        |~~ A fact under a name the kind does not declare is refused. ~~|
-        ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| tag | eq ::kind/FactUnderNoNameError)
     | proves :ConstructorKindNotTakenError/refusesANumber
         |~~ A number is no constructor of a host. ~~|
         ~(::kind[~() 5] !| get [~(tag) ~(expected)] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
@@ -497,40 +486,6 @@
         ~(::number | tells :x |~~ An x. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
     ::builtin{}]
 
-:kind/carries
-  |~~ Names a fact a refusal of a kind carries, its page and its kinds,
-      `::kind | carries :TooWideError/w |~~ The width refused. ~~| ::number`,
-      under the refusal its path names; a fact written with no path is a
-      fact of the payload, as the kind of errors names the facts every
-      error may carry.
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the fact, a
-            keyword read as a tag, under a name declared before it where it is
-            written with a path and else a fact of the payload; its page, a doc;
-            and its kinds, a tag or a set of one tag or more, any value where
-            none is written.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the fact. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `carries` names a fact of the noun's kind,
-            `::kind | carries …`, or of a kind.
-        ~~|
-    | proves :pagesTheFactUnderItsRefusal
-        |~~ A fact lies under the refusal that carries it. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| | carries :TooWideError/w |~~ The width refused. ~~| ::number)
-          | ::Box/TooWideError/w
-          | doc
-          | content
-          | trim
-          | eq "The width refused.")
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/carries :x |~~ An x. ~~| !| tag | eq ::kind/carries/SubjectNotKindError))
-    ::builtin{}]
-
 :kind/holds
   |~~ Writes an invariant of a kind, a quote under `::invariant`: the
       refusal of a value that breaks it, its page, and the condition the
@@ -565,17 +520,23 @@
     ::builtin{}]
 
 :kind/throws
-  |~~ Names a refusal of a kind and its page,
-      `::kind | throws :TooWideError |~~ A parcel past its height. ~~|`,
+  |~~ Names a refusal of a kind, its page and the facts it carries,
+      `::kind | throws :TooWideError |~~ A parcel past its height. ~~| ~(wires :h |~~ The height. ~~| ::number)`,
       under a field where it is written with a path, the page of the
       refusal the kinds of a field name among them; a refusal a primitive
-      of the kind raises is paged so.
+      of the kind raises is paged so. The facts are the commands of the
+      kind of the refusal, a quote, which `throws` builds into the kind as
+      `::fn/throws` does, the refusal of a payload and of a part a rule
+      lays taking the kind of its family, `::kind/KindNotTakenError`.
+      ::link~(::fn/throws | doc) ::link~(::kind/KindNotTakenError | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal, a
             keyword read as a tag, under a field read before it where it is
-            written with a path, and its page, a doc.
+            written with a path; its page, a doc; and the commands of the kind
+            of its facts, a quote of `wires`, none where it carries no fact of
+            its own.
         ~~|
         ~(it)
     | returns |~~ The kind with the refusal. ~~| ::kind
@@ -593,6 +554,12 @@
           | content
           | trim
           | eq "The width is a number.")
+    | proves :readsTheFactsOfARefusalByTheirNames
+        |~~ The error at rest of a refusal answers the facts its kind wires
+            by their names.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| ~(wires :w |~~ The width. ~~| ::number))
+          | ::Box/TooWideError!{:w 9} | get [~(w) ~(trace)] | eq [9 null])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | kind/throws :E |~~ An e. ~~| !| tag | eq ::kind/throws/SubjectNotKindError))

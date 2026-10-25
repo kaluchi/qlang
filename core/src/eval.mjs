@@ -260,9 +260,8 @@ function layerOf(scope, address, origin, { pages, refusalKinds }) {
       const page = pages.get(refusal) ?? pageOfThePart;
       lay(refusal, page, page);
     },
-    layRest({ facts, invariants, laws }) {
+    layRest({ invariants, laws }) {
       for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, refusalKinds.get(name) ?? page);
-      for (const { name, page, written } of facts) lay(name, page, written ?? page);
       for (const { name, page, condition } of invariants) lay(name, page, makeTagged(INVARIANT_TAG, condition));
       for (const { name, page, query } of laws) lay(name, page, makeTagged(LAW_TAG, query));
       return under;

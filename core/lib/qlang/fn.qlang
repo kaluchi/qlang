@@ -17,8 +17,8 @@
       `on` names the subject, its page and its kinds; `takes` an input, its
       name, its page, its selector over the args, `/0` the first arg
       and `~(query /0 1)` the first or one, and its kinds; `returns` the
-      answer, its page and its kinds; `throws` a refusal and its page;
-      `carries` a fact a refusal carries, its page and its kinds; `holds`
+      answer, its page and its kinds; `throws` a refusal, its page and the
+      commands of the kind of the facts it carries; `holds`
       an invariant of the subject, an input or the answer, its refusal, its
       page and its condition; `proves` a law of the function, its page and
       its query; and `impl` the recipe. Each command hands what it is
@@ -60,7 +60,7 @@
             or of the first left out, and `:actualValue` the modifier.
             ::link~(::fn/on | doc) ::link~(::fn/takes | doc)
             ::link~(::fn/returns | doc) ::link~(::fn/throws | doc)
-            ::link~(::fn/carries | doc) ::link~(::fn/holds | doc)
+            ::link~(::fn/holds | doc)
             ::link~(::fn/proves | doc)
         ~~|
         ~(wires :command |~~ The command as written, a quote of its step. ~~| ::quote
@@ -91,13 +91,6 @@
             declares before it: an input, a refusal, an invariant, a fact,
             the subject or the answer, the refusal an input's kinds name
             among them, `proves :by/KindNotTakenError/refusesAString …`.
-        ~~|
-        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
-    | throws :FactUnderNoNameError
-        |~~ A fact is named under a name the function declares before it,
-            the refusal that carries it, `carries :TooBigError/bound …`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
@@ -371,13 +364,6 @@
     | proves :LawUnderNoNameError/refusesALawUnderNoName
         |~~ A law under a name the function does not declare is refused. ~~|
         ~(::fn[~(proves :x/holds |~~ An x. ~~| ~(true)) ~(1)] !| tag | eq ::fn/LawUnderNoNameError)
-    | proves :FactUnderNoNameError/refusesAFactUnderNoName
-        |~~ A fact under a name the function does not declare is refused.
-        ~~|
-        ~(::fn[~(carries :x/y |~~ A y. ~~|) ~(1)] !| tag | eq ::fn/FactUnderNoNameError)
-    | proves :FactUnderNoNameError/refusesAFactWithNoPath
-        |~~ A fact is a fact of a refusal, written with its path. ~~|
-        ~(::fn[~(carries :y |~~ A y. ~~|) ~(1)] !| tag | eq ::fn/FactUnderNoNameError)
     | proves :RecipeKindNotTakenError/refusesANumber
         |~~ A number is no recipe. ~~|
         ~(::fn[~() 5] !| get [~(tag) ~(expected)] | eq [::fn/RecipeKindNotTakenError #[::builtin ::null ::quote]])
@@ -632,11 +618,21 @@
     ::builtin{}]
 
 :fn/throws
-  |~~ Names a refusal of a function and its page,
-      `::fn | throws :TooBigError |~~ A sum past a bound. ~~|`, under the
-      subject, an input or the answer where it is written with a path, the page of the
-      refusal the kinds of an input name among them; under a label it is a
-      refusal of the verb.
+  |~~ Names a refusal of a function, its page and the facts it carries,
+      `::fn | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
+      under the subject, an input or the answer where it is written with a
+      path, the page of the refusal the kinds of an input name among them;
+      under a label it is a refusal of the verb. The facts are the commands
+      of the kind of the refusal, a quote, each `wires` a fact read by the
+      key of its name in the facts of the error, and `throws` builds the
+      kind of them, its payload the error the refusal raises, an `::error`,
+      and its wiring ending with `trace`, so the error at rest of the
+      refusal answers each fact by its name, `!| bound`. A refusal the
+      rules of the chain lay, of the kinds of an input, of an input left
+      out, of args past the inputs and of a subject of another label, takes
+      the kind of its family, `::fn/KindNotTakenError`, and its `throws`
+      writes its page alone.
+      ::link~(::kind/wires | doc) ::link~(::fn/KindNotTakenError | doc)
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -644,7 +640,9 @@
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal, a
             keyword read as a tag, under the subject, an input or the answer
-            where it is written with a path, and its page, a doc.
+            where it is written with a path; its page, a doc; and the commands
+            of the kind of its facts, a quote of `wires`, none where it carries
+            no fact of its own.
         ~~|
         ~(it)
     | returns |~~ The function with the refusal. ~~| ::fn
@@ -768,46 +766,6 @@
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | fn/proves :x |~~ An x. ~~| ~(true) !| tag | eq ::fn/proves/SubjectNotFnError))
-    ::builtin{}]
-
-:fn/carries
-  |~~ Names a fact of a function, its page and its kinds,
-      `| carries :TooBigError/bound |~~ The bound. ~~| ::number`, under
-      the name its path names, one declared before it, a refusal `throws`
-      declares or the kinds of an input name, an input and the answer
-      among them; under a label a fact of a refusal is a fact of the
-      verb's refusal, which a failure of it carries and its alert shows
-      in the order its facts are named.
-  ~~|
-  ::fn[~(on
-        |~~ The noun itself, which starts the function, or a function. ~~|
-        ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the fact, a
-            keyword read as a tag, written with a path under a name declared
-            before it, the refusal that carries it; its page, a doc; and its
-            kinds, a tag or a set of one tag or more, any value where none is
-            written.
-        ~~|
-        ~(it)
-    | returns |~~ The function with the fact. ~~| ::fn
-    | throws :SubjectNotFnError
-        |~~ `carries` names a fact of the noun's function,
-            `::fn | carries …`, or of a function.
-        ~~|
-    | proves :pagesTheFactOfARefusalOfAVerb
-        |~~ A fact of a function named under a label lies under the
-            refusal of the verb.
-        ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ Too big. ~~| | carries :TooBigError/bound |~~ The bound. ~~| ::number | impl ~(add by))
-          | ::number/plus/TooBigError/bound
-          | doc
-          | content
-          | trim
-          | eq "The bound.")
-    | proves :SubjectNotFnError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | fn/carries :E/x |~~ An x. ~~| !| tag | eq ::fn/carries/SubjectNotFnError))
     ::builtin{}]
 
 :fn/impl

@@ -15,12 +15,10 @@ const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
 const FnNameUnderNoInputError = declareRefusal('fn/NameUnderNoInputError');
 const FnLawUnderNoNameError = declareRefusal('fn/LawUnderNoNameError');
-const FnFactUnderNoNameError = declareRefusal('fn/FactUnderNoNameError');
 const KindCommandNotTakenError = declareRefusal('kind/CommandNotTakenError');
 const KindNameDeclaredTwiceError = declareRefusal('kind/NameDeclaredTwiceError');
 const KindNameUnderNoFieldError = declareRefusal('kind/NameUnderNoFieldError');
 const KindLawUnderNoNameError = declareRefusal('kind/LawUnderNoNameError');
-const KindFactUnderNoNameError = declareRefusal('kind/FactUnderNoNameError');
 
 export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
@@ -42,7 +40,6 @@ const COMMANDS = new Map([
   ['takes', { taken: [isInputName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
   ['throws', { taken: [isNameOfChain, isDoc], optional: [isQuote] }],
-  ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
@@ -51,7 +48,6 @@ const KIND_COMMANDS = new Map([
   ['accepts', { taken: [isDoc], optional: [isKindsOfAPayload] }],
   ['wires', { taken: [isFieldName, isDoc], optional: [isSelectorOrKinds, isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
-  ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
   ['throws', { taken: [isNameOfChain, isDoc], optional: [isQuote] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
@@ -102,7 +98,7 @@ function namesOf(quote, DeclaredTwiceError) {
 }
 
 function readChainOfFn(quote) {
-  const chain = { subject: null, inputs: [], answer: null, pages: new Map(), refusalKinds: new Map(), facts: [], invariants: [], laws: [] };
+  const chain = { subject: null, inputs: [], answer: null, pages: new Map(), refusalKinds: new Map(), invariants: [], laws: [] };
   const names = namesOf(quote, FnNameDeclaredTwiceError);
   const underAnInput = name => {
     const [head] = name.split('/');
@@ -137,11 +133,6 @@ function readChainOfFn(quote) {
         chain.pages.set(first.name, second);
         if (third !== undefined) chain.refusalKinds.set(first.name, kindOfARefusalWritten(third));
         break;
-      case 'carries':
-        if (!first.name.includes('/') || !names.isUnderANamed(first.name)) throw new FnFactUnderNoNameError({ name: first, actualValue: quote });
-        names.declare(first.name);
-        chain.facts.push({ name: first.name, page: second, written: third ?? null });
-        break;
       case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
         underAnInput(first.name);
@@ -160,7 +151,7 @@ function readChainOfFn(quote) {
 }
 
 function readChainOfKind(quote) {
-  const kind = { payload: null, fields: [], tells: [], pages: new Map(), refusalKinds: new Map(), facts: [], invariants: [], laws: [] };
+  const kind = { payload: null, fields: [], tells: [], pages: new Map(), refusalKinds: new Map(), invariants: [], laws: [] };
   const names = namesOf(quote, KindNameDeclaredTwiceError);
   const underAField = name => {
     const [head] = name.split('/');
@@ -195,11 +186,6 @@ function readChainOfKind(quote) {
       case 'tells':
         names.declare(first.name);
         kind.tells.push({ name: first.name, page: second, written: third ?? null });
-        break;
-      case 'carries':
-        if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new KindFactUnderNoNameError({ name: first, actualValue: quote });
-        names.declare(first.name);
-        kind.facts.push({ name: first.name, page: second, written: third ?? null });
         break;
       case 'holds': {
         const field = first.name.includes('/') ? underAField(first.name) : null;

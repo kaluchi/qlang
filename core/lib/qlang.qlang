@@ -678,7 +678,7 @@
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))`:
             `on` names its subject, `takes` an input with its page, its
             selector over the args and its kinds, `returns` its
-            answer, `throws` a refusal, `carries` a fact it carries,
+            answer, `throws` a refusal and the facts it carries,
             `holds` an invariant and `proves` a law, and its call reads
             them from the function, each input bound by its name in the
             recipe, a name the recipe declares no second time; `manifest`
@@ -703,7 +703,7 @@
             or by its page alone, a kind of no commands: `accepts` names its
             payload and its kinds, `wires` a field the payload holds, its
             selector and its kinds, `holds` an invariant of the value or of a
-            field, `throws` a refusal, `carries` a fact and `proves` a law,
+            field, `throws` a refusal and the facts it carries, and `proves` a law,
             and a kind of the core `impl` its constructor, which its host
             hands; the kind attaches the tag to the payload or refuses
             it, and builds no other value, so every value put under it

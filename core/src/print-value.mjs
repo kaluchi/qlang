@@ -145,7 +145,7 @@ export function printQuoteSource(steps, view = AS_WRITTEN) {
 }
 
 // [QSPRN#print]
-const LINE_WIDTH = 80;
+export const LINE_WIDTH = 80;
 
 const passesTheLine = printed => printed.split('\n').some(line => line.length > LINE_WIDTH);
 

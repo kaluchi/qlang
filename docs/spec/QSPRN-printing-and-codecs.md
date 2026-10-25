@@ -1,7 +1,8 @@
 # QSPRN · Printing, codecs and spans of text
 
-How a value is written as text and read back, what a budget leaves out,
-and the span where a reading of text stopped. The requirements of each
+How a value is written as text and read back, the legend that glosses
+its parts, what a budget leaves out, and the span where a reading of text
+stopped. The requirements of each
 section are the cases of its file under `core/test/conformance/QSPRN/`.
 
 ## print
@@ -89,6 +90,40 @@ true
 
 > "[1] | map ~(:a (\"x\" | add 1)\n| :b 2)" | parse | open !| trace | map ~(print | lines | count)
 [1 1 1 1]
+```
+
+## legend
+
+`legend`, a verb of `::any`, answers the print of its subject laid out by
+its kind [QSBLD#value]: a part the kind reads by a path of one segment, a
+key of the map or an index of the vector it is laid over, stands on a line
+of its own beside a comment, the gloss of the page of the name that wires
+it and that name, the step that reads it, `| legend` after the name where
+the part is a value of a kind that wires parts of its own; the head, the
+tag and the bracket the value opens with, stands beside the gloss of the
+page `doc` reads of the subject and `doc` [QSSLF#axis]; a part the kind
+computes, by code or a longer path, is told after the value in a comment of
+its own, its name, its print and its gloss, and a part that is null not at
+all; and a part no name wires stands with no comment. A value of a kind
+that wires nothing, one whose payload holds no key or index and one its
+kind prints itself stand on one line beside their gloss, their parts told
+after them, each element of a collection read by its own legend. The gloss
+of a page is its first words, before the first colon, semicolon or period
+its prose ends a clause with, a span between backquotes and a quote of code
+read whole, on one line; the page of a link alone is glossed by the page
+`doc` reads of the tag it links to, and a page that leads to no words names
+the part alone. Each part prints as `print` prints it, the print of its
+kind among them, on one line, and the comments of the lines within half
+the width of a line stand aligned. Every comment is whitespace
+[QSSYN#comment], so the text reads back as the subject: the command line
+prints it as itself [QSCLI#answer], and `| out` writes it so in the REPL.
+
+```sh
+$ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
+::Box{       |~| A parcel · doc
+  :w 3       |~| The width · w
+  :note "x"
+}
 ```
 
 ## json

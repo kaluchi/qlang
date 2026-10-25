@@ -134,7 +134,7 @@
                   `mul /qty`, and null where it gave none.
               ~~|
               ~(query /repair) #[::null ::quote]
-          | wires :expected |~~ The kinds taken, `#[::number]`. ~~| ::set
+          | wires :expected |~~ The kinds taken. ~~| ::set
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~|)
     | throws :ElementKindNotTakenError
@@ -147,7 +147,7 @@
             ::link~(::fn/takes | doc)
         ~~|
         ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
-          | wires :expected |~~ The kinds each element takes, `#[::number]`. ~~| ::set
+          | wires :expected |~~ The kinds each element takes. ~~| ::set
           | wires :actualTag |~~ The kind of the element refused. ~~| ::tag
           | wires :actualValue |~~ The element refused. ~~|)
     | throws :NotGivenError

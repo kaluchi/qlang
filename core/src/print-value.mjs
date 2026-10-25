@@ -25,10 +25,8 @@ export function dispatchQlangValue(pipeValue, handlers, ...extraArgs) {
   return handlers[formOf(pipeValue)](pipeValue, ...extraArgs);
 }
 
-// [D447]
 const printString = s => JSON.stringify(s);
 
-// [QSPRN#print]
 const literalOfKeyword = k => k.literal;
 
 // [QSTXT#regex]

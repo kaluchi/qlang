@@ -2,7 +2,6 @@
 
 import { isErrorValue, makeTag, StringParseJsonTextNotJsonError } from '@kaluchi/qlang-core';
 
-// [D426]
 export function readStdinToString(stdin) {
   if (stdin.isTTY) {
     return Promise.resolve('');
@@ -16,7 +15,6 @@ export function readStdinToString(stdin) {
   });
 }
 
-// [QSCLI#stdin]
 export function memoiseStdinReader(stdinReader) {
   let cachedPromise = null;
   return () => {

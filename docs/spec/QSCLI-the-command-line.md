@@ -78,7 +78,10 @@ $ qlang -h < /dev/null | head -1
 A query starts from its subject, the value it is given, which the
 command line reads from standard input where the query reads its subject
 and standard input holds bytes, and which is otherwise `::qlang`, the
-noun of the language. The command line lifts the text by the verb
+noun of the language. Standard input is read as a host reads a text
+[QSHST#source], a byte order mark at its head dropped, for the subject,
+for the text `in` answers and for the cells the REPL reads alike. The
+command line lifts the text by the verb
 `parseJson`, run on it before the query: a JSON text lifts to its value,
 a text that is no JSON to the string it is, and a JSON text `parseJson`
 refuses, one that holds a number past the doubles, to the failure it
@@ -100,6 +103,12 @@ $ echo '{"a": [1, 2]}' | qlang 'get /a | count'
 
 $ echo 'not json' | qlang 'tag'
 ::string
+
+$ printf '\xef\xbb\xbf{"a": [1, 2]}' | qlang 'get /a | count'
+2
+
+$ printf '\xef\xbb\xbf[1, 2]' | qlang 'in | count'
+6
 
 $ echo '[1, 2]' | qlang 'in | tag'
 ::string

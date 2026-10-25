@@ -28,7 +28,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   let pasteBuffer = '';
   let pendingEscape = '';
 
-  // [D426]
+  // [QSCLI#stdin]
   const utf8Decoder = new TextDecoder();
 
   // [QSCLI#line-editor]
@@ -471,7 +471,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 }
 
 function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
-  // [D426]
+  // [QSCLI#stdin]
   const decoder = new TextDecoder();
 
   // [QSCLI#line-editor]

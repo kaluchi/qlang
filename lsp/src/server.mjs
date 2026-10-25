@@ -35,7 +35,7 @@ const documentStates = new Map();
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // [D426]
+  // [QSHST#source]
   const sources = LANGUAGE_SOURCES.map(uri => ({ fileUri: import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();

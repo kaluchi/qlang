@@ -1,4 +1,4 @@
-// [D426], [QSGAT#workspaces]
+// [QSHST#source], [QSGAT#workspaces]
 
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';

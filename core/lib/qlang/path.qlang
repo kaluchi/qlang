@@ -48,12 +48,11 @@
             refusing.
             ::link~(::path | doc) ::link~(::any/query | doc)
         ~~|
-    | carries :IndexOutOfBoundsError/index
-        |~~ The index the path read, counted from the end when negative. ~~|
-        ::number
-    | carries :IndexOutOfBoundsError/length
-        |~~ How many elements the value holds. ~~|
-        ::number
+        ~(wires :index |~~ The index the path read, counted from the end when negative. ~~| ::number
+          | wires :length |~~ How many elements the value holds. ~~| ::number
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :KeyNotInMapError
         |~~ A path names a key the map holds, so a misspelled field is
             found where `get` reads it; `:key` holds the key read, and
@@ -68,9 +67,13 @@
             `get [/dependencies /devDependencies]`.
             ::link~(::path | doc) ::link~(::any/query | doc)
         ~~|
-    | carries :KeyNotInMapError/key
-        |~~ The key the path read, which the map does not hold. ~~|
-        ::keyword
+        ~(wires :key |~~ The key the path read, which the map does not hold. ~~| ::keyword
+          | wires :nearest
+              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              ::vec
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :TagClosedError
         |~~ A value under a kind that wires its parts is read by the names
             its kind wires, each bare, `card | took`, and no path reads or
@@ -82,9 +85,13 @@
             payload bare, which a path reads as any value.
             ::link~(::kind/wires | doc) ::link~(::any/payload | doc)
         ~~|
-    | carries :TagClosedError/names
-        |~~ The names the kind of the value wires. ~~|
-        ::set
+        ~(wires :names |~~ The names the kind of the value wires. ~~| ::set
+          | wires :repair
+              |~~ The step the call was likely meant as, where a path stands instead of the value it names. ~~|
+              ~(query /repair) #[::null ::quote]
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and
@@ -97,9 +104,12 @@
             `query`, which answers null.
             ::link~(::path | doc) ::link~(::any/mulOf | doc)
         ~~|
-    | carries :SubjectHasNoPartsError/segment
-        |~~ The segment the path read, a key or an index. ~~|
-        #[::keyword ::number]
+        ~(wires :segment
+              |~~ The segment the path read, a key or an index. ~~|
+              ~(query /segment) #[::keyword ::null ::number]
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :IndexNotIntegerError
         |~~ A vector is read by an index, `/0`, and a set by the index of
             an element in its one order; `:segment` holds the segment read,
@@ -108,9 +118,10 @@
             `filter`, `filter ~(get /n | gt 1)`.
             ::link~(::path | doc) ::link~(::vec/filter | doc)
         ~~|
-    | carries :IndexNotIntegerError/segment
-        |~~ The segment the path read, which names no index. ~~|
-        ::keyword
+        ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | tag | eq ::path)
@@ -131,26 +142,26 @@
         ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| get [~(tag) /actualTag] | eq [::path/PayloadKindNotTakenError ::vec])
+        ~([:a 0] | tag ::path !| get [~(tag) ~(actualTag)] | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
         |~~ An index past the end is refused with the length. ~~|
-        ~([10 20 30] | get /99 !| get [~(tag) /index /length] | eq [::path/IndexOutOfBoundsError 99 3])
+        ~([10 20 30] | get /99 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError 99 3])
     | proves :IndexOutOfBoundsError/refusesAnIndexBeforeTheStart
         |~~ A negative index past the start is refused as it was written.
         ~~|
-        ~([10 20 30] | get /-4 !| get [~(tag) /index /length] | eq [::path/IndexOutOfBoundsError -4 3])
+        ~([10 20 30] | get /-4 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError -4 3])
     | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
         |~~ `/-1` reads the last element whatever the length. ~~|
         ~([10 20 30] | get /-1 | eq 30)
     | proves :KeyNotInMapError/refusesAKeyTheMapLacks
         |~~ A key the map lacks is refused. ~~|
-        ~({:a 1} | get /b !| get [~(tag) /key] | eq [::path/KeyNotInMapError :b])
+        ~({:a 1} | get /b !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :b])
     | proves :KeyNotInMapError/namesThePathItFollowed
         |~~ The refusal holds the path the read followed. ~~|
-        ~({:a {:b 1}} | get /a/c !| get /path | eq /a/c)
+        ~({:a {:b 1}} | get /a/c !| path | eq /a/c)
     | proves :KeyNotInMapError/suggestsTheNearestKey
         |~~ The keys of the map nearest in spelling are suggested. ~~|
-        ~({:emails [] :age 3} | get /email !| get /nearest | eq [:emails])
+        ~({:emails [] :age 3} | get /email !| nearest | eq [:emails])
     | proves :KeyNotInMapError/readsTwoFieldsInOneStep
         |~~ Two fields of one record are read in one step. ~~|
         ~({:a 1 :b 2} | get [/a /b] | eq [1 2])
@@ -160,16 +171,16 @@
     | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [~(tag) /segment /actualTag] | eq [::path/SubjectHasNoPartsError :foo ::number])
+          !| get [~(tag) ~(segment) ~(actualTag)] | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [~(tag) /actualTag] | eq [::path/SubjectHasNoPartsError ::null])
+        ~(null | get /k !| get [~(tag) ~(actualTag)] | eq [::path/SubjectHasNoPartsError ::null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by an index, not a field. ~~|
-        ~([10 20 30] | get /name !| get [~(tag) /segment] | eq [::path/IndexNotIntegerError :name])
+        ~([10 20 30] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
         |~~ A set is read by an index, not a field. ~~|
-        ~(#[:a :b :c] | get /name !| get [~(tag) /segment] | eq [::path/IndexNotIntegerError :name])
+        ~(#[:a :b :c] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])

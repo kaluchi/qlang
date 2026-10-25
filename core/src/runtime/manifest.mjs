@@ -1,9 +1,9 @@
 // [QSDSP#walk], [QSDSP#residence]
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue, bindingValueOf, makeTag, errorAtRest, beneathTags } from '../types.mjs';
+import { isErrorValue, bindingValueOf, makeTag, beneathTags } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { codeOf } from '../eval.mjs';
+import { codeOf, errorAtRestOf } from '../eval.mjs';
 import { rootOf, withScope } from '../state.mjs';
 import { recordReadBy, pageOfRecord } from './axis.mjs';
 import { namesUnder, lawsUnder, rootScopeOf } from '../nouns.mjs';
@@ -29,7 +29,7 @@ async function runLaw({ law, quote, says }, callerState) {
   const actualValue = await codeOf(quote, callerState)(null);
   if (isErrorValue(actualValue)) {
     result.set('actual', null);
-    result.set('error', errorAtRest(actualValue.tag, new Map(actualValue.facts)));
+    result.set('error', await errorAtRestOf(actualValue, callerState));
     result.set('ok', false);
     return result;
   }

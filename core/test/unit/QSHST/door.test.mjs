@@ -27,8 +27,8 @@ beforeAll(async () => {
       ':any/twice ::builtin{}',
       ':any/same ::builtin{}',
       ':any/again (::any/answer | binding | value)',
-      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
-      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
+      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :actualTag |~~ The kind refused. ~~| ~(query /actualTag) #[::null ::tag] | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue)) | impl ::builtin{})',
+      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :actualTag |~~ The kind refused. ~~| ~(query /actualTag) #[::null ::tag] | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue)) | impl ::builtin{})',
       ':any/break ::builtin{}',
       ':Raw |~~ A raw. ~~| (::kind | impl ::builtin{})',
       ':Kept |~~ A kept. ~~| (::kind | impl ::builtin{})',
@@ -51,7 +51,7 @@ beforeAll(async () => {
 });
 
 const answerOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb}`)).result;
-const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(tag) /message]`)).result;
+const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(tag) ~(message)]`)).result;
 const doorRefusal = (address, path, account) =>
   [HOST_FAILURE, `the answer of ::${address} ${path === '' ? 'is' : `holds at ${path}`} ${account}, a value of no kind of the language`];
 
@@ -95,9 +95,9 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     const index = answering(cached);
     expect((await notebook.evalCell(`${index} | answer | count`)).result).toBe(2);
     cached.push(function leaked() {});
-    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) ~(message)]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
     cached[2] = cached;
-    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) /message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
+    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) ~(message)]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
   it('passes back unwalked a value the call handed in', async () => {
@@ -130,7 +130,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
-    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) /actualValue]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
+    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) ~(actualValue)]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
     expect((await notebook.evalCell(`${answering(undefined)} | refuse !| tag`)).result).toEqual(makeTag('any/refuse/RefusedError'));
     expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/actualValue', 'object Object'));
     expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/actualValue', 'object Object'));
@@ -142,7 +142,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
-    expect((await notebook.evalCell('::Raw[1] !| get [~(tag) /message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
+    expect((await notebook.evalCell('::Raw[1] !| get [~(tag) ~(message)]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
     expect((await notebook.evalCell('::Kept[1] | payload')).result).toEqual([1]);
     expect((await notebook.evalCell('::Counted[7] | payload')).result).toBe(1);
   });
@@ -307,7 +307,7 @@ describe('the answer of a primitive a host hands', () => {
         primitives: { 'any/past': () => Infinity, 'any/pastOne': () => Infinity }
       }]
     });
-    expect((await s.evalCell('1 | past !| get [~(tag) /message]')).result)
+    expect((await s.evalCell('1 | past !| get [~(tag) ~(message)]')).result)
       .toEqual(await evalQuery('[::call/HostFailureError "the answer of ::any/past is number Infinity, a value of no kind of the language"]'));
     expect((await s.evalCell('1 | pastOne !| tag')).result).toEqual(await evalQuery('::call/HostFailureError'));
   });
@@ -326,7 +326,7 @@ it('lifts an error of JavaScript and any other value a primitive throws to a fai
   expect(entry.result.tag.name).toBe('call/HostFailureError');
   expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
   expect(entry.result.facts.get('message')).toBe('raw boom');
-  expect((await s.evalCell('42 | hollow !| get [~(tag) /message ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
+  expect((await s.evalCell('42 | hollow !| get [~(tag) ~(message) ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
 });
 
 it('a parsed document lifts into the same map a literal reads into', async () => {

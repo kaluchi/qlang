@@ -28,6 +28,9 @@
             tag among them.
             ::link~(::bind | doc)
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotSchemaError
         |~~ A `::bind` is a map of `:name`, a keyword, `:docs`, a vector
             of a doc at least, and `:body`, a step, and `:field` names the
@@ -39,6 +42,9 @@
             `get {:name :inc :body ~(~(add 1) | first)} | tag ::bind`.
             ::link~(::bind | doc)
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|
+          | wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
     | throws :NameNotCallableError
         |~~ A declaration names what a step calls, names joined by `/`,
             each a letter or `_` and the letters, digits, `_` and `-` after
@@ -47,9 +53,8 @@
             holds the name, and `:message` what the rule says of it.
             ::link~(::bind | doc) ::link~(::qlang/names | doc)
         ~~|
-    | carries :NameNotCallableError/message
-        |~~ What the rule of a name says of the name. ~~|
-        ::string
+        ~(wires :message |~~ What the rule of a name says of the name. ~~| ::string
+          | wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
     | throws :LiteralComputesError
         |~~ A body that is a literal computes nothing: a name or a group
             inside it is refused, and `:message` writes the template `get`
@@ -57,11 +62,13 @@
             `:x (get [~(y)])`.
             ::link~(::bind | doc) ::link~(::any/get | doc)
         ~~|
-    | carries :LiteralComputesError/message
-        |~~ What the rule says of the literal, the template `get` builds it
-            from.
-        ~~|
-        ::string
+        ~(wires :message
+              |~~ What the rule says of the literal, the template `get` builds it
+                  from.
+              ~~|
+              ::string
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :NounNotDeclaredError
         |~~ A name with a path is declared under the noun its path names
             before its last name, and that noun is declared before it, so
@@ -72,12 +79,8 @@
             under it after.
             ::link~(::bind | doc)
         ~~|
-    | carries :NounNotDeclaredError/name
-        |~~ The name declared. ~~|
-        ::keyword
-    | carries :NounNotDeclaredError/noun
-        |~~ The noun its path names, which no declaration names. ~~|
-        ::tag
+        ~(wires :name |~~ The name declared. ~~| ::keyword
+          | wires :noun |~~ The noun its path names, which no declaration names. ~~| ::tag)
     | throws :WrittenOutsideItsChainError
         |~~ A kind and a function hold what they are in the chains that
             build them: an invariant is written
@@ -93,14 +96,14 @@
             ::link~(::kind | doc) ::link~(::fn | doc)
             ::link~(::bind | doc)
         ~~|
-    | carries :WrittenOutsideItsChainError/name
-        |~~ The name declared outside the chain that holds what it
-            declares.
-        ~~|
-        ::keyword
-    | carries :WrittenOutsideItsChainError/noun
-        |~~ The label or the verb the name is declared under. ~~|
-        ::tag
+        ~(wires :name
+              |~~ The name declared outside the chain that holds what it
+                  declares.
+              ~~|
+              ::keyword
+          | wires :noun
+              |~~ The label or the verb the name is declared under. ~~|
+              ~(query /noun) #[::null ::tag])
     | throws :NameDeclaredTwiceError
         |~~ A name is declared once in a scope: the steps of a pipeline
             that the pipe or the fail track joins share one scope, and a
@@ -119,9 +122,7 @@
             refused.
             ::link~(::bind | doc)
         ~~|
-    | carries :NameDeclaredTwiceError/name
-        |~~ The name declared again. ~~|
-        ::keyword
+        ~(wires :name |~~ The name declared again. ~~| ::keyword)
     | proves :holdsTheNameAndTheBody
         |~~ A declaration holds its name and its body. ~~|
         ~(~(:inc add 1) | first | get [/name /body/name] | eq [:inc :add])
@@ -129,11 +130,11 @@
         |~~ Docs that are no vector of docs are refused, `:field` naming
             them.
         ~~|
-        ~(::bind{:name :inc :docs [1]} !| get [~(tag) /field] | eq [::bind/PayloadNotSchemaError :docs])
+        ~(::bind{:name :inc :docs [1]} !| get [~(tag) ~(field)] | eq [::bind/PayloadNotSchemaError :docs])
     | proves :PayloadNotSchemaError/refusesATagForAName
         |~~ A tag is no name a declaration binds. ~~|
         ~({:name ::Box :body 1} | tag ::bind
-          !| get [~(tag) /field] | eq [::bind/PayloadNotSchemaError :name])
+          !| get [~(tag) ~(field)] | eq [::bind/PayloadNotSchemaError :name])
     | proves :PayloadNotSchemaError/buildsTheDeclarationOfABody
         |~~ A keyword and the step a quote holds build the declaration. ~~|
         ~(get {:name :inc :body ~(~(add 1) | first)} | tag ::bind
@@ -141,22 +142,22 @@
     | proves :PayloadNotSchemaError/refusesABindOfNothing
         |~~ A bind with neither a body nor docs is refused under the body.
         ~~|
-        ~(::bind{:name :inc} !| get [~(tag) /field] | eq [::bind/PayloadNotSchemaError :body])
+        ~(::bind{:name :inc} !| get [~(tag) ~(field)] | eq [::bind/PayloadNotSchemaError :body])
     | proves :PayloadNotSchemaError/refusesABodyThatIsADoc
         |~~ A doc as the body is refused; it reads as the page of the
             declaration.
         ~~|
         ~(get {:name :k :body ~(~(|~~ x ~~|) | first)} | tag ::bind
-          !| get [~(tag) /field] | eq [::bind/PayloadNotSchemaError :body])
+          !| get [~(tag) ~(field)] | eq [::bind/PayloadNotSchemaError :body])
     | proves :PayloadNotSchemaError/bindsADocInAGroup
         |~~ A doc in a group is the value a declaration binds. ~~|
         ~(:k (|~~ x ~~|) | k | content | eq "x")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a declaration. ~~|
-        ~(::bind[1] !| get [~(tag) /expected] | eq [::bind/PayloadKindNotTakenError #[::map]])
+        ~(::bind[1] !| get [~(tag) ~(expected)] | eq [::bind/PayloadKindNotTakenError #[::map]])
     | proves :NameNotCallableError/refusesANameOfTwoWords
         |~~ A name with a space is no name a step calls. ~~|
-        ~({:name :"a b" :body 1} | tag ::bind !| get [~(tag) /name] | eq [::bind/NameNotCallableError :"a b"])
+        ~({:name :"a b" :body 1} | tag ::bind !| get [~(tag) ~(name)] | eq [::bind/NameNotCallableError :"a b"])
     | proves :NameNotCallableError/refusesTheWordOfALiteral
         |~~ The word of a literal declares no value. ~~|
         ~({:name :true :body 1} | tag ::bind !| tag | eq ::bind/NameNotCallableError)
@@ -167,7 +168,7 @@
         |~~ A name under a noun no declaration made is refused, naming the
             noun.
         ~~|
-        ~(:Box/area ~(1) !| get [~(tag) /noun] | eq [::bind/NounNotDeclaredError ::Box])
+        ~(:Box/area ~(1) !| get [~(tag) ~(noun)] | eq [::bind/NounNotDeclaredError ::Box])
     | proves :NounNotDeclaredError/takesANameUnderADeclaredNoun
         |~~ A name under a noun declared before it runs on the noun's
             values.
@@ -175,13 +176,13 @@
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | ::Box{} | area | eq 1)
     | proves :WrittenOutsideItsChainError/refusesAnInvariantDeclaredBare
         |~~ An invariant declared by a bare name holds of no value. ~~|
-        ~(:Positive ::invariant~(gt 0) !| get [~(tag) /name] | eq [::bind/WrittenOutsideItsChainError :Positive])
+        ~(:Positive ::invariant~(gt 0) !| get [~(tag) ~(name)] | eq [::bind/WrittenOutsideItsChainError :Positive])
     | proves :WrittenOutsideItsChainError/refusesAnInvariantUnderALabel
         |~~ An invariant declared by a name under a label is refused; the
             chain of the kind writes it.
         ~~|
         ~(:Pos |~~ A positive number. ~~| | :Pos/NotPositiveError ::invariant~(gt 0)
-          !| get [~(tag) /name /noun]
+          !| get [~(tag) ~(name) ~(noun)]
           |  eq [::bind/WrittenOutsideItsChainError :Pos/NotPositiveError ::Pos])
     | proves :WrittenOutsideItsChainError/refusesAnInputUnderAVerb
         |~~ An input declared by a name under a verb is refused; the chain
@@ -202,7 +203,7 @@
           | eq [true])
     | proves :NameDeclaredTwiceError/refusesASecondDeclaration
         |~~ A name declared again in its scope is refused. ~~|
-        ~(:k 1 | :k 2 !| get [~(tag) /name] | eq [::bind/NameDeclaredTwiceError :k])
+        ~(:k 1 | :k 2 !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :k])
     | proves :NameDeclaredTwiceError/letsAGroupDeclareAgain
         |~~ A group declares in a scope of its own, so it may name a name
             again.
@@ -219,7 +220,7 @@
         ~(:k 1 | apply ~(:k 2 | k) | eq 2)
     | proves :NameDeclaredTwiceError/refusesAnInputDeclaredInTheRecipe
         |~~ The recipe of a verb declares none of its inputs again. ~~|
-        ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) /name] | eq [::bind/NameDeclaredTwiceError :x])
+        ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :x])
     | proves :NameDeclaredTwiceError/refusesANameTheRootHolds
         |~~ A reader declares no name the root holds. ~~|
         ~(:vec/count ~(0) !| tag | eq ::bind/NameDeclaredTwiceError)

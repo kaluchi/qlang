@@ -7,7 +7,7 @@
 {"name":"filter-takes-its-predicate-as-a-quote","query":"[1 2 3] | filter ~(gt 1)","expect":"[2 3]"}
 {"name":"an-input-of-code-refuses-a-value-computed-at-the-call","query":"[1 2 3] | filter (count | gt 1) !| tag","expect":"::vec/filter/predicate/KindNotTakenError"}
 {"name":"filter-keeps-the-entries-whose-value-passes","query":"{:a 1 :b 2} | filter ~(gt 1)","expect":"{:b 2}"}
-{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(tag) ~(trace | last | path) /actualTag]","expect":"[::vec/filter/ConditionKindNotTakenError /0 ::number]"}
+{"name":"filter-takes-a-boolean-from-its-condition","query":"[1 2] | filter ~(1) !| get [~(tag) ~(trace | last | path) ~(actualTag)]","expect":"[::vec/filter/ConditionKindNotTakenError /0 ::number]"}
 {"name":"filter-keeps-the-entries-of-a-map-whose-values-are-strings","query":"{:a 1 :b \"x\" :c [1]} | filter ~(tag | eq ::string)","expect":"{:b \"x\"}"}
 {"name":"filter-keeps-the-entries-of-a-map-whose-values-are-maps","query":"{:a 1 :b {:x 1}} | filter ~(tag | eq ::map)","expect":"{:b {:x 1}}"}
 {"name":"filter-keeps-the-entries-of-a-map-whose-values-are-vectors","query":"{:a 1 :b [1 2]} | filter ~(tag | eq ::vec)","expect":"{:b [1 2]}"}

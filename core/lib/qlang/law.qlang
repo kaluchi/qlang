@@ -40,5 +40,5 @@
     | proves :holdsAQuoteByItsOwnTag
         |~~ The query of a law is a quote, a quote under another tag refused.
         ~~|
-        ~(::law::Foo~(3 | eq 3) !| get [~(tag) /actualTag] | eq [::law/PayloadKindNotTakenError ::Foo])
+        ~(::law::Foo~(3 | eq 3) !| get [~(tag) ~(actualTag)] | eq [::law/PayloadKindNotTakenError ::Foo])
 

@@ -96,11 +96,34 @@ export function tagClosed(value, path, depth) {
 function namesRead(value, segments) {
   if (segments.length === 0) return [];
   const parts = wiringOf(beneathOpenTags(value));
-  if (parts === undefined) return [commandStep('get', [makePath(segments)])];
+  if (parts === undefined) return openRead(value, segments);
   const [name, ...rest] = segments;
   if (!parts.has(name)) return null;
   const after = namesRead(parts.get(name), rest);
   return after === null ? null : [commandStep(name, []), ...after];
+}
+
+// The segments read by a path up to the first part a kind closes, the names of that part after them.
+function openRead(value, segments) {
+  let part = value;
+  let open = 0;
+  while (open < segments.length && wiringOf(beneathOpenTags(part)) === undefined) {
+    part = partAt(part, segments[open]);
+    if (part === MISSED) return [commandStep('get', [makePath(segments)])];
+    open++;
+  }
+  const read = commandStep('get', [makePath(segments.slice(0, open))]);
+  if (open === segments.length) return [read];
+  const after = namesRead(part, segments.slice(open));
+  return after === null ? null : [read, ...after];
+}
+
+function partAt(value, segment) {
+  try {
+    return readPath(value, makePath([segment]), true);
+  } catch {
+    return MISSED;
+  }
 }
 
 export function noPartsOn(value, segment, path, depth) {

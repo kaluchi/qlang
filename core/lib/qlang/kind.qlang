@@ -50,6 +50,8 @@
             another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a kind is a command the chain takes,
             written with the modifiers the page of its verb names in their
@@ -62,30 +64,45 @@
             ::link~(::kind/holds | doc) ::link~(::kind/throws | doc)
             ::link~(::kind/proves | doc)
         ~~|
-    | carries :CommandNotTakenError/command
-        |~~ The command as written, a quote of its step. ~~|
-        ::quote
+        ~(wires :command |~~ The command as written, a quote of its step. ~~| ::quote
+          | wires :index
+              |~~ The index, from zero, of the element refused. ~~|
+              ~(query /index) #[::null ::number]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ~(query /actualTag) #[::null ::tag]
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,
             refusal, fact, invariant and law by its name, and an invariant
             names no refusal the kinds of its field name,
             `:w/KindNotTakenError`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :NameUnderNoFieldError
         |~~ A refusal or an invariant written with a path is named under a
             field read before it, `:w/NegativeError`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :LawUnderNoNameError
         |~~ A law written with a path is named under a name the kind
             declares before it: a field, a refusal, an invariant, a fact,
             the payload, or a refusal the kinds of the payload or of a
             field name, `proves :w/KindNotTakenError/refusesAString …`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :FactUnderNoNameError
         |~~ A fact written with a path is named under a name the kind
             declares before it, the refusal that carries it,
             `carries :TooWideError/w …`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :ConstructorKindNotTakenError
         |~~ The constructor of a kind is the one a host hands a kind of the
             core, `::builtin{}`, or null, whether `impl` gives it or the
@@ -93,6 +110,85 @@
             code that would build another value from the payload is no
             part of it.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
+    | throws :PayloadKindNotTakenError
+        |~~ A payload of none of the kinds `accepts` names is refused under
+            the kind, `::number/PayloadKindNotTakenError`, and one that is no
+            vector where it names the kinds of each element: every such
+            refusal carries what this one wires, the page of each standing
+            under its own kind.
+            ::link~(::kind/accepts | doc)
+        ~~|
+        ~(wires :expected |~~ The kinds the payload takes, `#[::map]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the payload refused. ~~| ::tag
+          | wires :actualValue |~~ The payload refused. ~~|)
+    | throws :ElementKindNotTakenError
+        |~~ An element of none of the kinds named for each element of the
+            payload or of a part is refused under the kind or under the
+            part, `::Nums/ElementKindNotTakenError`, the first element so
+            refused: every such refusal carries what this one wires.
+            ::link~(::kind/accepts | doc) ::link~(::kind/wires | doc)
+        ~~|
+        ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
+          | wires :expected |~~ The kinds each element takes, `#[::number]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the element refused. ~~| ::tag
+          | wires :actualValue |~~ The element refused. ~~|)
+    | throws :KindNotTakenError
+        |~~ A part of none of the kinds its `wires` names, or one that is no
+            vector where it names the kinds of each element, is refused
+            under the part, `::Box/w/KindNotTakenError`: every such refusal
+            carries what this one wires.
+            ::link~(::kind/wires | doc)
+        ~~|
+        ~(wires :expected |~~ The kinds the part takes, `#[::number]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the part refused. ~~| ::tag
+          | wires :actualValue |~~ The part refused. ~~|)
+    | throws :NotGivenError
+        |~~ A part its selector does not find in the payload is refused
+            under the part, `::Box/w/NotGivenError`, the payload its
+            `actualValue`: every such refusal carries what this one wires.
+            ::link~(::kind/wires | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the payload. ~~| ::tag
+          | wires :actualValue |~~ The payload the part is missing from. ~~|)
+    | throws :NotReadError
+        |~~ A part whose selector fails on the payload is refused under the
+            part, `::Box/w/NotReadError`, the error at rest of the failure
+            its `actualValue`: every such refusal carries what this one
+            wires.
+            ::link~(::kind/wires | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the error, `::error` or the tag of its site. ~~| ::tag
+          | wires :actualValue |~~ The error at rest of the failure the selector answered. ~~|)
+    | throws :InvariantNotHeldError
+        |~~ A value or a part an invariant of the kind does not hold of is
+            refused under the name the invariant gives,
+            `::Pos/NotPositiveError`: every such refusal carries what this
+            one wires.
+            ::link~(::kind/holds | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value or the part the invariant refused. ~~|)
+    | proves :PayloadKindNotTakenError/readsTheKindsTaken
+        |~~ A payload a kind refuses answers the kinds it takes. ~~|
+        ~(::number"5" !| get [~(expected) ~(actualValue)] | eq [#[::number] "5"])
+    | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
+        |~~ An element of a payload a kind refuses answers its index. ~~|
+        ~(::span[0 1 1 "x" 1 5] !| get [~(index) ~(actualValue)] | eq [3 "x"])
+    | proves :KindNotTakenError/readsThePartRefused
+        |~~ A part of none of its kinds answers itself. ~~|
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:w "x"} !| get [~(expected) ~(actualValue)] | eq [#[::number] "x"])
+    | proves :NotGivenError/readsThePayload
+        |~~ A part the payload lacks answers the payload. ~~|
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:h 1} !| actualValue | eq {:h 1})
+    | proves :NotReadError/readsTheFailureAtRest
+        |~~ A part whose selector fails answers the failure at rest. ~~|
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /n | add 1)) | ::Box{:n "x"} !| actualValue | tag | eq ::number/add/SubjectNotNumberError)
+    | proves :InvariantNotHeldError/readsTheValueRefused
+        |~~ A value an invariant of its kind refuses answers itself. ~~|
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Pos#-3 !| actualValue | payload | eq -3)
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
         ~(::kind | accepts |~~ The sizes. ~~| ::map | tag | eq ::kind)
@@ -133,14 +229,14 @@
         ~~|
         ~(:Nums |~~ Numbers. ~~| (::kind | accepts |~~ The numbers. ~~| [::number])
           | ::Nums[1 "a"]
-          !| get [~(tag) /index]
+          !| get [~(tag) ~(index)]
           |  eq [::Nums/ElementKindNotTakenError 1])
     | proves :holdsThePayloadOfItsKind
         |~~ The payload is of the kinds its `accepts` names by its own tag, a
             payload under another tag refused.
         ~~|
         ~(:Count |~~ A count. ~~| (::kind | accepts |~~ The number. ~~| ::number)
-          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) /actualTag]) ~(::Width#3 | payload | tag ::Count)]
+          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) ~(actualTag)]) ~(::Width#3 | payload | tag ::Count)]
           | eq [3 [::Count/PayloadKindNotTakenError ::Width] ::Count#3])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
@@ -206,7 +302,7 @@
         |~~ A command its verb writes with what the chain does not take is
             refused as the literal's is, the command its `:actualValue`.
         ~~|
-        ~(::kind | wires 5 |~~ x ~~| /x !| get [~(tag) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(wires 5 |~~ x ~~| /x) 0 5])
+        ~(::kind | wires 5 |~~ x ~~| /x !| get [~(tag) ~(command) ~(index) ~(actualValue)] | eq [::kind/CommandNotTakenError ~(wires 5 |~~ x ~~| /x) 0 5])
     | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
         |~~ A step of a recipe is no command of a kind. ~~|
         ~(::kind[~(add 1) null] !| tag | eq ::kind/CommandNotTakenError)
@@ -249,7 +345,7 @@
         ~(::kind[~(carries :x/y |~~ A y. ~~|) null] !| tag | eq ::kind/FactUnderNoNameError)
     | proves :ConstructorKindNotTakenError/refusesANumber
         |~~ A number is no constructor of a host. ~~|
-        ~(::kind[~() 5] !| get [~(tag) /expected] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
+        ~(::kind[~() 5] !| get [~(tag) ~(expected)] | eq [::kind/ConstructorKindNotTakenError #[::builtin ::null]])
     | proves :ConstructorKindNotTakenError/refusesCode
         |~~ Code that would build another value is refused. ~~|
         ~(::kind[~() ~(add 1)] !| tag | eq ::kind/ConstructorKindNotTakenError))
@@ -292,7 +388,7 @@
         |~~ A set of no kinds takes no payload. ~~|
         ~(:Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[])
           | 5 | tag ::Topic
-          !| get [~(tag) /expected]
+          !| get [~(tag) ~(expected)]
           |  eq [::Topic/PayloadKindNotTakenError #[]])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
@@ -333,7 +429,7 @@
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wires :xs |~~ Values. ~~| /xs [::number])
           | ::Box{:xs [1 "a"]}
-          !| get [~(tag) /index]
+          !| get [~(tag) ~(index)]
           |  eq [::Box/xs/ElementKindNotTakenError 1])
     | proves :readsAPartByItsName
         |~~ A part of a value of the kind is read by the name it wires,
@@ -342,7 +438,7 @@
         ~~|
         ~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number)
           | ::Card["a" 312]
-          | get [~(took) ~(get /took !| get /repair) ~(get /1 !| tag)]
+          | get [~(took) ~(get /took !| repair) ~(get /1 !| tag)]
           | eq [312 ~(took) ::path/TagClosedError])
     | proves :showsTheNamesToTheRecipesOfTheKind
         |~~ A word of the kind sees the parts of its subject by name. ~~|

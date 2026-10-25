@@ -1,11 +1,9 @@
 |~ `::error`, the kind every error is a value of, and what is declared
-   under it: the refusal of a payload that is no map, the facts a refusal
-   may carry, and the verbs of errors. The error at
-   rest, the value a catch holds of a failure, is `::error{…}`, or the tag
-   of the site that refused stacked over it, and its walk passes
-   `::error` on its way to the map, so a verb declared here reaches every
-   error.
-   The rules it holds: [QSDSP#residence]. ~|
+   under it: the refusal of a payload that is no map, and its laws. The
+   error at rest, the value a catch holds of a failure, is `::error{…}`,
+   or the tag of the refusal that refused over it, which its kind closes,
+   so the facts it declares are read by their names.
+   The rules it holds: [QSDSP#residence], [QSERR#rest]. ~|
 
 :error
   |~~ An error is the facts of a failure as a value: what refused, on
@@ -19,8 +17,13 @@
       tag of its site before the bang, `::Late!{:by 3}`; it is
       `::error{…}` under that tag, and prints with its bang, as a set
       prints with its hash. It is a value like any other: a container
-      holds it, its facts read as fields, `!{:reason :late} | get /reason`
-      answering `:late`, and JSON writes it as a value under its tag.
+      holds it, and JSON writes it as a value under its tag. Under
+      `::error` alone its facts are a map no refusal declares, read as
+      fields, `!{:reason :late} | get /reason` answering `:late`; under the
+      tag of a refusal it is closed by the kind of the refusal, which wires
+      the facts the refusal carries and its `trace`, each read by its name
+      alone, `"x" | add 1 !| actualTag` answering `::string`, and no path
+      goes beneath its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
       alone; a host prints it as its error at rest, the trace it left
@@ -33,6 +36,7 @@
       answers the site, `::number/add/SubjectNotNumberError`, and
       `trace` the trace. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
+      ::link~(::kind/wires | doc)
       ::snippet~(::error | manifest) lists its verbs and refusals.
       ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
@@ -45,75 +49,6 @@
             value of another kind is held as a fact, `!{:value [1]}`.
             ::link~(::error | doc)
         ~~|
-    | carries :name
-        |~~ The name a reader asked for, a keyword or a tag, where nothing
-            answers it.
-        ~~|
-        #[::keyword ::tag]
-    | carries :addresses
-        |~~ The addresses where a verb of that name lives, one for each
-            kind that answers it.
-        ~~|
-        ::set
-    | carries :nearest
-        |~~ The names a step could have meant where it missed. For a name,
-            a key or a tag nothing declares, those nearest in spelling:
-            within a slip of the typing hand, an insertion, a deletion, a
-            substitution or a swap of two neighbours, up to a third of its
-            length and one at least, the nearest of them alone; beside
-            them a name that begins it or that it begins, three letters at
-            least, `multiply` for `mul`; and the verbs the page of a verb
-            it begins with links whose names end as it goes on, `sumOf`
-            for `addOf`. For a name whose verbs the kind of the subject
-            lacks, the verbs their pages lead to that the subject answers
-            and that answer a kind they answer, `print` and `json` for the
-            `toString` of a vector. In the order of their spelling, and
-            `[]` where none is near.
-        ~~|
-        ::vec
-    | carries :repair
-        |~~ The step the call was likely meant as, where a path stands
-            instead of the value it names: the step again with the path
-            read by `get`, `/tags | count` repaired as `get /tags | count`
-            and `mul /qty` as `mul (get /qty)`.
-        ~~|
-        ::quote
-    | carries :path
-        |~~ The path to the part the refusal stands at: the path a read
-            followed where it missed, the key or the index it missed named
-            beside it, or the path to a number of a JSON text past the
-            doubles.
-        ~~|
-        ::path
-    | carries :index
-        |~~ The index, from zero, of the element refused in a value no
-            frame holds as its subject, an input, a payload, the args or
-            the conditions of `allOf`, `anyOf` and `cond`; a part of the
-            subject a step refused is named by the path of its frame.
-        ~~|
-        ::number
-    | carries :expected
-        |~~ The kinds the holder takes, where a value of none of them was
-            refused, `#[::number]`.
-        ~~|
-        #[::tag]
-    | carries :actualTag |~~ The kind of the value refused. ~~| ::tag
-    | carries :arity
-        |~~ The arity of the verb, how many args its inputs read, where
-            the call gave more.
-        ~~|
-        ::number
-    | carries :actualValue
-        |~~ The value refused, but in a refusal of the subject its step was
-            served, which holds its kind alone, the first frame of the trace
-            holding the subject.
-        ~~|
-        ::any
-    | carries :leftTag |~~ The kind of the value on the left. ~~| ::tag
-    | carries :rightTag |~~ The kind of the value on the right. ~~| ::tag
-    | carries :field
-        |~~ The field of the record of a step that does not fit. ~~|
-        ::keyword
     | proves :writesAnErrorAtRestByItsBang
         |~~ The bang writes an error at rest of the kind of errors. ~~|
         ~(!{:detail "boom"} | tag | eq ::error)
@@ -121,11 +56,21 @@
         |~~ Beneath the site's tag lies an `::error`. ~~|
         ~("x" | add 1 !| payload | tag | eq ::error)
     | proves :readsItsFacts
-        |~~ An error's facts read as fields. ~~|
+        |~~ The facts of an error under `::error` alone read as fields. ~~|
         ~(::error{:k 1} | get /k | eq 1)
+    | proves :readsTheFactsOfARefusalByTheirNames
+        |~~ An error of a refusal answers the facts its refusal declares and
+            its trace by their names.
+        ~~|
+        ~("x" | add 1 !| get [~(actualTag) ~(trace | count)] | eq [::string 1])
+    | proves :refusesAPathBeneathARefusal
+        |~~ No path reads beneath the tag of a refusal. ~~|
+        ~("x" | add 1 !| get /actualTag !| tag | eq ::path/TagClosedError)
     | proves :takesAFactOnTheWay
-        |~~ A fact added on the fail track rides on. ~~|
-        ~("x" | add 1 !| union {:request "r-1"} | raise !| get /request | eq "r-1")
+        |~~ A fact added on the fail track rides on an error of the kind of
+            errors, the payload of the refusal.
+        ~~|
+        ~("x" | add 1 !| payload | union {:request "r-1"} | raise !| get /request | eq "r-1")
     | proves :recoversByItsTag
         |~~ A failure of a known tag recovers. ~~|
         ~("x" | add 1 !| if (tag | eq ::number/add/SubjectNotNumberError) ~(0) ~(raise) | eq 0)
@@ -140,69 +85,7 @@
             another shape among them, which a raise refuses.
         ~~|
         ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| tag)] | eq [5 ::trace/PayloadKindNotTakenError])
-    | proves :repair/namesAWrittenPathAlone
-        |~~ A path a name holds is no path the step wrote, and names no
-            repair.
-        ~~|
-        ~(:p /qty | 5 | mul p !| query /repair | eq null)
     | proves :readsAnErrorAtRestAsItself
         |~~ The kind of errors over an error at rest is that error. ~~|
         ~(!{:by 3} | tag ::error | eq !{:by 3})
-
-:error/trace
-  |~~ Answers the trace of the error, the frames it left from the step
-      that raised it to the `!|` that caught it, each the subject a step
-      met and the steps from the one that failed:
-      `"x" | add 1 | mul 2 !| trace` answers
-      `::trace[::frame["x" ~(add 1 | mul 2)]]`, `add 1` failed on `"x"`
-      and `mul 2` skipped. A step that ran the step that raised adds
-      its frame after it, the `map` that ran an element among them, so
-      the trace reads outward:
-      `[1 "x"] | map ~(mul 2) !| trace | map ~failed` answers
-      `[~(mul 2) ~(map ~(mul 2))]`. An error at rest that flew no step
-      holds no `:trace` and answers `::trace[]`,
-      `::error{:a 1} | trace`, and the `:trace` an error at rest is
-      written with is brought to `::trace` as the verb answers it. The
-      subject is an error at rest, the value a catch holds of a failure:
-      under `|` a failure passes `trace` by, as it passes every step, and
-      a value that is no error is refused, a map with the key `:trace`
-      among them.
-      ::link~(::trace | doc) ::link~(::frame | doc)
-      ::link~(::qlang/errors | doc)
-  ~~|
-  ::fn
-    | returns |~~ The trace of the frames the error passed. ~~| ::trace
-    | throws :SubjectNotErrorError
-        |~~ `trace` reads the trace of an error at rest, the value a catch
-            holds of a failure, `"x" | add 1 !| trace`; the key `:trace`
-            of a plain map is read by `/trace`.
-        ~~|
-    | proves :answersNothingForAnErrorThatFlewNoStep
-        |~~ An error that flew no step holds no trace. ~~|
-        ~(::error{:a 1} | trace | eq ::trace[])
-    | proves :holdsTheStepThatRaised
-        |~~ The trace of an error raised at once holds the one step. ~~|
-        ~("x" | add 1 !| trace | count | eq 1)
-    | proves :meetsTheSubjectOfTheStep
-        |~~ The frame holds the subject the step met. ~~|
-        ~("x" | add 1 !| trace | first | subject | eq "x")
-    | proves :namesTheStepsSkipped
-        |~~ The frame of the step that raised holds the steps skipped
-            after it.
-        ~~|
-        ~("x" | add 1 | mul 2 !| trace | first | skipped | eq ~(mul 2))
-    | proves :readsOutward
-        |~~ The step that ran an element adds its frame after the
-            element's.
-        ~~|
-        ~([1 "x"] | map ~(mul 2) !| trace | map ~failed | eq [~(mul 2) ~(map ~(mul 2))])
-    | proves :bringsAWrittenTraceToItsKind
-        |~~ The `:trace` an error at rest is written with is brought to
-            `::trace`, a number refused as the answer.
-        ~~|
-        ~(get [~(::error{:trace [::frame[1 ~(pre)]]} | trace) ~(!{:trace 5} | trace !| tag)] | eq [::trace[::frame[1 ~(pre)]] ::error/trace/answer/KindNotTakenError])
-    | proves :SubjectNotErrorError/refusesAMap
-        |~~ A map with the key `:trace` is no error. ~~|
-        ~({:trace []} | trace !| get [~(tag) /actualTag] | eq [::error/trace/SubjectNotErrorError ::map])
-    | impl ~(query /trace | coalesce ::trace[])
 

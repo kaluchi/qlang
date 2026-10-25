@@ -49,6 +49,8 @@
             of another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain
             takes, written with the modifiers the page of its verb names in
@@ -61,34 +63,52 @@
             ::link~(::fn/carries | doc) ::link~(::fn/holds | doc)
             ::link~(::fn/proves | doc)
         ~~|
-    | carries :CommandNotTakenError/command
-        |~~ The command as written, a quote of its step. ~~|
-        ::quote
+        ~(wires :command |~~ The command as written, a quote of its step. ~~| ::quote
+          | wires :index
+              |~~ The index, from zero, of the element refused. ~~|
+              ~(query /index) #[::null ::number]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ~(query /actualTag) #[::null ::tag]
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :NameDeclaredTwiceError
         |~~ A name of a chain is declared once: an input, a refusal
             and an invariant each by its name, the subject and the answer
             by theirs, and an invariant names no refusal the kinds of its
             input name, `:by/KindNotTakenError`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :NameUnderNoInputError
         |~~ A refusal or an invariant written with a path is named under
             the subject, an input taken before it or the answer,
             `:by/TooBigError`, and an invariant is written with one.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :LawUnderNoNameError
         |~~ A law written with a path is named under a name the function
             declares before it: an input, a refusal, an invariant, a fact,
             the subject or the answer, the refusal an input's kinds name
             among them, `proves :by/KindNotTakenError/refusesAString …`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :FactUnderNoNameError
         |~~ A fact is named under a name the function declares before it,
             the refusal that carries it, `carries :TooBigError/bound …`.
         ~~|
+        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :RecipeKindNotTakenError
         |~~ The recipe is a quote, a primitive of the host, or null for a
             contract, whether `impl` gives it or the literal writes it.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :RecipeMissingError
         |~~ A function runs the recipe it holds: a contract holds none, and
             a `::builtin{}` runs the primitive a host handed with the
@@ -98,11 +118,116 @@
             reader or put into a function of its own runs nothing. `impl`
             gives a function code, `| impl ~(add by)`.
         ~~|
-    | carries :RecipeMissingError/of
-        |~~ The address the descriptor of the recipe names, where the root
-            holds no function equal to the one refused.
+        ~(wires :of
+              |~~ The address the descriptor of the recipe names, where the root
+                  holds no function equal to the one refused.
+              ~~|
+              ~(query /of) #[::null ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
+    | throws :KindNotTakenError
+        |~~ A value an input reads of none of the kinds it takes, or one
+            that is no vector where it takes the kinds of each element, is
+            refused under the input, `::number/add/addend/KindNotTakenError`,
+            and an answer of none of the kinds `returns` names under the
+            answer: every such refusal carries what this one wires, the page
+            of each standing under its own verb.
+            ::link~(::fn/takes | doc) ::link~(::fn/returns | doc)
         ~~|
-        ::tag
+        ~(wires :repair
+              |~~ The step the call was likely meant as, where it gave a path
+                  for the value the path names, `mul (get /qty)` for
+                  `mul /qty`, and null where it gave none.
+              ~~|
+              ~(query /repair) #[::null ::quote]
+          | wires :expected |~~ The kinds the input or the answer takes, `#[::number]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
+    | throws :ElementKindNotTakenError
+        |~~ An element of none of the kinds an input takes for each element
+            is refused under the input, `::vec/concat/vectors/ElementKindNotTakenError`,
+            the first element so refused: every such refusal carries what
+            this one wires.
+            ::link~(::fn/takes | doc)
+        ~~|
+        ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
+          | wires :expected |~~ The kinds each element takes, `#[::number]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the element refused. ~~| ::tag
+          | wires :actualValue |~~ The element refused. ~~|)
+    | throws :NotGivenError
+        |~~ An input the args of the call leave out is refused under the
+            input, `::vec/map/code/NotGivenError`, the args its
+            `actualValue`: every such refusal carries what this one wires.
+            ::link~(::fn/takes | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the args, the address of the verb. ~~| ::tag
+          | wires :actualValue |~~ The args of the call, under the address of the verb. ~~|)
+    | throws :ArgsBeyondInputsError
+        |~~ Args past those the inputs of a verb read are refused under the
+            verb, `::number/add/ArgsBeyondInputsError`: every such refusal
+            carries what this one wires.
+            ::link~(::fn/takes | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the args, the address of the verb. ~~| ::tag
+          | wires :arity |~~ How many args the inputs read. ~~| ::number
+          | wires :actualValue |~~ The args of the call, under the address of the verb. ~~|)
+    | throws :SubjectRefusedError
+        |~~ A subject the verb does not serve, of none of the kinds its
+            label and `on` name, is refused under the verb as
+            `SubjectNot` and the label, `::number/add/SubjectNotNumberError`,
+            and a subject an invariant of the subject does not hold of under
+            the name the invariant gives: every such refusal carries what
+            this one wires, the first frame of its trace holding the subject.
+            ::link~(::fn/on | doc) ::link~(::fn/holds | doc)
+        ~~|
+        ~(wires :repair
+              |~~ The step the call was likely meant as, where the subject is
+                  a path for the value it names, `get /tags | count` for
+                  `/tags | count`, and null where it is none.
+              ~~|
+              ~(query /repair) #[::null ::quote]
+          | wires :actualTag |~~ The kind of the subject refused. ~~| ::tag)
+    | throws :InvariantNotHeldError
+        |~~ An input or an answer an invariant of the function does not hold
+            of is refused under the name the invariant gives,
+            `::number/div/divisor/ZeroError`: every such refusal carries what
+            this one wires.
+            ::link~(::fn/holds | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The input or the answer the invariant refused. ~~|)
+    | proves :KindNotTakenError/readsTheFactsByTheirNames
+        |~~ A value an input refuses answers its kinds, its kind and itself
+            by their names.
+        ~~|
+        ~(1 | add "x" !| get [~(expected) ~(actualTag) ~(actualValue)] | eq [#[::number] ::string "x"])
+    | proves :KindNotTakenError/namesTheRepairOfAPath
+        |~~ A path the call gives for the value it names names the step
+            that reads it.
+        ~~|
+        ~(5 | mul /qty !| repair | eq ~(mul (get /qty)))
+    | proves :KindNotTakenError/namesNoRepairOfAPathANameHolds
+        |~~ A path a name holds is no path the step wrote, and names no
+            repair.
+        ~~|
+        ~(:p /qty | 5 | mul p !| repair | eq null)
+    | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
+        |~~ An element an input refuses answers its index. ~~|
+        ~([1] | concat [2] 3 !| get [~(index) ~(actualValue)] | eq [1 3])
+    | proves :NotGivenError/readsTheArgs
+        |~~ An input the args leave out answers the args of the call. ~~|
+        ~([1 2] | map !| actualValue | eq ::vec/map[])
+    | proves :ArgsBeyondInputsError/readsTheArity
+        |~~ Args past the inputs answer how many the inputs read. ~~|
+        ~(1 | add 1 2 !| get [~(arity) ~(actualValue)] | eq [1 ::number/add[1 2]])
+    | proves :SubjectRefusedError/readsTheKindOfTheSubject
+        |~~ A subject the verb does not serve answers its kind, the first
+            frame of the trace holding it.
+        ~~|
+        ~("x" | add 1 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "x"])
+    | proves :InvariantNotHeldError/readsTheValueRefused
+        |~~ An input an invariant refuses answers itself. ~~|
+        ~(10 | div 0 !| actualValue | eq 0)
     | proves :isBuiltByCommands
         |~~ A function is built from the noun. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | tag | eq ::fn)
@@ -169,12 +294,12 @@
         |~~ A command its verb writes with what the chain does not take is
             refused as the literal's is, the command its `:actualValue`.
         ~~|
-        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) /command /index /actualValue] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
+        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
     | proves :CommandNotTakenError/countsTheObjectsAsTheLiteralDoes
         |~~ A command its verb writes with a modifier left out or past the
             last is refused as the literal's is.
         ~~|
-        ~(get [~(::fn | takes :by |~~ x ~~| !| get /index) ~(::fn[~(takes :by |~~ x ~~|) null] !| get /index) ~(::fn | takes :by |~~ x ~~| /0 ::number 5 !| get /index)] | eq [2 2 4])
+        ~(get [~(::fn | takes :by |~~ x ~~| !| index) ~(::fn[~(takes :by |~~ x ~~|) null] !| index) ~(::fn | takes :by |~~ x ~~| /0 ::number 5 !| index)] | eq [2 2 4])
     | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
         |~~ A step of a recipe is no command of a chain. ~~|
         ~(::fn[~(add 1) ~(add 1)] !| tag | eq ::fn/CommandNotTakenError)
@@ -255,7 +380,7 @@
         ~(::fn[~(carries :y |~~ A y. ~~|) ~(1)] !| tag | eq ::fn/FactUnderNoNameError)
     | proves :RecipeKindNotTakenError/refusesANumber
         |~~ A number is no recipe. ~~|
-        ~(::fn[~() 5] !| get [~(tag) /expected] | eq [::fn/RecipeKindNotTakenError #[::builtin ::null ::quote]])
+        ~(::fn[~() 5] !| get [~(tag) ~(expected)] | eq [::fn/RecipeKindNotTakenError #[::builtin ::null ::quote]])
     | proves :RecipeMissingError/refusesAContract
         |~~ A function with no recipe is refused at its call. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0) [3] !| tag | eq ::fn/RecipeMissingError)
@@ -266,7 +391,7 @@
         |~~ The primitive of a verb put into a function of its own runs
             nothing, the refusal naming the address of the verb.
         ~~|
-        ~({:a 1} | apply (::fn | impl (::vec/first | binding | value | get /1)) [] !| get [~(tag) /of] | eq [::fn/RecipeMissingError ::vec/first])
+        ~({:a 1} | apply (::fn | impl (::vec/first | binding | value | get /1)) [] !| get [~(tag) ~(of)] | eq [::fn/RecipeMissingError ::vec/first])
     | tells :call
         |~~ The call of a function `apply` runs or whose inputs `fill`
             reads, which no verb names: a refusal of its subject, its
@@ -447,7 +572,7 @@
         ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
           | 5
           | w ~(add 1) (get /x)
-          !| get [~(tag) /index]
+          !| get [~(tag) ~(index)]
           | eq [::number/w/cs/ElementKindNotTakenError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
@@ -456,7 +581,7 @@
         |~~ A name that is no keyword is refused by the chain, which holds
             what each command writes.
         ~~|
-        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) /index /actualValue] | eq [::fn/CommandNotTakenError 0 "by"]))
+        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError 0 "by"]))
     ::builtin{}]
 
 :fn/returns
@@ -737,6 +862,9 @@
         |~~ `fill` writes into code, a quote: a contract or a primitive has
             none.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | proves :writesTheArgs
         |~~ The value goes into the head of the code. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3 | add by))
@@ -765,7 +893,7 @@
         ~(5 | fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
     | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) /expected ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
     ::builtin{}]
 
 :fn/inputs

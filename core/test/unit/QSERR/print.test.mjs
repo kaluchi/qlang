@@ -28,7 +28,7 @@ describe('the print of a failure, its tag before the bang and its facts', () => 
     const err = makeErrorValue(makeTag('Foo'), new Map([['category', makeKeyword('oops')]]));
     expect(printValue(err)).toBe('::Foo!{:category :oops}');
     expect(isErrorValue(await evalQuery(printValue(err)))).toBe(false);
-    expect(compareValues(await evalQuery(`${printValue(err)} | raise !| trace | map ~failed`), await evalQuery('[~(raise)]')) === 0).toBe(true);
+    expect(compareValues(await evalQuery(`${printValue(err)} | raise !| get /trace | map ~failed`), await evalQuery('[~(raise)]')) === 0).toBe(true);
   });
 
   it('an answer that is a failure prints under the line that says it was raised, an error at rest under none', async () => {

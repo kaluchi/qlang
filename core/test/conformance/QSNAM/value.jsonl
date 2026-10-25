@@ -7,7 +7,7 @@
 {"name":"a-name-that-holds-a-value-refuses-modifiers-holding-the-value","query":"5 | :five it | five 42","raises":"::call/ValueTakesNoModifiersError!{\n  :name :five\n  :addresses #[]\n  :actualTag ::number\n  :actualValue 5\n  :trace ::trace[::frame[5 ~(five 42)]]\n}"}
 {"name":"a-bound-quote-stays-data","query":":q ~(add 1) | 5 | q","expect":"~(add 1)"}
 {"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)","expect":"6"}
-{"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(tag) /name]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}
+{"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(tag) ~(name)]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}
 {"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | :c it | get [1 2 3] | c | tag","expect":"::builtin"}
 {"name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | :u it | get {:x 1} | u | tag","expect":"::builtin"}
-{"name":"an-input-holding-a-value-refuses-modifiers-under-the-name-of-the-input","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| get [~(tag) /name]","expect":"[::call/ValueTakesNoModifiersError :n]"}
+{"name":"an-input-holding-a-value-refuses-modifiers-under-the-name-of-the-input","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| get [~(tag) ~(name)]","expect":"[::call/ValueTakesNoModifiersError :n]"}

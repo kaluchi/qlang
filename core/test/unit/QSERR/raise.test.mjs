@@ -2,8 +2,8 @@ import { it, expect } from 'vitest';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { isErrorValue, makeTag } from '../../../src/types.mjs';
 
-it('an error literal under the address of a refusal, raised, keeps every fact it writes', async () => {
-  const err = await evalQuery('::number/add/SubjectNotNumberError!{:custom "field" :note 42} | raise');
+it('an error literal under the address of a refusal, the facts its kind wires among them, raised, keeps every fact it writes', async () => {
+  const err = await evalQuery('::number/add/SubjectNotNumberError!{:actualTag ::string :custom "field" :note 42} | raise');
   expect(isErrorValue(err)).toBe(true);
   expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
   expect(err.facts.get('custom')).toBe('field');

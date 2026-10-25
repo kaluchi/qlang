@@ -10,7 +10,7 @@ it('a field refuses a value that is no vector where it names the kinds of each e
 });
 
 it('a field refuses the failure of a quote that reads it under its name, the failure its actual value, past a part the payload leaves out', async () => {
-  expect(await answers(':Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| get [~(tag) /actualTag]'))
+  expect(await answers(':Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| get [~(tag) ~(actualTag)]'))
     .toBe('[::Box/w/NotReadError ::number/add/addend/KindNotTakenError]');
 });
 

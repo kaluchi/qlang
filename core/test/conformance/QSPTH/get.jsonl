@@ -3,10 +3,10 @@
 {"name":"a-path-of-bare-keys-reads-three","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
 {"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","raises":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualTag ::map\n  :trace ::trace[::frame[{:a 1} ~(get /b)]]\n}"}
 {"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20"}
-{"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| get /nearest","expect":"[:emails]"}
+{"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| nearest","expect":"[:emails]"}
 {"name":"get-refuses-an-index-past-the-end","query":"[1 2] | get /5 !| tag","expect":"::path/IndexOutOfBoundsError"}
 {"name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| tag","expect":"::path/SubjectHasNoPartsError"}
-{"name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| get /path","expect":"/a/c"}
+{"name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| path","expect":"/a/c"}
 {"name":"a-path-of-one-key-reads-the-value-under-it","query":"{:name \"Alice\"} | get /name","expect":"\"Alice\""}
 {"name":"get-refuses-a-key-the-map-lacks-with-no-key-near-it","query":"{:name \"Alice\"} | get /age","raises":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualTag ::map\n  :trace ::trace[::frame[{:name \"Alice\"} ~(get /age)]]\n}"}
 {"name":"a-path-of-two-keys-reads-a-map-within-a-map","query":"{:point {:x 5 :y 7}} | get /point/x","expect":"5"}
@@ -33,12 +33,12 @@
 {"name":"a-set-reads-a-negative-index-from-the-end-of-its-order","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"get-refuses-an-index-past-the-end-of-a-set","query":"#[:a :b] | get /99 !| tag","expect":"::path/IndexOutOfBoundsError"}
 {"name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | tag) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | wires :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(wires :w |~~ w ~~| /w ::number)]"}
-{"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(tag) /actualValue]) ~(get /m/y !| get [~(tag) /actualValue])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
-{"name":"a-read-that-fails-at-the-subject-of-its-step-holds-the-kind-of-the-value-it-met-alone","query":"get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(::T#null | get /a !| get /actualTag)]","expect":"[[#[:actualTag :path :segment :trace] ::number] ::null]"}
-{"name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get [~(tag) /actualValue/actualValue]","expect":"[::Box/w/NotReadError [1 2]]"}
-{"name":"a-path-beneath-a-closed-tag-is-refused-repaired-by-the-names","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /took !| get [~(tag) /repair /names]","expect":"[::path/TagClosedError ~(took) #[:took]]"}
-{"name":"a-path-by-an-index-beneath-a-closed-tag-is-refused-with-no-repair","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /1 !| query [~(tag) /repair]","expect":"[::path/TagClosedError null]"}
-{"name":"the-repair-of-a-path-beneath-a-closed-tag-reads-on-by-a-path-past-its-part","query":"[1 \"x\"] | map ~(mul 2) !| get /trace/-1/subject/1 !| get /repair","expect":"~(get /trace/-1 | subject | get /1)"}
-{"name":"a-path-past-a-part-to-a-segment-its-kind-wires-not-names-no-repair","query":"\"[1\" | parse !| get /location/start/9 !| query /repair","expect":"null"}
+{"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(tag) ~(actualValue)]) ~(get /m/y !| get [~(tag) ~(actualValue)])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
+{"name":"a-read-that-fails-at-the-subject-of-its-step-holds-the-kind-of-the-value-it-met-alone","query":"get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(::T#null | get /a !| actualTag)]","expect":"[[#[:actualTag :path :segment :trace] ::number] ::null]"}
+{"name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get [~(tag) ~(actualValue | actualValue)]","expect":"[::Box/w/NotReadError [1 2]]"}
+{"name":"a-path-beneath-a-closed-tag-is-refused-repaired-by-the-names","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /took !| get [~(tag) ~(repair) ~(names)]","expect":"[::path/TagClosedError ~(took) #[:took]]"}
+{"name":"a-path-by-an-index-beneath-a-closed-tag-is-refused-with-no-repair","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /1 !| query [~(tag) ~(repair)]","expect":"[::path/TagClosedError null]"}
+{"name":"the-repair-of-a-path-beneath-a-closed-tag-reads-on-by-a-path-past-its-part","query":"[1 \"x\"] | map ~(mul 2) !| get /trace/-1/subject/1 !| repair","expect":"~(trace | get /-1 | subject | get /1)"}
+{"name":"a-path-past-a-part-to-a-segment-its-kind-wires-not-names-no-repair","query":"\"[1\" | parse !| location | start | get /9 !| repair","expect":"null"}
 {"name":"payload-answers-the-payload-of-a-closed-tag-bare","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | payload | get /1","expect":"312"}
 {"name":"a-name-reads-the-part-of-a-closed-tag-beneath-an-open-one","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | tag ::Shown | took","expect":"312"}

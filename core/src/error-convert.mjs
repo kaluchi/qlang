@@ -1,6 +1,7 @@
-import { makeKeyword, makeErrorValue, makeTag, tagOf, ERROR_TAG } from './types.mjs';
+import { makeKeyword, makeErrorValue, makeTag, tagOf } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
-import { namesDeclaredUnder } from './nouns.mjs';
+import { kindOfAValueOf } from './nouns.mjs';
+import { chainOfKind } from './chain.mjs';
 import { nameOfContinuation } from './parse.mjs';
 
 // [QSERR#site]
@@ -8,7 +9,7 @@ recordRefusal('quote/ParseError');
 recordRefusal('call/HostFailureError');
 
 const BuiltinRefusalFactNotDeclaredError = declareDefect('builtin/RefusalFactNotDeclaredError',
-  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
+  ({ address, fact }) => `${address.literal} carries ${fact.literal}, which the kind of its refusal does not wire`);
 
 // [QSPRN#span]
 export function spanOfLocation(loc, source) {
@@ -21,12 +22,12 @@ export function spanOfLocation(loc, source) {
 
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
-// [QSERR#site]
+// [QSERR#site], [D453]
 export function factsInOrder(tag, facts, scope) {
+  const kind = kindOfAValueOf(scope, tag.name);
+  if (kind === null) return facts;
   const ordered = new Map();
-  for (const name of [...namesDeclaredUnder(scope, tag.name), ...namesDeclaredUnder(scope, ERROR_TAG.name)]) {
-    if (facts.has(name) && !ordered.has(name)) ordered.set(name, facts.get(name));
-  }
+  for (const name of chainOfKind(kind).wired.keys()) if (facts.has(name)) ordered.set(name, facts.get(name));
   for (const name of facts.keys()) {
     if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: makeKeyword(name) });
   }

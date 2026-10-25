@@ -55,10 +55,10 @@
         ~(#[3 1 2] | reverse | eq [3 2 1])
     | proves :refusesBraces
         |~~ `#{1}` does not parse, and its message names `#[`. ~~|
-        ~("#{1}" | parse !| get /message | contains "#[")
+        ~("#{1}" | parse !| message | contains "#[")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| get [~(tag) /actualTag] | eq [::set/PayloadKindNotTakenError ::map])
+        ~(::set{:not :a-vec} !| get [~(tag) ~(actualTag)] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :set/sort
@@ -142,12 +142,15 @@
             its frame names the first element that is no vector, the
             vectors its elements hold read first, `map /a | zip`.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | proves :keepsEqualColumns
         |~~ The columns stand in a vector, two equal ones kept. ~~|
         ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) /expected] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
+        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
         ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])
@@ -194,6 +197,9 @@
             the path of its frame naming the element and `:expected` the
             kinds a key files under.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one
@@ -203,12 +209,10 @@
             means both answers one kind,
             `~(get /id | if (tag | eq ::string) ~(it) ~(print))`.
         ~~|
-    | carries :KeyTakenError/key
-        |~~ The keyword both values file under. ~~|
-        ::keyword
-    | carries :KeyTakenError/taken
-        |~~ The value of the key that filed under the keyword first. ~~|
-        ::any
+        ~(wires :key |~~ The keyword both values file under. ~~| ::keyword
+          | wires :taken |~~ The value of the key that filed under the keyword first. ~~|
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | proves :filesIntoSets
         |~~ The elements file into sets under the key they answer. ~~|
         ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | get /big | eq #[2 3])
@@ -234,7 +238,7 @@
         ~(#[1 "a"] | groupBy ~(tag) | eq {:number #[1] :string #["a"]})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~(#[1 "1"] | groupBy !| get [~(tag) /key /taken] | eq [::set/groupBy/KeyTakenError :"1" 1])
+        ~(#[1 "1"] | groupBy !| get [~(tag) ~(key) ~(taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
     | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
@@ -244,7 +248,7 @@
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
         ~~|
-        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) /expected] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(expected)] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :set/toVec
@@ -264,7 +268,7 @@
         |~~ A map is led to its pairs and its values, the verbs that
             answer a vector, and a string to `split`.
         ~~|
-        ~(get [~({:a 1} | toVec !| get /nearest) ~("ab" | toVec !| get /nearest)] | eq [[:entries :vals] [:split]])
+        ~(get [~({:a 1} | toVec !| nearest) ~("ab" | toVec !| nearest)] | eq [[:entries :vals] [:split]])
     | proves :keepsTheVerbsOfVectorsOnAVector
         |~~ The vector of a set takes as a vector, the set as a set. ~~|
         ~(#[3 1 2] | get [~(toVec | take 2) ~(take 2)] | eq [[1 2] #[1 2]])

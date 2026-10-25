@@ -11,7 +11,7 @@ describe('the names `with` gives the parts of a value', () => {
 
   it('reach a body held as data, which reads no value of the reader', async () => {
     expect(await evalQuery(':b ~(id | add 1) | {:id 7} | with [/id] b')).toBe(8);
-    expect(await evalQuery(':r 10 | :b ~(id | add r) | {:id 7} | with [/id] b !| get [~(tag) /name]'))
+    expect(await evalQuery(':r 10 | :b ~(id | add r) | {:id 7} | with [/id] b !| get [~(tag) ~(name)]'))
       .toEqual([makeTag('call/ValueWithheldError'), makeKeyword('r')]);
   });
 });

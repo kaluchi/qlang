@@ -5,7 +5,7 @@ import { isErrorValue, tagOf, makeErrorValue } from '../types.mjs';
 import { elideToBudget, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
-import { nodeOf, residenceOnSubject } from '../nouns.mjs';
+import { kindOfAValueOf, nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
 import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -30,11 +30,11 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 export async function boundAnswer(answer, scope, written = null) {
   const printedOf = await printsOfKinds(answer, scope);
   const failed = isErrorValue(answer);
-  const shown = failed ? alertWithin(answer, ANSWER_BUDGET, printedOf) : answer;
+  const shown = failed ? alertWithin(answer, ANSWER_BUDGET, printedOf, kindOfAValueOf(scope, answer.tag.name) !== null) : answer;
   const characters = lengthOf(written ?? printValue(shown, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return shown;
   const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: headOfAnswer(answer, printedOf) }), undefined, scope);
-  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualTag', failed ? answer.tag : tagOf(answer))), ANSWER_BUDGET, printedOf);
+  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualTag', failed ? answer.tag : tagOf(answer))), ANSWER_BUDGET, printedOf, true);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';

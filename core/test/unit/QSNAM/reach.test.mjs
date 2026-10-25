@@ -36,7 +36,7 @@ describe('the names of the scope', () => {
     const alone = await createNotebook({ sources: [] });
     expect((await alone.evalCell(':tally 5 | [1 2] | tally')).result).toBe(5);
     const beside = await createNotebook({ sources: [later] });
-    const met = ':tally 5 | get [~(7 | tally) ~([1 2] | tally !| get [~(tag) /addresses]) ~([1 2] | vec/tally)]';
+    const met = ':tally 5 | get [~(7 | tally) ~([1 2] | tally !| get [~(tag) ~(addresses)]) ~([1 2] | vec/tally)]';
     expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsVerbError #[::vec/tally]] 2]`)).result).toBe(true);
   });
 
@@ -55,7 +55,7 @@ describe('the names of the scope', () => {
 
 it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s', async () => {
   const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
-  expect(await evalQuery(`${post} | subOf /a /b !| get [~(tag) /name] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
+  expect(await evalQuery(`${post} | subOf /a /b !| get [~(tag) ~(name)] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
   const notebook = await createNotebook({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
-  expect((await notebook.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(tag) /name] | eq [::call/ValueMeetsVerbError :divisor]')).result).toBe(true);
+  expect((await notebook.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(tag) ~(name)] | eq [::call/ValueMeetsVerbError :divisor]')).result).toBe(true);
 });

@@ -215,12 +215,10 @@
             `json | out` its JSON. No step raises it and no `!|` reaches it.
             ::link~(::qlang/hosts | doc)
         ~~|
-    | carries :AnswerBeyondBudgetError/characters
-        |~~ The characters of the print of the answer. ~~|
-        ::number
-    | carries :AnswerBeyondBudgetError/budget
-        |~~ The budget every host prints an answer within. ~~|
-        ::number
+        ~(wires :characters |~~ The characters of the print of the answer. ~~| ::number
+          | wires :budget |~~ The budget every host prints an answer within. ~~| ::number
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadKindNotTakenError
         |~~ `::qlang` names the topic of the language, its page and its
             chapters, and takes no payload: it is asked by itself,
@@ -339,7 +337,7 @@
         |~~ `!|` catches a failure, its step running on the error at rest,
             which holds its facts.
         ~~|
-        ~("x" | add 1 !| get /actualTag | eq ::string)
+        ~("x" | add 1 !| actualTag | eq ::string)
     | proves :refusesUnderTheInput
         |~~ An input of none of its kinds is refused under the input. ~~|
         ~(1 | add "x" !| tag | eq ::number/add/addend/KindNotTakenError)
@@ -763,7 +761,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | open | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| get [~(tag) /expected] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
+        ~([1 2] | filter ~(1) !| get [~(tag) ~(expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)
@@ -819,7 +817,7 @@
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedSubject
         |~~ The first frame holds the subject the step refused. ~~|
-        ~("a" | mul 2 !| get [/actualTag ~(trace | first | subject)] | eq [::string "a"])
+        ~("a" | mul 2 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|
         ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply f)])
@@ -836,7 +834,7 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | path | eq /1)
     | proves :errors/resumesItsTrace
         |~~ A map raised again resumes its trace. ~~|
-        ~(!{:a 1} | raise | count !| raise | add 1 !| trace | last | skipped | eq ~(count | add 1))
+        ~(!{:a 1} | raise | count !| raise | add 1 !| get /trace | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
         ~(get [~(!{:a 1} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
@@ -878,7 +876,7 @@
         ~(:k 10 | 5 | apply ~(add k) | eq 15)
     | proves :code/withholdsAValueOfTheReader
         |~~ Held code reads no value the reader named. ~~|
-        ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(tag) /name] | eq [::call/ValueWithheldError :k])
+        ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(tag) ~(name)] | eq [::call/ValueWithheldError :k])
     | proves :code/readsTheStepThroughAVerbOfTheLanguage
         |~~ A verb written in the language hands a quote on from the step
             that wrote it.

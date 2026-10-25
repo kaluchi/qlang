@@ -207,6 +207,8 @@ function readChainOfKind(quote) {
     }
   }
   kind.wired = new Map(kind.fields.map(field => [field.name.name, field]));
+  kind.invariantsOfAField = new Map(kind.fields.map(({ name }) => [name.name, kind.invariants.filter(({ field }) => field === name.name)]));
+  kind.invariantsOfTheValue = kind.invariants.filter(({ field }) => field === null);
   return Object.freeze(kind);
 }
 

@@ -463,12 +463,16 @@ function selectedValue({ path, selector, index, oneArg, strict, fallback, readsA
 }
 
 // [QSBLD#input], [QSPTH#get]
-function pathOfArgs(path, state, soft = false) {
+function pathOfArgs(path, state) {
+  return partAtThePlace(state.pipeValue, { path, soft: false }, state.scope);
+}
+
+function partAtThePlace(subject, { path, soft }, scope) {
   try {
-    const part = readPath(state.pipeValue, path, soft);
+    const part = readPath(subject, path, soft);
     return part === MISSED ? null : part;
   } catch (refusal) {
-    return errorFromQlang(refusal, undefined, state.scope);
+    return errorFromQlang(refusal, undefined, scope);
   }
 }
 
@@ -835,39 +839,43 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
 
 // [QSBLD#value], [QSLIT#tag], [QSHST#source]
 async function underKind(tagName, kind, payload, state) {
-  const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
+  const { payload: payloadRole, fields, invariantsOfAField, invariantsOfTheValue } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
   const parts = new Map();
   for (const field of fields) {
-    const part = await fieldRead(tagName, field, held, invariants, state, opened);
+    const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened);
+    const part = isThenable(reading) ? await reading : reading;
     if (isErrorValue(part)) return part;
     parts.set(field.name.name, part);
   }
   const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed, fields.length === 0 ? undefined : parts);
-  const ofTheValue = invariants.filter(({ field }) => field === null);
-  const refused = ofTheValue.length === 0 ? null : await invariantRefusal(ofTheValue, tagName, constructed, state, opened(), labelled);
+  const refused = invariantsOfTheValue.length === 0 ? null : await invariantRefusal(invariantsOfTheValue, tagName, constructed, state, opened(), labelled);
   return refused ?? labelled;
 }
 
-async function fieldRead(tagName, field, payload, invariants, state, opened) {
+// [QSBLD#value]
+function fieldRead(tagName, field, payload, invariants, state, opened) {
+  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened);
+  return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened));
+}
+
+function fieldHeld(tagName, field, payload, read, invariants, state, opened) {
   const fieldAddress = `${tagName}/${field.name.name}`;
-  const read = field.place !== null
-    ? pathOfArgs(field.place.path, withPipeValue(state, payload), field.place.soft)
-    : await answerOfPipeline(field.selector, nestState(state, payload, opened()));
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
-  if (isErrorValue(read)) {
-    const atRest = await errorAtRestOf(read, state);
-    return isErrorValue(atRest) ? atRest : refusalUnder(notReadAddress(fieldAddress), { actualValue: atRest }, state.scope);
-  }
+  if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);
   if (isErrorValue(held)) return held;
-  const ofTheField = invariants.filter(({ field: under }) => under === field.name.name);
-  return (ofTheField.length === 0 ? null : await invariantRefusal(ofTheField, tagName, read, state, opened())) ?? read;
+  return invariants.length === 0 ? read : invariantRefusal(invariants, tagName, read, state, opened()).then(refused => refused ?? read);
+}
+
+async function refusalOfAPartNotRead(fieldAddress, read, state) {
+  const atRest = await errorAtRestOf(read, state);
+  return isErrorValue(atRest) ? atRest : refusalUnder(notReadAddress(fieldAddress), { actualValue: atRest }, state.scope);
 }
 
 // [QSNAM#scope], [QSNAM#verb], [QSQUO#held], [QSERR#trace]

@@ -44,7 +44,7 @@ export function errorFromQlang(qlangError, subject, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
-// [D460], [QSPRN#span]
+// [QSSYN#refusal], [QSPRN#span]
 export function errorFromParse(parseError, scope, location, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && location !== undefined) {
@@ -62,7 +62,7 @@ export function errorFromParse(parseError, scope, location, uri = parseError.uri
   return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });
 }
 
-// [D460]
+// [QSSYN#refusal]
 const MARKED_LINE_WITHIN = EXCERPT_CHARACTERS - 3;
 
 function markedLineOf(line, [, startLine, startColumn, , endLine, endColumn]) {

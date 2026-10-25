@@ -75,7 +75,7 @@ export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine =
   return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
-// [D458]
+// [QSPRN#legend]
 const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
 
 // [QSPRN#print]

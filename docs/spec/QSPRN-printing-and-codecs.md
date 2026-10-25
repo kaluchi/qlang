@@ -94,36 +94,44 @@ true
 
 ## legend
 
-`legend`, a verb of `::any`, answers the print of its subject laid out by
-its kind [QSBLD#value]: a part the kind reads by a path of one segment, a
-key of the map or an index of the vector it is laid over, stands on a line
-of its own beside a comment, the gloss of the page of the name that wires
-it and that name, the step that reads it, `| legend` after the name where
-the part is a value of a kind that wires parts of its own; the head, the
-tag and the bracket the value opens with, stands beside the gloss of the
-page `doc` reads of the subject and `doc` [QSSLF#axis]; a part the kind
-computes, by code or a longer path, is told after the value in a comment of
-its own, its name, its print and its gloss, and a part that is null not at
-all; and a part no name wires stands with no comment. A value of a kind
-that wires nothing, one whose payload holds no key or index and one its
-kind prints itself stand on one line beside their gloss, their parts told
-after them, each element of a collection read by its own legend. The gloss
-of a page is its first words, before the first colon, semicolon or period
-its prose ends a clause with, a span between backquotes and a quote of code
+`legend`, a verb of `::any`, answers the legend of its subject, a value
+under `::legend`, a kind of the core whose `print` lays the print of the
+value it tells out by that value's kind [QSBLD#value], so a host prints a
+legend as it prints any answer, painted by the tokens of the language, and
+`payload` answers the value told. A part the kind reads by a path of one
+segment, a key of the map or an index of the vector it is laid over,
+stands on a line of its own beside its gloss, a part at an index beside
+its name too, which its print does not write; the head, the tag and the
+bracket the value opens with, stands beside the gloss of the page `doc`
+reads of the subject [QSSLF#axis]; a part no name wires stands with no
+comment, and a part the kind computes, by code or a longer path, stands in
+no legend, `manifest` naming it and `doc` reading its page. A value of a
+kind that wires nothing, one whose payload holds no key or index and one
+its kind prints itself stand on one line beside their gloss. The gloss of
+a page is its first words, before the first colon, semicolon or period its
+prose ends a clause with, a span between backquotes and a quote of code
 read whole, on one line; the page of a link alone is glossed by the page
-`doc` reads of the tag it links to, and a page that leads to no words names
-the part alone. Each part prints as `print` prints it, the print of its
-kind among them, on one line, and the comments of the lines within half
-the width of a line stand aligned. Every comment is whitespace
-[QSSYN#comment], so the text reads back as the subject: the command line
-prints it as itself [QSCLI#answer], and `| out` writes it so in the REPL.
+`doc` reads of the tag it links to, and a page that leads to no words
+leaves a part at a key with no comment and a part at an index named alone.
+Each gloss is a closed comment, `|~ … ~|`, which ends where it closes, and
+whitespace [QSSYN#comment], so the text reads back as the subject in any
+layout it stands in; each part prints as `print` prints it, the print of
+its kind among them, on one line, and the glosses of the lines within half
+the width of a line stand aligned at a column of sixteen at least. A
+vector, a set or a map that holds a legend lays each of its parts on a
+line of its own.
 
 ```sh
 $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
-::Box{       |~| A parcel · doc
-  :w 3       |~| The width · w
+::Box{          |~ A parcel ~|
+  :w 3          |~ The width ~|
   :note "x"
 }
+```
+
+```qlang
+> [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | open) ~(first | tag)]
+[4 [1 2] ::legend]
 ```
 
 ## json
@@ -269,8 +277,10 @@ the line and the column from one, the offset and the column in the
 characters a string counts. Its kind wires its two ends [QSBLD#value],
 `start` and `end`, each a point it decodes from three of the numbers
 through the door of `::point`, three integers its kind wires as `offset`,
-`line` and `column`, so the line where a parse stopped is read by its
-names, `!| get /location | start | line`, and the location of a refusal
+`line` and `column`, and each of its six numbers by its index,
+`startOffset`, `startLine`, `startColumn`, `endOffset`, `endLine` and
+`endColumn`, so the line where a parse stopped is read by its names,
+`!| location | startLine`, and the location of a refusal
 of a parse is laid through the door of its span. A payload that is no
 vector is refused as `…/PayloadKindNotTakenError`, an element that is no
 number as `…/ElementKindNotTakenError` with its `:index`; a span of fewer

@@ -240,10 +240,19 @@ true
 ## refusal
 
 A source the parser refuses answers `::quote/ParseError` with its
-`:source`, the line where the reading stopped, its `:location`, a
-`::span` whose `start` and `end` are the points `line` and `column` read
-[QSPRN#span], and, where a host named the source or the cell or `parse`
-read the text, its `:origin`, `:string/parse` for a text `parse` read. A
+`:source`, the line where the reading stopped, cut around that point by
+an ellipsis on each side it cuts where its print would pass the excerpt
+of an alert [QSERR#alert]; its `:marker`, spaces, a caret `^` under the
+character of `:source` where the reading stopped and a tilde under each
+other character of its span on that line, a span that runs past the line
+reaching its end, and spaces after them to the end of `:source`, each
+character counted as its print writes it, a quote and a backslash two,
+so the two print in one column, the caret under its character, and past
+the line under its closing quote where the reading stopped at its end;
+its `:location`, a `::span` of the whole text whose `start` and `end`
+are the points `line` and `column` read [QSPRN#span]; and, where a host
+named the source or the cell or `parse` read the text, its `:origin`,
+`:string/parse` for a text `parse` read. A
 refusal the grammar writes holds a `:message` that names the
 habit it met; any other holds the continuations a reader could have
 meant as `:expected` and what it met as `:found`, none at the end of the
@@ -282,6 +291,9 @@ true
 
 > "[1 2" | parse !| get [~(source) ~(location | start | column) ~(origin)]
 ["[1 2" 5 :string/parse]
+
+> "[mul(2) add(1)]" | parse !| get [~(source) ~(marker)]
+["[mul(2) add(1)]" "    ^~~        "]
 
 > "[1 2 x" | parse !| expected
 [:"letters of a name" "/" :whitespace "]"]

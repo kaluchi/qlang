@@ -232,7 +232,7 @@ export function residenceOnSubject(scope, verbName, subject) {
   return residenceOf(scope, ANY_KIND_NAME, verbName);
 }
 
-// [D459]
+// [QSDSP#tagname]
 function passesTheTagName(scope, record, kindName, subject, verbName) {
   if (!isTag(subject) || kindName !== subject.name || residenceOf(scope, ANY_KIND_NAME, verbName) === null) return false;
   const value = bindingValueOf(record);

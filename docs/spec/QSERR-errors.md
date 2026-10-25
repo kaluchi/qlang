@@ -437,12 +437,10 @@ reading of the literal passes over, and so does the refusal a host
 prints instead of an answer past its budget, which was no failure
 [QSPRN#budget]; the command line writes the content of the refusal's page
 below, and the REPL prints without it. An error at rest an answer gives
-prints as the value it is. A host that prints for a person's eye draws below the
-refusal of a text of one line that line within an excerpt of three
-hundred characters around the point its `:location` names, an ellipsis
-where the excerpt cuts it, and a caret under that point as far as the
-excerpt reaches, whatever the length of the line; `:location` names the
-span in the whole text.
+prints as the value it is. A refusal of a text holds its caret beneath
+its line, `:marker` under `:source`, the two printing in one column
+within the excerpt of an alert [QSSYN#refusal], so a host prints it as
+any failure and draws nothing below it.
 
 ```qlang
 > !{:a 1} | raise !| print | parse | open | raise !| keys
@@ -456,17 +454,20 @@ span in the whole text.
 ```
 
 ```sh
-$ qlang '[01' < /dev/null | sed -n '1,8p'
+$ qlang '[01' < /dev/null | sed -n '1,7p'
 |~| raised, and no !| caught it
 ::quote/ParseError!{
   :source "[01"
+  :marker " ^~"
   :message "a number is written without a leading zero: write `1`"
   :location ::span[1 1 2 3 1 4]
 }
-|~| [01
-|~|  ^~
 
-$ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^|~| …x' -e '\^$'
+$ qlang '{"a": 1 "b": 2}' < /dev/null | sed -n '3,4p'
+  :source "{\"a\": 1 \"b\": 2}"
+  :marker "          ^~       "
+
+$ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^  :source "…x' -e '^  :marker " *\^"'
 2
 ```
 
@@ -495,8 +496,8 @@ counts what its `:read` answers. A failure whose alert passes the
 budget, the names of its facts kept, prints as the refusal of an answer
 past it, its `:actualTag` the tag of the failure and its head the error
 at rest, each `:read` there beneath `!|`. The line of the raise and the
-caret [QSERR#print] and the content of a page stand beside the budget
-[QSPRN#budget].
+content of a page stand beside the budget [QSPRN#budget], and the caret
+of a refused text is a fact within it [QSSYN#refusal].
 
 ```sh
 $ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o ':size [0-9]* :read ~(!| trace | drop [0-9]*)'

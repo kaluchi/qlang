@@ -134,9 +134,10 @@ true
 empty quote, and refuses any other subject under its one verb,
 `::string/parse/SubjectNotStringError`. A source that reads as no
 pipeline is refused as `::quote/ParseError` with its `:source`, the line
-where the reading stopped, the one text that holds what `parse` read
-from a string the query computed, its `:location`, where the
-reading stopped, as a `::span` [QSPRN#span], the `:message` of the habit
+where the reading stopped, cut around that point where it is long, the
+one text that holds what `parse` read from a string the query computed,
+its `:marker`, the caret beneath it [QSSYN#refusal], its `:location`,
+where the reading stopped, as a `::span` [QSPRN#span], the `:message` of the habit
 the grammar names or the `:expected` continuations where it
 stopped and what it met there as `:found` [QSSYN#refusal], and its
 `:origin`, the verb that read it, `:string/parse`. `toString` writes a

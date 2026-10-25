@@ -1,4 +1,4 @@
-// [D458]
+// [QSPRN#legend]
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';

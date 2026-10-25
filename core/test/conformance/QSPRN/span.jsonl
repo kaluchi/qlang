@@ -10,5 +10,5 @@
 {"name":"a-point-refuses-a-map","query":"::point{:a 1 :b 2 :c 3} !| tag","expect":"::point/PayloadKindNotTakenError"}
 {"name":"a-span-counts-the-source-by-its-code-points","query":"\"\\\"😀\\\" ]\" | :s it | parse !| location | start | offset | :o it | s | drop o","expect":"\"]\""}
 {"name":"a-point-refuses-an-element-that-is-no-number-at-its-index","query":"::point[1 \"x\" 3] !| get [~(tag) ~(index)]","expect":"[::point/ElementKindNotTakenError 1]"}
-{"decision":"D458","name":"a-span-names-each-of-its-six-numbers-by-its-index","query":"::span[0 1 1 4 1 5] | get [~(startOffset) ~(startLine) ~(startColumn) ~(endOffset) ~(endLine) ~(endColumn)]","expect":"[0 1 1 4 1 5]"}
-{"decision":"D458","name":"the-line-where-a-parse-stopped-is-read-by-the-names-of-its-location","query":"\"[1\n2\" | parse !| location | startLine","expect":"2"}
+{"name":"a-span-names-each-of-its-six-numbers-by-its-index","query":"::span[0 1 1 4 1 5] | get [~(startOffset) ~(startLine) ~(startColumn) ~(endOffset) ~(endLine) ~(endColumn)]","expect":"[0 1 1 4 1 5]"}
+{"name":"the-line-where-a-parse-stopped-is-read-by-the-names-of-its-location","query":"\"[1\n2\" | parse !| location | startLine","expect":"2"}

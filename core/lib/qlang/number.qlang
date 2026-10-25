@@ -450,8 +450,7 @@
                   which `range` makes none.
               ~~|
               ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :SubjectNotNumberError
         |~~ `range` counts up to a number: the count of a vector is read
             first, `[:a :b] | count | range`.

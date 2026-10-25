@@ -82,8 +82,7 @@
             number, as a key that `groupBy` filed a number under writes
             it, `:"1"`; a name such as `:a` writes none.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :readsTheNumberOfAKey
         |~~ A key filed from a number turns back into it. ~~|
         ~([{:y 2020} {:y 2021}] | groupBy /y | keys | toVec | map ~toNumber | eq [2020 2021])
@@ -104,8 +103,7 @@
         |~~ `toTag` reads the name of the keyword as the name of a tag; a
             quoted name with a space, `:"a b"`, names none.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :namesATag
         |~~ A keyword names the tag of its name. ~~|
         ~(:Box | toTag | eq ::Box)

@@ -415,17 +415,14 @@ function answerRefusedOf(chain, address, rules) {
   return rules;
 }
 
-// [D455]
+// [QSERR#site]
 const KINDS_OF_VALUES = new WeakMap();
 
 export function kindOfAValueOf(scope, tagName) {
   let byTag = KINDS_OF_VALUES.get(scope);
   if (byTag === undefined) KINDS_OF_VALUES.set(scope, byTag = new Map());
   let kind = byTag.get(tagName);
-  if (kind === undefined) {
-    byTag.set(tagName, null);
-    byTag.set(tagName, kind = closingKindAt(scope, tagName));
-  }
+  if (kind === undefined) byTag.set(tagName, null).set(tagName, kind = closingKindAt(scope, tagName));
   return kind;
 }
 

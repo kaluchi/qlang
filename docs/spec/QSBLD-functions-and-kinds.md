@@ -15,7 +15,7 @@ its recipe. It is built from the noun by a chain, each command a verb of
 is named by the noun of the thing, no kind of the catalog bearing the
 name of a command of a chain: `on` names its subject, its page and its
 kinds, `takes` writes an input, `returns` the answer, `throws` a
-refusal and the facts it carries, `holds` an invariant of the subject, an input
+refusal and the kind of its facts, `holds` an invariant of the subject, an input
 or the answer, a quote under `::invariant`, `proves` a law, a quote under
 `::law`, and `impl` gives it its recipe, code or a host's
 `::builtin{}`, and answers the function it builds, `::fn | impl ~(add 1)`
@@ -49,7 +49,13 @@ the refusal raises and its wiring ending with `trace`, a payload or a
 `trace` the quote writes refused as `::kind/NameDeclaredTwiceError`, and
 a refusal a rule of the chain lays carries the facts of the family of its
 rule [QSERR#site]. The quote, no kind, stands in the commands, so the
-literal of the function reads back as itself.
+literal of the function reads back as itself. Instead of the quote
+`throws` writes the tag of a refusal whose kind its refusal shares,
+`throws :ConditionKindNotTakenError |~~ … ~~| ::fn/KindNotTakenError`: the
+error at rest of the refusal is closed by the kind that closes the refusal
+the tag names, its facts read by their names and paged by the wiring of
+that kind, and its node holds its page; a refusal that names itself, or a
+round of them, shares no kind and stays open.
 
 A verb serves the values of its label and of the kinds `on` names, of
 tag names the noun's own alone [QSDSP#tagname], refusing any other
@@ -227,7 +233,7 @@ takes none, `wires` a part of the payload, its name, its page, its
 selector over the payload and its kinds, `tells` a page of the kind on a
 name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
-refusal and the facts it carries, as `::fn/throws` writes them, `proves` a
+refusal and the kind of its facts, as `::fn/throws` writes it, `proves` a
 law, a quote under `::law`, and
 `impl` its constructor, a `::builtin{}`, another value refused as
 `::kind/ConstructorKindNotTakenError` as the literal refuses it; a command

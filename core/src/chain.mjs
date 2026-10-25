@@ -283,7 +283,7 @@ function kindOfARefusalWritten(commands) {
   return kind;
 }
 
-// [D455]
+// [QSBLD#fn], [QSBLD#kind]
 function keepTheKindOfARefusal(chain, name, written) {
   if (isTag(written)) chain.kindsShared.set(name, written.name);
   else if (written !== undefined) chain.refusalKinds.set(name, kindOfARefusalWritten(written));

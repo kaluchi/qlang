@@ -70,7 +70,7 @@ its print, and an element or a field of a container step as
 [QSNAM#letters] under `::call` and `::bind`; and every other rule of a
 step under the record that holds it. The payload of a record of a step
 that is no map, and of `::fail` and `::group` one that is no quote, is
-refused by the role of its holder, `…/PayloadKindNotTakenError` with `:expected`, and a map
+refused by the `accepts` of its kind, `…/PayloadKindNotTakenError` with `:expected`, and a map
 whose fields break the fields of its record as `…/PayloadNotSchemaError`,
 its `:field` the field, the kind of errors over an error literal, which
 is that literal, refused by `::construct` naming its `:tag`. A text that breaks a rule of a step answers

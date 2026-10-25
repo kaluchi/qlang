@@ -343,8 +343,12 @@ of another label and one an invariant of the subject refuses, and
 `::fn/InvariantNotHeldError`, `::kind/PayloadKindNotTakenError`,
 `::kind/ElementKindNotTakenError`, `::kind/KindNotTakenError`,
 `::kind/NotGivenError`, `::kind/NotReadError` and
-`::kind/InvariantNotHeldError`, and any other the facts its `throws`
-writes [QSBLD#kind]; a refusal of a function `apply` runs, under
+`::kind/InvariantNotHeldError`, and any other the kind its `throws`
+writes, the quote of the wires of its own or the tag of a refusal whose
+kind it shares, a refusal a primitive raises of a value of none of the
+kinds it takes sharing `::fn/KindNotTakenError` and one of an element
+`::fn/ElementKindNotTakenError`, and one a constructor raises of a payload
+`::kind/PayloadKindNotTakenError` [QSBLD#kind]; a refusal of a function `apply` runs, under
 `::fn/call`, declares none and stays open. The refusal of a primitive takes the address
 of the verb that ran it, but for a pair a step relates or combines and
 cannot, which the call refuses as `::call/KindsMismatchedError`

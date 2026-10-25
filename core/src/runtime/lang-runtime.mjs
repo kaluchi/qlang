@@ -25,7 +25,7 @@ import './kind-primitives.mjs';
 import './fn-primitives.mjs';
 import './doc-primitives.mjs';
 import './print.mjs';
-import './legend.mjs';
+import './legend-primitives.mjs';
 import './axis.mjs';
 
 import { PRIMITIVE_REGISTRY } from '../primitives.mjs';

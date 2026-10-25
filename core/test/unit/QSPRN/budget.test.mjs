@@ -31,8 +31,8 @@ it('lets an answer past the budget give way whole as its head where no cut fits 
   const scope = await core.langRuntime();
   const query = '400 | range | map ~("k") | join "" | :long it | 3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | :m it | get [[~(long | toKeyword) 1]] | toMap | union m';
   const headOf = async written => (await core.boundAnswer(await core.evalQuery(written, scope), scope)).facts.get('actualValue');
-  const [ofTheAnswer, ofTheFailure] = [await headOf(query), await headOf(`${query} | raise`)];
-  expect([ofTheAnswer.get('size'), core.printValue(ofTheAnswer.get('read')), core.printValue(ofTheFailure.get('read'))]).toEqual([3001, '~()', '~(!| it)']);
+  const [ofTheAnswer, ofTheFailure, ofATagged] = [await headOf(query), await headOf(`${query} | raise`), await headOf(`${query} | tag ::Big | raise`)];
+  expect([ofTheAnswer.get('size'), core.printValue(ofTheAnswer.get('read')), core.printValue(ofTheFailure.get('read')), core.printValue(ofATagged.get('read'))]).toEqual([3001, '~()', '~(!| it)', '~(!| it)']);
 });
 
 it('counts the characters of a print as count counts a string', async () => {

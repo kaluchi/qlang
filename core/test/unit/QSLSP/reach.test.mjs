@@ -47,6 +47,11 @@ describe('a verb as the tooling reads it', () => {
     expect(answerKindsOf(scope, nodeOf(scope, shown.address.name), ['span', 'tagged'])).toEqual(['point']);
   });
 
+  it('shows a fact the kind of a refusal wires with no node of its own as a name of the refusal', async () => {
+    const shown = shownFor(await langRuntime(), 'actualTag', ['number/add/SubjectNotNumberError', 'tagged']);
+    expect(shown).toEqual({ address: expect.objectContaining({ name: 'number/add/SubjectNotNumberError/actualTag' }), inputs: [] });
+  });
+
   it('shows the verb a name reaches with no subject where the kinds reach none', async () => {
     expect(shownFor(await langRuntime(), 'add', ['string']).address.name).toBe('number/add');
   });

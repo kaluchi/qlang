@@ -83,7 +83,7 @@ function partsOfContainer(value, view) {
 function partsOf(value, path, view, parts) {
   if (isElision(value)) return;
   if (isErrorValue(value)) {
-    for (const [name, fact] of value.facts) partsOf(fact, [...path, view.start.named && path.length === 0 ? partNamed(name) : name], view, parts);
+    for (const [name, fact] of value.facts) partsOf(fact, [...path, view.start.named ? partNamed(name) : name], view, parts);
     return;
   }
   if (isText(value) || view.printedOf(value) !== undefined) {
@@ -91,19 +91,13 @@ function partsOf(value, path, view, parts) {
     return;
   }
   if (isFrame(value)) return partsOf(partsOfFrame(value).subject, [...path, THE_SUBJECT_OF_A_FRAME], view, parts);
-  if (isValueClass(value, 'underTag') && wiringOf(value) !== undefined && isMap(value.payload)) return partsOfNames(value, path, view, parts);
-  if (isValueClass(value, 'underTag')) return partsOf(value.payload, path, view, parts);
-  if (!isContainer(value)) return;
-  const { entries } = partsOfContainer(value, view);
+  const named = isValueClass(value, 'underTag') && wiringOf(value) !== undefined && isMap(value.payload);
+  if (isValueClass(value, 'underTag') && !named) return partsOf(value.payload, path, view, parts);
+  const container = named ? value.payload : value;
+  if (!isContainer(container)) return;
+  const { entries } = partsOfContainer(container, view);
   if (path.length > 0 || entries.length > 1) parts.push({ path, value });
-  for (const [key, part] of entries) partsOf(part, [...path, key], view, parts);
-}
-
-// [QSERR#alert]
-function partsOfNames(value, path, view, parts) {
-  const { entries } = partsOfContainer(value.payload, view);
-  if (path.length > 0 || entries.length > 1) parts.push({ path, value });
-  for (const [name, part] of entries) partsOf(part, [...path, partNamed(name)], view, parts);
+  for (const [key, part] of entries) partsOf(part, [...path, named ? partNamed(key) : key], view, parts);
 }
 
 function textOf(value, view) {

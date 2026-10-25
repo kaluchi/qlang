@@ -42,3 +42,6 @@
 {"name":"a-path-past-a-part-to-a-segment-its-kind-wires-not-names-no-repair","query":"\"[1\" | parse !| location | start | get /9 !| repair","expect":"null"}
 {"name":"payload-answers-the-payload-of-a-closed-tag-bare","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | payload | get /1","expect":"312"}
 {"name":"a-name-reads-the-part-of-a-closed-tag-beneath-an-open-one","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | tag ::Shown | took","expect":"312"}
+{"name":"a-path-past-a-name-a-closed-tag-beneath-wires-names-no-repair","query":"\"x\" | add 1 !| get /trace/0/nope !| repair","expect":"null"}
+{"name":"a-path-past-the-last-part-there-is-repairs-by-the-path-it-reads-on","query":"\"x\" | add 1 !| get /trace/5/subject !| repair","expect":"~(trace | get /5/subject)"}
+{"name":"a-path-beneath-a-part-with-no-parts-repairs-by-the-path-it-reads-on","query":"\"x\" | add 1 !| get /actualTag/x !| repair","expect":"~(actualTag | get /x)"}

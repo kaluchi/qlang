@@ -400,13 +400,19 @@ function refusalsHeldAt(scope, holder) {
   if (isVerbValue(value)) {
     if (labelName === null || !isLabel(scope, labelName)) return null;
     const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
-    return refusalsOfAChain(chain, holder, address => functionRulesOf(chain, address, labelName),
+    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName)),
       name => (name.startsWith(`${SUBJECT_NAME}/`) ? FAMILY_OF.subject : FAMILY_OF.invariantOfAFunction));
   }
   const kind = kindOfAValueOf(scope, holder);
   if (kind === null) return null;
   const chain = chainOfKind(kind);
   return refusalsOfAChain(chain, holder, address => kindRulesOf(chain, address), () => FAMILY_OF.invariantOfAKind);
+}
+
+// [QSBLD#answer]
+function answerRefusedOf(chain, address, rules) {
+  if (chain.answer?.kinds) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), FAMILY_OF.inputKinds);
+  return rules;
 }
 
 const KINDS_OF_VALUES = new WeakMap();
@@ -426,14 +432,9 @@ function closingKindAt(scope, tagName) {
     if (refusals === null) continue;
     const family = refusals.get(tagName);
     if (family === undefined) break;
-    if (family !== OWN_KIND) return kindThrowsFinishes(ownKindAt(scope, family));
+    if (family !== OWN_KIND) return kindThrowsFinishes(bindingValueOf(nodeOf(scope, family)));
     return kindThrowsFinishes(isKind(value) ? value : null);
   }
-  return isKind(value) ? value : null;
-}
-
-function ownKindAt(scope, family) {
-  const value = bindingValueOf(nodeOf(scope, family));
   return isKind(value) ? value : null;
 }
 

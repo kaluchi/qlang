@@ -248,12 +248,12 @@ export function wiringAtPlaces(kind) {
 
 // [QSBLD#value]
 function placeOf(selector) {
-  if (isPath(selector) || isPathAlone(selector)) return { path: isPath(selector) ? selector : selector[0], soft: false };
+  if (isPath(selector)) return { path: selector, soft: false };
   const [step] = selector;
-  const modifiers = isCallStep(step) ? step.get('modifiers') ?? [] : [];
-  if (selector.length !== 1 || modifiers.length !== 1 || !isPath(modifiers[0])) return null;
+  if (selector.length !== 1 || !isCallStep(step)) return null;
+  const [path, ...rest] = step.get('modifiers') ?? [];
   const name = step.get('name').name;
-  return name === 'get' || name === 'query' ? { path: modifiers[0], soft: name === 'query' } : null;
+  return rest.length === 0 && isPath(path) && (name === 'get' || name === 'query') ? { path, soft: name === 'query' } : null;
 }
 
 // [QSBLD#fn], [QSERR#rest]

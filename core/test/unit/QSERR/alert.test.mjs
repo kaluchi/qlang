@@ -96,6 +96,24 @@ describe('an alert cut within its budget', () => {
   });
 });
 
+describe('the facts of an error under the kind of errors alone, read by their keys', () => {
+  it('reads a fact an alert leaves out by its key, the error no refusal closes', async () => {
+    const text = LONG.repeat(10);
+    const query = `{:note "${text}"} | raise`;
+    const elision = alertOf(await evalQuery(query)).facts.get('note');
+    expect(printValue(elision.get('read'))).toBe('~(!| get /note)');
+    expect(await continued(query, elision)).toBe(text);
+  });
+
+  it('cuts such an alert past its budget fact by fact, its trace read by its key', async () => {
+    const query = `{:a "${LONG}" :b "${LONG}" :c "${LONG}"} | raise | count`;
+    const failing = await evalQuery(query);
+    const view = alertWithin(failing, 250);
+    expect(printValue(view).length).toBeLessThan(printValue(alertOf(failing)).length);
+    expect(elisionsOf(view).map(elision => printValue(elision.get('read'))).every(read => read.startsWith('~(!| get /'))).toBe(true);
+  });
+});
+
 describe('the subjects an alert prints, each within its excerpt', () => {
   const records = `[${Array.from({ length: 30 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
 

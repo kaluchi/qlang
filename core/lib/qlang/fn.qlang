@@ -204,6 +204,11 @@
             repair.
         ~~|
         ~(:p /qty | 5 | mul p !| repair | eq null)
+    | proves :KindNotTakenError/namesNoRepairOfAPathADefaultReads
+        |~~ A path an input reads by default is no path the step wrote, and
+            names no repair.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| ~(query /0 /one) ::number | impl ~(add by)) | 5 | plus !| repair | eq null)
     | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
         |~~ An element an input refuses answers its index. ~~|
         ~([1] | concat [2] 3 !| get [~(index) ~(actualValue)] | eq [1 3])

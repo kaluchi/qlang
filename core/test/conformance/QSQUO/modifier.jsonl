@@ -12,3 +12,4 @@
 {"name":"a-step-computed-where-the-input-reading-the-args-takes-code-is-refused-by-it","query":"5 | cond (get /nope) ~(1) !| get [~(tag) ~(index)]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0]"}
 {"name":"a-verb-of-the-reader-is-a-modifier-a-bare-name-computes","query":":vec/most ~(count | sub 1) | {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
 {"name":"an-input-that-reads-from-the-end-reads-the-last-arg","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)) | 5 | get [~(runAll (get /nope) [~(1)] !| tag) ~(runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}
+{"name":"a-failed-modifier-whose-label-refuses-its-error-at-rest-answers-that-refusal","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | [1] | filter (::Late{:by 3} | raise) !| tag","expect":"::Late/PayloadKindNotTakenError"}

@@ -111,7 +111,7 @@
             gives a function code, `| impl ~(add by)`.
         ~~|
         ~(wires :of
-              |~~ The address the descriptor of the recipe names, where the root
+              |~~ The address the descriptor of the recipe names: where the root
                   holds no function equal to the one refused.
               ~~|
               ~(query /of) #[::null ::tag]
@@ -129,7 +129,7 @@
             ::link~(::fn/takes | doc) ::link~(::fn/returns | doc)
         ~~|
         ~(wires :repair
-              |~~ The step the call was likely meant as, where it gave a path
+              |~~ The step the call was likely meant as: where it gave a path
                   for the value the path names, `mul (get /qty)` for
                   `mul /qty`, and null where it gave none.
               ~~|
@@ -180,7 +180,7 @@
             ::link~(::fn/on | doc) ::link~(::fn/holds | doc)
         ~~|
         ~(wires :repair
-              |~~ The step the call was likely meant as, where the subject is
+              |~~ The step the call was likely meant as: where the subject is
                   a path for the value it names, `get /tags | count` for
                   `/tags | count`, and null where it is none.
               ~~|

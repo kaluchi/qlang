@@ -109,7 +109,7 @@
               ~~|
               ~(query /message) #[::null ::string]
           | wires :expected
-              |~~ The continuations the reading could take where it stopped, each
+              |~~ The continuations the reading could take where it stopped: each
                   the text of a literal or a part of the grammar named as a
                   keyword, `:name`, `:whitespace`, `:end-of-source`, beside
                   what it met as `:found`.
@@ -121,7 +121,7 @@
               ~~|
               ~(query /found) #[::null ::string]
           | wires :location
-              |~~ The span of the text where the reading stopped, null where the
+              |~~ The span of the text where the reading stopped: null where the
                   reading stopped at no point of it.
               ~~|
               ~(query /location) #[::null ::span]

@@ -126,7 +126,7 @@
             `42 | out json` or `{:x 1} | out print`.
         ~~|
         ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `out` writes its subject, or the one text its call gives,
             `"hi" | out`; texts are joined first,
@@ -170,7 +170,7 @@
             it, `err json` or `err print`.
         ~~|
         ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `err` writes its subject, or the one text its call gives,
             `"hi" | err`; texts are joined first,

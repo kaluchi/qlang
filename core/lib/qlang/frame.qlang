@@ -43,7 +43,7 @@
         ~~|
         /1 ::quote
     | wires :path
-        |~~ The path of the part of the subject the step failed at, null
+        |~~ The path of the part of the subject the step failed at: null
             where it failed at no part:
             `[1 "x" 3] | map ~(mul 2) !| trace | last | path` answers `/1`. A
             verb names the part its code failed on, `map`, `filter`, `every`,

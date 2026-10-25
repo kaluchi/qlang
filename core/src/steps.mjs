@@ -2,10 +2,10 @@
 
 import { readsAsBareKeyword, LITERAL_WORDS } from './name-chars.mjs';
 import { declareRefusal } from './errors.mjs';
-import { kindsExpected, makeSet } from './ordering.mjs';
+import { makeSet } from './ordering.mjs';
 import {
   makeKeyword, isKeyword, isTag, isRegex, isPath, isDoc, isQuote, isVec, isMap, isSet, isTagged, isValueClass,
-  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, holdsNoOtherTag, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
+  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 const CALL_TAG      = makeTag('call');
@@ -127,21 +127,16 @@ function nameMessage(name, written) {
 const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
 const QuoteStepNotCommandError = declareRefusal('quote/StepNotCommandError');
 const QuoteLiteralComputesError = declareRefusal('quote/LiteralComputesError');
-const CallPayloadKindNotTakenError = declareRefusal('call/PayloadKindNotTakenError');
 const CallPayloadNotSchemaError = declareRefusal('call/PayloadNotSchemaError');
 const CallNameNotCallableError = declareRefusal('call/NameNotCallableError');
 const CallLiteralComputesError = declareRefusal('call/LiteralComputesError');
-const BindPayloadKindNotTakenError = declareRefusal('bind/PayloadKindNotTakenError');
 const BindPayloadNotSchemaError = declareRefusal('bind/PayloadNotSchemaError');
 const BindNameNotCallableError = declareRefusal('bind/NameNotCallableError');
 const BindLiteralComputesError = declareRefusal('bind/LiteralComputesError');
-const ConstructPayloadKindNotTakenError = declareRefusal('construct/PayloadKindNotTakenError');
 const ConstructPayloadNotSchemaError = declareRefusal('construct/PayloadNotSchemaError');
 const ConstructLiteralComputesError = declareRefusal('construct/LiteralComputesError');
-const FailPayloadKindNotTakenError = declareRefusal('fail/PayloadKindNotTakenError');
 const FailPayloadNotOneStepError = declareRefusal('fail/PayloadNotOneStepError');
 const FailStepNotCommandError = declareRefusal('fail/StepNotCommandError');
-const GroupPayloadKindNotTakenError = declareRefusal('group/PayloadKindNotTakenError');
 const GroupPayloadEmptyError = declareRefusal('group/PayloadEmptyError');
 
 const isWord = value => holdsALiteral(value) || isGroupStep(value) || (isCallStep(value) && !value.has('modifiers'));
@@ -149,21 +144,20 @@ const isBody = value => (holdsALiteral(value) && !isDoc(value)) || isGroupStep(v
 const vecOfOneAtLeast = isElement => value => isBareVec(value) && value.length > 0 && value.every(isElement);
 
 const CALL = {
-  tag: CALL_TAG, PayloadKindNotTakenError: CallPayloadKindNotTakenError, PayloadNotSchemaError: CallPayloadNotSchemaError,
+  tag: CALL_TAG, PayloadNotSchemaError: CallPayloadNotSchemaError,
   fields: { name: isKeyword, modifiers: vecOfOneAtLeast(isWord) }, required: ['name']
 };
 const BIND = {
-  tag: BIND_TAG, PayloadKindNotTakenError: BindPayloadKindNotTakenError, PayloadNotSchemaError: BindPayloadNotSchemaError,
+  tag: BIND_TAG, PayloadNotSchemaError: BindPayloadNotSchemaError,
   fields: { name: isKeyword, docs: vecOfOneAtLeast(isDoc), body: isBody }, required: ['name']
 };
 const CONSTRUCT = {
-  tag: CONSTRUCT_TAG, PayloadKindNotTakenError: ConstructPayloadKindNotTakenError, PayloadNotSchemaError: ConstructPayloadNotSchemaError,
+  tag: CONSTRUCT_TAG, PayloadNotSchemaError: ConstructPayloadNotSchemaError,
   fields: { tag: isTag, payload: isPartOfALiteral }, required: ['tag', 'payload']
 };
 
 // [QSQUO#step]
 function recordFrom(payload, record) {
-  if (!isMap(payload) || !holdsNoOtherTag(payload, record.tag.name)) throw new record.PayloadKindNotTakenError({ expected: kindsExpected('map'), actualValue: payload });
   for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: null });
   for (const [name, value] of payload) {
     if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: value });
@@ -207,7 +201,6 @@ export function constructOfData(payload, written) {
 
 // [QSQUO#step], [QSSYN#step]
 export function failOf(payload, written) {
-  if (!isQuote(payload)) throw new FailPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ actualValue: payload });
   const [step] = payload;
   if (isPath(step) || isQuote(step)) throw new FailStepNotCommandError({ message: laterStepMessage(step, written), actualValue: step });
@@ -219,7 +212,6 @@ export function failOf(payload, written) {
 
 // [QSQUO#step]
 export function groupOf(payload) {
-  if (!isQuote(payload)) throw new GroupPayloadKindNotTakenError({ expected: kindsExpected('quote'), actualValue: payload });
   if (payload.length === 0) throw new GroupPayloadEmptyError({ actualValue: payload });
   return makeTagged(GROUP_TAG, payload);
 }

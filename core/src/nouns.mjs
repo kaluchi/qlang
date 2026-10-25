@@ -388,7 +388,7 @@ function refusalsOfAChain(chain, address, rulesOf, familyOfAnInvariant) {
   if (refusals === undefined) {
     refusals = rulesOf(address);
     for (const { name } of chain.invariants) refusals.set(`${address}/${name}`, familyOfAnInvariant(name));
-    for (const name of chain.pages.keys()) if (!refusals.has(`${address}/${name}`)) refusals.set(`${address}/${name}`, OWN_KIND);
+    for (const name of chain.pages.keys()) if (!refusals.has(`${address}/${name}`)) refusals.set(`${address}/${name}`, chain.kindsShared.get(name) ?? OWN_KIND);
     byAddress.set(address, refusals);
   }
   return refusals;
@@ -415,13 +415,14 @@ function answerRefusedOf(chain, address, rules) {
   return rules;
 }
 
+// [QSERR#site]
 const KINDS_OF_VALUES = new WeakMap();
 
 export function kindOfAValueOf(scope, tagName) {
   let byTag = KINDS_OF_VALUES.get(scope);
   if (byTag === undefined) KINDS_OF_VALUES.set(scope, byTag = new Map());
   let kind = byTag.get(tagName);
-  if (kind === undefined) byTag.set(tagName, kind = closingKindAt(scope, tagName));
+  if (kind === undefined) byTag.set(tagName, null).set(tagName, kind = closingKindAt(scope, tagName));
   return kind;
 }
 
@@ -432,7 +433,7 @@ function closingKindAt(scope, tagName) {
     if (refusals === null) continue;
     const family = refusals.get(tagName);
     if (family === undefined) break;
-    if (family !== OWN_KIND) return kindThrowsFinishes(bindingValueOf(nodeOf(scope, family)));
+    if (family !== OWN_KIND) return kindOfAValueOf(scope, family);
     return kindThrowsFinishes(isKind(value) ? value : null);
   }
   return isKind(value) ? value : null;

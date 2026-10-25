@@ -1182,9 +1182,7 @@
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | returns |~~ The text with every match replaced. ~~| ::string
     | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|

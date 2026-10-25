@@ -13,15 +13,12 @@
       ::link~(::error | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | accepts |~~ The quote of a step, built into the step `!| step`. ~~|
+    | accepts |~~ The quote of a step, built into the step `!| step`. ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::fail` is the quote of the step it stands for, so
             `~(get /kind) | tag ::fail` is the step `!| get /kind`.
             ::link~(::fail | doc)
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotOneStepError
         |~~ The quote `::fail` holds is one step, the step `!|` runs, and
             no step of the fail track: a pipeline under `!|` is written as

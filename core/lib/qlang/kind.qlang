@@ -6,7 +6,7 @@
 
 :kind
   |~~ A kind: the payload its tag is laid over, the fields it reads of the
-      payload, the refusals it pages and the facts they carry, the
+      payload, the refusals it pages and the facts each wires, the
       invariants its values hold, its laws, and for a kind of the core its
       constructor, which its host hands. It is built from the noun by a
       chain, the commands written on it, each a verb the kind so far is the
@@ -17,8 +17,9 @@
       `w` and `~(query /h 1)` the key `h` or one, and its kinds; `tells` a
       page of the kind on a name, a chapter of a topic among them; `holds` an
       invariant of the value or of a field, its refusal, its page and its
-      condition; `throws` a refusal, its page and the commands of the kind
-      of the facts it carries; `proves` a law, its page and
+      condition; `throws` a refusal, its page and the kind of its facts,
+      the quote of its own `wires` or the tag of the refusal whose kind it
+      shares; `proves` a law, its page and
       its query; and `impl ::builtin{}` the constructor of a kind of the
       core. Each command hands what it is written with to the chain, which
       holds it as it holds the literal. A value put under a kind holds the value of the kinds of its
@@ -109,8 +110,9 @@
         |~~ A payload of none of the kinds `accepts` names is refused under
             the kind, `::number/PayloadKindNotTakenError`, and one that is no
             vector where it names the kinds of each element: every such
-            refusal carries what this one wires, the page of each standing
-            under its own kind.
+            refusal is closed by the kind of this one, the page of each
+            standing under its own kind, and one a constructor raises shares
+            it by its tag, `::trace/PayloadKindNotTakenError`.
             ::link~(::kind/accepts | doc)
         ~~|
         ~(wires :expected |~~ The kinds the payload takes, `#[::map]`. ~~| ::set
@@ -120,7 +122,9 @@
         |~~ An element of none of the kinds named for each element of the
             payload or of a part is refused under the kind or under the
             part, `::Nums/ElementKindNotTakenError`, the first element so
-            refused: every such refusal carries what this one wires.
+            refused: every such refusal is closed by the kind of this one,
+            and one a constructor raises shares it by its tag,
+            `::doc/ElementKindNotTakenError`.
             ::link~(::kind/accepts | doc) ::link~(::kind/wires | doc)
         ~~|
         ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
@@ -130,8 +134,9 @@
     | throws :KindNotTakenError
         |~~ A part of none of the kinds its `wires` names, or one that is no
             vector where it names the kinds of each element, is refused
-            under the part, `::Box/w/KindNotTakenError`: every such refusal
-            carries what this one wires.
+            under the part, `::Box/w/KindNotTakenError`: every such refusal is
+            closed by the kind of this one, and one a constructor raises
+            shares it by its tag, `::fn/RecipeKindNotTakenError`.
             ::link~(::kind/wires | doc)
         ~~|
         ~(wires :expected |~~ The kinds the part takes, `#[::number]`. ~~| ::set
@@ -140,7 +145,8 @@
     | throws :NotGivenError
         |~~ A part its selector does not find in the payload is refused
             under the part, `::Box/w/NotGivenError`, the payload its
-            `actualValue`: every such refusal carries what this one wires.
+            `actualValue`: every such refusal is closed by the kind of this
+            one.
             ::link~(::kind/wires | doc)
         ~~|
         ~(wires :actualTag |~~ The kind of the payload. ~~| ::tag
@@ -148,8 +154,8 @@
     | throws :NotReadError
         |~~ A part whose selector fails on the payload is refused under the
             part, `::Box/w/NotReadError`, the error at rest of the failure
-            its `actualValue`: every such refusal carries what this one
-            wires.
+            its `actualValue`: every such refusal is closed by the kind of
+            this one.
             ::link~(::kind/wires | doc)
         ~~|
         ~(wires :actualTag |~~ The kind of the error, `::error` or the tag of its site. ~~| ::tag
@@ -157,8 +163,8 @@
     | throws :InvariantNotHeldError
         |~~ A value or a part an invariant of the kind does not hold of is
             refused under the name the invariant gives,
-            `::Pos/NotPositiveError`: every such refusal carries what this
-            one wires.
+            `::Pos/NotPositiveError`: every such refusal is closed by the
+            kind of this one.
             ::link~(::kind/holds | doc)
         ~~|
         ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
@@ -520,23 +526,25 @@
     ::builtin{}]
 
 :kind/throws
-  |~~ Names a refusal of a kind, its page and the facts it carries,
+  |~~ Names a refusal of a kind, its page and the kind of its facts,
       `::kind | throws :TooWideError |~~ A parcel past its height. ~~| ~(wires :h |~~ The height. ~~| ::number)`,
       under a field where it is written with a path, the page of the
       refusal the kinds of a field name among them; a refusal a primitive
       of the kind raises is paged so. The facts are the commands of the
       kind of the refusal, a quote, which `throws` builds into the kind as
       `::fn/throws` does, the refusal of a payload and of a part a rule
-      lays taking the kind of its family, `::kind/KindNotTakenError`.
+      lays taking the kind of its family, `::kind/KindNotTakenError`, and
+      one that shares the kind of another naming it by its tag, as
+      `::fn/throws` does.
       ::link~(::fn/throws | doc) ::link~(::kind/KindNotTakenError | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal, a
             keyword read as a tag, under a field read before it where it is
-            written with a path; its page, a doc; and the commands of the kind
-            of its facts, a quote of `wires`, none where it carries no fact of
-            its own.
+            written with a path; its page, a doc; and the kind of its facts, a
+            quote of `wires` or the tag of the refusal whose kind it shares,
+            none where it holds its trace alone.
         ~~|
         ~(it)
     | returns |~~ The kind with the refusal. ~~| ::kind

@@ -17,16 +17,13 @@
   ~~|
   ::kind
     | accepts
-        |~~ The quote of a pipeline, built into the step `(pipeline)`. ~~|
+        |~~ The quote of a pipeline, built into the step `(pipeline)`. ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::group` is the quote of its pipeline, so
             `~(add 1 | mul 2) | tag ::group` is the step
             `(add 1 | mul 2)`.
             ::link~(::group | doc)
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadEmptyError
         |~~ A group holds one step at least, and `it` keeps the value as it
             is, `~(it) | tag ::group`.

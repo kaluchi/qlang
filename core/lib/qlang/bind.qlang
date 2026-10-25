@@ -21,16 +21,13 @@
     | accepts
         |~~ The record of a declaration, `:name`, `:docs` and `:body`,
             built into its step.
-        ~~|
+        ~~| ::map
     | throws :PayloadKindNotTakenError
         |~~ `::bind` builds the step of a declaration from its record, a
             map; a payload of another kind is refused, a map under another
             tag among them.
             ::link~(::bind | doc)
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotSchemaError
         |~~ A `::bind` is a map of `:name`, a keyword, `:docs`, a vector
             of a doc at least, and `:body`, a step, and `:field` names the

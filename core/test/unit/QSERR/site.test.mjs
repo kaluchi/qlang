@@ -159,9 +159,10 @@ describe('the refusals a verb that is a function raises by rule', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
   });
 
-  it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', () => {
-    expect([kindsSharedBy(notebook.scope, 'vec/filter'), kindsSharedBy(notebook.scope, 'group'), kindsSharedBy(notebook.scope, 'number/pick')])
-      .toEqual([['fn/KindNotTakenError'], ['kind/InvariantNotHeldError'], []]);
+  it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', async () => {
+    const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2)');
+    expect([kindsSharedBy(scopeAfterCell, 'vec/filter'), kindsSharedBy(scopeAfterCell, 'group'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
+      .toEqual([['fn/KindNotTakenError'], ['kind/InvariantNotHeldError'], [], []]);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {

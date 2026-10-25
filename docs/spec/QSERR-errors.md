@@ -347,11 +347,16 @@ of another label and one an invariant of the subject refuses, and
 writes, the quote of the wires of its own or the tag of a refusal whose
 kind it shares, a refusal a primitive raises of a value of none of the
 kinds it takes sharing `::fn/KindNotTakenError`, one of an element
-`::fn/ElementKindNotTakenError` and one of its subject that carries the kind
-of the subject alone `::fn/SubjectRefusedError`, and one a constructor
-raises of a payload `::kind/PayloadKindNotTakenError` [QSBLD#kind]; a
-refusal of its subject wires no value refused, which the first frame of its
-trace holds and the runtime drops; a refusal of a function `apply` runs, under
+`::fn/ElementKindNotTakenError`, one of its subject that carries the kind
+of the subject alone `::fn/SubjectRefusedError` and one of an input its
+rule does not hold of `::fn/InvariantNotHeldError`, and one a constructor
+raises of a payload `::kind/PayloadKindNotTakenError` and of a value or a
+part its rule does not hold of `::kind/InvariantNotHeldError`
+[QSBLD#kind]; the refusals of the axes of a name share the family
+`::any/UnknownNameError`, and refusals of one shape at sibling sites the
+kind of one of them; a refusal of its subject wires no value refused,
+which the first frame of its trace holds and the runtime drops; a refusal
+of a function `apply` runs, under
 `::fn/call`, declares none and stays open. The refusal of a primitive takes the address
 of the verb that ran it, but for a pair a step relates or combines and
 cannot, which the call refuses as `::call/KindsMismatchedError`

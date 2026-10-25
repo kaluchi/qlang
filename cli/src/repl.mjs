@@ -4,7 +4,6 @@ import {
   createNotebook,
   printAnswer,
   boundAnswer,
-  caretOf,
   isErrorValue,
   langRuntime,
   verbNames
@@ -121,7 +120,7 @@ async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWri
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (wroteByOut && !isErrorValue(result)) return null;
     const shown = isErrorValue(result) ? await boundAnswer(result, scope) : result;
-    return [await printAnswer(shown, scope), caretOf(result)].filter(part => part !== null).join('\n');
+    return await printAnswer(shown, scope);
   });
   if (stderrText !== undefined) stderrWrite(stderrText);
   else if (stdoutText !== null) stdoutWrite(highlightAnsi(stdoutText, rootVerbNames) + '\n');

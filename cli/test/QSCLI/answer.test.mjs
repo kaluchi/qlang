@@ -210,15 +210,14 @@ it('writes what `out` writes and leaves the answer of the query unwritten', asyn
 });
 
 describe('a failure written on stdout and a defect on stderr', () => {
-  it('writes a query that does not parse as its failure on stdout, its caret drawn below it, with exit 0 as every answer', async () => {
+  it('writes a query that does not parse as its failure on stdout, its `:marker` beneath its `:source`, with exit 0 as every answer', async () => {
     const s = captureStreams();
     const exitCode = await main(['[1 2'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(exitCode).toBe(0);
     expect(s.stderrText()).toBe('');
-    expect(s.stdoutText()).toContain('::quote/ParseError!{');
-    expect(s.stdoutText()).toContain(':source "[1 2"');
+    expect(s.stdoutText()).toContain('::quote/ParseError!{\n  :source "[1 2"\n  :marker "    ^"\n');
     expect(s.stdoutText()).toContain(':location ::span[4 1 5 4 1 5]');
-    expect(s.stdoutText()).toContain('}\n|~| [1 2\n|~|     ^\n|~| The source does not read as qlang');
+    expect(s.stdoutText()).toContain('}\n|~| The source does not read as qlang');
   });
 
   it('writes a defect raised past the fail track on stderr as `qlang:` and its message, with the code 1', async () => {

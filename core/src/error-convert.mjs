@@ -3,6 +3,8 @@ import { declareDefect, recordRefusal } from './errors.mjs';
 import { kindOfAValueOf } from './nouns.mjs';
 import { chainOfKind } from './chain.mjs';
 import { nameOfContinuation } from './parse.mjs';
+import { printValue } from './print-value.mjs';
+import { lengthOf, EXCERPT_CHARACTERS } from './elide.mjs';
 
 // [QSERR#site]
 recordRefusal('quote/ParseError');
@@ -42,10 +44,14 @@ export function errorFromQlang(qlangError, subject, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
-// [QSSYN#refusal], [QSPRN#span]
+// [D460], [QSPRN#span]
 export function errorFromParse(parseError, scope, location, uri = parseError.uri) {
   const d = new Map();
-  if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
+  if (parseError.source != null && location !== undefined) {
+    const { source, marker } = markedLineOf(parseError.source.split('\n')[location[1] - 1], location);
+    d.set('source', source);
+    d.set('marker', marker);
+  }
   if (parseError.sentence) d.set('message', parseError.sentence);
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
@@ -54,6 +60,38 @@ export function errorFromParse(parseError, scope, location, uri = parseError.uri
   if (uri) d.set('origin', makeKeyword(uri));
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });
+}
+
+// [D460]
+const MARKED_LINE_WITHIN = EXCERPT_CHARACTERS - 3;
+
+function markedLineOf(line, [, startLine, startColumn, , endLine, endColumn]) {
+  const characters = Array.from(line);
+  const reached = [0];
+  for (const character of characters) reached.push(reached[reached.length - 1] + lengthOf(printValue(character)) - 2);
+  const at = startColumn - 1;
+  const end = endLine === startLine ? endColumn - 1 : characters.length;
+  const [from, to] = windowAround(reached, at);
+  const before = from > 0 ? '…' : '';
+  const after = to < characters.length ? '…' : '';
+  const lead = before.length + reached[at] - reached[from];
+  const reach = Math.max(1, reached[Math.min(end, to)] - reached[at]);
+  const width = before.length + reached[to] - reached[from] + after.length;
+  return {
+    source: `${before}${characters.slice(from, to).join('')}${after}`,
+    marker: `${' '.repeat(lead)}^${'~'.repeat(reach - 1)}${' '.repeat(Math.max(0, width - lead - reach))}`
+  };
+}
+
+function windowAround(reached, at) {
+  const length = reached.length - 1;
+  const widthOf = (from, to) => reached[to] - reached[from] + (from > 0 ? 1 : 0) + (to < length ? 1 : 0);
+  let from = at;
+  let to = at;
+  while (from > 0 && reached[at] - reached[from - 1] <= MARKED_LINE_WITHIN / 2) from -= 1;
+  while (to < length && widthOf(from, to + 1) <= MARKED_LINE_WITHIN) to += 1;
+  while (from > 0 && widthOf(from - 1, to) <= MARKED_LINE_WITHIN) from -= 1;
+  return [from, to];
 }
 
 function liftExpectedAlternatives(expected) {

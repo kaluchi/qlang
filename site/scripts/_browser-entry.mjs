@@ -33,7 +33,6 @@ export {
   printValue,
   printAnswer,
   boundAnswer,
-  caretOf,
   langRuntime,
   parseSource,
   createNotebook,

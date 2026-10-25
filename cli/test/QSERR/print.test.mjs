@@ -6,23 +6,27 @@ import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
 const refused = `[${Array.from({ length: 120 }, (_, index) => index + 1).join(' ')}] x`;
 
-it('writes the caret between the alert and the prose of the page', async () => {
+const sourceAndCaret = text => {
+  const lines = text.split('\n');
+  const at = lines.findIndex(line => line.startsWith('  :source "'));
+  return [lines[at], lines[at + 1]];
+};
+
+it('writes the `:marker` of a refused text beneath its `:source` in the alert, the prose of the page below the alert', async () => {
   const text = await answerText(await evalQuery('[1 2'), await langRuntime(), 'The page.');
-  expect(text).toMatch(/\}\n\|~\| \[1 2\n\|~\| {5}\^\n\|~\| The page\.$/);
+  expect(sourceAndCaret(text)).toEqual(['  :source "[1 2"', '  :marker "    ^"']);
+  expect(text).toMatch(/\}\n\|~\| The page\.$/);
 });
 
-it('draws the caret under the line of a refused text, the line within an excerpt where the alert left it out', async () => {
-  const text = await answerText(await evalQuery(refused), await langRuntime());
-  expect(text).toContain(':source ::elision{');
-  expect(text).toMatch(/\n\|~\| …[\d ]*\] x\n\|~\| +\^$/);
+it('writes a refused text past the excerpt of an alert as its line cut around the point, the caret of its `:marker` under that point', async () => {
+  const [source, caret] = sourceAndCaret(await answerText(await evalQuery(refused), await langRuntime()));
+  expect([source.startsWith('  :source "…'), caret.indexOf('^')]).toEqual([true, source.lastIndexOf('x')]);
 });
 
 // [QSCLI#repl]
-it('draws in the REPL the caret below a refused text its alert left out, the line within an excerpt', async () => {
-  const refused = `[${Array.from({ length: 120 }, (_, index) => index + 1).join(' ')}] x`;
+it('prints in the REPL a refused text past the excerpt of an alert as its line cut around the point, the caret of its `:marker` under that point', async () => {
   const replHarness = captureRepl(`${refused}\n.exit\n`);
   await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-  const printed = stripAnsi(replHarness.stdoutText());
-  expect(printed).toContain(':source ::elision{');
-  expect(printed).toMatch(/\|~\| …[\d ]*\] x\n\|~\| +\^/);
+  const [source, caret] = sourceAndCaret(stripAnsi(replHarness.stdoutText()).replace(/\r/g, ''));
+  expect([source.startsWith('  :source "…'), caret.indexOf('^')]).toEqual([true, source.lastIndexOf('x')]);
 });

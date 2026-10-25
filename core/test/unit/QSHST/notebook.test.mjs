@@ -66,9 +66,9 @@ describe('the cells of a notebook', () => {
     const sessionInstance = await createNotebook();
     const numbered = await sessionInstance.evalCell('[1 2');
     expect(numbered.uri).toBe('cell-1');
-    expect([...numbered.result.facts.keys()]).toEqual(['source', 'message', 'expected', 'location']);
+    expect([...numbered.result.facts.keys()]).toEqual(['source', 'marker', 'message', 'expected', 'location']);
     const named = await sessionInstance.evalCell('[1 2', { uri: 'shop.qlang' });
-    expect([...named.result.facts.keys()]).toEqual(['source', 'message', 'expected', 'location', 'origin']);
+    expect([...named.result.facts.keys()]).toEqual(['source', 'marker', 'message', 'expected', 'location', 'origin']);
     expect(named.result.facts.get('origin')).toEqual(makeKeyword('shop.qlang'));
   });
 

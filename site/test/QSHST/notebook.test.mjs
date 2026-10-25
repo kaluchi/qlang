@@ -28,9 +28,10 @@ it('shows the refusal instead of an answer past the budget', async () => {
   expect(shown.text).toContain('::qlang/AnswerBeyondBudgetError!{');
 });
 
-it('shows the caret under the point a parse stopped at below its failure', async () => {
+it('shows the failure of a cell that does not parse with the `:marker` beneath its `:source`, nothing drawn below it', async () => {
   const { text } = await cellShown(await notebook.evalCell('add ('));
-  expect(text.split('\n').at(-1)).toMatch(/\^$/);
+  expect(text).toContain('  :source "add ("\n  :marker "     ^"\n');
+  expect(text.split('\n').at(-1)).toBe('}');
 });
 
 it('writes a defect raised as the cell ran as qlang: and its message', async () => {

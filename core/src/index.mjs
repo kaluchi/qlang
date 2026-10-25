@@ -14,7 +14,7 @@ export { splitAddress } from './address.mjs';
 export { printValue } from './print-value.mjs';
 export { kindsExpected } from './ordering.mjs';
 export { toPlain, fromPlain, StringParseJsonTextNotJsonError } from './runtime/json.mjs';
-export { printAnswer, boundAnswer, caretOf } from './runtime/print.mjs';
+export { printAnswer, boundAnswer } from './runtime/print.mjs';
 export { ANSWER_BUDGET } from './elide.mjs';
 export { readingState } from './primitives.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';

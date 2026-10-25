@@ -49,13 +49,12 @@ describe('a cell run in one notebook', () => {
     expect(text).toMatch(/sub/);
   });
 
-  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its caret drawn below it', async () => {
+  it('prints a cell that does not parse as its ::quote/ParseError!{…} on stdout, its `:marker` beneath its `:source`', async () => {
     const replHarness = captureRepl('[1 2\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const text = replHarness.stdoutText().replace(/\x1b\[[0-9;]*m/g, '');
-    expect(text).toContain('::quote/ParseError!{');
-    expect(text).toContain(':source "[1 2"');
-    expect(text).toContain('}\n|~| [1 2\n|~|     ^\n');
+    expect(text).toContain('::quote/ParseError!{\n  :source "[1 2"\n  :marker "    ^"\n');
+    expect(text).not.toContain('|~|     ^');
     expect(replHarness.stderrText()).toBe('');
   });
 });

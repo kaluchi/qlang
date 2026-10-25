@@ -1,6 +1,6 @@
 // [QSCLI#answer]
 
-import { isErrorValue, langRuntime, verbNames, printAnswer, boundAnswer, caretOf } from '@kaluchi/qlang-core';
+import { isErrorValue, langRuntime, verbNames, printAnswer, boundAnswer } from '@kaluchi/qlang-core';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { contentOfThePage } from './run.mjs';
 
@@ -55,7 +55,7 @@ async function shownText(shown, value, scope, page) {
   if (shown === value && typeof value === 'string') return value;
   const refused = isErrorValue(shown) && shown.tag.name !== (isErrorValue(value) ? value.tag.name : null);
   const shownPage = refused ? await contentOfThePage(shown, scope) : page;
-  return [await printAnswer(shown, scope), caretOf(value), shownPage === null ? null : commentLinesOf(shownPage)].filter(part => part !== null).join('\n');
+  return [await printAnswer(shown, scope), shownPage === null ? null : commentLinesOf(shownPage)].filter(part => part !== null).join('\n');
 }
 
 const oneLine = text => text.replace(/\s+/g, ' ').trim();

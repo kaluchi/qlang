@@ -858,7 +858,7 @@ async function underKind(tagName, kind, payload, state) {
   return refused ?? labelled;
 }
 
-// [D454]
+// [QSBLD#value]
 function fieldRead(tagName, field, payload, invariants, state, opened) {
   if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened);
   return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened));

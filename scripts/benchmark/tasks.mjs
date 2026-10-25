@@ -122,8 +122,8 @@ export const TASKS = [
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | manifest | filter ~(binding | get /value | tag | eq ::fn) | sort | map ~(get [~(it) ~(doc | content)])',
-    answer: '::string | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(get [~(it) ~(doc | content)]) | sort'
+    reference: '::string | manifest | filter ~(binding | value | tag | eq ::fn) | sort | map ~(get [~(it) ~(doc | content)])',
+    answer: '::string | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(get [~(it) ~(doc | content)]) | sort'
   },
   {
     id: 'N3',
@@ -134,7 +134,7 @@ export const TASKS = [
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(laws | count) | sum',
-    answer: '::vec | manifest | filter ~(binding | get /value | tag | eq ::fn) | map ~(runLaws | count) | sum'
+    reference: '::vec | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(laws | count) | sum',
+    answer: '::vec | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(runLaws | count) | sum'
   }
 ];

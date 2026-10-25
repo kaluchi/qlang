@@ -40,3 +40,4 @@
 {"name":"with-refuses-a-name-written-twice-among-its-names","query":"{:a {:name 1} :b {:name 2}} | get [~(with [/a/name /b/name] ~(name) !| get [~(tag) /name]) ~(with [{:t /a} {:t /b}] ~(t) !| tag)]","expect":"[[::any/with/names/NameWrittenTwiceError :name] ::any/with/names/NameWrittenTwiceError]"}
 {"name":"with-refuses-a-body-get-takes-not","query":"{:a 1} | with [/a] true !| tag","expect":"::any/with/body/KindNotTakenError"}
 {"name":"a-failure-of-a-selector-of-with-is-its-answer","query":"{:a 1} | with {:b /b} ~(1) !| tag","expect":"::path/KeyNotInMapError"}
+{"decision":"D449","name":"with-names-the-parts-of-a-closed-tag-by-the-names-its-kind-wires","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | with [/took] ~(took | add 1)","expect":"313"}

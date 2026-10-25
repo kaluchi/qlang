@@ -2,13 +2,13 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged,
+  isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
   tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
-  splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
+  splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress, notReadAddress,
   kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
@@ -164,7 +164,7 @@ export function pathNamesOf(scope) {
 
 const PATH_NAMES = new WeakMap();
 
-// [QSDSP#walk], [QSDSP#tagname]
+// [QSDSP#walk], [QSDSP#tagname], [D449]
 export function* kindsOfWalk(subject) {
   let value = subject;
   for (;;) {
@@ -173,7 +173,10 @@ export function* kindsOfWalk(subject) {
       yield value.name;
       return;
     }
-    if (isTagged(value)) yield TAGGED_KIND_NAME;
+    if (isTagged(value)) {
+      yield TAGGED_KIND_NAME;
+      if (wiringOf(value) !== undefined) return;
+    }
     if (isValueClass(value, 'underTag')) {
       value = value.payload;
       continue;
@@ -314,7 +317,7 @@ function kindRuleRefusalsOf({ payload, fields }, address) {
   if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
-    refusals.push(notGivenAddress(fieldAddress));
+    refusals.push(notGivenAddress(fieldAddress), notReadAddress(fieldAddress));
     if (each) refusals.push(kindsRefusalAddress(fieldAddress));
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
   }

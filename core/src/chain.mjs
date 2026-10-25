@@ -4,7 +4,7 @@ import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
 import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
-import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
+import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
 
 const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
@@ -178,6 +178,7 @@ function readChainOfKind(quote) {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
         names.named.add(notGivenAddress(first.name));
+        names.named.add(notReadAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         kind.fields.push({ name: first, page: second, selector: third, kinds, each, written });

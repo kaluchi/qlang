@@ -9,9 +9,9 @@ it('a field refuses a value that is no vector where it names the kinds of each e
     .toBe('::Box/xs/KindNotTakenError');
 });
 
-it('a field answers the failure of a quote that reads it, past a part the payload leaves out', async () => {
-  expect(await answers(':Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| tag'))
-    .toBe('::number/add/addend/KindNotTakenError');
+it('a field refuses the failure of a quote that reads it under its name, the failure its actual value, past a part the payload leaves out', async () => {
+  expect(await answers(':Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w | add "x")) | ::Box{:w 1} !| get [~(tag) /actualTag]'))
+    .toBe('[::Box/w/NotReadError ::number/add/addend/KindNotTakenError]');
 });
 
 it('a field refuses a part its quote reads that the payload leaves out as left out', async () => {

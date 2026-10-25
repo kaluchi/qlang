@@ -218,7 +218,7 @@ describe('a refusal names a kind only where its address names it', () => {
 });
 
 describe('the refusals a kind raises by rule', () => {
-  it('names the payload of none of its kinds, each field left out and of none of its kinds, and a field of no kinds left out alone', async () => {
+  it('names the payload of none of its kinds, each field left out, not read and of none of its kinds, and a field of no kinds left out and not read alone', async () => {
     const own = await createNotebook();
     await own.evalCell([
       ':Box',
@@ -232,11 +232,14 @@ describe('the refusals a kind raises by rule', () => {
     expect(ruleRefusalsOf(own.scope, 'Box')).toEqual([
       'Box/PayloadKindNotTakenError',
       'Box/w/NotGivenError',
+      'Box/w/NotReadError',
       'Box/w/KindNotTakenError',
       'Box/tags/NotGivenError',
+      'Box/tags/NotReadError',
       'Box/tags/KindNotTakenError',
       'Box/tags/ElementKindNotTakenError',
-      'Box/note/NotGivenError'
+      'Box/note/NotGivenError',
+      'Box/note/NotReadError'
     ]);
   });
 

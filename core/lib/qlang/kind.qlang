@@ -300,14 +300,19 @@
     ::builtin{}]
 
 :kind/wires
-  |~~ Adds a field to a kind: its name, its page, its selector over the
-      payload, and the kinds it holds where they are given,
-      `::kind | wires :w |~~ The width. ~~| /w ::number`. The selector is
-      a path into the payload, `/w` the key `w`, a part the payload leaves
-      out refused under the field, or a quote that reads it,
-      `~(query /h 1)` the key `h` or one; a value of none of the kinds is
-      refused under the field. A field is no verb: `get` reads it by its
-      selector.
+  |~~ Wires a part of the payload of a kind to a name: its name, its page,
+      its selector over the payload and the kinds it holds where they are
+      given, `::kind | wires :took |~~ The seconds. ~~| /2 ::number`. The
+      selector is a path into the payload, `/2` its third element, or a
+      quote that decodes the part, `~(split "|" | get /1 | toNumber)`. The
+      door reads each part as a value is built: a part the payload leaves
+      out is refused under its name as not given, one its selector fails to
+      read as not read, and one of none of its kinds as of another kind. A
+      kind that wires a part closes its tag: a path reads a value of it by
+      the names it wires alone, `get /took`, a word of the kind sees them by
+      name in its recipe, `~(took | div 60)`, the walk of a name stops at
+      the tag, and `payload` answers the payload bare.
+      ::link~(::path/NameNotWiredError | doc) ::link~(::any/payload | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
@@ -329,6 +334,21 @@
           | ::Box{:xs [1 "a"]}
           !| get [~(tag) /index]
           |  eq [::Box/xs/ElementKindNotTakenError 1])
+    | proves :readsAPartByItsName
+        |~~ A path reads a part of a value of the kind by the name it wires,
+            and refuses the index the wiring reads it at.
+        ~~|
+        ~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number)
+          | ::Card["a" 312]
+          | get [~(get /took) ~(get /1 !| tag)]
+          | eq [312 ::path/NameNotWiredError])
+    | proves :showsTheNamesToTheRecipesOfTheKind
+        |~~ A word of the kind sees the parts of its subject by name. ~~|
+        ~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number)
+          | :Card/minutes ~(took | div 60 | floor)
+          | ::Card["a" 312]
+          | minutes
+          | eq 5)
     | proves :readsAPathAtDepth
         |~~ A path reads a field at depth. ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /size/w ::number)

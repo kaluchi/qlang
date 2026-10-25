@@ -63,7 +63,7 @@ export function isTag(v) {
   return isValueClass(v, 'tag');
 }
 
-// [QSNAM#binding], [QSDSP#residence], [QSHST#source]
+// [QSNAM#binding], [QSDSP#residence], [QSHST#source], [D449]
 export function isBinding(v) {
   return v instanceof Map && v[TAG_HEADER_SYMBOL]?.name === BINDING_TAG_NAME;
 }
@@ -76,6 +76,7 @@ export function makeBinding({ name, docs = [], value, source = null, origin = nu
   record.set('source', source);
   record.set('origin', origin);
   stampTagHeader(record, BINDING_TAG);
+  stampWiring(record, record);
   return record;
 }
 
@@ -221,6 +222,27 @@ export function stampTagHeader(m, tag) {
   });
 }
 
+// [D449]
+const WIRING_SYMBOL = Symbol('qlang/wiring');
+
+function stampWiring(value, parts) {
+  Object.defineProperty(value, WIRING_SYMBOL, {
+    value: parts, enumerable: false, configurable: false, writable: false
+  });
+}
+
+export function wiringOf(value) {
+  return value !== null && typeof value === 'object' ? value[WIRING_SYMBOL] : undefined;
+}
+
+export function wiredBeneath(value) {
+  for (let part = value; isTagged(part); part = part.payload) {
+    if (wiringOf(part) !== undefined) return part;
+    if (!isValueClass(part, 'underTag')) return undefined;
+  }
+  return undefined;
+}
+
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DESC_TAG        = makeTag('desc');
@@ -249,20 +271,24 @@ export const CORE_KIND = Object.freeze({
 
 export const isKindOfTheCore = name => Object.hasOwn(CORE_KIND, name);
 
-export function makeTagged(tag, payload) {
+// [D449]
+export function makeTagged(tag, payload, parts) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
     stampTagHeader(arr, tag);
+    if (parts !== undefined) stampWiring(arr, parts);
     return Object.freeze(arr);
   }
   if (payload instanceof Map
       && payload[TAG_HEADER_SYMBOL] === undefined) {
     const m = new Map(payload);
     stampTagHeader(m, tag);
+    if (parts !== undefined) stampWiring(m, parts);
     return m;
   }
   const underTag = brandValueClass({ tag, payload }, 'underTag');
   stampTagHeader(underTag, tag);
+  if (parts !== undefined) stampWiring(underTag, parts);
   return Object.freeze(underTag);
 }
 

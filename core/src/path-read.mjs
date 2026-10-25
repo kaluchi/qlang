@@ -1,7 +1,7 @@
 // [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
-import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, CORE_KIND } from './types.mjs';
+import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, wiredBeneath, wiringOf, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
@@ -36,9 +36,24 @@ export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
 }
 
+// [D449]
+export const PathNameNotWiredError = declareRefusal('path/NameNotWiredError');
+export const PathPartNotWritableError = declareRefusal('path/PartNotWritableError');
+
+// [QSPTH#get], [D449]
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
+    const wired = wiredBeneath(current);
+    if (wired !== undefined) {
+      const parts = wiringOf(wired);
+      if (parts.has(segment)) {
+        current = parts.get(segment);
+        continue;
+      }
+      if (soft) return MISSED;
+      throw nameNotWired(wired, parts, segment, path, depth);
+    }
     const container = beneathTags(current);
     if (container === null && soft) return MISSED;
     if (isMap(container)) {
@@ -76,6 +91,16 @@ export function indexIn(container, segment, path, depth, soft = false) {
   if (at >= 0 && at < container.length) return at;
   if (soft) return MISSED;
   throw refusalAt(new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container }), depth);
+}
+
+// [D449]
+function nameNotWired(value, parts, segment, path, depth) {
+  const nearest = Object.freeze(nearestOf(parts.keys(), segment).map(name => makeKeyword(name)));
+  return refusalAt(new PathNameNotWiredError({ name: makeKeyword(segment), nearest, path, actualValue: value }), depth);
+}
+
+export function partNotWritable(value, path, depth) {
+  return refusalAt(new PathPartNotWritableError({ path, actualValue: value }), depth);
 }
 
 export function noPartsOn(value, segment, path, depth) {

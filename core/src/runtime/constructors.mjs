@@ -1,4 +1,4 @@
-// [QSBLD#kind], [QSGAT#imports], [D443]
+// [QSBLD#kind], [QSGAT#imports]
 
 import { registerPrimitive } from '../primitives.mjs';
 import { isDocSegment, makeDoc, makeTrace, BUILTIN_TAG, stampTagHeader } from '../types.mjs';

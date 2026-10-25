@@ -219,7 +219,7 @@ async function evalBind(bind, state, at) {
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// [D445]
+// [QSNAM#scope]
 function laidByTheChainOfItsNoun(scope, name, nounName, at) {
   const entry = scope.get(name);
   return isBinding(entry) && entry.get('source') === null && declaresBefore(at.steps, at.index, nounName);

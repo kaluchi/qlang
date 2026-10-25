@@ -159,7 +159,12 @@ counted in its steps as they are written, run or skipped: a declaration
 the fail track passed by counts, and so does one whose body failed, so a
 recovery after `!|` declares another name. The second declaration is
 refused where it stands, `::bind/NameDeclaredTwiceError` with `:name`,
-its step the one that failed.
+its step the one that failed. The nodes the chain of a noun lays under its
+address, the page of the payload of a kind, its fields, the inputs of a
+function and their refusals, invariants, laws and pages, count as declared
+by the step that declares the noun, so a later step of its pipeline that
+declares one of their addresses is refused as well, while a name beside
+them stands.
 
 A group and each run of a quote are scopes of their own: a modifier, a
 part of a template of `get`, the code `map` runs on each element. A
@@ -179,6 +184,12 @@ under the reader's noun or under one of the root.
 ```qlang
 > :k 1 | :k 2 | k !| get [~(tag) /name]
 [::bind/NameDeclaredTwiceError :k]
+
+> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | :Box/w ~(2) !| get [~(tag) /name]
+[::bind/NameDeclaredTwiceError :Box/w]
+
+> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | :Box/area ~(get /w | mul 2) | get [~(::Box{:w 3} | area) ~(:Box/w ~(2) | ::Box{:w 3} | w)]
+[6 2]
 
 > {} | raise | :x 1 !| :x 2 | x !| tag
 ::bind/NameDeclaredTwiceError

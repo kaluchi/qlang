@@ -39,10 +39,20 @@ more of the probes. What confuses a session is settled where it is met. A
 comment that justifies or leads away is fixed in the stint. A sentence of a
 chapter the tree contradicts, or a requirement no case states, is written
 with its probe as a record: a record in transit over its section where the
-records choose the fix, a target where the chapter's rule stands and the
-tree misses it [QSREQ#target], and an open record where neither answers it.
-Each is weighed by the mission of the aim: whether it makes the first
-attempt of a fresh session likelier and its reading lighter.
+records choose the fix and a target where the chapter's rule stands and the
+tree misses it [QSREQ#target], and a question neither answers is put to the
+maintainer and decided in the stint. Each is weighed by the mission of the
+aim: whether it makes the first attempt of a fresh session likelier and its
+reading lighter.
+
+A question the work of a stint raises is the stint's: the stint decides it
+before it lands, asking the maintainer where the choice is his, and the work
+of a record writes no record of a question of its own beside it. A landing in
+the middle of the work, a total that relieves the tension of a long stint,
+lands what is done and carries no question of the stint to master, which the
+stint takes up again on its next branch from the new baseline, so a session
+starts from master in any direction with no leftover of another stint to
+meet.
 
 A home, a chapter, a section, a module or a test file, is made in the stint
 whose work asks for it, with the record that needs it [QSVOX#chapter], and a module that holds two
@@ -168,10 +178,12 @@ At the closeout:
   several, writes its line `Dissolved into` and moves it out. Records in
   transit over one section dissolve in the order of their numbers. A record
   that overrides a section dissolves or is set aside with its change
-  undone; an open record waits.
+  undone; an open record the baseline holds waits for the stint that takes
+  it up, and none the stint opened is open at its landing.
 - Every record in force is held against the new tree, critically: one whose
   form the language has left is closed, one a newer record contradicts is
-  closed, and an idea no choice settled is an open record. A record whose
+  closed, and an idea no choice settled is decided with the maintainer or
+  let go. A record whose
   marked blocks the diff from its tree touched is read again against the
   new root and described anew or closed; one the diff left alone stands as
   it is.
@@ -211,6 +223,8 @@ refuses:
 - a seed that cites a record in transit [QSVOX#seed];
 - a record in transit in the tree of the merge that landed it, or in the
   tree of master;
+- a record opened since the baseline that is still open, a question the
+  stint that raised it decides before it lands [QSWRK#stint];
 - a citation in the code and the tests of a record out of force or of one
   of the language no met case holds, a case that names a record out of
   force or being decided, and a citation in a seed of a record out of force

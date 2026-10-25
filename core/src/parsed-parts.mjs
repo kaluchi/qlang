@@ -139,7 +139,7 @@ export function repeatsDeclarationAt(steps, index) {
   return repeated.has(index);
 }
 
-// [D445]
+// [QSNAM#scope]
 export function declaresBefore(steps, index, name) {
   return steps.slice(0, index).some(step => declaresAName(step) && declaredNameOf(step) === name);
 }

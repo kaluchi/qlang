@@ -124,7 +124,6 @@ function nameMessage(name, written) {
     : `\`${written.of(name)}\` names nothing a step can call: a name begins with a letter or \`_\`, \`:first_name 5\``;
 }
 
-const QuotePayloadKindNotTakenError = declareRefusal('quote/PayloadKindNotTakenError');
 const QuoteElementNotStepError = declareRefusal('quote/ElementNotStepError');
 const QuoteStepNotCommandError = declareRefusal('quote/StepNotCommandError');
 const QuoteLiteralComputesError = declareRefusal('quote/LiteralComputesError');
@@ -227,7 +226,6 @@ export function groupOf(payload) {
 
 // [QSQUO#step], [QSSYN#step]
 export function quoteOf(payload, written) {
-  if (!isVec(payload) || !holdsNoOtherTag(payload, QUOTE_TAG.name)) throw new QuotePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
   payload.forEach((element, index) => {
     if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
   });

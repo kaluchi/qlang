@@ -1,7 +1,7 @@
 {"name":"payload-resides-on-every-value","query":"get [~(5 | binding :payload | name) ~(::Box#5 | binding :payload | name)]","expect":"[:any/payload :any/payload]"}
 {"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | add 3","expect":"::Box#8"}
-{"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(tag) ~(index) ~(actualTag)]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}
+{"decision":"D453","name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(tag) ~(index) ~(actualTag)]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}
 {"name":"a-verb-reaches-the-set-beneath-a-tag","query":"::Box#[3 1] | count","expect":"2"}
 {"name":"count-over-a-tag-stacked-on-a-set-counts-the-set","query":":Box |~~ Box. ~~| | ::Box#[3 1] | count","expect":"2"}
 {"name":"a-verb-on-a-narrower-label-stands-over-one-on-a-broader","query":":tagged/count ~(99) | ::Box[1 2] | count","expect":"99"}

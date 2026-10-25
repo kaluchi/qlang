@@ -103,7 +103,7 @@ function namesRead(value, segments) {
   return after === null ? null : [commandStep(name, []), ...after];
 }
 
-// The segments read by a path up to the first part a kind closes, the names of that part after them.
+// [QSPTH#get]
 function openRead(value, segments) {
   let part = value;
   let open = 0;

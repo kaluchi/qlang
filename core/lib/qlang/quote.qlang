@@ -120,7 +120,11 @@
                   source.
               ~~|
               ~(query /found) #[::null ::string]
-          | wires :location |~~ The span of the text where the reading stopped. ~~| ::span
+          | wires :location
+              |~~ The span of the text where the reading stopped, null where the
+                  reading stopped at no point of it.
+              ~~|
+              ~(query /location) #[::null ::span]
           | wires :origin
               |~~ Where the text came from, the source, the cell or the verb that
                   read it.

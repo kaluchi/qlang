@@ -65,23 +65,23 @@ reads as any value.
 > {:a {:b [10 20]}} | get /a/b/-1
 20
 
-> {:emails [] :age 3} | get /email !| get [~(tag) /key /nearest /path]
+> {:emails [] :age 3} | get /email !| get [~(tag) ~(key) ~(nearest) ~(path)]
 [::path/KeyNotInMapError :email [:emails] /email]
 
-> [10 20] | get /name !| get [~(tag) /segment]
+> [10 20] | get /name !| get [~(tag) ~(segment)]
 [::path/IndexNotIntegerError :name]
 
-> {:a 5} | get /a/b !| get [~(tag) /segment]
+> {:a 5} | get /a/b !| get [~(tag) ~(segment)]
 [::path/SubjectHasNoPartsError :b]
 
-> {:b ::T#5} | get /b/c !| get [~(tag) /actualValue]
+> {:b ::T#5} | get /b/c !| get [~(tag) ~(actualValue)]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue/actualValue)]
+> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| actualValue | actualValue)]
 [[#[:actualTag :path :segment :trace] ::number] [1 2]]
 
-> "[1" | parse !| get [~(get /location/start/line !| get [~(tag) /names /repair]) ~(get /location | start | line)]
-[[::path/TagClosedError #[:end :start] ~(get /location | start | line)] 1]
+> "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
+[[::path/TagClosedError #[:end :start] ~(start | line)] 1]
 ```
 
 ## query
@@ -173,7 +173,7 @@ reading `:b` under `:a`.
 > {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]
 
-> get [~({:a 1} | minus [:a true] !| get [~(tag) /index /expected]) ~([{:a 1} [true]] | minus !| tag)]
+> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(index) ~(expected)]) ~([{:a 1} [true]] | minus !| tag)]
 [[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
@@ -241,7 +241,7 @@ being its own.
 > [::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]
 [::Box 5 ::Box#5]
 
-> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| get /name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
+> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
 ["Ann7" :t ::any/with/names/SelectorKindNotTakenError]
 ```
 
@@ -271,7 +271,7 @@ as the value it is.
 > {:price 4 :qty 3} | mulOf /price /qty
 12
 
-> 5 | mul /qty !| get [~(tag) /repair]
+> 5 | mul /qty !| get [~(tag) ~(repair)]
 [::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
 ```
 
@@ -295,7 +295,7 @@ string of another form refused as `::string/toPath/NotPointerError`; and
 a path answers it with itself.
 
 ```qlang
-> get [~(/tags | count !| get [~(tag) /repair]) ~(/tags | keys !| get [~(tag) /repair])]
+> get [~(/tags | count !| get [~(tag) ~(repair)]) ~(/tags | keys !| get [~(tag) ~(repair)])]
 [[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
 
 > /a/0 | segments

@@ -43,7 +43,7 @@ with the addresses of its verbs.
 > "a\nb\nc" | lines
 ["a" "b" "c"]
 
-> get [~(42 | lower !| tag) ~(42 | take 2 !| get [~(tag) /addresses])]
+> get [~(42 | lower !| tag) ~(42 | take 2 !| get [~(tag) ~(addresses)])]
 [::string/lower/SubjectNotStringError [::call/KindAnswersNoVerbError #[::map/take ::string/take ::vec/take]]]
 ```
 
@@ -70,7 +70,7 @@ true
 > "abc" | contains :a !| tag
 ::string/contains/needle/KindNotTakenError
 
-> get [~(42 | contains "x" !| get [~(tag) /addresses]) ~(#[1 2] | binding :contains | name)]
+> get [~(42 | contains "x" !| get [~(tag) ~(addresses)]) ~(#[1 2] | binding :contains | name)]
 [[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
 ```
 
@@ -124,7 +124,7 @@ end runs as long as its matching does.
 > [#"\d+ms" #"a"mi] | map ~print
 ["#\"\\d+ms\"" "#\"a\"im"]
 
-> "#\"(?i)a\"" | parse !| get /message | contains "the flags follow"
+> "#\"(?i)a\"" | parse !| message | contains "the flags follow"
 true
 
 > #"a"m | toRegex "i"

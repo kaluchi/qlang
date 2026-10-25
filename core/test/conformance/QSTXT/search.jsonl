@@ -11,7 +11,7 @@
 {"name":"filter-keeps-the-strings-that-contain-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-keeps-the-records-whose-field-contains-a-text","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
-{"name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| addresses","expect":"#[::string/contains ::vec/contains]"}
+{"decision":"D453","name":"a-value-no-kind-of-contains-serves-names-its-addresses","query":"42 | contains \"x\" !| addresses","expect":"#[::string/contains ::vec/contains]"}
 {"name":"startsWith-finds-a-text-at-the-start-of-a-string","query":"\"hello world\" | startsWith \"hello\"","expect":"true"}
 {"name":"a-string-starts-with-a-text-equal-to-itself","query":"\"hello\" | startsWith \"hello\"","expect":"true"}
 {"name":"startsWith-answers-false-for-a-text-the-string-does-not-begin-with","query":"\"hello\" | startsWith \"world\"","expect":"false"}

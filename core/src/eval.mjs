@@ -619,7 +619,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(called)) return called;
   const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
   const running = steps === null
-    ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
+    ? runPrimitive(handed.primitive, walked.served, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;

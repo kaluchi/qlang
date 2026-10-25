@@ -2844,12 +2844,13 @@
     | returns
         |~~ The error the value is raised as, on the fail track. ~~|
         ::error
-    | throws :SubjectNotMapError
+    | throws :SubjectKindNotTakenError
         |~~ `raise` raises a map, beneath the tags over it: a value of
             another kind is put in one first, `get {:value ~(it)} | raise`,
             or the error is written as its literal, `!{:reason :late} | raise`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag)
+        ~(wires :expected |~~ The kind raised, `#[::map]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `raise` takes no value: what the error says is a fact of the
             map, `{:message "boom"} | raise`.
@@ -2898,9 +2899,9 @@
         ~(42 | if (gt 100) ~(it) ~(get {:value ~(it)} | tag ::TooSmall | raise)
           !| get [~(tag) /value]
           |  eq [::TooSmall 42])
-    | proves :SubjectNotMapError/refusesANumber
+    | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no map to raise. ~~|
-        ~(42 | raise !| get [~(tag) ~(actualTag)] | eq [::any/raise/SubjectNotMapError ::number])
+        ~(42 | raise !| get [~(tag) ~(expected) ~(actualTag)] | eq [::any/raise/SubjectKindNotTakenError #[::map] ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
         ~({:a 1} | raise "boom" !| tag | eq ::any/raise/ArgsBeyondInputsError)

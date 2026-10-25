@@ -4,7 +4,7 @@
 {"name":"or-answers-false-where-neither-holds","query":"false | or false","expect":"false"}
 {"name":"not-turns-true-into-false","query":"true | not","expect":"false"}
 {"name":"not-turns-false-into-true","query":"false | not","expect":"true"}
-{"name":"not-null-is-refused","query":"null | not !| get [~(tag) ~(actualTag)]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
+{"decision":"D453","name":"not-null-is-refused","query":"null | not !| get [~(tag) ~(actualTag)]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
 {"name":"not-zero-is-refused","query":"0 | not !| tag","expect":"::boolean/not/SubjectNotBooleanError"}
 {"name":"not-empty-string-is-refused","query":"\"\" | not !| tag","expect":"::boolean/not/SubjectNotBooleanError"}
 {"name":"filter-by-allOf-keeps-the-elements-that-meet-every-condition","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
@@ -12,7 +12,7 @@
 {"name":"or-refuses-a-condition-of-another-kind","query":"true | or 1 !| tag","expect":"::boolean/or/condition/KindNotTakenError"}
 {"name":"a-predicate-may-name-a-verb","query":"[true false] | filter ~(not)","expect":"[false]"}
 {"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
-{"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(tag) ~(index) ~(actualTag)]","expect":"[::any/allOf/conditions/ElementKindNotTakenError 1 ::string/endsWith/SubjectNotStringError]"}
+{"decision":"D453","name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(tag) ~(index) ~(actualTag)]","expect":"[::any/allOf/conditions/ElementKindNotTakenError 1 ::string/endsWith/SubjectNotStringError]"}
 {"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
 {"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
 {"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
@@ -21,4 +21,4 @@
 {"name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| tag","expect":"::any/allOf/conditions/EmptyError"}
 {"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| tag","expect":"::any/allOf/ConditionKindNotTakenError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
-{"name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| index) ~(5 | allOf 3 (1 | div 0) !| index)]","expect":"[0 1]"}
+{"decision":"D453","name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| index) ~(5 | allOf 3 (1 | div 0) !| index)]","expect":"[0 1]"}

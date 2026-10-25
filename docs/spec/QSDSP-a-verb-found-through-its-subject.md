@@ -80,7 +80,8 @@ A verb resides on the label its address names, whoever declared it, a
 reader extending a noun of the root among them, and so does a name the
 kind of a label wires, its call answering that part of the subject,
 `card | took`, by its address `card | Card/took`, and taking no modifiers
-[QSBLD#value]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
+[QSBLD#value], whether a node lies at its address or the wiring alone names
+it, the facts of a refusal among them, `!| actualTag` [QSERR#rest]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
 `::string/count`, one primitive serving several where they share it. A
 verb serves the values the walk of their tags brings to its label and,
 beside them, a value of the kinds its `on` names, of tag names the
@@ -124,7 +125,7 @@ of two kinds refused [QSCND#compare].
 > ::set | manifest
 #[::set/PayloadKindNotTakenError ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
 
-> 42 | zip !| get [~(tag) /addresses]
+> 42 | zip !| get [~(tag) ~(addresses)]
 [::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]
 
 > get [~(#[1 "a"] | sum !| tag) ~(true | flat !| tag) ~(::set | count !| tag) ~(::set | manifest | has ::set/count)]
@@ -156,16 +157,16 @@ declares under a second noun makes the refusal of a name one verb of the
 root holds the call's, its address beside the root's.
 
 ```qlang
-> 5 | count !| get [~(tag) /actualTag /addresses]
+> 5 | count !| get [~(tag) ~(actualTag) ~(addresses)]
 [::call/KindAnswersNoVerbError ::number #[::map/count ::string/count ::vec/count]]
 
-> :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) /addresses]
+> :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) ~(addresses)]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]
 
-> [1 2] | toString !| get /nearest
+> [1 2] | toString !| nearest
 [:json :print]
 
-> /tags | count !| get /repair
+> /tags | count !| repair
 ~(get /tags | count)
 ```
 
@@ -216,7 +217,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 > get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
 
-> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(tag) /leftTag /rightTag]) ~(1.234 | round ::D#2)]
+> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(tag) ~(leftTag) ~(rightTag)]) ~(1.234 | round ::D#2)]
 [::Cents#101 [::call/KindsMismatchedError ::Cents ::Dollars] 1.23]
 ```
 

@@ -12,4 +12,4 @@
 {"name":"a-text-read-as-a-quote-is-written-back-in-the-one-spelling","query":"\"5 |  mul   2\" | parse | toString","expect":"\"5 | mul 2\""}
 {"name":"the-parse-of-a-source-of-whitespace-alone-is-the-empty-quote","query":"\" \" | parse","expect":"~()"}
 {"name":"parse-refuses-a-malformed-source","query":"\"this is bad [\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-text-parse-refuses-names-the-verb-that-read-it-as-its-origin","query":"\"add (\" | parse !| origin","expect":":string/parse"}
+{"decision":"D453","name":"a-text-parse-refuses-names-the-verb-that-read-it-as-its-origin","query":"\"add (\" | parse !| origin","expect":":string/parse"}

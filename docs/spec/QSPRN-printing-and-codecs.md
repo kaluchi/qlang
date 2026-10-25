@@ -118,10 +118,10 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 > "[1, 2" | parseJson !| tag
 ::string/parseJson/TextNotJsonError
 
-> "[1e400]" | parseJson !| get [~(tag) /path]
+> "[1e400]" | parseJson !| get [~(tag) ~(path)]
 [::string/parseJson/NumberNotFiniteError /0]
 
-> "1e400" | parseJson !| keys
+> "1e400" | parseJson !| payload | keys
 #[:trace]
 ```
 
@@ -198,7 +198,7 @@ elision it holds. A value whose print fits is answered as it is.
 > get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b
 ::elision{:size 300 :read ~(get /b)}
 
-> [{:n 1} "x" 3] | map ~(mul 2) !| get /trace | elide 60 | print | parse | open !| tag
+> [{:n 1} "x" 3] | map ~(mul 2) !| trace | elide 60 | print | parse | open !| tag
 ::trace/ElementKindNotTakenError
 ```
 
@@ -246,12 +246,12 @@ fraction is refused by the invariant of its kind,
 numbers.
 
 ```qlang
-> "[1 2" | parse !| get /location | start
+> "[1 2" | parse !| location | start
 ::point[4 1 5]
 
 > ::span[0 1 1] !| tag
 ::span/end/NotReadError
 
-> ::span[0 1 "x" 1 1 2] !| get [~(tag) /index]
+> ::span[0 1 "x" 1 1 2] !| get [~(tag) ~(index)]
 [::span/ElementKindNotTakenError 2]
 ```

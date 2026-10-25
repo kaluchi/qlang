@@ -44,31 +44,31 @@ of the source is refused naming `it`. A tag name where a
 declaration's name stands is refused.
 
 ```qlang
-> "{:a 1} | /a" | parse !| get /message
+> "{:a 1} | /a" | parse !| message
 "a path is a value, which the verb that takes it reads: write `get /a`"
 
-> get [~("5 | ~(add 1)" | parse !| get /message | contains "by `apply`") ~("\"x\" | add 1 !| ~(get /message)" | parse !| get /message | contains "by `apply`")]
+> get [~("5 | ~(add 1)" | parse !| message | contains "by `apply`") ~("\"x\" | add 1 !| ~(get /message)" | parse !| message | contains "by `apply`")]
 [true true]
 
-> "5 | ::Box#5" | parse !| get /message
+> "5 | ::Box#5" | parse !| message
 "a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`"
 
-> "!{:k 1 :j 2} | raise !| [/k /j]" | parse !| get /message
+> "!{:k 1 :j 2} | raise !| [/k /j]" | parse !| message
 "a literal that holds a path or a quote is the template `get` reads: write `get [/k /j]`"
 
-> "get /age?" | parse !| get /message
+> "get /age?" | parse !| message
 "a part that may be missing is read by `query`, which answers null where it misses: write `query /age`"
 
-> "add(1, 2)" | parse !| get /message
+> "add(1, 2)" | parse !| message
 "modifiers are separated by spaces, not by commas: `f a b`"
 
-> "{:users 1} | .users[0]" | parse !| get /message
+> "{:users 1} | .users[0]" | parse !| message
 "`.users[0]` is no path: a part is read by `get` and a path, which opens with a slash, `get /users/0`"
 
-> "[{:age 2} {:age 1}] | sort .age" | parse !| get /message
+> "[{:age 2} {:age 1}] | sort .age" | parse !| message
 "`.age` is no path: a path opens with a slash, `/age`"
 
-> get [~({:"?a" 1} | get /"?a") ~("{:\"a?\" 1} | get /\"a?\"?" | parse !| get /message | contains "`query /\"a?\"`")]
+> get [~({:"?a" 1} | get /"?a") ~("{:\"a?\" 1} | get /\"a?\"?" | parse !| message | contains "`query /\"a?\"`")]
 [1 true]
 ```
 
@@ -94,16 +94,16 @@ combinator: a leading `|` is the head's combinator, and a leading `!|`
 opens a step of the fail track.
 
 ```qlang
-> "[1] || count" | parse !| get /message
+> "[1] || count" | parse !| message
 "a combinator is set off by whitespace on both sides: write ` | `"
 
-> "[1 2] |~(add)" | parse !| get /message | contains "| apply ~("
+> "[1 2] |~(add)" | parse !| message | contains "| apply ~("
 true
 
-> "::vec | doc; ::map | doc" | parse !| get /message | contains "one query asks several by a template"
+> "::vec | doc; ::map | doc" | parse !| message | contains "one query asks several by a template"
 true
 
-> "[1 2] | count ; count" | parse !| get /location
+> "[1 2] | count ; count" | parse !| location
 ::span[14 1 15 15 1 16]
 ```
 
@@ -131,7 +131,7 @@ but for a tag name and a path, refused by the habits they meet
 it, and any other step is joined by a combinator.
 
 ```qlang
-> "[3 1 2] sort" | parse !| get /message
+> "[3 1 2] sort" | parse !| message
 "steps are joined by `|`: write `a | b`"
 
 > "[1] | append\n:y\n:z 2\n| z" | parse
@@ -140,7 +140,7 @@ it, and any other step is joined by a combinator.
 > "[1] | :vec/f\n  ~(first) !| 0\n:y 2 | y" | parse
 ~([1] | :vec/f (~(first) !| 0) | :y 2 | y)
 
-> ":x ::Box | count | 5" | parse !| get /message | contains "is one step, `::Box`, and the commands after it are steps of the query: a chain stands in parentheses"
+> ":x ::Box | count | 5" | parse !| message | contains "is one step, `::Box`, and the commands after it are steps of the query: a chain stands in parentheses"
 true
 ```
 
@@ -224,13 +224,13 @@ and no indentation its lines after the first share [QSSLF#doc], so
 > get [~("|~~| a ~(b, ~(add 1)) c" | parse | first | segments | count) ~("|~~ a ~(f 01) ~~|" | parse | first | segments | count) ~(|~~ a ~(count | 1) b ~~| | segments | count)]
 [1 1 1]
 
-> "|~~ note ~~| :x 42" | parse !| get /message | contains "the slot of the declaration"
+> "|~~ note ~~| :x 42" | parse !| message | contains "the slot of the declaration"
 true
 
-> "[|~~| x ~(a\n 1 2 | f" | parse !| get /location
+> "[|~~| x ~(a\n 1 2 | f" | parse !| location
 ::span[17 2 6 18 2 7]
 
-> "[|~~| x ~(a" | parse !| get /expected | filter ~(eq ")") | count
+> "[|~~| x ~(a" | parse !| expected | filter ~(eq ")") | count
 1
 
 > "|~~| x\r\n" | parse | first | content
@@ -271,24 +271,24 @@ its parentheses, a comma between modifiers names the space, the path of
 jq names a slash, and a semicolon between two queries names a template.
 
 ```qlang
-> "[1 2 3] | filter ~(gt 1" | parse !| get [/expected /message]
+> "[1 2 3] | filter ~(gt 1" | parse !| get [~(expected) ~(message)]
 [[")"] "`~(` opened at line 1, column 18 is never closed; `)` completes the source"]
 
-> get [~("[1 |~ a" | parse !| get /message) ~("|~~ a |~~ e" | parse !| get /message) ~("1 |~ a" | parse !| get /message | contains "apply")]
+> get [~("[1 |~ a" | parse !| message) ~("|~~ a |~~ e" | parse !| message) ~("1 |~ a" | parse !| message | contains "apply")]
 ["`|~` opened at line 1, column 4 is never closed; `~|]` completes the source" "`|~~` opened at line 1, column 7 is never closed; `~~|~~|` completes the source" true]
 
-> "#{1}" | parse !| get /message | contains "#["
+> "#{1}" | parse !| message | contains "#["
 true
 
-> "[1 2" | parse !| get [/source ~(get /location | start | column) /origin]
+> "[1 2" | parse !| get [~(source) ~(location | start | column) ~(origin)]
 ["[1 2" 5 :string/parse]
 
-> "[1 2 x" | parse !| get /expected
+> "[1 2 x" | parse !| expected
 [:"letters of a name" "/" :whitespace "]"]
 
-> "(::Box ]" | parse !| get /expected
+> "(::Box ]" | parse !| expected
 [:whitespace ":" "!|" "|" ")"]
 
-> "::Box(1 ]" | parse !| get /location
+> "::Box(1 ]" | parse !| location
 ::span[5 1 6 6 1 7]
 ```

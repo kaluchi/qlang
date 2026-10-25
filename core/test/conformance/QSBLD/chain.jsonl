@@ -1,9 +1,9 @@
-{"name":"an-invariant-a-reader-declares-under-an-input-of-a-verb-is-refused","query":":number/add/addend/TooBigError ::invariant~(lt 100) !| get [~(tag) ~(noun)]","expect":"[::bind/WrittenOutsideItsChainError ::number/add/addend]"}
-{"name":"an-input-a-reader-declares-under-a-verb-is-refused","query":":number/add/extra |~~ More. ~~| /1 !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :number/add/extra]"}
-{"name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::invariant~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
+{"decision":"D453","name":"an-invariant-a-reader-declares-under-an-input-of-a-verb-is-refused","query":":number/add/addend/TooBigError ::invariant~(lt 100) !| get [~(tag) ~(noun)]","expect":"[::bind/WrittenOutsideItsChainError ::number/add/addend]"}
+{"decision":"D453","name":"an-input-a-reader-declares-under-a-verb-is-refused","query":":number/add/extra |~~ More. ~~| /1 !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :number/add/extra]"}
+{"decision":"D453","name":"an-invariant-declared-by-a-bare-name-is-refused","query":":Box |~~ A box. ~~| ::invariant~(get /w | is ::number) | :Box/area ~(mulOf /w /h) !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :Box]"}
 {"name":"an-invariant-a-bare-name-declares-is-refused","query":":Positive ::invariant~(gt 0) !| tag","expect":"::bind/WrittenOutsideItsChainError"}
 {"name":"a-tag-a-reader-declares-under-a-verb-changes-no-call","query":":any/k ~(5) | :any/k/out |~~ Text. ~~| ::string | 0 | k","expect":"5"}
 {"name":"a-name-under-a-label-outside-its-chain-lies-there-with-its-page","query":":Box |~~ A box. ~~| | :Box/w |~~ The width. ~~| ::number | get [~(::Box | manifest) ~(::Box/w | doc | content | contains \"width\")]","expect":"[#[::Box/w] true]"}
-{"name":"a-page-alone-writes-no-answer-under-a-verb","query":":any/k ~(5) | :any/k/answer |~~ a ~~| !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :any/k/answer]"}
+{"decision":"D453","name":"a-page-alone-writes-no-answer-under-a-verb","query":":any/k ~(5) | :any/k/answer |~~ a ~~| !| get [~(tag) ~(name)]","expect":"[::bind/WrittenOutsideItsChainError :any/k/answer]"}
 {"name":"construct-is-a-name-like-any-other-under-a-label","query":":Box |~~ b ~~| | :Box/construct |~~ c ~~| | ::Box/construct | doc | content","expect":"\"c\""}
 {"name":"an-invariant-declared-by-a-name-is-refused-and-takes-no-quote-under-another-tag","query":"get [~(:Positive ::invariant~(gt 0) !| tag) ~(:Positive ::invariant::Foo~(gt 0) !| tag)]","expect":"[::bind/WrittenOutsideItsChainError ::invariant/PayloadKindNotTakenError]"}

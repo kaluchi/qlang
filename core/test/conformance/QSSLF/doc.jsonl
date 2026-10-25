@@ -9,7 +9,7 @@
 {"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | segments | count","expect":"1"}
 {"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | segments | count","expect":"1"}
 {"name":"a-doc-comes-back-from-its-segments-by-tag","query":"[\"a\" ~(add 1)] | tag ::doc | content","expect":"\"a~(add 1)\""}
-{"name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| get [~(tag) ~(expected)]","expect":"[::doc/ElementKindNotTakenError #[::quote ::string]]"}
+{"decision":"D453","name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| get [~(tag) ~(expected)]","expect":"[::doc/ElementKindNotTakenError #[::quote ::string]]"}
 {"name":"a-doc-that-opens-on-a-quote-holds-no-prose-before-it","query":"|~~~(add 1) b~~| | segments | first | tag","expect":"::quote"}
 {"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | segments | count","expect":"1"}
 {"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2"}
@@ -24,7 +24,7 @@
 {"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | map ~tag","expect":"[::string ::quote ::string ::link ::string]"}
 {"name":"a-link-opens-to-the-answer-of-its-query","query":"|~~ ::link~(1 | add 1) ~~| | links | first | open","expect":"2"}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | tag","expect":"::string"}
-{"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(actualTag)]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
+{"decision":"D453","name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(actualTag)]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
 {"name":"the-refusal-of-a-doc-s-quote-is-caught-at-rest-as-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}

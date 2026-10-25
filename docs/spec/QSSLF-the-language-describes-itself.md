@@ -78,7 +78,7 @@ true
 > ::vec/take | source 1 !| tag
 ::any/source/anchor/KindNotTakenError
 
-> ::nosuchbinding | doc !| get [~(tag) /name]
+> ::nosuchbinding | doc !| get [~(tag) ~(name)]
 [::any/doc/UnknownNameError ::nosuchbinding]
 
 > "x" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)
@@ -101,8 +101,10 @@ name its subject reads, each by its address: the verbs of a noun, its
 refusals and its pages, and the roles the chain of a function or a kind
 lays under its name, the subject, the inputs and the answer of a verb,
 the payload, the fields and the constructor of a kind, the invariants,
-each named by the refusal of a value that breaks it, and the facts a
-refusal carries; the laws stand aside, which `laws` reads. A value
+each named by the refusal of a value that breaks it, and the parts a kind
+wires, the facts a refusal carries among them, which lie under it by its
+wiring, `::fn/KindNotTakenError | manifest` [QSERR#site]; the laws stand
+aside, which `laws` reads. A value
 answers those of the kind it shows, `5 | manifest` those of `::number`,
 and a name nothing declares is refused as
 `::any/manifest/UnknownNameError`; an anchor reads the node the name
@@ -162,13 +164,13 @@ refuses it. Every law of the core passes.
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
 [true]
 
-> ::law::Foo~(3 | eq 3) !| get [~(tag) /actualTag]
+> ::law::Foo~(3 | eq 3) !| get [~(tag) ~(actualTag)]
 [::law/PayloadKindNotTakenError ::Foo]
 
 > ::number/add | laws | count
 4
 
-> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | every ~(runLaws | every /ok))]
+> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | map ~(manifest) | flat | :n5 it | get [~(n5 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4) ~(n5)] | flat | every ~(runLaws | every /ok))]
 [0 true]
 ```
 
@@ -191,16 +193,16 @@ reaches, a key among the keys of the map a path missed. A name is no
 guess for itself.
 
 ```qlang
-> 5 | ad 2 !| get /nearest
+> 5 | ad 2 !| nearest
 [:add :and]
 
-> ::str | doc !| get /nearest
+> ::str | doc !| nearest
 [::string]
 
-> ::qlang | doc :pipelin !| get /nearest
+> ::qlang | doc :pipelin !| nearest
 [:pipeline]
 
-> {:a 1 :b 2} | addOf /a /b !| get /nearest
+> {:a 1 :b 2} | addOf /a /b !| nearest
 [:add :sumOf]
 ```
 
@@ -259,7 +261,7 @@ written.
 > get [~(::link#5 !| tag) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
 [::link/PayloadKindNotTakenError 1]
 
-> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) /actualTag])]
+> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(actualTag)])]
 [1 [::link/PayloadKindNotTakenError ::Foo]]
 
 > :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag
@@ -298,7 +300,7 @@ true
 > ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | get [~(n4 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))]
+> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | map ~(manifest) | flat | :n5 it | get [~(n5 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4) ~(n5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))]
 [0 true]
 
 > kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)

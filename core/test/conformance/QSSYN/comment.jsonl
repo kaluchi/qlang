@@ -29,8 +29,8 @@
 {"name":"a-block-comment-closes-after-a-block-doc-it-holds","query":"|~ mentions |~~ inner doc ~~| inline ~|\n| 0","expect":"0"}
 {"name":"a-block-comment-holds-backquotes-and-a-block-doc","query":"|~ user-error tag `::AssertionFailedError` raised by guards — a doc alone, `::Tag |~~ ~~|`, declares a label the axes reach ~|\n:foo 42\n| foo","expect":"42"}
 {"name":"a-block-comment-holds-a-quote-that-holds-a-comment","query":"|~ wraps ~( inner |~ q ~| pipe ) closing ~|\n| 1","expect":"1"}
-{"name":"a-line-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise |~| note\n | count !| get /trace | last | skipped","expect":"~(count)"}
-{"name":"a-block-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise | |~ note ~| count !| get /trace | last | skipped","expect":"~(count)"}
+{"decision":"D453","name":"a-line-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise |~| note\n | count !| get /trace | last | skipped","expect":"~(count)"}
+{"decision":"D453","name":"a-block-comment-stays-out-of-the-steps-skipped","query":"!{:kind :oops} | raise | |~ note ~| count !| get /trace | last | skipped","expect":"~(count)"}
 {"name":"a-source-of-comments-alone-is-the-empty-pipeline","query":"|~ only a note ~|","expect":"null"}
 {"name":"a-comment-at-the-head-keeps-a-leading-catch","query":"~(!| |~ note ~| get /kind) | first | tag","expect":"::fail"}
 {"name":"comment-head-hands-the-head-to-the-first-step","query":"42 | apply ~(|~ note ~| tag)","expect":"::number"}

@@ -1,18 +1,18 @@
 {"name":"a-value-of-the-reader-named-as-a-verb-is-read-where-no-verb-answers-the-subject","query":":count 5 | count","expect":"5"}
 {"name":"a-declaration-of-the-reader-meets-a-verb-of-the-subject-aloud","query":":count 5 | [1 2 3] | count !| tag","expect":"::call/ValueMeetsVerbError"}
 {"name":"a-bare-name-of-the-reader-shadows-the-root","query":":vec 5 | vec","expect":"5"}
-{"name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(tag) ~(nearest)]","expect":"[::call/UnknownNameError [::qlang]]"}
+{"decision":"D453","name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(tag) ~(nearest)]","expect":"[::call/UnknownNameError [::qlang]]"}
 {"name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| tag) ~(5 | string !| tag)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
 {"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(env | get /vec | value) ~(::vec[1] | eq [1]) ~([1] | doc | tag)]","expect":"[5 5 true ::doc]"}
-{"name":"a-bare-name-of-the-reader-meets-a-verb-of-the-subject-aloud","query":":filter 5 | [1 2] | filter !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::vec/filter]]"}
-{"name":"a-value-of-the-reader-meets-a-verb-the-reader-declared","query":":vec/second ~(get /1) | :second 5 | get [~(4 | second) ~([7 8 9] | second !| addresses)]","expect":"[5 #[::vec/second]]"}
-{"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-meets-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(tag) ~(name)]","expect":"[::call/ValueMeetsVerbError :count]"}
-{"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| addresses","expect":"#[::vec/sort]"}
+{"decision":"D453","name":"a-bare-name-of-the-reader-meets-a-verb-of-the-subject-aloud","query":":filter 5 | [1 2] | filter !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::vec/filter]]"}
+{"decision":"D453","name":"a-value-of-the-reader-meets-a-verb-the-reader-declared","query":":vec/second ~(get /1) | :second 5 | get [~(4 | second) ~([7 8 9] | second !| addresses)]","expect":"[5 #[::vec/second]]"}
+{"decision":"D453","name":"an-input-of-a-quote-under-a-label-named-as-a-verb-meets-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(tag) ~(name)]","expect":"[::call/ValueMeetsVerbError :count]"}
+{"decision":"D453","name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| addresses","expect":"#[::vec/sort]"}
 {"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
 {"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| tag","expect":"::call/UnknownNameError"}
 {"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-node-under-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-value-is-read-where-the-verb-of-its-name-refuses-the-subject","query":":count 5 | ::vec | count","expect":"5"}
 {"name":"a-value-is-read-where-the-verb-of-a-label-refuses-its-tag-name","query":":Shop |~~ S ~~| | :Shop/f ~(1) | :f 7 | ::Shop | f","expect":"7"}
-{"name":"a-value-meets-a-verb-of-the-noun-itself-on-its-tag-name","query":":Desk |~~ D ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")) | :hours 3 | ::Desk | hours !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::Desk/hours]]"}
-{"name":"a-value-named-as-a-verb-of-any-meets-the-verb-on-every-subject","query":":type 5 | 1 | type !| addresses","expect":"#[::any/type]"}
+{"decision":"D453","name":"a-value-meets-a-verb-of-the-noun-itself-on-its-tag-name","query":":Desk |~~ D ~~| | :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")) | :hours 3 | ::Desk | hours !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::Desk/hours]]"}
+{"decision":"D453","name":"a-value-named-as-a-verb-of-any-meets-the-verb-on-every-subject","query":":type 5 | 1 | type !| addresses","expect":"#[::any/type]"}

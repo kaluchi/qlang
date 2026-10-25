@@ -58,8 +58,8 @@
 {"name":"concat-joins-the-vectors-after-the-subject","query":"[1] | concat [2 3] [4]","expect":"[1 2 3 4]"}
 {"name":"concat-folds-the-vectors-a-vector-holds","query":"[[1] [2 3]] | reduce [] ~(concat)","expect":"[1 2 3]"}
 {"name":"concat-answers-under-the-tag-of-its-subject","query":"::Box[1] | concat [2]","expect":"::Box[1 2]"}
-{"name":"concat-refuses-an-element-that-is-no-vector","query":"[1] | concat 2 !| get [~(tag) ~(index)]","expect":"[::vec/concat/vectors/ElementKindNotTakenError 0]"}
-{"name":"a-fold-refuses-numbers-under-two-tags-at-the-part","query":"[::Cents#100 ::Cents#1 ::Dollars#1] | sum !| get [~(tag) ~(leftTag) ~(rightTag) ~(trace | last | path)]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars /2]"}
+{"decision":"D453","name":"concat-refuses-an-element-that-is-no-vector","query":"[1] | concat 2 !| get [~(tag) ~(index)]","expect":"[::vec/concat/vectors/ElementKindNotTakenError 0]"}
+{"decision":"D453","name":"a-fold-refuses-numbers-under-two-tags-at-the-part","query":"[::Cents#100 ::Cents#1 ::Dollars#1] | sum !| get [~(tag) ~(leftTag) ~(rightTag) ~(trace | last | path)]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars /2]"}
 {"name":"a-fold-refuses-the-first-element-that-fails-its-kind-before-its-tags","query":"get [~([\"x\" ::Cents#1 ::Dollars#2] | sum !| get [~(tag) ~(trace | last | path)]) ~([::Cents#1 ::Dollars#2 \"x\"] | sum !| get [~(tag) ~(trace | last | path)])]","expect":"[[::vec/sum/ElementKindNotTakenError /0] [::call/KindsMismatchedError /1]]"}
 {"name":"a-total-past-the-doubles-is-refused-before-its-tags-are-laid","query":"get [~([::W#1e308 ::W#1e308] | sum !| tag) ~([::W#1 ::W#2] | avg)]","expect":"[::number/NotFiniteError ::W#1.5]"}
 {"name":"join-answers-under-the-tags-its-strings-share","query":"get [~([::T\"a\" ::T\"b\"] | join \",\") ~([::T\"a\" ::U\"b\"] | join \",\" !| get [~(tag) ~(trace | last | path)]) ~([::K:a \"b\"] | join \",\")]","expect":"[::T\"a,b\" [::call/KindsMismatchedError /1] \"a,b\"]"}

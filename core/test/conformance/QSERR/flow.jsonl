@@ -1,8 +1,8 @@
-{"name":"map-answers-its-first-failure","query":"[1 \"x\" 3] | map ~(add 10) !| get [~(tag) ~(actualTag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
+{"decision":"D453","name":"map-answers-its-first-failure","query":"[1 \"x\" 3] | map ~(add 10) !| get [~(tag) ~(actualTag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
 {"name":"code-that-recovers-keeps-every-element","query":"[1 \"x\" 3] | map ~(add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"code-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] | map ~(add 10 !| tag) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2"}
 {"name":"an-input-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| tag","expect":"::error"}
-{"name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| get /trace | map ~failed","expect":"[~(raise) ~(f (!{:k 1} | raise))]"}
+{"decision":"D453","name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| get /trace | map ~failed","expect":"[~(raise) ~(f (!{:k 1} | raise))]"}
 {"name":"a-template-answers-the-failure-a-quote-answers","query":"get [1 ~(\"x\" | add 1)] | count !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"map-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| get [~(tag) ~(trace | map ~failed)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]"}
 {"name":"a-template-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| tag","expect":"::number/div/divisor/ZeroError"}
@@ -12,12 +12,12 @@
 {"name":"an-error-literal-answers-the-refusal-of-a-fact","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | !{:a ::Pos#-3} !| tag","expect":"::Pos/NotPositiveError"}
 {"name":"a-declaration-whose-body-fails-answers-the-failure","query":":x (1 | div 0) | 5 !| trace | map ~failed","expect":"[~(div 0) ~(:x (1 | div 0))]"}
 {"name":"a-declaration-whose-body-fails-binds-nothing","query":":x (1 | div 0) !| env | has :x","expect":"false"}
-{"name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::number/add/SubjectNotNumberError) | map ~actualTag","expect":"[::string]"}
-{"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| actualValue | tag","expect":"::call/KindsMismatchedError"}
+{"decision":"D453","name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::number/add/SubjectNotNumberError) | map ~actualTag","expect":"[::string]"}
+{"decision":"D453","name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| actualValue | tag","expect":"::call/KindsMismatchedError"}
 {"name":"a-value-input-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| tag","expect":"::error"}
 {"name":"a-tag-over-a-failed-payload-answers-the-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Foo[::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}
 {"name":"a-constructor-of-the-core-never-meets-a-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::set[::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}
-{"name":"a-pair-whose-payload-fails-answers-the-failure-before-tag","query":"get [::Foo ~(!{:k 1} | raise)] | tag !| get [~(tag) ~(get /trace | map ~failed)]","expect":"[::error [~(raise) ~(get [::Foo ~(!{:k 1} | raise)])]]"}
+{"decision":"D453","name":"a-pair-whose-payload-fails-answers-the-failure-before-tag","query":"get [::Foo ~(!{:k 1} | raise)] | tag !| get [~(tag) ~(get /trace | map ~failed)]","expect":"[::error [~(raise) ~(get [::Foo ~(!{:k 1} | raise)])]]"}
 {"name":"a-key-that-misses-its-field-answers-sort","query":"[{:a 2} {:b 1}] | sort /a !| get [~(tag) ~(trace | map ~failed)]","expect":"[::path/KeyNotInMapError [~(get /a) ~(sort /a)]]"}
 {"name":"reduce-answers-the-failure-its-seed-answers","query":"[1 2 3] | reduce (!{:kind :oops} | raise) ~(add) !| tag","expect":"::error"}
 {"name":"reduce-answers-the-failure-its-reducer-answers","query":":any/r (::fn | takes :x |~~ The x. ~~| /0 | impl ~(!{:kind :stop} | raise)) | [1 2 3] | reduce 0 ~r !| tag","expect":"::error"}

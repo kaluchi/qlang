@@ -143,7 +143,7 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) /of])]
+> ::vec/count | binding | value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) ~(of)])]
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
@@ -152,7 +152,7 @@ true
 > get [~({:a 1} | apply (::vec/first | binding | value) [] !| tag) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
-> get [~("add (" | parse !| get /origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
+> get [~("add (" | parse !| origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
 [:string/parse true]
 ```
 

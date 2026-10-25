@@ -42,7 +42,7 @@ against the subject at the declaration.
 > ~(:x 1) | first
 ::bind{:name :x :body 1}
 
-> ":s ::vec it" | parse !| get /message
+> ":s ::vec it" | parse !| message
 "steps are joined by `|`: write `a | b`"
 
 > :k 10 | :q ~(add k) | 5 | apply q !| tag
@@ -71,7 +71,7 @@ under a noun, which its address calls.
 > :"foo" 5 | foo
 5
 
-> ":true 5 | 7" | parse !| get /message
+> ":true 5 | 7" | parse !| message
 "`:true` is the word of a literal, which a step reads as the value: declare another name"
 
 > :false |~~ F. ~~| | :false/x 3 | ::false/x | binding | value
@@ -105,13 +105,13 @@ its last name.
 > :double ~(mul 2) | [1 2 3] | map double
 [2 4 6]
 
-> 5 | :five it | five 42 !| get [~(tag) /actualValue]
+> 5 | :five it | five 42 !| get [~(tag) ~(actualValue)]
 [::call/ValueTakesNoModifiersError 5]
 
-> :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get /name
+> :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| name
 :Box/side
 
-> :five 5 | :string/five ~(1) | 3 | five 42 !| get /addresses
+> :five 5 | :string/five ~(1) | 3 | five 42 !| addresses
 #[::string/five]
 ```
 
@@ -144,7 +144,7 @@ call that recurses without end among them, is refused as
 > :number/plus10 ~(add 10) | [1 2 3] | map ~plus10
 [11 12 13]
 
-> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(tag) ~(keys | has :depth) ~(keys | has :limit)]
+> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(tag) ~(payload | keys | has :depth) ~(payload | keys | has :limit)]
 [::call/EvaluationDepthExceededError true true]
 ```
 
@@ -182,10 +182,10 @@ cell after another declares again any name or node a reader declared,
 under the reader's noun or under one of the root.
 
 ```qlang
-> :k 1 | :k 2 | k !| get [~(tag) /name]
+> :k 1 | :k 2 | k !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :k]
 
-> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | :Box/w ~(2) !| get [~(tag) /name]
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | :Box/w ~(2) !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :Box/w]
 
 > :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | :Box/area ~(w | mul 2) | get [~(::Box{:w 3} | area) ~(:Box/w ~(2) | ::Box{:w 3} | w)]
@@ -203,7 +203,7 @@ under the reader's noun or under one of the root.
 > :k 1 | get [~(:k 2 | k) ~(k)]
 [2 1]
 
-> :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) /name]
+> :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :x]
 
 > :number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~((:x 3 | x) | add x)) | 1 | m 2
@@ -239,7 +239,7 @@ beside the value by its address. A value named by the name of a verb of
 so it is read under another name.
 
 ```qlang
-> 5 | string !| get /nearest
+> 5 | string !| nearest
 [::string]
 
 > 5 | pipeline !| tag
@@ -292,8 +292,9 @@ node that holds data is read by its address alone, its last name no bare
 name. An address no declaration
 names, written as a step, is refused as `::call/UnknownAddressError`
 with its `:address` and the tag names near it as `:nearest`. A tag no
-declaration names, the tag of a verb and the tag of an invariant lay
-themselves over a payload as it is.
+declaration names and the tag of a verb lay themselves over a payload as
+it is, and the tag of a refusal, an invariant's among them, lays the kind
+of the refusal over an error at rest alone [QSERR#rest].
 
 The root holds the nodes of the language and of its hosts. A reader
 extends a noun of the root with nodes of its own and declares no name
@@ -322,8 +323,8 @@ true
 > :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]
 [::fn ::quote 6 6]
 
-> get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/count/NotIntegerError#5 | tag)]
-[6 ::number/add/SubjectNotNumberError ::vec/take/count/NotIntegerError]
+> get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/count/NotIntegerError#5 !| tag)]
+[6 ::number/add/SubjectNotNumberError ::vec/take/count/NotIntegerError/PayloadKindNotTakenError]
 ```
 
 ## root
@@ -344,7 +345,7 @@ is a chapter, the page of a concept, read by `manifest` of its noun; a
 chapter of `::qlang` holds the set of the kinds it tells of, data, so
 its tag lays nothing, `::qlang/values[1]` refused as
 `::construct/TagNamesAValueError`, and the refusal the topic throws holds
-its page.
+the kind of the facts it carries.
 
 ```qlang
 > ::vec/filter | binding | origin
@@ -354,7 +355,7 @@ its page.
 [true true]
 
 > get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang | manifest | map ~(binding | value | tag) | toSet) ~(::qlang/values[1] !| tag)]
-[true ::kind #[::doc ::set] ::construct/TagNamesAValueError]
+[true ::kind #[::doc ::kind ::set] ::construct/TagNamesAValueError]
 ```
 
 ## binding

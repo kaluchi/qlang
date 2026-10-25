@@ -3,12 +3,11 @@
 import { parseSource } from '../parse.mjs';
 import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isBuiltinDescriptor, isErrorValue, isFn, isKind, isPrimitiveHanded, recipeOf, constructorOf, bindingValueOf, takePrimitive, makeKeyword } from '../types.mjs';
+import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
 import { isLabel, isUnderLabel } from '../nouns.mjs';
-import { splitAddress } from '../address.mjs';
 import { functionOfRecipe } from '../chain.mjs';
 
 export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
@@ -46,7 +45,7 @@ export async function declareRoot(scope, sources) {
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];
       if (primitive === undefined) throw new BuiltinPrimitiveNotHandedError({ origin, name: makeKeyword(name) });
-      takePrimitive(builtin, primitive, [isFn(value) || isKind(value) ? value : functionOfRecipe(value)], splitAddress(name)[0]);
+      takePrimitive(builtin, primitive, [isFn(value) || isKind(value) ? value : functionOfRecipe(value)], name);
       taking.add(name);
     }
     for (const primitiveName of Object.keys(primitives)) {
@@ -59,10 +58,5 @@ export async function declareRoot(scope, sources) {
     root = new Map([...root, ...declared]);
   }
   return new Map(scope).set(ROOT_KEY, root);
-}
-
-function builtinOf(value) {
-  const recipe = isFn(value) ? recipeOf(value) : isKind(value) ? constructorOf(value) : value;
-  return isBuiltinDescriptor(recipe) ? recipe : null;
 }
 

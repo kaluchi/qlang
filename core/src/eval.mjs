@@ -13,9 +13,9 @@ import {
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused
+  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy
 } from './types.mjs';
-import { makeSet, kindsExpected } from './ordering.mjs';
+import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
@@ -566,8 +566,8 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
   const steps = isQuote(recipe) ? recipe : null;
-  const handed = steps === null ? handedFor(recipe, fn) : undefined;
-  if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn });
+  const handed = steps === null ? handedWithin(recipe, fn, state.scope) : undefined;
+  if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn, of: addressNamedBy(recipe) });
   let walked = subjectOfCall(chain, labelName, state.pipeValue);
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
   if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue);
@@ -592,6 +592,23 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(brought)) return brought;
   return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
 }
+
+// [QSHST#source]
+const HANDED_BY_ADDRESS = new WeakMap();
+
+function handedWithin(descriptor, holder, scope) {
+  const handed = handedFor(descriptor, holder);
+  if (handed !== undefined) return handed;
+  const address = addressNamedBy(descriptor);
+  if (address === undefined) return undefined;
+  const root = rootOf(scope);
+  let readBack = HANDED_BY_ADDRESS.get(root);
+  if (readBack === undefined) HANDED_BY_ADDRESS.set(root, readBack = new WeakMap());
+  if (!readBack.has(holder)) readBack.set(holder, handedFor(builtinOf(bindingValueOf(root.get(address.name))), holder, sameByTheOrder));
+  return readBack.get(holder);
+}
+
+const sameByTheOrder = (held, readBack) => compareValues(held, readBack) === 0;
 
 // [QSDSP#answer]
 function tagsTheOperandsShare(chain, labelName, subject, given) {
@@ -782,7 +799,7 @@ async function underKind(tagName, kind, payload, state) {
     const refused = await fieldRefusal(tagName, field, held, invariants, state, opened);
     if (refused !== null) return refused;
   }
-  const constructs = handedFor(constructorOf(kind), kind)?.primitive;
+  const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed);
   const ofTheValue = invariants.filter(({ field }) => field === null);

@@ -224,6 +224,19 @@ describe('the sources a host hands', () => {
     expect((await (await createNotebook()).evalCell('1 | add 2')).result).toBe(3);
   });
 
+  it('runs a function read back from its print by the primitive the root it runs in hands at the address its descriptor names, and the function its host handed by the primitive handed with it', async () => {
+    const greeting = word => createNotebook({ sources: [{
+      uri: 'tests/greet',
+      source: ':any/greet |~~ A greeting. ~~| (::fn | returns |~~ The greeting. ~~| ::string | impl ::builtin{})',
+      primitives: { 'any/greet': () => word }
+    }] });
+    const [hello, hi] = [await greeting('hello'), await greeting('hi')];
+    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | get /value | get [~(it) ~(print | parse | open)]')).result;
+    for (const [notebook, fn, word] of [[hello, readBack, 'hello'], [hi, readBack, 'hi'], [hello, readBack, 'hello'], [hi, handed, 'hello']]) {
+      expect((await notebook.evalCell(':g it | null | apply g', { initialPipeValue: fn })).result).toBe(word);
+    }
+  });
+
   it('refuses a primitive handed for a verb of steps', async () => {
     await expect(createNotebook({ sources: [{
       uri: 'tests/over', source: ':any/many ~(count)', primitives: { 'any/many': () => 0 }

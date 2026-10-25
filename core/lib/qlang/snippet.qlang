@@ -20,6 +20,11 @@
             makes a snippet as well.
         ~~|
         #[::quote ::link]
+    | throws :PayloadKindNotTakenError
+        |~~ A snippet holds the query a reader runs to see what it shows, a
+            quote, or a link, `::snippet~(::vec | manifest)`; a quote under
+            another tag gives the quote beneath by `payload`.
+        ~~|
     | proves :opensToWhatItShows
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | open | has ::vec/count)

@@ -2,7 +2,7 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeDoc, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
 import { segmentIndex } from './path-read.mjs';
@@ -240,14 +240,6 @@ export function chainOfKind(kind) {
 }
 
 // [QSBLD#recipe]
-export function pageOfKindsRefusal(name, kinds, each) {
-  const holder = each ? `Each element of \`${name.name}\`` : `\`${name.name}\``;
-  if (kinds.length === 0) return makeDoc([`${holder} holds no value.`]);
-  const literals = kinds.map(kind => `\`${makeTag(kind).literal}\``);
-  const listed = literals.length === 1 ? literals[0] : `${literals.slice(0, -1).join(', ')} or ${literals.at(-1)}`;
-  return makeDoc([`${holder} holds a value of ${listed}.`]);
-}
-
 export function invariantsOf(chain, name) {
   return chain.invariants.filter(invariant => invariant.name.startsWith(`${name}/`));
 }

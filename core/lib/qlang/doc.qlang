@@ -28,6 +28,7 @@
   ::kind
     | wraps
         |~~ A vector of prose strings and quotes, built into the doc. ~~|
+        ::vec
     | throws :PayloadKindNotTakenError
         |~~ `::doc` builds a doc from the vector of its segments, prose
             strings and quotes; a payload of another kind is refused, a

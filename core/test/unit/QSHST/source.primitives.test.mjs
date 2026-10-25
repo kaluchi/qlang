@@ -56,7 +56,7 @@ describe('the table of the primitives — the primitives of the language by addr
     const registered = [...nouns].flatMap(noun => Object.keys(PRIMITIVE_REGISTRY.primitivesUnder(noun)));
     expect(registered.sort()).toEqual(answeredByPrimitives.sort());
     expect(registered).toContain('number/add');
-    expect(registered).toContain('vec');
+    expect(registered).toContain('set');
   });
 
   it('hands a source of the language the primitives under its noun, each one the table holds', async () => {

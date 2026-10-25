@@ -1,5 +1,5 @@
-|~ `::regex` and what is declared under it: its constructor and its
-   refusal, and `toRegex`, which answers the regex itself. The verbs
+|~ `::regex` and what is declared under it: the refusal of a
+   payload of another kind, and `toRegex`, which answers the regex itself. The verbs
    that read text by a regex live under `::string`.
    The rules it holds: [QSTXT#regex]. ~|
 
@@ -36,7 +36,7 @@
       ::link~(::string | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A regex, read as itself. ~~|
+    | wraps |~~ A regex, read as itself. ~~| ::regex
     | throws :PayloadKindNotTakenError
         |~~ `::regex` reads its payload as the regex it is; text becomes
             one by `toRegex`, `"\\d+" | toRegex`.
@@ -91,7 +91,6 @@
         |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
         ~(::regex"a" !| get [~(tag) /actualTag] | eq [::regex/PayloadKindNotTakenError ::string])
-    | impl ::builtin{}
 
 :regex/toRegex
   |~~ Answers the regex itself, so `map ~toRegex` turns regexes and the

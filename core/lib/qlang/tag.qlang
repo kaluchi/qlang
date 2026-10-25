@@ -1,5 +1,5 @@
-|~ `::tag`, the kind of a tag name, and what is declared under it: its
-   constructor and its refusal, the verbs that turn a tag name into a
+|~ `::tag`, the kind of a tag name, and what is declared under it: the
+   refusal of a payload of another kind, the verbs that turn a tag name into a
    string and a keyword, and `toTag`, which answers the tag itself.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -25,7 +25,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A tag name, read as itself. ~~|
+    | wraps |~~ A tag name, read as itself. ~~| ::tag
     | throws :PayloadKindNotTakenError
         |~~ `::tag` reads its payload as the tag name it is; a value's own
             tag is read by `tag`.
@@ -45,7 +45,6 @@
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
         ~(::tag:k !| get [~(tag) /actualTag] | eq [::tag/PayloadKindNotTakenError ::keyword])
-    | impl ::builtin{}
 
 :tag/toString
   |~~ Answers the name of the tag as a string, `::vec | toString`

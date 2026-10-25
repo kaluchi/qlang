@@ -1,5 +1,5 @@
-|~ `::keyword` and what is declared under it: its constructor and its
-   refusal, and the verbs that turn a keyword into a string, a number
+|~ `::keyword` and what is declared under it: the refusal of a
+   payload of another kind, and the verbs that turn a keyword into a string, a number
    and a tag.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -23,7 +23,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A keyword, read as itself. ~~|
+    | wraps |~~ A keyword, read as itself. ~~| ::keyword
     | throws :PayloadKindNotTakenError
         |~~ `::keyword` reads its payload as the keyword it is; a string
             becomes one by `toKeyword`.
@@ -32,7 +32,7 @@
         |~~ `:k` is a keyword. ~~|
         ~(:k | tag | eq ::keyword)
     | proves :buildsAKeyword
-        |~~ The constructor of a keyword answers it. ~~|
+        |~~ A keyword under its own tag is the keyword. ~~|
         ~(::keyword:k | eq :k)
     | proves :takesThreeForms
         |~~ A name of any script, a name with a path and a quoted name are
@@ -47,7 +47,6 @@
             one.
         ~~|
         ~(::keyword"k" !| get [~(tag) /actualTag] | eq [::keyword/PayloadKindNotTakenError ::string])
-    | impl ::builtin{}
 
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:foo | toString`

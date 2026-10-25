@@ -1,5 +1,5 @@
-|~ `::vec` and what is declared under it: its constructor and the
-   refusal of a payload of another kind, and the verbs of vectors. A
+|~ `::vec` and what is declared under it: the refusal of a
+   payload of another kind, and the verbs of vectors. A
    verb of vectors serves a vector under any tag, a quote and a doc
    among them, and a set where the set has no verb of its own; a verb
    whose answer names the vector answers under the tags of the subject,
@@ -39,6 +39,7 @@
             stays as it is, `toVec` answering the vector it holds.
             ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
         ~~|
+        ::vec
     | throws :PayloadKindNotTakenError
         |~~ `::vec` reads its payload as the vector it is, and a value of
             no vector is refused: the pairs of a map are a vector by
@@ -61,7 +62,6 @@
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::vec{:a 1} !| get [~(tag) /actualTag] | eq [::vec/PayloadKindNotTakenError ::map])
-    | impl ::builtin{}
 
 :vec/count
   |~~ Answers the number of elements the vector holds, `[1 2 3] | count`

@@ -14,6 +14,16 @@
   ~~|
   ::kind
     | wraps |~~ The six numbers, the start and the end. ~~| [::number]
+    | throws :PayloadKindNotTakenError
+        |~~ A span is the vector of six numbers, the offset, the line and
+            the column of its start and of the point after its end,
+            `::span[0 1 1 1 1 2]`, which the location of a refusal of a
+            parse holds.
+        ~~|
+    | throws :ElementKindNotTakenError
+        |~~ Each part of a span is a whole number, an offset from zero or a
+            line or a column from one.
+        ~~|
     | holds :PayloadNotStartAndEndError
         |~~ A span holds six whole numbers, the offset, the line and the
             column of its start and of its end.

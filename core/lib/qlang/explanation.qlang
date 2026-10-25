@@ -22,6 +22,10 @@
         |~~ The page and the value, a map, which `page` and `value` read.
         ~~|
         ::map
+    | throws :PayloadKindNotTakenError
+        |~~ An explanation is the map of a page and the value it explains,
+            which `explain` writes, `"x" | add 1 !| explain`.
+        ~~|
     | holds :NotPageAndValueError
         |~~ An explanation is the map of a page, under `:page`, and the
             value it explains, under `:value`.

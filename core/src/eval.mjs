@@ -25,7 +25,7 @@ import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, pageOfKindsRefusal, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -240,8 +240,8 @@ function layerOf(scope, address, origin, pages) {
   };
   return {
     lay,
-    layKindsRefusal(refusal, holder, kinds, each) {
-      const page = pages.get(refusal) ?? pageOfKindsRefusal(holder, kinds, each);
+    layKindsRefusal(refusal, pageOfThePart) {
+      const page = pages.get(refusal) ?? pageOfThePart;
       lay(refusal, page, page);
     },
     layRest({ facts, invariants, laws }) {
@@ -260,15 +260,14 @@ function nodesOfKind(kind, address, scope, origin) {
   const { payload, fields, tells } = roles;
   const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, roles.pages);
   if (payload !== null) {
-    const holder = makeKeyword(PAYLOAD_NAME);
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
-    if (payload.each) layKindsRefusal(payloadRefusalName(false), holder, ['vec'], false);
-    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), holder, payload.kinds, payload.each);
+    if (payload.each) layKindsRefusal(payloadRefusalName(false), payload.page);
+    if (payload.kinds !== null) layKindsRefusal(payloadRefusalName(payload.each), payload.page);
   }
   for (const { name, page, kinds, each, written } of fields) {
     lay(name.name, page, written ?? page);
-    if (each) layKindsRefusal(kindsRefusalAddress(name.name), name, ['vec'], false);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
+    if (each) layKindsRefusal(kindsRefusalAddress(name.name), page);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), page);
   }
   for (const { name, page, written } of tells) lay(name, page, written ?? page);
   return layRest(roles);
@@ -284,7 +283,7 @@ function nodesOfFunction(fn, address, scope, origin) {
   else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
   for (const { name, page, selector, kinds, each } of inputs) {
     lay(name.name, page, selector);
-    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), name, kinds, each);
+    if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), page);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
   else if (standsUnder(ANSWER_NAME)) lay(ANSWER_NAME, null, null);

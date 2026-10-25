@@ -1,5 +1,5 @@
-|~ `::string` and what is declared under it: its constructor and the
-   refusal of a payload of another kind, and the verbs that run on a
+|~ `::string` and what is declared under it: the refusal of a
+   payload of another kind, and the verbs that run on a
    string.
    The rules it holds: [QSDSP#residence]. ~|
 
@@ -27,7 +27,7 @@
       ::link~(::any/print | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A string, read as itself. ~~|
+    | wraps |~~ A string, read as itself. ~~| ::string
     | throws :PayloadKindNotTakenError
         |~~ `::string` reads its payload as the string it is; a number or
             a keyword becomes text by `toString`, and any value its
@@ -50,7 +50,7 @@
         |~~ A regex reads text, its match and its groups. ~~|
         ~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
     | proves :buildsAString
-        |~~ The constructor of a string answers it. ~~|
+        |~~ A string under its own tag is the string. ~~|
         ~(::string"x" | eq "x")
     | proves :readsTheEscapesOfJson
         |~~ A tab and a quote are written by their escapes. ~~|
@@ -63,7 +63,6 @@
             number.
         ~~|
         ~(::string#1 !| get [~(tag) /actualTag] | eq [::string/PayloadKindNotTakenError ::number])
-    | impl ::builtin{}
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any

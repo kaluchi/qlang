@@ -30,6 +30,11 @@
             head of its text.
         ~~|
         ::map
+    | throws :PayloadKindNotTakenError
+        |~~ An elision is the map of a part left out, its size, the query
+            that reads it and the head of its text, which `elide` writes,
+            `x | elide 20`.
+        ~~|
     | proves :measuresWhatItLeftOut
         |~~ An elision holds the size of what it left out. ~~|
         ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it"}

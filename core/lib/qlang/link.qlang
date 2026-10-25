@@ -23,6 +23,11 @@
             makes a link as well.
         ~~|
         #[::quote ::snippet]
+    | throws :PayloadKindNotTakenError
+        |~~ A link holds the query it opens, a quote, or a snippet,
+            `::link~(::qlang | doc)`; a quote under another tag gives the
+            quote beneath by `payload`.
+        ~~|
     | proves :isALink
         |~~ A link a doc holds is a `::link`. ~~|
         ~(|~~ ::link~(::qlang/values | doc) ~~| | links | first | tag | eq ::link)

@@ -21,6 +21,7 @@
   ~~|
   ::kind[~(wraps
         |~~ A map, the descriptor, its fields flat under the tag. ~~|
+        ::map
     | throws :PayloadKindNotTakenError
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
             a host's verb ends with and the constructor a kind of the core

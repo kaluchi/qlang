@@ -15,6 +15,10 @@
     | wraps
         |~~ The least key of the map and the shape its values share. ~~|
         ::map
+    | throws :PayloadKindNotTakenError
+        |~~ `::each` marks a map whose values share one shape, as `shape`
+            writes it over a map keyed by data, `{:"17" {:id 1}} | shape`.
+        ~~|
     | proves :foldsAMapKeyedByData
         |~~ A map keyed by data folds over its least key. ~~|
         ~({:"42" {:id 2} :"17" {:id 1}} | shape | eq ::shape::each{:"17" {:id ::number}})

@@ -24,6 +24,12 @@
   ~~|
   ::kind
     | wraps |~~ The subject, the steps and the path. ~~| ::vec
+    | throws :PayloadKindNotTakenError
+        |~~ A frame is the vector of the subject a step met, the quote of its
+            steps and the path of a part, `::frame["x" ~(add 1)]`; a vector
+            under a tag gives the vector beneath by `payload`, and a set
+            turns into one by `toVec`.
+        ~~|
     | holds :PayloadNotSubjectAndStepsError
         |~~ A frame holds the subject a step met and the quote of the
             steps from the one that failed, one step at least, and after

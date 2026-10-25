@@ -26,6 +26,11 @@
   ~~|
   ::kind
     | wraps |~~ The condition its values keep, a quote. ~~| ::quote
+    | throws :PayloadKindNotTakenError
+        |~~ An invariant is a quote, `::invariant~(gt 0)`, which `holds`
+            writes in a chain; a quote under another tag gives the quote
+            beneath by `payload`.
+        ~~|
     | proves :liesUnderItsRefusal
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.

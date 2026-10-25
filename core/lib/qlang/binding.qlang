@@ -27,7 +27,7 @@
         /docs [::doc]
     | wires :value |~~ What the name holds. ~~| /value
     | wires :source
-        |~~ The quote of the step that declared it, null for a binding no
+        |~~ The quote of the step that declared it: null for a binding no
             declaration wrote.
         ~~|
         /source #[::null ::quote]

@@ -805,7 +805,7 @@
             the reader of JSON rides on `:message`.
         ~~|
         ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -1260,7 +1260,7 @@
               |~~ Why the source is no regex, and its repair where one shows.
               ~~|
               ::string
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a

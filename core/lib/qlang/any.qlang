@@ -1212,10 +1212,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | proves :answersABinding
         |~~ The record is a `::binding`. ~~|
@@ -1291,10 +1291,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | proves :readsEveryDeclarationUnderAName
         |~~ The source of a verb is its declaration, the chain that holds
@@ -1403,10 +1403,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | throws :ArgsBeyondInputsError
         |~~ `doc` reads one anchor: anchors read in turn are a vector,
@@ -1525,10 +1525,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | proves :holdsAVerbOfTheNoun
         |~~ The manifest of numbers holds `add`. ~~|
@@ -1601,10 +1601,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | proves :answersEachLawByItsName
         |~~ A law declared under a name is answered under its own name. ~~|
@@ -1672,10 +1672,10 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | proves :runsTheLawsOfAVerb
         |~~ The first law of `add` holds. ~~|
@@ -2886,7 +2886,7 @@
             or the error is written as its literal, `!{:reason :late} | raise`.
         ~~|
         ~(wires :expected |~~ The kind raised, `#[::map]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `raise` takes no value: what the error says is a fact of the
             map, `{:message "boom"} | raise`.

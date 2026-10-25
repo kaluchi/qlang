@@ -101,7 +101,7 @@
         ~~|
         ~(wires :name |~~ The name, which holds a value and no verb. ~~| ::keyword
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one a
+              |~~ The addresses where a verb of that name lives: one a
                   declaration shadows among them.
               ~~|
               ::set
@@ -157,15 +157,15 @@
         ~~|
         ~(wires :name |~~ The name the step called. ~~| ::keyword
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ~(query /nearest) #[::null ::vec]
           | wires :repair
-              |~~ The step the call was likely meant as, where a path stands instead of the value it names. ~~|
+              |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
               ~(query /repair) #[::null ::quote]
-          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
+          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
             `:leftTag` and `:rightTag` name their kinds where their tags
@@ -204,7 +204,7 @@
         ~~|
         ~(wires :name |~~ The name the step called. ~~| ::keyword
           | wires :addresses
-              |~~ The addresses where a verb of that name lives, one for each kind that answers it. ~~|
+              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
               ::set
           | wires :nearest
               |~~ The names a step could have meant where it missed. For a
@@ -233,7 +233,7 @@
         ~~|
         ~(wires :address |~~ The address the step called. ~~| ::tag
           | wires :nearest
-              |~~ The names the step could have meant, nearest in spelling, `[]` where none is near. ~~|
+              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec)
     | throws :EvaluationDepthExceededError
         |~~ A call too deep: the recipe of a verb, a modifier computed at

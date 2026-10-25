@@ -34,12 +34,13 @@ const isPlainVec = value => Array.isArray(value) && value[TAG_HEADER_SYMBOL] ===
 const isKindsOfEach = value => isKinds(value) || (isPlainVec(value) && value.length === 1 && isKinds(value[0]));
 const isKindsOfAPayload = value => isKindsOfEach(value) || (isSet(value) && value.length === 0);
 const isSelectorOrKinds = value => isSelector(value) || isKindsOfEach(value);
+const isKindOfARefusal = value => isQuote(value) || isTag(value);
 
 const COMMANDS = new Map([
   ['on', { taken: [isDoc], optional: [isKinds] }],
   ['takes', { taken: [isInputName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['returns', { taken: [isDoc, isKinds], optional: [] }],
-  ['throws', { taken: [isNameOfChain, isDoc], optional: [isQuote] }],
+  ['throws', { taken: [isNameOfChain, isDoc], optional: [isKindOfARefusal] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
@@ -49,7 +50,7 @@ const KIND_COMMANDS = new Map([
   ['wires', { taken: [isFieldName, isDoc], optional: [isSelectorOrKinds, isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
-  ['throws', { taken: [isNameOfChain, isDoc], optional: [isQuote] }],
+  ['throws', { taken: [isNameOfChain, isDoc], optional: [isKindOfARefusal] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
 ]);
 
@@ -98,7 +99,7 @@ function namesOf(quote, DeclaredTwiceError) {
 }
 
 function readChainOfFn(quote) {
-  const chain = { subject: null, inputs: [], answer: null, pages: new Map(), refusalKinds: new Map(), invariants: [], laws: [] };
+  const chain = { subject: null, inputs: [], answer: null, pages: new Map(), refusalKinds: new Map(), kindsShared: new Map(), invariants: [], laws: [] };
   const names = namesOf(quote, FnNameDeclaredTwiceError);
   const underAnInput = name => {
     const [head] = name.split('/');
@@ -131,7 +132,7 @@ function readChainOfFn(quote) {
         if (first.name.includes('/')) underAnInput(first.name);
         names.declare(first.name);
         chain.pages.set(first.name, second);
-        if (third !== undefined) chain.refusalKinds.set(first.name, kindOfARefusalWritten(third));
+        keepTheKindOfARefusal(chain, first.name, third);
         break;
       case 'holds':
         if (!first.name.includes('/')) throw new FnNameUnderNoInputError({ name: first, actualValue: quote });
@@ -151,7 +152,7 @@ function readChainOfFn(quote) {
 }
 
 function readChainOfKind(quote) {
-  const kind = { payload: null, fields: [], tells: [], pages: new Map(), refusalKinds: new Map(), invariants: [], laws: [] };
+  const kind = { payload: null, fields: [], tells: [], pages: new Map(), refusalKinds: new Map(), kindsShared: new Map(), invariants: [], laws: [] };
   const names = namesOf(quote, KindNameDeclaredTwiceError);
   const underAField = name => {
     const [head] = name.split('/');
@@ -198,7 +199,7 @@ function readChainOfKind(quote) {
         if (first.name.includes('/')) underAField(first.name);
         names.declare(first.name);
         kind.pages.set(first.name, second);
-        if (third !== undefined) kind.refusalKinds.set(first.name, kindOfARefusalWritten(third));
+        keepTheKindOfARefusal(kind, first.name, third);
         break;
       default:
         if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new KindLawUnderNoNameError({ name: first, actualValue: quote });
@@ -280,6 +281,12 @@ function kindOfARefusalWritten(commands) {
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, null]));
   chainOfKind(kindThrowsFinishes(kind));
   return kind;
+}
+
+// [D455]
+function keepTheKindOfARefusal(chain, name, written) {
+  if (isTag(written)) chain.kindsShared.set(name, written.name);
+  else if (written !== undefined) chain.refusalKinds.set(name, kindOfARefusalWritten(written));
 }
 
 // [QSBLD#recipe]

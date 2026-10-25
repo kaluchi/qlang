@@ -221,9 +221,7 @@
             names the first entry whose value is none, and a field is
             read first, `map /amount | sum`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `sum` takes no value: a field of each value is read first by
             `map`, `map /amount | sum`.
@@ -269,9 +267,7 @@
         |~~ `avg` takes the mean of the numbers the map holds; the path
             of its frame names the first entry whose value is none.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :answersTheMean
         |~~ The mean of one and three is two. ~~|
         ~({:a 1 :b 3} | avg | eq 2)
@@ -454,9 +450,7 @@
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :keepsTheKeys
         |~~ The entries kept keep their keys. ~~|
         ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
@@ -509,9 +503,7 @@
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :holdsOfEveryValue
         |~~ Every value is positive. ~~|
         ~({:a 1 :b 2 :c 3} | every ~(gt 0))
@@ -563,9 +555,7 @@
             entry; the path of its frame names the entry whose predicate
             answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :holdsOfSomeValue
         |~~ One positive value is enough. ~~|
         ~({:a -1 :b 0 :c 2} | any ~(gt 0))
@@ -1037,10 +1027,7 @@
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | returns
         |~~ The entries whose keys are not among the keys, under the tags
             of the map.
@@ -1100,10 +1087,7 @@
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | returns
         |~~ The entries whose keys are among the keys, under the tags of
             the map.

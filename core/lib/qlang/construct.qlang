@@ -22,16 +22,13 @@
     | accepts
         |~~ The record of the step, `:tag` and `:payload`, built into its
             step.
-        ~~|
+        ~~| ::map
     | throws :PayloadKindNotTakenError
         |~~ `::construct` builds the step of a tagged literal from its
             record, a map; a payload of another kind is refused, a map
             under another tag among them.
             ::link~(::construct | doc)
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotSchemaError
         |~~ A `::construct` is a map of `:tag`, a tag name, and
             `:payload`, a literal, both given, and `:field` names the field

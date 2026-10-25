@@ -40,10 +40,7 @@
             a number is made prose by `toString` first,
             `get ["a" ~(5 | toString)] | tag ::doc`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/ElementKindNotTakenError
     | proves :isThePageOfAName
         |~~ The page of a name is a doc. ~~|
         ~(::number/add | doc | tag | eq ::doc)

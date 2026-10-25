@@ -892,10 +892,7 @@
             the predicate that answered another kind by its index among the
             args, from zero.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | proves :picksTheFirstThatHolds
         |~~ Eighty-five is a B. ~~|
         ~(85 | cond ~(gte 90) ~("A") ~(gte 80) ~("B") ~(gte 70) ~("C") ~("F") | eq "B")
@@ -1332,19 +1329,13 @@
         |~~ A name `doc` reads in turn is a keyword, each naming a node
             under the one before it, `doc [:take :count]`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | throws :anchor/ElementKindNotTakenError
         |~~ An element of a set of anchors is a keyword, a vector of names
             read in turn or null, each reading a page,
             `doc #[:take [:take :count]]`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | returns
         |~~ The page of the name, null for a declaration without one, a
             vector of pages for a set of anchors.
@@ -2134,10 +2125,7 @@
             field compares it to answer a condition,
             `~(get /email | ne null)`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | proves :holdsWhenEveryConditionHolds
         |~~ An active adult passes both conditions. ~~|
         ~({:active true :age 25} | allOf (get /active) (get /age | gte 18))
@@ -2234,10 +2222,7 @@
             field compares it to answer a condition,
             `~(get /score | gt 95)`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | proves :holdsWhenOneHolds
         |~~ A high score passes without the flag. ~~|
         ~({:vip false :score 99} | anyOf (get /vip) (get /score | gt 95))
@@ -2573,10 +2558,7 @@
             last key, or a map of names and their selectors; a quote alone
             names no part, and a map gives it a name, `[{:t ~first}]`.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/ElementKindNotTakenError
     | throws :names/SelectorKindNotTakenError
         |~~ A name reads its part by a path or a quote, `{:t /0 :n ~count}`;
             a value of the data reads no part, so a map of the data names no

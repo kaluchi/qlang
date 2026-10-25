@@ -40,9 +40,7 @@
             of values, and a vector under a tag of another kind among them,
             whose frames `payload` reads first.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/PayloadKindNotTakenError
     | throws :ElementKindNotTakenError
         |~~ Every element of a trace is a frame, `::frame["x" ~(add 1)]`;
             `:index` names the first that is not, and `:expected` the kind

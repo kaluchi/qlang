@@ -25,16 +25,13 @@
     | accepts
         |~~ The record of a command, `:name` and `:modifiers`, built into
             its step.
-        ~~|
+        ~~| ::map
     | throws :PayloadKindNotTakenError
         |~~ `::call` builds the step of a command from its record, a map;
             a payload of another kind is refused, a map under another tag
             among them.
             ::link~(::call | doc)
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotSchemaError
         |~~ A `::call` is a map of `:name`, a keyword, and `:modifiers`, a
             vector of a word at least, each a literal, a name, a group or a

@@ -244,9 +244,7 @@
             element that is none, and a field is read first,
             `map /amount | sum`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :addsTheElements
         |~~ The sum adds every element. ~~|
         ~([1 2 3 4] | sum | eq 10)
@@ -303,9 +301,7 @@
             the first element that is none, and a field is read first,
             `map /amount | avg`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :answersTheMean
         |~~ The mean of one to four is two and a half. ~~|
         ~([1 2 3 4] | avg | eq 2.5)
@@ -593,9 +589,7 @@
             the path of its frame names the element whose predicate
             answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `filter` takes one predicate; conditions held together are
             one, `filter ~(allOf /active (get /age | gte 18))`.
@@ -694,9 +688,7 @@
             the path of its frame names the element whose predicate
             answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :holdsOfEveryElement
         |~~ Every element is positive. ~~|
         ~([2 4 6 8] | every ~(gt 0))
@@ -767,9 +759,7 @@
             the path of its frame names the element whose predicate
             answered another kind.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :holdsOfSomeElement
         |~~ One element past two is enough. ~~|
         ~([1 2 3] | any ~(gt 2))
@@ -957,9 +947,7 @@
             naming the element and `:expected` the kinds a key files
             under.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one
@@ -1077,9 +1065,7 @@
             naming the element and `:expected` the kinds a key files
             under.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds one element of one
@@ -1535,9 +1521,7 @@
             the first element that is no vector, the vectors read into one first,
             `get [/a /b] | zip`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :pairsTheElementsAtEachIndex
         |~~ The elements at each index stand together. ~~|
         ~([[1 2] [:a :b]] | zip | eq [[1 :a] [2 :b]])
@@ -1695,9 +1679,7 @@
             frame names the first that is neither, and a vector of vectors unites once
             each is a set, `map ~(toSet) | union`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `union` over a vector unites the values it holds and takes no
             value: two values unite as `a | union b`, `#[1] | union #[2]`.
@@ -1770,18 +1752,14 @@
             its frame names the first value of the vector, which is
             neither.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :KeyKindNotTakenError
         |~~ A key `minus` takes out of a map is a keyword, a number or a
             string, as `get` reads a key alone; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `minus` over a vector takes from its first value the ones
             after it and takes no value: of two values `a | minus b` takes
@@ -1857,18 +1835,14 @@
             its frame names the first value of the vector, which is
             neither.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :KeyKindNotTakenError
         |~~ A key `inter` keeps of a map is a keyword, a number or a
             string, as `get` reads a key alone; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `inter` over a vector keeps what its values share and takes no
             value: of two values `a | inter b` keeps what `a` shares with
@@ -1954,9 +1928,7 @@
             `map ~toString` makes a number its text first, `map ~print`
             writing any value as its literal.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :joinsWithTheSeparator
         |~~ The separator stands between the strings. ~~|
         ~(["a" "b" "c"] | join "," | eq "a,b,c")
@@ -2128,9 +2100,7 @@
             its frame names the key of the pair that is another value, and
             `:expected` the kinds a key files under.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :readsBack
         |~~ A map turned into its pairs turns back into itself. ~~|
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
@@ -2186,9 +2156,7 @@
             `[:items 0] | toPath`, a boolean, null and a tag name written by
             the keyword a map files them under, `:true`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :SubjectEmptyError
         |~~ A path names one segment at least: the value itself is `it`,
             so the empty vector names no path.

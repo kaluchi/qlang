@@ -142,9 +142,7 @@
             its frame names the first element that is no vector, the
             vectors its elements hold read first, `map /a | zip`.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | proves :keepsEqualColumns
         |~~ The columns stand in a vector, two equal ones kept. ~~|
         ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
@@ -197,9 +195,7 @@
             the path of its frame naming the element and `:expected` the
             kinds a key files under.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/KindNotTakenError
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one

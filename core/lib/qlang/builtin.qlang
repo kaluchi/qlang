@@ -22,7 +22,7 @@
       where the root holds one equal to it at the address its `:of` names.
       ::link~(::qlang/hosts | doc)
   ~~|
-  ::kind[~(wraps
+  ::kind[~(accepts
         |~~ A map, the descriptor, its fields flat under the tag, `:of` the
             address the root took its primitive under.
         ~~|

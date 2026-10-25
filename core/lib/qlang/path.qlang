@@ -27,7 +27,7 @@
       ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A path, read as itself; a vector of keys and indices becomes
             one by `toPath`, `[:items 0] | toPath`.
         ~~|

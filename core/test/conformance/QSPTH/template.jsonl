@@ -4,7 +4,7 @@
 {"name":"a-template-reads-under-a-tag-runs-a-quote-and-answers-a-doc","query":"{:a 1} | get [/a ::Box[/a] ::Box#5 |~~ x ~~| ~(get /a) #[/a 2]]","expect":"[1 ::Box[1] ::Box#5 |~~ x ~~| 1 #[1 2]]"}
 {"name":"a-template-lays-a-tag-back-through-its-kind","query":":P |~~ P. ~~| (::kind | holds :HasNumberError |~~ No number. ~~| ~(every ~(tag | ne ::number))) | {:a 1} | get [::P[/a]] !| tag","expect":"::P/HasNumberError"}
 {"name":"a-template-answers-a-function-as-it-is","query":"get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | tag !| tag","expect":"::fn"}
-{"name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(wraps |~~ A number. ~~| ::number) null]] | first | tag !| tag","expect":"::kind"}
+{"decision":"D450","name":"a-template-answers-a-kind-as-it-is","query":"get [::kind[~(accepts |~~ A number. ~~| ::number) null]] | first | tag !| tag","expect":"::kind"}
 {"name":"get-reads-two-fields-of-one-record-by-a-template","query":"{:price 4 :qty 3} | get [/price /qty]","expect":"[4 3]"}
 {"name":"get-reads-a-template","query":"{:first \"Ann\" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)}","expect":"{:who \"Ann\" :n 2}"}
 {"name":"query-reads-each-path-of-a-template-softly","query":"{:a 1} | query [/a /b]","expect":"[1 null]"}
@@ -18,7 +18,7 @@
 {"name":"a-template-under-three-tags-is-read","query":"{:a 1} | get ::A::B::C[/a]","expect":"::A::B::C[1]"}
 {"name":"a-set-under-a-tag-in-a-template-answers-the-failure-of-a-part","query":"{:a 1} | get ::Box#[~(1 | add \"x\")] !| tag","expect":"::number/add/addend/KindNotTakenError"}
 {"name":"a-quote-in-a-set-under-a-tag-runs-as-every-quote-of-a-template","query":":k 2 | 1 | get ::Box#[~(add k)]","expect":"::Box#[3]"}
-{"name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | reads :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| tag","expect":"::Box/w/KindNotTakenError"}
+{"decision":"D450","name":"a-field-of-a-kind-that-takes-a-number-refuses-a-path","query":":Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number) | {:w 1} | get [::Box{:w /w}] !| tag","expect":"::Box/w/KindNotTakenError"}
 {"name":"with-names-a-part-by-the-last-key-of-its-path","query":"{:id 7 :user {:name \"Ann\"}} | with [/id /user/name] ~(name | append (id | toString))","expect":"\"Ann7\""}
 {"name":"with-names-the-selectors-of-a-map-for-several-branches","query":"[::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]","expect":"[::Box 5 ::Box#5]"}
 {"name":"a-map-among-the-names-renames-the-parts-it-maps","query":"{:id 7 :user {:name \"Ann\"} :group {:name \"ops\"}} | with [/id {:un /user/name :gn /group/name}] ~(un | append \"@\" | append gn | append (id | toString))","expect":"\"Ann@ops7\""}

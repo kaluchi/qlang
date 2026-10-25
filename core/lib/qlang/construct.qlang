@@ -19,7 +19,7 @@
       ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The record of the step, `:tag` and `:payload`, built into its
             step.
         ~~|

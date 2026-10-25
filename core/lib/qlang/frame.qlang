@@ -23,7 +23,7 @@
       ::link~(::trace | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The subject, the steps and the path. ~~| ::vec
+    | accepts |~~ The subject, the steps and the path. ~~| ::vec
     | throws :PayloadKindNotTakenError
         |~~ A frame is the vector of the subject a step met, the quote of its
             steps and the path of a part, `::frame["x" ~(add 1)]`; a vector

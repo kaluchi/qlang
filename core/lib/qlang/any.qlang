@@ -1721,10 +1721,10 @@
       that holds it at its head held to its kind again; any other stands
       before the tags of the subject and never instead of them, and
       replacing the tag goes through the payload, `payload | tag ::Crate`.
-      A tag is laid through its kind, which takes the payload its `wraps`
+      A tag is laid through its kind, which takes the payload its `accepts`
       names by the payload's own tag, so a payload of another kind or
       under another tag is refused, `"5" | tag ::number`, a kind the reader
-      declares holds its invariants, and a kind whose `wraps` names no kind
+      declares holds its invariants, and a kind whose `accepts` names no kind
       takes none, `5 | tag ::tagged`. A tag over an
       error at rest names its site, `!{:by 3} | tag ::Late` answering
       `::Late!{:by 3}`, and `raise` raises it under that tag. The call
@@ -1799,7 +1799,7 @@
           |  eq ::Pos/NotPositiveError)
     | proves :refusesAPayloadUnderAnotherTag
         |~~ A kind takes its payload by the payload's own tag. ~~|
-        ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums
+        ~(:Nums |~~ Numbers. ~~| (::kind | accepts |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums
           !| get [~(tag) /actualTag]
           |  eq [::Nums/PayloadKindNotTakenError ::T])
     | proves :nestsATaggedValue

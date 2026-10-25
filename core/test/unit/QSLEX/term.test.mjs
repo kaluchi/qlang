@@ -115,9 +115,15 @@ it('refuses the names the holder of a tag, the scope, the run of a pipeline and 
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the command wraps, the scope, the run of a pipeline, the parts the parser keeps and the tree of names', () => {
+it('refuses the commands a kind named its payload and its parts by, wraps and reads', () => {
+  for (const text of ['`wraps` names its payload and its kinds', '::kind | wraps |~~ The parts. ~~| ::vec', '::kind/wraps | doc', '`reads` a field the payload holds', '| reads :w |~~ The width. ~~| /w', '::kind/reads | doc']) {
+    expect(refused(text), text).toBe(true);
+  }
+});
+
+it('leaves the commands accepts and wires, the scope, the run of a pipeline, the parts the parser keeps and the tree of names', () => {
   for (const text of [
-    '`wraps` names its payload and its kinds', 'a conversion, a wrapper, a second table', 'unwraps the underlying QlangError', 'lays the tag back through its kind',
+    '`accepts` names its payload and its kinds', '| wires :w |~~ The width. ~~| /w', 'a path reads the part', 'a conversion, a wrapper, a second table', 'unwraps the underlying QlangError', 'lays the tag back through its kind',
     'state.scope', 'withScope', 'scopeSet', 'core/src/scope-keys.mjs', 'evalPipeline', 'closeQuote', 'foldingCodeOf', 'forEachPart', 'partAtOffset',
     'a node the root holds', 'nodeOf', 'the tree of names', 'Astro', 'PAST', 'FAST_PATH', 'lastIndexOf'
   ]) expect(refused(text), text).toBe(false);

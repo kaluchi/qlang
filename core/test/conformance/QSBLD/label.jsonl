@@ -1,6 +1,6 @@
 {"name":"the-tag-of-a-name-that-holds-a-value-builds-nothing","query":":limit 5 | ::limit[1] !| tag","expect":"::construct/TagNamesAValueError"}
 {"name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":":limit 5 | [1] | tag ::limit !| tag","expect":"::construct/TagNamesAValueError"}
-{"name":"a-kind-lays-its-nodes-under-its-address","query":":Box |~~ A box. ~~| (::kind | wraps |~~ The sizes. ~~| ::map | reads :w |~~ The width. ~~| /w ::number | impl ::builtin{}) | ::Box | manifest","expect":"#[::Box/PayloadKindNotTakenError ::Box/payload ::Box/w]"}
+{"decision":"D450","name":"a-kind-lays-its-nodes-under-its-address","query":":Box |~~ A box. ~~| (::kind | accepts |~~ The sizes. ~~| ::map | wires :w |~~ The width. ~~| /w ::number | impl ::builtin{}) | ::Box | manifest","expect":"#[::Box/PayloadKindNotTakenError ::Box/payload ::Box/w]"}
 {"name":"a-tag-used-before-its-kind-is-checked-by-the-kind-after","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)) | get [~(::AutoLater#7 | payload) ~(::AutoLater#5 !| tag)]","expect":"[7 ::AutoLater/TooSmallError]"}
 {"name":"a-kind-holds-a-value-again-after-reverse","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| tag","expect":"::Sorted/NotSortedError"}
 {"name":"a-kind-holds-a-value-again-after-filter","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3 5] | filter ~(gt 1) | payload","expect":"[2 3 5]"}

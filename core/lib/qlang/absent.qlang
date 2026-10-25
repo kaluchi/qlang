@@ -14,7 +14,7 @@
       ::link~(::shape | doc)
   ~~|
   ::kind
-    | wraps |~~ The shape of the part where the data holds it. ~~|
+    | accepts |~~ The shape of the part where the data holds it. ~~|
     | proves :marksAKeySomeRecordsLack
         |~~ A key some records lack stands marked absent. ~~|
         ~([{:a 1} {:a 2 :b "x"}] | shape | eq ::shape[{:a ::number :b ::absent::string}])

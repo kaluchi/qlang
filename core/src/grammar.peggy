@@ -647,7 +647,7 @@ BodyBreak
 // a value that heads the sentence after it; on the line of its name it is
 // one step, as a body is [QSSYN#line]. The body of a bare name with its page,
 // begun on a later line with a tag name, is the sentence that builds from
-// the noun it names, `:Box |~~ … ~~| ::kind | wraps …` [QSSYN#line]; any other
+// the noun it names, `:Box |~~ … ~~| ::kind | accepts …` [QSSYN#line]; any other
 // body of a bare name is one step.
 ChainBody
   = !(_h1 !Whitespace) __ !TaggedLit head:TagLit tail:BodySentenceStep*

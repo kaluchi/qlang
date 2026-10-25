@@ -25,7 +25,7 @@
       ::link~(::any/elide | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The size of the part left out, the query that reads it and the
             head of its text.
         ~~|

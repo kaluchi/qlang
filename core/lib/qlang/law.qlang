@@ -22,7 +22,7 @@
       ::link~(::qlang/code | doc)
   ~~|
   ::kind
-    | wraps |~~ The query that proves the claim, a quote. ~~| ::quote
+    | accepts |~~ The query that proves the claim, a quote. ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ A law is a quote that answers true, `::law~(3 | eq 3)`, which
             `proves` writes in a chain; a quote under another tag gives the

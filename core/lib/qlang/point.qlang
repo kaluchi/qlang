@@ -11,7 +11,7 @@
       ::link~(::span | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | accepts |~~ The three numbers, the offset, the line and the column. ~~| [::number]
     | throws :PayloadKindNotTakenError
         |~~ A point is the vector of the offset, the line and the column of
             a character of a source, `::point[0 1 1]`, which `start` and

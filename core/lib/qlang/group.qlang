@@ -16,7 +16,7 @@
       ::link~(::bind | doc) ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The quote of a pipeline, built into the step `(pipeline)`. ~~|
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::group` is the quote of its pipeline, so

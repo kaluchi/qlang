@@ -27,7 +27,7 @@
       ::link~(::any/print | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A string, read as itself. ~~| ::string
+    | accepts |~~ A string, read as itself. ~~| ::string
     | throws :PayloadKindNotTakenError
         |~~ `::string` reads its payload as the string it is; a number or
             a keyword becomes text by `toString`, and any value its

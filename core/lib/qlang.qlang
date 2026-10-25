@@ -202,7 +202,7 @@
       budget of an answer.
   ~~|
   ::kind
-    | wraps |~~ No value: `::qlang` names the topic of the language. ~~| #[]
+    | accepts |~~ No value: `::qlang` names the topic of the language. ~~| #[]
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
             characters of its print `:budget` names, and prints this
@@ -701,9 +701,9 @@
             a quote, `~name` or `~(get /path)` the quote of one step, and
             a condition is a boolean. A label is a kind declared under a
             name, by the chain that builds it from `::kind`,
-            `:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)`,
-            or by its page alone, a kind of no commands: `wraps` names its
-            payload and its kinds, `reads` a field the payload holds, its
+            `:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)`,
+            or by its page alone, a kind of no commands: `accepts` names its
+            payload and its kinds, `wires` a field the payload holds, its
             selector and its kinds, `holds` an invariant of the value or of a
             field, `throws` a refusal, `carries` a fact and `proves` a law,
             and a kind of the core `impl` its constructor, which its host

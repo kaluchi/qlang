@@ -23,7 +23,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A keyword, read as itself. ~~| ::keyword
+    | accepts |~~ A keyword, read as itself. ~~| ::keyword
     | throws :PayloadKindNotTakenError
         |~~ `::keyword` reads its payload as the keyword it is; a string
             becomes one by `toKeyword`.

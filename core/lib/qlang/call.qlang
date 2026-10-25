@@ -22,7 +22,7 @@
       ::link~(::quote | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The record of a command, `:name` and `:modifiers`, built into
             its step.
         ~~|

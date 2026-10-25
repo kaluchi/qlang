@@ -36,8 +36,8 @@ describe('a block comment that nests', () => {
     });
 
     it('a block comment holds a nested doc pair as its content', () => {
-      const step = blockStep('|~ wraps |~~ inner doc ~~| inside ~|\n| 1');
-      expect(step.content).toBe(' wraps |~~ inner doc ~~| inside ');
+      const step = blockStep('|~ accepts |~~ inner doc ~~| inside ~|\n| 1');
+      expect(step.content).toBe(' accepts |~~ inner doc ~~| inside ');
     });
 
     it('a block comment holds a bare ~~| as its content', () => {

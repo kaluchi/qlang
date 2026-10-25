@@ -29,9 +29,9 @@ const FN_COMMANDS = [
   ['proves :answers |~~ It answers. ~~| ~(5 | eq 5)']
 ];
 const KIND_COMMANDS = [
-  ['wraps |~~ The payload,\n    a map. ~~| ::map'],
-  ['reads :w |~~ The width. ~~| /w ::number', 'holds :w/NotPositiveError |~~ Above\n    zero. ~~| ~(gt 0)'],
-  ['reads :tags |~~ The tags. ~~| ~(query /tags []) [::string]'],
+  ['accepts |~~ The payload,\n    a map. ~~| ::map'],
+  ['wires :w |~~ The width. ~~| /w ::number', 'holds :w/NotPositiveError |~~ Above\n    zero. ~~| ~(gt 0)'],
+  ['wires :tags |~~ The tags. ~~| ~(query /tags []) [::string]'],
   ['tells :note |~~ A note. ~~|'],
   ['holds :TooWideError |~~ Narrow. ~~| ~(get /w | lt 100)'],
   ['throws :ShapeError |~~ A shape. ~~|', 'carries :ShapeError/why |~~ Why. ~~| ::string'],

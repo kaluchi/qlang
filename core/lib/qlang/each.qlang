@@ -12,7 +12,7 @@
       ::link~(::shape | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The least key of the map and the shape its values share. ~~|
         ::map
     | throws :PayloadKindNotTakenError

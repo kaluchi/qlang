@@ -25,7 +25,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A tag name, read as itself. ~~| ::tag
+    | accepts |~~ A tag name, read as itself. ~~| ::tag
     | throws :PayloadKindNotTakenError
         |~~ `::tag` reads its payload as the tag name it is; a value's own
             tag is read by `tag`.

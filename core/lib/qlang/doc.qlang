@@ -26,7 +26,7 @@
       ::link~(::qlang/hypertext | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A vector of prose strings and quotes, built into the doc. ~~|
         ::vec
     | throws :PayloadKindNotTakenError

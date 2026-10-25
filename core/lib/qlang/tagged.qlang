@@ -29,7 +29,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ No value: `::tagged` names verbs. ~~| #[]
+    | accepts |~~ No value: `::tagged` names verbs. ~~| #[]
     | throws :PayloadKindNotTakenError
         |~~ `::tagged` names the verbs of every value under a tag and takes
             no payload: a value goes under a tag by naming the tag,

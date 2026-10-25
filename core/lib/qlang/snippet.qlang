@@ -15,7 +15,7 @@
       ::link~(::link | doc) ::link~(::qlang/hypertext | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The query a snippet shows, a quote, or a link, which the snippet
             makes a snippet as well.
         ~~|

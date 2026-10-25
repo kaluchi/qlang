@@ -11,8 +11,8 @@
       constructor, which its host hands. It is built from the noun by a
       chain, the commands written on it, each a verb the kind so far is the
       subject of:
-      `::kind | wraps |~~ The sizes. ~~| ::map | reads :w |~~ The width. ~~| /w ::number`.
-      `wraps` names the payload, its page and its kinds; `reads` a field,
+      `::kind | accepts |~~ The sizes. ~~| ::map | wires :w |~~ The width. ~~| /w ::number`.
+      `accepts` names the payload, its page and its kinds; `wires` a field,
       its name, its page, its selector over the payload, `/w` the key
       `w` and `~(query /h 1)` the key `h` or one, and its kinds; `tells` a
       page of the kind on a name, a chapter of a topic among them; `holds` an
@@ -38,7 +38,7 @@
       ::link~(::fn | doc) ::link~(::tag | doc)
       ::link~(::qlang/verbs | doc)
   ~~|
-  ::kind[~(wraps
+  ::kind[~(accepts
         |~~ The literal of a kind: the quote of the commands of its chain
             and its constructor, the `::builtin{}` a host hands a kind of
             the core, or null.
@@ -46,18 +46,18 @@
     | throws :PayloadNotPairError
         |~~ The literal of a kind is a pair, the quote of the commands of
             its chain and its constructor or null,
-            `::kind[~(wraps |~~ The sizes. ~~| ::map) null]`: a payload of
+            `::kind[~(accepts |~~ The sizes. ~~| ::map) null]`: a payload of
             another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a kind is a command the chain takes,
             written with the modifiers the page of its verb names in their
-            order, `::kind/reads | doc` those of `reads`, whether the verb
+            order, `::kind/wires | doc` those of `wires`, whether the verb
             wrote it or the literal: `:command` holds the command as
             written, `:index` the index of the modifier refused, from zero, or
             of the first left out, and `:actualValue` the modifier.
-            ::link~(::kind/wraps | doc) ::link~(::kind/reads | doc)
+            ::link~(::kind/accepts | doc) ::link~(::kind/wires | doc)
             ::link~(::kind/tells | doc) ::link~(::kind/carries | doc)
             ::link~(::kind/holds | doc) ::link~(::kind/throws | doc)
             ::link~(::kind/proves | doc)
@@ -95,15 +95,15 @@
         ~~|
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
-        ~(::kind | wraps |~~ The sizes. ~~| ::map | tag | eq ::kind)
+        ~(::kind | accepts |~~ The sizes. ~~| ::map | tag | eq ::kind)
     | proves :printsAsItsLiteral
         |~~ A kind prints as its commands and its constructor. ~~|
-        ~(::kind | wraps |~~ The sizes. ~~| ::map | print | eq "::kind[~(wraps |~~ The sizes. ~~| ::map) null]")
+        ~(::kind | accepts |~~ The sizes. ~~| ::map | print | eq "::kind[~(accepts |~~ The sizes. ~~| ::map) null]")
     | proves :listsItsNamesButItsLaws
         |~~ `manifest` lists what lies under a kind but its laws, which
             `laws` reads.
         ~~|
-        ~(:Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | proves :holds |~~ It holds. ~~| ~(true))
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | proves :holds |~~ It holds. ~~| ~(true))
           | ::Box
           | get [~(manifest) ~(laws | keys)]
           | eq [#[::Box/w] #[:holds]])
@@ -112,51 +112,51 @@
         ~(:Shop |~~ A shop. ~~| | ::Shop{:a 1} | tag | eq ::Shop)
     | proves :readsBackFromItsPrint
         |~~ The print of a kind reads back as the kind. ~~|
-        ~(::kind | wraps |~~ The sizes. ~~| ::map | :k it | print | parse | open | eq k)
+        ~(::kind | accepts |~~ The sizes. ~~| ::map | :k it | print | parse | open | eq k)
     | proves :laysItsTagOverThePayload
         |~~ A value put under a kind is the payload under its tag. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map)
+        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map)
           | ::Box{:w 1}
           | get [~(tag) /w]
           | eq [::Box 1])
     | proves :isALabel
         |~~ A kind declared under a name is a label the scope reads. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | kinds | has ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map) | kinds | has ::Box)
     | proves :refusesAPayloadOfNoneOfItsKinds
-        |~~ A payload of none of the kinds `wraps` names is refused under
+        |~~ A payload of none of the kinds `accepts` names is refused under
             the kind.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map) | ::Box#5 !| tag | eq ::Box/PayloadKindNotTakenError)
+        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map) | ::Box#5 !| tag | eq ::Box/PayloadKindNotTakenError)
     | proves :refusesAnElementOfNoneOfItsKinds
-        |~~ Where `wraps` names the kinds of each element, an element of
+        |~~ Where `accepts` names the kinds of each element, an element of
             none is refused with its index.
         ~~|
-        ~(:Nums |~~ Numbers. ~~| (::kind | wraps |~~ The numbers. ~~| [::number])
+        ~(:Nums |~~ Numbers. ~~| (::kind | accepts |~~ The numbers. ~~| [::number])
           | ::Nums[1 "a"]
           !| get [~(tag) /index]
           |  eq [::Nums/ElementKindNotTakenError 1])
     | proves :holdsThePayloadOfItsKind
-        |~~ The payload is of the kinds its `wraps` names by its own tag, a
+        |~~ The payload is of the kinds its `accepts` names by its own tag, a
             payload under another tag refused.
         ~~|
-        ~(:Count |~~ A count. ~~| (::kind | wraps |~~ The number. ~~| ::number)
+        ~(:Count |~~ A count. ~~| (::kind | accepts |~~ The number. ~~| ::number)
           | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) /actualTag]) ~(::Width#3 | payload | tag ::Count)]
           | eq [3 [::Count/PayloadKindNotTakenError ::Width] ::Count#3])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)
           | ::Box{:w "x"}
           !| tag
           |  eq ::Box/w/KindNotTakenError)
     | proves :refusesAFieldLeftOut
         |~~ A field whose path the payload leaves out is refused. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box{} !| tag | eq ::Box/w/NotGivenError)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box{} !| tag | eq ::Box/w/NotGivenError)
     | proves :givesAFieldADefault
         |~~ A field read by `query` gives a default. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :h |~~ The height. ~~| ~(query /h 1) ::number) | ::Box{} | tag | eq ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :h |~~ The height. ~~| ~(query /h 1) ::number) | ::Box{} | tag | eq ::Box)
     | proves :pagesAFieldUnderIt
         |~~ The page of a field is the page of its node under the kind. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)
           | ::Box/w
           | doc
           | content
@@ -166,7 +166,7 @@
         |~~ The refusal the kinds of a field name reads the page of the
             field where `throws` gives it no page.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)
           | ::Box/w/KindNotTakenError
           | doc
           | content
@@ -176,7 +176,7 @@
         |~~ A field is no verb of the values of its kind: `get` reads it
             by its selector.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| ~(get /w) ::number)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w) ::number)
           | ::Box{:w 1}
           | get [~(w !| tag) /w]
           | eq [::call/UnknownNameError 1])
@@ -192,7 +192,7 @@
         |~~ A field that breaks an invariant written under it is refused
             under the field.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0))
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0))
           | ::Box{:w -1}
           !| tag
           |  eq ::Box/w/NegativeError)
@@ -206,7 +206,7 @@
         |~~ A command its verb writes with what the chain does not take is
             refused as the literal's is, the command its `:actualValue`.
         ~~|
-        ~(::kind | reads 5 |~~ x ~~| /x !| get [~(tag) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(reads 5 |~~ x ~~| /x) 0 5])
+        ~(::kind | wires 5 |~~ x ~~| /x !| get [~(tag) /command /index /actualValue] | eq [::kind/CommandNotTakenError ~(wires 5 |~~ x ~~| /x) 0 5])
     | proves :CommandNotTakenError/refusesAStepThatIsNoCommand
         |~~ A step of a recipe is no command of a kind. ~~|
         ~(::kind[~(add 1) null] !| tag | eq ::kind/CommandNotTakenError)
@@ -215,29 +215,29 @@
         ~(::kind[~(takes :by |~~ How much. ~~| /0) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAFieldNamedWithAPath
         |~~ The name of a field is one segment. ~~|
-        ~(::kind[~(reads :w/x |~~ A w. ~~| /w) null] !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(wires :w/x |~~ A w. ~~| /w) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesThePayloadAsAField
         |~~ The payload is no field. ~~|
-        ~(::kind[~(reads :payload |~~ A payload. ~~| /p) null] !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(wires :payload |~~ A payload. ~~| /p) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesASelectorThatIsNoPathOrQuote
         |~~ A selector is a path or a quote. ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| 0) null] !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind[~(wires :w |~~ A w. ~~| 0) null] !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAWordOfALiteralAsAField
         |~~ A word of a literal is no field, which the chain refuses. ~~|
-        ~(::kind | reads :null |~~ Nothing. ~~| /n !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind | wires :null |~~ Nothing. ~~| /n !| tag | eq ::kind/CommandNotTakenError)
     | proves :CommandNotTakenError/refusesAnEmptySetOfKindsOfEachElement
         |~~ The kinds of each element are one kind at least, a vector of the
             set of none refused by the chain.
         ~~|
-        ~(::kind | wraps |~~ w ~~| [#[]] !| tag | eq ::kind/CommandNotTakenError)
+        ~(::kind | accepts |~~ w ~~| [#[]] !| tag | eq ::kind/CommandNotTakenError)
     | proves :NameDeclaredTwiceError/refusesTwoFieldsOfOneName
         |~~ Two fields of one name are refused. ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| /w | reads :w |~~ Again. ~~| /x) null] !| tag | eq ::kind/NameDeclaredTwiceError)
+        ~(::kind[~(wires :w |~~ A w. ~~| /w | wires :w |~~ Again. ~~| /x) null] !| tag | eq ::kind/NameDeclaredTwiceError)
     | proves :NameDeclaredTwiceError/refusesAnInvariantNamedAsTheRefusalOfKinds
         |~~ An invariant named as the refusal of its field's kinds is
             refused.
         ~~|
-        ~(::kind[~(reads :w |~~ A w. ~~| /w ::number | holds :w/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) null] !| tag | eq ::kind/NameDeclaredTwiceError)
+        ~(::kind[~(wires :w |~~ A w. ~~| /w ::number | holds :w/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) null] !| tag | eq ::kind/NameDeclaredTwiceError)
     | proves :NameUnderNoFieldError/refusesARefusalUnderNoField
         |~~ A refusal under a name no field reads is refused. ~~|
         ~(::kind[~(throws :x/TooBigError |~~ Too big. ~~|) null] !| tag | eq ::kind/NameUnderNoFieldError)
@@ -255,11 +255,11 @@
         ~(::kind[~() ~(add 1)] !| tag | eq ::kind/ConstructorKindNotTakenError))
     ::builtin{}]
 
-:kind/wraps
+:kind/accepts
   |~~ Names the payload of a kind, its page and its kinds,
-      `::kind | wraps |~~ The sizes. ~~| ::map`: a payload whose own tag
+      `::kind | accepts |~~ The sizes. ~~| ::map`: a payload whose own tag
       names none of them is refused under the kind, a payload under another
-      tag among them, and a `wraps` that writes no kinds takes any payload;
+      tag among them, and an `accepts` that writes no kinds takes any payload;
       a vector of kinds names the kinds of each element, each read through
       its tags, and a payload that is no vector is refused. A set of no
       kinds, `#[]`, takes no payload, as a tag that names verbs or pages
@@ -275,14 +275,14 @@
         ~(it)
     | returns |~~ The kind with its payload. ~~| ::kind
     | throws :SubjectNotKindError
-        |~~ `wraps` names the payload of the noun's kind,
-            `::kind | wraps …`, or of a kind.
+        |~~ `accepts` names the payload of the noun's kind,
+            `::kind | accepts …`, or of a kind.
         ~~|
     | proves :pagesThePayload
         |~~ The page of the payload is the page of its node under the
             kind.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wraps |~~ The sizes. ~~| ::map)
+        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map)
           | ::Box/payload
           | doc
           | content
@@ -290,19 +290,19 @@
           | eq "The sizes.")
     | proves :takesNoPayloadOfASetOfNoKinds
         |~~ A set of no kinds takes no payload. ~~|
-        ~(:Topic |~~ A topic. ~~| (::kind | wraps |~~ None. ~~| #[])
+        ~(:Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[])
           | 5 | tag ::Topic
           !| get [~(tag) /expected]
           |  eq [::Topic/PayloadKindNotTakenError #[]])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | wraps |~~ A number. ~~| !| tag | eq ::kind/wraps/SubjectNotKindError))
+        ~(::number | accepts |~~ A number. ~~| !| tag | eq ::kind/accepts/SubjectNotKindError))
     ::builtin{}]
 
-:kind/reads
+:kind/wires
   |~~ Adds a field to a kind: its name, its page, its selector over the
       payload, and the kinds it holds where they are given,
-      `::kind | reads :w |~~ The width. ~~| /w ::number`. The selector is
+      `::kind | wires :w |~~ The width. ~~| /w ::number`. The selector is
       a path into the payload, `/w` the key `w`, a part the payload leaves
       out refused under the field, or a quote that reads it,
       `~(query /h 1)` the key `h` or one; a value of none of the kinds is
@@ -314,30 +314,30 @@
         |~~ The modifiers of the command as written: the name of the field, a
             keyword of one segment, neither `payload` nor a word
             of a literal; its page, a doc; its selector over the payload, a
-            path or a quote; and its kinds, as `wraps` writes them, any value
+            path or a quote; and its kinds, as `accepts` writes them, any value
             where none is written.
         ~~|
         ~(it)
     | returns |~~ The kind with the field after the ones it read. ~~| ::kind
     | throws :SubjectNotKindError
-        |~~ `reads` builds from the noun, `::kind | reads …`, or a kind. ~~|
+        |~~ `wires` builds from the noun, `::kind | wires …`, or a kind. ~~|
     | proves :holdsTheKindsOfEachElement
         |~~ A field of the kinds of each element refuses an element of
             none with its index.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :xs |~~ Values. ~~| /xs [::number])
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :xs |~~ Values. ~~| /xs [::number])
           | ::Box{:xs [1 "a"]}
           !| get [~(tag) /index]
           |  eq [::Box/xs/ElementKindNotTakenError 1])
     | proves :readsAPathAtDepth
         |~~ A path reads a field at depth. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /size/w ::number)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /size/w ::number)
           | ::Box{:size {:w "x"}}
           !| tag
           |  eq ::Box/w/KindNotTakenError)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | reads :w |~~ A w. ~~| /w !| tag | eq ::kind/reads/SubjectNotKindError))
+        ~(::number | wires :w |~~ A w. ~~| /w !| tag | eq ::kind/wires/SubjectNotKindError))
     ::builtin{}]
 
 :kind/tells
@@ -469,7 +469,7 @@
         |~~ A refusal the kinds of a field name takes the page `throws`
             gives it.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number | throws :w/KindNotTakenError |~~ The width is a number. ~~|)
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | throws :w/KindNotTakenError |~~ The width is a number. ~~|)
           | ::Box/w/KindNotTakenError
           | doc
           | content

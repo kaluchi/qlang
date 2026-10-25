@@ -18,20 +18,20 @@
       ::link~(::qlang/names | doc)
   ~~|
   ::kind
-    | wraps |~~ The fields of the record, a map. ~~| ::map
-    | reads :name |~~ The keyword the binding binds. ~~| /name ::keyword
-    | reads :docs
+    | accepts |~~ The fields of the record, a map. ~~| ::map
+    | wires :name |~~ The keyword the binding binds. ~~| /name ::keyword
+    | wires :docs
         |~~ The docs of its page, one for each doc of the slot of its
             declaration.
         ~~|
         /docs [::doc]
-    | reads :value |~~ What the name holds. ~~| /value
-    | reads :source
+    | wires :value |~~ What the name holds. ~~| /value
+    | wires :source
         |~~ The quote of the step that declared it, null for a binding no
             declaration wrote.
         ~~|
         /source #[::null ::quote]
-    | reads :origin
+    | wires :origin
         |~~ The source or the cell it was read from, null for a name a call
             binds.
         ~~|

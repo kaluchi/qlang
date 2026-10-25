@@ -13,7 +13,7 @@
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The six numbers, the start and the end. ~~| [::number]
+    | accepts |~~ The six numbers, the start and the end. ~~| [::number]
     | throws :PayloadKindNotTakenError
         |~~ A span is the vector of six numbers, the offset, the line and
             the column of its start and of the point after its end,

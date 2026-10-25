@@ -155,7 +155,7 @@ describe('the verbs offered after a value', () => {
   it('offers after a tag name the verbs that serve it, those of a tag name, of any value and of its noun whose `on` names `::tag`, none of its noun refusing it', async () => {
     const afterVec = await labelsAt('::vec | ');
     expect(['manifest', 'toTag', 'count', 'sort', 'add'].map(label => afterVec.includes(label))).toEqual([true, true, false, false, false]);
-    expect(await labelsAt('::kind | ')).toContain('wraps');
+    expect(await labelsAt('::kind | ')).toContain('accepts');
     for (const label of afterVec.filter(offered => !offered.startsWith('::'))) {
       const answer = await evalQuery(`::vec | ${label} !| tag`);
       expect(isTag(answer) && /^vec\/[^/]+\/Subject\w*Error$/.test(answer.name), label).toBe(false);
@@ -174,8 +174,8 @@ describe('the verbs offered after a value', () => {
       const labels = await labelsAt(src);
       expect([labels, labels.includes('count'), labels.includes('add')], src).toEqual([afterATag, false, false]);
     }
-    const afterWraps = await labelsAt('::kind | wraps |~~ w ~~| ::vec | ');
-    expect(['reads', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
+    const afterWraps = await labelsAt('::kind | accepts |~~ w ~~| ::vec | ');
+    expect(['wires', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
     const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '::frame[1 ~(a)] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
     expect(afterSorts.map(labels => ['count', 'within', 'failed', 'add'].map(label => labels.includes(label))))
       .toEqual([[true, true, false, false], [true, true, true, false], [true, false, false, false]]);

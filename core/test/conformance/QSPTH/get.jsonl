@@ -32,7 +32,7 @@
 {"name":"a-set-reads-an-index-in-its-one-order","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"a-set-reads-a-negative-index-from-the-end-of-its-order","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"get-refuses-an-index-past-the-end-of-a-set","query":"#[:a :b] | get /99 !| tag","expect":"::path/IndexOutOfBoundsError"}
-{"name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | tag) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | reads :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(reads :w |~~ w ~~| /w ::number)]"}
+{"decision":"D450","name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | tag) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | wires :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(wires :w |~~ w ~~| /w ::number)]"}
 {"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(tag) /actualValue]) ~(get /m/y !| get [~(tag) /actualValue])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
 {"name":"a-read-that-fails-at-the-subject-of-its-step-holds-the-kind-of-the-value-it-met-alone","query":"get [~(::T#5 | get /a !| get [~(keys) /actualTag]) ~(::T#null | get /a !| get /actualTag)]","expect":"[[#[:actualTag :path :segment :trace] ::number] ::null]"}
-{"name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue","expect":"[1 2]"}
+{"decision":"D450","name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get /actualValue","expect":"[1 2]"}

@@ -70,7 +70,7 @@
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
-    | wraps |~~ No value: `::cli` names the command line. ~~| #[]
+    | accepts |~~ No value: `::cli` names the command line. ~~| #[]
     | throws :PayloadKindNotTakenError
         |~~ `::cli` names the command line, its page and its words, and
             takes no payload: it is asked by itself, `::cli | doc`.

@@ -43,8 +43,8 @@ const COMMANDS = new Map([
 ]);
 
 const KIND_COMMANDS = new Map([
-  ['wraps', { taken: [isDoc], optional: [isKindsOfAPayload] }],
-  ['reads', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
+  ['accepts', { taken: [isDoc], optional: [isKindsOfAPayload] }],
+  ['wires', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
   ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
@@ -166,7 +166,7 @@ function readChainOfKind(quote) {
     if (refused !== null) throw new KindCommandNotTakenError({ command: makeQuote([step]), ...refused });
     const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {
-      case 'wraps': {
+      case 'accepts': {
         names.declare(PAYLOAD_NAME);
         const { each, kinds, written } = kindsWritten(second);
         if (kinds !== null) names.named.add(payloadRefusalName(each));
@@ -174,7 +174,7 @@ function readChainOfKind(quote) {
         kind.payload = { page: first, kinds, each, written };
         break;
       }
-      case 'reads': {
+      case 'wires': {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
         names.named.add(notGivenAddress(first.name));

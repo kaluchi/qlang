@@ -22,7 +22,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ Any value, its rank in the one order turned around. ~~|
+    | accepts |~~ Any value, its rank in the one order turned around. ~~|
     | proves :holdsTheValue
         |~~ The payload is the value turned. ~~|
         ~(5 | desc | payload | eq 5)

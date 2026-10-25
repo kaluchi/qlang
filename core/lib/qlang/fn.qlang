@@ -37,7 +37,7 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The literal of a function, the quote of the commands of its
             chain and its recipe, a quote, a primitive, or null for a
             contract no call runs.

@@ -25,7 +25,7 @@
       ::link~(::law | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps |~~ The condition its values keep, a quote. ~~| ::quote
+    | accepts |~~ The condition its values keep, a quote. ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ An invariant is a quote, `::invariant~(gt 0)`, which `holds`
             writes in a chain; a quote under another tag gives the quote

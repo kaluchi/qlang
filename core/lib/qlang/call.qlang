@@ -149,9 +149,12 @@
             fallback, `query /items | coalesce [] | count`, a keyword its
             name by `toString`, `:host | toString | append ":80"`, or a
             verb of another name was meant, which `:nearest` names where a
-            page leads to it.
+            page leads to it. A value under a kind that wires its parts
+            answers the verbs of its kind and of every value alone, and no
+            verb of the kind of its payload: its parts are read by the
+            names its kind wires, which `tag | manifest` lists, `get /took`.
             ::link~(::call | doc) ::link~(::any/coalesce | doc)
-            ::link~(::keyword/toString | doc)
+            ::link~(::keyword/toString | doc) ::link~(::kind/wires | doc)
         ~~|
     | carries :KindAnswersNoVerbError/name
         |~~ The name the step called. ~~|

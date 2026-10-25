@@ -1,7 +1,7 @@
 // [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
-import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, wiredBeneath, wiringOf, CORE_KIND } from './types.mjs';
+import { beneathOpenTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, wiringOf, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
@@ -44,17 +44,16 @@ export const PathPartNotWritableError = declareRefusal('path/PartNotWritableErro
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
-    const wired = wiredBeneath(current);
-    if (wired !== undefined) {
-      const parts = wiringOf(wired);
+    const container = beneathOpenTags(current);
+    const parts = wiringOf(container);
+    if (parts !== undefined) {
       if (parts.has(segment)) {
         current = parts.get(segment);
         continue;
       }
       if (soft) return MISSED;
-      throw nameNotWired(wired, parts, segment, path, depth);
+      throw nameNotWired(container, parts, segment, path, depth);
     }
-    const container = beneathTags(current);
     if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {

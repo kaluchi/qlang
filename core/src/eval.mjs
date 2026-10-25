@@ -13,7 +13,7 @@ import {
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, makePath, errorAtRest, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf, wiredBeneath
+  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf, beneathOpenTags
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
@@ -340,7 +340,7 @@ function withRepairOfPath(state, call, subject, scope) {
 
 // [D449]
 function repairOfAPart(subject, name) {
-  return wiringOf(wiredBeneath(subject))?.has(name) ? makeQuote([commandStep('get', [makePath([name])])]) : undefined;
+  return wiringOf(beneathOpenTags(subject))?.has(name) ? makeQuote([commandStep('get', [makePath([name])])]) : undefined;
 }
 
 // [QSNAM#reach], [QSQUO#held], [D449]

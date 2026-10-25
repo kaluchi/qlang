@@ -235,12 +235,10 @@ export function wiringOf(value) {
   return value !== null && typeof value === 'object' ? value[WIRING_SYMBOL] : undefined;
 }
 
-export function wiredBeneath(value) {
-  for (let part = value; isTagged(part); part = part.payload) {
-    if (wiringOf(part) !== undefined) return part;
-    if (!isValueClass(part, 'underTag')) return undefined;
-  }
-  return undefined;
+export function beneathOpenTags(value) {
+  let beneath = value;
+  while (isValueClass(beneath, 'underTag') && wiringOf(beneath) === undefined) beneath = beneath.payload;
+  return beneath;
 }
 
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);

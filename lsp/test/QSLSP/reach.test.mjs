@@ -193,7 +193,7 @@ describe('the names a step reaches in the body of a verb, the verbs, the nodes a
   it('reaches no value a reader named outside the body, which the language refuses there, and the verb where a value of its name stands outside it', async () => {
     const value = ':k |~~ K. ~~| 1 | :vec/f ~(k) | [1] | f';
     expect([await hoverOf(value, value.indexOf('~(k)') + 2), await gotoOf(value, value.indexOf('~(k)') + 2)]).toEqual([null, null]);
-    expect(await evalQuery(`${value} !| get [~(tag) /name]`)).toEqual(await evalQuery('[::call/UnknownNameError :k]'));
+    expect(await evalQuery(`${value} !| get [~(tag) ~(name)]`)).toEqual(await evalQuery('[::call/UnknownNameError :k]'));
     const shadowed = ':f |~~ F value. ~~| 1 | :vec/f |~~ The verb. ~~| ~(if (count | gt 1) ~(drop 1 | f) ~(count)) | [1 2] | vec/f';
     expect([await hoverOf(shadowed, shadowed.indexOf('| f)') + 2), await gotoOf(shadowed, shadowed.indexOf('| f)') + 2), await evalQuery(shadowed)])
       .toEqual([pageOf('f', 'The verb.'), shadowed.indexOf(':vec/f'), 1]);

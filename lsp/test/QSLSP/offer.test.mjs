@@ -121,10 +121,10 @@ describe('the verbs offered after a value', () => {
     expect(afterPath).toContain('segments');
     expect(afterPath).not.toContain('add');
     const afterError = await labelsAt('!{:a 1} | ');
-    expect(afterError).toContain('trace');
+    expect(afterError).not.toContain('trace');
     expect(afterError).toContain('keys');
     expect(afterError).not.toContain('add');
-    expect(await labelsAt('::Oops!{:a 1} | ')).toContain('trace');
+    expect(await labelsAt('::Oops!{:a 1} | ')).not.toContain('trace');
   });
 
   it('reads the subject before the word being typed', async () => {

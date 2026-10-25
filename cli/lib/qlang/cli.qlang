@@ -125,6 +125,8 @@
             value is written as the text the call computes from it,
             `42 | out json` or `{:x 1} | out print`.
         ~~|
+        ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `out` writes its subject, or the one text its call gives,
             `"hi" | out`; texts are joined first,
@@ -132,7 +134,7 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
-        ~(42 | out !| get [~(tag) /expected] | eq [::any/out/SubjectKindNotTakenError #[::string]])
+        ~(42 | out !| get [~(tag) ~(expected)] | eq [::any/out/SubjectKindNotTakenError #[::string]])
     | proves :text/KindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
         ~("hi" | out 5 !| tag | eq ::any/out/text/KindNotTakenError)
@@ -167,6 +169,8 @@
             another value is written as the text the call computes from
             it, `err json` or `err print`.
         ~~|
+        ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `err` writes its subject, or the one text its call gives,
             `"hi" | err`; texts are joined first,
@@ -174,7 +178,7 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `err` writes alone. ~~|
-        ~(42 | err !| get [~(tag) /expected] | eq [::any/err/SubjectKindNotTakenError #[::string]])
+        ~(42 | err !| get [~(tag) ~(expected)] | eq [::any/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | err "a" "b" !| tag | eq ::any/err/ArgsBeyondInputsError)
@@ -232,6 +236,9 @@
         |~~ Every row of `table` is a map, its keys the columns; the path
             of its frame names the first that is not.
         ~~|
+        ~(wires :expected |~~ The kind of a row, `#[::map]`. ~~| ::set
+          | wires :actualTag |~~ The kind of the row refused. ~~| ::tag
+          | wires :actualValue |~~ The row refused. ~~|)
     | proves :drawsEachRow
         |~~ Each row is drawn. ~~|
         ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
@@ -246,13 +253,13 @@
         ~({:name "alice"} | get [~(it)] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(tag) /actualTag] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(tag) /actualTag] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) /actualTag /expected]
+        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{}
 

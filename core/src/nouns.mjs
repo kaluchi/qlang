@@ -307,6 +307,10 @@ export function verbsReaching(scope, kindNames) {
       if (!residesOn(record, scope) || reached.has(name)) continue;
       reached.set(name, { address: makeTag(`${kindName}/${name}`), verb });
     }
+    const kind = kindOfAValueOf(scope, kindName);
+    for (const name of kind === null ? [] : chainOfKind(kind).wired.keys()) {
+      if (!reached.has(name)) reached.set(name, { address: makeTag(`${kindName}/${name}`), verb: bindingValueOf(partOfTheLabel(scope, `${kindName}/${name}`)) });
+    }
   }
   return reached;
 }
@@ -507,7 +511,7 @@ export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
   const record = reached === undefined
     ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
-    : nodeOf(scope, reached.address.name);
+    : nodeOf(scope, reached.address.name) ?? partOfTheLabel(scope, reached.address.name);
   if (record === undefined) return undefined;
   const value = bindingValueOf(record);
   if (!isVerbValue(value) && !isNodeOfAPart(record, scope)) return undefined;

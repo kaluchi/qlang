@@ -10,7 +10,7 @@ beforeAll(async () => {
 
 it('cuts the alert of a failure within the budget, its trace kept to its first frames', async () => {
   const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);
-  expect(text).toContain(':read ~(!| get /trace | drop ');
+  expect(text).toContain(':read ~(!| trace | drop ');
 }, 60_000);
 
 it('writes a failure whose alert passes the budget as the refusal above the prose of the refusal\'s page', async () => {

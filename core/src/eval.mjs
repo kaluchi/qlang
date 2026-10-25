@@ -115,7 +115,7 @@ async function applyFailTrack(state, step, at) {
   return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), atRest, state.scope, answered.flight));
 }
 
-// [QSERR#rest], [D453]
+// [QSERR#rest]
 export async function errorAtRestOf(raised, state) {
   const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.facts));
   if (raised.tag.name === ERROR_TAG.name) return errorOfKind;
@@ -247,7 +247,7 @@ function writesOutsideItsChain(scope, nounName, lastName, value) {
   return isVerb(scope, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
-// [D453]
+// [QSBLD#fn], [QSERR#site]
 function layerOf(scope, address, origin, { pages, refusalKinds }) {
   let under = scope;
   const lay = (lastName, page, value) => {
@@ -343,7 +343,7 @@ function withRepairOfPath(state, call, subject, scope) {
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { originalError: refused.originalError }));
 }
 
-// [D453]
+// [QSERR#site]
 function wiresTheRepair(tag, scope) {
   const kind = kindOfAValueOf(scope, tag.name);
   return kind !== null && chainOfKind(kind).wired.has(REPAIR_NAME);

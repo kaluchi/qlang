@@ -256,7 +256,7 @@ function placeOf(selector) {
   return name === 'get' || name === 'query' ? { path: modifiers[0], soft: name === 'query' } : null;
 }
 
-// [D453]
+// [QSBLD#fn], [QSERR#rest]
 const KIND_TAG = makeTag(KIND_TAG_NAME);
 const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag, commandStep('doc', [])]))]);
 const ACCEPTS_THE_ERROR = commandStep('accepts', [pageLinkingTo(ERROR_TAG), ERROR_TAG]);

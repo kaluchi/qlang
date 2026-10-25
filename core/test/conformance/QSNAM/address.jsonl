@@ -3,9 +3,9 @@
 {"name":"an-address-the-root-holds-is-declared-once","query":":vec/count ~(0) !| tag","expect":"::bind/NameDeclaredTwiceError"}
 {"name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | toString | startsWith \":vec/count\"","expect":"true"}
 {"name":"an-address-reads-a-value","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side","expect":"3"}
-{"decision":"D453","name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| get [~(tag) ~(noun)]","expect":"[::bind/NounNotDeclaredError ::Box]"}
-{"decision":"D453","name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(tag) ~(address) ~(nearest)]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
+{"name":"a-path-names-a-noun-declared-before-it","query":":Box/area ~(1) !| get [~(tag) ~(noun)]","expect":"[::bind/NounNotDeclaredError ::Box]"}
+{"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(tag) ~(address) ~(nearest)]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
 {"name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1) | ::number/f[1] | tag","expect":"::number/f"}
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | tag","expect":"::code"}
-{"decision":"D453","name":"the-tag-of-an-invariant-lays-its-refusal-over-an-error-at-rest-alone","query":"::vec/take/count/NotIntegerError#5 !| tag","expect":"::vec/take/count/NotIntegerError/PayloadKindNotTakenError"}
+{"name":"the-tag-of-an-invariant-lays-its-refusal-over-an-error-at-rest-alone","query":"::vec/take/count/NotIntegerError#5 !| tag","expect":"::vec/take/count/NotIntegerError/PayloadKindNotTakenError"}
 {"name":"a-verb-is-what-its-declaration-wrote-a-function-or-a-quote","query":":number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]","expect":"[::fn ::quote 6 6]"}

@@ -20,5 +20,5 @@
 {"name":"an-input-lists-the-refusal-declared-under-it","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/KindNotTakenError]"}
 {"name":"an-input-of-several-kinds-lists-their-refusal","query":"get [~(::vec/sort | binding | value | inputs | map /kinds) ~(::vec/sort/key | manifest)]","expect":"[[#[::null ::path ::quote]] #[::vec/sort/key/KindNotTakenError]]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
-{"decision":"D453","name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(tag) ~(name)]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
+{"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(tag) ~(name)]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
 {"name":"the-topic-lists-the-refusal-of-an-answer-past-the-budget","query":"::qlang | manifest | has ::qlang/AnswerBeyondBudgetError","expect":"true"}

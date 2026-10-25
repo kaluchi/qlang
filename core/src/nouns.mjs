@@ -71,7 +71,7 @@ function fieldOfTheNode(record, scope) {
   return fieldWiredAt(scope, record.get('name').name);
 }
 
-// [D453]
+// [QSDSP#residence]
 function fieldWiredAt(scope, address) {
   const [labelName, name] = splitAddress(address);
   const label = labelName === null ? null : kindOfAValueOf(scope, labelName);
@@ -137,7 +137,7 @@ export function readsTheReaderUnder(scope, nounName) {
   return !isRootVerbScope(scope) || !rootOf(scope).has(nounName);
 }
 
-// [D453]
+// [QSDSP#residence]
 function residenceOf(scope, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
   const ofTheReader = readsTheReaderUnder(scope, kindName);
@@ -158,7 +158,7 @@ export function rootScopeOf(scope) {
 
 const ROOT_RESIDENCES = new WeakMap();
 
-// [D453]
+// [QSDSP#residence]
 function residenceAt(scope, address) {
   const record = nodeOf(scope, address);
   if (record !== null) return residesOn(record, scope) ? record : null;
@@ -333,7 +333,7 @@ export function ruleRefusalsOf(scope, address) {
   return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0]).keys()];
 }
 
-// [D453]
+// [QSERR#site]
 export const FAMILY_OF = Object.freeze({
   inputKinds: 'fn/KindNotTakenError',
   inputElements: 'fn/ElementKindNotTakenError',
@@ -377,7 +377,7 @@ function kindRulesOf({ payload, fields }, address) {
   return rules;
 }
 
-// [D453]
+// [QSERR#site], [QSERR#rest]
 const OWN_KIND = Symbol('ownKind');
 const REFUSALS_OF_CHAINS = new WeakMap();
 

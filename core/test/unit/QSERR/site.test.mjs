@@ -12,7 +12,6 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../../scr
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
-// [D453]
 const probeScope = async () => (await createNotebook({ sources: [{ uri: 'tests/probe', source:
   ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :actualTag |~~ The kind. ~~| ::tag | wires :actualValue |~~ The value. ~~|)' }] })).scope;
 

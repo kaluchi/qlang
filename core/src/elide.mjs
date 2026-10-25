@@ -34,12 +34,12 @@ const headOf = (text, length) => Array.from(text).slice(0, length).join('');
 
 const OF_THE_VALUE = { caught: false, named: false, from: [] };
 const OF_THE_FACTS = { caught: true, named: false, from: [] };
-// [D453]
+// [QSERR#alert]
 const OF_THE_NAMED_FACTS = { caught: true, named: true, from: [] };
 
 const readBelow = ({ caught, named, from }, segments) => ({ caught, named, from: [...from, ...segments] });
 
-// [QSPRN#elide], [D453]
+// [QSPRN#elide], [QSERR#alert]
 const NAMED_PARTS = new Map();
 
 function partNamed(name) {
@@ -99,7 +99,7 @@ function partsOf(value, path, view, parts) {
   for (const [key, part] of entries) partsOf(part, [...path, key], view, parts);
 }
 
-// [D453]
+// [QSERR#alert]
 function partsOfNames(value, path, view, parts) {
   const { entries } = partsOfContainer(value.payload, view);
   if (path.length > 0 || entries.length > 1) parts.push({ path, value });

@@ -29,5 +29,5 @@
 {"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | open | eq {:a 1 :b [true null]})\""}
 {"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| tag) ~(::nothere | runLaws !| tag)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}
 {"name":"a-law-is-a-quote-under-its-kind","query":"get [~(::law#3 !| tag) ~(::law~(true) | payload)]","expect":"[::law/PayloadKindNotTakenError ~(true)]"}
-{"decision":"D453","name":"a-law-holds-a-quote-by-its-own-tag","query":"::law::Foo~(3 | eq 3) !| get [~(tag) ~(actualTag)]","expect":"[::law/PayloadKindNotTakenError ::Foo]"}
+{"name":"a-law-holds-a-quote-by-its-own-tag","query":"::law::Foo~(3 | eq 3) !| get [~(tag) ~(actualTag)]","expect":"[::law/PayloadKindNotTakenError ::Foo]"}
 {"name":"a-law-that-answers-false-holds-false-as-its-answer-and-no-error","query":":Box |~~ A box. ~~| | :Box/wrong |~~ One is two. ~~| ::law~(1 | eq 2) | ::Box | runLaws | first | get [/ok /actual /error]","expect":"[false false null]"}

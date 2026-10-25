@@ -21,7 +21,6 @@ const ruleBorn = new Set(addresses
   .filter(address => isVerb(notebook.scope, address) || kindAt(address) === 'kind')
   .flatMap(address => ruleRefusalsOf(notebook.scope, address)));
 
-// [D453]
 const isPaged = address => nodeOf(notebook.scope, address)?.get('docs').length > 0 && ['doc', 'kind'].includes(kindAt(address));
 const families = new Set(Object.values(FAMILY_OF));
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && isPaged(address));

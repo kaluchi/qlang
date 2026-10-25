@@ -22,7 +22,7 @@ export function spanOfLocation(loc, source) {
 
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
-// [QSERR#site], [D453]
+// [QSERR#site]
 export function factsInOrder(tag, facts, scope) {
   const kind = kindOfAValueOf(scope, tag.name);
   if (kind === null) return facts;

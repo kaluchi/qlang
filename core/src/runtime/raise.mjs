@@ -8,7 +8,7 @@ import { factsWithTheirTrace } from '../eval.mjs';
 
 const AnyRaiseSubjectKindNotTakenError = declareRefusal('any/raise/SubjectKindNotTakenError');
 
-// [QSERR#trace], [QSERR#raise], [D453]
+// [QSERR#trace], [QSERR#raise]
 async function raisedFrom(subject, state) {
   const facts = beneathTags(subject);
   if (!isMap(facts)) throw refusingTheSubject(new AnyRaiseSubjectKindNotTakenError({ expected: kindsExpected('map'), actualValue: subject }));

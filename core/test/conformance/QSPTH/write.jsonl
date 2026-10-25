@@ -1,7 +1,7 @@
 {"name":"put-adds-a-key-the-last-map-lacks","query":"{:a {:b 1}} | put /a/c 2","expect":"{:a {:b 1 :c 2}}"}
 {"name":"put-replaces-the-element-at-an-index-a-vector-holds","query":"[1 2 3] | put /1 9","expect":"[1 9 3]"}
 {"name":"put-takes-a-key-as-a-path-of-one-segment","query":"{} | put :a 1","expect":"{:a 1}"}
-{"decision":"D453","name":"put-refuses-a-key-missed-on-the-way-with-the-path","query":"{:a 1} | put /b/c 2 !| path","expect":"/b/c"}
+{"name":"put-refuses-a-key-missed-on-the-way-with-the-path","query":"{:a 1} | put /b/c 2 !| path","expect":"/b/c"}
 {"name":"put-refuses-an-index-past-the-end","query":"[1 2] | put /2 3 !| tag","expect":"::path/IndexOutOfBoundsError"}
 {"name":"update-lays-what-its-code-answers","query":"{:n 1} | update /n ~(add 1)","expect":"{:n 2}"}
 {"name":"update-takes-a-path-as-its-code","query":"{:a {:v 5}} | update /a /v","expect":"{:a 5}"}

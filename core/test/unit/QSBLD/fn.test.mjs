@@ -7,7 +7,7 @@ import { kindsNamedForCommands } from '../../../../scripts/catalog-kinds.mjs';
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 
 it('the value of `::vec/take` is its function, whose recipe is the descriptor of its primitive, and an input its selector', async () => {
-  expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{}');
+  expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{:of ::vec/take}');
   expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
 });
 

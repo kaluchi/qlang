@@ -8,19 +8,24 @@
 :builtin
   |~~ A builtin marks a verb a host answers by a primitive: the recipe of
       a function whose code the host hands, `::builtin{}`, where a verb
-      written in steps holds a quote.
+      written in steps holds a quote, into which the root writes the
+      address it takes the primitive under, `:of`:
       `::number/add | binding | get /value | get /1` answers
-      `::builtin{}`, and a kind of the core takes one, `| impl ::builtin{}`,
-      as its constructor, the one its host hands, which attaches the tag to
-      a payload or refuses it.
+      `::builtin{:of ::number/add}`. A kind of the core takes one,
+      `| impl ::builtin{}`, as its constructor, the one its host hands,
+      which attaches the tag to a payload or refuses it.
 
       It is a map under its tag and runs nothing by itself: a name that
       holds one reads it as data, and a call of the verb runs the
-      primitive its host handed, whose answer is a value of the language.
+      primitive its host handed, whose answer is a value of the language,
+      as a call of a function or a kind read back from its print does
+      where the root holds one equal to it at the address its `:of` names.
       ::link~(::qlang/hosts | doc)
   ~~|
   ::kind[~(wraps
-        |~~ A map, the descriptor, its fields flat under the tag. ~~|
+        |~~ A map, the descriptor, its fields flat under the tag, `:of` the
+            address the root took its primitive under.
+        ~~|
         ::map
     | throws :PayloadKindNotTakenError
         |~~ `::builtin` holds its fields as a map, `::builtin{}` the recipe
@@ -135,10 +140,15 @@
         |~~ An empty descriptor is a value like any other. ~~|
         ~(::builtin{} | :c it | get [1 2] | c | tag | eq ::builtin)
     | proves :endsAPrimitive
-        |~~ The recipe of a verb a host answers by a primitive is an empty
-            descriptor.
+        |~~ The recipe of a verb a host answers by a primitive is the
+            descriptor of its address.
         ~~|
-        ~(::number/add | binding | get /value | get /1 | eq ::builtin{})
+        ~(::number/add | binding | get /value | get /1 | eq ::builtin{:of ::number/add})
+    | proves :readsBackAsItsPrimitive
+        |~~ A function of a host read back from its print runs its
+            primitive.
+        ~~|
+        ~(::number/add | binding | get /value | print | parse | open | :g it | 5 | apply g [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
         ~(::builtin"hello" !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::string])

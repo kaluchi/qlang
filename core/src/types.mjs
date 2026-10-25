@@ -1,6 +1,7 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { declareDefect, CallKindsMismatchedError } from './errors.mjs';
 import { TAG_SIGIL } from './scope-keys.mjs';
+import { splitAddress } from './address.mjs';
 
 export const NULL = null;
 
@@ -324,6 +325,19 @@ export function isBuiltinDescriptor(v) {
   return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
+// [D448]
+export function builtinOf(value) {
+  const recipe = isFn(value) ? recipeOf(value) : isKind(value) ? constructorOf(value) : value;
+  return isBuiltinDescriptor(recipe) ? recipe : null;
+}
+
+const ADDRESS_OF_A_PRIMITIVE = 'of';
+
+export function addressNamedBy(descriptor) {
+  const address = isBuiltinDescriptor(descriptor) ? descriptor.get(ADDRESS_OF_A_PRIMITIVE) : undefined;
+  return isTag(address) ? address : undefined;
+}
+
 // [QSDSP#walk], [QSHST#source]
 const HANDED_PRIMITIVES = new WeakMap();
 
@@ -331,13 +345,15 @@ export function isPrimitiveHanded(descriptor) {
   return HANDED_PRIMITIVES.has(descriptor);
 }
 
-export function handedFor(descriptor, holder) {
+// [D448]
+export function handedFor(descriptor, holder, sameHolder = Object.is) {
   const handed = HANDED_PRIMITIVES.get(descriptor);
-  return handed?.holders.includes(holder) ? handed : undefined;
+  return handed?.holders.some(held => sameHolder(held, holder)) ? handed : undefined;
 }
 
-export function takePrimitive(descriptor, primitive, holders, labelName) {
-  HANDED_PRIMITIVES.set(descriptor, { primitive, holders, labelName });
+export function takePrimitive(descriptor, primitive, holders, address) {
+  descriptor.set(ADDRESS_OF_A_PRIMITIVE, makeTag(address));
+  HANDED_PRIMITIVES.set(descriptor, { primitive, holders, labelName: splitAddress(address)[0] });
 }
 
 // [QSERR#trace]

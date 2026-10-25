@@ -92,10 +92,17 @@
     | throws :RecipeMissingError
         |~~ A function runs the recipe it holds: a contract holds none, and
             a `::builtin{}` runs the primitive a host handed with the
-            function that holds it alone, so one written by a reader, read
-            back from a print or put into a function of its own runs
-            nothing. `impl` gives a function code, `| impl ~(add by)`.
+            function that holds it, or with the function equal to it the
+            root holds at the address its `:of` names, so a function of a
+            host read back from its print runs it, while one written by a
+            reader or put into a function of its own runs nothing. `impl`
+            gives a function code, `| impl ~(add by)`.
         ~~|
+    | carries :RecipeMissingError/of
+        |~~ The address the descriptor of the recipe names, where the root
+            holds no function equal to the one refused.
+        ~~|
+        ::tag
     | proves :isBuiltByCommands
         |~~ A function is built from the noun. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | tag | eq ::fn)
@@ -257,9 +264,9 @@
         ~(:number/c (::fn | takes :x |~~ x ~~| /0) | 5 | get [~(c 1 !| tag) ~(number/c 1 !| tag)] | eq [::fn/RecipeMissingError ::fn/RecipeMissingError])
     | proves :RecipeMissingError/refusesAPrimitivePutIntoAFunctionOfItsOwn
         |~~ The primitive of a verb put into a function of its own runs
-            nothing.
+            nothing, the refusal naming the address of the verb.
         ~~|
-        ~({:a 1} | apply (::fn | impl (::vec/first | binding | get /value | get /1)) [] !| tag | eq ::fn/RecipeMissingError)
+        ~({:a 1} | apply (::fn | impl (::vec/first | binding | get /value | get /1)) [] !| get [~(tag) /of] | eq [::fn/RecipeMissingError ::vec/first])
     | tells :call
         |~~ The call of a function `apply` runs or whose inputs `fill`
             reads, which no verb names: a refusal of its subject, its

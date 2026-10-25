@@ -226,10 +226,17 @@ export function residenceOnSubject(scope, verbName, subject) {
   if (subject !== undefined) {
     for (const kindName of kindsOfWalk(subject)) {
       const record = residenceOf(scope, kindName, verbName);
-      if (record !== null) return record;
+      if (record !== null && !passesTheTagName(scope, record, kindName, subject, verbName)) return record;
     }
   }
   return residenceOf(scope, ANY_KIND_NAME, verbName);
+}
+
+// [QSDSP#tagname]
+function passesTheTagName(scope, record, kindName, subject, verbName) {
+  if (!isTag(subject) || kindName !== subject.name || residenceOf(scope, ANY_KIND_NAME, verbName) === null) return false;
+  const value = bindingValueOf(record);
+  return isVerbValue(value) && !(chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? []).includes(CORE_KIND.tag.name);
 }
 
 // [QSNAM#reach]

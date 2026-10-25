@@ -100,11 +100,9 @@ cell.defect;              // what was raised past the fail track, else null
   value, scope)` writes a value as the language prints it, the print a
   kind declares among it and a failure under the line that says it was
   raised. `printValue(value)` writes the literal of a value, which
-  `evalQuery` reads back; the literal is the one lossless form. `caretOf(answer)`
-  answers, for a refusal of a text, the line its `:source` holds within
-  an excerpt around the column its `:location` names and a caret under
-  that column, the two line comments a host that prints for a person's
-  eye writes below the refusal, and null for any other answer. `toPlain` and
+  `evalQuery` reads back; the literal is the one lossless form. A refusal
+  of a text holds its caret beneath its line, `:marker` under `:source`,
+  so a host prints it as any failure. `toPlain` and
   `fromPlain` cross the JSON boundary, losing the kinds JSON has no form
   for.
 - `parseSource(source)` answers the quote of the steps the text writes, the

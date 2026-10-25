@@ -3,7 +3,7 @@
 
 :link
   |~~ A link is a query a page names for its reader to follow to another
-      page, written in the prose of a doc as a quote under this tag,
+      page: written in the prose of a doc as a quote under this tag,
       `::link~(::vec | doc)`. Links make the pages a hypertext: a page
       names the pages that go deeper, and `open` runs the query a link
       holds, so `::vec | doc | links | map ~open` answers the pages the

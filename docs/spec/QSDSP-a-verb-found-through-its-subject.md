@@ -230,7 +230,10 @@ subject; a fan-out over the noun is a template of `get` whose quotes run
 against the tag name. A verb of the noun itself, whose function names
 `::tag` by `on`, serves the noun's values and the noun's own tag name,
 and refuses every other tag name, one under the noun among them; a verb
-of the noun's values refuses a tag name under the verb; and a function
+of the noun's values passes a tag name to the verb of its name on `::any`
+where one lives, `::Box | print` printing `::Box` where `:Box/print`
+prints the values of `::Box`, and refuses it under the verb where none
+does; and a function
 `apply` runs, which has no label, serves any tag name where its `on`
 names `::tag`. The commands of a chain, `on`, `takes`, `accepts`, `wires`
 and the rest, are verbs of `::fn` and of `::kind`, so a tag of another

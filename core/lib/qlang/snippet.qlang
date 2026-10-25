@@ -3,8 +3,8 @@
    The rules it holds: [QSDSP#residence], [QSSLF#doc]. ~|
 
 :snippet
-  |~~ A snippet is a query a page shows its reader to run and see,
-      written in the prose of a doc as a quote under this tag:
+  |~~ A snippet is a query a page shows its reader to run and see:
+      written in the prose of a doc as a quote under this tag,
       ::snippet~(::vec | manifest) lists the verbs of vectors, and
       ::snippet~({:a [5 6]} | get /a/-1) shows a path read. `open`
       runs it, and `snippets` reads the snippets of a doc.

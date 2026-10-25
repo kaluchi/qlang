@@ -35,12 +35,11 @@ and snippets as the code they run, a refusal with no page of its own
 reading the page of what refused; an error of the kind of errors, which
 no site refused, and one whose tag no declaration names are written
 without a page, and the REPL prints its cells without it. A query that
-does not parse answers `::quote/ParseError`, the line
-the reading stopped in, within an excerpt around the point its
-`:location` names, and a caret under that point drawn below the alert
-[QSERR#print], and a JSON text of standard input that `parseJson`
-refuses is the failure the query starts from, which its steps pass by
-[QSCLI#stdin].
+does not parse answers `::quote/ParseError`, its caret beneath the line
+the reading stopped in, `:marker` under `:source` [QSSYN#refusal], and
+nothing drawn below its alert but the page; a JSON text of standard
+input that `parseJson` refuses is the failure the query starts from,
+which its steps pass by [QSCLI#stdin].
 
 Standard error and a nonzero code are for what is no answer: a defect
 raised past the fail track is written as `qlang:` and its message with

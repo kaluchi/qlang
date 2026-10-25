@@ -4,8 +4,8 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :tagged
-  |~~ A value under a tag is a payload read by the kind its tag names,
-      `::Box[1 2]`, `::Box{:a 1}`, `::Box#5`, `::Box"s"`: the tag says
+  |~~ A value under a tag is a payload read by the kind its tag names:
+      `::Box[1 2]`, `::Box{:a 1}`, `::Box#5`, `::Box"s"`; the tag says
       how to read the data beneath, and the data keeps its shape, so the
       verbs of the payload's kind still serve it, `::Box[1 2] | count`
       answering `2`. Tags stack and read from the outside in,

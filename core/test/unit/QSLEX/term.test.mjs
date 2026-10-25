@@ -58,14 +58,15 @@ it('refuses the names a refusal, a conversion, an empty subject, the repair of a
   for (const text of [
     '::keyword/toTag/NameNotNameError', 'StringToTagTextNotNameError', '::vec/toPath/EmptyError', 'VecToPathEmptyError', ':EmptyError/refusesTheEmptyVector',
     ':KindAnswersNoVerbError/namesTheReadOfAPath', ':read/namesAWrittenPathAlone', 'withReadOfPath', 'readOfPathSubject', 'readOfRefusedPath',
-    'carries :ParseError/marker', 'excerptAroundLocation', 'the identifier start', 'a char-class', 'end-of-input', 'classKeyword', 'findIdentifierOccurrences',
+    'caretOf', 'excerptAroundLocation', 'the identifier start', 'a char-class', 'end-of-input', 'classKeyword', 'findIdentifierOccurrences',
     'an opened error', 'opened failures', 'AnOpenedError', ':readsAnErrorOnceOpened', ':opensAFailureToItsFacts'
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the refusals written instead, the read of an elision, a bracket opened and the scope a call opens', () => {
+it('leaves the refusals written instead, the read of an elision, the caret beneath a refused line, a bracket opened and the scope a call opens', () => {
   for (const text of [
     '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':repair/namesAWrittenPathAlone', 'the read of an elision', '`:read` continues the query to it',
+    'the `:marker` beneath the `:source`', 'carries :ParseError/marker', 'markedLineOf',
     'a valid identifier', 'IdentStart', ':end-of-source', 'findNameOccurrences', '`[` opened at line 1, column 1 is never closed', 'the scope a call opens',
     '`open` runs a quote, a link or a snippet', 'the error at rest a catch holds'
   ]) expect(refused(text), text).toBe(false);

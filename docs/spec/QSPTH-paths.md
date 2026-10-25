@@ -81,7 +81,7 @@ reads as any value.
 [[#[:actualTag :path :segment :trace] ::number] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
-[[::path/TagClosedError #[:end :start] ~(start | line)] 1]
+[[::path/TagClosedError #[:end :endColumn :endLine :endOffset :start :startColumn :startLine :startOffset] ~(start | line)] 1]
 ```
 
 ## query

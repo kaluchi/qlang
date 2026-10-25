@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue, tagOf, makeErrorValue } from '../types.mjs';
-import { elideToBudget, alertWithin, headOfAnswer, lengthOf, EXCERPT_CHARACTERS, ANSWER_BUDGET } from '../elide.mjs';
+import { elideToBudget, alertWithin, headOfAnswer, lengthOf, ANSWER_BUDGET } from '../elide.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { kindOfAValueOf, nodeOf, residenceOnSubject } from '../nouns.mjs';
@@ -38,25 +38,6 @@ export async function boundAnswer(answer, scope, written = null) {
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
-
-// [QSERR#print]
-export function caretOf(answer) {
-  if (!isErrorValue(answer) || answer.tag.name !== 'quote/ParseError') return null;
-  const source = answer.facts.get('source');
-  const location = answer.facts.get('location');
-  if (typeof source !== 'string' || source.includes('\n') || tagOf(location).name !== 'span') return null;
-  const [, startLine, startColumn, , endLine, endColumn] = location;
-  const characters = Array.from(source);
-  const pastTheLine = characters.length + 1;
-  if (startColumn < 1 || startColumn > pastTheLine) return null;
-  const end = endLine === startLine ? Math.min(endColumn, pastTheLine) : pastTheLine;
-  const from = Math.max(0, Math.min(startColumn - 1 - EXCERPT_CHARACTERS / 2, characters.length - EXCERPT_CHARACTERS));
-  const to = Math.min(characters.length, from + EXCERPT_CHARACTERS);
-  const before = from > 0 ? '…' : '';
-  const line = `${before}${characters.slice(from, to).join('')}${to < characters.length ? '…' : ''}`;
-  const reach = Math.max(1, Math.min(end, to + 1) - startColumn);
-  return `|~| ${line}\n|~| ${' '.repeat(startColumn - 1 - from + before.length)}^${'~'.repeat(reach - 1)}`;
-}
 
 async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKind) {
   if (!isErrorValue(part)) {

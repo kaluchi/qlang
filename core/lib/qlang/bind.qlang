@@ -3,8 +3,8 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :bind
-  |~~ A declaration, `:name body`, names a value for the steps after it,
-      writing its `::binding` into the scope where it stands:
+  |~~ A declaration, `:name body`, names a value for the steps after it;
+      it writes its `::binding` into the scope where it stands:
       `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
       record for a later step and answers `6`. The value in the pipe
       passes on unchanged; a group and a quote a verb runs each close the

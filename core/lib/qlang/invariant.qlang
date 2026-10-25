@@ -4,7 +4,7 @@
    The rules it holds: [QSDSP#residence], [QSBLD#fn]. ~|
 
 :invariant
-  |~~ An invariant is a query the values of a kind keep, a quote under
+  |~~ An invariant is a query the values of a kind keep: a quote under
       this tag, written by `holds` in the chain that builds the kind or
       the function it guards, as a law is a quote under `::law` that
       `proves` writes, and laid under the name of the refusal of a value

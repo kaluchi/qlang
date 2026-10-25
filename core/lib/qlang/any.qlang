@@ -514,58 +514,54 @@
     | impl ::builtin{}
 
 :any/legend
-  |~~ Answers the print of the subject laid out by its kind, each part the
-      kind reads by a key or an index of its payload on a line of its own
-      beside a comment, the gloss of its page and the name that reads it:
-      `::point[0 1 2] | legend` lays the line `1` out beside
-      `|~| The line of the point, counted from one · line`. The gloss is
+  |~~ Answers the legend of the subject, a `::legend`, which a host prints
+      as the print of the subject laid out by its kind, each part the kind
+      reads by a key or an index of its payload on a line of its own beside
+      the gloss of its page, and a part at an index beside its name too,
+      which its print does not write: `::point[0 1 2] | legend` lays the
+      line `1` out beside
+      `|~ The line of the point, counted from one · line ~|`. The gloss is
       the words a page opens with, before the first colon, semicolon or
       period its prose ends a clause with, on one line; the head stands
-      beside the gloss of the page `doc` reads of the subject and `doc`,
-      which reads it whole; a part the kind computes, by code or a longer
-      path, is told in a comment after the value, its name, its print and
-      its gloss; and
-      `| legend` after the name of a part that wires parts of its own reads
-      its legend in turn, `"~{" | parse !| location | legend`. A value of a
-      kind that wires nothing stands on one line beside its gloss. Every
-      comment is whitespace, so the text reads back as the subject: the
-      command line prints it as itself, and `| out` writes it so in the
-      REPL, as `print | out` does.
-      ::link~(::any/print | doc) ::link~(::kind/wires | doc)
+      beside the gloss of the page `doc` reads of the subject; a part the
+      kind computes, by code or a longer path, stands in no legend,
+      `manifest` naming it and `doc` reading its page; and a part
+      read by its name answers its own legend in turn,
+      `"~{" | parse !| location | legend`. A value of a kind that wires
+      nothing stands on one line beside its gloss, and a container that
+      holds legends lays each on a line of its own. Every comment is
+      closed, `|~ … ~|`, and whitespace, so the text read back is the
+      subject, `print` answering the text and `payload` the subject.
+      ::link~(::legend | doc) ::link~(::kind/wires | doc)
   ~~|
   ::fn
-    | returns |~~ The print of the subject with the gloss of each part. ~~| ::string
+    | returns |~~ The legend of the subject. ~~| ::legend
     | throws :ArgsBeyondInputsError
         |~~ `legend` lays the whole subject out and takes no value: a part is
             read first by its name, `!| location | legend`.
         ~~|
-    | proves :glossesEachPartItsKindWires
-        |~~ A part its kind wires stands beside the gloss of its page and the
-            name that reads it.
-        ~~|
-        ~(::point[0 1 2] | legend | lines | get /2 | contains "|~| The line of the point, counted from one · line")
     | proves :glossesTheHeadByThePageDocReads
         |~~ The head stands beside the gloss of the page `doc` reads of the
             subject.
         ~~|
-        ~(::point[0 1 2] | legend | lines | first | contains "|~| A point is where a span of source text starts or ends · doc")
-    | proves :tellsAPartItComputesAfterTheValue
-        |~~ A part the kind computes is told after the value, its name, its
-            print and its gloss, and its own legend named.
+        ~(::point[0 1 2] | legend | print | lines | first | contains "|~ A point is where a span of source text starts or ends ~|")
+    | proves :glossesEachNumberOfASpanAtItsPlace
+        |~~ A number of a span stands beside the gloss and the name of the
+            part its index reads.
         ~~|
-        ~(::span[0 1 1 4 1 5] | legend | lines | get /1 | startsWith "|~| start ::point[0 1 1] · The point the span starts at")
+        ~(::span[0 1 1 4 1 5] | legend | print | lines | get /2 | contains "|~ The line of the start, counted from one · startLine ~|")
     | proves :readsBackAsTheSubject
-        |~~ The legend reads back as the value it tells. ~~|
-        ~("~{" | parse !| :e it | legend | parse | open | eq e)
+        |~~ The print of the legend reads back as the value it tells. ~~|
+        ~("~{" | parse !| :e it | legend | print | parse | open | eq e)
     | proves :standsOnOneLineForAKindThatWiresNothing
         |~~ A value of a kind that wires nothing stands on one line beside the
             gloss of its kind.
         ~~|
-        ~({:a 1} | legend | lines | count | eq 1)
+        ~({:a 1} | legend | print | lines | count | eq 1)
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ~(tag ::legend)
 
 :any/elide
   |~~ Answers the subject within a budget of characters of its print,

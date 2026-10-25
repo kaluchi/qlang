@@ -4,7 +4,7 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :construct
-  |~~ The step that puts a payload under a tag, `::T[…]`, `::T{…}`,
+  |~~ The step that puts a payload under a tag: `::T[…]`, `::T{…}`,
       `::T"…"`, or a number, a boolean, null or a path by `#`, `::T#5`,
       through the tag's kind, which attaches the tag or refuses the
       payload.

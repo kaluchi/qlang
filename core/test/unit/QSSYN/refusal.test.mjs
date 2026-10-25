@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
+import { printValue } from '../../../src/print-value.mjs';
+import { EXCERPT_CHARACTERS } from '../../../src/elide.mjs';
 
 describe('what a refusal of the parser says', () => {
   it('lists no class of characters among the continuations of a refusal', () => {
@@ -32,6 +35,45 @@ describe('what a refusal of the parser says', () => {
       expect(e).toBeInstanceOf(SourceParseError);
       expect(e.uri).toBe('cell-7');
     }
+  });
+});
+
+describe('the `:marker` beneath the `:source` of a refusal of a parse', () => {
+  const markedOf = async query => {
+    const refused = await evalQuery(query);
+    return [refused.facts.get('source'), refused.facts.get('marker')];
+  };
+  const columnsOf = async query => {
+    const [source, marker] = (await markedOf(query)).map(text => printValue(text));
+    return { source, marker };
+  };
+
+  it('puts a caret under the character where the reading stopped and a tilde under each other of its span, spaces to the end of the line', async () => {
+    expect(await markedOf('[mul(2) add(1)]')).toEqual(['[mul(2) add(1)]', '    ^~~        ']);
+  });
+
+  it('puts one caret past the line where the reading stopped at its end', async () => {
+    expect(await markedOf('[1 2')).toEqual(['[1 2', '    ^']);
+  });
+
+  it('runs the tildes to the end of the line for a span that runs past it', async () => {
+    expect(await markedOf('[1 2 (3 | add 1)\n]')).toEqual(['[1 2 (3 | add 1)', '^~~~~~~~~~~~~~~~']);
+  });
+
+  it('counts each character as its print writes it, so the caret stands under an escaped quote in the print', async () => {
+    const { source, marker } = await columnsOf('{"a": 1 "b": 2}');
+    expect([source, marker]).toEqual(['"{\\"a\\": 1 \\"b\\": 2}"', '"          ^~       "']);
+  });
+
+  it('cuts a line past the excerpt of an alert around the point by an ellipsis on each side it cuts, the two printing within the excerpt in one column', async () => {
+    const { source, marker } = await columnsOf(`"${'x'.repeat(500)}" | add(1)(2) | "${'y'.repeat(500)}"`);
+    expect([source.startsWith('"…x'), source.endsWith('y…"'), source.length, marker.length]).toEqual([true, true, EXCERPT_CHARACTERS - 1, EXCERPT_CHARACTERS - 1]);
+    expect(marker.indexOf('^~~')).toBe(source.indexOf('(2)'));
+  });
+
+  it('cuts a line on the side away from a point at its end, the caret past it under the closing quote', async () => {
+    const { source, marker } = await columnsOf(`[${'1 '.repeat(200)}`);
+    expect([source.startsWith('"…'), source.endsWith('1 "'), marker.indexOf('^'), marker.length]).toEqual([true, true, source.length - 1, source.length + 1]);
   });
 });
 

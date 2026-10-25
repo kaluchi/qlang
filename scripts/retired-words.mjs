@@ -57,7 +57,7 @@ export const RETIRED_WORDS = [
   { regex: /(?:NameNotName|TextNotName)Error\b/, written: 'the refusal of `toTag` by the part of its subject and the kind it does not become, `::keyword/toTag/NameNotTagError` and `::string/toTag/TextNotTagError`', by: 'D360' },
   { regex: /\btoPath\/EmptyError\b|\bVecToPathEmptyError\b|:EmptyError\/refusesTheEmptyVector\b/, written: 'the refusal of an empty subject, `::vec/toPath/SubjectEmptyError`', by: 'D360' },
   { regex: /namesTheReadOfAPath\b|:read\/namesAWrittenPathAlone\b|\b(?:withReadOfPath|readOfPathSubject|readOfRefusedPath)\b/, written: 'the step a call was likely meant as where a path stands instead of the value it names, the fact `:repair`, an elision keeping its `:read`', by: 'D360' },
-  { regex: /:marker\b|\/marker\b|\bexcerptAroundLocation\b/, written: 'where the reading of a text stopped, `:location`, under which a host that prints for a person\'s eye draws the caret', by: 'D360' },
+  { regex: /\bexcerptAroundLocation\b/, written: 'the line where the reading of a text stopped, `:source`, and the caret beneath it, `:marker`, which `markedLineOf` writes', by: 'D360' },
   { regex: /\bidentifier[\s-]+(?:start|continue)\b|\bchar-class\b|\bend-of-input\b|\bclassKeyword\b/i, written: 'a continuation in the words of the language, a name, the letters of a name, whitespace, a doc, the end of the source, a character by what it reads', by: 'D360' },
   { regex: /\bfindIdentifierOccurrences\b/, written: 'the occurrences of a name the walk of the editor finds, `findNameOccurrences`', by: 'D360' },
   { regex: /\bopened[\s-]+(?:errors?|failures?)\b|AnOpened(?:Error|Failure)|OnceOpened\b|\bopensAFailure/i, written: 'the error at rest a catch holds, `open` the verb that runs a quote, a link or a snippet', by: 'D360' },
@@ -98,7 +98,7 @@ export const RETIRED_WORDS = [
   { regex: /\bmov(?:e|es|ed|ing)[\s-]+(?:of[\s-]+)?the[\s-]+baselines?\b|\bbaselines?[\s-]+mov(?:e|es|ed|ing)\b/i, written: 'the closeout of a stint, its records dissolved, its chapters written and its branch landed', by: 'D429' },
   { regex: /\bwalk(?:s|ed)?[\s-]+(?:of[\s-]+)?(?:the|a)[\s-]+baselines?\b|\bbaseline[\s-]+walk\b|\bwalkOfBaseline\b/i, written: 'the reconciliation of the tree with its baseline, `scripts/reconciliation.mjs`', by: 'D429' },
   { regex: /\bcreateSession\b/, written: 'the notebook of a host, `createNotebook`', by: 'D431' },
-  { regex: /\b[mM]arkers?\b|(?<=[a-z])Markers?\b/, written: 'the opener or the closer of a comment or a doc, the start or the end sequence of a paste, the bounds of a fold, the words of unfinished work, and an elision of a view, `::elision`', by: 'D433' },
+  { regex: /(?<![:/])\b[mM]arkers?\b|(?<=[a-z])Markers?\b/, written: 'the opener or the closer of a comment or a doc, the start or the end sequence of a paste, the bounds of a fold, the words of unfinished work, an elision of a view, `::elision`, and the caret beneath the line of a refusal of a parse, its fact `:marker`', by: 'D433' },
   { regex: /\bwalk\.mjs\b|\bwalkParts\b|\bwalkSourceTree\b|\bwalkRefusalScanRoots\b|\bwalks?[\s-]+of[\s-]+the[\s-]+door\b/, written: 'the parts the parser keeps, `core/src/parsed-parts.mjs` and `forEachPart`, the scan of the door, and the files a script lists, `sourceFilesUnder` and `refusalScanFiles`, walk naming the walk of the tags of a value alone', by: 'D436' },
   { regex: /::(?:fn|kind)\/[a-z]+\/objects\b|\bobjectNotTaken\b/, written: 'what a command of a chain takes, its modifiers as written, the input `modifiers` of its verb, `modifierNotTaken`', by: 'D440' },
   { regex: /\btypeOf\b/, written: 'the tag of a value, the tag `tag` answers, `tagOf`', by: 'D442' },
@@ -106,4 +106,5 @@ export const RETIRED_WORDS = [
   { regex: /`wraps`|\|\s*wraps\b|\bkind\/wraps\b/, written: 'the payload a kind accepts, the command `accepts`', by: 'D450' },
   { regex: /`reads`|\|\s*reads\s+:|\bkind\/reads\b/, written: 'a part of a payload a kind wires, the command `wires`', by: 'D450' },
   { regex: /`explain`|\|\s*explain\b|\bany\/explain\b|::explanation\b/, written: 'the page of a value, of an error at rest the page of the refusal it carries, `doc`', by: 'D452' },
+  { regex: /\bcaretOf\b/, written: 'the caret a refusal of a parse holds beneath its line, the fact `:marker`, which a host prints as any fact', by: 'D460' },
 ];

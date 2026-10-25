@@ -92,17 +92,29 @@
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~|)
     | throws :ParseError
-        |~~ The source does not read as qlang: `:location` names where the
-            reading stopped, its line and column read by `line` and
-            `column` of its `start`, `:message` names the habit a form of
+        |~~ The source does not read as qlang: `:marker` puts a caret
+            beneath `:source` under the character where the reading
+            stopped, `:location` names that span, its line and column read
+            by `line` and `column` of its `start`, `:message` names the habit a form of
             another language wrote, and where none does `:expected` lists
             what could stand there and a source cut short names the bracket
             it left open.
             ::link~(::quote | doc) ::link~(::span | doc)
         ~~|
         ~(wires :source
-              |~~ The line of the text where the reading stopped. ~~|
+              |~~ The line of the text where the reading stopped, cut around
+                  that point by an ellipsis where its print would pass the
+                  excerpt of an alert.
+              ~~|
               ~(query /source) #[::null ::string]
+          | wires :marker
+              |~~ A caret under the character of `:source` where the reading
+                  stopped and a tilde under each other character of its span
+                  there, spaces before them and after them to the end of
+                  `:source`, each character counted as its print writes it,
+                  so the two print in one column.
+              ~~|
+              ~(query /marker) #[::null ::string]
           | wires :message
               |~~ What the grammar says where the reading stopped, a bracket
                   left open among it.
@@ -190,6 +202,18 @@
             reading stopped, under the line `:source` holds.
         ~~|
         ~("[1 2" | parse !| get [~(source) ~(location | start | get [~(line) ~(column)])] | eq ["[1 2" [1 5]])
+    | proves :ParseError/putsACaretBeneathTheLine
+        |~~ `:marker` puts a caret under the character of `:source` where
+            the reading stopped and a tilde under each other of its span,
+            spaces to the end of the line.
+        ~~|
+        ~("[mul(2) add(1)]" | parse !| get [~(source) ~(marker)] | eq ["[mul(2) add(1)]" "    ^~~        "])
+    | proves :ParseError/countsEachCharacterAsItPrints
+        |~~ A quote, which a string prints escaped, counts two characters
+            before the caret, so it stands under its character in the
+            print.
+        ~~|
+        ~("{\"a\": 1 \"b\": 2}" | parse !| marker | eq "          ^~       ")
     | proves :ParseError/namesTheContinuationsInTheWordsOfTheLanguage
         |~~ A continuation is the text of a literal or a part of the grammar
             named in the words of the language.

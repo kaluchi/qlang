@@ -28,5 +28,5 @@
 {"name":"round-refuses-a-fraction-of-digits","query":"1.5 | round 0.5 !| tag","expect":"::number/round/digits/NotIntegerError"}
 {"name":"range-of-zero-and-below-is-empty","query":"get [~(0 | range) ~(-2 | range)]","expect":"[[] []]"}
 {"name":"a-step-works-beneath-the-tag-its-operands-share-a-bare-value-taking-any","query":"get [~(::Cents#100 | add 1) ~(100 | add ::Cents#1) ~(::Cents#100 | add ::Cents#1) ~(::Cents#100 | mul 2)]","expect":"[::Cents#101 ::Cents#101 ::Cents#101 ::Cents#200]"}
-{"name":"numbers-under-two-tags-combine-in-no-step","query":"::Cents#100 | add ::Dollars#1 !| get [~(tag) /leftTag /rightTag]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars]"}
+{"name":"numbers-under-two-tags-combine-in-no-step","query":"::Cents#100 | add ::Dollars#1 !| get [~(tag) ~(leftTag) ~(rightTag)]","expect":"[::call/KindsMismatchedError ::Cents ::Dollars]"}
 {"name":"add-without-its-addend-is-refused-under-its-input","query":"5 | add !| tag","expect":"::number/add/addend/NotGivenError"}

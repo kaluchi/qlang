@@ -6,7 +6,7 @@
 {"name":"if-runs-else-when-the-condition-does-not-hold","query":"5 | if (gte 60) ~(\"pass\") ~(\"fail\")","expect":"\"fail\""}
 {"name":"if-runs-then-for-the-condition-true","query":"42 | if true ~(\"yes\") ~(\"no\")","expect":"\"yes\""}
 {"name":"if-runs-else-for-the-condition-false","query":"42 | if false ~(\"yes\") ~(\"no\")","expect":"\"no\""}
-{"name":"a-null-condition-is-refused","query":"{:no \"data\"} | if null ~(\"yes\") ~(\"no\") !| get [~(tag) /actualTag]","expect":"[::any/if/condition/KindNotTakenError ::null]"}
+{"name":"a-null-condition-is-refused","query":"{:no \"data\"} | if null ~(\"yes\") ~(\"no\") !| get [~(tag) ~(actualTag)]","expect":"[::any/if/condition/KindNotTakenError ::null]"}
 {"name":"if-reads-zero-by-a-comparison","query":"5 | if (eq 0) ~(\"is-zero\") ~(\"non-zero\")","expect":"\"non-zero\""}
 {"name":"if-reads-the-empty-string-by-a-comparison","query":"\"\" | if (eq \"\") ~(\"empty\") ~(\"non\")","expect":"\"empty\""}
 {"name":"if-reads-the-empty-vector-by-empty","query":"[] | if (empty | not) ~(\"non-empty\") ~(\"empty\")","expect":"\"empty\""}
@@ -45,10 +45,10 @@
 {"name":"cond-answers-as-ifs-nested-in-their-else-branches-do","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 70) ~(\"B\") ~(\"C\") | eq (75 | if (gte 90) ~(\"A\") ~(if (gte 70) ~(\"B\") ~(\"C\")))","expect":"true"}
 {"name":"coalesce-in-a-branch-chosen-by-a-boolean-field-reads-the-subject","query":"{:active true :name \"Bob\"} | if (get /active) ~(coalesce /preferredName /name ~(\"???\")) ~(\"inactive\")","expect":"\"Bob\""}
 {"name":"if-resides-on-any","query":"\"x\" | if true ~(1) ~(2)","expect":"1"}
-{"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| get [~(tag) /index /actualTag]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0 ::boolean]"}
+{"name":"a-clause-of-another-kind-names-its-index","query":"5 | cond true ~(\"yes\") !| get [~(tag) ~(index) ~(actualTag)]","expect":"[::any/cond/clauses/ElementKindNotTakenError 0 ::boolean]"}
 {"name":"if-refuses-a-missing-branch","query":"true | if true ~(1) !| tag","expect":"::any/if/else/NotGivenError"}
 {"name":"a-branch-written-as-a-path-reads-the-subject","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
 {"name":"a-default-of-cond-written-as-a-path-reads-the-subject","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
-{"name":"a-condition-of-cond-is-named-by-its-index-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(tag) /index]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(tag) /index])]","expect":"[[::any/cond/ConditionKindNotTakenError 0] [::any/cond/ConditionKindNotTakenError 2]]"}
+{"name":"a-condition-of-cond-is-named-by-its-index-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(tag) ~(index)]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(tag) ~(index)])]","expect":"[[::any/cond/ConditionKindNotTakenError 0] [::any/cond/ConditionKindNotTakenError 2]]"}
 {"name":"a-branch-that-is-no-code-is-refused","query":"5 | if true 1 2 !| tag","expect":"::any/if/then/KindNotTakenError"}

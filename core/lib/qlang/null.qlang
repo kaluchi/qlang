@@ -30,7 +30,7 @@
         ~(::null#null | eq null)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null#1 !| get [~(tag) /actualTag] | eq [::null/PayloadKindNotTakenError ::number])
+        ~(::null#1 !| get [~(tag) ~(actualTag)] | eq [::null/PayloadKindNotTakenError ::number])
 
 :null/toString
   |~~ Answers `"null"`, the text `print` and `json` write for null, as

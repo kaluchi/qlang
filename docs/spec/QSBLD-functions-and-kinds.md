@@ -15,7 +15,7 @@ its recipe. It is built from the noun by a chain, each command a verb of
 is named by the noun of the thing, no kind of the catalog bearing the
 name of a command of a chain: `on` names its subject, its page and its
 kinds, `takes` writes an input, `returns` the answer, `throws` a
-refusal, `carries` a fact, `holds` an invariant of the subject, an input
+refusal and the facts it carries, `holds` an invariant of the subject, an input
 or the answer, a quote under `::invariant`, `proves` a law, a quote under
 `::law`, and `impl` gives it its recipe, code or a host's
 `::builtin{}`, and answers the function it builds, `::fn | impl ~(add 1)`
@@ -38,10 +38,18 @@ out. A refusal and an invariant written with a path stand under the
 subject, an input taken before it or the answer, an invariant always
 written so, `::fn/NameUnderNoInputError` refusing one under none, and the
 chain lays the subject and the answer where a name stands under them,
-with no page where no command writes one; a fact, always written with a
-path, and a law with a path stand under a name declared before them, a
-refusal among them, `::fn/FactUnderNoNameError` and
-`::fn/LawUnderNoNameError` refusing one under none.
+with no page where no command writes one; a law with a path stands under
+a name declared before it, a refusal among them, `::fn/LawUnderNoNameError`
+refusing one under none. The facts a refusal carries are the commands of
+the kind of the refusal, the quote `throws` writes after its page,
+`throws :TooBigError |~~ … ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
+each `wires` a fact read by the key of its name and one carried at times
+by `query`; `throws` builds the kind of them, its payload the `::error`
+the refusal raises and its wiring ending with `trace`, a payload or a
+`trace` the quote writes refused as `::kind/NameDeclaredTwiceError`, and
+a refusal a rule of the chain lays carries the facts of the family of its
+rule [QSERR#site]. The quote, no kind, stands in the commands, so the
+literal of the function reads back as itself.
 
 A verb serves the values of its label and of the kinds `on` names, of
 tag names the noun's own alone [QSDSP#tagname], refusing any other
@@ -81,7 +89,7 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [/command /index /actualValue]) ~(-5 | apply (::fn | holds :subject/NotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(actualValue)]) ~(-5 | apply (::fn | holds :subject/NotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
 [::fn[~() ~(add 1)] [~(takes 5 |~~ x ~~| /0) 0 5] ::fn/call/subject/NotAboveZeroError]
 
 > get [~(::fn[[] ~(1)] !| tag) ~(::fn | returns |~~ A. ~~| #[] !| tag) ~(::fn | takes :null |~~ w ~~| /0 !| tag)]
@@ -90,8 +98,11 @@ map of its name, its page, its selector and its kinds as written.
 > 5 | apply ~(add 1) [3] !| tag
 ::any/apply/args/NotTakenError
 
-> kinds | inter #[::accepts ::carries ::holds ::impl ::on ::proves ::returns ::takes ::tells ::throws ::wires]
+> kinds | inter #[::accepts ::holds ::impl ::on ::proves ::returns ::takes ::tells ::throws ::wires]
 #[]
+
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number) | impl ~(add by)) | get [~(::number/plus/TooBigError!{:bound 3} | bound) ~(::fn | throws :E |~~ e ~~| ~(accepts |~~ p ~~| ::map) !| tag) ~(::number/plus | binding | value | print | parse | open | eq (::number/plus | binding | value))]
+[3 ::kind/NameDeclaredTwiceError true]
 ```
 
 ## input
@@ -142,7 +153,7 @@ and an element of none as `…/ElementKindNotTakenError` with its
 > :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| tag) ~(5 | apply m [[1 "a"]] !| get [~(tag) /index])]
 [::fn/call/xs/KindNotTakenError [::fn/call/xs/ElementKindNotTakenError 1]]
 
-> 1 | add 1 2 !| get /actualValue
+> 1 | add 1 2 !| actualValue
 ::number/add[1 2]
 
 > :vec/it ~(99) | :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)) | :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)) | :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)) | 5 | get [~(w 1 2) ~(a) ~(a 2)]
@@ -216,7 +227,8 @@ takes none, `wires` a part of the payload, its name, its page, its
 selector over the payload and its kinds, `tells` a page of the kind on a
 name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
-refusal, `carries` a fact, `proves` a law, a quote under `::law`, and
+refusal and the facts it carries, as `::fn/throws` writes them, `proves` a
+law, a quote under `::law`, and
 `impl` its constructor, a `::builtin{}`, another value refused as
 `::kind/ConstructorKindNotTakenError` as the literal refuses it; a command
 written after `impl` joins the others. The slot of a kind holds
@@ -241,11 +253,11 @@ the chain written with modifiers its rules do not take is refused as
 `::fn/CommandNotTakenError`, the name of a field and of a page of one
 segment, neither `payload` nor a word of a literal; a
 refusal or an invariant written with a path stands under a field read
-before it, and a law or a fact under a name declared before it,
-`NameUnderNoFieldError`, `LawUnderNoNameError` and
-`FactUnderNoNameError` refusing one under none; a fact written with no
-path is a fact of the payload, as the kind of errors names the facts
-every error may carry. A kind prints as its literal, the chain folded
+before it, and a law under a name declared before it,
+`NameUnderNoFieldError` and `LawUnderNoNameError` refusing one under
+none. A part written with no selector reads the key of its name in the
+payload, `wires :w |~~ The width. ~~| ::number`, as a fact of a refusal
+does. A kind prints as its literal, the chain folded
 into a quote and its constructor or null after it, which the constructor
 of `::kind` reads back, a payload that is no pair of the quote of a
 chain and a constructor refused as `::kind/PayloadNotPairError`.
@@ -300,25 +312,25 @@ wires no part stays open, its tag passing the words of its payload,
 > :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | tag) ~(::Box{} !| tag) ~(::Box{:w "x"} !| tag) ~(::Box{:w 20} !| tag)]
 [::Box ::Box/w/NotGivenError ::Box/w/KindNotTakenError ::Box/TooWideError]
 
-> :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| keys
+> :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| payload | keys
 #[:actualTag :actualValue :trace]
 
-> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| get /actualValue)]
+> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| actualValue)]
 [[1 2] ::Sorted[2 1]]
 
-> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number) | get [~(::W#5 | tag ::Pos !| get [~(tag) /actualTag]) ~(::W#5 | payload | tag ::Pos)]
+> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number) | get [~(::W#5 | tag ::Pos !| get [~(tag) ~(actualTag)]) ~(::W#5 | payload | tag ::Pos)]
 [[::Pos/PayloadKindNotTakenError ::W] ::Pos#5]
 
-> :Nums |~~ n ~~| (::kind | accepts |~~ v ~~| [::number]) | get [~(#[2 1] | tag ::Nums !| tag) ~([1 "a"] | tag ::Nums !| get [~(tag) /index])]
+> :Nums |~~ n ~~| (::kind | accepts |~~ v ~~| [::number]) | get [~(#[2 1] | tag ::Nums !| tag) ~([1 "a"] | tag ::Nums !| get [~(tag) ~(index)])]
 [::Nums/PayloadKindNotTakenError [::Nums/ElementKindNotTakenError 1]]
 
-> :Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[]) | 5 | tag ::Topic !| get [~(tag) /expected]
+> :Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[]) | 5 | tag ::Topic !| get [~(tag) ~(expected)]
 [::Topic/PayloadKindNotTakenError #[]]
 
-> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | get [~(took) ~(get /took !| get /repair) ~(count !| tag) ~(payload | get /1)]
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | get [~(took) ~(get /took !| repair) ~(count !| tag) ~(payload | get /1)]
 [312 ~(took) ::call/KindAnswersNoVerbError 312]
 
-> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(get /actualValue | tag)]
+> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(actualValue | tag)]
 [::E/n/NotReadError ::string/toNumber/TextNotNumberError]
 ```
 
@@ -339,8 +351,10 @@ it and held to the kind, and so is a verb that keeps the value's kind,
 which lays its tags again, each through its kind, so an edit that breaks
 an invariant is refused. The tag of a name that holds a value is
 refused as `::construct/TagNamesAValueError`, while the tag of a verb, a
-contract among them, and of an invariant, whose node holds its quote
-under `::invariant`, lays itself over the value [QSNAM#address].
+contract among them, lays itself over the value [QSNAM#address], and the
+tag of an invariant, whose node holds its quote under `::invariant`, is
+the tag of its refusal, which lays the kind of its family over an error
+at rest alone [QSERR#rest].
 
 ```qlang
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| tag
@@ -352,8 +366,8 @@ under `::invariant`, lays itself over the value [QSNAM#address].
 > :number/c (::fn | takes :x |~~ x ~~| /0) | get [~(::number/c[1] | tag) ~(:limit 5 | ::limit[1] !| tag)]
 [::number/c ::construct/TagNamesAValueError]
 
-> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | ::Box/TooBigError[1] | tag
-::Box/TooBigError
+> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | get [~(::Box/TooBigError[1] !| tag) ~(::Box/TooBigError!{:actualTag ::number :actualValue 10} | actualValue)]
+[::Box/TooBigError/PayloadKindNotTakenError 10]
 
 > ::vec/take/count/NotIntegerError | binding | value | tag
 ::invariant

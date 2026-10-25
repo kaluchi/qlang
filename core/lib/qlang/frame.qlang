@@ -88,7 +88,7 @@
         |~~ No path reads beneath the tag of a frame, by an index nor by a
             name.
         ~~|
-        ~("x" | add 1 !| get [~(get /trace/0/0 !| tag) ~(get /trace/0/subject !| get /repair)] | eq [::path/TagClosedError ~(get /trace/0 | subject)])
+        ~("x" | add 1 !| trace | get [~(get /0/0 !| tag) ~(get /0/subject !| repair)] | eq [::path/TagClosedError ~(get /0 | subject)])
     | proves :subject/holdsTheWholeSubjectOfAVerb
         |~~ The frame of `map` holds the vector it ran its code over. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | subject | eq [1 "x" 3])

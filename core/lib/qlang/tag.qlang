@@ -44,7 +44,7 @@
         ~(::tag::Box | eq ::Box)
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [~(tag) /actualTag] | eq [::tag/PayloadKindNotTakenError ::keyword])
+        ~(::tag:k !| get [~(tag) ~(actualTag)] | eq [::tag/PayloadKindNotTakenError ::keyword])
 
 :tag/toString
   |~~ Answers the name of the tag as a string, `::vec | toString`

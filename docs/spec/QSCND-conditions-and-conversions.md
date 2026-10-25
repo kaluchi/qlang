@@ -36,7 +36,7 @@ true
 > get [~(5 | gt "a" !| tag) ~(true | gt false !| tag)]
 [::call/KindsMismatchedError true]
 
-> get [~([1 "a"] | max !| tag) ~([1 "a"] | sort) ~("a" | gt 1 !| tag) ~(::Cents#100 | gt ::Dollars#50 !| get [/leftTag /rightTag])]
+> get [~([1 "a"] | max !| tag) ~([1 "a"] | sort) ~("a" | gt 1 !| tag) ~(::Cents#100 | gt ::Dollars#50 !| get [~(leftTag) ~(rightTag)])]
 [::call/KindsMismatchedError [1 "a"] ::call/KindsMismatchedError [::Cents ::Dollars]]
 
 > get [~(#"a"i | eq #"a"i) ~(#"a"i | eq #"a") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]
@@ -75,7 +75,7 @@ computed in their order before their kinds are read [QSQUO#modifier].
 > {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
 false
 
-> 5 | allOf ~(1) !| get [~(tag) /index]
+> 5 | allOf ~(1) !| get [~(tag) ~(index)]
 [::any/allOf/ConditionKindNotTakenError 0]
 
 > 5 | allOf ~(true | tag ::Ok)
@@ -127,7 +127,7 @@ true
 > {:a -1 :b 2} | any ~(gt 0)
 true
 
-> get [~(#[true 1] | every ~(it) !| tag) ~(42 | any ~(gt 0) !| get /addresses)]
+> get [~(#[true 1] | every ~(it) !| tag) ~(42 | any ~(gt 0) !| addresses)]
 [::vec/every/ConditionKindNotTakenError #[::map/any ::vec/any]]
 
 > {:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]
@@ -237,7 +237,7 @@ taking `::desc` off a value under it and laying it over any other, so
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) /expected]
+> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) ~(expected)]
 [::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1] | toKeyword !| tag

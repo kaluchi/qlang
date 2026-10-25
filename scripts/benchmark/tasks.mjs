@@ -72,7 +72,7 @@ export const TASKS = [
   {
     id: 'L4',
     question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
-    reference: "\"a\" | mul 2 !| get [~(tag) /actualTag]",
+    reference: "\"a\" | mul 2 !| get [~(tag) ~(actualTag)]",
     answer: "[::number/mul/SubjectNotNumberError ::string]"
   },
   {

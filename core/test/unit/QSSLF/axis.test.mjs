@@ -47,7 +47,7 @@ describe('the axes read the node a tag addresses', () => {
   });
 
   it('a tag of a name several kinds answer is refused with the addresses of its pages, one on each kind that answers it', async () => {
-    expect([...await evalQuery('::count | doc !| get /addresses')])
+    expect([...await evalQuery('::count | doc !| addresses')])
       .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
@@ -139,7 +139,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // [QSNAM#declare]
-    expect(await evalQuery(':handler (!| get /kind) | ::handler | source | toString')).toBe(':handler (!| get /kind)');
+    expect(await evalQuery(':handler (!| kind) | ::handler | source | toString')).toBe(':handler (!| kind)');
   });
 });
 

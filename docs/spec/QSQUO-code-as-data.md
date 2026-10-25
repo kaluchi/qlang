@@ -115,16 +115,16 @@ parser, which gives the path bare.
 > get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)]
 [::construct/LiteralComputesError ::quote/LiteralComputesError]
 
-> get [~(::call[1] !| get [~(tag) /expected]) ~(::fail[1] !| get [~(tag) /expected]) ~(::call{:name 1} !| get /field)]
+> get [~(::call[1] !| get [~(tag) ~(expected)]) ~(::fail[1] !| get [~(tag) ~(expected)]) ~(::call{:name 1} !| field)]
 [[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
 
-> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) /actualTag ~(print | parse | open | eq e)]
+> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) ~(actualTag) ~(print | parse | open | eq e)]
 [::construct/LiteralComputesError ::map true]
 
 > "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)
 true
 
-> get [~(~(::Foo!{:k 1}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) /field])]
+> get [~(~(::Foo!{:k 1}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) ~(field)])]
 [[::construct ::Foo !{:k 1}] [::construct/PayloadNotSchemaError :tag]]
 ```
 
@@ -162,10 +162,10 @@ the same quote.
 > ~(:a 1 | :b 2) | toString
 ":a 1\n| :b 2"
 
-> ~(add 1 | mul 2) | parse !| get [~(tag) /actualTag]
+> ~(add 1 | mul 2) | parse !| get [~(tag) ~(actualTag)]
 [::string/parse/SubjectNotStringError ::quote]
 
-> "add (" | parse !| get [~(tag) /source /origin]
+> "add (" | parse !| get [~(tag) ~(source) ~(origin)]
 [::quote/ParseError "add (" :string/parse]
 ```
 
@@ -271,12 +271,12 @@ verb.
 > :k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)})]
 [::E!{:q 15} !{:q 15}]
 
-> :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(tag) /name]
+> :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(tag) ~(name)]
 [::call/ValueWithheldError :lim]
 
 > :k 1 | :f ~(:k 2 | add k) | 5 | apply f
 7
 
-> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(tag) /name]
+> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(tag) ~(name)]
 [::call/ValueWithheldError :count]
 ```

@@ -1,7 +1,7 @@
 // [QSPRN#elide], [QSERR#alert]
 
 import {
-  isVec, isSet, isQuote, isDoc, isMap, isErrorValue, isValueClass, isFrame, isTrace,
+  isVec, isSet, isQuote, isDoc, isMap, isErrorValue, isValueClass, isFrame, isTrace, wiringOf,
   makeTagged, beneathTags, makeErrorValue, errorAtRest, makeFrame, partsOfFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
   SUBJECT_OF_A_FRAME, ELISION_TAG
 } from './types.mjs';
@@ -32,19 +32,30 @@ const isContainer = value => isVec(value) || isMap(value);
 export const lengthOf = text => Array.from(text).length;
 const headOf = (text, length) => Array.from(text).slice(0, length).join('');
 
-const OF_THE_VALUE = { caught: false, from: [] };
-const OF_THE_FACTS = { caught: true, from: [] };
+const OF_THE_VALUE = { caught: false, named: false, from: [] };
+const OF_THE_FACTS = { caught: true, named: false, from: [] };
+// [QSERR#alert]
+const OF_THE_NAMED_FACTS = { caught: true, named: true, from: [] };
 
-const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
+const readBelow = ({ caught, named, from }, segments) => ({ caught, named, from: [...from, ...segments] });
 
-// [QSPRN#elide]
-const THE_SUBJECT_OF_A_FRAME = Symbol('qlang/subjectOfAFrame');
+// [QSPRN#elide], [QSERR#alert]
+const NAMED_PARTS = new Map();
+
+function partNamed(name) {
+  let segment = NAMED_PARTS.get(name);
+  if (segment === undefined) NAMED_PARTS.set(name, segment = Object.freeze({ name }));
+  return segment;
+}
+
+const isNamed = segment => typeof segment === 'object';
+const THE_SUBJECT_OF_A_FRAME = partNamed(SUBJECT_OF_A_FRAME);
 
 function stepsOf(segments) {
-  const at = segments.indexOf(THE_SUBJECT_OF_A_FRAME);
+  const at = segments.findIndex(isNamed);
   const read = at === -1 ? segments : segments.slice(0, at);
   const steps = read.length === 0 ? [] : [commandStep('get', [makePath(read.map(String))])];
-  return at === -1 ? steps : [...steps, commandStep(SUBJECT_OF_A_FRAME, []), ...stepsOf(segments.slice(at + 1))];
+  return at === -1 ? steps : [...steps, commandStep(segments[at].name, []), ...stepsOf(segments.slice(at + 1))];
 }
 
 // [QSPTH#value], [QSPRN#elide]
@@ -72,7 +83,7 @@ function partsOfContainer(value, view) {
 function partsOf(value, path, view, parts) {
   if (isElision(value)) return;
   if (isErrorValue(value)) {
-    for (const [name, fact] of value.facts) partsOf(fact, [...path, name], view, parts);
+    for (const [name, fact] of value.facts) partsOf(fact, [...path, view.start.named ? partNamed(name) : name], view, parts);
     return;
   }
   if (isText(value) || view.printedOf(value) !== undefined) {
@@ -80,11 +91,13 @@ function partsOf(value, path, view, parts) {
     return;
   }
   if (isFrame(value)) return partsOf(partsOfFrame(value).subject, [...path, THE_SUBJECT_OF_A_FRAME], view, parts);
-  if (isValueClass(value, 'underTag')) return partsOf(value.payload, path, view, parts);
-  if (!isContainer(value)) return;
-  const { entries } = partsOfContainer(value, view);
+  const named = isValueClass(value, 'underTag') && wiringOf(value) !== undefined && isMap(value.payload);
+  if (isValueClass(value, 'underTag') && !named) return partsOf(value.payload, path, view, parts);
+  const container = named ? value.payload : value;
+  if (!isContainer(container)) return;
+  const { entries } = partsOfContainer(container, view);
   if (path.length > 0 || entries.length > 1) parts.push({ path, value });
-  for (const [key, part] of entries) partsOf(part, [...path, key], view, parts);
+  for (const [key, part] of entries) partsOf(part, [...path, named ? partNamed(key) : key], view, parts);
 }
 
 function textOf(value, view) {
@@ -141,13 +154,14 @@ function leastOf(part, view) {
 
 function replacedAt(value, path, replacement, view) {
   if (isErrorValue(value)) {
-    const [name, ...rest] = path;
+    const [segment, ...rest] = path;
+    const name = isNamed(segment) ? segment.name : segment;
     const laid = makeErrorValue(value.tag, new Map(value.facts).set(name, replacedAt(value.facts.get(name), rest, replacement, view)));
     view.built.add(laid);
     return laid;
   }
   if (isValueClass(value, 'underTag') && (path.length > 0 || !isElision(replacement))) {
-    const laid = makeTagged(value.tag, replacedAt(value.payload, path, replacement, view));
+    const laid = makeTagged(value.tag, replacedAt(value.payload, path, replacement, view), wiringOf(value));
     view.built.add(laid);
     return laid;
   }
@@ -158,7 +172,8 @@ function replacedAt(value, path, replacement, view) {
     view.built.add(laid);
     return laid;
   }
-  const [head, ...rest] = path;
+  const [segment, ...rest] = path;
+  const head = isNamed(segment) ? segment.name : segment;
   const copy = isVec(value) ? [...value] : new Map(value);
   if (isVec(value)) copy[head] = replacedAt(value[head], rest, replacement, view);
   else copy.set(head, replacedAt(value.get(head), rest, replacement, view));
@@ -171,7 +186,7 @@ function replacedAt(value, path, replacement, view) {
 function inOrder(value, view) {
   if (!view.built.has(value)) return value;
   if (isErrorValue(value)) return makeErrorValue(value.tag, new Map([...value.facts].map(([name, fact]) => [name, inOrder(fact, view)])));
-  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, view));
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, view), wiringOf(value));
   if (isFrame(value)) {
     const { subject, unfinished, path } = partsOfFrame(value);
     return makeFrame(inOrder(subject, view), unfinished, path);
@@ -237,23 +252,23 @@ function framesOf(trace, read, printedOf, rests) {
   }));
 }
 
-export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet()) {
+export function alertOf(error, printedOf = printedByTheCore, rests = new WeakSet(), byNames = false) {
   const facts = new Map();
   for (const [name, value] of error.facts) {
-    const factRead = readBelow(OF_THE_FACTS, [name]);
+    const factRead = readBelow(byNames ? OF_THE_NAMED_FACTS : OF_THE_FACTS, [byNames ? partNamed(name) : name]);
     facts.set(name, isTrace(value) ? framesOf(value, factRead, printedOf, rests) : excerptOf(value, factRead, printedOf, false, rests));
   }
   return makeErrorValue(error.tag, facts);
 }
 
-export function alertWithin(error, budget, printedOf = printedByTheCore) {
+export function alertWithin(error, budget, printedOf = printedByTheCore, byNames = false) {
   const rests = new WeakSet();
-  const alert = alertOf(error, printedOf, rests);
+  const alert = alertOf(error, printedOf, rests, byNames);
   if (measureBy(printedOf)(alert) <= budget) return alert;
   const trace = alert.facts.get('trace');
   const excerpted = trace === undefined ? alert
-    : makeErrorValue(alert.tag, new Map(alert.facts).set('trace', elideWithin(trace, EXCERPT_CHARACTERS, readBelow(OF_THE_FACTS, ['trace']), printedOf, false, rests)));
-  return elideWithin(excerpted, budget, OF_THE_FACTS, printedOf, false, rests);
+    : makeErrorValue(alert.tag, new Map(alert.facts).set('trace', elideWithin(trace, EXCERPT_CHARACTERS, readBelow(byNames ? OF_THE_NAMED_FACTS : OF_THE_FACTS, [byNames ? partNamed('trace') : 'trace']), printedOf, false, rests)));
+  return elideWithin(excerpted, budget, byNames ? OF_THE_NAMED_FACTS : OF_THE_FACTS, printedOf, false, rests);
 }
 
 export function headOfAnswer(answer, printedOf = printedByTheCore) {

@@ -29,6 +29,9 @@
             under another tag among them.
             ::link~(::construct | doc)
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :PayloadNotSchemaError
         |~~ A `::construct` is a map of `:tag`, a tag name, and
             `:payload`, a literal, both given, and `:field` names the field
@@ -40,6 +43,9 @@
             itself, `!{:k 1}`.
             ::link~(::construct | doc)
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|
+          | wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
     | throws :LiteralComputesError
         |~~ A payload computes nothing, as every part of a literal: a name
             or a group in it is refused, and `:message` writes the template
@@ -48,37 +54,41 @@
             tag by `tag`, `x | tag ::Box`.
             ::link~(::construct | doc) ::link~(::any/get | doc)
         ~~|
-    | carries :LiteralComputesError/message
-        |~~ What the rule says of the literal, the template `get` builds it
-            from.
-        ~~|
-        ::string
+        ~(wires :message
+              |~~ What the rule says of the literal, the template `get` builds it
+                  from.
+              ~~|
+              ::string
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | throws :TagNamesAValueError
         |~~ The tag before a payload addresses a kind, a label declared by
             its chain or by its page alone, a verb, whose args it lays
             itself over, `::vec/take[2]`, an invariant, whose refusal it
             lays itself over, or no declaration at all; a tag that addresses
             a name holding a value of its own names nothing to build by, and
-            `:tag` is that tag. The value is read by its name, `limit`, and
+            `:address` is that tag. The value is read by its name, `limit`, and
             is put under a tag of its own by `tag`, `limit | tag ::Limit`.
             ::link~(::construct | doc)
         ~~|
-    | carries :TagNamesAValueError/tag
-        |~~ The tag, whose node is neither a label, a verb nor an
-            invariant.
-        ~~|
-        ::tag
+        ~(wires :address
+              |~~ The tag, whose node is neither a label, a verb nor an
+                  invariant.
+              ~~|
+              ::tag
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | proves :holdsTheTagAndThePayload
         |~~ The step holds its tag and its payload. ~~|
         ~(~(::Box[1 2]) | first | get [/tag /payload] | eq [::Box [1 2]])
     | proves :PayloadNotSchemaError/refusesATagThatIsAKeyword
         |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
         ~(::construct{:tag :Box :payload [1]}
-          !| get [~(tag) /field] | eq [::construct/PayloadNotSchemaError :tag])
+          !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadNotSchemaError/refusesARecordWithoutAPayload
         |~~ A record without its payload is refused, `:field` naming it. ~~|
         ~({:tag ::Box} | tag ::construct
-          !| get [~(tag) /field] | eq [::construct/PayloadNotSchemaError :payload])
+          !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :payload])
     | proves :PayloadNotSchemaError/buildsTheStepOfATag
         |~~ A tag name and the step of a payload build the step. ~~|
         ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
@@ -91,27 +101,29 @@
         |~~ The kind of errors over an error literal is the literal itself,
             and `:field` names the tag.
         ~~|
-        ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) /field] | eq [::construct/PayloadNotSchemaError :tag])
+        ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a tagged literal. ~~|
-        ~(::construct[1] !| get [~(tag) /expected] | eq [::construct/PayloadKindNotTakenError #[::map]])
+        ~(::construct[1] !| get [~(tag) ~(expected)] | eq [::construct/PayloadKindNotTakenError #[::map]])
     | proves :LiteralComputesError/refusesAPayloadOfCode
         |~~ The step of a call as the payload computes, and is refused. ~~|
         ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(tag) /message] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ::Box~(x)`"])
+          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ::Box~(x)`"])
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
     | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
         ~(:limit 5 | ::limit[1]
-          !| get [~(tag) /tag /actualTag] | eq [::construct/TagNamesAValueError ::limit ::number])
+          !| get [~(tag) ~(address) ~(actualTag)] | eq [::construct/TagNamesAValueError ::limit ::number])
     | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | tag | eq ::vec/take)
-    | proves :TagNamesAValueError/laysAnInvariantsTagOverAValue
-        |~~ The tag of an invariant lays itself over a value. ~~|
-        ~(::vec/take/count/NotIntegerError#5 | tag | eq ::vec/take/count/NotIntegerError)
+    | proves :TagNamesAValueError/laysTheRefusalOfAnInvariantOverAnErrorAtRestAlone
+        |~~ The tag of an invariant lays the kind of its refusal, which
+            takes an error at rest alone.
+        ~~|
+        ~(::vec/take/count/NotIntegerError#5 !| tag | eq ::vec/take/count/NotIntegerError/PayloadKindNotTakenError)
     | proves :TagNamesAValueError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
         ~(:limit 5 | limit | tag ::Limit | payload | eq 5)

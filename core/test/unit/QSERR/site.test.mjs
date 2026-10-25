@@ -12,10 +12,13 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../../scr
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
+const probeScope = async () => (await createNotebook({ sources: [{ uri: 'tests/probe', source:
+  ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :actualTag |~~ The kind. ~~| ::tag | wires :actualValue |~~ The value. ~~|)' }] })).scope;
+
 describe('a refusal converted to a failure', () => {
-  it('converts a refusal — its address the tag, its facts in the order the catalog declares them', async () => {
+  it('converts a refusal — its address the tag, its facts in the order the kind of its refusal wires them', async () => {
     const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
-    const errorVal = errorFromQlang(typeErr, 'the-subject', await langRuntime());
+    const errorVal = errorFromQlang(typeErr, 'the-subject', await probeScope());
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.facts;
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
@@ -31,8 +34,8 @@ describe('a refusal converted to a failure', () => {
     expect([...errorVal.facts.keys()]).toEqual(['name', 'addresses']);
   });
 
-  it('refuses a fact neither the label nor ::error declares, a defect of the runtime', async () => {
-    const scope = await langRuntime();
+  it('refuses a fact the kind of its refusal does not wire, a defect of the runtime', async () => {
+    const scope = await probeScope();
     expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, scope)).toThrow(/carries :undeclared/);
   });
 });

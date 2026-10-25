@@ -151,8 +151,8 @@
         ~(::number/add | binding | value | print | parse | open | :g it | 5 | apply g [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::string])
+        ~(::builtin"hello" !| get [~(tag) ~(actualTag)] | eq [::builtin/PayloadKindNotTakenError ::string])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::vec]))
+        ~(::builtin[1 2 3] !| get [~(tag) ~(actualTag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}]

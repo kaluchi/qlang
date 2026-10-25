@@ -1,16 +1,21 @@
 // [QSERR#raise]
 
-import { makeErrorValue, ERROR_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
-import { registerReaderOfPassedTags, readingState } from '../primitives.mjs';
+import { makeErrorValue, makeTag, beneathTags, isMap, tagsOver, ERROR_TAG } from '../types.mjs';
+import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { kindsExpected } from '../ordering.mjs';
+import { registerStateReader } from '../primitives.mjs';
 import { factsWithTheirTrace } from '../eval.mjs';
 
+const AnyRaiseSubjectKindNotTakenError = declareRefusal('any/raise/SubjectKindNotTakenError');
 
 // [QSERR#trace], [QSERR#raise]
-async function raisedFrom(sourceMap, passedTags, state) {
-  const tag = passedTags[0] ?? sourceMap[TAG_HEADER_SYMBOL] ?? ERROR_TAG;
-  const facts = await factsWithTheirTrace(new Map(sourceMap), state);
-  state.flight.resumes = facts.has('trace');
-  return makeErrorValue(tag, facts);
+async function raisedFrom(subject, state) {
+  const facts = beneathTags(subject);
+  if (!isMap(facts)) throw refusingTheSubject(new AnyRaiseSubjectKindNotTakenError({ expected: kindsExpected('map'), actualValue: subject }));
+  const [tagName] = tagsOver(subject);
+  const laid = await factsWithTheirTrace(new Map(facts), state);
+  state.flight.resumes = laid.has('trace');
+  return makeErrorValue(tagName === undefined ? ERROR_TAG : makeTag(tagName), laid);
 }
 
-registerReaderOfPassedTags('map/raise', readingState(raisedFrom));
+registerStateReader('any/raise', raisedFrom);

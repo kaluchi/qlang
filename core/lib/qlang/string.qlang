@@ -62,7 +62,7 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string#1 !| get [~(tag) /actualTag] | eq [::string/PayloadKindNotTakenError ::number])
+        ~(::string#1 !| get [~(tag) ~(actualTag)] | eq [::string/PayloadKindNotTakenError ::number])
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -108,7 +108,7 @@
         |~~ A number answers no `count`, and the refusal names the kinds
             that do.
         ~~|
-        ~(5 | count !| get /addresses | eq #[::map/count ::string/count ::vec/count])
+        ~(5 | count !| addresses | eq #[::map/count ::string/count ::vec/count])
     | impl ::builtin{}
 
 :string/size
@@ -325,7 +325,7 @@
         ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
-        ~(42 | split "," !| get [~(tag) /actualTag] | eq [::string/split/SubjectNotStringError ::number])
+        ~(42 | split "," !| get [~(tag) ~(actualTag)] | eq [::string/split/SubjectNotStringError ::number])
     | proves :separator/KindNotTakenError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
         ~("abc" | split :b !| tag | eq ::string/split/separator/KindNotTakenError)
@@ -389,7 +389,7 @@
         ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
-        ~(42 | lines !| get [~(tag) /actualTag] | eq [::string/lines/SubjectNotStringError ::number])
+        ~(42 | lines !| get [~(tag) ~(actualTag)] | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| tag | eq ::string/lines/ArgsBeyondInputsError)
@@ -473,7 +473,7 @@
         |~~ A path names the repair that reads its field, the step the call
             was likely meant as.
         ~~|
-        ~(/name | upper !| get /repair | eq ~(get /name | upper))
+        ~(/name | upper !| repair | eq ~(get /name | upper))
     | impl ::builtin{}
 
 :string/trim
@@ -514,7 +514,7 @@
         ~(::Name" a " | trim | eq ::Name"a")
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
-        ~(42 | trim !| get [~(tag) /actualTag] | eq [::string/trim/SubjectNotStringError ::number])
+        ~(42 | trim !| get [~(tag) ~(actualTag)] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
 
 :string/contains
@@ -580,7 +580,7 @@
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
         ~~|
-        ~({:a 1} | contains "a" !| get /addresses | eq #[::string/contains ::vec/contains])
+        ~({:a 1} | contains "a" !| addresses | eq #[::string/contains ::vec/contains])
     | impl ::builtin{}
 
 :string/startsWith
@@ -804,9 +804,9 @@
         |~~ `parseJson` could not read the subject as JSON. The message of
             the reader of JSON rides on `:message`.
         ~~|
-    | carries :TextNotJsonError/message
-        |~~ What the reader of JSON says of the text. ~~|
-        ::string
+        ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -816,6 +816,7 @@
             none where the number is the whole text; a literal of qlang past
             the range is the parser's own refusal.
         ~~|
+        ~(wires :path |~~ The path to the part the refusal stands at. ~~| ~(query /path) #[::null ::path])
     | proves :readsANumber
         |~~ A JSON number reads as a number. ~~|
         ~("42" | parseJson | eq 42)
@@ -856,7 +857,7 @@
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
         ~(42 | parseJson
-          !| get [~(tag) /actualTag]
+          !| get [~(tag) ~(actualTag)]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
     | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|
@@ -868,7 +869,7 @@
         |~~ The refusal names the path to the number in the text, and none
             where the number is the whole text.
         ~~|
-        ~(get [~("[1, 1e400]" | parseJson !| get /path) ~("1e400" | parseJson !| has :path)] | eq [/1 false])
+        ~(get [~("[1, 1e400]" | parseJson !| path) ~("1e400" | parseJson !| payload | has :path)] | eq [/1 false])
     | impl ::builtin{}
 
 :string/parse
@@ -912,7 +913,7 @@
         |~~ The refusal names the token that stood where the parser
             stopped.
         ~~|
-        ~("add )" | parse !| get /found | eq ")")
+        ~("add )" | parse !| found | eq ")")
     | impl ::builtin{}
 
 :string/toNumber
@@ -935,6 +936,8 @@
             around it is cut first by `trim`, `" 42" | trim | toNumber`,
             and a number among other words is taken out first by `split`.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :readsTheNumberItWrites
         |~~ A string turns into the number it writes. ~~|
         ~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
@@ -988,6 +991,8 @@
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :namesATag
         |~~ A string names the tag of its text. ~~|
         ~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
@@ -1021,7 +1026,7 @@
         |~~ A vector is led to `print` and `json`, and a doc to `content`
             beside them.
         ~~|
-        ~(get [~([1 2] | toString !| get /nearest) ~(|~~ a ~~| | toString !| get /nearest)] | eq [[:json :print] [:content :json :print]])
+        ~(get [~([1 2] | toString !| nearest) ~(|~~ a ~~| | toString !| nearest)] | eq [[:json :print] [:content :json :print]])
     | impl ::builtin{}
 
 :string/match
@@ -1089,6 +1094,8 @@
             and this regex names none: `match` answers its groups by
             their indices, `match #"(\w+)" | get /1`.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
         ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
@@ -1175,6 +1182,9 @@
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
+        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | returns |~~ The text with every match replaced. ~~| ::string
     | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|
@@ -1212,7 +1222,7 @@
         ~("abc" | get [~(replace #"(?<n>b)" "$<zz>") ~(replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
     | proves :with/AnswerKindNotTakenError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
-        ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(tag) /expected] | eq [::string/replace/with/AnswerKindNotTakenError #[::string]])
+        ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(tag) ~(expected)] | eq [::string/replace/with/AnswerKindNotTakenError #[::string]])
     | impl ::builtin{}
 
 :string/toRegex
@@ -1242,6 +1252,8 @@
             line and `s` for a dot that matches a line break, each written
             once, `toRegex "im"`.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~|)
     | returns |~~ The regex the source writes, with its flags. ~~| ::regex
     | throws :TextNotRegexError
         |~~ `toRegex` reads the string as the source of a regex, and it
@@ -1249,16 +1261,20 @@
             source shows the habit of another dialect, flags written
             inside it or a backslash before a character that needs none.
         ~~|
-    | carries :TextNotRegexError/message
-        |~~ Why the source is no regex, and its repair where one shows.
-        ~~|
-        ::string
+        ~(wires :message
+              |~~ Why the source is no regex, and its repair where one shows.
+              ~~|
+              ::string
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
             regex: the literal reads back by `parse | open`, its flags
             among it.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :readsTheSource
         |~~ A string reads as the regex whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
@@ -1279,7 +1295,7 @@
         |~~ Flags written inside the source are refused, the refusal
             naming the input `flags`.
         ~~|
-        ~("(?i)abc" | toRegex !| get /message | contains "toRegex \"i\"")
+        ~("(?i)abc" | toRegex !| message | contains "toRegex \"i\"")
     | proves :LiteralNotSourceError/refusesALiteral
         |~~ The literal of a regex is refused, and `parse | open` reads
             it.
@@ -1301,6 +1317,8 @@
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
         ~~|
+        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
+          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :readsTheEscapes
         |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
         ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])

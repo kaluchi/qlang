@@ -33,7 +33,7 @@
 {"name":"coalesce-with-a-quote-keeps-the-subject-out","query":"{:a 2} | coalesce /missing \"fallback\"","expect":"\"fallback\""}
 {"name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce /b (get /a)","expect":"1"}
 {"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
-{"name":"coalesce-of-several-values-alone-is-refused","query":"{:t null} | coalesce (get /t) 30 !| get [~(tag) /actualValue]","expect":"[::any/coalesce/alternatives/ValuesAloneError ::any/coalesce[null 30]]"}
+{"name":"coalesce-of-several-values-alone-is-refused","query":"{:t null} | coalesce (get /t) 30 !| get [~(tag) ~(actualValue)]","expect":"[::any/coalesce/alternatives/ValuesAloneError ::any/coalesce[null 30]]"}
 {"name":"coalesce-reads-the-subject-before-one-value-and-first-among-several-by-a-quote","query":"get [~(5 | coalesce 30) ~(null | coalesce 30) ~(5 | coalesce ~(it) null 30)]","expect":"[5 30 5]"}
 {"name":"coalesce-answers-a-failure-of-its-code-other-than-a-missed-part","query":"get [~({} | coalesce ~(nosuchword) 30 !| tag) ~({} | coalesce ~(1 | div 0) ~(2) !| tag) ~(null | coalesce ~(add 1) 0 !| tag)]","expect":"[::call/UnknownNameError ::number/div/divisor/ZeroError ::number/add/SubjectNotNumberError]"}
 {"name":"coalesce-answers-the-refusal-of-a-path-query-refuses","query":"get [~({:a 5} | coalesce /a/b 0 !| tag) ~([1] | coalesce /a 0 !| tag)]","expect":"[::path/SubjectHasNoPartsError ::path/IndexNotIntegerError]"}

@@ -107,11 +107,11 @@
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
     | proves :code/KindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
-        ~(#[3 1] | within 1 !| get [~(tag) /actualTag] | eq [::tagged/within/code/KindNotTakenError ::number])
+        ~(#[3 1] | within 1 !| get [~(tag) ~(actualTag)] | eq [::tagged/within/code/KindNotTakenError ::number])
     | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|
         ~([1 2] | within ~(reverse)
-          !| get [~(tag) /actualTag] | eq [::tagged/within/SubjectNotTaggedError ::vec])
+          !| get [~(tag) ~(actualTag)] | eq [::tagged/within/SubjectNotTaggedError ::vec])
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(::Box[1] | within !| tag | eq ::tagged/within/code/NotGivenError)

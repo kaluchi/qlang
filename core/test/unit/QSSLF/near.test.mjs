@@ -2,7 +2,7 @@ import { it, expect } from 'vitest';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { makeKeyword, makeTag } from '../../../src/types.mjs';
 
-const nearestOf = query => evalQuery(`${query} !| get /nearest`);
+const nearestOf = query => evalQuery(`${query} !| nearest`);
 
 it('names at the same distance come all, in the order of their spelling', async () => {
   expect(await nearestOf('mux')).toEqual([makeKeyword('max'), makeKeyword('mul')]);

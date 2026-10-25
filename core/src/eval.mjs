@@ -7,11 +7,11 @@ import {
 } from './state.mjs';
 import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
-import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
+import { readPath, partsOfTemplate, isMissedPart, MISSED } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
-  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
+  makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
 } from './types.mjs';
@@ -23,7 +23,8 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld, residenceOnSubject,
+  returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
@@ -108,16 +109,21 @@ async function applySuccessTrack(state, step, at) {
 async function applyFailTrack(state, step, at) {
   if (!isErrorValue(state.pipeValue)) return state;
   const raised = state.pipeValue;
-  const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.facts));
-  let atRest;
-  try {
-    atRest = raised.tag.name === ERROR_TAG.name ? errorOfKind : await layTag(raised.tag.name, errorOfKind, state);
-  } catch (caughtError) {
-    atRest = errorOfThrow(caughtError, errorOfKind, state.scope);
-  }
-  if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => makeQuote([step]), errorOfKind, state.scope));
+  const atRest = await errorAtRestOf(raised, state);
+  if (isErrorValue(atRest)) return withPipeValue(state, answerOfStep(atRest, () => makeQuote([step]), makeTagged(ERROR_TAG, new Map(raised.facts)), state.scope));
   const answered = await evalStep(step, withPipeValue(state, atRest), at);
   return withPipeValue(answered, answerOfStep(answered.pipeValue, () => makeQuote([step]), atRest, state.scope, answered.flight));
+}
+
+// [QSERR#rest]
+export async function errorAtRestOf(raised, state) {
+  const errorOfKind = makeTagged(ERROR_TAG, new Map(raised.facts));
+  if (raised.tag.name === ERROR_TAG.name) return errorOfKind;
+  try {
+    return await layTag(raised.tag.name, errorOfKind, state);
+  } catch (caughtError) {
+    return errorOfThrow(caughtError, errorOfKind, state.scope);
+  }
 }
 
 // [QSNAM#scope]
@@ -241,7 +247,8 @@ function writesOutsideItsChain(scope, nounName, lastName, value) {
   return isVerb(scope, nounName) && (isPath(value) || isQuote(value) || lastName === ANSWER_NAME || lastName === SUBJECT_NAME);
 }
 
-function layerOf(scope, address, origin, pages) {
+// [QSBLD#fn], [QSERR#site]
+function layerOf(scope, address, origin, { pages, refusalKinds }) {
   let under = scope;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
@@ -253,9 +260,8 @@ function layerOf(scope, address, origin, pages) {
       const page = pages.get(refusal) ?? pageOfThePart;
       lay(refusal, page, page);
     },
-    layRest({ facts, invariants, laws }) {
-      for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, page);
-      for (const { name, page, written } of facts) lay(name, page, written ?? page);
+    layRest({ invariants, laws }) {
+      for (const [name, page] of pages) if (!under.has(`${address}/${name}`)) lay(name, page, refusalKinds.get(name) ?? page);
       for (const { name, page, condition } of invariants) lay(name, page, makeTagged(INVARIANT_TAG, condition));
       for (const { name, page, query } of laws) lay(name, page, makeTagged(LAW_TAG, query));
       return under;
@@ -267,7 +273,7 @@ function layerOf(scope, address, origin, pages) {
 function nodesOfKind(kind, address, scope, origin) {
   const roles = chainOfKind(kind);
   const { payload, fields, tells } = roles;
-  const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, roles.pages);
+  const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, roles);
   if (payload !== null) {
     lay(PAYLOAD_NAME, payload.page, payload.written ?? payload.page);
     if (payload.each) layKindsRefusal(payloadRefusalName(false), payload.page);
@@ -286,7 +292,7 @@ function nodesOfKind(kind, address, scope, origin) {
 function nodesOfFunction(fn, address, scope, origin) {
   const chain = chainOfFn(fn);
   const { subject, inputs, answer } = chain;
-  const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, chain.pages);
+  const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, chain);
   const standsUnder = role => [...chain.invariants.map(({ name }) => name), ...chain.pages.keys()].some(name => name.startsWith(`${role}/`));
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
   else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
@@ -330,12 +336,20 @@ function repairOfRefusedPath(refused, call, subject) {
 
 function withRepairOfPath(state, call, subject, scope) {
   const refused = state.pipeValue;
-  if (!isErrorValue(refused) || refused.facts.has('repair') || refused.facts.has('trace')) return state;
+  if (!isErrorValue(refused) || refused.facts.has('repair') || refused.facts.has('trace') || !wiresTheRepair(refused.tag, scope)) return state;
   const repair = repairOfRefusedPath(refused, call, subject);
   if (repair === null) return state;
   const facts = factsInOrder(refused.tag, new Map(refused.facts).set('repair', repair), scope);
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { originalError: refused.originalError }));
 }
+
+// [QSERR#site]
+function wiresTheRepair(tag, scope) {
+  const kind = kindOfAValueOf(scope, tag.name);
+  return kind !== null && chainOfKind(kind).wired.has(REPAIR_NAME);
+}
+
+const REPAIR_NAME = 'repair';
 
 // [QSNAM#reach], [QSQUO#held], [QSDSP#residence]
 async function callByName(lookupName, modifiers, state, call) {
@@ -449,9 +463,10 @@ function selectedValue({ path, selector, index, oneArg, strict, fallback, readsA
 }
 
 // [QSBLD#input], [QSPTH#get]
-function pathOfArgs(path, state) {
+function pathOfArgs(path, state, soft = false) {
   try {
-    return readPath(state.pipeValue, path);
+    const part = readPath(state.pipeValue, path, soft);
+    return part === MISSED ? null : part;
   } catch (refusal) {
     return errorFromQlang(refusal, undefined, state.scope);
   }
@@ -604,7 +619,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(called)) return called;
   const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
   const running = steps === null
-    ? runPrimitive(handed.primitive, walked.served, walked.passedTags, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
+    ? runPrimitive(handed.primitive, walked.served, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
     : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
   const answer = isThenable(running) ? await running : running;
   if (isErrorValue(answer)) return answer;
@@ -737,7 +752,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
-    if (isErrorValue(value)) return refusalOfFailedModifier(chain, address, index, value, scope);
+    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope);
     values.push(value);
     keepOrigins(origins, value, modifier.origin ?? heldIn(state), state);
   }
@@ -776,11 +791,12 @@ function withTheParts(scope, parts) {
 }
 
 // [QSQUO#modifier]
-function refusalOfFailedModifier(chain, address, index, error, scope) {
+async function refusalOfFailedModifier(chain, address, index, error, state, scope) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const input = chain.inputs.find(({ reading }) => reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
   if (!(input?.kinds?.includes('quote') ?? false)) return error;
-  const atRest = errorAtRest(error.tag, new Map(error.facts));
+  const atRest = await errorAtRestOf(error, state);
+  if (isErrorValue(atRest)) return atRest;
   const inputAddress = `${address}/${input.name.name}`;
   if (input.each && input.reading.readsArgs) {
     return refusalUnder(elementsRefusalAddress(inputAddress), { index, expected: kindsExpected(...input.kinds), actualValue: atRest }, scope);
@@ -798,9 +814,10 @@ export async function layTag(tagName, laidOver, state) {
   const payload = outermost === tagName ? payloadBeneath(laidOver) : laidOver;
   const node = nodeOf(state.scope, tagName);
   const declared = bindingValueOf(node);
-  if (isKind(declared)) return await underKind(tagName, declared, payload, state);
+  const kind = kindOfAValueOf(state.scope, tagName);
+  if (kind !== null) return await underKind(tagName, kind, payload, state);
   if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
-  throw new ConstructTagNamesAValueError({ tag: makeTag(tagName), actualValue: declared });
+  throw new ConstructTagNamesAValueError({ address: makeTag(tagName), actualValue: declared });
 }
 
 // [QSBLD#value]
@@ -839,11 +856,14 @@ async function underKind(tagName, kind, payload, state) {
 
 async function fieldRead(tagName, field, payload, invariants, state, opened) {
   const fieldAddress = `${tagName}/${field.name.name}`;
-  const read = isPath(field.selector)
-    ? pathOfArgs(field.selector, withPipeValue(state, payload))
+  const read = field.place !== null
+    ? pathOfArgs(field.place.path, withPipeValue(state, payload), field.place.soft)
     : await answerOfPipeline(field.selector, nestState(state, payload, opened()));
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
-  if (isErrorValue(read)) return refusalUnder(notReadAddress(fieldAddress), { actualValue: errorAtRest(read.tag, new Map(read.facts)) }, state.scope);
+  if (isErrorValue(read)) {
+    const atRest = await errorAtRestOf(read, state);
+    return isErrorValue(atRest) ? atRest : refusalUnder(notReadAddress(fieldAddress), { actualValue: atRest }, state.scope);
+  }
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);
   if (isErrorValue(held)) return held;
   const ofTheField = invariants.filter(({ field: under }) => under === field.name.name);

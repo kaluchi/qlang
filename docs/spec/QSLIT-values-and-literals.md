@@ -60,7 +60,7 @@ double's precision round.
 > -2.5e3
 -2500
 
-> "1e400" | parse !| get [~(tag) /found /location]
+> "1e400" | parse !| get [~(tag) ~(found) ~(location)]
 [::quote/ParseError "1" ::span[0 1 1 1 1 2]]
 
 > [1e0 2e3 1.5e-2]
@@ -147,7 +147,7 @@ query [QSPRN#json].
 > {"a": 1, "b": 2, "a": 3}
 {:a 3 :b 2}
 
-> "{\"a\": 1, :b 2}" | parse !| get [/message /location]
+> "{\"a\": 1, :b 2}" | parse !| get [~(message) ~(location)]
 ["a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\"a\": 1, \"b\": 2}`" ::span[7 1 8 7 1 8]]
 ```
 
@@ -174,9 +174,10 @@ and a value tagged before its kind was declared is held to the kind
 value of its own kind or, for a set, a quote and a doc, a vector, and for
 an error the map of its facts, so `::number"5"` is refused, `::set[3 1]`
 is `#[1 3]` and a vector under a tag of another kind is no payload of a
-set, which `payload` opens. A tag no declaration names, the tag of a verb
-and the tag of an invariant lay themselves over a payload as it is
-[QSNAM#address], a tag whose `accepts` names the set of no kinds takes no
+set, which `payload` opens. A tag no declaration names and the tag of a
+verb lay themselves over a payload as it is [QSNAM#address], the tag of a
+refusal, an invariant's among them, lays the kind of the refusal over an
+error at rest alone [QSERR#rest], a tag whose `accepts` names the set of no kinds takes no
 payload, `5 | tag ::tagged` refused as
 `::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name
@@ -204,8 +205,8 @@ value, a vector of a tag and a value the vector it is.
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | tag) ~(::vec/take/count/NotIntegerError#5 | tag) ~(:limit 5 | ::limit#1 !| tag)]
-[::vec/sort ::vec/take/count/NotIntegerError ::construct/TagNamesAValueError]
+> get [~(::vec/sort#5 | tag) ~(::vec/take/count/NotIntegerError#5 !| tag) ~(:limit 5 | ::limit#1 !| tag)]
+[::vec/sort ::vec/take/count/NotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
 ```
 
 ## closed
@@ -226,13 +227,13 @@ stands, naming the template of `get`. In the code of a doc, a literal
 that computes reads as prose.
 
 ```qlang
-> "[(5 | add 1) 2]" | parse !| get /message
+> "[(5 | add 1) 2]" | parse !| message
 "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(5 | add 1) 2]`"
 
-> "::Width(5)" | parse !| get /message
+> "::Width(5)" | parse !| message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"
 
-> "{:a 1 2}" | parse !| get [/message /location]
+> "{:a 1 2}" | parse !| get [~(message) ~(location)]
 ["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
 > :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| tag

@@ -67,18 +67,6 @@ export function readsState(primitive) {
   return STATE_READERS.has(primitive);
 }
 
-// [QSDSP#walk], [QSERR#raise]
-const READERS_OF_PASSED_TAGS = new WeakSet();
-
-export function registerReaderOfPassedTags(addresses, primitive) {
-  READERS_OF_PASSED_TAGS.add(primitive);
-  registerPrimitive(addresses, primitive);
-}
-
-export function readsPassedTags(primitive) {
-  return READERS_OF_PASSED_TAGS.has(primitive);
-}
-
 // [QSHST#source], [QSPTH#template], [QSCOL#reduce]
 const INPUTS_AS_CODE = new WeakMap();
 

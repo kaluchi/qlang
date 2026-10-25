@@ -277,7 +277,10 @@ async function subjectOfLiteral(literal) {
 function verbsServing(scope, { kinds, value }) {
   const reached = verbsReaching(scope, kinds);
   if (value === undefined) return reached;
-  return new Map([...reached].filter(([, { address }]) => servesTheSubject(nodeOf(scope, address.name), value)));
+  return new Map([...reached].filter(([, { address }]) => {
+    const record = nodeOf(scope, address.name);
+    return record === null || servesTheSubject(record, value);
+  }));
 }
 
 export async function hoverAtOffset(root, source, offset) {

@@ -1,6 +1,6 @@
 // [QSDSP#walk], [QSHST#door]
 
-import { readsState, readsPassedTags, PRIMITIVE_REGISTRY } from './primitives.mjs';
+import { readsState, PRIMITIVE_REGISTRY } from './primitives.mjs';
 import { queryStateOf } from './state.mjs';
 import { splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME } from './address.mjs';
 import { QlangError, QlangDefect } from './errors.mjs';
@@ -55,10 +55,9 @@ export function servesTheSubject(record, subject) {
 
 export const isThenable = value => typeof value?.then === 'function';
 
-// [QSDSP#residence], [QSNAM#owner], [QSERR#raise], [QSHST#source]
-export function runPrimitive(primitive, served, passedTags, inputValues, state, address) {
-  const read = readsPassedTags(primitive) ? [...inputValues, passedTags] : inputValues;
-  const run = () => (readsState(primitive) ? primitive(served, ...read, queryStateOf(state)) : primitive(served, ...read));
+// [QSDSP#residence], [QSNAM#owner], [QSHST#source]
+export function runPrimitive(primitive, served, inputValues, state, address) {
+  const run = () => (readsState(primitive) ? primitive(served, ...inputValues, queryStateOf(state)) : primitive(served, ...inputValues));
   return heldAtTheDoor(primitive, run, address, [served, ...inputValues]);
 }
 

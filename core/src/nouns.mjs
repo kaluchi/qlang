@@ -3,7 +3,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
-  tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  tagOf, bindingValueOf, makeBinding, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -13,7 +13,7 @@ import {
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, SUBJECT_NAME, functionOfRecipe, chainOfKind, chainOfFn, kindThrowsFinishes } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -68,9 +68,14 @@ export function isNodeOfAPart(record, scope) {
 }
 
 function fieldOfTheNode(record, scope) {
-  const [labelName, name] = splitAddress(record.get('name').name);
-  const label = labelName === null ? null : bindingValueOf(nodeOf(scope, labelName));
-  return isKind(label) ? chainOfKind(label).wired.get(name) : undefined;
+  return fieldWiredAt(scope, record.get('name').name);
+}
+
+// [QSDSP#residence]
+function fieldWiredAt(scope, address) {
+  const [labelName, name] = splitAddress(address);
+  const label = labelName === null ? null : kindOfAValueOf(scope, labelName);
+  return label === null ? undefined : chainOfKind(label).wired.get(name);
 }
 
 // [QSNAM#address], [QSBLD#input]
@@ -132,9 +137,12 @@ export function readsTheReaderUnder(scope, nounName) {
   return !isRootVerbScope(scope) || !rootOf(scope).has(nounName);
 }
 
+// [QSDSP#residence]
 function residenceOf(scope, kindName, verbName) {
   const address = `${kindName}/${verbName}`;
-  return readsTheReaderUnder(scope, kindName) && pathNamesOf(scope).includes(address) ? residenceAt(scope, address) : onceForRoot(ROOT_RESIDENCES, scope, address, rootResidenceAt);
+  const ofTheReader = readsTheReaderUnder(scope, kindName);
+  if (ofTheReader && pathNamesOf(scope).includes(address)) return residenceAt(scope, address);
+  return onceForRoot(ROOT_RESIDENCES, scope, address, rootResidenceAt) ?? (ofTheReader ? partOfTheLabel(scope, address) : null);
 }
 
 const rootResidenceAt = (scope, address) => residenceAt(rootScopeOf(scope), address);
@@ -150,9 +158,23 @@ export function rootScopeOf(scope) {
 
 const ROOT_RESIDENCES = new WeakMap();
 
+// [QSDSP#residence]
 function residenceAt(scope, address) {
   const record = nodeOf(scope, address);
-  return record !== null && residesOn(record, scope) ? record : null;
+  if (record !== null) return residesOn(record, scope) ? record : null;
+  return partOfTheLabel(scope, address);
+}
+
+const PARTS_OF_A_LABEL = new WeakMap();
+
+export function partOfTheLabel(scope, address) {
+  const field = fieldWiredAt(scope, address);
+  if (field === undefined) return null;
+  let parts = PARTS_OF_A_LABEL.get(field);
+  if (parts === undefined) PARTS_OF_A_LABEL.set(field, parts = new Map());
+  let record = parts.get(address);
+  if (record === undefined) parts.set(address, record = makeBinding({ name: makeKeyword(address), docs: [field.page], value: field.written ?? field.page }));
+  return record;
 }
 
 export function onceForRoot(table, scope, key, read) {
@@ -285,6 +307,10 @@ export function verbsReaching(scope, kindNames) {
       if (!residesOn(record, scope) || reached.has(name)) continue;
       reached.set(name, { address: makeTag(`${kindName}/${name}`), verb });
     }
+    const kind = kindOfAValueOf(scope, kindName);
+    for (const name of kind === null ? [] : chainOfKind(kind).wired.keys()) {
+      if (!reached.has(name)) reached.set(name, { address: makeTag(`${kindName}/${name}`), verb: bindingValueOf(partOfTheLabel(scope, `${kindName}/${name}`)) });
+    }
   }
   return reached;
 }
@@ -302,38 +328,114 @@ function kindsWalkedTo(kindNames, labelName) {
 
 // [QSERR#site]
 export function ruleRefusalsOf(scope, address) {
-  const [labelName] = splitAddress(address);
   const value = bindingValueOf(nodeOf(scope, address));
-  if (isKind(value)) return kindRuleRefusalsOf(chainOfKind(value), address);
-  return functionRuleRefusalsOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, labelName);
+  if (isKind(value)) return [...kindRulesOf(chainOfKind(value), address).keys()];
+  return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0]).keys()];
 }
 
-function functionRuleRefusalsOf(chain, address, labelName) {
-  const refusals = [subjectRefusalAddress(address, labelName)];
-  if (chain.arity !== null) refusals.push(argsBeyondInputsAddress(address));
+// [QSERR#site]
+export const FAMILY_OF = Object.freeze({
+  inputKinds: 'fn/KindNotTakenError',
+  inputElements: 'fn/ElementKindNotTakenError',
+  inputNotGiven: 'fn/NotGivenError',
+  argsBeyondInputs: 'fn/ArgsBeyondInputsError',
+  subject: 'fn/SubjectRefusedError',
+  invariantOfAFunction: 'fn/InvariantNotHeldError',
+  payloadKinds: 'kind/PayloadKindNotTakenError',
+  elementsOfAKind: 'kind/ElementKindNotTakenError',
+  partKinds: 'kind/KindNotTakenError',
+  partNotGiven: 'kind/NotGivenError',
+  partNotRead: 'kind/NotReadError',
+  invariantOfAKind: 'kind/InvariantNotHeldError'
+});
+
+function functionRulesOf(chain, address, labelName) {
+  const rules = new Map([[subjectRefusalAddress(address, labelName), FAMILY_OF.subject]]);
+  if (chain.arity !== null) rules.set(argsBeyondInputsAddress(address), FAMILY_OF.argsBeyondInputs);
   for (const { name, kinds, each, reading } of chain.inputs) {
     const inputAddress = `${address}/${name.name}`;
-    if (!reading.readsArgs && (reading.strict || !reading.oneArg)) refusals.push(notGivenAddress(inputAddress));
-    if (each && !reading.readsArgs) refusals.push(kindsRefusalAddress(inputAddress));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress));
+    if (!reading.readsArgs && (reading.strict || !reading.oneArg)) rules.set(notGivenAddress(inputAddress), FAMILY_OF.inputNotGiven);
+    if (each && !reading.readsArgs) rules.set(kindsRefusalAddress(inputAddress), FAMILY_OF.inputKinds);
+    if (kinds !== null) rules.set(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress), each ? FAMILY_OF.inputElements : FAMILY_OF.inputKinds);
   }
   const kinds = chain.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) refusals.push(kindsRefusalAddress(`${address}/${ANSWER_NAME}`));
-  return refusals;
+  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), FAMILY_OF.inputKinds);
+  return rules;
 }
 
 // [QSBLD#kind]
-function kindRuleRefusalsOf({ payload, fields }, address) {
-  const refusals = [];
-  if (payload?.each) refusals.push(`${address}/${payloadRefusalName(false)}`);
-  if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
+function kindRulesOf({ payload, fields }, address) {
+  const rules = new Map();
+  if (payload?.each) rules.set(`${address}/${payloadRefusalName(false)}`, FAMILY_OF.payloadKinds);
+  if (payload?.kinds) rules.set(`${address}/${payloadRefusalName(payload.each)}`, payload.each ? FAMILY_OF.elementsOfAKind : FAMILY_OF.payloadKinds);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
-    refusals.push(notGivenAddress(fieldAddress), notReadAddress(fieldAddress));
-    if (each) refusals.push(kindsRefusalAddress(fieldAddress));
-    if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
+    rules.set(notGivenAddress(fieldAddress), FAMILY_OF.partNotGiven).set(notReadAddress(fieldAddress), FAMILY_OF.partNotRead);
+    if (each) rules.set(kindsRefusalAddress(fieldAddress), FAMILY_OF.partKinds);
+    if (kinds !== null) rules.set(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress), each ? FAMILY_OF.elementsOfAKind : FAMILY_OF.partKinds);
+  }
+  return rules;
+}
+
+// [QSERR#site], [QSERR#rest]
+const OWN_KIND = Symbol('ownKind');
+const REFUSALS_OF_CHAINS = new WeakMap();
+
+function refusalsOfAChain(chain, address, rulesOf, familyOfAnInvariant) {
+  let byAddress = REFUSALS_OF_CHAINS.get(chain);
+  if (byAddress === undefined) REFUSALS_OF_CHAINS.set(chain, byAddress = new Map());
+  let refusals = byAddress.get(address);
+  if (refusals === undefined) {
+    refusals = rulesOf(address);
+    for (const { name } of chain.invariants) refusals.set(`${address}/${name}`, familyOfAnInvariant(name));
+    for (const name of chain.pages.keys()) if (!refusals.has(`${address}/${name}`)) refusals.set(`${address}/${name}`, OWN_KIND);
+    byAddress.set(address, refusals);
   }
   return refusals;
+}
+
+function refusalsHeldAt(scope, holder) {
+  const value = bindingValueOf(nodeOf(scope, holder));
+  const [labelName] = splitAddress(holder);
+  if (isVerbValue(value)) {
+    if (labelName === null || !isLabel(scope, labelName)) return null;
+    const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
+    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName)),
+      name => (name.startsWith(`${SUBJECT_NAME}/`) ? FAMILY_OF.subject : FAMILY_OF.invariantOfAFunction));
+  }
+  const kind = kindOfAValueOf(scope, holder);
+  if (kind === null) return null;
+  const chain = chainOfKind(kind);
+  return refusalsOfAChain(chain, holder, address => kindRulesOf(chain, address), () => FAMILY_OF.invariantOfAKind);
+}
+
+// [QSBLD#answer]
+function answerRefusedOf(chain, address, rules) {
+  if (chain.answer?.kinds) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), FAMILY_OF.inputKinds);
+  return rules;
+}
+
+const KINDS_OF_VALUES = new WeakMap();
+
+export function kindOfAValueOf(scope, tagName) {
+  let byTag = KINDS_OF_VALUES.get(scope);
+  if (byTag === undefined) KINDS_OF_VALUES.set(scope, byTag = new Map());
+  let kind = byTag.get(tagName);
+  if (kind === undefined) byTag.set(tagName, kind = closingKindAt(scope, tagName));
+  return kind;
+}
+
+function closingKindAt(scope, tagName) {
+  const value = bindingValueOf(nodeOf(scope, tagName));
+  for (let [holder] = splitAddress(tagName); holder !== null; [holder] = splitAddress(holder)) {
+    const refusals = refusalsHeldAt(scope, holder);
+    if (refusals === null) continue;
+    const family = refusals.get(tagName);
+    if (family === undefined) break;
+    if (family !== OWN_KIND) return kindThrowsFinishes(bindingValueOf(nodeOf(scope, family)));
+    return kindThrowsFinishes(isKind(value) ? value : null);
+  }
+  return isKind(value) ? value : null;
 }
 
 function namesUnderOf(scope, nounName) {
@@ -373,9 +475,11 @@ function rootIndexOf(root) {
 
 // [QSDSP#walk], [QSSLF#laws]
 export function namesUnder(scope, tagName) {
+  const kind = kindOfAValueOf(scope, tagName);
   return makeSet([...namesUnderOf(scope, tagName)]
     .filter(([, record]) => !isLaw(bindingValueOf(record)))
-    .map(([name]) => makeTag(`${tagName}/${name}`)));
+    .map(([name]) => makeTag(`${tagName}/${name}`))
+    .concat(kind === null ? [] : [...chainOfKind(kind).wired.keys()].map(name => makeTag(`${tagName}/${name}`))));
 }
 
 // [QSSLF#catalog]
@@ -408,7 +512,7 @@ export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
   const record = reached === undefined
     ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
-    : nodeOf(scope, reached.address.name);
+    : nodeOf(scope, reached.address.name) ?? partOfTheLabel(scope, reached.address.name);
   if (record === undefined) return undefined;
   const value = bindingValueOf(record);
   if (!isVerbValue(value) && !isNodeOfAPart(record, scope)) return undefined;

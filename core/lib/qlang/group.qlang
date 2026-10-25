@@ -29,8 +29,7 @@
             is, `~(it) | tag ::group`.
             ::link~(::group | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::kind/InvariantNotHeldError
     | proves :holdsItsSteps
         |~~ A group holds its steps. ~~|
         ~(~((add 1 | mul 2)) | first | payload | count | eq 2)

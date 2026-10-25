@@ -6,7 +6,7 @@ import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { CallUnknownNameError, declareRefusal, QlangError, CallEvaluationDepthExceededError, QlangDefect, BuiltinRefusalDeclaredTwiceError, declareForeignError, declaredRefusals } from '../../../src/errors.mjs';
 import { catchOriginalError } from '../../helpers/error-assertions.mjs';
 import { createNotebook } from '../../../src/notebook.mjs';
-import { ruleRefusalsOf } from '../../../src/nouns.mjs';
+import { ruleRefusalsOf, kindsSharedBy } from '../../../src/nouns.mjs';
 import { kindsDeclaredBy } from '../../../../scripts/catalog-kinds.mjs';
 import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from '../../../../scripts/refusal-kinds.mjs';
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
@@ -157,6 +157,11 @@ describe('the refusals a verb that is a function raises by rule', () => {
 
   it('names no refusal of an answer it does not name, nor of an input its selector reads softly', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/plain')).toEqual(['number/plain/SubjectNotNumberError', 'number/plain/ArgsBeyondInputsError']);
+  });
+
+  it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', () => {
+    expect([kindsSharedBy(notebook.scope, 'vec/filter'), kindsSharedBy(notebook.scope, 'group'), kindsSharedBy(notebook.scope, 'number/pick')])
+      .toEqual([['fn/KindNotTakenError'], ['kind/InvariantNotHeldError'], []]);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {

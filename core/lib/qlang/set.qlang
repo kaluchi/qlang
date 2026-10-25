@@ -205,10 +205,7 @@
             means both answers one kind,
             `~(get /id | if (tag | eq ::string) ~(it) ~(print))`.
         ~~|
-        ~(wires :key |~~ The keyword both values file under. ~~| ::keyword
-          | wires :taken |~~ The value of the key that filed under the keyword first. ~~|
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::vec/groupBy/KeyTakenError
     | proves :filesIntoSets
         |~~ The elements file into sets under the key they answer. ~~|
         ~(#[1 2 3] | groupBy ~(if (gt 1) ~(:big) ~(:small)) | get /big | eq #[2 3])

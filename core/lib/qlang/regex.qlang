@@ -112,8 +112,7 @@
         ~(#"a" | toRegex 5 !| tag | eq ::regex/toRegex/flags/KindNotTakenError)
     | throws :flags/NotFlagsError
         |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+        ::fn/InvariantNotHeldError
     | proves :flags/NotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that names no flag is refused. ~~|
         ~(#"a" | toRegex "z" !| tag | eq ::regex/toRegex/flags/NotFlagsError)

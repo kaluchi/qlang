@@ -175,7 +175,8 @@
             and a subject an invariant of the subject does not hold of under
             the name the invariant gives: every such refusal is closed by the
             kind of this one, the first frame of its trace holding the
-            subject.
+            subject, and a refusal a primitive raises of its subject shares
+            it by its tag, `::string/toNumber/TextNotNumberError`.
             ::link~(::fn/on | doc) ::link~(::fn/holds | doc)
         ~~|
         ~(wires :repair

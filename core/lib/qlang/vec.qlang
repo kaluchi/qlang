@@ -2161,8 +2161,7 @@
         |~~ A path names one segment at least: the value itself is `it`,
             so the empty vector names no path.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :buildsAPath
         |~~ Keys and indices build a path. ~~|
         ~([:items 0] | toPath | print | eq "/items/0")

@@ -805,8 +805,7 @@
             the reader of JSON rides on `:message`.
         ~~|
         ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -936,8 +935,7 @@
             around it is cut first by `trim`, `" 42" | trim | toNumber`,
             and a number among other words is taken out first by `split`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :readsTheNumberItWrites
         |~~ A string turns into the number it writes. ~~|
         ~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
@@ -991,8 +989,7 @@
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :namesATag
         |~~ A string names the tag of its text. ~~|
         ~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
@@ -1263,16 +1260,14 @@
               |~~ Why the source is no regex, and its repair where one shows.
               ~~|
               ::string
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
             regex: the literal reads back by `parse | open`, its flags
             among it.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :readsTheSource
         |~~ A string reads as the regex whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
@@ -1315,8 +1310,7 @@
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+        ::fn/SubjectRefusedError
     | proves :readsTheEscapes
         |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
         ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])

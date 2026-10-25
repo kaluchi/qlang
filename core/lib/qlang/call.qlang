@@ -165,8 +165,7 @@
           | wires :repair
               |~~ The step the call was likely meant as, where a path stands instead of the value it names. ~~|
               ~(query /repair) #[::null ::quote]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :actualTag |~~ The kind of the subject refused, which the first frame of the trace holds. ~~| ::tag)
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
             `:leftTag` and `:rightTag` name their kinds where their tags

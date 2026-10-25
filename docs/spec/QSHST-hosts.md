@@ -30,8 +30,14 @@ refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
 and a source whose run answers an error or declares again a name the
-root holds, `::builtin/RootSourceNotDeclaredError`. A primitive runs
-within the function or the kind its host handed it with, on a subject
+root holds, `::builtin/RootSourceNotDeclaredError`. The root writes into
+the descriptor of each primitive it takes the address it takes it under,
+`:of`, the tag of the verb or of the kind, `::builtin{:of ::number/add}`,
+while the source writes `::builtin{}` and the axis `source` reads it so. A
+primitive runs within the function or the kind its host handed it with,
+and within one equal to it by the one order, a function or a kind read
+back from its print among them, where the root it runs in holds that
+function or that kind at the address its descriptor names, on a subject
 the label it was handed under serves, beside the label of the name that
 calls it: a name that holds the value another name took first runs the
 primitive of that name, a primitive handed for it refused so, its
@@ -42,12 +48,13 @@ that is no string
 refused as `::builtin/AddressKindNotTakenError`, two under one address as
 `::builtin/AddressRegisteredTwiceError` and one after the seal as
 `::builtin/TableSealedError`. A
-`::builtin{}` no host handed with what holds it runs nothing: as the
-recipe of a function, one a reader writes or reads back from a print, its
-call by its name, its address or `apply` is refused as
-`::fn/RecipeMissingError`; as a step of a recipe's quote, the verb
-answers it; and as the constructor of a kind, the kind lays its tag over
-the payload as it is. A host's verb refuses a call by a refusal declared
+`::builtin{}` that runs no primitive so runs nothing: as the recipe of a
+function, one a reader writes or puts into a function of its own and one
+read back where the root holds another at its address, its call by its
+name, its address or `apply` is refused as `::fn/RecipeMissingError`, its
+`:of` naming the address the descriptor names; as a step of a recipe's
+quote, the verb answers it; and as the constructor of a kind, the kind
+lays its tag over the payload as it is. A host's verb refuses a call by a refusal declared
 at its site by its address through `./errors`, a value of none of the
 kinds its holder takes refused by the holder's role with those kinds as
 `:expected`, which `kindsExpected` of the root makes, and paged under its
@@ -128,7 +135,10 @@ the failure.
 true
 
 > ::number | binding | get /value | get /1
-::builtin{}
+::builtin{:of ::number}
+
+> ::vec/count | binding | get /value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) /of])]
+[true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]

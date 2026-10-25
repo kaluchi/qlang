@@ -325,7 +325,6 @@ export function isBuiltinDescriptor(v) {
   return isMap(v) && v[TAG_HEADER_SYMBOL]?.name === BUILTIN_TAG_NAME;
 }
 
-// [D448]
 export function builtinOf(value) {
   const recipe = isFn(value) ? recipeOf(value) : isKind(value) ? constructorOf(value) : value;
   return isBuiltinDescriptor(recipe) ? recipe : null;
@@ -345,7 +344,6 @@ export function isPrimitiveHanded(descriptor) {
   return HANDED_PRIMITIVES.has(descriptor);
 }
 
-// [D448]
 export function handedFor(descriptor, holder, sameHolder = Object.is) {
   const handed = HANDED_PRIMITIVES.get(descriptor);
   return handed?.holders.some(held => sameHolder(held, holder)) ? handed : undefined;

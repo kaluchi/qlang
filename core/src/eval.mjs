@@ -562,7 +562,6 @@ export async function inputsOfFunction(fn, args, state) {
   return isErrorValue(called) ? called : called.values;
 }
 
-// [QSBLD#fn], [D448]
 async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state, flight) {
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
@@ -594,7 +593,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
 }
 
-// [D448]
+// [QSHST#source]
 const HANDED_BY_ADDRESS = new WeakMap();
 
 function handedWithin(descriptor, holder, scope) {
@@ -789,7 +788,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [D448]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);

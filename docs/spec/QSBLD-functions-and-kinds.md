@@ -224,8 +224,11 @@ the kind reads its payload into [QSHST#source], the order of a set, the
 steps of a quote, the prose of a doc, the frames of a trace, which the raise
 of an error at rest reads too, and the descriptor of a builtin, or refuses a
 number past the doubles, while a kind that reads its payload as it is holds
-none. A `::builtin{}` no host handed with that kind constructs nothing, so a
-reader's kind lays its tag by its commands alone, whatever its slot holds. A
+none. A `::builtin{}` constructs within the kind its host handed it with
+and within one equal to it the root holds at the address the descriptor
+names, a kind read back from its print among them [QSHST#source], and
+within no other, so a reader's kind lays its tag by its commands alone,
+whatever its slot holds. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
 named as a refusal the runtime raises by rule under its field among
 them, the refusal of the kinds and of a field left out, and a step of
@@ -254,7 +257,7 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 [::B ::B/PayloadKindNotTakenError]
 
 > :B |~~ B. ~~| (::kind | impl (::number | binding | get /value | get /1)) | get [~(::B | binding | get /value | get /1) ~(::number | binding | get /value | get /1) ~(::B"x")]
-[::builtin{} ::builtin{} ::B"x"]
+[::builtin{:of ::number} ::builtin{:of ::number} ::B"x"]
 ```
 
 ## value

@@ -117,7 +117,7 @@ describe('the subjects an alert prints, each within its excerpt', () => {
     const name = 'k'.repeat(400);
     const query = `:${name} | add 1`;
     const elision = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
-    expect([elision.get('size'), printValue(elision.get('read'))]).toEqual([name.length + 1, '~(!| get /trace/0/0)']);
+    expect([elision.get('size'), printValue(elision.get('read'))]).toEqual([name.length + 1, '~(!| get /trace/0 | subject)']);
     expect(await continued(query, elision)).toEqual(await evalQuery(`:${name}`));
   });
 
@@ -141,7 +141,7 @@ describe('the subjects an alert prints, each within its excerpt', () => {
     const subject = alertOf(await evalQuery(query)).facts.get('trace')[0][0];
     const kept = subject.size - 1;
     const rest = subject.get('…');
-    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace/0/0 | drop ${kept})`);
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /trace/0 | subject | drop ${kept})`);
     expect(rest.get('size')).toBe(200 - kept);
     expect((await continued(query, rest)).size).toBe(200 - kept);
   });
@@ -180,7 +180,7 @@ describe('the subjects an alert prints, each within its excerpt', () => {
     expect(isErrorValue(inner)).toBe(false);
     const subject = inner.payload.get('trace')[0][0];
     const rest = subject[subject.length - 1];
-    expect(printValue(rest.get('read'))).toBe(`~(!| get /actualValue/trace/0/0 | drop ${subject.length - 1})`);
+    expect(printValue(rest.get('read'))).toBe(`~(!| get /actualValue/trace/0 | subject | drop ${subject.length - 1})`);
     expect((await continued(query, rest)).length).toBe(30 - (subject.length - 1));
   });
 });

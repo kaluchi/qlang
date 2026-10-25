@@ -42,7 +42,7 @@
 {"name":"the-first-frame-of-a-name-that-reaches-nothing-holds-its-call","query":"thisIsNotDefined !| trace | first | failed | first | get /name","expect":":thisIsNotDefined"}
 {"name":"a-doc-is-no-trace","query":"get [~(!{:trace |~~~~|} | raise !| tag) ~(!{:trace []} | raise !| tag)]","expect":"[::trace/PayloadKindNotTakenError ::error]"}
 {"name":"a-tagged-error-literal-that-writes-its-trace-resumes-it-when-raised","query":"::Foo::Bar!{:trace ::trace[::frame[1 ~(pre)]]} | raise !| trace | map ~(get [~(failed | toString) ~(skipped | toString)])","expect":"[[\"pre\" \"\"]]"}
-{"name":"an-overflow-holds-its-subject-on-the-trace","query":"1e308 | mul 10 !| get /trace/0/0","expect":"1e+308"}
+{"decision":"D451","name":"an-overflow-holds-its-subject-on-the-trace","query":"1e308 | mul 10 !| trace | first | subject","expect":"1e+308"}
 {"name":"a-trace-under-another-tag-or-an-element-that-is-no-frame-is-refused","query":"get [~({:trace ::T[]} | raise !| tag) ~({:trace [::T{:skipped ~()}]} | raise !| tag)]","expect":"[::trace/PayloadKindNotTakenError ::trace/ElementKindNotTakenError]"}
 {"name":"trace-is-a-verb-of-errors","query":"42 | trace !| tag","expect":"::error/trace/SubjectNotErrorError"}
 {"name":"a-trace-holds-a-frame-for-each-step-the-failure-passed","query":"[1 \"x\" 3] | map ~(mul 2) | count !| trace","expect":"::trace[::frame[\"x\" ~(mul 2)] ::frame[[1 \"x\" 3] ~(map ~(mul 2) | count) /1]]"}
@@ -67,11 +67,11 @@
 {"name":"the-subject-of-a-frame-reads-the-part-by-its-path","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path)","expect":"\"x\""}
 {"name":"a-plain-vector-of-frames-written-under-trace-is-laid-under-its-kind","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise !| get /trace","expect":"::trace[::frame[1 ~(pre)]]"}
 {"name":"a-vector-of-maps-written-under-trace-is-refused-as-no-frames","query":"{:trace [{:failed ~(pre) :subject 1 :skipped ~()}]} | raise !| tag","expect":"::trace/ElementKindNotTakenError"}
-{"name":"a-frame-of-a-subject-alone-is-refused","query":"::frame[\"x\"] !| tag","expect":"::frame/PayloadNotSubjectAndStepsError"}
-{"name":"a-frame-whose-third-element-is-no-path-is-refused","query":"::frame[\"x\" ~(add 1) 1] !| tag","expect":"::frame/PayloadNotSubjectAndStepsError"}
+{"decision":"D451","name":"a-frame-of-a-subject-alone-is-refused","query":"::frame[\"x\"] !| tag","expect":"::frame/unfinished/NotGivenError"}
+{"decision":"D451","name":"a-frame-whose-third-element-is-no-path-is-refused","query":"::frame[\"x\" ~(add 1) 1] !| tag","expect":"::frame/path/KindNotTakenError"}
 {"name":"a-trace-refuses-an-element-that-is-no-frame-at-its-index","query":"::trace[{:failed ~(add 1)}] !| get [~(tag) /index]","expect":"[::trace/ElementKindNotTakenError 0]"}
 {"name":"a-group-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"[1 2 3] | take (count | sub \"1\") !| trace | map ~failed","expect":"[~(sub \"1\") ~(take (count | sub \"1\"))]"}
-{"name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(tag) ~(trace | map ~failed)]","expect":"[::frame/PayloadNotSubjectAndStepsError [~(add ::frame[1])]]"}
+{"decision":"D451","name":"a-literal-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"1 | add ::frame[1] !| get [~(tag) ~(trace | map ~failed)]","expect":"[::frame/unfinished/NotGivenError [~(add ::frame[1])]]"}
 {"name":"the-frame-of-reduce-names-the-element-a-call-of-its-one-word-is-refused-at","query":"[1 2 \"3\"] | reduce 0 ~(sum) !| get [~(tag) ~(trace | last | path)]","expect":"[::call/KindAnswersNoVerbError /0]"}
 {"name":"a-set-of-frames-is-no-trace-written-or-raised","query":"get [~(::trace#[::frame[1 ~(a)]] !| tag) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag)]","expect":"[::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError]"}
 {"name":"an-error-literal-whose-trace-is-no-vector-of-frames-stands-as-a-value","query":"!{:a 1 :trace 5} | get [~(tag) /trace]","expect":"[::error 5]"}
@@ -81,7 +81,7 @@
 {"name":"a-map-that-writes-a-plain-vector-of-frames-raises-as-its-literal-raised","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise","raises":"!{:a 1 :trace ::trace[::frame[1 ~(pre)]]}"}
 {"name":"a-frame-laid-over-a-tagged-vector-or-a-set-is-refused-by-its-kind","query":"get [~(::frame::X[1 ~(a)] !| get [~(tag) /actualTag]) ~(::frame#[1 ~(a)] !| get [~(tag) /actualTag])]","expect":"[[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]"}
 {"name":"a-refusal-of-a-part-of-a-literal-answers-within-the-frame-of-its-step","query":"get [~([1 ::number\"x\"] !| trace | count) ~(::A[::number\"x\"] !| trace | map ~failed) ~(1 | add [::set{:a 1}] !| trace | count) ~(:Pos |~~ P ~~| (::kind | holds :NotPositiveError |~~ A ~~| ~(gt 0)) | [1 ::Pos#-3] !| trace | count)]","expect":"[1 [~(::A[::number\"x\"])] 1 1]"}
-{"name":"a-function-apply-runs-hands-the-step-of-apply-the-path-and-the-resumption-of-its-failure","query":"get [~([1 \"x\"] | apply (::vec/map | binding | get /value) [~(mul 2)] !| trace | last | path) ~(!{:a 1} | raise | count !| apply (::map/raise | binding | get /value) [] | add 1 !| trace | last | skipped)]","expect":"[/1 ~(count | add 1)]"}
+{"decision":"D449","name":"a-function-apply-runs-hands-the-step-of-apply-the-path-and-the-resumption-of-its-failure","query":"get [~([1 \"x\"] | apply (::vec/map | binding | value) [~(mul 2)] !| trace | last | path) ~(!{:a 1} | raise | count !| apply (::map/raise | binding | value) [] | add 1 !| trace | last | skipped)]","expect":"[/1 ~(count | add 1)]"}
 {"name":"a-declaration-answers-the-failure-of-its-body-by-the-flight-of-its-call","query":"get [~([1 \"x\"] | :y map ~(mul 2) !| trace | map ~(get [~(failed) ~(path)])) ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | :e raise !| trace | map ~failed)]","expect":"[[[~(mul 2) null] [~(:y map ~(mul 2)) /1]] [~(pre)]]"}
 {"name":"a-raise-written-as-a-modifier-answers-within-the-frame-of-its-step","query":"!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| trace | map ~failed","expect":"[~(pre) ~(eq raise)]"}
 {"name":"each-level-of-the-trace-names-the-part-of-its-own-subject","query":"get [~([[1 \"x\"]] | map ~(sum) !| trace | map ~path) ~([\",\" \";\"] | reduce [\"a\" 1] ~(join) !| trace | map ~(get [~(subject) ~(path)]))]","expect":"[[/1 /0] [[[\"a\" 1] /1] [[\",\" \";\"] /0]]]"}

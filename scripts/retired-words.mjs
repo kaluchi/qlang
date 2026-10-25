@@ -105,4 +105,5 @@ export const RETIRED_WORDS = [
   { regex: /\b(?:actual|left|right)Type\b/, written: 'the tag a fact of a refusal names, `:actualTag`, and the tags two values part at, `:leftTag` and `:rightTag`', by: 'D442' },
   { regex: /`wraps`|\|\s*wraps\b|\bkind\/wraps\b/, written: 'the payload a kind accepts, the command `accepts`', by: 'D450' },
   { regex: /`reads`|\|\s*reads\s+:|\bkind\/reads\b/, written: 'a part of a payload a kind wires, the command `wires`', by: 'D450' },
+  { regex: /`explain`|\|\s*explain\b|\bany\/explain\b|::explanation\b/, written: 'the page of a value, of an error at rest the page of the refusal it carries, `doc`', by: 'D452' },
 ];

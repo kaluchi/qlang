@@ -96,8 +96,8 @@ mechanism to be explained does not enter.
 Everything is a value. Code, a page, an error, the scope a query
 declared and the description of a word are values, each with a literal
 that prints and reads back and that stands at the head of a pipeline,
-where the ordinary protocol asks it, `doc`, `explain`, `tag`,
-`manifest`; only what has a literal reaches the pipeline.
+where the ordinary protocol asks it, `doc`, `tag`, `manifest`; only
+what has a literal reaches the pipeline.
 
 The language describes itself. The one description of a word is its
 declaration in the catalog: documentation is read out of the language,

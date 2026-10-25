@@ -1,10 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, it, expect } from 'vitest';
 import { makeKeyword, isErrorValue, makeBinding, makeErrorValue, makeTag, makeFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL } from '../../../src/types.mjs';
 import { parseSource } from '../../../src/parse.mjs';
 import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { createNotebook, evalQuery } from '../../../src/notebook.mjs';
 import { boundAnswer } from '../../../src/runtime/print.mjs';
 import { declareRefusal } from '../../../src/errors.mjs';
+
+// [D451]
+beforeAll(() => langRuntime());
 
 describe('an error value and the trace it is handed', () => {
   it('produces a frozen error under its tag that holds no :trace while no step raised it', () => {

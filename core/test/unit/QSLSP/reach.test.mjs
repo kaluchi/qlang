@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
-import { shownFor } from '../../../src/nouns.mjs';
+import { shownFor, answerKindsOf, nodeOf } from '../../../src/nouns.mjs';
 import { createNotebook } from '../../../src/notebook.mjs';
 import { forEachPart, tagWrittenBy, tagHeadEnd, findNameOccurrences, bindingNamesVisibleAt, TAG_SPELLING } from '../../../src/parsed-parts.mjs';
-import { isTag } from '../../../src/types.mjs';
+import { isTag, makeBinding, makeKeyword } from '../../../src/types.mjs';
 import { rootOf, kindOf } from '../../helpers/read-text.mjs';
 
 describe('a verb as the tooling reads it', () => {
@@ -15,6 +15,11 @@ describe('a verb as the tooling reads it', () => {
 
   it('shows nothing for a name that reaches neither a verb nor a name under a label', async () => {
     expect(shownFor(await langRuntime(), 'nothingAtAll')).toBeUndefined();
+  });
+
+  it('shows nothing for a name the scope binds to a value', async () => {
+    const scope = new Map(await langRuntime()).set('five', makeBinding({ name: makeKeyword('five'), value: 5 }));
+    expect(shownFor(scope, 'five')).toBeUndefined();
   });
 
   it('shows one of the verbs of a name several kinds answer, and the inputs of its function', async () => {
@@ -32,6 +37,14 @@ describe('a verb as the tooling reads it', () => {
     expect(shownFor(scope, 'count', ['vec']).address.name).toBe('vec/count');
     expect(shownFor(scope, 'count', ['map']).address.name).toBe('map/count');
     expect(shownFor(scope, 'take', ['string'])).toEqual({ address: expect.objectContaining({ name: 'string/take' }), inputs: ['count'] });
+  });
+
+  // [D449]
+  it('shows a part a closed tag wires as a name of its label, which answers the kinds of its field', async () => {
+    const scope = await langRuntime();
+    const shown = shownFor(scope, 'end', ['span', 'tagged']);
+    expect(shown).toEqual({ address: expect.objectContaining({ name: 'span/end' }), inputs: [] });
+    expect(answerKindsOf(scope, nodeOf(scope, shown.address.name), ['span', 'tagged'])).toEqual(['point']);
   });
 
   it('shows the verb a name reaches with no subject where the kinds reach none', async () => {

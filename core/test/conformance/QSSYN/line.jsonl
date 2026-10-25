@@ -8,7 +8,7 @@
 {"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
 {"name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| get [~(x) ~(y)]\" | parse | open","expect":"[[1] 2]"}
 {"name":"a-tag-name-on-a-later-line-is-the-body","query":":s\n::vec\n| s","expect":"::vec"}
-{"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":":Box |~~ A box. ~~| | :Box/w\n  ::number | ::Box/w | binding | get /value","expect":"::number"}
+{"decision":"D449","name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":":Box |~~ A box. ~~| | :Box/w\n  ::number | ::Box/w | binding | value","expect":"::number"}
 {"name":"a-keyword-on-a-later-line-opens-a-declaration-of-its-own","query":":a\n:b 2\n| b","expect":"2"}
 {"name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by)\n| 5 | plus 3","expect":"8"}
 {"decision":"D450","name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | accepts |~~ The sizes. ~~| ::map\n| ::Box\"x\" !| tag","expect":"::Box/PayloadKindNotTakenError"}

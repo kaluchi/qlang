@@ -11,9 +11,9 @@ import { readPath, partsOfTemplate, isMissedPart } from './path-read.mjs';
 import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
-  makeBinding, bindingValueOf, makeTagged, makeTag, makePath, errorAtRest, beneathTags,
+  makeBinding, bindingValueOf, makeTagged, makeTag, errorAtRest, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf, beneathOpenTags
+  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
@@ -23,7 +23,7 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerbValue, isUnderLabel, isVerb, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, nodeOf, refuseWithheld, residenceOnSubject, returnsItsLabel, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
@@ -230,8 +230,7 @@ function laidByTheChainOfItsNoun(scope, name, nounName, at) {
 function refuseAnInputOfTheWiring(scope, nounName, fn) {
   const label = bindingValueOf(nodeOf(scope, nounName));
   if (!isKind(label)) return;
-  const wired = new Set(chainOfKind(label).fields.map(({ name }) => name.name));
-  const input = chainOfFn(fn).inputs.find(({ name }) => wired.has(name.name));
+  const input = chainOfFn(fn).inputs.find(({ name }) => chainOfKind(label).wired.has(name.name));
   if (input !== undefined) throw new BindNameDeclaredTwiceError({ name: input.name });
 }
 
@@ -338,11 +337,6 @@ function withRepairOfPath(state, call, subject, scope) {
   return withPipeValue(state, makeErrorValue(refused.tag, facts, { originalError: refused.originalError }));
 }
 
-// [D449]
-function repairOfAPart(subject, name) {
-  return wiringOf(beneathOpenTags(subject))?.has(name) ? makeQuote([commandStep('get', [makePath([name])])]) : undefined;
-}
-
 // [QSNAM#reach], [QSQUO#held], [D449]
 async function callByName(lookupName, modifiers, state, call) {
   refuseWithheld(state.scope, lookupName);
@@ -351,33 +345,47 @@ async function callByName(lookupName, modifiers, state, call) {
     const addresses = addressesOf(state.scope, lookupName);
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.scope, addresses, state.pipeValue);
-      const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : repairOfAPart(state.pipeValue, lookupName);
+      const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : undefined;
       throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: makeKeyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
     }
-    throw new CallUnknownNameError({
-      name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses, repair: repairOfAPart(state.pipeValue, lookupName)
-    });
+    throw new CallUnknownNameError({ name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses });
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
   const verb = residenceOnSubject(state.scope, lookupName, state.pipeValue);
-  if (verb !== null && servesTheSubject(verb, state.pipeValue)) {
+  if (verb !== null && servesTheSubject(verb, state.pipeValue) && !readsTheValueItHolds(verb, reach.record, state)) {
     throw new CallValueMeetsVerbError({ name: makeKeyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
   }
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
 }
 
+// [D449]
+function readsTheValueItHolds(verb, record, state) {
+  const address = verb.get('name').name;
+  return isNodeOfAPart(verb, state.scope) && partReadBy(address, state.pipeValue).part === bindingValueOf(record);
+}
+
+function partReadBy(address, subject) {
+  const [labelName, name] = splitAddress(address);
+  const walked = walkToKinds(subject, [labelName]);
+  return walked === null ? null : { part: wiringOf(walked.served).get(name) };
+}
+
+function partCalled(address, modifiers, state) {
+  const [labelName, name] = splitAddress(address);
+  const read = partReadBy(address, state.pipeValue);
+  if (read === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
+  return valueCalled(read.part, name, name, modifiers, state);
+}
+
 // [QSNAM#value]
 async function applyBinding(entry, name, lastName, modifiers, state) {
-  const resolved = bindingValueOf(entry);
+  return valueCalled(bindingValueOf(entry), name, lastName, modifiers, state);
+}
 
-  if (modifiers.length > 0) {
-    throw new CallValueTakesNoModifiersError({
-      name: makeKeyword(name),
-      actualValue: resolved,
-      addresses: addressesOf(state.scope, lastName)
-    });
-  }
-  return withPipeValue(state, resolved);
+// [QSNAM#value], [D449]
+function valueCalled(value, name, lastName, modifiers, state) {
+  if (modifiers.length > 0) throw new CallValueTakesNoModifiersError({ name: makeKeyword(name), actualValue: value, addresses: addressesOf(state.scope, lastName) });
+  return withPipeValue(state, value);
 }
 
 // [QSNAM#address]
@@ -387,9 +395,7 @@ async function callByAddress(call, address, modifierSteps, state) {
     throw new CallUnknownAddressError({ address: makeTag(address), nearest: nearestTagNames(state.scope, address) });
   }
   const modifiers = modifierSteps.map(step => modifierOf(step, state));
-  if (isVerbValue(bindingValueOf(record)) && isUnderLabel(state.scope, address)) {
-    return await applyVerb(record, modifiers, state);
-  }
+  if (isVerb(state.scope, address)) return await applyVerb(record, modifiers, state);
   return await applyBinding(record, address, splitAddress(address)[1], modifiers, state);
 }
 
@@ -491,8 +497,9 @@ function isNodeOrLabel(name, record) {
 // [QSBLD#input]
 const ARGS_NAME = makeKeyword('args');
 
-// [QSBLD#recipe]
+// [QSBLD#recipe], [D449]
 async function applyVerb(record, modifiers, state) {
+  if (isNodeOfAPart(record, state.scope)) return partCalled(record.get('name').name, modifiers, state);
   const value = bindingValueOf(record);
   return await applyFunctionVerb(record, isFn(value) ? value : functionOfRecipe(value), modifiers, state);
 }

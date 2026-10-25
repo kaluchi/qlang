@@ -18,7 +18,7 @@
 {"name":"an-input-of-code-holds-a-verb-as-the-quote-that-runs-it","query":":any/twice (::fn | takes :f |~~ The f. ~~| /0 ::quote | impl ~(apply f | apply f)) | 1 | get [~(twice ~(add 1)) ~(twice ~(add 1))]","expect":"[3 3]"}
 {"name":"an-optional-input-takes-a-map-by-default","query":":any/m (::fn | takes :opts |~~ The opts. ~~| ~(query /0 {:limit 2}) ::map | impl ~(opts | get /limit)) | null | m","expect":"2"}
 {"name":"an-optional-input-takes-a-vector-by-default","query":":any/m (::fn | takes :xs |~~ The xs. ~~| ~(query /0 [1 2]) ::vec | impl ~(xs | count)) | null | get [~(m) ~(m [5])]","expect":"[2 1]"}
-{"name":"the-node-of-an-input-holds-its-selector","query":"::number/add/addend | binding | get /value","expect":"/0"}
+{"decision":"D449","name":"the-node-of-an-input-holds-its-selector","query":"::number/add/addend | binding | value","expect":"/0"}
 {"name":"a-verb-refuses-an-arg-beyond-its-arity","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 !| tag","expect":"::number/scale/ArgsBeyondInputsError"}
 {"name":"a-call-of-more-values-than-its-arity-is-refused","query":":number/scale (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | scale 5 2 3 !| tag","expect":"::number/scale/ArgsBeyondInputsError"}
 {"name":"args-of-more-values-than-the-arity-are-refused","query":"5 | add \"a\" 1 !| tag","expect":"::number/add/ArgsBeyondInputsError"}

@@ -120,14 +120,14 @@
 
 
 |~| ── 8. Failures ───────────────────────────────────────────
-|~| `|` passes a failure by and `!|` catches it; `explain`
+|~| `|` passes a failure by and `!|` catches it; `doc`
 |~| answers the page of what refused, which tells the repair.
 
 | ("hello" | add 1 !| tag)
 
 | ([1 "x" 3] | map ~(add 10 !| 0))
 
-| ("hello" | add 1 !| explain)
+| ("hello" | add 1 !| doc)
 
 
 |~| ── 9. Comments ───────────────────────────────────────────

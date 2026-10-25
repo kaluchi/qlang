@@ -58,8 +58,19 @@ export function declaresVerb(address, ofAVerb, isLabelName) {
   return ofAVerb && labelName !== null && isLabelName(labelName);
 }
 
+// [QSDSP#walk], [D449]
 function residesOn(record, scope) {
-  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(scope, labelName));
+  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)) || isNodeOfAPart(record, scope), labelName => isLabel(scope, labelName));
+}
+
+export function isNodeOfAPart(record, scope) {
+  return !isVerbValue(bindingValueOf(record)) && fieldOfTheNode(record, scope) !== undefined;
+}
+
+function fieldOfTheNode(record, scope) {
+  const [labelName, name] = splitAddress(record.get('name').name);
+  const label = labelName === null ? null : bindingValueOf(nodeOf(scope, labelName));
+  return isKind(label) ? chainOfKind(label).wired.get(name) : undefined;
 }
 
 // [QSNAM#address], [QSBLD#input]
@@ -81,8 +92,9 @@ export function answerOf(scope, address) {
 
 export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 
-// [QSBLD#answer], [QSLSP#offer]
+// [QSBLD#answer], [QSLSP#offer], [D449]
 export function answerKindsOf(scope, record, subjectKinds) {
+  if (isNodeOfAPart(record, scope)) return fieldOfTheNode(record, scope).kinds;
   const address = record.get('name').name;
   const answer = answerOf(scope, address);
   if (answer === null || answer.kinds.includes(ANY_KIND_NAME)) return null;
@@ -391,14 +403,15 @@ export function verbNames(scope) {
   return names;
 }
 
-// [QSLSP#server]
+// [QSLSP#server], [D449]
 export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
   const record = reached === undefined
     ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
     : nodeOf(scope, reached.address.name);
+  if (record === undefined) return undefined;
   const value = bindingValueOf(record);
-  if (!isVerbValue(value)) return undefined;
+  if (!isVerbValue(value) && !isNodeOfAPart(record, scope)) return undefined;
   const inputs = isFn(value) ? chainOfFn(value).inputs.map(({ name: input }) => input.name) : [];
   return { address: makeTag(record.get('name').name), inputs };
 }

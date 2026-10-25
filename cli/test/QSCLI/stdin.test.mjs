@@ -103,7 +103,7 @@ describe('a JSON text `parseJson` refuses', () => {
 
   it('hands the query a refusal of the lift as the failure it starts from, which its steps pass by and `!|` catches', async () => {
     const s = captureStreams('[1e400]');
-    await main(['count !| get /trace/0/0'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['count !| trace | first | subject'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('[1e400]\n');
   });
 

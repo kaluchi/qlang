@@ -71,25 +71,20 @@
     | carries :KeyNotInMapError/key
         |~~ The key the path read, which the map does not hold. ~~|
         ::keyword
-    | throws :NameNotWiredError
+    | throws :TagClosedError
         |~~ A value under a kind that wires its parts is read by the names
-            its kind wires, and by nothing else: `:name` holds the segment
-            read, which the wiring does not give, and `:nearest` the names
-            near it. `tag | manifest` lists the names of the kind, and
-            `payload` answers the payload bare, which a path reads as any
-            value.
+            its kind wires, each bare, `card | took`, and no path reads or
+            writes beneath its tag: `:names` holds the names, and `:repair`,
+            where the path went by them, the read by the names,
+            `get /location/start/line` read as `get /location | start | line`.
+            A value of the kind is built anew at its door, by `tag` over a
+            new payload or by a word of the kind, and `payload` answers the
+            payload bare, which a path reads as any value.
             ::link~(::kind/wires | doc) ::link~(::any/payload | doc)
         ~~|
-    | carries :NameNotWiredError/name
-        |~~ The segment the path read, which the wiring does not give. ~~|
-        ::keyword
-    | throws :PartNotWritableError
-        |~~ A path writes no part of a value under a kind that wires its
-            parts: the kind builds its values at its door, so a value of it
-            is built anew there, by `tag` over a new payload or by a word of
-            the kind.
-            ::link~(::kind/wires | doc) ::link~(::any/tag | doc)
-        ~~|
+    | carries :TagClosedError/names
+        |~~ The names the kind of the value wires. ~~|
+        ::set
     | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and

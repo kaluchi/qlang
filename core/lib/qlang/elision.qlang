@@ -10,7 +10,7 @@
       and every part left out gives way to an elision.
 
       It prints as a map under its tag,
-      `::elision{:size 28 :read ~(!| get /trace/0/0 | drop 2)}`:
+      `::elision{:size 28 :read ~(!| get /trace/0 | subject | drop 2)}`:
       `:size` counts the elements, the entries or the characters it
       stands for, `:read` is the query that, continued from the answer,
       reads the part left out, `~()` for the answer itself, and `:head`

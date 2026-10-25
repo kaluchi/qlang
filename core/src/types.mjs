@@ -390,19 +390,23 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-export function makeFrame(subject, unfinished, path = null) {
-  return makeTagged(FRAME_TAG, path === null ? [subject, unfinished] : [subject, unfinished, path]);
+// [D451]
+const WIRINGS_THE_ROOT_HANDS = new Map();
+
+export function takeWiring(kindName, wiring) {
+  WIRINGS_THE_ROOT_HANDS.set(kindName, wiring);
 }
 
-export const SUBJECT_INDEX_OF_A_FRAME = 0;
+export function makeFrame(subject, unfinished, path = null) {
+  const payload = path === null ? [subject, unfinished] : [subject, unfinished, path];
+  return makeTagged(FRAME_TAG, payload, WIRINGS_THE_ROOT_HANDS.get(FRAME_TAG.name)(payload));
+}
+
+export const SUBJECT_OF_A_FRAME = 'subject';
 
 export function partsOfFrame(frame) {
-  const [subject, unfinished, path = null] = frame;
-  return { subject, unfinished, path };
-}
-
-export function holdsTheLayoutOfAFrame(parts) {
-  return parts.length <= 3 && isQuote(parts[1]) && parts[1].length > 0 && (parts.length === 2 || isPath(parts[2]));
+  const parts = wiringOf(frame);
+  return { subject: parts.get(SUBJECT_OF_A_FRAME), unfinished: parts.get('unfinished'), path: parts.get('path') };
 }
 
 export function makeTrace(frames) {

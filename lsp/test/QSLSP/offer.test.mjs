@@ -176,9 +176,18 @@ describe('the verbs offered after a value', () => {
     }
     const afterWraps = await labelsAt('::kind | accepts |~~ w ~~| ::vec | ');
     expect(['wires', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
-    const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '::frame[1 ~(a)] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
-    expect(afterSorts.map(labels => ['count', 'within', 'failed', 'add'].map(label => labels.includes(label))))
-      .toEqual([[true, true, false, false], [true, true, true, false], [true, false, false, false]]);
+    const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
+    expect(afterSorts.map(labels => ['count', 'within', 'add'].map(label => labels.includes(label))))
+      .toEqual([[true, true, false], [true, false, false]]);
+  });
+
+  // [D449]
+  it('offers the names a closed tag wires and the verbs of its kind, no verb of its payload, and after a part the verbs of its kinds', async () => {
+    const afterAFrame = await labelsAt('::frame[1 ~(a)] | ');
+    expect(['subject', 'unfinished', 'path', 'failed', 'within', 'count', 'sort'].map(label => afterAFrame.includes(label)))
+      .toEqual([true, true, true, true, true, false, false]);
+    const afterAnEnd = await labelsAt('::span[0 1 1 4 1 5] | end | ');
+    expect(['line', 'column', 'start', 'count'].map(label => afterAnEnd.includes(label))).toEqual([true, true, false, false]);
   });
 
   it('follows the kind a verb declares it returns', async () => {

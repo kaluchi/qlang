@@ -1,4 +1,4 @@
-{"name":"payload-resides-on-every-value","query":"get [~(5 | binding :payload | get /name) ~(::Box#5 | binding :payload | get /name)]","expect":"[:any/payload :any/payload]"}
+{"decision":"D449","name":"payload-resides-on-every-value","query":"get [~(5 | binding :payload | name) ~(::Box#5 | binding :payload | name)]","expect":"[:any/payload :any/payload]"}
 {"name":"is-asks-whether-the-walk-reaches-a-kind","query":"::Width#2 | is ::number","expect":"true"}
 {"name":"a-tag-passes-to-the-verb-of-its-payload","query":"::Box#5 | add 3","expect":"::Box#8"}
 {"name":"the-kinds-is-asks-for-are-tag-names","query":"5 | is :number !| get [~(tag) /index /actualTag]","expect":"[::any/is/kinds/ElementKindNotTakenError 0 ::keyword]"}
@@ -14,4 +14,4 @@
 {"name":"an-invariant-and-a-law-read-their-condition-beneath-its-tags","query":":any/f (::fn | takes :n |~~ n ~~| /0 ::number | holds :n/SmallError |~~ s ~~| ~(gt 0 | tag ::Ok) | impl ~(n)) | :Pos |~~ P ~~| (::kind | proves :holds |~~ h ~~| ~(true | tag ::Ok)) | null | get [~(f 5) ~(::Pos | runLaws | first | get /ok)]","expect":"[5 true]"}
 {"name":"is-asks-of-one-kind-at-least","query":"5 | is !| tag","expect":"::any/is/kinds/EmptyError"}
 {"decision":"D449","name":"the-walk-stops-at-a-closed-tag","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get [~(count !| tag) ~(vec/count !| tag) ~(tag)]","expect":"[::call/KindAnswersNoVerbError ::vec/count/SubjectNotVecError ::Card]"}
-{"decision":"D449","name":"a-closed-tag-over-a-text-holds-the-words-of-the-text-off","query":":E |~~ A text that writes a number. ~~| (::kind | accepts |~~ The text. ~~| ::string | wires :n |~~ The number. ~~| ~(toNumber) ::number) | ::E\"312\" | get [~(upper !| tag) ~(get /n)]","expect":"[::string/upper/SubjectNotStringError 312]"}
+{"decision":"D449","name":"a-closed-tag-over-a-text-holds-the-words-of-the-text-off","query":":E |~~ A text that writes a number. ~~| (::kind | accepts |~~ The text. ~~| ::string | wires :n |~~ The number. ~~| ~(toNumber) ::number) | ::E\"312\" | get [~(upper !| tag) ~(n)]","expect":"[::string/upper/SubjectNotStringError 312]"}

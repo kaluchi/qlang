@@ -7,7 +7,7 @@
       page, its value and where it came from, so what is named can be
       listed and asked like data. `env` answers the bindings a reader
       declared, and `binding` the record of a name,
-      `::vec/count | binding | get /origin` answering `:qlang/vec`.
+      `::vec/count | binding | origin` answering `:qlang/vec`.
 
       It prints as a map under its tag, its fields read under the kind;
       the record of `:x 5` read from the cell `cell-1` is
@@ -60,18 +60,18 @@
         ~~|
     | proves :holdsTheValue
         |~~ The record of a name holds its value. ~~|
-        ~(:x |~~ One. ~~| 1 | env | get /x | get /value | eq 1)
+        ~(:x |~~ One. ~~| 1 | env | get /x | value | eq 1)
     | proves :holdsThePage
         |~~ The record of a name holds its page. ~~|
         ~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq "One.")
     | proves :holdsTheName
         |~~ The record of a name holds the name. ~~|
-        ~(:x 1 | env | get /x | get /name | eq :x)
+        ~(:x 1 | env | get /x | name | eq :x)
     | proves :holdsNoSourceForANodeAChainLays
         |~~ A binding no declaration wrote, a node a chain lays, holds no
             source.
         ~~|
-        ~(::number/add/addend | binding | get /source | eq null)
+        ~(::number/add/addend | binding | source | eq null)
     | proves :readsBackFromItsPrint
         |~~ The record of a name reads back from its print. ~~|
         ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)

@@ -3,19 +3,28 @@
 import { registerPrimitive, registerStateReader, runsAsCode } from '../primitives.mjs';
 import { parseSource } from '../parse.mjs';
 import { printQuoteSource } from '../print-value.mjs';
-import { errorFromParse } from '../error-convert.mjs';
+import { errorFromParse, spanOfLocation } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isFn } from '../types.mjs';
-import { codeOf, applyFunction } from '../eval.mjs';
+import { codeOf, applyFunction, layTag } from '../eval.mjs';
+import { rootState, rootOf } from '../state.mjs';
+import { ROOT_KEY } from '../scope-keys.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
 
+// [QSSYN#refusal], [QSPRN#span], [D451]
+export async function refusalOfAParse(parseError, scope, uri) {
+  const ofTheRoot = rootState(null, new Map([[ROOT_KEY, rootOf(scope)]]));
+  const location = parseError.location ? await layTag('span', spanOfLocation(parseError.location, parseError.source), ofTheRoot) : undefined;
+  return errorFromParse(parseError, scope, location, uri);
+}
+
 // [QSQUO#parse]
-registerStateReader('string/parse', (source, state) => {
+registerStateReader('string/parse', async (source, state) => {
   try {
     return parseSource(source, { uri: 'string/parse' });
   } catch (parseErr) {
-    return errorFromParse(parseErr, state.scope);
+    return await refusalOfAParse(parseErr, state.scope);
   }
 });
 registerPrimitive('quote/toString', quote => printQuoteSource(quote));

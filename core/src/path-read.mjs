@@ -1,8 +1,10 @@
 // [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
-import { beneathOpenTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, wiringOf, CORE_KIND } from './types.mjs';
+import { beneathOpenTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, makePath, makeQuote, wiringOf, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
+import { makeSet } from './ordering.mjs';
+import { commandStep } from './steps.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
 export const PathKeyNotInMapError = declareRefusal('path/KeyNotInMapError');
@@ -37,23 +39,14 @@ export function segmentIndex(segment) {
 }
 
 // [D449]
-export const PathNameNotWiredError = declareRefusal('path/NameNotWiredError');
-export const PathPartNotWritableError = declareRefusal('path/PartNotWritableError');
+export const PathTagClosedError = declareRefusal('path/TagClosedError');
 
 // [QSPTH#get], [D449]
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
     const container = beneathOpenTags(current);
-    const parts = wiringOf(container);
-    if (parts !== undefined) {
-      if (parts.has(segment)) {
-        current = parts.get(segment);
-        continue;
-      }
-      if (soft) return MISSED;
-      throw nameNotWired(container, parts, segment, path, depth);
-    }
+    if (wiringOf(container) !== undefined) throw tagClosed(container, path, depth);
     if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {
@@ -93,13 +86,21 @@ export function indexIn(container, segment, path, depth, soft = false) {
 }
 
 // [D449]
-function nameNotWired(value, parts, segment, path, depth) {
-  const nearest = Object.freeze(nearestOf(parts.keys(), segment).map(name => makeKeyword(name)));
-  return refusalAt(new PathNameNotWiredError({ name: makeKeyword(segment), nearest, path, actualValue: value }), depth);
+export function tagClosed(value, path, depth) {
+  const read = namesRead(value, path.segments.slice(depth));
+  const repair = read === null ? undefined : makeQuote([...(depth === 0 ? [] : [commandStep('get', [makePath(path.segments.slice(0, depth))])]), ...read]);
+  const names = makeSet([...wiringOf(value).keys()].map(makeKeyword));
+  return refusalAt(new PathTagClosedError({ names, repair, path, actualValue: value }), depth);
 }
 
-export function partNotWritable(value, path, depth) {
-  return refusalAt(new PathPartNotWritableError({ path, actualValue: value }), depth);
+function namesRead(value, segments) {
+  if (segments.length === 0) return [];
+  const parts = wiringOf(beneathOpenTags(value));
+  if (parts === undefined) return [commandStep('get', [makePath(segments)])];
+  const [name, ...rest] = segments;
+  if (!parts.has(name)) return null;
+  const after = namesRead(parts.get(name), rest);
+  return after === null ? null : [commandStep(name, []), ...after];
 }
 
 export function noPartsOn(value, segment, path, depth) {

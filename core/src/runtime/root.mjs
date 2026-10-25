@@ -3,12 +3,12 @@
 import { parseSource } from '../parse.mjs';
 import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, makeKeyword } from '../types.mjs';
+import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, takeWiring, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
 import { isLabel, isUnderLabel } from '../nouns.mjs';
-import { functionOfRecipe } from '../chain.mjs';
+import { functionOfRecipe, wiringAtPlaces } from '../chain.mjs';
 
 export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
   ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
@@ -25,7 +25,7 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
 
-// [QSHST#source]
+// [QSHST#source], [D451]
 export async function declareRoot(scope, sources) {
   let root = rootOf(scope);
   for (const { uri, source, primitives = {} } of sources) {
@@ -41,6 +41,8 @@ export async function declareRoot(scope, sources) {
     const taking = new Set();
     for (const [name, record] of declared) {
       const value = bindingValueOf(record);
+      const wiring = isKind(value) ? wiringAtPlaces(value) : null;
+      if (wiring !== null) takeWiring(name, wiring);
       const builtin = builtinOf(value);
       if (builtin === null || isPrimitiveHanded(builtin)) continue;
       const primitive = primitives[name];

@@ -2,10 +2,10 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makePath, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
-import { segmentIndex } from './path-read.mjs';
+import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
 const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
@@ -211,6 +211,7 @@ function readChainOfKind(quote) {
         kind.laws.push({ name: first.name, page: second, query: third });
     }
   }
+  kind.wired = new Map(kind.fields.map(field => [field.name.name, field]));
   return Object.freeze(kind);
 }
 
@@ -238,6 +239,21 @@ export function chainOfKind(kind) {
   let chain = CHAINS_OF_KINDS.get(kind);
   if (chain === undefined) CHAINS_OF_KINDS.set(kind, chain = readChainOfKind(commandsOf(kind)));
   return chain;
+}
+
+// [D451]
+export function wiringAtPlaces(kind) {
+  const places = chainOfKind(kind).fields.map(({ name, selector }) => ({ name: name.name, place: placeOf(readingOfSelector(selector)) }));
+  if (places.length === 0 || places.some(({ place }) => place === null)) return null;
+  return payload => new Map(places.map(({ name, place: { path, soft } }) => {
+    const part = readPath(payload, path, soft);
+    return [name, part === MISSED ? null : part];
+  }));
+}
+
+function placeOf({ path, index, oneArg, fallback }) {
+  if (path !== null) return { path, soft: false };
+  return oneArg && fallback === null ? { path: makePath([index]), soft: true } : null;
 }
 
 // [QSBLD#recipe]

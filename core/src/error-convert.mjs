@@ -1,4 +1,4 @@
-import { makeKeyword, makeErrorValue, makeTag, makeTagged, tagOf, ERROR_TAG } from './types.mjs';
+import { makeKeyword, makeErrorValue, makeTag, tagOf, ERROR_TAG } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
 import { namesDeclaredUnder } from './nouns.mjs';
 import { nameOfContinuation } from './parse.mjs';
@@ -10,15 +10,13 @@ recordRefusal('call/HostFailureError');
 const BuiltinRefusalFactNotDeclaredError = declareDefect('builtin/RefusalFactNotDeclaredError',
   ({ address, fact }) => `${address.literal} carries ${fact.literal}, which neither its label nor ::error declares`);
 
-const SPAN_TAG = makeTag('span');
-
-// [QSPRN#span]
+// [QSPRN#span], [D451]
 export function spanOfLocation(loc, source) {
   const point = ({ offset, line, column }) => {
     const lineStart = offset - (column - 1);
     return [codePointsIn(source, 0, offset), line, codePointsIn(source, lineStart, offset) + 1];
   };
-  return makeTagged(SPAN_TAG, [...point(loc.start), ...point(loc.end)]);
+  return Object.freeze([...point(loc.start), ...point(loc.end)]);
 }
 
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
@@ -43,15 +41,15 @@ export function errorFromQlang(qlangError, subject, scope) {
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 
-// [QSSYN#refusal]
-export function errorFromParse(parseError, scope, uri = parseError.uri) {
+// [QSSYN#refusal], [D451]
+export function errorFromParse(parseError, scope, location, uri = parseError.uri) {
   const d = new Map();
   if (parseError.source != null && parseError.location) d.set('source', parseError.source.split('\n')[parseError.location.start.line - 1]);
   if (parseError.sentence) d.set('message', parseError.sentence);
   if (parseError.expected) d.set('expected', liftExpectedAlternatives(parseError.expected));
   else d.set('message', parseError.message);
   if (parseError.found !== undefined && parseError.found !== null) d.set('found', parseError.found);
-  if (parseError.location) d.set('location', spanOfLocation(parseError.location, parseError.source));
+  if (location !== undefined) d.set('location', location);
   if (uri) d.set('origin', makeKeyword(uri));
   const tag = makeTag('quote/ParseError');
   return makeErrorValue(tag, factsInOrder(tag, d, scope), { originalError: parseError });

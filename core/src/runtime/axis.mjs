@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import {
-  isKeyword, isTag, isBinding, isNull, isSet, isVec, makeKeyword, tagOf, makeTagged,
+  isKeyword, isTag, isBinding, isNull, isSet, isVec, makeKeyword, tagOf,
   makeTag, makeQuote, makeDoc, payloadBeneath, beneathTags, NULL
 } from '../types.mjs';
 import {
@@ -19,7 +19,6 @@ const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
 const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/anchor/NameKindNotTakenError');
 const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/anchor/ElementKindNotTakenError');
-const AnyExplainUnknownNameError = declareRefusal('any/explain/UnknownNameError');
 
 // [QSDSP#walk], [QSERR#site], [QSSLF#near]
 function refusalOf(scope, subject) {
@@ -107,12 +106,5 @@ registerStateReader('any/doc', (subject, anchor, state) => {
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
   if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ index: stranger, expected: kindsExpected('keyword', 'null', 'vec'), actualValue: anchor[stranger] });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
-});
-
-// [QSERR#catch], [QSSLF#explain]
-const EXPLANATION_TAG = makeTag('explanation');
-registerStateReader('any/explain', (subject, state) => {
-  const page = pageOfRecord(recordReadBy(subject, NULL, state, AnyExplainUnknownNameError));
-  return makeTagged(EXPLANATION_TAG, new Map([['page', page], ['value', subject]]));
 });
 

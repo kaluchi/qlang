@@ -172,14 +172,14 @@
           | content
           | trim
           | eq "The width.")
-    | proves :readsNoFieldAsAVerb
-        |~~ A field is no verb of the values of its kind: `get` reads it
-            by its selector.
+    | proves :readsAFieldByItsNameAlone
+        |~~ A field is read by its name, bare, and no path reads beneath
+            the tag of its kind.
         ~~|
         ~(:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /w) ::number)
           | ::Box{:w 1}
-          | get [~(w !| tag) /w]
-          | eq [::call/UnknownNameError 1])
+          | get [~(w) ~(get /w !| tag)]
+          | eq [1 ::path/TagClosedError])
     | proves :holdsTheInvariantsOfItsValue
         |~~ A value that breaks an invariant of the kind is refused under
             it.
@@ -308,11 +308,12 @@
       door reads each part as a value is built: a part the payload leaves
       out is refused under its name as not given, one its selector fails to
       read as not read, and one of none of its kinds as of another kind. A
-      kind that wires a part closes its tag: a path reads a value of it by
-      the names it wires alone, `get /took`, a word of the kind sees them by
-      name in its recipe, `~(took | div 60)`, the walk of a name stops at
-      the tag, and `payload` answers the payload bare.
-      ::link~(::path/NameNotWiredError | doc) ::link~(::any/payload | doc)
+      kind that wires a part closes its tag: a value of it is read by the
+      names it wires alone, each bare, `card | took`, and no path reads
+      or writes beneath its tag; a word of the kind sees them in its
+      recipe, `~(took | div 60)`, the walk of a name stops at the tag, and
+      `payload` answers the payload bare.
+      ::link~(::path/TagClosedError | doc) ::link~(::any/payload | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
@@ -335,13 +336,14 @@
           !| get [~(tag) /index]
           |  eq [::Box/xs/ElementKindNotTakenError 1])
     | proves :readsAPartByItsName
-        |~~ A path reads a part of a value of the kind by the name it wires,
-            and refuses the index the wiring reads it at.
+        |~~ A part of a value of the kind is read by the name it wires,
+            bare, and a path beneath the tag is refused, repaired by the
+            name.
         ~~|
         ~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number)
           | ::Card["a" 312]
-          | get [~(get /took) ~(get /1 !| tag)]
-          | eq [312 ::path/NameNotWiredError])
+          | get [~(took) ~(get /took !| get /repair) ~(get /1 !| tag)]
+          | eq [312 ~(took) ::path/TagClosedError])
     | proves :showsTheNamesToTheRecipesOfTheKind
         |~~ A word of the kind sees the parts of its subject by name. ~~|
         ~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number)
@@ -385,7 +387,7 @@
             value.
         ~~|
         ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec])
-          | get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | get /value)]
+          | get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | value)]
           | eq ["Where to start." #[::vec]])
     | proves :holdsTheLawsUnderItsName
         |~~ A law written under the name of a page lies under it. ~~|
@@ -534,7 +536,7 @@
 
 :kind/impl
   |~~ Gives a kind its constructor, `| impl ::builtin{}`, the second part
-      of the literal of the kind, `::number | binding | get /value | get /1`:
+      of the literal of the kind, `::number | binding | value | get /1`:
       the one a host hands with a kind of the core attaches the tag to a
       payload or refuses it, and one no host handed with the kind
       constructs nothing, a kind of yours laying its tag by its commands;
@@ -555,7 +557,7 @@
         |~~ The constructor stands as the second part of the literal of the
             kind.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}) | ::Box | binding | get /value | get /1 | eq ::builtin{})
+        ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}) | ::Box | binding | value | get /1 | eq ::builtin{})
     | proves :refusesAConstructorThatIsNoBuiltin
         |~~ A constructor that is no `::builtin{}` is refused as the
             literal refuses it.
@@ -565,7 +567,7 @@
         |~~ A constructor a host handed with another kind constructs
             nothing under this one.
         ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | get /value | get /1)) | ::Box"x" | tag | eq ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | value | get /1)) | ::Box"x" | tag | eq ::Box)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | kind/impl ::builtin{} !| tag | eq ::kind/impl/SubjectNotKindError))

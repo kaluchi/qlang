@@ -1,5 +1,5 @@
 |~ `::span`, the kind of a stretch of source text, and what is declared
-   under it: the verbs that read its ends.
+   under it: the points its kind decodes from its numbers.
    The rules it holds: [QSPRN#span]. ~|
 
 :span
@@ -7,13 +7,30 @@
       stopped: six whole numbers under its tag, the offset from zero, the
       line and the column from one of its start, then of the point after
       its end, `::span[0 1 1 1 1 2]` for the first character of a text.
-      `start` and `end` answer its ends as points.
+      Its kind names its two ends, `start` and `end`, each the point it
+      decodes from three of the numbers, so the line where a parse
+      stopped is read by its names,
+      `"[1" | parse !| get /location | start | line`.
       ::snippet~("~{" | parse !| get /location)
       ::link~(::point | doc) ::link~(::quote/ParseError | doc)
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
     | accepts |~~ The six numbers, the start and the end. ~~| [::number]
+    | wires :start
+        |~~ The point the span starts at, the offset, the line and the
+            column of its first character, decoded from its first three
+            numbers: `::span[0 1 1 4 1 5] | start` answers
+            `::point[0 1 1]`.
+        ~~|
+        ~(take 3 | tag ::point) ::point
+    | wires :end
+        |~~ The point after the span's end, the offset, the line and the
+            column past its last character, decoded from its last three
+            numbers: `::span[0 1 1 4 1 5] | end` answers
+            `::point[4 1 5]`.
+        ~~|
+        ~(drop 3 | tag ::point) ::point
     | throws :PayloadKindNotTakenError
         |~~ A span is the vector of six numbers, the offset, the line and
             the column of its start and of the point after its end,
@@ -24,58 +41,28 @@
         |~~ Each part of a span is a whole number, an offset from zero or a
             line or a column from one.
         ~~|
-    | holds :PayloadNotStartAndEndError
-        |~~ A span holds six whole numbers, the offset, the line and the
-            column of its start and of its end.
+    | throws :end/NotReadError
+        |~~ A span holds six numbers, the point of its start and the point
+            after its end, three numbers each: `:actualValue` holds the
+            refusal of the point its last numbers make.
+            ::link~(::point | doc)
         ~~|
-        ~(allOf ~(count | eq 6) ~(every ~(eq (floor))))
-    | proves :PayloadNotStartAndEndError/refusesThreeNumbers
+    | proves :readsItsEndsAsPoints
+        |~~ The ends of a span are the points of its first three numbers
+            and of its last three.
+        ~~|
+        ~(::span[0 1 1 4 1 5] | get [~(start) ~(end)] | eq [::point[0 1 1] ::point[4 1 5]])
+    | proves :readsTheLineWhereAParseStopped
+        |~~ The names of the span and of its point read the line where a
+            parse stopped.
+        ~~|
+        ~("[1\n2" | parse !| get /location | start | line | eq 2)
+    | proves :end/NotReadError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| tag | eq ::span/PayloadNotStartAndEndError)
+        ~(::span[0 1 1] !| get [~(tag) ~(get /actualValue | tag)] | eq [::span/end/NotReadError ::point/offset/NotGivenError])
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
         ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)
     | proves :ElementKindNotTakenError/namesTheElement
         |~~ An element that is no number is refused by its index. ~~|
         ~(::span[0 1 "x" 1 1 2] !| get /index | eq 2)
-
-:span/start
-  |~~ Answers the point the span starts at, the offset, the line and the
-      column of its first character, `::span[0 1 1 4 1 5] | start`
-      answering `::point[0 1 1]`.
-      ::link~(::span/end | doc)
-  ~~|
-  ::fn
-    | returns |~~ The point the span starts at. ~~| ::point
-    | throws :SubjectNotSpanError
-        |~~ `start` reads the point a span starts at, as a parse error
-            holds it, `"[1" | parse !| get /location | start`.
-        ~~|
-    | proves :SubjectNotSpanError/refusesANumber
-        |~~ A subject that is no span is refused. ~~|
-        ~(5 | span/start !| tag | eq ::span/start/SubjectNotSpanError)
-    | proves :answersThePointItStartsAt
-        |~~ The start of a span is the point of its first three numbers. ~~|
-        ~(::span[0 1 1 4 1 5] | start | eq ::point[0 1 1])
-    | impl ~(payload | take 3 | tag ::point)
-
-:span/end
-  |~~ Answers the point after the span's end, the offset, the line and
-      the column past its last character, `::span[0 1 1 4 1 5] | end`
-      answering `::point[4 1 5]`.
-      ::link~(::span/start | doc)
-  ~~|
-  ::fn
-    | returns |~~ The point after the span's end. ~~| ::point
-    | throws :SubjectNotSpanError
-        |~~ `end` reads the point a span ends at, as a parse error holds
-            it, `"[1" | parse !| get /location | end`.
-        ~~|
-    | proves :SubjectNotSpanError/refusesANumber
-        |~~ A subject that is no span is refused. ~~|
-        ~(5 | span/end !| tag | eq ::span/end/SubjectNotSpanError)
-    | proves :answersThePointAfterIt
-        |~~ The end of a span is the point of its last three numbers. ~~|
-        ~(::span[0 1 1 4 1 5] | end | eq ::point[4 1 5])
-    | impl ~(payload | drop 3 | tag ::point)
-

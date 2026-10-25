@@ -35,13 +35,13 @@ const documentStates = new Map();
 let catalogCtx = null;
 
 async function loadCatalogContext() {
-  // [QSHST#source]
+  // [D426]
   const sources = LANGUAGE_SOURCES.map(uri => ({ fileUri: import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`), uri }));
 
   const mergedIndex = new Map();
   for (const { fileUri, uri } of sources) {
     try {
-      const source = readFileSync(new URL(fileUri), 'utf8');
+      const source = new TextDecoder().decode(readFileSync(new URL(fileUri)));
       const root = partOf(parseSource(source, { uri }));
       const entries = buildCatalogIndex(root);
       for (const [name, range] of entries) {

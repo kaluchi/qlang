@@ -2,19 +2,21 @@
 
 import { isErrorValue, makeTag, StringParseJsonTextNotJsonError } from '@kaluchi/qlang-core';
 
+// [D426]
 export function readStdinToString(stdin) {
   if (stdin.isTTY) {
     return Promise.resolve('');
   }
   return new Promise((resolve, reject) => {
-    let buffer = '';
-    stdin.setEncoding('utf8');
-    stdin.on('data', (chunk) => { buffer += chunk; });
-    stdin.on('end', () => resolve(buffer));
+    const decoder = new TextDecoder();
+    let text = '';
+    stdin.on('data', (chunk) => { text += decoder.decode(chunk, { stream: true }); });
+    stdin.on('end', () => resolve(text + decoder.decode()));
     stdin.on('error', reject);
   });
 }
 
+// [QSCLI#stdin]
 export function memoiseStdinReader(stdinReader) {
   let cachedPromise = null;
   return () => {

@@ -1,5 +1,6 @@
+// [QSCLI#line-editor]
+
 import { EventEmitter } from 'node:events';
-import { StringDecoder } from 'node:string_decoder';
 
 const ESC = '\x1b';
 const BRACKETED_PASTE_BEGIN = ESC + '[200~';
@@ -27,8 +28,10 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   let pasteBuffer = '';
   let pendingEscape = '';
 
-  const utf8Decoder = new StringDecoder('utf8');
+  // [D426]
+  const utf8Decoder = new TextDecoder();
 
+  // [QSCLI#line-editor]
   const history = [];
   let historyIndex = 0;
   const historyDrafts = new Map();
@@ -372,7 +375,6 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (buffer.length === 0) emitter.emit('close');
   }
 
-  // [QSCLI#line-editor]
   let pasteAccumBuffer = '';
   let pasteAccumTimer  = null;
   const PASTE_FLUSH_MS = 50;
@@ -396,7 +398,7 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   }
 
   function onData(chunk) {
-    const chunkText = utf8Decoder.write(chunk);
+    const chunkText = utf8Decoder.decode(chunk, { stream: true });
     if (chunkText.length === 0) return;
 
     const typedAlone = [...chunkText].length === 1;
@@ -469,11 +471,15 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
 }
 
 function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
+  // [D426]
+  const decoder = new TextDecoder();
+
+  // [QSCLI#line-editor]
   const emitter = new EventEmitter();
   let pendingChunk = '';
 
   function onData(chunk) {
-    pendingChunk += chunk;
+    pendingChunk += decoder.decode(chunk, { stream: true });
     let nlIndex;
     while ((nlIndex = pendingChunk.indexOf('\n')) !== -1) {
       const lineText = pendingChunk.slice(0, nlIndex);
@@ -483,6 +489,7 @@ function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
   }
 
   function onEnd() {
+    pendingChunk += decoder.decode();
     if (pendingChunk.length > 0) {
       emitter.emit('line', pendingChunk);
       pendingChunk = '';
@@ -491,7 +498,6 @@ function createPipedLineEditor(stdinStream, stdoutWrite, { prompt }) {
   }
 
   emitter.start = function start() {
-    stdinStream.setEncoding('utf8');
     stdinStream.on('data', onData);
     stdinStream.on('end',  onEnd);
   };

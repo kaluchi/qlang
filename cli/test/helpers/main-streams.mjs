@@ -4,7 +4,7 @@ import { Readable, Writable } from 'node:stream';
 import { langRuntime } from '@kaluchi/qlang-core';
 
 export function captureStreams(stdinPayload = '') {
-  const stdinStream = Readable.from([stdinPayload]);
+  const stdinStream = Readable.from([Buffer.from(stdinPayload)]);
   stdinStream.isTTY = false;
 
   const stdoutChunks = [];

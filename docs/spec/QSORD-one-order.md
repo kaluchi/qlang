@@ -82,7 +82,7 @@ false
 > get [~(#[3 1 2] | sort) ~(#[3 1 2] | reverse) ~(#[3 1 2] | take 2) ~(#[-1 1] | map ~(mul 0))]
 [[1 2 3] [3 2 1] #[1 2] [0 0]]
 
-> #[1 2] | get [~(binding :filter | get /name) ~(binding :sort | get /name)]
+> #[1 2] | get [~(binding :filter | name) ~(binding :sort | name)]
 [:vec/filter :set/sort]
 
 > get [~(#[[1 1] [2 2]] | zip) ~(#[[1 1] [2 2]] | flat) ~(#[[1 1] [2 2]] | vec/zip)]

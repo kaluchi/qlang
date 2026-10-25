@@ -28,7 +28,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A number, read as itself, a finite double. ~~| ::number
+    | accepts |~~ A number, read as itself, a finite double. ~~| ::number
     | throws :PayloadKindNotTakenError
         |~~ `::number` reads its payload as the number it is; a payload of
             another kind is refused, and text is read by `toNumber`.

@@ -76,6 +76,7 @@ export function makeBinding({ name, docs = [], value, source = null, origin = nu
   record.set('source', source);
   record.set('origin', origin);
   stampTagHeader(record, BINDING_TAG);
+  stampWiring(record, record);
   return record;
 }
 
@@ -221,6 +222,25 @@ export function stampTagHeader(m, tag) {
   });
 }
 
+// [QSBLD#value]
+const WIRING_SYMBOL = Symbol('qlang/wiring');
+
+function stampWiring(value, parts) {
+  Object.defineProperty(value, WIRING_SYMBOL, {
+    value: parts, enumerable: false, configurable: false, writable: false
+  });
+}
+
+export function wiringOf(value) {
+  return value !== null && typeof value === 'object' ? value[WIRING_SYMBOL] : undefined;
+}
+
+export function beneathOpenTags(value) {
+  let beneath = value;
+  while (isValueClass(beneath, 'underTag') && wiringOf(beneath) === undefined) beneath = beneath.payload;
+  return beneath;
+}
+
 export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DESC_TAG        = makeTag('desc');
@@ -249,20 +269,24 @@ export const CORE_KIND = Object.freeze({
 
 export const isKindOfTheCore = name => Object.hasOwn(CORE_KIND, name);
 
-export function makeTagged(tag, payload) {
+// [QSBLD#value]
+export function makeTagged(tag, payload, parts) {
   if (Array.isArray(payload) && payload[TAG_HEADER_SYMBOL] === undefined) {
     const arr = [...payload];
     stampTagHeader(arr, tag);
+    if (parts !== undefined) stampWiring(arr, parts);
     return Object.freeze(arr);
   }
   if (payload instanceof Map
       && payload[TAG_HEADER_SYMBOL] === undefined) {
     const m = new Map(payload);
     stampTagHeader(m, tag);
+    if (parts !== undefined) stampWiring(m, parts);
     return m;
   }
   const underTag = brandValueClass({ tag, payload }, 'underTag');
   stampTagHeader(underTag, tag);
+  if (parts !== undefined) stampWiring(underTag, parts);
   return Object.freeze(underTag);
 }
 
@@ -366,19 +390,23 @@ export function isFrame(value) {
   return isVec(value) && value[TAG_HEADER_SYMBOL]?.name === FRAME_TAG.name;
 }
 
-export function makeFrame(subject, unfinished, path = null) {
-  return makeTagged(FRAME_TAG, path === null ? [subject, unfinished] : [subject, unfinished, path]);
+// [QSHST#source], [QSERR#trace]
+const WIRINGS_THE_ROOT_HANDS = new Map();
+
+export function takeWiring(kindName, wiring) {
+  WIRINGS_THE_ROOT_HANDS.set(kindName, wiring);
 }
 
-export const SUBJECT_INDEX_OF_A_FRAME = 0;
+export function makeFrame(subject, unfinished, path = null) {
+  const payload = path === null ? [subject, unfinished] : [subject, unfinished, path];
+  return makeTagged(FRAME_TAG, payload, WIRINGS_THE_ROOT_HANDS.get(FRAME_TAG.name)(payload));
+}
+
+export const SUBJECT_OF_A_FRAME = 'subject';
 
 export function partsOfFrame(frame) {
-  const [subject, unfinished, path = null] = frame;
-  return { subject, unfinished, path };
-}
-
-export function holdsTheLayoutOfAFrame(parts) {
-  return parts.length <= 3 && isQuote(parts[1]) && parts[1].length > 0 && (parts.length === 2 || isPath(parts[2]));
+  const parts = wiringOf(frame);
+  return { subject: parts.get(SUBJECT_OF_A_FRAME), unfinished: parts.get('unfinished'), path: parts.get('path') };
 }
 
 export function makeTrace(frames) {

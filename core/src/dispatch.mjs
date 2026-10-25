@@ -9,16 +9,16 @@ import { kindsOfWalk } from './nouns.mjs';
 import { functionOfRecipe, chainOfFn } from './chain.mjs';
 import {
   isVec, isMap, isTagged, isValueClass, isKeyword, isTag, isRegex, isPath, isErrorValue, isFn,
-  makeTag, makePath, tagOf, accountOfForeign, bindingValueOf, TAG_HEADER_SYMBOL
+  makeTag, makePath, tagOf, accountOfForeign, bindingValueOf, wiringOf, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
-// [QSLIT#number]
+// [QSLIT#number], [QSDSP#walk]
 function isOfKind(value, kindName) {
   switch (kindName) {
     case ANY_KIND_NAME: return true;
     case 'number': return Number.isFinite(value);
-    case 'vec':   return isVec(value);
-    case 'map':   return isMap(value);
+    case 'vec':   return isVec(value) && wiringOf(value) === undefined;
+    case 'map':   return isMap(value) && wiringOf(value) === undefined;
     case TAGGED_KIND_NAME: return isTagged(value);
     default:      return tagOf(value).name === kindName;
   }
@@ -29,7 +29,7 @@ export function walkToKinds(value, kindNames) {
   const passedTags = [];
   let served = value;
   while (!kindNames.some(kindName => isOfKind(served, kindName))) {
-    if (!isValueClass(served, 'underTag')) return null;
+    if (!isValueClass(served, 'underTag') || wiringOf(served) !== undefined) return null;
     passedTags.push(served.tag);
     served = served.payload;
   }

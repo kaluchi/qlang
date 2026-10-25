@@ -119,7 +119,7 @@ true
 $ printf '[1e400]' | qlang 'count' | grep -o '::string/parseJson/NumberNotFiniteError'
 ::string/parseJson/NumberNotFiniteError
 
-$ printf '[1e400]' | qlang 'count !| get /trace/0/0'
+$ printf '[1e400]' | qlang 'count !| trace | first | subject'
 [1e400]
 
 $ printf '[1e400]' | qlang 'in | count'

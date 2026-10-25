@@ -26,7 +26,7 @@
       ::link~(::nullable | doc) ::link~(::each | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The structure of a value beneath its tags, as `shape` answers
             it.
         ~~|

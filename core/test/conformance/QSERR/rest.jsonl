@@ -6,7 +6,7 @@
 {"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| get /actualValue","expect":"!{:a 1}"}
 {"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| tag","expect":"::vec/PayloadKindNotTakenError"}
-{"name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | wraps |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
+{"name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) /actualTag])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
 {"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| tag","expect":"::Oops"}
 {"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 1} !| tag","expect":"::Box/k"}
 {"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 9} | raise !| tag","expect":"::Box"}

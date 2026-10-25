@@ -7,8 +7,8 @@ import { kindsNamedForCommands } from '../../../../scripts/catalog-kinds.mjs';
 import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 
 it('the value of `::vec/take` is its function, whose recipe is the descriptor of its primitive, and an input its selector', async () => {
-  expect(printValue(await evalQuery('::vec/take | binding | get /value | get /1'))).toBe('::builtin{:of ::vec/take}');
-  expect(printValue(await evalQuery('::vec/take | binding :count | get /value'))).toBe('/0');
+  expect(printValue(await evalQuery('::vec/take | binding | value | get /1'))).toBe('::builtin{:of ::vec/take}');
+  expect(printValue(await evalQuery('::vec/take | binding :count | value'))).toBe('/0');
 });
 
 it('mul given no multiplier is refused under its input', async () => {
@@ -18,13 +18,13 @@ it('mul given no multiplier is refused under its input', async () => {
 describe('no kind of the catalog bears the name of a command of a chain', () => {
   it('finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
     const planted = [
-      { path: 'holds.qlang', text: ':Holds\n  |~~ A name of another case. ~~|\n:holds\n  |~~ An invariant. ~~|\n  ::kind\n    | wraps |~~ The condition. ~~| ::quote\n' },
-      { path: 'wraps.qlang', text: ':wraps\n  |~~ A payload. ~~|\n' },
-      { path: 'proves.qlang', text: ':proves |~~ A law. ~~| (::kind | wraps |~~ The query. ~~| ::quote)' },
+      { path: 'holds.qlang', text: ':Holds\n  |~~ A name of another case. ~~|\n:holds\n  |~~ An invariant. ~~|\n  ::kind\n    | accepts |~~ The condition. ~~| ::quote\n' },
+      { path: 'accepts.qlang', text: ':accepts\n  |~~ A payload. ~~|\n' },
+      { path: 'proves.qlang', text: ':proves |~~ A law. ~~| (::kind | accepts |~~ The query. ~~| ::quote)' },
       { path: 'impl.qlang', text: ':impl\n  |~~ A recipe. ~~|\n  ::kind[~() null]\n' }
     ];
     expect(kindsNamedForCommands(planted)).toEqual([
-      { path: 'holds.qlang', line: 3, name: 'holds' }, { path: 'wraps.qlang', line: 1, name: 'wraps' },
+      { path: 'holds.qlang', line: 3, name: 'holds' }, { path: 'accepts.qlang', line: 1, name: 'accepts' },
       { path: 'proves.qlang', line: 1, name: 'proves' }, { path: 'impl.qlang', line: 1, name: 'impl' }
     ]);
   });

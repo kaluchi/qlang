@@ -2,13 +2,13 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged,
+  isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
   tagOf, bindingValueOf, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
-  splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress,
+  splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress, notReadAddress,
   kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
@@ -58,8 +58,19 @@ export function declaresVerb(address, ofAVerb, isLabelName) {
   return ofAVerb && labelName !== null && isLabelName(labelName);
 }
 
+// [QSDSP#walk], [QSDSP#residence]
 function residesOn(record, scope) {
-  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)), labelName => isLabel(scope, labelName));
+  return declaresVerb(record.get('name').name, isVerbValue(bindingValueOf(record)) || isNodeOfAPart(record, scope), labelName => isLabel(scope, labelName));
+}
+
+export function isNodeOfAPart(record, scope) {
+  return !isVerbValue(bindingValueOf(record)) && fieldOfTheNode(record, scope) !== undefined;
+}
+
+function fieldOfTheNode(record, scope) {
+  const [labelName, name] = splitAddress(record.get('name').name);
+  const label = labelName === null ? null : bindingValueOf(nodeOf(scope, labelName));
+  return isKind(label) ? chainOfKind(label).wired.get(name) : undefined;
 }
 
 // [QSNAM#address], [QSBLD#input]
@@ -83,6 +94,7 @@ export const returnsItsLabel = (kinds, labelName) => kinds.includes(labelName);
 
 // [QSBLD#answer], [QSLSP#offer]
 export function answerKindsOf(scope, record, subjectKinds) {
+  if (isNodeOfAPart(record, scope)) return fieldOfTheNode(record, scope).kinds;
   const address = record.get('name').name;
   const answer = answerOf(scope, address);
   if (answer === null || answer.kinds.includes(ANY_KIND_NAME)) return null;
@@ -173,7 +185,10 @@ export function* kindsOfWalk(subject) {
       yield value.name;
       return;
     }
-    if (isTagged(value)) yield TAGGED_KIND_NAME;
+    if (isTagged(value)) {
+      yield TAGGED_KIND_NAME;
+      if (wiringOf(value) !== undefined) return;
+    }
     if (isValueClass(value, 'underTag')) {
       value = value.payload;
       continue;
@@ -314,7 +329,7 @@ function kindRuleRefusalsOf({ payload, fields }, address) {
   if (payload?.kinds) refusals.push(`${address}/${payloadRefusalName(payload.each)}`);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
-    refusals.push(notGivenAddress(fieldAddress));
+    refusals.push(notGivenAddress(fieldAddress), notReadAddress(fieldAddress));
     if (each) refusals.push(kindsRefusalAddress(fieldAddress));
     if (kinds !== null) refusals.push(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress));
   }
@@ -388,14 +403,15 @@ export function verbNames(scope) {
   return names;
 }
 
-// [QSLSP#server]
+// [QSLSP#server], [QSLSP#offer]
 export function shownFor(scope, name, kindNames = null) {
   const reached = kindNames === null ? undefined : verbsReaching(scope, kindNames).get(name);
   const record = reached === undefined
     ? bareNameReach(scope, name)?.record ?? residencesOf(scope, name)[0]?.[1]
     : nodeOf(scope, reached.address.name);
+  if (record === undefined) return undefined;
   const value = bindingValueOf(record);
-  if (!isVerbValue(value)) return undefined;
+  if (!isVerbValue(value) && !isNodeOfAPart(record, scope)) return undefined;
   const inputs = isFn(value) ? chainOfFn(value).inputs.map(({ name: input }) => input.name) : [];
   return { address: makeTag(record.get('name').name), inputs };
 }

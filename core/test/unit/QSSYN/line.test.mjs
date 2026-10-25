@@ -8,13 +8,13 @@ describe('the chain of a kind as the body of a bare name', () => {
   const bodyOf = source => parseSource(source)[0].get('body');
 
   it('reads the chain of a bare name with its page begun on a later line, the group of its steps', () => {
-    const body = bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind\n    | wraps |~~ The sizes. ~~| ::map');
+    const body = bodyOf(':Box\n  |~~ A parcel. ~~|\n  ::kind\n    | accepts |~~ The sizes. ~~| ::map');
     expect(isGroupStep(body)).toBe(true);
     expect(body.payload.length).toBe(2);
   });
 
   it('reads one step on the line of the name', () => {
-    expect(isTag(bodyOf(':Box |~~ A parcel. ~~| ::kind | wraps |~~ The sizes. ~~| ::map'))).toBe(true);
+    expect(isTag(bodyOf(':Box |~~ A parcel. ~~| ::kind | accepts |~~ The sizes. ~~| ::map'))).toBe(true);
   });
 
   it('reads one step of a bare name with no page', () => {

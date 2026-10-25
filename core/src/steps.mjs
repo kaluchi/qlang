@@ -252,8 +252,11 @@ export function builtFrom(body) {
 // [QSBLD#kind]
 export const declaresKind = bind => !bind.has('body') || builtFrom(bind.get('body')) === 'kind';
 
+// [QSPTH#get]
 export function commandStep(name, modifiers) {
-  return makeTagged(CALL_TAG, new Map([['name', makeKeyword(name)], ['modifiers', Object.freeze([...modifiers])]]));
+  const fields = new Map([['name', makeKeyword(name)]]);
+  if (modifiers.length > 0) fields.set('modifiers', Object.freeze([...modifiers]));
+  return makeTagged(CALL_TAG, fields);
 }
 
 export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));

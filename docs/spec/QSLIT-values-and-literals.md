@@ -176,7 +176,7 @@ an error the map of its facts, so `::number"5"` is refused, `::set[3 1]`
 is `#[1 3]` and a vector under a tag of another kind is no payload of a
 set, which `payload` opens. A tag no declaration names, the tag of a verb
 and the tag of an invariant lay themselves over a payload as it is
-[QSNAM#address], a tag whose `wraps` names the set of no kinds takes no
+[QSNAM#address], a tag whose `accepts` names the set of no kinds takes no
 payload, `5 | tag ::tagged` refused as
 `::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name

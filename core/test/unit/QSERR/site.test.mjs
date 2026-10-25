@@ -204,7 +204,7 @@ describe('a refusal names a kind only where its address names it', () => {
 
   it('reads the kinds a source declares, by the page alone and by the chain, and no node under one and no value', () => {
     const planted = [{ path: 'kinds.qlang', text: [
-      ':Holds', '  |~~ A page alone. ~~|', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | wraps |~~ The payload. ~~| ::vec',
+      ':Holds', '  |~~ A page alone. ~~|', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | accepts |~~ The payload. ~~| ::vec',
       ':Box/w', '  |~~ A node. ~~|', ':limit 5', ':double ~(mul 2)', ''].join('\n') }];
     expect(kindsDeclaredBy(planted)).toEqual(new Set(['Holds', 'Box']));
   });
@@ -218,31 +218,34 @@ describe('a refusal names a kind only where its address names it', () => {
 });
 
 describe('the refusals a kind raises by rule', () => {
-  it('names the payload of none of its kinds, each field left out and of none of its kinds, and a field of no kinds left out alone', async () => {
+  it('names the payload of none of its kinds, each field left out, not read and of none of its kinds, and a field of no kinds left out and not read alone', async () => {
     const own = await createNotebook();
     await own.evalCell([
       ':Box',
       '  |~~ A parcel. ~~|',
       '  ::kind',
-      '    | wraps |~~ The sizes. ~~| ::map',
-      '    | reads :w |~~ The width. ~~| /w ::number',
-      '    | reads :tags |~~ The tags. ~~| ~(query /tags []) [::keyword]',
-      '    | reads :note |~~ A note. ~~| /note'
+      '    | accepts |~~ The sizes. ~~| ::map',
+      '    | wires :w |~~ The width. ~~| /w ::number',
+      '    | wires :tags |~~ The tags. ~~| ~(query /tags []) [::keyword]',
+      '    | wires :note |~~ A note. ~~| /note'
     ].join('\n'));
     expect(ruleRefusalsOf(own.scope, 'Box')).toEqual([
       'Box/PayloadKindNotTakenError',
       'Box/w/NotGivenError',
+      'Box/w/NotReadError',
       'Box/w/KindNotTakenError',
       'Box/tags/NotGivenError',
+      'Box/tags/NotReadError',
       'Box/tags/KindNotTakenError',
       'Box/tags/ElementKindNotTakenError',
-      'Box/note/NotGivenError'
+      'Box/note/NotGivenError',
+      'Box/note/NotReadError'
     ]);
   });
 
   it('names a payload that is no vector where it names the kinds of each element', async () => {
     const own = await createNotebook();
-    await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | wraps |~~ The numbers. ~~| [::number]');
+    await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | accepts |~~ The numbers. ~~| [::number]');
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
   });
 
@@ -254,7 +257,7 @@ describe('the refusals a kind raises by rule', () => {
 
   it('names the refusal of every payload for a kind whose wraps names no kind', async () => {
     const own = await createNotebook();
-    await own.evalCell(':Topic\n  |~~ A topic. ~~|\n  ::kind\n    | wraps |~~ None. ~~| #[]');
+    await own.evalCell(':Topic\n  |~~ A topic. ~~|\n  ::kind\n    | accepts |~~ None. ~~| #[]');
     expect(ruleRefusalsOf(own.scope, 'Topic')).toEqual(['Topic/PayloadKindNotTakenError']);
   });
 });

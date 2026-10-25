@@ -1,92 +1,54 @@
 |~ `::point`, the kind of where a span of source text starts or ends,
-   and what is declared under it: the verbs that read its offset, its
-   line and its column.
+   and what is declared under it: the parts its kind wires, its offset,
+   its line and its column.
    The rules it holds: [QSPRN#span]. ~|
 
 :point
   |~~ A point is where a span of source text starts or ends:
       three whole numbers under its tag, the offset from zero, the line
       and the column from one, `::point[0 1 1]` before the first
-      character of a text. `offset`, `line` and `column` read them.
+      character of a text. Its kind names them `offset`, `line` and
+      `column`, each read by its name, `::point[4 2 1] | line`
+      answering `2`.
       ::link~(::span | doc) ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | accepts |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | wires :offset
+        |~~ The offset of the point from the start of the text, counted from
+            zero.
+        ~~|
+        /0 ::number
+    | wires :line |~~ The line of the point, counted from one. ~~| /1 ::number
+    | wires :column |~~ The column of the point in its line, counted from one. ~~| /2 ::number
     | throws :PayloadKindNotTakenError
         |~~ A point is the vector of the offset, the line and the column of
-            a character of a source, `::point[0 1 1]`, which `start` and
-            `end` of a span answer.
+            a character of a source, `::point[0 1 1]`, which the ends of a
+            span are.
         ~~|
     | throws :ElementKindNotTakenError
         |~~ Each part of a point is a whole number, its offset from zero
             and its line and its column from one.
         ~~|
-    | proves :ElementKindNotTakenError/refusesAString
-        |~~ An element that is no number is refused. ~~|
-        ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)
     | holds :PayloadNotOffsetLineAndColumnError
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
         ~~|
         ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
+    | proves :readsItsPartsByTheirNames
+        |~~ The offset, the line and the column of a point are read by
+            their names.
+        ~~|
+        ~(::point[4 2 5] | get [~(offset) ~(line) ~(column)] | eq [4 2 5])
+    | proves :ElementKindNotTakenError/refusesAString
+        |~~ An element that is no number is refused. ~~|
+        ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)
+    | proves :column/NotGivenError/refusesTwoNumbers
+        |~~ Two numbers leave the column out. ~~|
+        ~(::point[0 1] !| tag | eq ::point/column/NotGivenError)
     | proves :PayloadNotOffsetLineAndColumnError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
         ~(::point[0 1 1 4 1 5] !| tag | eq ::point/PayloadNotOffsetLineAndColumnError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
         ~(::point{:a 1 :b 2 :c 3} !| tag | eq ::point/PayloadKindNotTakenError)
-
-:point/offset
-  |~~ Answers the offset of the point from the start of the text,
-      counted from zero, `::point[4 1 5] | offset` answering `4`.
-  ~~|
-  ::fn
-    | returns |~~ The offset, from zero. ~~| ::number
-    | throws :SubjectNotPointError
-        |~~ `offset` reads a point, the start or the end of a span,
-            `"[1" | parse !| get /location | start | offset`.
-        ~~|
-    | proves :SubjectNotPointError/refusesANumber
-        |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/offset !| tag | eq ::point/offset/SubjectNotPointError)
-    | proves :readsTheFirstNumber
-        |~~ The offset is the first number of a point. ~~|
-        ~(::point[4 1 5] | offset | eq 4)
-    | impl ~(get /0)
-
-:point/line
-  |~~ Answers the line of the point, counted from one,
-      `::point[4 2 1] | line` answering `2`.
-  ~~|
-  ::fn
-    | returns |~~ The line, from one. ~~| ::number
-    | throws :SubjectNotPointError
-        |~~ `line` reads a point, the start or the end of a span,
-            `"[1" | parse !| get /location | start | line`.
-        ~~|
-    | proves :SubjectNotPointError/refusesANumber
-        |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/line !| tag | eq ::point/line/SubjectNotPointError)
-    | proves :readsTheSecondNumber
-        |~~ The line is the second number of a point. ~~|
-        ~(::point[4 2 1] | line | eq 2)
-    | impl ~(get /1)
-
-:point/column
-  |~~ Answers the column of the point in its line, counted from one,
-      `::point[4 1 5] | column` answering `5`.
-  ~~|
-  ::fn
-    | returns |~~ The column, from one. ~~| ::number
-    | throws :SubjectNotPointError
-        |~~ `column` reads a point, the start or the end of a span,
-            `"[1" | parse !| get /location | start | column`.
-        ~~|
-    | proves :SubjectNotPointError/refusesANumber
-        |~~ A subject that is no point is refused. ~~|
-        ~(5 | point/column !| tag | eq ::point/column/SubjectNotPointError)
-    | proves :readsTheThirdNumber
-        |~~ The column is the third number of a point. ~~|
-        ~(::point[4 1 5] | column | eq 5)
-    | impl ~(get /2)
-

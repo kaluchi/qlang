@@ -11,7 +11,7 @@
   },
   "declare a kind": {
     "prefix": "bindtag",
-    "body": [":${1:Kind}", "  |~~ ${2:What its values are.} ~~|", "  ::kind", "    | reads :${3:field} |~~ ${4:What it holds.} ~~| /${3:field}"],
+    "body": [":${1:Kind}", "  |~~ ${2:What its values are.} ~~|", "  ::kind", "    | wires :${3:field} |~~ ${4:What it holds.} ~~| /${3:field}"],
     "description": "Declare a kind by its page and the chain of its commands"
   },
   "name the subject": {

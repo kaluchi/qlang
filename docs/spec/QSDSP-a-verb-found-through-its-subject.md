@@ -35,7 +35,11 @@ one of the kinds it is given, one kind at least, a call of none refused
 as `::any/is/kinds/EmptyError`, `::any` among them; a tag name is a value
 of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true,
 and a tag the walk of a value reaches, laid over it, changes nothing
-[QSLIT#tag].
+[QSLIT#tag]. A kind that wires the parts of its payload closes its tag
+[QSBLD#value]: the walk stops at it, the names its kind wires, its words
+and those of `::tagged` and `::any` serving its value and no word of a
+kind beneath it, so a closed value of a vector answers no `count` but the
+part its kind names so.
 
 ```qlang
 > ::Box#1 | payload
@@ -65,13 +69,18 @@ and a tag the walk of a value reaches, laid over it, changes nothing
 
 > get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
 [::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
+
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | get [~(took) ~(count !| tag) ~(vec/count !| tag) ~(tag)]
+[312 ::call/KindAnswersNoVerbError ::vec/count/SubjectNotVecError ::Card]
 ```
 
 ## residence
 
 A verb resides on the label its address names, whoever declared it, a
-reader extending a noun of the root among them, and a name several kinds
-answer is declared on each, `::vec/count`, `::map/count`,
+reader extending a noun of the root among them, and so does a name the
+kind of a label wires, its call answering that part of the subject,
+`card | took`, by its address `card | Card/took`, and taking no modifiers
+[QSBLD#value]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
 `::string/count`, one primitive serving several where they share it. A
 verb serves the values the walk of their tags brings to its label and,
 beside them, a value of the kinds its `on` names, of tag names the
@@ -109,7 +118,7 @@ of two kinds refused [QSCND#compare].
 > #[1 2] | vec/count
 2
 
-> #[3 1 2] | get [~(binding :count | get /name) ~(filter ~(gt 1)) ~(take 2) ~(map ~(mul 2))]
+> #[3 1 2] | get [~(binding :count | name) ~(filter ~(gt 1)) ~(take 2) ~(map ~(mul 2))]
 [:vec/count #[2 3] #[1 2] [2 4 6]]
 
 > ::set | manifest
@@ -201,7 +210,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 > :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| tag
 ::vec/n/answer/KindNotTakenError
 
-> get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | get /value) ~(::vec/map/answer | binding | get /value) ~(::map/map/answer | binding | get /value)]
+> get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
 [::set ::set ::any ::any]
 
 > get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
@@ -222,7 +231,7 @@ against the tag name. A verb of the noun itself, whose function names
 and refuses every other tag name, one under the noun among them; a verb
 of the noun's values refuses a tag name under the verb; and a function
 `apply` runs, which has no label, serves any tag name where its `on`
-names `::tag`. The commands of a chain, `on`, `takes`, `wraps`, `reads`
+names `::tag`. The commands of a chain, `on`, `takes`, `accepts`, `wires`
 and the rest, are verbs of `::fn` and of `::kind`, so a tag of another
 noun is refused by them as by every verb.
 

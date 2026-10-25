@@ -15,11 +15,11 @@
       `::construct{:tag ::Late :payload !{:k 1}}`: `:tag` the tag and
       `:payload` the step of the payload the literal writes, the record
       built into its step by the constructor of this kind, the second part
-      of its literal, `::construct | binding | get /value | get /1`.
+      of its literal, `::construct | binding | value | get /1`.
       ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The record of the step, `:tag` and `:payload`, built into its
             step.
         ~~|

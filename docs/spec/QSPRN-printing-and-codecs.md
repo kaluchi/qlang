@@ -149,7 +149,8 @@ whole with its tags. A string, a doc, a quote and a part a kind prints
 its own way give way whole, their elision holding under `:head` the first
 characters of their text or of that print, the top read back by the empty
 quote, `~()`; a frame keeps its steps and its path, its subject alone
-giving way, and an atom stands. An elision holds `:read`, the query that,
+giving way, read by the name its kind wires, `~(!| get /trace/1 | subject)`,
+and an atom stands. An elision holds `:read`, the query that,
 continued from the value `elide` took, reads the part left out, and
 `:size`, the elements or the entries of a container its `:read` answers,
 or the characters of a text, as `count` counts them, or of a print, an
@@ -230,23 +231,26 @@ Where a reading of text stopped is a span: six integers under
 `::span`, the offset of its start and its line and column, then those of
 the point after its end, the parser counting the offset from zero and
 the line and the column from one, the offset and the column in the
-characters a string counts. `start` and `end` answer its ends as
-points, three integers under `::point`, read by `offset`, `line` and
-`column`, each a verb of its kind, `5 | start` refused as
-`::span/start/SubjectNotSpanError`. A payload that is no vector is
-refused as `…/PayloadKindNotTakenError`, an element that is no number as
-`…/ElementKindNotTakenError` with its `:index`, and a vector of another
-length or with a fraction by the invariant of the kind,
-`::span/PayloadNotStartAndEndError` and
-`::point/PayloadNotOffsetLineAndColumnError`, each naming the roles of
-its numbers.
+characters a string counts. Its kind wires its two ends [QSBLD#value],
+`start` and `end`, each a point it decodes from three of the numbers
+through the door of `::point`, three integers its kind wires as `offset`,
+`line` and `column`, so the line where a parse stopped is read by its
+names, `!| get /location | start | line`, and the location of a refusal
+of a parse is laid through the door of its span. A payload that is no
+vector is refused as `…/PayloadKindNotTakenError`, an element that is no
+number as `…/ElementKindNotTakenError` with its `:index`; a span of fewer
+numbers leaves its end unread, `::span/end/NotReadError`, the refusal of
+the point among its facts, and a point of another length or with a
+fraction is refused by the invariant of its kind,
+`::point/PayloadNotOffsetLineAndColumnError`, which names the roles of its
+numbers.
 
 ```qlang
 > "[1 2" | parse !| get /location | start
 ::point[4 1 5]
 
 > ::span[0 1 1] !| tag
-::span/PayloadNotStartAndEndError
+::span/end/NotReadError
 
 > ::span[0 1 "x" 1 1 2] !| get [~(tag) /index]
 [::span/ElementKindNotTakenError 2]

@@ -4,7 +4,7 @@ import { parseSource, SourceParseError } from './parse.mjs';
 import { evalPipeline } from './eval.mjs';
 import { langRuntime } from './runtime/lang-runtime.mjs';
 import { rootState } from './state.mjs';
-import { errorFromParse } from './error-convert.mjs';
+import { refusalOfAParse } from './runtime/code.mjs';
 import { declareRoot } from './runtime/root.mjs';
 import { foreignPartOf } from './dispatch.mjs';
 import { BuiltinForeignValueError } from './types.mjs';
@@ -39,7 +39,7 @@ export async function createNotebook(opts = {}) {
         return entry(answered.pipeValue, null);
       } catch (thrown) {
         // [QSHST#notebook]
-        return thrown instanceof SourceParseError ? entry(errorFromParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
+        return thrown instanceof SourceParseError ? entry(await refusalOfAParse(thrown, scope, evalOpts.uri ?? null), null) : entry(null, thrown);
       }
     },
 

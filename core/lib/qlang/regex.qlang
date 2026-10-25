@@ -36,7 +36,7 @@
       ::link~(::string | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A regex, read as itself. ~~| ::regex
+    | accepts |~~ A regex, read as itself. ~~| ::regex
     | throws :PayloadKindNotTakenError
         |~~ `::regex` reads its payload as the regex it is; text becomes
             one by `toRegex`, `"\\d+" | toRegex`.

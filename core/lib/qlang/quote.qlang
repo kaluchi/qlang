@@ -38,7 +38,7 @@
       ::link~(::call/ValueWithheldError | doc) ::link~(::qlang/code | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A vector whose every element is a step, built into the quote.
         ~~|
         ::vec

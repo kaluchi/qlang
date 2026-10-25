@@ -19,7 +19,7 @@
       ::link~(::any/if | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps |~~ A boolean, read as itself. ~~| ::boolean
+    | accepts |~~ A boolean, read as itself. ~~| ::boolean
     | throws :PayloadKindNotTakenError
         |~~ `::boolean` reads its payload as the boolean it is; a payload
             of another kind is refused.

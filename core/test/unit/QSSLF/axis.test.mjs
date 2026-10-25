@@ -144,7 +144,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
 });
 
 it('reads the page of the invariant that refused, named by its refusal', async () => {
-  expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| explain | page | content'))
+  expect(await evalQuery(BOX + '::Box[4 2] | put "x" !| doc | content'))
     .toBe('The weight is a number.');
 });
 

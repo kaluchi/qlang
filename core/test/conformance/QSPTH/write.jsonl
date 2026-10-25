@@ -10,5 +10,6 @@
 {"name":"delete-takes-the-element-at-an-index-out","query":"[1 2 3] | delete /1","expect":"[1 3]"}
 {"name":"delete-refuses-a-key-that-is-not-there","query":"{:a 1} | delete /b !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"a-write-lays-the-tags-on-the-way-again","query":"{:box ::Box{:w 2}} | put /box/w 3 | get /box | tag","expect":"::Box"}
-{"name":"a-write-runs-the-invariants-of-a-tag","query":"::span[0 1 1 1 1 2] | put /0 0.5 !| tag","expect":"::span/PayloadNotStartAndEndError"}
+{"name":"a-write-runs-the-invariants-of-a-tag","query":":Whole |~~ Whole numbers. ~~| (::kind | accepts |~~ The numbers. ~~| [::number] | holds :NotWholeError |~~ Each a whole number. ~~| ~(every ~(eq (floor)))) | ::Whole[1 2] | put /0 0.5 !| tag","expect":"::Whole/NotWholeError"}
 {"name":"a-write-of-a-set-orders-it-again","query":"#[1 2 3] | put /0 9","expect":"#[2 3 9]"}
+{"name":"a-path-writes-no-part-of-a-closed-tag","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | put /took 5 !| tag","expect":"::path/TagClosedError"}

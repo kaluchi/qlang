@@ -74,7 +74,7 @@ under a noun, which its address calls.
 > ":true 5 | 7" | parse !| get /message
 "`:true` is the word of a literal, which a step reads as the value: declare another name"
 
-> :false |~~ F. ~~| | :false/x 3 | ::false/x | binding | get /value
+> :false |~~ F. ~~| | :false/x 3 | ::false/x | binding | value
 3
 
 > "false/x" | parse !| tag
@@ -185,10 +185,10 @@ under the reader's noun or under one of the root.
 > :k 1 | :k 2 | k !| get [~(tag) /name]
 [::bind/NameDeclaredTwiceError :k]
 
-> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | :Box/w ~(2) !| get [~(tag) /name]
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | :Box/w ~(2) !| get [~(tag) /name]
 [::bind/NameDeclaredTwiceError :Box/w]
 
-> :Box |~~ A box. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number) | :Box/area ~(get /w | mul 2) | get [~(::Box{:w 3} | area) ~(:Box/w ~(2) | ::Box{:w 3} | w)]
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | :Box/area ~(w | mul 2) | get [~(::Box{:w 3} | area) ~(:Box/w ~(2) | ::Box{:w 3} | w)]
 [6 2]
 
 > {} | raise | :x 1 !| :x 2 | x !| tag
@@ -319,7 +319,7 @@ true
 > ::Nobody[1 2] | tag
 ::Nobody
 
-> :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | get /value | tag) ~(::number/b | binding | get /value | tag) ~(5 | a) ~(5 | b)]
+> :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]
 [::fn ::quote 6 6]
 
 > get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/count/NotIntegerError#5 | tag)]
@@ -347,23 +347,25 @@ its tag lays nothing, `::qlang/values[1]` refused as
 its page.
 
 ```qlang
-> ::vec/filter | binding | get /origin
+> ::vec/filter | binding | origin
 :qlang/vec
 
 > :Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box)]
 [true true]
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | get /value | tag) ~(::qlang | manifest | map ~(binding | get /value | tag) | toSet) ~(::qlang/values[1] !| tag)]
+> get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang | manifest | map ~(binding | value | tag) | toSet) ~(::qlang/values[1] !| tag)]
 [true ::kind #[::doc ::set] ::construct/TagNamesAValueError]
 ```
 
 ## binding
 
-A declaration writes into its scope a record, `::binding`, a map its
-kind reads: `:name`, a keyword, `:docs`, the docs of its page, `:value`,
-`:source`, the declaration, null for a node a chain lays, and `:origin`,
-a keyword or null, a record a reader writes refused where it leaves one
-out, `::binding{:name :x}` as `::binding/docs/NotGivenError`. `env` answers the declarations of
+A declaration writes into its scope a record, `::binding`, a map whose
+kind wires its five parts, so its tag is closed and its parts are read by
+their names, bare [QSBLD#value]: `name`, a keyword, `docs`, the docs of
+its page, `value`, `source`, the declaration, null for a node a chain
+lays, and `origin`, a keyword or null, `::x | binding | value`; a record
+a reader writes is refused where it leaves one out, `::binding{:name :x}`
+as `::binding/docs/NotGivenError`. `env` answers the declarations of
 the reader where the step stands, in the recipe of a verb those of the
 query that called it [QSNAM#owner], in code held as data its own and the
 nodes and the labels of the step it runs from [QSQUO#held], each by its
@@ -374,8 +376,8 @@ step of the one that wrote it; given an anchor, each reads the node its
 subject holds under it [QSSLF#axis].
 
 ```qlang
-> :x |~~ note ~~| 1 | ::x | binding | keys
-#[:docs :name :origin :source :value]
+> :x |~~ note ~~| 1 | ::x | binding | get [~(name) ~(docs | count) ~(value) ~(keys !| tag)]
+[:x 1 1 ::map/keys/SubjectNotMapError]
 
 > get [~(::binding{:name :x} !| tag) ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)]
 [::binding/docs/NotGivenError true]
@@ -392,7 +394,7 @@ subject holds under it [QSSLF#axis].
 > ::vec/count/answer | source
 null
 
-> ::vec/take | binding :count | get /name
+> ::vec/take | binding :count | name
 :vec/take/count
 ```
 

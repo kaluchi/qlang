@@ -33,7 +33,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A map, read as itself. A value of `::map` already, a map under
             a tag of its own and an error at rest among them, stays as it
             is, `payload` reading the map beneath, and the pairs of a vector,

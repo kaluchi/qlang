@@ -192,14 +192,14 @@ describe('the sources a host hands', () => {
 
   it('answers a host name as the function whose recipe is its descriptor, and refuses an answer of a kind it does not return', async () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/fetch | binding | get /value | get [~(tag) ~(get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
+    expect((await sessionInstance.evalCell('::any/fetch | binding | value | get [~(tag) ~(get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
     const misanswering = await createNotebook({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
     expect((await misanswering.evalCell('fetch !| tag')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
   });
 
   it('records the source a host name came from as its origin', async () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::number/less | binding | get /origin')).result).toEqual(makeKeyword('tests/host'));
+    expect((await sessionInstance.evalCell('::number/less | binding | origin')).result).toEqual(makeKeyword('tests/host'));
   });
 
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name', async () => {
@@ -210,7 +210,7 @@ describe('the sources a host hands', () => {
   it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s where it holds that name\'s value, and refuses one handed for it, naming the name whose ::builtin{} it holds', async () => {
     const aliasing = primitives => createNotebook({ sources: [{
       uri: 'tests/alias',
-      source: ':any/plus (::number/add | binding | get /value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | get /value)',
+      source: ':any/plus (::number/add | binding | value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | value)',
       primitives
     }] });
     expect((await (await aliasing({ 'any/greet': () => 'hi' })).evalCell('get [~(5 | plus 1) ~(hail)]')).result).toEqual([6, 'hi']);
@@ -231,7 +231,7 @@ describe('the sources a host hands', () => {
       primitives: { 'any/greet': () => word }
     }] });
     const [hello, hi] = [await greeting('hello'), await greeting('hi')];
-    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | get /value | get [~(it) ~(print | parse | open)]')).result;
+    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | value | get [~(it) ~(print | parse | open)]')).result;
     for (const [notebook, fn, word] of [[hello, readBack, 'hello'], [hi, readBack, 'hi'], [hello, readBack, 'hello'], [hi, handed, 'hello']]) {
       expect((await notebook.evalCell(':g it | null | apply g', { initialPipeValue: fn })).result).toBe(word);
     }

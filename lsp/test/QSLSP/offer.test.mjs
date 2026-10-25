@@ -155,7 +155,7 @@ describe('the verbs offered after a value', () => {
   it('offers after a tag name the verbs that serve it, those of a tag name, of any value and of its noun whose `on` names `::tag`, none of its noun refusing it', async () => {
     const afterVec = await labelsAt('::vec | ');
     expect(['manifest', 'toTag', 'count', 'sort', 'add'].map(label => afterVec.includes(label))).toEqual([true, true, false, false, false]);
-    expect(await labelsAt('::kind | ')).toContain('wraps');
+    expect(await labelsAt('::kind | ')).toContain('accepts');
     for (const label of afterVec.filter(offered => !offered.startsWith('::'))) {
       const answer = await evalQuery(`::vec | ${label} !| tag`);
       expect(isTag(answer) && /^vec\/[^/]+\/Subject\w*Error$/.test(answer.name), label).toBe(false);
@@ -174,11 +174,19 @@ describe('the verbs offered after a value', () => {
       const labels = await labelsAt(src);
       expect([labels, labels.includes('count'), labels.includes('add')], src).toEqual([afterATag, false, false]);
     }
-    const afterWraps = await labelsAt('::kind | wraps |~~ w ~~| ::vec | ');
-    expect(['reads', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
-    const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '::frame[1 ~(a)] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
-    expect(afterSorts.map(labels => ['count', 'within', 'failed', 'add'].map(label => labels.includes(label))))
-      .toEqual([[true, true, false, false], [true, true, true, false], [true, false, false, false]]);
+    const afterWraps = await labelsAt('::kind | accepts |~~ w ~~| ::vec | ');
+    expect(['wires', 'type', 'toTag'].map(label => afterWraps.includes(label))).toEqual([true, true, false]);
+    const afterSorts = await Promise.all(['::Box[3 1 2] | sort | ', '[3 1 2] | sort | '].map(labelsAt));
+    expect(afterSorts.map(labels => ['count', 'within', 'add'].map(label => labels.includes(label))))
+      .toEqual([[true, true, false], [true, false, false]]);
+  });
+
+  it('offers the names a closed tag wires and the verbs of its kind, no verb of its payload, and after a part the verbs of its kinds', async () => {
+    const afterAFrame = await labelsAt('::frame[1 ~(a)] | ');
+    expect(['subject', 'unfinished', 'path', 'failed', 'within', 'count', 'sort'].map(label => afterAFrame.includes(label)))
+      .toEqual([true, true, true, true, true, false, false]);
+    const afterAnEnd = await labelsAt('::span[0 1 1 4 1 5] | end | ');
+    expect(['line', 'column', 'start', 'count'].map(label => afterAnEnd.includes(label))).toEqual([true, true, false, false]);
   });
 
   it('follows the kind a verb declares it returns', async () => {

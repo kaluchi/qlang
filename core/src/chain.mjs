@@ -2,10 +2,10 @@
 
 import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
-import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
+import { isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeKeyword, makePath, makeQuote, makeTag, makeTagged, commandsOf, FN_TAG_NAME, BUILTIN_TAG, TAG_HEADER_SYMBOL } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom } from './steps.mjs';
-import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, payloadRefusalName } from './address.mjs';
-import { segmentIndex } from './path-read.mjs';
+import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
+import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
 const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
 const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
@@ -43,8 +43,8 @@ const COMMANDS = new Map([
 ]);
 
 const KIND_COMMANDS = new Map([
-  ['wraps', { taken: [isDoc], optional: [isKindsOfAPayload] }],
-  ['reads', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
+  ['accepts', { taken: [isDoc], optional: [isKindsOfAPayload] }],
+  ['wires', { taken: [isFieldName, isDoc, isSelector], optional: [isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
   ['carries', { taken: [isNameOfChain, isDoc], optional: [isKinds] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
@@ -166,7 +166,7 @@ function readChainOfKind(quote) {
     if (refused !== null) throw new KindCommandNotTakenError({ command: makeQuote([step]), ...refused });
     const [first, second, third, fourth] = step.get('modifiers');
     switch (step.get('name').name) {
-      case 'wraps': {
+      case 'accepts': {
         names.declare(PAYLOAD_NAME);
         const { each, kinds, written } = kindsWritten(second);
         if (kinds !== null) names.named.add(payloadRefusalName(each));
@@ -174,10 +174,11 @@ function readChainOfKind(quote) {
         kind.payload = { page: first, kinds, each, written };
         break;
       }
-      case 'reads': {
+      case 'wires': {
         names.declare(first.name);
         const { each, kinds, written } = kindsWritten(fourth);
         names.named.add(notGivenAddress(first.name));
+        names.named.add(notReadAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
         kind.fields.push({ name: first, page: second, selector: third, kinds, each, written });
@@ -210,6 +211,7 @@ function readChainOfKind(quote) {
         kind.laws.push({ name: first.name, page: second, query: third });
     }
   }
+  kind.wired = new Map(kind.fields.map(field => [field.name.name, field]));
   return Object.freeze(kind);
 }
 
@@ -237,6 +239,21 @@ export function chainOfKind(kind) {
   let chain = CHAINS_OF_KINDS.get(kind);
   if (chain === undefined) CHAINS_OF_KINDS.set(kind, chain = readChainOfKind(commandsOf(kind)));
   return chain;
+}
+
+// [QSHST#source]
+export function wiringAtPlaces(kind) {
+  const places = chainOfKind(kind).fields.map(({ name, selector }) => ({ name: name.name, place: placeOf(readingOfSelector(selector)) }));
+  if (places.length === 0 || places.some(({ place }) => place === null)) return null;
+  return payload => new Map(places.map(({ name, place: { path, soft } }) => {
+    const part = readPath(payload, path, soft);
+    return [name, part === MISSED ? null : part];
+  }));
+}
+
+function placeOf({ path, index, oneArg, fallback }) {
+  if (path !== null) return { path, soft: false };
+  return oneArg && fallback === null ? { path: makePath([index]), soft: true } : null;
 }
 
 // [QSBLD#recipe]

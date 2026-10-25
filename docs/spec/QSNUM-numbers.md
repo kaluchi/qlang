@@ -46,7 +46,7 @@ vector may have as `::number/range/CountTooLargeError`.
 > get [~(::W#2.7 | floor) ~(5 | add ::W#2) ~(::Cents#1 | add ::Dollars#1 !| tag)]
 [::W#2 ::W#7 ::call/KindsMismatchedError]
 
-> 1e308 | mul 10 | add 1 !| get [~(tag) ~(trace | map ~failed) /trace/0/0]
+> 1e308 | mul 10 | add 1 !| get [~(tag) ~(trace | map ~failed) ~(trace | first | subject)]
 [::number/NotFiniteError [~(mul 10)] 1e+308]
 
 > get [~(1 | round 400) ~(1 | round -400)]
@@ -73,7 +73,7 @@ under the tags the numbers share as the steps they run combine them
 `::any/subOf/subtrahend/NotGivenError`.
 
 ```qlang
-> 1 | add 1 2 !| get [~(tag) ~(explain | page | content | contains "sumOf")]
+> 1 | add 1 2 !| get [~(tag) ~(doc | content | contains "sumOf")]
 [::number/add/ArgsBeyondInputsError true]
 
 > {:price 4 :qty 3} | mulOf /price /qty

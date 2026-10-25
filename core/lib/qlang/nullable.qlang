@@ -9,7 +9,7 @@
       ::link~(::shape | doc)
   ~~|
   ::kind
-    | wraps |~~ The shape of the part where the data holds no null. ~~|
+    | accepts |~~ The shape of the part where the data holds no null. ~~|
     | proves :marksAPartNullInSomeOfTheData
         |~~ A part null in some of the data stands marked nullable. ~~|
         ~([1 null 3] | shape | eq ::shape[::nullable::number])

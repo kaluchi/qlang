@@ -22,7 +22,7 @@
       ::link~(::quote | doc) ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The record of a command, `:name` and `:modifiers`, built into
             its step.
         ~~|
@@ -89,9 +89,9 @@
         |~~ The accounts of the failures beneath it, outermost first. ~~|
         ::vec
     | throws :ValueTakesNoModifiersError
-        |~~ A name the scope binds to a value takes no modifiers: the
-            value is read bare, `:five 5 | five`, and `:name` holds the
-            name. A verb of that name the subject does not reach lives
+        |~~ A name the scope binds to a value, and a part the kind of the
+            subject wires, take no modifiers: the value is read bare,
+            `:five 5 | five`, `card | took`, and `:name` holds the name. A verb of that name the subject does not reach lives
             where `:addresses` names, and a call by its address reaches
             it, `string/five`.
             ::link~(::call | doc)
@@ -149,9 +149,12 @@
             fallback, `query /items | coalesce [] | count`, a keyword its
             name by `toString`, `:host | toString | append ":80"`, or a
             verb of another name was meant, which `:nearest` names where a
-            page leads to it.
+            page leads to it. A value under a kind that wires its parts
+            answers the verbs of its kind and of every value alone, and no
+            verb of the kind of its payload: its parts are read by the
+            names its kind wires, which `tag | manifest` lists, `took`.
             ::link~(::call | doc) ::link~(::any/coalesce | doc)
-            ::link~(::keyword/toString | doc)
+            ::link~(::keyword/toString | doc) ::link~(::kind/wires | doc)
         ~~|
     | carries :KindAnswersNoVerbError/name
         |~~ The name the step called. ~~|
@@ -381,7 +384,7 @@
         ~(5 | string !| get [~(tag) /nearest] | eq [::call/UnknownNameError [::string]])
     | proves :UnknownNameError/readsNoFieldAsAVerb
         |~~ A field of a record called as a verb names nothing. ~~|
-        ~(~(take 2) | first | name !| get [~(tag) /name] | eq [::call/UnknownNameError :name])
+        ~(~(take 2) | first | modifiers !| get [~(tag) /name] | eq [::call/UnknownNameError :modifiers])
     | proves :UnknownAddressError/refusesAnAddressNothingDeclares
         |~~ An address no declaration wrote is refused. ~~|
         ~([1 2 3] | vec/nothing !| get [~(tag) /address] | eq [::call/UnknownAddressError ::vec/nothing])

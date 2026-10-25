@@ -33,7 +33,7 @@
       ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A vector, read as itself. A value of `::vec` already, a set, a
             quote, a doc and a vector under a tag of its own among them,
             stays as it is, `toVec` answering the vector it holds.

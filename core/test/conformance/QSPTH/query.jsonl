@@ -27,3 +27,4 @@
 {"name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| tag","expect":"::path/IndexNotIntegerError"}
 {"name":"null-beneath-the-tags-a-path-meets-on-its-way-is-a-miss","query":"{:a ::T#null} | get [~(query /a/b) ~(coalesce /a/b 0)]","expect":"[null 0]"}
+{"name":"query-beneath-a-closed-tag-is-refused-as-get-is","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | query /took !| tag","expect":"::path/TagClosedError"}

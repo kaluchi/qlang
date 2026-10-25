@@ -19,7 +19,7 @@ it('reads the kinds of the answer of a call as the evaluator lays it: the walk o
   await notebook.evalCell(':Box |~~ A box. ~~| | :Box/f ~(1)');
   const { scope } = notebook;
   const kindsAfter = (address, kinds) => answerKindsOf(scope, nodeOf(scope, address), kinds);
-  expect([kindsAfter('tag/toTag', ['tag', 'vec']), kindsAfter('kind/wraps', ['tag', 'kind']), kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])])
+  expect([kindsAfter('tag/toTag', ['tag', 'vec']), kindsAfter('kind/accepts', ['tag', 'kind']), kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])])
     .toEqual([['tag'], ['kind'], ['Box', 'tagged', 'vec']]);
   expect(verbsReaching(scope, kindsAfter('vec/sort', ['Box', 'tagged', 'vec'])).get('f').address.name).toBe('Box/f');
 });

@@ -2,11 +2,11 @@
 
 import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } from '../primitives.mjs';
 import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { layTag } from '../eval.mjs';
 import { atPath } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
@@ -56,6 +56,7 @@ registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fall
 
 // [QSPTH#write], [QSERR#trace]
 async function written(value, path, at, write, state) {
+  if (wiringOf(value) !== undefined) throw tagClosed(value, path, at);
   if (isValueClass(value, 'underTag')) return await relaid(value, await written(value.payload, path, at, write, state), state);
   const segment = path.segments[at];
   const last = at === path.segments.length - 1;

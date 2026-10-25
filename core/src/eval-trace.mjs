@@ -1,6 +1,6 @@
 // [QSERR#catch], [QSERR#trace], [QSERR#print]
 
-import { isErrorValue, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makePath, makeQuote, makeTrace, partsOfFrame, holdsTheLayoutOfAFrame, FRAME_TAG, TRACE_TAG } from './types.mjs';
+import { isErrorValue, isVec, holdsNoOtherTag, makeErrorValue, makeFrame, makePath, makeQuote, makeTrace, partsOfFrame, wiringOf, FRAME_TAG, TRACE_TAG } from './types.mjs';
 import { kindsExpected } from './ordering.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
@@ -20,9 +20,10 @@ export const failedOnAPart = error => error.facts.get('trace').some(frame => par
 const TracePayloadKindNotTakenError = declareRefusal('trace/PayloadKindNotTakenError');
 const TraceElementKindNotTakenError = declareRefusal('trace/ElementKindNotTakenError');
 
+// [QSERR#trace]
 function frameOf(element) {
   const frame = walkToKinds(element, [FRAME_TAG.name])?.served;
-  return frame !== undefined && holdsTheLayoutOfAFrame(frame) ? frame : undefined;
+  return frame !== undefined && wiringOf(frame) !== undefined ? frame : undefined;
 }
 
 export function framesOfTrace(payload) {

@@ -163,9 +163,9 @@
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert: the subject where it arose cut to an excerpt, and each
       subject it passed an ::elision where the elision prints shorter,
-      whose `:read` continues the query to it, `!| get /trace/1/0`.
-      `!| explain` answers the page of what refused above the failure,
-      the page saying how to repair the call.
+      whose `:read` continues the query to it, `!| get /trace/1 | subject`.
+      `!| doc` answers the page of what refused, the page saying how to
+      repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
       verbs, its refusals and the roles of its chain, and `map` asks
@@ -202,7 +202,7 @@
       budget of an answer.
   ~~|
   ::kind
-    | wraps |~~ No value: `::qlang` names the topic of the language. ~~| #[]
+    | accepts |~~ No value: `::qlang` names the topic of the language. ~~| #[]
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
             characters of its print `:budget` names, and prints this
@@ -631,7 +631,7 @@
         |~~ A quote taken from one label resides on the one it is declared
             under.
         ~~|
-        ~(:A |~~ A. ~~| | :A/f ~(1) | :B |~~ B. ~~| | :B/g (::A/f | binding | get /value) | get [~(::B{} | g) ~(::A{} | B/g !| tag)] | eq [1 ::B/g/SubjectNotBError])
+        ~(:A |~~ A. ~~| | :A/f ~(1) | :B |~~ B. ~~| | :B/g (::A/f | binding | value) | get [~(::B{} | g) ~(::A{} | B/g !| tag)] | eq [1 ::B/g/SubjectNotBError])
     | proves :names/needsItsNoun
         |~~ A name under no declared noun is refused. ~~|
         ~(:Box/area ~(1) !| tag | eq ::bind/NounNotDeclaredError)
@@ -653,7 +653,7 @@
         ~("1x" | parse !| tag | eq ::quote/ParseError)
     | proves :names/holdsEachDocOfItsSlot
         |~~ Two docs in the slot are two parts of its page. ~~|
-        ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | get /x | get /docs | count | eq 2)
+        ~(:x |~~ One. ~~| |~~ Two. ~~| 1 | env | get /x | docs | count | eq 2)
     | proves :names/recursesByName
         |~~ A name calls itself through the tree of names. ~~|
         ~(:map/walk ~(get {:n /n :kids ~(get /kids | map ~walk)}) | {:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n | eq 2)
@@ -701,9 +701,9 @@
             a quote, `~name` or `~(get /path)` the quote of one step, and
             a condition is a boolean. A label is a kind declared under a
             name, by the chain that builds it from `::kind`,
-            `:Box |~~ A parcel. ~~| (::kind | reads :w |~~ The width. ~~| /w ::number)`,
-            or by its page alone, a kind of no commands: `wraps` names its
-            payload and its kinds, `reads` a field the payload holds, its
+            `:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)`,
+            or by its page alone, a kind of no commands: `accepts` names its
+            payload and its kinds, `wires` a field the payload holds, its
             selector and its kinds, `holds` an invariant of the value or of a
             field, `throws` a refusal, `carries` a fact and `proves` a law,
             and a kind of the core `impl` its constructor, which its host
@@ -735,7 +735,7 @@
         ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
     | proves :verbs/answersTheVerbsOfTheKindsItsWalkReaches
         |~~ A set answers a verb of vectors it does not declare. ~~|
-        ~(#[3 1 2] | get [~(count) ~(binding :count | get /name)] | eq [3 :vec/count])
+        ~(#[3 1 2] | get [~(count) ~(binding :count | name)] | eq [3 :vec/count])
     | proves :verbs/declaresTheInputs
         |~~ `query` declares its path and its default as its inputs. ~~|
         ~(::any/query | manifest | eq #[::any/query/default ::any/query/path])
@@ -788,8 +788,7 @@
             Rests on values, the pipeline and verbs; the hypertext holds
             the pages the sites name.
             ::link~(::error | doc) ::link~(::fail | doc)
-            ::link~(::trace | doc) ::link~(::explanation | doc)
-            ::link~(::qlang/code | doc)
+            ::link~(::trace | doc) ::link~(::qlang/code | doc)
 
             A failed step answers a failure the tag of its site names. `|`
             passes a failure by, and `map` answers the first an element
@@ -800,18 +799,18 @@
             payload and a name whose body fails answer the failure. The
             facts name what refused and hold the value refused, but where
             the step refused its subject, which the first frame of the
-            trace holds. `explain` shows the page of the
-            site above the error. The trace is written as the failure
-            flies: a frame for each level it left, the subject its step met
-            and the steps from the one that failed, the last frame holding
-            the steps skipped at the level that reads it, a quote that runs
-            again as held code runs, and the frame of a verb that ran its
-            code on a part of its subject the path of that part. An error
+            trace holds, and `doc` reads the page of the site. The trace is
+            written as the failure flies: a frame for each level it left,
+            the subject its step met and the steps from the one that
+            failed, the last frame holding the steps skipped at the level
+            that reads it, a quote that runs again as held code runs, and
+            the frame of a verb that ran its code on a part of its subject
+            the path of that part. An error
             at rest raised again resumes the trace it holds, and one that
             holds none, an empty `:trace` among them, starts it over.
             Whether the step before stood is `ok !| false`.
         ~~|
-        #[::error ::explanation ::fail ::frame ::trace]
+        #[::error ::fail ::frame ::trace]
     | proves :errors/namesTheSite
         |~~ The error's tag names its site. ~~|
         ~("x" | add 1 !| tag | eq ::number/add/SubjectNotNumberError)
@@ -820,7 +819,7 @@
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedSubject
         |~~ The first frame holds the subject the step refused. ~~|
-        ~("a" | mul 2 !| get [/actualTag /trace/0/0] | eq [::string "a"])
+        ~("a" | mul 2 !| get [/actualTag ~(trace | first | subject)] | eq [::string "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|
         ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply f)])
@@ -941,7 +940,7 @@
             elision for each subject it passed, the failure keeping its tag
             and the names of its facts, and an alert past the budget prints
             as the same refusal; the command line writes below it the prose
-            of its refusal's page, as `!| explain` reads it, so the reader
+            of its refusal's page, as `!| doc` reads it, so the reader
             repairs the call where it failed. The command line
             reads JSON from stdin as values and other text as a string,
             and prints its answer as the language prints it, a string as

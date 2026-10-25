@@ -3,8 +3,7 @@
 import {
   isVec, isSet, isQuote, isDoc, isMap, isErrorValue, isValueClass, isFrame, isTrace,
   makeTagged, beneathTags, makeErrorValue, errorAtRest, makeFrame, partsOfFrame, makePath, makeQuote, makeTrace, stampTagHeader, TAG_HEADER_SYMBOL,
-  SUBJECT_INDEX_OF_A_FRAME,
-  ELISION_TAG
+  SUBJECT_OF_A_FRAME, ELISION_TAG
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { printValue, docText, printQuoteSource } from './print-value.mjs';
@@ -38,10 +37,19 @@ const OF_THE_FACTS = { caught: true, from: [] };
 
 const readBelow = ({ caught, from }, segments) => ({ caught, from: [...from, ...segments] });
 
-// [QSPTH#value]
+// [QSPRN#elide]
+const THE_SUBJECT_OF_A_FRAME = Symbol('qlang/subjectOfAFrame');
+
+function stepsOf(segments) {
+  const at = segments.indexOf(THE_SUBJECT_OF_A_FRAME);
+  const read = at === -1 ? segments : segments.slice(0, at);
+  const steps = read.length === 0 ? [] : [commandStep('get', [makePath(read.map(String))])];
+  return at === -1 ? steps : [...steps, commandStep(SUBJECT_OF_A_FRAME, []), ...stepsOf(segments.slice(at + 1))];
+}
+
+// [QSPTH#value], [QSPRN#elide]
 function readOf(start, path, kept = null) {
-  const segments = [...start.from, ...path].map(String);
-  const steps = segments.length === 0 ? [] : [commandStep('get', [makePath(segments)])];
+  const steps = stepsOf([...start.from, ...path]);
   if (kept !== null) steps.push(commandStep('drop', [kept]));
   if (start.caught) steps[0] = makeTagged(FAIL_TAG, makeQuote([steps[0] ?? commandStep('it', [])]));
   return makeQuote(steps);
@@ -71,7 +79,7 @@ function partsOf(value, path, view, parts) {
     parts.push({ path, value });
     return;
   }
-  if (isFrame(value)) return partsOf(partsOfFrame(value).subject, [...path, SUBJECT_INDEX_OF_A_FRAME], view, parts);
+  if (isFrame(value)) return partsOf(partsOfFrame(value).subject, [...path, THE_SUBJECT_OF_A_FRAME], view, parts);
   if (isValueClass(value, 'underTag')) return partsOf(value.payload, path, view, parts);
   if (!isContainer(value)) return;
   const { entries } = partsOfContainer(value, view);
@@ -144,6 +152,12 @@ function replacedAt(value, path, replacement, view) {
     return laid;
   }
   if (path.length === 0) return replacement;
+  if (isFrame(value)) {
+    const { subject, unfinished, path: ofThePart } = partsOfFrame(value);
+    const laid = makeFrame(replacedAt(subject, path.slice(1), replacement, view), unfinished, ofThePart);
+    view.built.add(laid);
+    return laid;
+  }
   const [head, ...rest] = path;
   const copy = isVec(value) ? [...value] : new Map(value);
   if (isVec(value)) copy[head] = replacedAt(value[head], rest, replacement, view);
@@ -158,6 +172,10 @@ function inOrder(value, view) {
   if (!view.built.has(value)) return value;
   if (isErrorValue(value)) return makeErrorValue(value.tag, new Map([...value.facts].map(([name, fact]) => [name, inOrder(fact, view)])));
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, inOrder(value.payload, view));
+  if (isFrame(value)) {
+    const { subject, unfinished, path } = partsOfFrame(value);
+    return makeFrame(inOrder(subject, view), unfinished, path);
+  }
   if (isSet(value)) return makeSet(value.map(element => inOrder(element, view)));
   const rebuilt = isMap(value)
     ? new Map([...value].map(([key, part]) => [key, inOrder(part, view)]))
@@ -214,7 +232,7 @@ function passedOver(value, read, printedOf, oneLine, rests) {
 function framesOf(trace, read, printedOf, rests) {
   return makeTrace(trace.map((frame, index) => {
     const { subject, unfinished, path } = partsOfFrame(frame);
-    const subjectRead = readBelow(read, [index, SUBJECT_INDEX_OF_A_FRAME]);
+    const subjectRead = readBelow(read, [index, THE_SUBJECT_OF_A_FRAME]);
     return makeFrame(index === 0 ? excerptOf(subject, subjectRead, printedOf, true, rests) : passedOver(subject, subjectRead, printedOf, true, rests), unfinished, path);
   }));
 }

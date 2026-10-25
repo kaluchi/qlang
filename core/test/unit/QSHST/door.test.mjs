@@ -26,7 +26,7 @@ beforeAll(async () => {
       ':any/later ::builtin{}',
       ':any/twice ::builtin{}',
       ':any/same ::builtin{}',
-      ':any/again (::any/answer | binding | get /value)',
+      ':any/again (::any/answer | binding | value)',
       ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
       ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
       ':any/break ::builtin{}',
@@ -149,7 +149,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
 });
 
 describe('a primitive of the core runs within the function its host handed it with', () => {
-  const overAdd = returns => `(::fn | takes :x |~~ An x. ~~| /0${returns} | impl (::number/add | binding | get /value | get /1))`;
+  const overAdd = returns => `(::fn | takes :x |~~ An x. ~~| /0${returns} | impl (::number/add | binding | value | get /1))`;
 
   it('refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
     for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
@@ -158,7 +158,7 @@ describe('a primitive of the core runs within the function its host handed it wi
   });
 
   it('brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
-    for (const fn of ['(::number/add | binding | get /value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
+    for (const fn of ['(::number/add | binding | value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
       expect((await notebook.evalCell(`1e308 | apply ${fn} [1e308] !| tag`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
   });

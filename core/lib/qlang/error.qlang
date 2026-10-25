@@ -34,11 +34,11 @@
       `trace` the trace. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
       ::snippet~(::error | manifest) lists its verbs and refusals.
-      ::link~(::explanation | doc) ::link~(::fail | doc)
+      ::link~(::fail | doc)
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps |~~ The facts of the failure, a map. ~~| ::map
+    | accepts |~~ The facts of the failure, a map. ~~| ::map
     | throws :PayloadKindNotTakenError
         |~~ An error at rest holds the facts of a failure as a map,
             `!{:reason :late}`; a payload of another kind is refused, and a

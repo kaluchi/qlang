@@ -26,7 +26,7 @@
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The frames, from where the failure arose outward, a vector of
             frames plain or under `::trace`, built into the trace, a frame
             under a tag read as the frame beneath it.

@@ -1,5 +1,5 @@
 {"name":"names-are-a-concept-of-their-own","query":"::qlang | doc :names | tag","expect":"::doc"}
-{"name":"the-topic-of-the-language-tells-its-chapters","query":"::qlang/values | binding | get /value | has ::vec","expect":"true"}
+{"name":"the-topic-of-the-language-tells-its-chapters","query":"::qlang/values | binding | value | has ::vec","expect":"true"}
 {"name":"a-chapter-is-a-node-of-the-topic-read-by-its-anchor","query":"::qlang | doc :pipeline | tag","expect":"::doc"}
 {"name":"the-first-screen-opens-every-page-it-names-in-one-query","query":"::qlang | doc | links | map ~open | every ~(tag | eq ::doc)","expect":"true"}
 {"name":"the-first-screen-names-the-concepts","query":"::qlang | doc | links | map ~open | filter ~(tag | eq ::doc) | count | gt 5","expect":"true"}

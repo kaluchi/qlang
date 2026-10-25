@@ -1,8 +1,10 @@
 // [QSPTH#get], [QSPTH#write]
 
 import { declareRefusal, refusingTheSubject } from './errors.mjs';
-import { beneathTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, CORE_KIND } from './types.mjs';
+import { beneathOpenTags, isDoc, isFn, isKind, isKeyword, isMap, isQuote, isVec, makeKeyword, makePath, makeQuote, wiringOf, CORE_KIND } from './types.mjs';
 import { nearestOf } from './nearness.mjs';
+import { makeSet } from './ordering.mjs';
+import { commandStep } from './steps.mjs';
 
 export const PathSubjectHasNoPartsError = declareRefusal('path/SubjectHasNoPartsError');
 export const PathKeyNotInMapError = declareRefusal('path/KeyNotInMapError');
@@ -36,10 +38,15 @@ export function segmentIndex(segment) {
   return /^-?\d+$/.test(String(segment)) ? parseInt(segment, 10) : NaN;
 }
 
+// [QSPTH#get]
+export const PathTagClosedError = declareRefusal('path/TagClosedError');
+
+// [QSPTH#get]
 export function readPath(subject, path, soft = false) {
   let current = subject;
   for (const [depth, segment] of path.segments.entries()) {
-    const container = beneathTags(current);
+    const container = beneathOpenTags(current);
+    if (wiringOf(container) !== undefined) throw tagClosed(container, path, depth);
     if (container === null && soft) return MISSED;
     if (isMap(container)) {
       if (!container.has(segment)) {
@@ -76,6 +83,24 @@ export function indexIn(container, segment, path, depth, soft = false) {
   if (at >= 0 && at < container.length) return at;
   if (soft) return MISSED;
   throw refusalAt(new PathIndexOutOfBoundsError({ index, length: container.length, path, actualValue: container }), depth);
+}
+
+// [QSPTH#get]
+export function tagClosed(value, path, depth) {
+  const read = namesRead(value, path.segments.slice(depth));
+  const repair = read === null ? undefined : makeQuote([...(depth === 0 ? [] : [commandStep('get', [makePath(path.segments.slice(0, depth))])]), ...read]);
+  const names = makeSet([...wiringOf(value).keys()].map(makeKeyword));
+  return refusalAt(new PathTagClosedError({ names, repair, path, actualValue: value }), depth);
+}
+
+function namesRead(value, segments) {
+  if (segments.length === 0) return [];
+  const parts = wiringOf(beneathOpenTags(value));
+  if (parts === undefined) return [commandStep('get', [makePath(segments)])];
+  const [name, ...rest] = segments;
+  if (!parts.has(name)) return null;
+  const after = namesRead(parts.get(name), rest);
+  return after === null ? null : [commandStep(name, []), ...after];
 }
 
 export function noPartsOn(value, segment, path, depth) {

@@ -7,7 +7,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
   'qlang/keyword', 'qlang/regex', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
   'qlang/binding', 'qlang/error', 'qlang/trace', 'qlang/frame', 'qlang/each', 'qlang/absent', 'qlang/nullable', 'qlang/shape', 'qlang/elision', 'qlang/desc',
   'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/invariant',
-  'qlang/explanation', 'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/path', 'qlang/span', 'qlang/point', 'qlang/bind',
+  'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/path', 'qlang/span', 'qlang/point', 'qlang/bind',
   'qlang/fail', 'qlang/group', 'qlang/any'
 ]);
 

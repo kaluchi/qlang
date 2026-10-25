@@ -52,16 +52,16 @@
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
-|~| A kind is built from `::kind` by commands, `reads` a field of
+|~| A kind is built from `::kind` by commands, `wires` a field of
 |~| its payload held to its kinds, and a value put under it keeps
 |~| them. A verb declared under it serves its values alone, called
 |~| by its name on the value, and is built from `::fn`, `takes` an
 |~| input of the call held to its kinds.
 
 :Person |~~ A person, a name and an age. ~~| (::kind
-  | wraps |~~ The name and the age. ~~| ::map
-  | reads :name |~~ The name. ~~| /name ::string
-  | reads :age |~~ The age in years. ~~| /age ::number)
+  | accepts |~~ The name and the age. ~~| ::map
+  | wires :name |~~ The name. ~~| /name ::string
+  | wires :age |~~ The age in years. ~~| /age ::number)
 :Person/adult |~~ Whether the person is of age. ~~| ~(get /age | gte 18)
 :Person/greet |~~ The person's name after a greeting. ~~| (::fn
   | takes :greeting |~~ The words before the name. ~~| /0 ::string
@@ -120,14 +120,14 @@
 
 
 |~| ── 8. Failures ───────────────────────────────────────────
-|~| `|` passes a failure by and `!|` catches it; `explain`
+|~| `|` passes a failure by and `!|` catches it; `doc`
 |~| answers the page of what refused, which tells the repair.
 
 | ("hello" | add 1 !| tag)
 
 | ([1 "x" 3] | map ~(add 10 !| 0))
 
-| ("hello" | add 1 !| explain)
+| ("hello" | add 1 !| doc)
 
 
 |~| ── 9. Comments ───────────────────────────────────────────

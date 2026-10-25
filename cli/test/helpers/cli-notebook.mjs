@@ -10,4 +10,4 @@ export const answerOf = async query => (await notebook.evalCell(query)).result;
 
 export const names = nodeAddresses(notebook.scope).map(name => `::${name}`);
 
-export const cliNames = await answerOf(`[${names.join(' ')}] | filter ~(binding | get /origin | eq :cli) | map ~print`);
+export const cliNames = await answerOf(`[${names.join(' ')}] | filter ~(binding | origin | eq :cli) | map ~print`);

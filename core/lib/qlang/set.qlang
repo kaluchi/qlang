@@ -34,7 +34,7 @@
       ::link~(::vec | doc) ::link~(::qlang/values | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ A vector, built into the set of its elements in the one order
             without duplicates.
         ~~|

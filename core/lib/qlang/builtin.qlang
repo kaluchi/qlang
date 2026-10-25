@@ -10,7 +10,7 @@
       a function whose code the host hands, `::builtin{}`, where a verb
       written in steps holds a quote, into which the root writes the
       address it takes the primitive under, `:of`:
-      `::number/add | binding | get /value | get /1` answers
+      `::number/add | binding | value | get /1` answers
       `::builtin{:of ::number/add}`. A kind of the core takes one,
       `| impl ::builtin{}`, as its constructor, the one its host hands,
       which attaches the tag to a payload or refuses it.
@@ -22,7 +22,7 @@
       where the root holds one equal to it at the address its `:of` names.
       ::link~(::qlang/hosts | doc)
   ~~|
-  ::kind[~(wraps
+  ::kind[~(accepts
         |~~ A map, the descriptor, its fields flat under the tag, `:of` the
             address the root took its primitive under.
         ~~|
@@ -143,12 +143,12 @@
         |~~ The recipe of a verb a host answers by a primitive is the
             descriptor of its address.
         ~~|
-        ~(::number/add | binding | get /value | get /1 | eq ::builtin{:of ::number/add})
+        ~(::number/add | binding | value | get /1 | eq ::builtin{:of ::number/add})
     | proves :readsBackAsItsPrimitive
         |~~ A function of a host read back from its print runs its
             primitive.
         ~~|
-        ~(::number/add | binding | get /value | print | parse | open | :g it | 5 | apply g [1] | eq 6)
+        ~(::number/add | binding | value | print | parse | open | :g it | 5 | apply g [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
         ~(::builtin"hello" !| get [~(tag) /actualTag] | eq [::builtin/PayloadKindNotTakenError ::string])

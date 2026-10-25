@@ -37,7 +37,7 @@
       ::link~(::qlang/verbs | doc)
   ~~|
   ::kind
-    | wraps
+    | accepts
         |~~ The literal of a function, the quote of the commands of its
             chain and its recipe, a quote, a primitive, or null for a
             contract no call runs.
@@ -124,7 +124,7 @@
         |~~ A function whose recipe is a primitive runs it, the verb
             `fill` applied by its value as it is called.
         ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | apply (::fn/fill | binding | get /value) [3] | eq ~(:by |~~ How much. ~~| 3 | add by))
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | apply (::fn/fill | binding | value) [3] | eq ~(:by |~~ How much. ~~| 3 | add by))
     | proves :holdsTheInvariantsOfAnInput
         |~~ An invariant written under an input refuses a value that
             breaks it.
@@ -266,7 +266,7 @@
         |~~ The primitive of a verb put into a function of its own runs
             nothing, the refusal naming the address of the verb.
         ~~|
-        ~({:a 1} | apply (::fn | impl (::vec/first | binding | get /value | get /1)) [] !| get [~(tag) /of] | eq [::fn/RecipeMissingError ::vec/first])
+        ~({:a 1} | apply (::fn | impl (::vec/first | binding | value | get /1)) [] !| get [~(tag) /of] | eq [::fn/RecipeMissingError ::vec/first])
     | tells :call
         |~~ The call of a function `apply` runs or whose inputs `fill`
             reads, which no verb names: a refusal of its subject, its
@@ -282,9 +282,9 @@
     | proves :call/refusesAnInputLeftOut
         |~~ An input the args leave out is refused. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) !| tag | eq ::fn/call/by/NotGivenError)
-    | proves :call/explainsTheRefusalsNamedUnderIt
+    | proves :call/pagesTheRefusalsNamedUnderIt
         |~~ A refusal named under the call reads its page. ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| explain | page | eq (::fn/call | doc))
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| doc | eq (::fn/call | doc))
     | impl ::builtin{}
 
 :fn/on

@@ -41,7 +41,7 @@ async function loadCatalogContext() {
   const mergedIndex = new Map();
   for (const { fileUri, uri } of sources) {
     try {
-      const source = readFileSync(new URL(fileUri), 'utf8');
+      const source = new TextDecoder().decode(readFileSync(new URL(fileUri)));
       const root = partOf(parseSource(source, { uri }));
       const entries = buildCatalogIndex(root);
       for (const [name, range] of entries) {

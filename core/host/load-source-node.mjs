@@ -16,7 +16,7 @@ export async function loadSource(uri) {
     throw cause;
   }
   try {
-    return await readFile(filePath, 'utf8');
+    return new TextDecoder().decode(await readFile(filePath));
   } catch (cause) {
     throw new BuiltinSourceLoadError({ origin: makeKeyword(uri), sourceLocation: filePath, cause });
   }

@@ -12,7 +12,12 @@ each element, the set, the quote, the doc and the error by their own
 brackets, a quote of a path alone as `::quote[/a]`, and any other value
 under a tag as its tag before the print of its payload, every tag but
 the kind the brackets imply, so `::vec[1 2]` prints `[1 2]`; the text of
-a value of the language reads back as it by `parse | open`. A vector and
+a value of the language reads back as it by `parse | open`. A string
+prints as JSON writes it: `"` and `\` escaped, a line break, a tab, a
+carriage return, a backspace and a form feed as `\n`, `\t`, `\r`, `\b` and
+`\f`, and any other character below U+0020 and a lone surrogate as `\u`
+and their four digits, so the print shows a control character and holds no
+code unit a text in UTF-8 cannot carry. A vector and
 a set stand on one line unless a part takes several, and then each part
 stands on a line of its own; a map of two entries or fewer, none a
 container, stands on one line, and any other puts each entry on a line
@@ -60,6 +65,9 @@ true
 
 > #[2 1] | print
 "#[1 2]"
+
+> ["\uD800" "\u0007"] | map ~print
+["\"\\ud800\"" "\"\\u0007\""]
 
 > ["a\n  b\n\nc"] | tag ::doc | :d it | get [~(print | lines | map ~count) ~(print | parse | first | eq d)]
 [[5 5 0 7] true]

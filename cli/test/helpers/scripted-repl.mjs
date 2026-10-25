@@ -3,7 +3,7 @@
 import { Readable } from 'node:stream';
 
 export function captureRepl(scriptedInput) {
-  const stdinStream = Readable.from([scriptedInput]);
+  const stdinStream = Readable.from([Buffer.from(scriptedInput)]);
   stdinStream.isTTY = false;
 
   const stdoutChunks = [];

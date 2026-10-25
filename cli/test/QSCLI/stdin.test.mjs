@@ -5,7 +5,9 @@ import { runQuery } from '../../src/run.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
 import { createNotebook } from '@kaluchi/qlang-core';
 import { readStdinToString, memoiseStdinReader, DEFAULT_SUBJECT, liftOfInput } from '../../src/stdin.mjs';
+import { runRepl } from '../../src/repl.mjs';
 import { captureStreams } from '../helpers/main-streams.mjs';
+import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
 describe('standard input read for a query that reads its subject', () => {
   const openStdin = () => Object.assign(new Readable({ read() {} }), { isTTY: false });
@@ -134,10 +136,16 @@ describe('the text of standard input read to its end', () => {
   });
 
   it('accumulates chunks from a piped stream and resolves on end', async () => {
-    const piped = Readable.from(['hello ', 'world']);
+    const piped = Readable.from([Buffer.from('hello '), Buffer.from('world')]);
     piped.isTTY = false;
     const text = await readStdinToString(piped);
     expect(text).toBe('hello world');
+  });
+
+  it('reads a character split across two chunks as one', async () => {
+    const piped = Readable.from([Buffer.from([0x61, 0xc3]), Buffer.from([0xa9])]);
+    piped.isTTY = false;
+    expect(await readStdinToString(piped)).toBe('aé');
   });
 
   it('rejects when the underlying stream emits an error', async () => {
@@ -145,6 +153,34 @@ describe('the text of standard input read to its end', () => {
     failing.isTTY = false;
     setImmediate(() => failing.emit('error', new Error('stream broke')));
     await expect(readStdinToString(failing)).rejects.toThrow('stream broke');
+  });
+});
+
+describe('a byte order mark at the head of standard input', () => {
+  const MARK = '﻿';
+
+  it('drops before the subject lifts, a JSON text after it lifting to its value', async () => {
+    const s = captureStreams(MARK + '{"a": [1, 2]}');
+    await main(['get /a | count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('2\n');
+  });
+
+  it('drops from the text `in` answers, a mark inside the text kept as its character', async () => {
+    const s = captureStreams(MARK + 'a' + MARK + 'b');
+    await main(['in | count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('3\n');
+  });
+
+  it('drops when its bytes split across the chunks of standard input', async () => {
+    const piped = Readable.from([Buffer.from([0xef]), Buffer.from([0xbb, 0xbf, 0x31])]);
+    piped.isTTY = false;
+    expect(await readStdinToString(piped)).toBe('1');
+  });
+
+  it('drops before the first cell the REPL reads from a pipe', async () => {
+    const replHarness = captureRepl(MARK + '1 | add 1\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    expect(stripAnsi(replHarness.stdoutText())).toBe('qlang> 2\nqlang> ');
   });
 });
 

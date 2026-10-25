@@ -99,7 +99,15 @@ The sources of the language are read where `core/package.json` maps
 them, by the road each platform asks for: the files on Node, read by the
 loader of `core/host/`; `fetch` in a browser that maps `#qlang/<name>`
 in its import map; and the locator a bundle hands `langRuntime`, as the
-site's does; the root reads each whole as it boots. The language server
+site's does; the root reads each whole as it boots. A host decodes the
+bytes of a text it reads, a source or standard input, as UTF-8 by
+`TextDecoder`, the decode the text of a response runs: a byte order mark
+at the head of the text drops, one inside it stays the character U+FEFF,
+and a byte no character reads is U+FFFD, so a text reads alike on every
+host and no mark a host read reaches the core; the bundle of the site reads
+its sources by the loader `text` of esbuild, which drops the mark alike.
+A string that holds the mark holds the character, which the grammar reads
+as no whitespace. The language server
 reads the file of each source where the package exports it,
 `@kaluchi/qlang-core/lib/<uri>.qlang`, resolved from its own dependency,
 and the editor's extension imports the core by its name, a dependency of

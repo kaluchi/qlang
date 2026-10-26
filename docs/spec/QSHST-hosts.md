@@ -276,8 +276,8 @@ answer and a subject at a `tap` past the budget of every answer
 [QSPRN#budget] and a fact of a failure past the room of a fact
 [QSERR#alert], which the alert names instead of the value, under the
 identity of what it keeps, twelve digits of hexadecimal of the hash of the
-values the query declared and the print of the value, so one value is one
-cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
+query, the values it declared and the print of the value, so one value of
+one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
 `<root>` the identity of the sources and the code it booted, the query,
 `source.qlang`, the values the query declared, each as the core prints it,
 `names.qlang`, and the answer as the core prints it, `answer.qlang`, the

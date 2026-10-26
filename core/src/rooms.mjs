@@ -13,15 +13,13 @@ export const ROOM_OF_AN_ALERT = 2000;
 // [QSTXT#string]
 export const lengthOf = text => Array.from(text).length;
 
-const printedByNoKind = () => undefined;
-
-export const sizeOf = (value, printedOf = printedByNoKind) => lengthOf(printValue(value, 0, printedOf));
+export const sizeOf = (value, printedOf) => lengthOf(printValue(value, 0, printedOf));
 
 // [QSPRN#excerpt]
 const isEmpty = value => (isMap(value) ? value.size === 0 : (isVec(value) || typeof value === 'string') && value.length === 0);
 
 // [QSERR#alert], [QSPRN#excerpt]
-export async function alertOf(error, { keep, viewsOf }, printedOf = printedByNoKind) {
+export async function alertOf(error, { keep, viewsOf }, printedOf) {
   const shown = [];
   for (const [name, fact] of error.facts) {
     if (sizeOf(fact, printedOf) <= ROOM_OF_A_FACT) {

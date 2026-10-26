@@ -223,7 +223,8 @@
       elements of an answer that passed the budget of every answer, its
       refusal naming the cell as its `:answer`, and a fact of a failure past
       the room of a fact so. The command line keeps under
-      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of what it keeps,
+      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of the query and what
+      it keeps,
       the query, `source.qlang`, the values
       it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
       core prints it, `<root>` the identity of the sources and the code it

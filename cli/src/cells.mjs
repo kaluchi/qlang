@@ -68,7 +68,7 @@ function cellsAged(now) {
 export async function keepCell({ query, scope, value }) {
   const names = namesOf(scope);
   const printed = printValue(value);
-  const identity = createHash('sha256').update(names).update('\n').update(printed).digest('hex').slice(0, 12);
+  const identity = createHash('sha256').update(query).update('\n').update(names).update('\n').update(printed).digest('hex').slice(0, 12);
   const folder = cellFolder(identity);
   mkdirSync(folder, { recursive: true, mode: 0o700 });
   const now = new Date();

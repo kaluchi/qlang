@@ -50,7 +50,7 @@ it('takes away a cell older than a day as it keeps another, and passes by an ent
   }
 });
 
-it('keeps one value under one cell, named by the hash of what it keeps', async () => {
+it('keeps one value of one query under one cell, named by the hash of the query and what it keeps', async () => {
   const [first] = await keptBy('4000 | range');
   const [second] = await keptBy('4000 | range');
   const [other] = await keptBy('4001 | range');

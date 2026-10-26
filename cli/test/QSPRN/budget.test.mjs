@@ -16,10 +16,10 @@ it('writes the first screen whole, the budget never smaller than it', async () =
   expect(await boundAnswer(cellEntry.result, cellEntry.scopeAfterCell)).toBe(cellEntry.result);
 });
 
-it('writes an answer past the budget as the refusal, the answer told by the views of its kind, above the prose of its page', async () => {
+it('writes an answer past the budget as the refusal, the answer told by its tag and the views of its kind, above the prose of its page', async () => {
   const scope = await langRuntime();
   const text = await answerText(await evalQuery(past, scope), scope);
-  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:answer\/count 3000\n {2}:answer\/shape ::shape\[\{:id ::number :name ::string\}\]\n {2}:answer\/first \{:id 0 :name "user"\}\n {2}:answer\/last \{:id 2999 :name "user"\}\n\}/);
+  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:answer\/tag ::vec\n {2}:answer\/count 3000\n {2}:answer\/shape ::shape\[\{:id ::number :name ::string\}\]\n {2}:answer\/first \{:id 0 :name "user"\}\n {2}:answer\/last \{:id 2999 :name "user"\}\n\}/);
   expect(text).toMatch(/\n\}\n\|~\| /);
   expect(text).toContain('`json | out`');
 });

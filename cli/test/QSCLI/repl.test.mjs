@@ -138,18 +138,18 @@ describe('an answer printed whole and a failure as its alert', () => {
     expect(readFileSync(join(folder, 'source.qlang'), 'utf8')).toBe('5000 | range | tap :big | count');
   });
 
-  it('prints a failure as its alert, a fact past the room of a fact the cell it keeps beside the views of its kind', async () => {
+  it('prints a failure as its alert, a fact past the room of a fact the cell it keeps beside its tag and the views of its kind', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/failed \[~\(nope\) ~\(filter ~\(nope\)\)\]\n {2}:trace\/subject \{:n 0\}\n {2}:trace\/paths \[\/0\]\n\}/);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/failed \[~\(nope\) ~\(filter ~\(nope\)\)\]\n {2}:trace\/subject \{:n 0\}\n {2}:trace\/paths \[\/0\]\n\}/);
   });
 
   it('prints the alert of a runaway recursion within its room', async () => {
     const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const shown = stripAnsi(replHarness.stdoutText());
-    expect(shown).toMatch(/\n {2}:depth 1001\n {2}:limit 1000\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/subject 999\n\}/);
+    expect(shown).toMatch(/\n {2}:depth 1001\n {2}:limit 1000\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/subject 999\n\}/);
     expect(shown.length).toBeLessThan(2100);
   });
 });

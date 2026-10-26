@@ -2,11 +2,12 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf } from '../nouns.mjs';
+import { kindOfAValueOf, kindsOfWalk, nodeOf, slotsOfAVerdict } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe } from '../chain.mjs';
-import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, isFn, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
+import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds, verbOfAView } from './print.mjs';
+import { printsOfKinds, verbOfAView, FIRST_VIEW } from './print.mjs';
+import { ANY_KIND_NAME } from '../address.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
 const LEAST_COLUMN = 16;
@@ -21,10 +22,12 @@ function legendOf(value, scope, printedOf) {
   const atPlaces = new Map(laid === null ? [] : fields.filter(({ place }) => place?.path.segments.length === 1).map(field => [field.place.path.segments[0], field]));
   if (atPlaces.size === 0) return aligned([[printValue(value, 0, printedOf, true), ofTheHead]]);
   const lines = [[laid.open, ofTheHead]];
+  const parts = new Map(laid.parts.map(([key, part]) => [String(key), part]));
   for (const [key, part] of laid.parts) {
     const field = atPlaces.get(String(key));
     const printed = printValue(part, 1, printedOf, true);
-    const said = field === undefined ? null : laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name);
+    const said = field !== undefined ? (laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name))
+      : laid.keyed ? glossOfAKeyBeneath(String(key), parts, kind, atPlaces, scope) : null;
     lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
   lines.push([laid.close, null]);
@@ -41,12 +44,30 @@ function legendOfAKind(tag, ofTheHead, scope) {
 }
 
 // [QSPRN#legend], [QSPRN#excerpt]
-function viewOfAKind(scope, kindName, name) {
+const viewOfAKind = (scope, kindName, name) => closed(saidOfAView(scope, kindName, name));
+
+function saidOfAView(scope, kindName, name) {
   const record = verbOfAView(scope, kindName, name);
-  if (record === null) return closed(name);
+  if (record === null) return name;
   const verb = bindingValueOf(record);
   const answer = chainOfFn(isFn(verb) ? verb : functionOfRecipe(verb)).answer;
-  return closed(joined(answer === null ? name : `${name} ${printValue(answer.written)}`, glossOf(answer?.page ?? pageOfRecord(record), scope)));
+  return joined(answer === null ? name : `${name} ${printValue(answer.written)}`, glossOf(answer?.page ?? pageOfRecord(record), scope));
+}
+
+// [QSPRN#legend], [QSERR#site]
+function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
+  const [name, ...beneath] = key.split('/');
+  const field = atPlaces.get(name);
+  if (field === undefined || beneath.length === 0) return null;
+  if (beneath.length === 1 && slotsOfAVerdict(kind)?.has(name)) {
+    const probe = chainOfKind(kindOfAValueOf(scope, field.written.name)).fields.find(({ name: probeName }) => probeName.name === beneath[0]);
+    return probe === undefined ? null : joined(glossOf(field.page, scope), glossOf(probe.page, scope));
+  }
+  const above = key.slice(0, key.lastIndexOf('/'));
+  const tagShown = parts.get(`${above}/${FIRST_VIEW}`);
+  const kindNames = isTag(tagShown) ? [tagShown.name] : [...kindsOfWalk(parts.get(above))];
+  const view = beneath.at(-1);
+  return saidOfAView(scope, kindNames.find(kindName => nodeOf(scope, `${kindName}/${view}`) !== null) ?? ANY_KIND_NAME, view);
 }
 
 const readsItsOwnKey = (name, place) => place.path.segments.length === 1 && place.path.segments[0] === name.name;
@@ -57,8 +78,9 @@ function payloadLaidOut(value) {
   const { literal } = value[TAG_HEADER_SYMBOL];
   if (isMap(value)) return { open: `${literal}{`, close: '}', parts: [...value], keyed: true };
   if (isVec(value)) return { open: `${literal}[`, close: ']', parts: [...value.entries()], keyed: false };
-  const atRest = isValueClass(value, 'underTag') && value.payload[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name;
-  return atRest ? { open: `${literal}!{`, close: '}', parts: [...value.payload], keyed: true } : null;
+  const beneath = isValueClass(value, 'underTag') ? value.payload : null;
+  if (beneath?.[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name) return { open: `${literal}!{`, close: '}', parts: [...beneath], keyed: true };
+  return isExcerpt(beneath) ? { open: `${literal}${EXCERPT_TAG.literal}{`, close: '}', parts: [...beneath], keyed: true } : null;
 }
 
 function aligned(lines) {

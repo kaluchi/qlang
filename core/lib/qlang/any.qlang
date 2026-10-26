@@ -527,7 +527,15 @@
       kind computes, by code or a longer path, stands in no legend,
       `manifest` naming it and `doc` reading its page; and a part
       read by its name answers its own legend in turn,
-      `"~{" | parse !| location | legend`. A value of a kind that wires
+      `"~{" | parse !| location | legend`. A key beneath a name the kind
+      wires reads by three rules, so a refusal and the excerpt its alert
+      prints gloss each key: its first segment the name, a slot where the
+      kind is the verdict of a verb; the next a probe of the slot, glossed
+      beside it, `:addend/found`; and a name beneath a value a view of that
+      value, glossed by the verb of the view its tags walk to, or the tag the
+      alert shows first of a value past its room, `:addend/found/count`
+      beside `|~ count ::number · How many elements the vector holds ~|`.
+      A value of a kind that wires
       nothing stands on one line beside its gloss, and a container that
       holds legends lays each on a line of its own. A tag name lays out the
       kind it names, beneath the tag a comment for each name the kind wires,

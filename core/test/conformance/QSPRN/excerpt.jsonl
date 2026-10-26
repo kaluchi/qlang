@@ -1,8 +1,8 @@
 {"name":"a-trace-tells-the-steps-that-failed","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | failed","expect":"[~(mul 2) ~(map ~(mul 2))]"}
 {"name":"a-trace-tells-the-subject-the-step-that-failed-met","query":"\"x\" | add 1 !| trace | subject","expect":"\"x\""}
 {"name":"a-trace-tells-the-paths-of-the-parts-its-verbs-ran-on","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | paths","expect":"[/1]"}
-{"name":"an-excerpt-is-a-map-read-by-its-keys","query":"::excerpt{:actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | keys","expect":"#[:actualValue :actualValue/count]"}
-{"name":"an-excerpt-reads-back-as-itself","query":"::excerpt{:actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | :e it | print | parse | open | eq e","expect":"true"}
+{"name":"an-excerpt-is-a-map-read-by-its-keys","query":"::excerpt{:addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | keys","expect":"#[:addend/found :addend/found/count]"}
+{"name":"an-excerpt-reads-back-as-itself","query":"::excerpt{:addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | :e it | print | parse | open | eq e","expect":"true"}
 {"name":"a-fact-told-as-its-cell-reads-by-its-name-and-a-view-by-its-key","query":"::number/add/addend/KindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | get [~(addend | found | tag) ~(payload | get /:addend/found/count)]","expect":"[::cell 3410]"}
 {"name":"no-verb-cuts-a-value-to-a-room","query":"[1 2] | excerpt !| tag","expect":"::call/UnknownNameError"}
 {"decision":"D465","name":"a-vector-reveals-its-count-its-shape-and-its-two-ends","query":"::vec | legend | print | lines | drop 1 | map ~(split \" \" | get /1)","expect":"[\"count\" \"shape\" \"first\" \"last\"]"}

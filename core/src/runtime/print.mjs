@@ -31,6 +31,9 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 // [QSPRN#excerpt]
 export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
 
+// [QSPRN#excerpt], [QSPRN#legend]
+export const FIRST_VIEW = 'tag';
+
 function viewsRevealedOf(value, scope) {
   for (const kindName of kindsOfWalk(value)) {
     const kind = kindOfAValueOf(scope, kindName);
@@ -42,7 +45,7 @@ function viewsRevealedOf(value, scope) {
 export function viewsOfKinds(scope, state = rootState(null, scope)) {
   return async value => {
     const views = [];
-    for (const [name, verb] of viewsRevealedOf(value, scope)) {
+    for (const [name, verb] of [[FIRST_VIEW, verbOfAView(scope, ANY_KIND_NAME, FIRST_VIEW)], ...viewsRevealedOf(value, scope)]) {
       if (verb === null) continue;
       const answered = await callVerbOn(verb, value, state);
       if (!isErrorValue(answered)) views.push([name, answered]);

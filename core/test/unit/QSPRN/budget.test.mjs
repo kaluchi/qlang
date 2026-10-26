@@ -9,12 +9,12 @@ it('answers an answer whose print fits the budget as it is, a part a kind prints
   expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
 });
 
-it('answers the refusal instead of an answer past the budget, the answer told by the views of its kind where its host keeps no cell', async () => {
+it('answers the refusal instead of an answer past the budget, the answer told by its tag and the views of its kind where its host keeps no cell', async () => {
   const scope = await core.langRuntime();
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);
   expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
-  expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/count', 3000], ['answer/shape', await core.evalQuery('::shape[{:id ::number :name ::string}]', scope)], ['answer/first', answer[0]], ['answer/last', answer[2999]]]);
+  expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/tag', core.makeTag('vec')], ['answer/count', 3000], ['answer/shape', await core.evalQuery('::shape[{:id ::number :name ::string}]', scope)], ['answer/first', answer[0]], ['answer/last', answer[2999]]]);
 });
 
 it('names the cell its host keeps the answer in as its answer, where the host keeps one', async () => {

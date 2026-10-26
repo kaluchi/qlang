@@ -329,7 +329,7 @@
         |~~ A refusal named under the call reads its page. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| doc | eq (::fn/call | doc))
     | tells :subject
-        |~~ The subject of a verb, the value its call ran on, as the pipe
+        |~~ The subject of a verb: the value its call ran on, as the pipe
             handed it, its tags with it.
         ~~|
     | tells :surplus
@@ -357,19 +357,24 @@
   ~~|
   ::kind[~(accepts |~~ The probes of the slot, a map. ~~| ::map
     | wires :expected
-        |~~ The kinds the rule that refused the slot takes: of its value, as
-            the chain of its verb writes them, of the part of it the path of
-            the frame or `index` names, or of what its code answered.
+        |~~ The kinds the rule takes: those of the value of the slot, as the
+            chain of its verb writes them, of the part of it the path of the
+            frame or `index` names, or of what its code answered.
         ~~|
         ~(query /expected) #[::set ::null]
-    | wires :found |~~ What the call put in the slot, as the call gave it. ~~| ~(query /found)
+    | wires :found
+        |~~ What the call put in the slot: the value as the call gave it, its
+            tags with it.
+        ~~|
+        ~(query /found)
     | wires :answer
-        |~~ What the code the slot holds answered, where the verb ran it on a
-            part.
+        |~~ What the code of the slot answered: where the verb ran it on a
+            part, the answer it refused.
         ~~|
         ~(query /answer)
     | wires :index
-        |~~ The index, from zero, of the first element of the slot refused.
+        |~~ The index of the element refused: from zero, the first of the slot
+            so refused.
         ~~|
         ~(query /index) #[::number ::null]) null]
 

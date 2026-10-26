@@ -664,8 +664,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 // [QSERR#site]
 const kindsServed = (labelName, chain) => kindsExpected(labelName, ...(chain.subject?.kinds ?? []));
 
-// A refusal under the verb, a primitive's throw or a failure its recipe
-// raised, takes the slots of the call beneath the facts it laid itself.
+// [QSERR#site]
 const isVerdictOfTheVerb = (tagName, address, scope) => tagName.startsWith(`${address}/`) && slotsOfAVerdict(kindOfAValueOf(scope, tagName)) !== undefined;
 
 function pouredInto(thrown, address, pour, scope) {

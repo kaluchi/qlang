@@ -497,10 +497,12 @@
 :kind/reveals
   |~~ Reveals a view of the values of a kind, `::kind | reveals :count`:
       the name of a verb of the kind that takes no value, whose answer is a
-      fact of the value by that name. A host shows the views of a fact past
-      the room of a fact beside the cell it keeps the fact in, each under
-      the name of the fact and its own, `:actualValue/count 3410`, and the
-      legend of the tag name lays them out beside the names the kind wires.
+      fact of the value by that name. A host shows the tag of a fact past
+      the room of a fact and the views its kind reveals beside the cell it
+      keeps the fact in, each under the name of the fact and its own,
+      `:addend/found/tag ::vec` and `:addend/found/count 3410`; the legend
+      of the tag name lays the views out beside the names the kind wires,
+      and the legend of a failure glosses each by the verb its tag walks to.
       A value shows the views of the first kind of the walk of its tags that
       reveals any, so a set shows the views of vectors.
       ::link~(::kind/wires | doc) ::link~(::cell | doc)

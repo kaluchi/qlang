@@ -42,6 +42,8 @@
             ::link~(::any/payload | doc)
         ~~|
         ::map
+    | reveals :count
+    | reveals :keys
     | throws :PayloadKindNotTakenError
         |~~ `::map` reads its payload as the map it is, and a value of no
             map is refused: the pairs of a vector build a map by `toMap`,
@@ -1131,38 +1133,3 @@
         ~({:a 1} | toMap | eq {:a 1})
     | impl ::builtin{}
 
-:map/excerpt
-  |~~ Answers the excerpt of the map within the characters the call gives,
-      three hundred where it gives none: a map that fits stands whole in
-      `:first`, and one past them tells `:count` its entries and `:first`
-      and `:last` the entries at its two ends that fit whole, under their
-      keys, taken from the ends inward by turns; where an end holds no entry
-      whole, `:head` and `:tail` tell the first and the last characters of
-      its print on one line instead, each cut where a word ends, so a record
-      whose first field is long shows its keys at the two ends of its print.
-      ::link~(::excerpt | doc) ::link~(::any/excerpt | doc)
-  ~~|
-  ::fn
-    | takes :budget
-        |~~ The characters of the print of the excerpt, three hundred where
-            the call gives none; a budget past the budget of every answer is
-            that budget.
-        ~~|
-        ~(query /0 300) ::number
-    | throws :budget/KindNotTakenError
-        |~~ The budget is a number of characters, `excerpt 80`. ~~|
-    | holds :budget/NotCountError
-        |~~ The budget is a whole count of characters above zero,
-            `excerpt 80`.
-        ~~|
-        ~(allOf (gt 0) ~(eq (floor)))
-    | returns |~~ The count of the map and the entries at its two ends. ~~| ::excerpt
-    | proves :tellsTheEntriesAtTheEnds
-        |~~ The first and the last entries show under their keys. ~~|
-        ~(100 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | excerpt 120 | get [/count ~(get /first | keys | first)] | eq [100 :"0k"])
-    | proves :tellsThePrintWhereAnEndHoldsNoEntry
-        |~~ A record whose first field is long tells the ends of its print,
-            its keys among them.
-        ~~|
-        ~(get {:rows ~(5000 | range) :name "x"} | excerpt | get [/count ~(get /head | startsWith "{:rows [0 1") ~(get /tail | endsWith ":name \"x\"}")] | eq [2 true true])
-    | impl ::builtin{}

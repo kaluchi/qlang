@@ -2,17 +2,16 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf } from '../nouns.mjs';
-import { chainOfKind } from '../chain.mjs';
-import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, wiringOf, tagOf, beneathTags, payloadBeneath, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
+import { kindOfAValueOf, nodeOf } from '../nouns.mjs';
+import { chainOfKind, chainOfFn, functionOfRecipe } from '../chain.mjs';
+import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, isFn, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds, excerptsOfKinds } from './print.mjs';
-import { sizeOf, lengthOf, ROOM_OF_A_FACT, ANSWER_BUDGET } from '../rooms.mjs';
+import { printsOfKinds } from './print.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
 const LEAST_COLUMN = 16;
 
-function legendOf(value, scope, printedOf, partShown = part => part) {
+function legendOf(value, scope, printedOf) {
   const ofTheHead = glossOf(pageOf(scope, value), scope);
   if (isTag(value)) return legendOfAKind(value, ofTheHead, scope);
   const kind = kindOfAValueOf(scope, tagOf(value).name);
@@ -24,7 +23,7 @@ function legendOf(value, scope, printedOf, partShown = part => part) {
   const lines = [[laid.open, ofTheHead]];
   for (const [key, part] of laid.parts) {
     const field = atPlaces.get(String(key));
-    const printed = printValue(partShown(part), 1, printedOf, true);
+    const printed = printValue(part, 1, printedOf, true);
     const said = field === undefined ? null : laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name);
     lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
@@ -35,29 +34,24 @@ function legendOf(value, scope, printedOf, partShown = part => part) {
 // [QSPRN#legend]
 function legendOfAKind(tag, ofTheHead, scope) {
   const kind = kindOfAValueOf(scope, tag.name);
-  const fields = kind === null ? [] : chainOfKind(kind).fields;
+  const { fields, reveals } = kind === null ? { fields: [], reveals: [] } : chainOfKind(kind);
   const head = aligned([[printValue(tag), ofTheHead]]);
-  return [head, ...fields.map(field => closed(joined(partOfAKind(field), glossOf(field.page, scope))))].join('\n');
+  const views = reveals.map(name => viewOfAKind(scope, `${tag.name}/${name}`, name));
+  return [head, ...fields.map(field => closed(joined(partOfAKind(field), glossOf(field.page, scope)))), ...views].join('\n');
+}
+
+// [QSPRN#legend], [QSPRN#excerpt]
+function viewOfAKind(scope, address, name) {
+  const record = nodeOf(scope, address);
+  if (record === null) return closed(name);
+  const verb = bindingValueOf(record);
+  const answer = chainOfFn(isFn(verb) ? verb : functionOfRecipe(verb)).answer;
+  return closed(joined(answer === null ? name : `${name} ${printValue(answer.written)}`, glossOf(answer?.page ?? pageOfRecord(record), scope)));
 }
 
 const readsItsOwnKey = (name, place) => place.path.segments.length === 1 && place.path.segments[0] === name.name;
 
 const partOfAKind = ({ name, place, written }) => [name.name, place === null || readsItsOwnKey(name, place) ? null : printValue(place.path), written === null ? null : printValue(written)].filter(piece => piece !== null).join(' ');
-
-// [QSPRN#legend]
-async function legendWithin(told, state, printedOf) {
-  const whole = legendOf(told, state.scope, printedOf);
-  if (lengthOf(whole) <= ANSWER_BUDGET) return whole;
-  const long = [];
-  legendOf(told, state.scope, printedOf, part => {
-    if (sizeOf(part, printedOf) > ROOM_OF_A_FACT) long.push(part);
-    return part;
-  });
-  const excerptOf = excerptsOfKinds(state.scope, state);
-  const shown = new Map();
-  for (const part of long) shown.set(part, await excerptOf(part));
-  return legendOf(told, state.scope, printedOf, part => shown.get(part) ?? part);
-}
 
 function payloadLaidOut(value) {
   const { literal } = value[TAG_HEADER_SYMBOL];
@@ -110,5 +104,5 @@ function pageLinkedFrom(page, scope) {
 
 registerStateReader('legend/print', async (subject, state) => {
   const told = payloadBeneath(subject);
-  return await legendWithin(told, state, await printsOfKinds(told, state.scope, state));
+  return legendOf(told, state.scope, await printsOfKinds(told, state.scope, state));
 });

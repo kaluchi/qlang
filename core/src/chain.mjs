@@ -49,6 +49,7 @@ const KIND_COMMANDS = new Map([
   ['accepts', { taken: [isDoc], optional: [isKindsOfAPayload] }],
   ['wires', { taken: [isFieldName, isDoc], optional: [isSelectorOrKinds, isKindsOfEach] }],
   ['tells', { taken: [isFieldName, isDoc], optional: [isKinds] }],
+  ['reveals', { taken: [isFieldName], optional: [] }],
   ['holds', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }],
   ['throws', { taken: [isNameOfChain, isDoc], optional: [isKindOfARefusal] }],
   ['proves', { taken: [isNameOfChain, isDoc, isQuote], optional: [] }]
@@ -152,7 +153,7 @@ function readChainOfFn(quote) {
 }
 
 function readChainOfKind(quote) {
-  const kind = { payload: null, fields: [], tells: [], pages: new Map(), refusalKinds: new Map(), kindsShared: new Map(), invariants: [], laws: [] };
+  const kind = { payload: null, fields: [], tells: [], reveals: [], pages: new Map(), refusalKinds: new Map(), kindsShared: new Map(), invariants: [], laws: [] };
   const names = namesOf(quote, KindNameDeclaredTwiceError);
   const underAField = name => {
     const [head] = name.split('/');
@@ -187,6 +188,10 @@ function readChainOfKind(quote) {
       case 'tells':
         names.declare(first.name);
         kind.tells.push({ name: first.name, page: second, written: third ?? null });
+        break;
+      case 'reveals':
+        names.declare(first.name);
+        kind.reveals.push(first.name);
         break;
       case 'holds': {
         const field = first.name.includes('/') ? underAField(first.name) : null;

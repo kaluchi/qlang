@@ -39,7 +39,9 @@
       answer, `| table` a vector of maps drawn as a table, `| print` the
       literal of the answer, a string in its quotes. A failure prints as
       its alert, the error at rest `::Tag!{…}`, each fact whole within
-      three hundred characters and past them as its excerpt, under the line
+      three hundred characters and past them as the cell the command line
+      keeps it in, beside the views its kind reveals, `::Tag::excerpt{…}`,
+      under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
       the call, a refused text holding a caret beneath its line, `:marker`
@@ -56,16 +58,15 @@
       Every answer prints within one budget of characters, but in the
       REPL, which prints it whole, and one past it prints as
       `::qlang/AnswerBeyondBudgetError`, whose `:budget` names the
-      budget, with its excerpt and the cell whose `answer` reads the whole
-      later; `print | out` or `json | out` writes the whole, and
-      `| excerpt N` tells an answer on purpose. `in`, `out`, `err` and
+      budget and `:answer` the cell whose `answer` reads the whole later;
+      `print | out` or `json | out` writes the whole. `in`, `out`, `err` and
       `tap` read and write the streams, `tap` showing a value halfway through a query on stderr as
       an answer prints; a query that writes to stdout by `out` holds the
       channel, and its answer is left unwritten. A value one query hands
       another over a pipe keeps its kinds as its literal, `print | out`
       writing it and `in | parse | open` reading it back.
       ::link~(::any/json | doc) ::link~(::vec/table | doc)
-      ::link~(::qlang/errors | doc) ::link~(::any/excerpt | doc)
+      ::link~(::qlang/errors | doc) ::link~(::cell | doc)
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
@@ -220,8 +221,10 @@
       over the root and the names the query that kept it declared:
       `::cell"a3f9c2d1e04b" | answer | take 3` reads the first three
       elements of an answer that passed the budget of every answer, its
-      refusal naming the cell under `:cell`. The command line keeps under
-      `<tmp>/qlang/<root>/cells/<id>/` the query, `source.qlang`, the values
+      refusal naming the cell as its `:answer`, and a fact of a failure past
+      the room of a fact so. The command line keeps under
+      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of what it keeps,
+      the query, `source.qlang`, the values
       it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
       core prints it, `<root>` the identity of the sources and the code it
       booted, so a cell kept over other sources is held by none, and a

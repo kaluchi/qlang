@@ -29,6 +29,7 @@
     | accepts
         |~~ A vector of prose strings and quotes, built into the doc. ~~|
         ::vec
+    | reveals :links
     | throws :PayloadKindNotTakenError
         |~~ `::doc` builds a doc from the vector of its segments, prose
             strings and quotes; a payload of another kind is refused, a
@@ -233,35 +234,3 @@
         ~("text" | snippets !| get [~(tag) ~(actualTag)] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}
 
-:doc/excerpt
-  |~~ Answers the excerpt of the doc within the characters the call gives,
-      three hundred where it gives none, in its prose: a doc whose text
-      fits stands whole in `:head`, and one past them tells `:characters`
-      the characters of its text, as `content` writes it and `count`
-      counts it, and `:head` and `:tail` its first and its last
-      characters, each cut where a word ends, a line break and the spaces
-      around it read as one space.
-      ::link~(::excerpt | doc) ::link~(::doc/content | doc)
-  ~~|
-  ::fn
-    | takes :budget
-        |~~ The characters of the print of the excerpt, three hundred where
-            the call gives none; a budget past the budget of every answer is
-            that budget.
-        ~~|
-        ~(query /0 300) ::number
-    | throws :budget/KindNotTakenError
-        |~~ The budget is a number of characters, `excerpt 80`. ~~|
-    | holds :budget/NotCountError
-        |~~ The budget is a whole count of characters above zero,
-            `excerpt 80`.
-        ~~|
-        ~(allOf (gt 0) ~(eq (floor)))
-    | returns |~~ The characters of its text, its first and its last. ~~| ::excerpt
-    | proves :tellsItsProseByItsEnds
-        |~~ A page tells the first and the last words of its text. ~~|
-        ~(::qlang | doc | :page it | excerpt | get [~(get /characters | eq (page | content | count)) ~(get /head | startsWith "qlang is a pipeline") ~(get /tail | endsWith "budget of an answer.")] | eq [true true true])
-    | proves :readsALineBreakAsASpace
-        |~~ The line breaks of the prose read as spaces. ~~|
-        ~(::qlang | doc | excerpt | get [~(get /head | contains "\n") ~(get /tail | contains "\n")] | eq [false false])
-    | impl ::builtin{}

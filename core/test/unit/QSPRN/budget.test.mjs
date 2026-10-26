@@ -9,18 +9,15 @@ it('answers an answer whose print fits the budget as it is, a part a kind prints
   expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
 });
 
-it('answers the refusal instead of an answer past the budget, the answer shown as its excerpt', async () => {
+it('answers the refusal instead of an answer past the budget, the answer told by the views of its kind where its host keeps no cell', async () => {
   const scope = await core.langRuntime();
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);
   expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
-  expect([...shown.facts.keys()]).toEqual(['characters', 'budget', 'answer']);
-  expect(shown.facts.get('characters')).toBe((await core.printAnswer(answer, scope)).length);
-  const excerpt = shown.facts.get('answer');
-  expect([shown.facts.get('budget'), excerpt.get('count'), excerpt.get('first')[0]]).toEqual([core.ANSWER_BUDGET, 3000, answer[0]]);
+  expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/count', 3000]]);
 });
 
-it('names the cell its host keeps the answer in, where the host keeps one', async () => {
+it('names the cell its host keeps the answer in as its answer, where the host keeps one', async () => {
   const scope = await core.langRuntime();
   const answer = await core.evalQuery('5000 | range', scope);
   const cell = await core.evalQuery('::cell"a3f9c2d1e04b"', scope);
@@ -29,7 +26,7 @@ it('names the cell its host keeps the answer in, where the host keeps one', asyn
     kept.push(whole);
     return cell;
   });
-  expect([shown.facts.get('cell'), kept]).toEqual([cell, [answer]]);
+  expect([shown.facts.get('answer'), shown.facts.get('answer/count'), kept]).toEqual([cell, 5000, [answer]]);
 });
 
 it('measures the text a host writes for a string, as the host hands it', async () => {

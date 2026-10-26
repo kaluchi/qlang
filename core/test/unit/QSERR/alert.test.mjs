@@ -3,10 +3,18 @@ import { evalQuery } from '../../../src/notebook.mjs';
 import { langRuntime } from '../../../src/runtime/lang-runtime.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { boundAnswer } from '../../../src/runtime/print.mjs';
-import { ROOM_OF_A_FACT, ROOM_OF_AN_ALERT } from '../../../src/rooms.mjs';
+import { ROOM_OF_AN_ALERT } from '../../../src/rooms.mjs';
 
-const isExcerpt = value => value instanceof Map && printValue(value).startsWith('::excerpt{');
-const alertOf = async query => boundAnswer(await evalQuery(query), await langRuntime());
+const keeping = () => {
+  const kept = [];
+  const keep = async value => {
+    kept.push(value);
+    return await evalQuery(`::cell"kept${kept.length}"`);
+  };
+  return { kept, keep };
+};
+
+const alertOf = async (query, keep = null) => boundAnswer(await evalQuery(query), await langRuntime(), null, keep);
 
 describe('a host prints a failure as the concentrate of its facts', () => {
   it('prints a failure whose facts fit whole as its error at rest', async () => {
@@ -15,33 +23,41 @@ describe('a host prints a failure as the concentrate of its facts', () => {
     expect([[...alert.facts.keys()], printValue(alert).startsWith('::number/add/SubjectNotNumberError!{')]).toEqual([[...failure.facts.keys()], true]);
   });
 
-  it('prints a failure a fact of which gave way as the excerpt of its refusal, the fact the excerpt its tag gives', async () => {
-    const alert = await alertOf('1 | add (3410 | range)');
-    const refused = alert.facts.get('actualValue');
-    expect([printValue(alert).startsWith('::number/add/addend/KindNotTakenError::excerpt{'), isExcerpt(refused), refused.get('count'), printValue(refused).length <= ROOM_OF_A_FACT]).toEqual([true, true, 3410, true]);
+  it('holds a fact past the room of a fact as the cell its host keeps it in, beside the views of its kind that fit', async () => {
+    const { kept, keep } = keeping();
+    const alert = await alertOf('1 | add (3410 | range)', keep);
+    expect([printValue(alert).startsWith('::number/add/addend/KindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('actualValue')), alert.facts.get('actualValue/count'), kept[0].length])
+      .toEqual([true, ['expected', 'actualTag', 'actualValue', 'actualValue/count', 'trace'], '::cell"kept1"', 3410, 3410]);
   });
 
-  it('tells a trace by the steps that failed, the paths of the parts and the subject the step met', async () => {
-    const trace = (await alertOf('10 | range | map ~(get {:name "Bo" :age 41 :email "bo@example.org" :city "Amsterdam" :tags ["a" "b"]}) | map ~(get /address/country)')).facts.get('trace');
-    expect([printValue(trace.get('failed')), printValue(trace.get('paths')), trace.get('subject').get('name')]).toEqual(['[~(get /address/country) ~(map ~(get /address/country))]', '[/0]', 'Bo']);
+  it('tells a fact past the room by its views alone where its host keeps no cell', async () => {
+    expect([...(await alertOf('1 | add (3410 | range)')).facts.keys()]).toEqual(['expected', 'actualTag', 'actualValue/count', 'trace']);
+  });
+
+  it('shows the views of a trace past the room that fit, a view that answers nothing left out', async () => {
+    const { keep } = keeping();
+    const alert = await alertOf('kinds | add 1', keep);
+    expect([[...alert.facts.keys()], printValue(alert.facts.get('trace/failed'))]).toEqual([['actualTag', 'trace', 'trace/failed'], '[~(add 1)]']);
   });
 
   it('drops its last facts where the alert passes its room', async () => {
     const facts = Array.from({ length: 12 }, (_, at) => `:f${at} ${JSON.stringify('x'.repeat(250))}`).join(' ');
     const alert = await alertOf(`!{${facts}} | raise`);
     const kept = [...alert.facts.keys()];
-    expect([printValue(alert).length <= ROOM_OF_AN_ALERT, kept.length < 12, kept[0]]).toEqual([true, true, 'f0']);
+    expect([printValue(alert).length <= ROOM_OF_AN_ALERT, kept.length < 12, kept[0], printValue(alert).startsWith('::error::excerpt{')]).toEqual([true, true, 'f0', true]);
   });
 });
 
 describe('the excerpt of a refusal read back', () => {
-  it('answers the facts by their names, its tag the refusal\'s', async () => {
-    const alert = await alertOf('kinds | add 1');
-    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(actualTag) ~(trace | get /failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::set [~(add 1)]]'));
+  it('answers the facts by their names, a cell among them, its tag the refusal\'s', async () => {
+    const { keep } = keeping();
+    const alert = await alertOf('kinds | add 1', keep);
+    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(actualTag) ~(trace | tag) ~(payload | get /:trace/failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::set ::cell [~(add 1)]]'));
   });
 
   it('is refused by raise, which raises no excerpt', async () => {
-    const alert = await alertOf('kinds | add 1');
+    const { keep } = keeping();
+    const alert = await alertOf('kinds | add 1', keep);
     expect((await evalQuery(`${printValue(alert)} | raise !| tag`)).name).toBe('any/raise/SubjectKindNotTakenError');
   });
 

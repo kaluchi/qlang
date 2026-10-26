@@ -50,6 +50,13 @@ it('takes away a cell older than a day as it keeps another, and passes by an ent
   }
 });
 
+it('keeps one value under one cell, named by the hash of what it keeps', async () => {
+  const [first] = await keptBy('4000 | range');
+  const [second] = await keptBy('4000 | range');
+  const [other] = await keptBy('4001 | range');
+  expect([first === second, first === other]).toEqual([true, false]);
+});
+
 it('refuses a cell it does not hold', async () => {
   expect((await answerOf('::cell"000000000000" | answer !| tag')).name).toBe('cell/answer/NotHeldError');
 });

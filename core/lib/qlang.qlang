@@ -162,8 +162,9 @@
       a frame for each step it passed, the subject the step met and the
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert, the concentrate of its facts: each fact whole within
-      three hundred characters and past them as its ::excerpt, while `!|`
-      reads each fact whole, `!| actualValue | take 3`. `!| doc` answers the page of what refused, the page saying how to
+      three hundred characters and past them as the ::cell its host keeps
+      it in, beside the views its kind reveals, while `!|` reads each fact
+      whole, `!| actualValue | take 3`. `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
@@ -177,9 +178,8 @@
       print with the gloss of each part, a tag name the parts of its kind.
       An answer prints within the budget of every answer, and whole in the
       REPL of the command line; one past it prints as
-      ::qlang/AnswerBeyondBudgetError with its excerpt and the ::cell that
-      keeps it, whose `answer` reads it back whole, and
-      `x | excerpt 4000` tells a value within four thousand characters.
+      ::qlang/AnswerBeyondBudgetError, its answer the ::cell that keeps
+      it, whose `answer` reads it back whole.
 
       13. A task. Over
       `{"users": [{"name": "Ann", "age": 30, "tags": ["a", "b"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
@@ -206,10 +206,11 @@
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
             characters of its print `:budget` names, and prints this
-            instead of it: `:characters` tells the characters of the print,
-            `:answer` holds the answer, which the alert shows as its
-            excerpt, and `:cell` the cell where the host keeps it, whose
-            `answer` reads it back whole, `::cell"…" | answer | take 3`.
+            instead of it: `:characters` tells the characters of the print
+            and `:answer` holds the answer, which the alert shows as the
+            cell where the host keeps it, whose `answer` reads it back
+            whole, `::cell"…" | answer | take 3`, beside the views its kind
+            reveals, `:answer/count`.
             Narrow the answer by `get`, `take`, `keys`, `count` or
             `shape`, or, where the host has streams, write it whole through
             the door the query opens itself: `out` a text, `print | out` the
@@ -219,8 +220,7 @@
         ~~|
         ~(wires :characters |~~ The characters of the print of the answer. ~~| ::number
           | wires :budget |~~ The budget every host prints an answer within. ~~| ::number
-          | wires :answer |~~ The answer, which the alert shows as its excerpt. ~~|
-          | wires :cell |~~ The cell its host keeps the answer in. ~~| ::cell)
+          | wires :answer |~~ The answer, which the alert shows as the cell its host keeps it in. ~~|)
     | throws :PayloadKindNotTakenError
         |~~ `::qlang` names the topic of the language, its page and its
             chapters, and takes no payload: it is asked by itself,
@@ -704,8 +704,10 @@
             `:Box |~~ A parcel. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number)`,
             or by its page alone, a kind of no commands: `accepts` names its
             payload and its kinds, `wires` a field the payload holds, its
-            selector and its kinds, `holds` an invariant of the value or of a
-            field, `throws` a refusal and the kind of its facts, and `proves` a law,
+            selector and its kinds, `reveals` a view of its values, a verb of
+            the kind whose answer a host shows beside a fact past its room,
+            `holds` an invariant of the value or of a field, `throws` a
+            refusal and the kind of its facts, and `proves` a law,
             and a kind of the core `impl` its constructor, which its host
             hands; the kind attaches the tag to the payload or refuses
             it, and builds no other value, so every value put under it
@@ -721,8 +723,8 @@
             where none lives there. A verb is told
             as a story, in one order: the verb and its page, its inputs,
             its answer, its refusals, its laws and its recipe, one chain; a
-            kind as its page, its payload, its fields, its refusals, its
-            invariants, its laws and its constructor; and the refusal of a
+            kind as its page, its payload, its fields, its views, its
+            refusals, its invariants, its laws and its constructor; and the refusal of a
             step as its page, which repairs the step, its facts and its
             laws. `source` reads the story of a name as it is written,
             `::vec/sort | source`.
@@ -941,19 +943,22 @@
             budget of characters of its print, but the REPL of the command
             line, which prints it whole: an answer that fits prints
             whole, and one past it prints as the failure
-            `::qlang/AnswerBeyondBudgetError` instead, the answer shown as
-            its `::excerpt` beside the `::cell` the host keeps it in, whose
-            `answer` reads it back whole; `print | out` writes an answer
-            whole, and `excerpt` tells a value within a budget on purpose. A
-            failure the host prints is an alert, the concentrate of its facts
-            within two thousand characters, each fact whole within three
-            hundred and past them as its excerpt, the last facts dropped
-            where the alert passes its room; the command line writes below it
+            `::qlang/AnswerBeyondBudgetError` instead, the answer the
+            `::cell` the host keeps it in, whose `answer` reads it back
+            whole; `print | out` writes an answer whole. A failure the host
+            prints is an alert, the concentrate of its facts within two
+            thousand characters, each fact whole within three hundred and
+            past them as the cell the host keeps it in, beside the views its
+            kind reveals that fit, `:actualValue/count`, the last facts
+            dropped where the alert passes its room, a failure any fact of
+            which gave way told as an `::excerpt` under the tag of its
+            refusal; the command line writes below it
             the prose of its refusal's page, as `!| doc` reads it, so the
             reader repairs the call where it failed. A cell is the interface
             a host gives for the work with state: the command line keeps an
-            answer past the budget under the identity it prints, and
-            `answer` reads it in a later query. The command line reads JSON
+            answer past the budget and a fact past the room of a fact under
+            the identity of what it keeps, and `answer` reads it in a later
+            query. The command line reads JSON
             from stdin as values and other text as a string, and prints its
             answer as the language prints it, a string as its text, so
             `| json` writes JSON; its page, `::cli | doc`, tells the rest.

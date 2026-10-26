@@ -243,6 +243,7 @@ export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
 export const EXCERPT_TAG     = makeTag('excerpt');
+export const CELL_TAG        = makeTag('cell');
 export const LEGEND_TAG      = makeTag('legend');
 export const ERROR_TAG       = makeTag('error');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
@@ -415,6 +416,9 @@ export function makeTrace(frames) {
 export const isExcerpt = value => isMap(value) && value[TAG_HEADER_SYMBOL]?.name === EXCERPT_TAG.name;
 
 export const makeExcerpt = facts => makeTagged(EXCERPT_TAG, new Map(facts));
+
+// [QSHST#cell]
+export const isCell = value => isValueClass(value, 'underTag') && value.tag.name === CELL_TAG.name;
 
 // [QSERR#alert]
 export function makeErrorValue(tag, facts, { originalError = null, told = null } = {}) {

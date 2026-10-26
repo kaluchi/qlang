@@ -1,43 +1,34 @@
-|~ `::excerpt`, the kind of a value told within a room of characters,
-   and what is declared under it: the keys the tag of the value told
-   writes, and its laws.
+|~ `::excerpt`, the kind of the facts a host tells of a failure past its
+   rooms, and what is declared under it: its laws.
    The rules it holds: [QSPRN#excerpt], [QSERR#alert]. ~|
 
 :excerpt
-  |~~ An excerpt tells a value too large for its room in the words of the
-      tag the value stands under, which gives its own and counts it itself:
-      a vector and a set `:count`, `:first` and `:last`, the elements at its
-      two ends that fit whole, `[0 1 2 … 3409]` told as
-      `::excerpt{:count 3410 :first [0 1 2 3] :last [3408 3409]}`, a map its
-      entries at its two ends the same way and a quote its steps, each end a
-      quote, and each, where an end holds no part whole, `:head` and
-      `:tail`, the ends of its print; a string `:characters`, `:head` and
-      `:tail`, its first and its last characters, and a doc so its prose;
-      a trace `:failed`, the step that failed at each level, `:paths` and
-      `:subject`, the value the step that failed met; and any other value the
-      first and the last characters of its print. A count stands where parts
-      are left out, and the excerpt a tag gives holds no excerpt. A tag of the
-      reader gives its own by `excerpt` under its label. `excerpt` answers
-      one, and a host prints a fact of a failure past the room of a fact so,
-      the failure then as the excerpt of its facts under the tag of its
-      refusal, `::X::excerpt{…}`, and an answer past the budget of every
-      answer within its refusal.
+  |~~ An excerpt tells the facts of a failure a host prints past the room
+      of a fact, under the tag of its refusal, `::X::excerpt{…}`: each fact
+      whole within three hundred characters, and past them the cell the
+      host keeps it in, `:actualValue ::cell"…"`, beside the views the kind
+      of the fact reveals that fit the room, each under the name of the fact
+      and its own, `:actualValue/count 3410`; a host that keeps no cell
+      shows the views alone. Nothing is cut: a fact stands whole, as a cell
+      that gives it back whole, or as the facts its kind reveals of it.
 
-      An excerpt is a map under its tag, read by its keys, `get /count`, and
-      a verb meets it as the map it is, never as the value it tells. The
-      whole is read live, a fact of a failure by `!|` and an answer past the
-      budget by `answer` of the cell that keeps it.
-      ::link~(::any/excerpt | doc) ::link~(::qlang/hosts | doc)
+      An excerpt is a map under its tag, read by its keys, and the kind of
+      the refusal over it reads its facts by their names, a cell standing
+      for any fact; `raise` refuses it, a failure told and not held. The
+      whole is read live, a fact of a failure by `!|` and a cell by
+      `answer`.
+      ::link~(::kind/reveals | doc) ::link~(::cell | doc)
+      ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
-    | accepts |~~ The keys the tag of the value told writes. ~~| ::map
+    | accepts |~~ The facts told, whole, as cells or as views. ~~| ::map
     | throws :PayloadKindNotTakenError
-        |~~ An excerpt is the map of the keys the tag of the value it tells
-            writes, which `excerpt` answers, `x | excerpt`.
+        |~~ An excerpt is the map of the facts a host tells of a failure,
+            `::X::excerpt{:actualValue ::cell"…" :actualValue/count 3410}`.
         ~~|
-    | proves :tellsAVectorByItsEnds
-        |~~ A vector tells its count and the elements at its two ends. ~~|
-        ~(3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)] | eq [3410 0 3409])
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
-        ~(3410 | range | excerpt | :e it | print | parse | open | eq e)
+        ~(::excerpt{:actualValue ::cell"f410f1df625c" :actualValue/count 3410} | :e it | print | parse | open | eq e)
+    | proves :readsAViewByItsKey
+        |~~ A view stands under the name of its fact and its own. ~~|
+        ~(::excerpt{:actualValue/count 3410} | get /:actualValue/count | eq 3410)

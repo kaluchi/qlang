@@ -1,10 +1,10 @@
 // [QSHST#cell]
 
-import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, statSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, statSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { createNotebook, evalQuery, printValue } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
 
@@ -65,14 +65,18 @@ function cellsAged(now) {
 }
 
 // [QSHST#cell], [QSPRN#budget]
-export async function keepCell({ query, scope, answer }) {
-  const identity = randomBytes(6).toString('hex');
+export async function keepCell({ query, scope, value }) {
+  const names = namesOf(scope);
+  const printed = printValue(value);
+  const identity = createHash('sha256').update(names).update('\n').update(printed).digest('hex').slice(0, 12);
   const folder = cellFolder(identity);
   mkdirSync(folder, { recursive: true, mode: 0o700 });
-  cellsAged(Date.now());
+  const now = new Date();
+  utimesSync(folder, now, now);
+  cellsAged(now.getTime());
   writeFileSync(join(folder, SOURCE), query);
-  writeFileSync(join(folder, NAMES), namesOf(scope));
-  writeFileSync(join(folder, ANSWER), printValue(answer));
+  writeFileSync(join(folder, NAMES), names);
+  writeFileSync(join(folder, ANSWER), printed);
   return await evalQuery(`::cell${JSON.stringify(identity)}`, scope);
 }
 

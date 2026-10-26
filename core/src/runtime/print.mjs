@@ -2,10 +2,11 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { alertOf, lengthOf, excerptOfElements, excerptOfEntries, excerptOfSteps, excerptOfProse, excerptOfText, excerptOfPrint, excerptOfFrames, ANSWER_BUDGET } from '../rooms.mjs';
+import { alertOf, lengthOf, ANSWER_BUDGET } from '../rooms.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
-import { nodeOf, residenceOnSubject } from '../nouns.mjs';
+import { nodeOf, residenceOnSubject, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
+import { chainOfKind } from '../chain.mjs';
 import { callVerbOn } from '../eval.mjs';
 import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -27,20 +28,34 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 }
 
 // [QSPRN#excerpt]
-export function excerptsOfKinds(scope, state = rootState(null, scope)) {
-  const verbScope = markRootVerbScope(new Map(scope));
-  return value => callVerbOn(residenceOnSubject(verbScope, 'excerpt', value), value, state);
+function viewsRevealedOf(value, scope) {
+  for (const kindName of kindsOfWalk(value)) {
+    const kind = kindOfAValueOf(scope, kindName);
+    if (kind !== null && chainOfKind(kind).reveals.length > 0) return chainOfKind(kind).reveals.map(name => [name, nodeOf(scope, `${kindName}/${name}`)]);
+  }
+  return [];
+}
+
+export function viewsOfKinds(scope, state = rootState(null, scope)) {
+  return async value => {
+    const views = [];
+    for (const [name, verb] of viewsRevealedOf(value, scope)) {
+      if (verb === null) continue;
+      const answered = await callVerbOn(verb, value, state);
+      if (!isErrorValue(answered)) views.push([name, answered]);
+    }
+    return views;
+  };
 }
 
 // [QSPRN#budget], [QSERR#alert], [QSHST#cell]
 export async function boundAnswer(answer, scope, written = null, keep = null) {
   const printedOf = await printsOfKinds(answer, scope);
-  if (isErrorValue(answer)) return alertOf(answer, excerptsOfKinds(scope), printedOf);
+  const room = { keep, viewsOf: viewsOfKinds(scope) };
+  if (isErrorValue(answer)) return alertOf(answer, room, printedOf);
   const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return answer;
-  const facts = { characters, budget: ANSWER_BUDGET, answer };
-  if (keep !== null) facts.cell = await keep(answer);
-  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError(facts), undefined, scope), excerptsOfKinds(scope), printedOf);
+  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, answer }), undefined, scope), room, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
@@ -63,14 +78,3 @@ async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKin
 }
 
 registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));
-
-// [QSPRN#excerpt]
-const excerptWithinItsBudget = told => async (subject, budget, state) => told(subject, Math.min(budget, ANSWER_BUDGET), await printsOfKinds(subject, state.scope, state));
-
-registerStateReader('vec/excerpt', excerptWithinItsBudget(excerptOfElements));
-registerStateReader('map/excerpt', excerptWithinItsBudget(excerptOfEntries));
-registerStateReader('quote/excerpt', excerptWithinItsBudget(excerptOfSteps));
-registerStateReader('doc/excerpt', excerptWithinItsBudget(excerptOfProse));
-registerStateReader('string/excerpt', excerptWithinItsBudget(excerptOfText));
-registerStateReader('trace/excerpt', excerptWithinItsBudget(excerptOfFrames));
-registerStateReader('any/excerpt', excerptWithinItsBudget(excerptOfPrint));

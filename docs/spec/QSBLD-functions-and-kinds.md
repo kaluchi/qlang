@@ -231,7 +231,10 @@ verb of `::kind` whose subject is the kind so far: `accepts` names the
 payload, its page and its kinds, the set of no kinds for a kind that
 takes none, `wires` a part of the payload, its name, its page, its
 selector over the payload and its kinds, `tells` a page of the kind on a
-name, a chapter of a topic among them [QSNAM#root], `holds` an invariant
+name, a chapter of a topic among them [QSNAM#root], `reveals` a view of
+its values, the name of a verb of the kind that takes no value, whose
+answer a host shows beside a fact of the kind past the room of a fact
+[QSPRN#excerpt], `holds` an invariant
 of the value or of a field, a quote under `::invariant`, `throws` a
 refusal and the kind of its facts, as `::fn/throws` writes it, `proves` a
 law, a quote under `::law`, and
@@ -280,6 +283,9 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 
 > :B |~~ B. ~~| (::kind | impl (::number | binding | value | get /1)) | get [~(::B | binding | value | get /1) ~(::number | binding | value | get /1) ~(::B"x")]
 [::builtin{:of ::number} ::builtin{:of ::number} ::B"x"]
+
+> :Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size) | :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count)) | ::Bag | legend | print | lines | last
+"|~ size ::number · How many things ~|"
 ```
 
 ## value
@@ -298,7 +304,7 @@ as `:expected`, and a kind whose chain names no kind of its payload takes
 any. The door reads each part the kind wires once, by its selector, as
 the value is built: a part the payload leaves out is refused under its
 name as `…/NotGivenError`, a fact the facts of an error at rest do not
-hold reading null instead and an excerpt standing for any fact of the
+hold reading null instead and a cell standing for any fact of the
 excerpt of those facts [QSERR#rest], one its selector fails to read as
 `…/NotReadError`, the failure at rest its `:actualValue`, and a value of
 none of its kinds under its name; a part no name wires is taken and read

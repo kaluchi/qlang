@@ -11,9 +11,8 @@ The command line writes the answer of a query as the language prints it,
 whatever data standard input held, a string as its text, within the
 budget of every answer [QSPRN#budget] but in the REPL, which prints the
 answer of a cell whole [QSCLI#repl]. No flag sets or cuts the budget: a
-query tells a value within a budget of its own by `excerpt`
-[QSPRN#excerpt], reads an answer past the budget back from the cell its
-refusal names, `::cell"…" | answer` [QSHST#cell], and writes it whole
+query reads an answer past the budget back from the cell its refusal names
+as its `:answer`, `::cell"…" | answer` [QSHST#cell], and writes it whole
 through the door it opens itself, `out` a text, `print | out` the literal
 of a value and `json | out` its JSON. A reader who wants JSON converts the
 answer in the query, `| json`. A query that wrote to standard output by

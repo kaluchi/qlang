@@ -53,9 +53,9 @@ describe('the names of the scope', () => {
   });
 });
 
-it('an input of `subOf` and `divOf` meets a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s', async () => {
+it('an input of `subOf` and `divOf` is read past a verb of its name that serves the subject, the reader\'s under a kind of its own and a later source\'s', async () => {
   const post = ':Post |~~ A post. ~~| | :Post/minuend ~(1) | ::Post{:a 6 :b 2}';
-  expect(await evalQuery(`${post} | subOf /a /b !| get [~(tag) ~(name)] | eq [::call/ValueMeetsVerbError :minuend]`)).toBe(true);
+  expect(await evalQuery(`${post} | subOf /a /b | eq 4`)).toBe(true);
   const notebook = await createNotebook({ sources: [{ uri: 'later', source: ':map/divisor ~(1)' }] });
-  expect((await notebook.evalCell('{:a 6 :b 2} | divOf /a /b !| get [~(tag) ~(name)] | eq [::call/ValueMeetsVerbError :divisor]')).result).toBe(true);
+  expect((await notebook.evalCell('{:a 6 :b 2} | divOf /a /b | eq 3')).result).toBe(true);
 });

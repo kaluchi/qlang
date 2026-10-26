@@ -90,7 +90,7 @@
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
-        ~(::regex"a" !| get [~(tag) ~(actualTag)] | eq [::regex/PayloadKindNotTakenError ::string])
+        ~(::regex"a" !| get [~(tag) ~(found | tag)] | eq [::regex/PayloadKindNotTakenError ::string])
 
 :regex/toRegex
   |~~ Answers the regex itself, so `map ~toRegex` turns regexes and the
@@ -105,17 +105,16 @@
             where none is given.
         ~~|
         ~(query /0 null) #[::null ::string]
-    | throws :flags/KindNotTakenError
+    | throws :FlagsKindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
-    | proves :flags/KindNotTakenError/refusesANumber
+    | proves :FlagsKindNotTakenError/refusesANumber
         |~~ Flags that are no string are refused. ~~|
-        ~(#"a" | toRegex 5 !| tag | eq ::regex/toRegex/flags/KindNotTakenError)
-    | throws :flags/NotFlagsError
+        ~(#"a" | toRegex 5 !| tag | eq ::regex/toRegex/FlagsKindNotTakenError)
+    | throws :FlagsNotFlagsError
         |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
-        ::fn/InvariantNotHeldError
-    | proves :flags/NotFlagsError/refusesALetterOfNoFlag
+    | proves :FlagsNotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that names no flag is refused. ~~|
-        ~(#"a" | toRegex "z" !| tag | eq ::regex/toRegex/flags/NotFlagsError)
+        ~(#"a" | toRegex "z" !| tag | eq ::regex/toRegex/FlagsNotFlagsError)
     | returns |~~ The regex itself, or its source with the flags. ~~| ::regex
     | proves :takesFlagsAsAStringDoes
         |~~ A regex given flags answers its source with them. ~~|

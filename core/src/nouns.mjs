@@ -3,17 +3,17 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
-  tagOf, bindingValueOf, makeBinding, makeKeyword, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  tagOf, bindingValueOf, makeBinding, makeKeyword, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
   splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress, notReadAddress,
-  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName
+  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName, SLOT_KIND_ADDRESS
 } from './address.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, SUBJECT_NAME, functionOfRecipe, chainOfKind, chainOfFn, kindThrowsFinishes } from './chain.mjs';
+import { ANSWER_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, kindThrowsFinishes, kindOfAVerdict } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -347,45 +347,33 @@ export function kindsSharedBy(scope, address) {
 }
 
 // [QSERR#site]
-export const FAMILY_OF = Object.freeze({
-  inputKinds: 'fn/KindNotTakenError',
-  inputElements: 'fn/ElementKindNotTakenError',
-  inputNotGiven: 'fn/NotGivenError',
-  argsBeyondInputs: 'fn/ArgsBeyondInputsError',
-  subject: 'fn/SubjectRefusedError',
-  invariantOfAFunction: 'fn/InvariantNotHeldError',
-  payloadKinds: 'kind/PayloadKindNotTakenError',
-  elementsOfAKind: 'kind/ElementKindNotTakenError',
-  partKinds: 'kind/KindNotTakenError',
-  partNotGiven: 'kind/NotGivenError',
-  partNotRead: 'kind/NotReadError',
-  invariantOfAKind: 'kind/InvariantNotHeldError'
-});
+const VERDICT_OF_A_VERB = Symbol('verdictOfAVerb');
+const VERDICT_OF_A_KIND = Symbol('verdictOfAKind');
 
 function functionRulesOf(chain, address, labelName) {
-  const rules = new Map([[subjectRefusalAddress(address, labelName), FAMILY_OF.subject]]);
-  if (chain.arity !== null) rules.set(argsBeyondInputsAddress(address), FAMILY_OF.argsBeyondInputs);
+  const rules = new Map([[subjectRefusalAddress(address, labelName), VERDICT_OF_A_VERB]]);
+  if (chain.arity !== null) rules.set(argsBeyondInputsAddress(address), VERDICT_OF_A_VERB);
   for (const { name, kinds, each, reading } of chain.inputs) {
     const inputAddress = `${address}/${name.name}`;
-    if (!reading.readsArgs && (reading.strict || !reading.oneArg)) rules.set(notGivenAddress(inputAddress), FAMILY_OF.inputNotGiven);
-    if (each && !reading.readsArgs) rules.set(kindsRefusalAddress(inputAddress), FAMILY_OF.inputKinds);
-    if (kinds !== null) rules.set(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress), each ? FAMILY_OF.inputElements : FAMILY_OF.inputKinds);
+    if (!reading.readsArgs && (reading.strict || !reading.oneArg)) rules.set(notGivenAddress(inputAddress), VERDICT_OF_A_VERB);
+    if (each && !reading.readsArgs) rules.set(kindsRefusalAddress(inputAddress), VERDICT_OF_A_VERB);
+    if (kinds !== null) rules.set(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress), VERDICT_OF_A_VERB);
   }
   const kinds = chain.answer?.kinds ?? null;
-  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), FAMILY_OF.inputKinds);
+  if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), VERDICT_OF_A_VERB);
   return rules;
 }
 
 // [QSBLD#kind]
 function kindRulesOf({ payload, fields }, address) {
   const rules = new Map();
-  if (payload?.each) rules.set(`${address}/${payloadRefusalName(false)}`, FAMILY_OF.payloadKinds);
-  if (payload?.kinds) rules.set(`${address}/${payloadRefusalName(payload.each)}`, payload.each ? FAMILY_OF.elementsOfAKind : FAMILY_OF.payloadKinds);
+  if (payload?.each) rules.set(`${address}/${payloadRefusalName(false)}`, VERDICT_OF_A_KIND);
+  if (payload?.kinds) rules.set(`${address}/${payloadRefusalName(payload.each)}`, VERDICT_OF_A_KIND);
   for (const { name, kinds, each } of fields) {
     const fieldAddress = `${address}/${name.name}`;
-    rules.set(notGivenAddress(fieldAddress), FAMILY_OF.partNotGiven).set(notReadAddress(fieldAddress), FAMILY_OF.partNotRead);
-    if (each) rules.set(kindsRefusalAddress(fieldAddress), FAMILY_OF.partKinds);
-    if (kinds !== null) rules.set(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress), each ? FAMILY_OF.elementsOfAKind : FAMILY_OF.partKinds);
+    rules.set(notGivenAddress(fieldAddress), VERDICT_OF_A_KIND).set(notReadAddress(fieldAddress), VERDICT_OF_A_KIND);
+    if (each) rules.set(kindsRefusalAddress(fieldAddress), VERDICT_OF_A_KIND);
+    if (kinds !== null) rules.set(each ? elementsRefusalAddress(fieldAddress) : kindsRefusalAddress(fieldAddress), VERDICT_OF_A_KIND);
   }
   return rules;
 }
@@ -413,18 +401,18 @@ function refusalsHeldAt(scope, holder) {
   if (isVerbValue(value)) {
     if (labelName === null || !isLabel(scope, labelName)) return null;
     const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
-    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName)),
-      name => (name.startsWith(`${SUBJECT_NAME}/`) ? FAMILY_OF.subject : FAMILY_OF.invariantOfAFunction));
+    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName)), () => VERDICT_OF_A_VERB);
   }
+  if (isSlotOfAVerb(scope, holder)) return null;
   const kind = kindOfAValueOf(scope, holder);
   if (kind === null) return null;
   const chain = chainOfKind(kind);
-  return refusalsOfAChain(chain, holder, address => kindRulesOf(chain, address), () => FAMILY_OF.invariantOfAKind);
+  return refusalsOfAChain(chain, holder, address => kindRulesOf(chain, address), () => VERDICT_OF_A_KIND);
 }
 
 // [QSBLD#answer]
 function answerRefusedOf(chain, address, rules) {
-  if (chain.answer?.kinds) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), FAMILY_OF.inputKinds);
+  if (chain.answer?.kinds) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), VERDICT_OF_A_VERB);
   return rules;
 }
 
@@ -440,16 +428,81 @@ export function kindOfAValueOf(scope, tagName) {
 }
 
 function closingKindAt(scope, tagName) {
+  if (isSlotOfAVerb(scope, tagName)) return kindOfAValueOf(scope, SLOT_KIND_ADDRESS);
   const value = bindingValueOf(nodeOf(scope, tagName));
   for (let [holder] = splitAddress(tagName); holder !== null; [holder] = splitAddress(holder)) {
     const refusals = refusalsHeldAt(scope, holder);
     if (refusals === null) continue;
     const family = refusals.get(tagName);
     if (family === undefined) break;
+    if (family === VERDICT_OF_A_VERB) return verdictKindOfAVerb(scope, holder);
+    if (family === VERDICT_OF_A_KIND) return verdictKindOfAKind(scope, holder);
     if (family !== OWN_KIND) return kindOfAValueOf(scope, family);
-    return kindThrowsFinishes(isKind(value) ? value : null);
+    const own = isKind(value) ? value : null;
+    if (isVerbValue(bindingValueOf(nodeOf(scope, holder)))) return verdictKindOfAVerb(scope, holder, own);
+    return own === null ? verdictKindOfAKind(scope, holder) : kindThrowsFinishes(own);
   }
   return isKind(value) ? value : null;
+}
+
+// [QSERR#site]
+const SLOTS_OF_EVERY_VERB = new Set([SUBJECT_NAME, SURPLUS_NAME, ANSWER_NAME]);
+
+function isSlotOfAVerb(scope, address) {
+  const [holder, name] = splitAddress(address);
+  if (holder === null) return false;
+  const value = bindingValueOf(nodeOf(scope, holder));
+  if (!isVerbValue(value) || !isUnderLabel(scope, holder)) return false;
+  return SLOTS_OF_EVERY_VERB.has(name) || chainOfFn(isFn(value) ? value : functionOfRecipe(value)).inputs.some(input => input.name.name === name);
+}
+
+const pageAt = (scope, address) => nodeOf(scope, address).get('docs')[0];
+
+const VERDICT_KINDS = new WeakMap();
+const SLOTS_OF_VERDICTS = new WeakMap();
+
+export const slotsOfAVerdict = kind => SLOTS_OF_VERDICTS.get(kind);
+
+function verdictKindOf(chain, holder, build) {
+  let byHolder = VERDICT_KINDS.get(chain);
+  if (byHolder === undefined) VERDICT_KINDS.set(chain, byHolder = new Map());
+  let kind = byHolder.get(holder);
+  if (kind === undefined) byHolder.set(holder, kind = build());
+  return kind;
+}
+
+const VERDICT_KINDS_OF_OWN_FACTS = new WeakMap();
+
+function verdictKindOfAVerb(scope, verbAddress, own = null) {
+  const value = bindingValueOf(nodeOf(scope, verbAddress));
+  const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
+  if (own !== null) {
+    if (!VERDICT_KINDS_OF_OWN_FACTS.has(own)) VERDICT_KINDS_OF_OWN_FACTS.set(own, verdictKindBuilt(scope, verbAddress, chain, [...commandsOf(own)]));
+    return VERDICT_KINDS_OF_OWN_FACTS.get(own);
+  }
+  return verdictKindOf(chain, verbAddress, () => verdictKindBuilt(scope, verbAddress, chain, []));
+}
+
+function verdictKindBuilt(scope, verbAddress, chain, ownCommands) {
+  const slots = [
+    [SUBJECT_NAME, chain.subject?.page ?? pageAt(scope, `fn/${SUBJECT_NAME}`)],
+    ...chain.inputs.map(({ name, page }) => [name.name, page]),
+    ...(chain.arity === null ? [] : [[SURPLUS_NAME, pageAt(scope, `fn/${SURPLUS_NAME}`)]]),
+    [ANSWER_NAME, chain.answer?.page ?? pageAt(scope, `fn/${ANSWER_NAME}`)]
+  ];
+  const kind = kindOfAVerdict([
+    ...slots.map(([name, page]) => ({ name, page, kinds: makeTag(`${verbAddress}/${name}`) })),
+    { name: REPAIR_NAME, page: pageAt(scope, `fn/${REPAIR_NAME}`), kinds: CORE_KIND.quote }
+  ], ownCommands);
+  SLOTS_OF_VERDICTS.set(kind, new Map(slots.map(([name]) => [name, `${verbAddress}/${name}`])));
+  return kind;
+}
+
+const PROBES_OF_A_KIND = [['expected', CORE_KIND.set], ['found', null], ['index', CORE_KIND.number]];
+
+function verdictKindOfAKind(scope, kindAddress) {
+  const chain = chainOfKind(kindOfAValueOf(scope, kindAddress));
+  return verdictKindOf(chain, kindAddress, () => kindOfAVerdict(PROBES_OF_A_KIND.map(([name, kinds]) => ({ name, page: pageAt(scope, `${SLOT_KIND_ADDRESS}/${name}`), kinds }))));
 }
 
 function namesUnderOf(scope, nounName) {

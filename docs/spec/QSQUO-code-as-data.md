@@ -163,7 +163,7 @@ the same quote.
 > ~(:a 1 | :b 2) | toString
 ":a 1\n| :b 2"
 
-> ~(add 1 | mul 2) | parse !| get [~(tag) ~(actualTag)]
+> ~(add 1 | mul 2) | parse !| get [~(tag) ~(subject | found | tag)]
 [::string/parse/SubjectNotStringError ::quote]
 
 > "add (" | parse !| get [~(tag) ~(source) ~(origin)]
@@ -175,10 +175,10 @@ the same quote.
 `apply` runs code against its subject: a quote, a path, which reads, or
 a function, which takes its args as one vector, as a call holds its
 args, `apply f [4]`, where a quote and a path take none,
-`::any/apply/args/NotTakenError`, and args that are no vector are
-refused as `::any/apply/args/KindNotTakenError`. Code a quote declares
+`::any/apply/ArgsNotTakenError`, and args that are no vector are
+refused as `::any/apply/ArgsKindNotTakenError`. Code a quote declares
 stays inside its run. A value of another kind is refused as
-`::any/apply/code/KindNotTakenError`. `open`, a verb of `::quote`, runs a
+`::any/apply/CodeKindNotTakenError`. `open`, a verb of `::quote`, runs a
 quote from null, beneath whatever tags stand over it, so a print reads
 back as the value it writes by `parse | open`, and it runs a link and a
 snippet alike.
@@ -194,7 +194,7 @@ snippet alike.
 ::call/UnknownNameError
 
 > 42 | apply 1 !| tag
-::any/apply/code/KindNotTakenError
+::any/apply/CodeKindNotTakenError
 
 > get [~({:a 1} | print | parse | open) ~("10 | add 5" | parse | open)]
 [{:a 1} 15]
@@ -219,8 +219,8 @@ part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 the condition of `if`, which always runs, is a value. An input that
 takes code takes a quote or a path, a group that computes a quote among
 them, `apply` a function too, and refuses a value computed at the call
-that none of its kinds takes, a failure among it, under its own address,
-the value its `:actualValue` and its tag its `:actualTag`, but for a
+that none of its kinds takes, a failure among it, one level under the
+verb by the input's name raised, the value the input's `found`, but for a
 name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of
 its modifier on as the answer of the call.
@@ -230,13 +230,13 @@ its modifier on as the answer of the call.
 [1 2 3]
 
 > [{:a true}] | filter (get /a) !| tag
-::vec/filter/predicate/KindNotTakenError
+::vec/filter/PredicateKindNotTakenError
 
 > [1 2] | take (get /x) !| tag
 ::path/IndexNotIntegerError
 
 > :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| tag
-::vec/map/code/KindNotTakenError
+::vec/map/CodeKindNotTakenError
 ```
 
 ## held

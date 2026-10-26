@@ -77,7 +77,7 @@ reads as any value.
 > {:b ::T#5} | get /b/c !| get [~(tag) ~(actualValue)]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| actualValue | actualValue)]
+> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| found | actualValue)]
 [[#[:actualTag :path :segment :trace] ::number] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
@@ -113,7 +113,7 @@ null
 `has` on a map takes a key as `get` takes one, a keyword, a string, a
 number or a path, and answers whether `get` reads it, a number naming
 the key of its text; a key of another kind is refused as
-`::map/has/key/KindNotTakenError`. On a vector and a set `has` asks
+`::map/has/KeyKindNotTakenError`. On a vector and a set `has` asks
 whether an element equal to the value stands, and reads a path, answering
 whether `get` reads a part there, so a path held as an element is
 asked for by `contains` [QSCOL#sequence].
@@ -135,7 +135,7 @@ vector as an index, so one the query computes is read. Any other value
 `get` and `query` take is a template [QSPTH#template], a vector, a map or
 a set, or a path or a container under a tag, a quote among them, and they
 refuse the rest under their input
-`path`, `::any/get/path/KindNotTakenError`, so a key computed from data
+`path`, `::any/get/PathKindNotTakenError`, so a key computed from data
 that holds null is refused where it is read, and a key a modifier failed
 to compute answers its failure [QSQUO#modifier]. A boolean, null and a
 tag name are no key: a map files them under the keyword `toKeyword`
@@ -146,10 +146,10 @@ its text. The keys
 their input `keys`, a map, a vector or a set of keys, each a keyword, a
 number or a string: an element of another kind is refused under that
 input at its index, the three kinds as `:expected`,
-`::map/minus/keys/ElementKindNotTakenError` and
-`::map/inter/keys/ElementKindNotTakenError`, and a single key as
-`::map/minus/keys/KindNotTakenError` and
-`::map/inter/keys/KindNotTakenError`. A vector that folds the maps it
+`::map/minus/KeysElementKindNotTakenError` and
+`::map/inter/KeysElementKindNotTakenError`, and a single key as
+`::map/minus/KeysKindNotTakenError` and
+`::map/inter/KeysKindNotTakenError`. A vector that folds the maps it
 holds by `minus` and `inter` [QSCOL#algebra] reads the keys in each
 element after the first, a key of another kind refused under the verb,
 `::vec/minus/KeyKindNotTakenError` and `::vec/inter/KeyKindNotTakenError`.
@@ -162,10 +162,10 @@ reading `:b` under `:a`.
 7
 
 > get [~({:k null} | get (get /k) !| tag) ~({} | get (get /k) !| tag)]
-[::any/get/path/KindNotTakenError ::path/KeyNotInMapError]
+[::any/get/PathKindNotTakenError ::path/KeyNotInMapError]
 
 > [1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]
-[::any/get/path/KindNotTakenError [2 3]]
+[::any/get/PathKindNotTakenError [2 3]]
 
 > {:a 1} | get [~(get ::K:a) ~(has ::K:a) ~(get ::T#/a)]
 [1 true ::T#1]
@@ -173,8 +173,8 @@ reading `:b` under `:a`.
 > {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]
 
-> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(index) ~(expected)]) ~([{:a 1} [true]] | minus !| tag)]
-[[::map/minus/keys/ElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
+> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(keys | index) ~(keys | expected)]) ~([{:a 1} [true]] | minus !| tag)]
+[[::map/minus/KeysElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
 1
@@ -209,12 +209,12 @@ path strictly and a quote as it is written, so no selector sees the name of
 another and the maps of a vector are one map in any order; a shape or a
 literal is written in a quote, so a map of the data names no parts, a
 value that is neither a path nor a quote refused as
-`::any/with/names/SelectorKindNotTakenError`, and an element that is neither
-path nor map as `::any/with/names/ElementKindNotTakenError`. A name is a
+`::any/with/NamesSelectorKindNotTakenError`, and an element that is neither
+path nor map as `::any/with/NamesElementKindNotTakenError`. A name is a
 name of one segment by the letters of a name [QSNAM#letters], a last key
 that is an index, a quoted key or a word of the literals refused as
-`::any/with/names/KeyNotNameError` and a name written twice as
-`::any/with/names/NameWrittenTwiceError`. Each quote of the template runs
+`::any/with/NamesKeyNotNameError` and a name written twice as
+`::any/with/NamesNameWrittenTwiceError`. Each quote of the template runs
 on the subject, seeing nothing of the others but the names, and no name
 leaves the call; a name that meets a verb its step's subject answers is
 refused as every name of a value is [QSNAM#reach], and a key of the
@@ -242,7 +242,7 @@ being its own.
 [::Box 5 ::Box#5]
 
 > get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
-["Ann7" :t ::any/with/names/SelectorKindNotTakenError]
+["Ann7" :t ::any/with/NamesSelectorKindNotTakenError]
 ```
 
 ## code
@@ -272,7 +272,7 @@ as the value it is.
 12
 
 > 5 | mul /qty !| get [~(tag) ~(repair)]
-[::number/mul/multiplier/KindNotTakenError ~(mul (get /qty))]
+[::number/mul/MultiplierKindNotTakenError ~(mul (get /qty))]
 ```
 
 ## verbs

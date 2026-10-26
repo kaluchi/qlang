@@ -41,7 +41,7 @@ describe('out — the subject, written when it is a string', () => {
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalRaised(cellEntry, 'any/out/SubjectKindNotTakenError', {
-      actualTag: { name: 'number' }
+      'subject/found': 42
     });
   });
 });
@@ -59,8 +59,8 @@ describe('out — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'any/out/text/KindNotTakenError', {
-      actualTag: { name: 'number' }
+    expectRefusalByAddress(cellEntry, 'any/out/TextKindNotTakenError', {
+      'text/found': 43
     });
   });
 
@@ -68,8 +68,8 @@ describe('out — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/KindNotTakenError', {
-      actualTag: { name: 'number' }
+    expectRefusalByAddress(cellEntry, 'string/prepend/PrefixKindNotTakenError', {
+      'prefix/found': 42
     });
   });
 });
@@ -88,7 +88,7 @@ describe('err — the subject, written when it is a string', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectKindNotTakenError', {
-      actualTag: { name: 'vec' }
+      'subject/found': [1, 2, 3]
     });
   });
 });
@@ -104,8 +104,8 @@ describe('err — the text the call gives, computed against the subject', () => 
   it('refuses a text of another kind on stderr by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
-    expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
-      actualTag: { name: 'number' }
+    expectRefusalByAddress(cellEntry, 'any/err/TextKindNotTakenError', {
+      'text/found': 43
     });
   });
 });
@@ -123,8 +123,8 @@ describe('tap', () => {
   it('refuses a label that is not a keyword by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
-    expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
-      actualTag: { name: 'string' }
+    expectRefusalByAddress(cellEntry, 'any/tap/LabelKindNotTakenError', {
+      'label/found': 'oops'
     });
   });
 
@@ -135,12 +135,12 @@ describe('tap', () => {
     expect(io.stderrText()).toBe('[tap x] [box]\n');
   });
 
-  it('writes the refusal instead of a subject past the budget, the subject kept in a cell beside the views of its kind, and goes on', async () => {
+  it('writes the refusal instead of a subject past the budget, the subject kept in a cell beside its tag and the views of its kind, and goes on', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
     expect(cellEntry.result).toBe(3000);
     expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{/);
-    expect(io.stderrText()).toMatch(/\n {2}:answer ::cell"[0-9a-f]{12}"\n {2}:answer\/count 3000\n/);
+    expect(io.stderrText()).toMatch(/\n {2}:answer ::cell"[0-9a-f]{12}"\n {2}:answer\/tag ::vec\n {2}:answer\/count 3000\n/);
     const [cell] = io.stderrText().match(/::cell"[0-9a-f]{12}"/);
     expect((await runQuery(`${cell} | answer | count`, captureIoContext())).result).toBe(3000);
   });

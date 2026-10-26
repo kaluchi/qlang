@@ -28,7 +28,7 @@ function columnOrderOf(rows) {
 function table(subject) {
   if (subject.length === 0) return '(empty)';
   subject.forEach((row, rowIndex) => {
-    if (!(row instanceof Map)) throw refusingAPart(new VecTableRowKindNotTakenError({ expected: kindsExpected('map'), actualValue: row }), rowIndex);
+    if (!(row instanceof Map)) throw refusingAPart(new VecTableRowKindNotTakenError({ 'subject/expected': kindsExpected('map') }), rowIndex);
   });
   const columnNames = columnOrderOf(subject);
   const widths = columnNames.map(columnName => columnName.length);

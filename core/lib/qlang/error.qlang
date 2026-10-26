@@ -22,7 +22,7 @@
       fields, `!{:reason :late} | get /reason` answering `:late`; under the
       tag of a refusal it is closed by the kind of the refusal, which wires
       the facts the refusal carries and its `trace`, each read by its name
-      alone, `"x" | add 1 !| actualTag` answering `::string`, and no path
+      alone, `"x" | add 1 !| subject | found` answering `"x"`, and no path
       goes beneath its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
@@ -69,10 +69,10 @@
         |~~ An error of a refusal answers the facts its refusal declares and
             its trace by their names.
         ~~|
-        ~("x" | add 1 !| get [~(actualTag) ~(trace | count)] | eq [::string 1])
+        ~("x" | add 1 !| get [~(subject | found | tag) ~(trace | count)] | eq [::string 1])
     | proves :refusesAPathBeneathARefusal
         |~~ No path reads beneath the tag of a refusal. ~~|
-        ~("x" | add 1 !| get /actualTag !| tag | eq ::path/TagClosedError)
+        ~("x" | add 1 !| get /subject !| tag | eq ::path/TagClosedError)
     | proves :takesAFactOnTheWay
         |~~ A fact added on the fail track rides on an error of the kind of
             errors, the payload of the refusal.

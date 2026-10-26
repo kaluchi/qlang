@@ -145,9 +145,9 @@ describe('the refusals a verb that is a function raises by rule', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
-      'number/pick/by/NotGivenError',
-      'number/pick/by/KindNotTakenError',
-      'number/pick/answer/KindNotTakenError'
+      'number/pick/ByNotGivenError',
+      'number/pick/ByKindNotTakenError',
+      'number/pick/AnswerKindNotTakenError'
     ]);
   });
 
@@ -161,8 +161,8 @@ describe('the refusals a verb that is a function raises by rule', () => {
 
   it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', async () => {
     const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2)');
-    expect([kindsSharedBy(scopeAfterCell, 'vec/filter'), kindsSharedBy(scopeAfterCell, 'group'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
-      .toEqual([['fn/KindNotTakenError'], ['kind/InvariantNotHeldError'], [], []]);
+    expect([kindsSharedBy(scopeAfterCell, 'set/groupBy'), kindsSharedBy(scopeAfterCell, 'bind'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
+      .toEqual([['vec/groupBy/KeyTakenError'], ['call/PayloadNotSchemaError'], [], []]);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {
@@ -240,15 +240,15 @@ describe('the refusals a kind raises by rule', () => {
     ].join('\n'));
     expect(ruleRefusalsOf(own.scope, 'Box')).toEqual([
       'Box/PayloadKindNotTakenError',
-      'Box/w/NotGivenError',
-      'Box/w/NotReadError',
-      'Box/w/KindNotTakenError',
-      'Box/tags/NotGivenError',
-      'Box/tags/NotReadError',
-      'Box/tags/KindNotTakenError',
-      'Box/tags/ElementKindNotTakenError',
-      'Box/note/NotGivenError',
-      'Box/note/NotReadError'
+      'Box/WNotGivenError',
+      'Box/WNotReadError',
+      'Box/WKindNotTakenError',
+      'Box/TagsNotGivenError',
+      'Box/TagsNotReadError',
+      'Box/TagsKindNotTakenError',
+      'Box/TagsElementKindNotTakenError',
+      'Box/NoteNotGivenError',
+      'Box/NoteNotReadError'
     ]);
   });
 

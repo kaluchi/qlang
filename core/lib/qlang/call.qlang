@@ -115,8 +115,11 @@
             calls the name on a subject the verb answers,
             `:count 5 | 7 | count` answering `5`; there the verb is called
             by its address, `[1 2] | vec/count`, or the value takes
-            another name, `:limit 5`. `:name` holds the name, and
-            `:addresses` the verb the subject answers.
+            another name, `:limit 5`. A name a chain declares, an input in
+            the recipe and the conditions of its verb, a field in the
+            conditions of its kind and the answer in a condition written
+            after `returns`, reads its value past the verb. `:name` holds the
+            name, and `:addresses` the verb the subject answers.
             ::link~(::call | doc) ::link~(::bind | doc)
         ~~|
         ~(wires :name
@@ -327,11 +330,11 @@
             address calls the verb.
         ~~|
         ~(:add 5 | [1 2 3] | get [~(reduce 0 ~(add) !| tag) ~(reduce 0 ~(number/add))] | eq [::call/ValueMeetsVerbError 6])
-    | proves :ValueMeetsVerbError/meetsAnInputInTheRecipeOfAVerb
-        |~~ An input named as a verb meets the verb in the recipe that
-            reads it.
+    | proves :ValueMeetsVerbError/readsAnInputPastTheVerbInTheRecipeOfItsVerb
+        |~~ An input named as a verb is read past the verb in the recipe of
+            its verb, the verb called there by its address.
         ~~|
-        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(tag) ~(name)] | eq [::call/ValueMeetsVerbError :count])
+        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])) | [1 2 3] | firstN 2 | eq [2 [1 2] 3])
     | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue
         |~~ A name that holds a value refuses the modifiers a call gives
             it.

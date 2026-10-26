@@ -100,7 +100,7 @@ them, refused where its second stands, a missing value taken out first,
 `filter ~(ne null) | max`, and a value that is no container answers none
 of them. Each takes a key, null, a
 quote or a path, another kind refused under its input `key`,
-`::vec/sort/key/KindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
+`::vec/sort/KeyKindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
 and ranks by what the key answers, a vector key ranking index by index,
 the first index first and each later one among the elements the indices
 before it leave alike; `min` and `max` with a key answer the element,

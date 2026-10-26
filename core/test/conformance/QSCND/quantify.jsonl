@@ -41,4 +41,4 @@
 {"name":"every-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
 {"name":"every-over-a-set-takes-a-verb-handed-on-as-code","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
 {"name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::map/every/ConditionKindNotTakenError /b]"}
-{"name":"a-predicate-that-fails-fails-the-quantifier","query":"[1 2] | any ~(div 0) !| tag","expect":"::number/div/divisor/ZeroError"}
+{"name":"a-predicate-that-fails-fails-the-quantifier","query":"[1 2] | any ~(div 0) !| tag","expect":"::number/div/DivisorZeroError"}

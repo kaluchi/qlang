@@ -35,7 +35,7 @@ const SetZipElementKindNotTakenError = declareRefusal('set/zip/ElementKindNotTak
 function columnsOf(vectors, ElementKindNotTakenError) {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('vec'), actualValue: vectors[index] }), index);
+    if (!Array.isArray(column)) throw refusingAPart(new ElementKindNotTakenError({ 'subject/expected': kindsExpected('vec') }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
@@ -54,7 +54,7 @@ function eachNumber(elements, ElementKindNotTakenError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
-    if (number === undefined) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('number'), actualValue: element }), at);
+    if (number === undefined) throw refusingAPart(new ElementKindNotTakenError({ 'subject/expected': kindsExpected('number') }), at);
     const met = tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     take(number, count);
@@ -169,7 +169,7 @@ async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
   if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
-  throw refusingAPart(new ConditionKindNotTakenError({ expected: kindsExpected('boolean'), actualValue: verdict }), at);
+  throw refusingAPart(new ConditionKindNotTakenError({ 'predicate/expected': kindsExpected('boolean'), 'predicate/answer': verdict }), at);
 }
 
 async function keptElements(sequence, predicate, ConditionKindNotTakenError) {
@@ -216,22 +216,22 @@ registerPrimitive('vec/any', runsAsCode(['predicate'], (vector, predicate) => fi
 registerPrimitive('map/any', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionKindNotTakenError)));
 
 // [QSCOL#group]
-async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
+async function keywordOf(key, element, index, KeyAnswerKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(key, answer, index);
   const named = keywordFiledFor(beneathTags(answer));
-  if (named === null) throw refusingAPart(new KeyKindNotTakenError({ expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer }), index);
+  if (named === null) throw refusingAPart(new KeyAnswerKindNotTakenError({ 'key/expected': KINDS_A_KEY_FILES_UNDER, 'key/answer': answer }), index);
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
-  else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ key: named, taken, actualValue: answer }), index);
+  else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ 'key/answer': named, taken }), index);
   return named;
 }
 
-async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
+async function bucketsOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const buckets = new Map();
   const filed = new Map();
   for (const [index, element] of sequence.entries()) {
-    const bucketKey = await keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed);
+    const bucketKey = await keywordOf(key, element, index, KeyAnswerKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(bucketKey)) return bucketKey;
     if (!buckets.has(bucketKey.name)) buckets.set(bucketKey.name, []);
     buckets.get(bucketKey.name).push(element);
@@ -239,30 +239,30 @@ async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   return buckets;
 }
 
-const VecGroupByKeyKindNotTakenError = declareRefusal('vec/groupBy/KeyKindNotTakenError');
+const VecGroupByKeyAnswerKindNotTakenError = declareRefusal('vec/groupBy/KeyAnswerKindNotTakenError');
 const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
-const SetGroupByKeyKindNotTakenError = declareRefusal('set/groupBy/KeyKindNotTakenError');
+const SetGroupByKeyAnswerKindNotTakenError = declareRefusal('set/groupBy/KeyAnswerKindNotTakenError');
 const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
-registerPrimitive('vec/groupBy', runsAsCode(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyKindNotTakenError, VecGroupByKeyTakenError)));
+registerPrimitive('vec/groupBy', runsAsCode(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyAnswerKindNotTakenError, VecGroupByKeyTakenError)));
 registerPrimitive('set/groupBy', runsAsCode(['key'], async (set, key) => {
-  const buckets = await bucketsOf(set, key, SetGroupByKeyKindNotTakenError, SetGroupByKeyTakenError);
+  const buckets = await bucketsOf(set, key, SetGroupByKeyAnswerKindNotTakenError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
-async function indexOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
+async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
   for (const [position, element] of sequence.entries()) {
-    const indexKey = await keywordOf(key, element, position, KeyKindNotTakenError, KeyTakenError, filed);
+    const indexKey = await keywordOf(key, element, position, KeyAnswerKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(indexKey)) return indexKey;
     index.set(indexKey.name, element);
   }
   return index;
 }
 
-const VecIndexByKeyKindNotTakenError = declareRefusal('vec/indexBy/KeyKindNotTakenError');
+const VecIndexByKeyAnswerKindNotTakenError = declareRefusal('vec/indexBy/KeyAnswerKindNotTakenError');
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
-registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyKindNotTakenError, VecIndexByKeyTakenError)));
+registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
 
 // [QSERR#site]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
@@ -304,7 +304,7 @@ registerStateReader('vec/join', (subject, separator, state) => {
   const tally = new TagsInCommon();
   const texts = subject.map((element, at) => {
     const text = beneathTags(element);
-    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementKindNotTakenError({ expected: kindsExpected('keyword', 'string'), actualValue: element }), at);
+    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementKindNotTakenError({ 'subject/expected': kindsExpected('keyword', 'string') }), at);
     const met = isKeyword(text) ? null : tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     return writtenAsText(text);

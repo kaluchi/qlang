@@ -110,12 +110,12 @@
     | proves :path/readsThePartFromTheSubject
         |~~ The subject of the frame reads the part by its path. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path) | eq "x")
-    | proves :unfinished/NotGivenError/refusesASubjectAlone
+    | proves :UnfinishedNotGivenError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
-        ~(::frame["x"] !| tag | eq ::frame/unfinished/NotGivenError)
-    | proves :path/KindNotTakenError/refusesAThirdPartThatIsNoPath
+        ~(::frame["x"] !| tag | eq ::frame/UnfinishedNotGivenError)
+    | proves :PathKindNotTakenError/refusesAThirdPartThatIsNoPath
         |~~ A third part that is no path is refused. ~~|
-        ~(::frame["x" ~(add 1) 1] !| tag | eq ::frame/path/KindNotTakenError)
+        ~(::frame["x" ~(add 1) 1] !| tag | eq ::frame/PathKindNotTakenError)
     | proves :PayloadNotSubjectAndStepsError/refusesNoStep
         |~~ The steps of a frame hold the step that failed. ~~|
         ~(::frame["x" ~()] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)

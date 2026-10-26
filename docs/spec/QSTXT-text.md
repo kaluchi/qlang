@@ -68,7 +68,7 @@ true
 true
 
 > "abc" | contains :a !| tag
-::string/contains/needle/KindNotTakenError
+::string/contains/NeedleKindNotTakenError
 
 > get [~(42 | contains "x" !| get [~(tag) ~(addresses)]) ~(#[1 2] | binding :contains | name)]
 [[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
@@ -136,7 +136,7 @@ true
 `contains`, `split` and `replace` take a regex or a text, told apart by
 its kind, `replace` naming what it seeks `:needle` as `contains` does;
 `match`, `capture` and `scan` take a regex alone, their input `:regex`,
-refusing a text as `::string/match/regex/KindNotTakenError`. `contains`
+refusing a text as `::string/match/RegexKindNotTakenError`. `contains`
 asks for a match anywhere, `^` and `$` asking it of the whole, or of each
 line under the flag `m`; `match` answers the first match as the vector of
 its text and groups, a group that took no part `null`, or null where none
@@ -152,14 +152,14 @@ and a dollar by `$$`, a group the regex lacks standing as written, but
 for two digits whose first names a group, `$10` read as `$1` and `0`, as
 ECMAScript reads it; it stands as written where a text is replaced; and
 code that answers no string is refused as
-`::string/replace/with/AnswerKindNotTakenError`. `toRegex` reads a string as
+`::string/replace/WithAnswerKindNotTakenError`. `toRegex` reads a string as
 the source of a regex, its input `flags` a string the call gives: a
 string that writes no regex the engine reads is refused as
 `::string/toRegex/TextNotRegexError` with the engine's reason and, where
 the source shows another dialect's habit, its repair, a needless
 backslash or flags written inside, `toRegex "i"`; flags of another kind
-are refused as `::string/toRegex/flags/KindNotTakenError` and letters of
-no flag as `::string/toRegex/flags/NotFlagsError`; and a string that
+are refused as `::string/toRegex/FlagsKindNotTakenError` and letters of
+no flag as `::string/toRegex/FlagsNotFlagsError`; and a string that
 writes a whole literal is refused as
 `::string/toRegex/LiteralNotSourceError`, the literal read by
 `parse | open`.
@@ -181,5 +181,5 @@ writes a whole literal is refused as
 #"error"im
 
 > get [~(::string/match | binding | value | inputs | map ~(get /name)) ~(::string/replace | binding | value | inputs | map ~(get /name)) ~("abc" | match "a" !| tag) ~("a1" | capture #"(\d)" !| tag) ~("(" | toRegex !| tag)]
-[[:regex] [:needle :with] ::string/match/regex/KindNotTakenError ::string/capture/RegexNamesNoGroupError ::string/toRegex/TextNotRegexError]
+[[:regex] [:needle :with] ::string/match/RegexKindNotTakenError ::string/capture/RegexNamesNoGroupError ::string/toRegex/TextNotRegexError]
 ```

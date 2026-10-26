@@ -6,7 +6,7 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { createNotebook, evalQuery, printValue } from '@kaluchi/qlang-core';
-import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
+import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
 const CellAnswerNotHeldError = declareRefusal('cell/answer/NotHeldError');
 
@@ -85,7 +85,7 @@ export function cellPrimitives(sourcesOfTheRoot) {
   return {
     'cell/answer': async cell => {
       const folder = cellFolder(cell.payload);
-      if (!existsSync(join(folder, ANSWER))) throw refusingTheSubject(new CellAnswerNotHeldError({ actualValue: cell }));
+      if (!existsSync(join(folder, ANSWER))) throw new CellAnswerNotHeldError({});
       const names = readFileSync(join(folder, NAMES), 'utf8');
       const answer = readFileSync(join(folder, ANSWER), 'utf8');
       const { scope } = await createNotebook({ sources: sourcesOfTheRoot() });

@@ -28,7 +28,7 @@ const StringCaptureRegexNamesNoGroupError = declareRefusal('string/capture/Regex
 
 registerPrimitive('string/capture', (text, regex) => {
   const names = Object.keys(groupsOf(regex).groups ?? {});
-  if (names.length === 0) throw new StringCaptureRegexNamesNoGroupError({ actualValue: regex });
+  if (names.length === 0) throw new StringCaptureRegexNamesNoGroupError({});
   const found = engineFor(regex).exec(text);
   return found === null ? null : new Map(names.map(name => [name, found.groups[name] ?? null]));
 });
@@ -38,7 +38,7 @@ registerPrimitive('string/scan', (text, regex) => Object.freeze(Array.from(text.
 const SYNTAX_CHARACTERS = /[\\^$.*+?()[\]{}|/]/g;
 const engineOfText = needle => engineOf(needle.replace(SYNTAX_CHARACTERS, '\\$&'), '', 'g');
 
-const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/with/AnswerKindNotTakenError');
+const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/WithAnswerKindNotTakenError');
 
 async function replacedByCode(text, engine, code) {
   let replaced = '';
@@ -46,7 +46,7 @@ async function replacedByCode(text, engine, code) {
   for (const found of text.matchAll(engine)) {
     const answer = await code(matchVector(found));
     if (isErrorValue(answer)) return answer;
-    if (typeof beneathTags(answer) !== 'string') throw new StringReplaceWithAnswerKindNotTakenError({ expected: kindsExpected('string'), actualValue: answer });
+    if (typeof beneathTags(answer) !== 'string') throw new StringReplaceWithAnswerKindNotTakenError({ 'with/expected': kindsExpected('string'), 'with/answer': answer });
     replaced += text.slice(from, found.index) + beneathTags(answer);
     from = found.index + found[0].length;
   }

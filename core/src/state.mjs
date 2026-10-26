@@ -80,6 +80,12 @@ export function scopeSet(scope, name, value) {
   return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
 }
 
+export function scopeWith(scope, entries) {
+  const made = new Map(scope);
+  for (const [name, value] of entries) made.set(name, value);
+  return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
+}
+
 const ROOT_VERB_SCOPES = new WeakSet();
 
 export function markRootVerbScope(scope) {

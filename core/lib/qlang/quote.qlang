@@ -165,7 +165,7 @@
         ~(~(add 1 | mul 2) | filter ~(get /name | eq :mul) | toString | eq "mul 2")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::quote{:not :steps} !| get [~(tag) ~(actualTag)] | eq [::quote/PayloadKindNotTakenError ::map])
+        ~(::quote{:not :steps} !| get [~(tag) ~(found | tag)] | eq [::quote/PayloadKindNotTakenError ::map])
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
         ~([::Box[1]] | tag ::quote !| get [~(tag) ~(index)] | eq [::quote/ElementNotStepError 0])
@@ -316,7 +316,7 @@
         ~("1 | add 1" | parse | open | eq 2)
     | proves :SubjectNotQuoteError/refusesAString
         |~~ Text is no quote until `parse` reads it. ~~|
-        ~("1 | add 1" | open !| get [~(tag) ~(actualTag)] | eq [::quote/open/SubjectNotQuoteError ::string])
+        ~("1 | add 1" | open !| get [~(tag) ~(subject | found | tag)] | eq [::quote/open/SubjectNotQuoteError ::string])
     | proves :refusesAQueryThatReadsASubject
         |~~ A query that reads a subject is refused on null. ~~|
         ~(~(add 1) | open !| tag | eq ::number/add/SubjectNotNumberError)

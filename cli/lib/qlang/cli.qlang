@@ -40,8 +40,8 @@
       literal of the answer, a string in its quotes. A failure prints as
       its alert, the error at rest `::Tag!{…}`, each fact whole within
       three hundred characters and past them as the cell the command line
-      keeps it in, beside the views its kind reveals, `::Tag::excerpt{…}`,
-      under the line
+      keeps it in, beside its tag and the views its kind reveals,
+      `::Tag::excerpt{…}`, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
       the call, a refused text holding a caret beneath its line, `:marker`
@@ -115,7 +115,7 @@
             call gives none.
         ~~|
         ~(query /0) #[::null ::string]
-    | throws :text/KindNotTakenError
+    | throws :TextKindNotTakenError
         |~~ The text `out` writes is a string: a value of another kind is
             made text first, `out json` or `out print`.
         ~~|
@@ -125,8 +125,6 @@
             value is written as the text the call computes from it,
             `42 | out json` or `{:x 1} | out print`.
         ~~|
-        ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `out` writes its subject, or the one text its call gives,
             `"hi" | out`; texts are joined first,
@@ -134,10 +132,10 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `out` writes alone. ~~|
-        ~(42 | out !| get [~(tag) ~(expected)] | eq [::any/out/SubjectKindNotTakenError #[::string]])
-    | proves :text/KindNotTakenError/refusesANumber
+        ~(42 | out !| get [~(tag) ~(subject | expected)] | eq [::any/out/SubjectKindNotTakenError #[::string]])
+    | proves :TextKindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
-        ~("hi" | out 5 !| tag | eq ::any/out/text/KindNotTakenError)
+        ~("hi" | out 5 !| tag | eq ::any/out/TextKindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | out "a" "b" !| tag | eq ::any/out/ArgsBeyondInputsError)
@@ -156,21 +154,19 @@
             call gives none.
         ~~|
         ~(query /0) #[::null ::string]
-    | throws :text/KindNotTakenError
+    | throws :TextKindNotTakenError
         |~~ The text `err` writes is a string: a value of another kind is
             made text first, `err json` or `err print`.
         ~~|
-    | proves :text/KindNotTakenError/refusesANumber
+    | proves :TextKindNotTakenError/refusesANumber
         |~~ A text that is no string is refused. ~~|
-        ~(5 | err 7 !| tag | eq ::any/err/text/KindNotTakenError)
+        ~(5 | err 7 !| tag | eq ::any/err/TextKindNotTakenError)
     | returns |~~ The subject as it came. ~~| ::any
     | throws :SubjectKindNotTakenError
         |~~ `err` alone writes its subject, a string, as a line on stderr;
             another value is written as the text the call computes from
             it, `err json` or `err print`.
         ~~|
-        ~(wires :expected |~~ The kind written alone, `#[::string]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `err` writes its subject, or the one text its call gives,
             `"hi" | err`; texts are joined first,
@@ -178,7 +174,7 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `err` writes alone. ~~|
-        ~(42 | err !| get [~(tag) ~(expected)] | eq [::any/err/SubjectKindNotTakenError #[::string]])
+        ~(42 | err !| get [~(tag) ~(subject | expected)] | eq [::any/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | err "a" "b" !| tag | eq ::any/err/ArgsBeyondInputsError)
@@ -199,7 +195,7 @@
     | takes :label
         |~~ The label written before the value, a keyword. ~~|
         /0 ::keyword
-    | throws :label/KindNotTakenError
+    | throws :LabelKindNotTakenError
         |~~ The label of `tap` is a keyword, `tap :before`, written before
             the value as `[tap before]`.
         ~~|
@@ -208,9 +204,9 @@
         |~~ `tap` writes its subject under one label its call gives,
             `5 | tap :n`; a call with more labels is refused.
         ~~|
-    | proves :label/KindNotTakenError/refusesAString
+    | proves :LabelKindNotTakenError/refusesAString
         |~~ A string is no label. ~~|
-        ~(1 | tap "x" !| tag | eq ::any/tap/label/KindNotTakenError)
+        ~(1 | tap "x" !| tag | eq ::any/tap/LabelKindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
         ~(5 | tap :a :b !| tag | eq ::any/tap/ArgsBeyondInputsError)
@@ -249,7 +245,6 @@
             within the budget.
             ::link~(::qlang/AnswerBeyondBudgetError | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the cell. ~~| ::tag)
     | throws :ArgsBeyondInputsError
         |~~ `answer` reads the whole a cell keeps and takes no value: a part
             of it is read after it, `answer | take 3`.
@@ -282,9 +277,6 @@
         |~~ Every row of `table` is a map, its keys the columns; the path
             of its frame names the first that is not.
         ~~|
-        ~(wires :expected |~~ The kind of a row, `#[::map]`. ~~| ::set
-          | wires :actualTag |~~ The kind of the row refused. ~~| ::tag
-          | wires :actualValue |~~ The row refused. ~~|)
     | proves :drawsEachRow
         |~~ Each row is drawn. ~~|
         ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
@@ -299,13 +291,13 @@
         ~({:name "alice"} | get [~(it)] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]
+        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(subject | found | get /0 | tag) ~(subject | expected)]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{}
 

@@ -32,26 +32,26 @@ each under the node the one before it reached,
 `::vec | doc [:take :count]`, the empty vector the page of the subject
 itself, and a set of anchors, a page at each in the order of the set,
 null and a vector of anchors among them. An anchor of another kind is
-refused under the input, `::any/source/anchor/KindNotTakenError` and its
+refused under the input, `::any/source/AnchorKindNotTakenError` and its
 kin, a name read in turn that is no keyword as
-`::any/doc/anchor/NameKindNotTakenError`, its index in its vector its
+`::any/doc/AnchorNameKindNotTakenError`, its index in its vector its
 `:index`, and an element of a set that is neither null, a keyword nor a
-vector as `::any/doc/anchor/ElementKindNotTakenError`, its index in the
+vector as `::any/doc/AnchorElementKindNotTakenError`, its index in the
 one order of the set its `:index`; `tutorial`, which pairs the page and
 the laws of the name its subject reads, takes no anchor, refusing one as
 `::any/tutorial/ArgsBeyondInputsError`.
 
 A tag nothing declares whose last name ends in `Error` reads the record
-of the address before it, and under the call of a function, where no node
-declares that address, the page of `::fn/call` [QSBLD#fn]; any other name nothing declares is refused
+of the address before it, the call of a function, `::fn/call`, among them
+[QSBLD#fn]; any other name nothing declares is refused
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the
 keyword asked. A name declared without a page answers null. The error at
 rest a catch holds reads the page of its site; a refusal the runtime
 raises by rule under a verb or a kind, with no page of its own, reads the
-page of what refused, the refusal of the kinds of an input, a field or a
-payload the page of that part, and every such refusal of the catalog has
+page of what refused, the verb or the kind one level above it, the refusal
+of the kinds of an input, a field or a payload the page of that part, and every such refusal of the catalog has
 its page with its repair. The page of a refusal says what failed, which
 fact or which path of the frame names the culprit and how the call is
 repaired, and the laws of a refusal a query can meet hold the recovery
@@ -76,7 +76,7 @@ true
 1
 
 > ::vec/take | source 1 !| tag
-::any/source/anchor/KindNotTakenError
+::any/source/AnchorKindNotTakenError
 
 > ::nosuchbinding | doc !| get [~(tag) ~(name)]
 [::any/doc/UnknownNameError ::nosuchbinding]
@@ -84,14 +84,14 @@ true
 > "x" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)
 true
 
-> 5 | gte !| get [~(tag) ~(doc | content | contains "compared with")]
-[::any/gte/value/NotGivenError true]
+> 5 | gte !| get [~(tag) ~(doc | content | contains "comes after")]
+[::any/gte/ValueNotGivenError true]
 
 > ::number/add/FooError | binding | name
 :number/add
 
 > get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
-[[::fn/call/by/KindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
+[[::fn/call/ByKindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
 ## manifest
@@ -100,11 +100,13 @@ true
 name its subject reads, each by its address: the verbs of a noun, its
 refusals and its pages, and the roles the chain of a function or a kind
 lays under its name, the subject, the inputs and the answer of a verb,
-the payload, the fields and the constructor of a kind, the invariants,
-each named by the refusal of a value that breaks it, and the parts a kind
-wires, the facts a refusal carries among them, which lie under it by its
-wiring, `::fn/KindNotTakenError | manifest` [QSERR#site]; the laws stand
-aside, which `laws` reads. A value
+the payload, the fields and the constructor of a kind, the refusals of
+its slots and of its fields, the invariants, each named by the refusal of
+a call or a value that breaks it, and the parts a kind wires, the facts a
+refusal carries among them, which lie under it by its wiring, the slots
+of its verb and their probes beneath each slot,
+`::number/add/AddendKindNotTakenError | manifest` [QSERR#site]; the laws
+stand aside, which `laws` reads. A value
 answers those of the kind it shows, `5 | manifest` those of `::number`,
 and a name nothing declares is refused as
 `::any/manifest/UnknownNameError`; an anchor reads the node the name
@@ -123,12 +125,12 @@ true
 [true true]
 
 > :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box | manifest
-#[::Box/w]
+#[::Box/WKindNotTakenError ::Box/w]
 
 > ::vec/take/count | manifest
-#[::vec/take/count/KindNotTakenError ::vec/take/count/NotGivenError ::vec/take/count/NotIntegerError]
+#[::vec/take/count/answer ::vec/take/count/expected ::vec/take/count/found ::vec/take/count/index]
 
-> ::vec/take/count/NotIntegerError | binding | value | tag
+> ::vec/take/CountNotIntegerError | binding | value | tag
 ::invariant
 
 > ::vec | manifest :take | eq (::vec/take | manifest)
@@ -164,7 +166,7 @@ refuses it. Every law of the core passes.
 > :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
 [true]
 
-> ::law::Foo~(3 | eq 3) !| get [~(tag) ~(actualTag)]
+> ::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]
 [::law/PayloadKindNotTakenError ::Foo]
 
 > ::number/add | laws | count
@@ -261,7 +263,7 @@ written.
 > get [~(::link#5 !| tag) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
 [::link/PayloadKindNotTakenError 1]
 
-> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(actualTag)])]
+> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(found | tag)])]
 [1 [::link/PayloadKindNotTakenError ::Foo]]
 
 > :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag

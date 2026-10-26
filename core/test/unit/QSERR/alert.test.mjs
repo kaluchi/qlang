@@ -23,21 +23,21 @@ describe('a host prints a failure as the concentrate of its facts', () => {
     expect([[...alert.facts.keys()], printValue(alert).startsWith('::number/add/SubjectNotNumberError!{')]).toEqual([[...failure.facts.keys()], true]);
   });
 
-  it('holds a fact past the room of a fact as the cell its host keeps it in, beside the views of its kind that fit', async () => {
+  it('holds a fact past the room of a fact as the cell its host keeps it in, beside its tag and the views of its kind that fit', async () => {
     const { kept, keep } = keeping();
     const alert = await alertOf('1 | add (3410 | range)', keep);
-    expect([printValue(alert).startsWith('::number/add/addend/KindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('actualValue')), alert.facts.get('actualValue/count'), kept[0].length])
-      .toEqual([true, ['expected', 'actualTag', 'actualValue', 'actualValue/count', 'trace'], '::cell"kept1"', 3410, 3410]);
+    expect([printValue(alert).startsWith('::number/add/AddendKindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('addend/found')), alert.facts.get('addend/found/count'), kept[0].length])
+      .toEqual([true, ['subject/found', 'addend/expected', 'addend/found', 'addend/found/tag', 'addend/found/count', 'addend/found/shape', 'addend/found/first', 'addend/found/last', 'trace'], '::cell"kept1"', 3410, 3410]);
   });
 
-  it('tells a fact past the room by its views alone where its host keeps no cell', async () => {
-    expect([...(await alertOf('1 | add (3410 | range)')).facts.keys()]).toEqual(['expected', 'actualTag', 'actualValue/count', 'trace']);
+  it('tells a fact past the room by its tag and its views alone where its host keeps no cell', async () => {
+    expect([...(await alertOf('1 | add (3410 | range)')).facts.keys()]).toEqual(['subject/found', 'addend/expected', 'addend/found/tag', 'addend/found/count', 'addend/found/shape', 'addend/found/first', 'addend/found/last', 'trace']);
   });
 
   it('shows the views of a trace past the room that fit, a view that answers nothing left out', async () => {
     const { keep } = keeping();
     const alert = await alertOf('kinds | add 1', keep);
-    expect([[...alert.facts.keys()], printValue(alert.facts.get('trace/failed'))]).toEqual([['actualTag', 'trace', 'trace/failed'], '[~(add 1)]']);
+    expect([[...alert.facts.keys()], printValue(alert.facts.get('trace/failed'))]).toEqual([['subject/expected', 'subject/found', 'subject/found/tag', 'subject/found/count', 'subject/found/shape', 'subject/found/first', 'subject/found/last', 'trace', 'trace/tag', 'trace/failed'], '[~(add 1)]']);
   });
 
   it('drops its last facts where the alert passes its room', async () => {
@@ -52,7 +52,7 @@ describe('the excerpt of a refusal read back', () => {
   it('answers the facts by their names, a cell among them, its tag the refusal\'s', async () => {
     const { keep } = keeping();
     const alert = await alertOf('kinds | add 1', keep);
-    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(actualTag) ~(trace | tag) ~(payload | get /:trace/failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::set ::cell [~(add 1)]]'));
+    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(subject | found | tag) ~(payload | get /:subject/found/count | eq (kinds | count)) ~(trace | tag) ~(payload | get /:trace/failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::cell true ::cell [~(add 1)]]'));
   });
 
   it('is refused by raise, which raises no excerpt', async () => {
@@ -62,6 +62,6 @@ describe('the excerpt of a refusal read back', () => {
   });
 
   it('holds its facts whole beneath !|', async () => {
-    expect(await evalQuery('1 | add (3410 | range) !| actualValue | count')).toBe(3410);
+    expect(await evalQuery('1 | add (3410 | range) !| addend | found | count')).toBe(3410);
   });
 });

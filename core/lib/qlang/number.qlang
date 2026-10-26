@@ -57,7 +57,7 @@
         |~~ A string payload is refused; `toNumber` reads a number from
             text.
         ~~|
-        ~(::number"5" !| get [~(tag) ~(actualTag)] | eq [::number/PayloadKindNotTakenError ::string])
+        ~(::number"5" !| get [~(tag) ~(found | tag)] | eq [::number/PayloadKindNotTakenError ::string])
     | proves :NotFiniteError/refusesAProductPastTheRange
         |~~ A product past the range of doubles is refused at the step
             that made it.
@@ -85,7 +85,7 @@
         |~~ The number added to the subject, computed against the subject.
         ~~|
         /0 ::number
-    | throws :addend/KindNotTakenError
+    | throws :AddendKindNotTakenError
         |~~ The addend is a number; text that holds one is read by
             `toNumber`.
         ~~|
@@ -115,10 +115,10 @@
         ~(1e308 | add 1e308 !| tag | eq ::number/NotFiniteError)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | add 1 !| get [~(tag) ~(actualTag)] | eq [::number/add/SubjectNotNumberError ::string])
-    | proves :addend/KindNotTakenError/refusesAString
+        ~("hello" | add 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/add/SubjectNotNumberError ::string])
+    | proves :AddendKindNotTakenError/refusesAString
         |~~ An addend that is no number is refused under the input. ~~|
-        ~(1 | add "x" !| get [~(tag) ~(actualTag)] | eq [::number/add/addend/KindNotTakenError ::string])
+        ~(1 | add "x" !| get [~(tag) ~(addend | found | tag)] | eq [::number/add/AddendKindNotTakenError ::string])
     | proves :ArgsBeyondInputsError/refusesTwoNumbers
         |~~ Args of two numbers are refused under the verb. ~~|
         ~(1 | add 1 2 !| tag | eq ::number/add/ArgsBeyondInputsError)
@@ -143,7 +143,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :subtrahend/KindNotTakenError
+    | throws :SubtrahendKindNotTakenError
         |~~ The subtrahend is a number; text that holds one is read by
             `toNumber` first, `10 | sub ("3" | toNumber)`.
         ~~|
@@ -165,10 +165,10 @@
         ~(5 | sub 7 | eq -2)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | sub 1 !| get [~(tag) ~(actualTag)] | eq [::number/sub/SubjectNotNumberError ::string])
-    | proves :subtrahend/KindNotTakenError/refusesAString
+        ~("hello" | sub 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/sub/SubjectNotNumberError ::string])
+    | proves :SubtrahendKindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~(1 | sub "x" !| get [~(tag) ~(actualTag)] | eq [::number/sub/subtrahend/KindNotTakenError ::string])
+        ~(1 | sub "x" !| get [~(tag) ~(subtrahend | found | tag)] | eq [::number/sub/SubtrahendKindNotTakenError ::string])
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#5 | sub 3 | eq ::Width#2)
@@ -191,7 +191,7 @@
             subject.
         ~~|
         /0 ::number
-    | throws :multiplier/KindNotTakenError
+    | throws :MultiplierKindNotTakenError
         |~~ The multiplier is a number; text that holds one is read by
             `toNumber` first, `2 | mul ("3" | toNumber)`.
         ~~|
@@ -210,11 +210,11 @@
         ~(10 | mul 3 | eq 30)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | mul 2 !| get [~(tag) ~(actualTag)] | eq [::number/mul/SubjectNotNumberError ::string])
-    | proves :multiplier/KindNotTakenError/refusesAString
+        ~("hello" | mul 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mul/SubjectNotNumberError ::string])
+    | proves :MultiplierKindNotTakenError/refusesAString
         |~~ A multiplier that is no number is refused under the input. ~~|
-        ~(1 | mul "x" !| get [~(tag) ~(actualTag)] | eq [::number/mul/multiplier/KindNotTakenError ::string])
-    | proves :multiplier/KindNotTakenError/namesTheRepairOfAPath
+        ~(1 | mul "x" !| get [~(tag) ~(multiplier | found | tag)] | eq [::number/mul/MultiplierKindNotTakenError ::string])
+    | proves :MultiplierKindNotTakenError/namesTheRepairOfAPath
         |~~ A path given for the multiplier names the repair that reads its
             field.
         ~~|
@@ -248,18 +248,18 @@
             subject.
         ~~|
         /0 ::number
-    | throws :divisor/KindNotTakenError
+    | throws :DivisorKindNotTakenError
         |~~ The divisor is a number; text that holds one is read by
             `toNumber` first, `6 | div ("3" | toNumber)`.
         ~~|
-    | holds :divisor/ZeroError
+    | holds :DivisorZeroError
         |~~ The divisor is not zero: a division by zero has no finite
             answer, and a divisor that may be zero is tested before the
             call, as a record that counts its sum tests its count, which
             answers `0`:
             `{:sum 9 :count 0} | if (get /count | eq 0) ~(0) ~(divOf /sum /count)`.
         ~~|
-        ~(ne 0)
+        ~(divisor | ne 0)
     | returns
         |~~ The subject divided by the divisor, under the tags they share.
         ~~|
@@ -278,13 +278,13 @@
         ~(7 | div 2 | eq 3.5)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | div 2 !| get [~(tag) ~(actualTag)] | eq [::number/div/SubjectNotNumberError ::string])
-    | proves :divisor/KindNotTakenError/refusesAString
+        ~("hello" | div 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/div/SubjectNotNumberError ::string])
+    | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(1 | div "x" !| get [~(tag) ~(actualTag)] | eq [::number/div/divisor/KindNotTakenError ::string])
-    | proves :divisor/ZeroError/refusesZero
+        ~(1 | div "x" !| get [~(tag) ~(divisor | found | tag)] | eq [::number/div/DivisorKindNotTakenError ::string])
+    | proves :DivisorZeroError/refusesZero
         |~~ A division by zero is refused under the divisor. ~~|
-        ~(10 | div 0 !| tag | eq ::number/div/divisor/ZeroError)
+        ~(10 | div 0 !| tag | eq ::number/div/DivisorZeroError)
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#6 | div 3 | eq ::Width#2)
@@ -305,16 +305,16 @@
             subject.
         ~~|
         /0 ::number
-    | throws :divisor/KindNotTakenError
+    | throws :DivisorKindNotTakenError
         |~~ The divisor is a number; text that holds one is read by
             `toNumber` first, `7 | mod ("3" | toNumber)`.
         ~~|
-    | holds :divisor/ZeroError
+    | holds :DivisorZeroError
         |~~ The divisor is not zero: a division by zero leaves no
             remainder, and a value that may be zero is asked first,
             `if (eq 0) …`.
         ~~|
-        ~(ne 0)
+        ~(divisor | ne 0)
     | returns
         |~~ The remainder, its sign the divisor's, under the tags the
             subject and the divisor share.
@@ -341,15 +341,15 @@
         ~(::Width#7 | mod 3 | eq ::Width#1)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("7" | mod 3 !| get [~(tag) ~(actualTag)] | eq [::number/mod/SubjectNotNumberError ::string])
-    | proves :divisor/KindNotTakenError/refusesAString
+        ~("7" | mod 3 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mod/SubjectNotNumberError ::string])
+    | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(7 | mod "3" !| get [~(tag) ~(actualTag)] | eq [::number/mod/divisor/KindNotTakenError ::string])
-    | proves :divisor/ZeroError/refusesZero
+        ~(7 | mod "3" !| get [~(tag) ~(divisor | found | tag)] | eq [::number/mod/DivisorKindNotTakenError ::string])
+    | proves :DivisorZeroError/refusesZero
         |~~ A remainder of a division by zero is refused under the
             divisor.
         ~~|
-        ~(7 | mod 0 !| tag | eq ::number/mod/divisor/ZeroError)
+        ~(7 | mod 0 !| tag | eq ::number/mod/DivisorZeroError)
     | impl ::builtin{}
 
 :number/abs
@@ -370,7 +370,7 @@
         ~([-3 3 -0.5] | map ~abs | eq [3 3 0.5])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("-3" | abs !| get [~(tag) ~(actualTag)] | eq [::number/abs/SubjectNotNumberError ::string])
+        ~("-3" | abs !| get [~(tag) ~(subject | found | tag)] | eq [::number/abs/SubjectNotNumberError ::string])
     | impl ::builtin{}
 
 :number/floor
@@ -395,7 +395,7 @@
         ~([2.7 -2.1 3] | map ~floor | eq [2 -3 3])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.7" | floor !| get [~(tag) ~(actualTag)] | eq [::number/floor/SubjectNotNumberError ::string])
+        ~("2.7" | floor !| get [~(tag) ~(subject | found | tag)] | eq [::number/floor/SubjectNotNumberError ::string])
     | impl ::builtin{}
 
 :number/ceil
@@ -420,7 +420,7 @@
         ~([2.1 -2.7 3 -0.5] | map ~ceil | eq [3 -2 3 0])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.1" | ceil !| get [~(tag) ~(actualTag)] | eq [::number/ceil/SubjectNotNumberError ::string])
+        ~("2.1" | ceil !| get [~(tag) ~(subject | found | tag)] | eq [::number/ceil/SubjectNotNumberError ::string])
     | impl ::builtin{}
 
 :number/range
@@ -433,7 +433,7 @@
   ~~|
   ::fn
     | on |~~ The count, a whole number. ~~|
-    | holds :subject/NotIntegerError
+    | holds :SubjectNotIntegerError
         |~~ The count of `range`, its subject, is a whole number: a
             fraction is rounded first, `7.5 | floor | range`.
         ~~|
@@ -449,8 +449,7 @@
               |~~ The length a vector of the engine may have: the count past
                   which `range` makes none.
               ~~|
-              ::number
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
+              ::number)
     | throws :SubjectNotNumberError
         |~~ `range` counts up to a number: the count of a vector is read
             first, `[:a :b] | count | range`.
@@ -464,15 +463,15 @@
     | proves :countsFromOneByMap
         |~~ A count from one adds one to each. ~~|
         ~(3 | range | map ~(add 1) | eq [1 2 3])
-    | proves :subject/NotIntegerError/refusesAFraction
+    | proves :SubjectNotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~(2.5 | range !| get [~(tag) ~(actualTag)] | eq [::number/range/subject/NotIntegerError ::number])
+        ~(2.5 | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotIntegerError ::number])
     | proves :CountTooLargeError/refusesACountPastTheLongest
         |~~ A count past the length `:longest` names is refused. ~~|
         ~(1e10 | range !| get [~(tag) ~(longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
     | proves :SubjectNotNumberError/refusesAVector
         |~~ A vector is counted first. ~~|
-        ~([:a :b] | range !| get [~(tag) ~(actualTag)] | eq [::number/range/SubjectNotNumberError ::vec])
+        ~([:a :b] | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotNumberError ::vec])
     | impl ::builtin{}
 
 :number/round
@@ -492,11 +491,11 @@
             gives none.
         ~~|
         ~(query /0 0) ::number
-    | throws :digits/KindNotTakenError
+    | throws :DigitsKindNotTakenError
         |~~ The count of digits is a number, `3.14159 | round 2`. ~~|
-    | holds :digits/NotIntegerError
+    | holds :DigitsNotIntegerError
         |~~ The digits of `round` are a whole number, `round 2`. ~~|
-        ~(eq (floor))
+        ~(digits | eq (floor))
     | returns |~~ The subject rounded to the digits. ~~| ::number
     | throws :SubjectNotNumberError
         |~~ `round` rounds a number: text that holds one is read first by
@@ -522,15 +521,15 @@
         ~(-0.4 | round | print | eq "0")
     | proves :SubjectNotNumberError/refusesAString
         |~~ A string is no number to round. ~~|
-        ~("2.5" | round !| get [~(tag) ~(actualTag)] | eq [::number/round/SubjectNotNumberError ::string])
-    | proves :digits/NotIntegerError/refusesAFraction
+        ~("2.5" | round !| get [~(tag) ~(subject | found | tag)] | eq [::number/round/SubjectNotNumberError ::string])
+    | proves :DigitsNotIntegerError/refusesAFraction
         |~~ Half a digit is refused. ~~|
-        ~(2.5 | round 0.5 !| get [~(tag) ~(actualTag)] | eq [::number/round/digits/NotIntegerError ::number])
-    | proves :digits/KindNotTakenError/refusesAString
+        ~(2.5 | round 0.5 !| get [~(tag) ~(digits | found | tag)] | eq [::number/round/DigitsNotIntegerError ::number])
+    | proves :DigitsKindNotTakenError/refusesAString
         |~~ A count of digits that is no number is refused under the
             input.
         ~~|
-        ~(3.14 | round "2" !| tag | eq ::number/round/digits/KindNotTakenError)
+        ~(3.14 | round "2" !| tag | eq ::number/round/DigitsKindNotTakenError)
     | impl ::builtin{}
 
 :number/toString

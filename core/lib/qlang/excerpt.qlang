@@ -6,10 +6,11 @@
   |~~ An excerpt tells the facts of a failure a host prints past the room
       of a fact, under the tag of its refusal, `::X::excerpt{…}`: each fact
       whole within three hundred characters, and past them the cell the
-      host keeps it in, `:actualValue ::cell"…"`, beside the views the kind
-      of the fact reveals that fit the room, each under the name of the fact
-      and its own, `:actualValue/count 3410`; a host that keeps no cell
-      shows the views alone. Nothing is cut: a fact stands whole, as a cell
+      host keeps it in, `:addend/found ::cell"…"`, beside its tag and the
+      views the kind of the fact reveals that fit the room, each under the
+      name of the fact and its own, `:addend/found/tag ::vec` and
+      `:addend/found/count 3410`; a host that keeps no cell shows the tag
+      and the views alone. Nothing is cut: a fact stands whole, as a cell
       that gives it back whole, or as the facts its kind reveals of it.
 
       An excerpt is a map under its tag, read by its keys, and the kind of
@@ -24,11 +25,11 @@
     | accepts |~~ The facts told, whole, as cells or as views. ~~| ::map
     | throws :PayloadKindNotTakenError
         |~~ An excerpt is the map of the facts a host tells of a failure,
-            `::X::excerpt{:actualValue ::cell"…" :actualValue/count 3410}`.
+            `::X::excerpt{:addend/found ::cell"…" :addend/found/count 3410}`.
         ~~|
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
-        ~(::excerpt{:actualValue ::cell"f410f1df625c" :actualValue/count 3410} | :e it | print | parse | open | eq e)
+        ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | :e it | print | parse | open | eq e)
     | proves :readsAViewByItsKey
         |~~ A view stands under the name of its fact and its own. ~~|
-        ~(::excerpt{:actualValue/count 3410} | get /:actualValue/count | eq 3410)
+        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count | eq 3410)

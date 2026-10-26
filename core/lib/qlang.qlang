@@ -89,7 +89,7 @@
       group is a modifier computed at the call: in
       `[{:n 1}] | map (get /n)` the `/n` is read from the vector itself,
       not from each element, and `map` refuses what it is handed,
-      `::vec/map/code/KindNotTakenError`.
+      `::vec/map/CodeKindNotTakenError`.
 
       6. Building answers. An answer of a new shape is built by `get`
       over a template, a literal of paths and quotes, each path read and
@@ -163,8 +163,8 @@
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert, the concentrate of its facts: each fact whole within
       three hundred characters and past them as the ::cell its host keeps
-      it in, beside the views its kind reveals, while `!|` reads each fact
-      whole, `!| actualValue | take 3`. `!| doc` answers the page of what refused, the page saying how to
+      it in, beside its tag and the views its kind reveals, while `!|` reads each fact
+      whole, `!| subject | found | take 3`. `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
@@ -209,8 +209,8 @@
             instead of it: `:characters` tells the characters of the print
             and `:answer` holds the answer, which the alert shows as the
             cell where the host keeps it, whose `answer` reads it back
-            whole, `::cell"…" | answer | take 3`, beside the views its kind
-            reveals, `:answer/count`.
+            whole, `::cell"…" | answer | take 3`, beside its tag and the
+            views its kind reveals, `:answer/count`.
             Narrow the answer by `get`, `take`, `keys`, `count` or
             `shape`, or, where the host has streams, write it whole through
             the door the query opens itself: `out` a text, `print | out` the
@@ -279,7 +279,7 @@
     | proves :refusesAValueForCode
         |~~ A value computed at the call is refused where code is wanted.
         ~~|
-        ~([1 2 3] | filter (gt 1) !| tag | eq ::vec/filter/predicate/KindNotTakenError)
+        ~([1 2 3] | filter (gt 1) !| tag | eq ::vec/filter/PredicateKindNotTakenError)
     | proves :splitsAndJoins
         |~~ A string splits into a vector and joins back. ~~|
         ~("a,b,c" | split "," | join "-" | eq "a-b-c")
@@ -325,7 +325,7 @@
         ~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
     | proves :refusesTruthiness
         |~~ Nothing is truthy: a number is no condition. ~~|
-        ~(5 | if 1 ~("yes") ~("no") !| tag | eq ::any/if/condition/KindNotTakenError)
+        ~(5 | if 1 ~("yes") ~("no") !| tag | eq ::any/if/ConditionKindNotTakenError)
     | proves :turnsAStringIntoAKeyword
         |~~ `toKeyword` turns a string into a keyword. ~~|
         ~("draft" | toKeyword | eq :draft)
@@ -339,10 +339,10 @@
         |~~ `!|` catches a failure, its step running on the error at rest,
             which holds its facts.
         ~~|
-        ~("x" | add 1 !| actualTag | eq ::string)
+        ~("x" | add 1 !| subject | found | tag | eq ::string)
     | proves :refusesUnderTheInput
         |~~ An input of none of its kinds is refused under the input. ~~|
-        ~(1 | add "x" !| tag | eq ::number/add/addend/KindNotTakenError)
+        ~(1 | add "x" !| tag | eq ::number/add/AddendKindNotTakenError)
     | proves :writesAnError
         |~~ An error is written as a literal, a value whose facts read as
             fields.
@@ -370,7 +370,7 @@
         |~~ A kind of your own takes a verb and an input held to its
             kinds.
         ~~|
-        ~(:Box |~~ A parcel. ~~| | :Box/put (::fn | takes :w |~~ A weight. ~~| /0 ::number | impl ~(within ~(append w))) | ::Box[1] | get [~(put 7) ~(put "x" !| tag)] | eq [::Box[1 7] ::Box/put/w/KindNotTakenError])
+        ~(:Box |~~ A parcel. ~~| | :Box/put (::fn | takes :w |~~ A weight. ~~| /0 ::number | impl ~(within ~(append w))) | ::Box[1] | get [~(put 7) ~(put "x" !| tag)] | eq [::Box[1 7] ::Box/put/WKindNotTakenError])
     | proves :givesAnInputADefault
         |~~ An input read by `query` has a default. ~~|
         ~(:number/plus (::fn | takes :by |~~ How much, one where none. ~~| ~(query /0 1) | impl ~(add by)) | 5 | get [~(plus) ~(plus 2)] | eq [6 7])
@@ -743,7 +743,7 @@
         ~(#[3 1 2] | get [~(count) ~(binding :count | name)] | eq [3 :vec/count])
     | proves :verbs/declaresTheInputs
         |~~ `query` declares its path and its default as its inputs. ~~|
-        ~(::any/query | manifest | eq #[::any/query/default ::any/query/path])
+        ~(::any/query | binding | value | inputs | map /name | eq [:path :default])
     | proves :verbs/answersUnderTheTags
         |~~ A sum goes back under the tag the subject came through. ~~|
         ~(::Width#2 | add 3 | eq ::Width#5)
@@ -768,7 +768,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | open | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| get [~(tag) ~(expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
+        ~([1 2] | filter ~(1) !| get [~(tag) ~(predicate | expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)
@@ -831,7 +831,7 @@
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedSubject
         |~~ The first frame holds the subject the step refused. ~~|
-        ~("a" | mul 2 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "a"])
+        ~("a" | mul 2 !| get [~(subject | found) ~(trace | first | subject)] | eq ["a" "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|
         ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply f)])
@@ -948,8 +948,8 @@
             whole; `print | out` writes an answer whole. A failure the host
             prints is an alert, the concentrate of its facts within two
             thousand characters, each fact whole within three hundred and
-            past them as the cell the host keeps it in, beside the views its
-            kind reveals that fit, `:actualValue/count`, the last facts
+            past them as the cell the host keeps it in, beside its tag and
+            the views its kind reveals that fit, `:addend/found/count`, the last facts
             dropped where the alert passes its room, a failure any fact of
             which gave way told as an `::excerpt` under the tag of its
             refusal; the command line writes below it

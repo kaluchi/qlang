@@ -17,10 +17,12 @@ as `::error/PayloadKindNotTakenError`, and `::Foo!{…}` is
 through its label, a refusal of the label answering for the literal.
 
 The tag of a refusal closes its error at rest by the kind of the refusal
-[QSBLD#kind]: the kind its `throws` writes, its payload the `::error`
-and its wiring the facts the refusal carries and its `trace`, or the kind
-of the family of the rule that lays it [QSERR#site]. Its facts are read by
-their names, `!| actualTag`, no path reads beneath its tag [QSPTH#get], and
+[QSBLD#kind]: of a refusal of a verb the verdict of the verb, which wires
+each slot of the verb, the facts its `throws` writes and its `trace`, of a
+refusal a kind raises the verdict of the kind, and of any other the kind
+its `throws` writes [QSERR#site]. Its facts are read by their names, a
+slot by its name and its probes by theirs, `!| addend | found`, no path
+reads beneath its tag [QSPTH#get], and
 `payload` answers the `::error` beneath it, which holds a fact past the
 wiring of the kind; the walk of its tags meets no `::error`, so it is a
 value of its refusal alone. The literal of an error of a refusal holds
@@ -64,20 +66,20 @@ true
 > !{:by 3} | tag ::error | eq !{:by 3}
 true
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(actualTag)])]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]
 [!{:a 1} [::Late/PayloadKindNotTakenError ::error]]
 
-> "x" | add 1 !| get [~(actualTag) ~(get /actualTag !| tag) ~(payload | tag) ~(is ::error)]
-[::string ::path/TagClosedError ::error false]
+> "x" | add 1 !| get [~(subject | found) ~(get /subject !| tag) ~(payload | tag) ~(is ::error)]
+["x" ::path/TagClosedError ::error false]
 
-> ::number/add/SubjectNotNumberError!{:actualTag 5} !| tag
-::number/add/SubjectNotNumberError/actualTag/KindNotTakenError
+> ::number/add/SubjectNotNumberError!{:repair 5} !| tag
+::number/add/SubjectNotNumberError/RepairKindNotTakenError
 
-> ::number/add/addend/KindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
-::number/add/addend/KindNotTakenError/trace/KindNotTakenError
+> ::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
+::number/add/AddendKindNotTakenError/TraceKindNotTakenError
 
-> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(tag) ~(actualTag) ~(actualValue | tag) ~(expected)]
-[::number/add/addend/KindNotTakenError ::vec ::cell null]
+> ::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [~(tag) ~(addend | found | tag) ~(addend | expected) ~(payload | get /:addend/found/count)]
+[::number/add/AddendKindNotTakenError ::cell #[::number] 3410]
 
 > ::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count)]
 [::error 5000]
@@ -92,8 +94,8 @@ and the error at rest of a refusal as the error of its refusal; a subject
 that is no map beneath its tags, a value under a tag over another value
 among them, is refused as `::any/raise/SubjectKindNotTakenError`, and so is
 the excerpt of the facts of a failure a host prints, `::X::excerpt{…}`,
-which tells the failure and holds it not, its `:actualTag` `::excerpt`,
-before any fact is laid under its kind, so the refusal is the step's and no
+which tells the failure and holds it not, the subject it found an
+`::excerpt` beneath its tag, before any fact is laid under its kind, so the refusal is the step's and no
 door of a kind of a fact answers it. An error at rest raised again is the
 error it was.
 
@@ -107,7 +109,7 @@ error it was.
 > "x" | add 1 !| raise !| tag
 ::number/add/SubjectNotNumberError
 
-> ::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(actualTag)]
+> ::number/add/SubjectNotNumberError::excerpt{:subject/found #[1] :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(subject | found | payload | tag)]
 [::any/raise/SubjectKindNotTakenError ::excerpt]
 ```
 
@@ -151,10 +153,10 @@ true
 > !{:a 1} | raise !| payload | tag
 ::map
 
-> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(actualTag)]
-[::Box/k ::Box]
+> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(found | tag)]
+[::Box/k ::error]
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) ~(actualTag)]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) ~(found | tag)]
 [::Late/PayloadKindNotTakenError ::error]
 
 > :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
@@ -216,15 +218,15 @@ vector under a tag of another kind among them, is refused as
 `::trace/ElementKindNotTakenError` at its index; a frame takes the vector
 of its parts by its own tag, a vector under a tag and a set refused as
 `::frame/PayloadKindNotTakenError`, a frame of a subject alone as
-`::frame/unfinished/NotGivenError`, a third part that is no path as
-`::frame/path/KindNotTakenError`, and steps that hold none, a null
+`::frame/UnfinishedNotGivenError`, a third part that is no path as
+`::frame/PathKindNotTakenError`, and steps that hold none, a null
 written at the third part and a part past it as
 `::frame/PayloadNotSubjectAndStepsError`. The kind holds a trace wherever
 one is laid: its literal and `tag ::trace`; `raise`, which lays the
 `:trace` of the map or the error at rest it raises through the kind's
 label; and the kind of a refusal, which holds the `:trace` of its error at
 rest to `::trace`, another refused under the refusal as
-`…/trace/KindNotTakenError`, while `/trace` reads the key of an error
+`…/TraceKindNotTakenError`, while `/trace` reads the key of an error
 under `::error` alone and is refused where there is none.
 
 An error at rest that writes a `:trace` holding a frame resumes that
@@ -239,7 +241,7 @@ trace over at that raise.
 
 ```qlang
 > "x" | add 1 !| payload | keys
-#[:actualTag :trace]
+#[:subject/expected :subject/found :trace]
 
 > [1 "x" 3] | map ~(mul 2) | count !| trace
 ::trace[
@@ -272,19 +274,19 @@ true
 ~(add 1)
 
 > get [~({:trace 5} | raise !| tag) ~({:trace [5]} | raise !| get [~(tag) ~(index)]) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag) ~(::frame[1] !| tag)]
-[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/unfinished/NotGivenError]
+[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/UnfinishedNotGivenError]
 
-> get [~(::frame::X[1 ~(a)] !| get [~(tag) ~(actualTag)]) ~(::frame#[1 ~(a)] !| get [~(tag) ~(actualTag)])]
+> get [~(::frame::X[1 ~(a)] !| get [~(tag) ~(found | tag)]) ~(::frame#[1 ~(a)] !| get [~(tag) ~(found | tag)])]
 [[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]
 
-> ::number/add/SubjectNotNumberError!{:actualTag ::string} | trace
+> ::number/add/SubjectNotNumberError!{:subject/found "x"} | trace
 null
 
 > get [~(::A[::number"x"] !| trace | map ~failed) ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| get /trace | map ~failed)]
 [[~(::A[::number"x"])] [~(pre) ~(eq raise)]]
 
-> ::number/add/SubjectNotNumberError!{:actualTag ::string :trace 5} !| tag
-::number/add/SubjectNotNumberError/trace/KindNotTakenError
+> ::number/add/SubjectNotNumberError!{:subject/found "x" :trace 5} !| tag
+::number/add/SubjectNotNumberError/TraceKindNotTakenError
 
 > get [~([1 "x"] | sum !| trace | first | path) ~([[1 "x"]] | map ~(sum) !| trace | map ~path) ~([1 "x"] | eq sum !| trace | map ~path) ~({:a 1} | filter ~(5) !| trace | last | path)]
 [/1 [/1 /0] [/1] /a]
@@ -323,7 +325,7 @@ false
 ::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| tag
-::vec/map/code/KindNotTakenError
+::vec/map/CodeKindNotTakenError
 
 > get [~(#[::number"b" ::string#1] !| tag) ~({:k ::number"x" :k 1} | count)]
 [::string/PayloadKindNotTakenError 1]
@@ -334,54 +336,57 @@ false
 Every site that refuses has a tag of its own, its address: the address
 of the site it guards and a last name that says in the language's
 words what was refused, `::number/add/SubjectNotNumberError` for the
-subject of `add` and `::number/add/addend/KindNotTakenError` for its
+subject of `add` and `::number/add/AddendKindNotTakenError` for its
 input. The last name names the refusal alone, so two sites may share
 one, `::construct/LiteralComputesError` beside
-`::quote/LiteralComputesError`. A value of none of the kinds a holder
-takes is refused by the holder's role, `KindNotTakenError`,
-`PayloadKindNotTakenError` or `ElementKindNotTakenError`, the answer of a
-verb, the subject of a function `apply` runs, `SubjectKindNotTakenError`,
-the key an element files under, `KeyKindNotTakenError`, the answer of a
-condition, `ConditionKindNotTakenError`, the row of a table,
-`RowKindNotTakenError`, and the constructor and the recipe of a chain
-and the answer of code a verb runs among them, the set of the kinds it
-takes the fact `:expected`; the subject of a verb is
-refused by the label it resides on, `SubjectNotNumberError`. A last name
-names a kind after `Not` there alone and as the kind a conversion of its
-address reads, `::string/toNumber/TextNotNumberError`, so a name moves
-only with its word, and an invariant names the roles of what it holds,
-`::point/PayloadNotOffsetLineAndColumnError`. The
-refusal of an input's value lives under the input and that of the
-subject's under `subject`, whether an invariant or a primitive raises
-it, and what a run answers under the verb. A
-refusal is declared in the source of the site it guards, but for one the
-runtime raises by rule: the refusal of the kinds of an input, a field or
-a payload is a node the chain lays, with a page of its own where no
-`throws` gives one, and any other no `throws` declares reads the record
-of its site [QSSLF#axis]. A refusal a rule lays carries the facts of the
-family of its rule, a refusal written once on the noun of the rule,
-`::fn/KindNotTakenError` for the kinds of an input and of the answer,
-`::fn/ElementKindNotTakenError`, `::fn/NotGivenError`,
-`::fn/ArgsBeyondInputsError`, `::fn/SubjectRefusedError` for a subject
-of another label and one an invariant of the subject refuses, and
-`::fn/InvariantNotHeldError`, `::kind/PayloadKindNotTakenError`,
-`::kind/ElementKindNotTakenError`, `::kind/KindNotTakenError`,
-`::kind/NotGivenError`, `::kind/NotReadError` and
-`::kind/InvariantNotHeldError`, and any other the kind its `throws`
-writes, the quote of the wires of its own or the tag of a refusal whose
-kind it shares, a refusal a primitive raises of a value of none of the
-kinds it takes sharing `::fn/KindNotTakenError`, one of an element
-`::fn/ElementKindNotTakenError`, one of its subject that carries the kind
-of the subject alone `::fn/SubjectRefusedError` and one of an input its
-rule does not hold of `::fn/InvariantNotHeldError`, and one a constructor
-raises of a payload `::kind/PayloadKindNotTakenError` and of a value or a
-part its rule does not hold of `::kind/InvariantNotHeldError`
-[QSBLD#kind]; the refusals of the axes of a name share the family
-`::any/UnknownNameError`, and refusals of one shape at sibling sites the
-kind of one of them; a refusal of its subject wires no value refused,
-which the first frame of its trace holds and the runtime drops; a refusal
-of a function `apply` runs, under
-`::fn/call`, declares none and stays open. The refusal of a primitive takes the address
+`::quote/LiteralComputesError`. A refusal of a verb stands one level under
+the verb and a refusal of a kind one level under the kind: a refusal of a
+slot is named by the slot, its first letter raised, before the rule or the
+name the chain declares, `AddendKindNotTakenError`, `CountNotGivenError`,
+`DivisorZeroError`, `::Box/WKindNotTakenError`, a value of none of the
+kinds a slot takes refused as `KindNotTakenError` or
+`ElementKindNotTakenError` after it, and a payload of none of the kinds of
+a kind as `PayloadKindNotTakenError` or `ElementKindNotTakenError`; the
+answer of a condition is refused as `ConditionKindNotTakenError`, the key
+an element files under as `KeyAnswerKindNotTakenError`, the row of a
+table as `RowKindNotTakenError`, the subject of a verb by the label it
+resides on, `SubjectNotNumberError`, and that of a function `apply` runs
+as `SubjectKindNotTakenError`. A last name names a kind after `Not` there
+alone and as the kind a conversion of its address reads,
+`::string/toNumber/TextNotNumberError`, so a name moves only with its
+word, and an invariant names the roles of what it holds,
+`::point/PayloadNotOffsetLineAndColumnError`. A refusal is declared in the
+source of the site it guards, but for one the runtime raises by rule: the
+refusal of the kinds of an input, a field or a payload is a node the chain
+lays, with a page of its own where no `throws` gives one, and any other no
+`throws` declares reads the record of its site, the verb or the kind that
+refused [QSSLF#axis].
+
+A refusal of a verb is its verdict [QSBLD#fn], the map of its slots in one
+flat list of keys, each a slot and a probe of it: its kind wires
+`subject`, each input, `surplus` for the args past the inputs and
+`answer`, each a value of `::fn/slot` read by its name and its probes by
+theirs, `!| addend | found`, then `repair`, the facts its `throws` writes
+and `trace` last. The probes of a slot are `expected`, the kinds the rule
+takes, `found`, what the call put in the slot as the call gave it, its
+tags with it, `answer`, what the code of the slot answered, and `index`,
+the element refused; beneath `found` stand the literal's own names alone,
+and no fact retells what the literal tells of itself. The verdict pours
+every slot the call filled, whatever raised it, a rule of the chain, a
+primitive's throw or a failure the recipe of the verb raises under it, the
+slot refused telling its `expected` beside its `found`: a refusal of a
+part of the subject lays it under `subject`, the path of its frame naming
+the part [QSERR#trace], and a refusal of an element of an input lays its
+`index` beside it. A refusal a kind raises at its door and in its
+constructor is the verdict of the kind, the part refused under `found`
+beside `expected` and `index`, a `throws` of a kind with no facts of its
+own taking it, and a refusal the chain of a function or of a kind lays
+holds the modifier or the chain refused under `found` beside its own
+facts. A refusal that shares the kind of another by its tag takes that
+kind and pours no slot where that kind is no verdict, the refusals of the
+axes of a name sharing `::any/UnknownNameError` [QSBLD#kind]; a refusal
+of a function `apply` runs, under `::fn/call`, declares none and stays
+open. The refusal of a primitive takes the address
 of the verb that ran it, but for a pair a step relates or combines and
 cannot, which the call refuses as `::call/KindsMismatchedError`
 [QSDSP#answer], a refusal of the read of a path sits under
@@ -408,14 +413,13 @@ or holds a value of no kind of the language, its `:message` naming the
 verb and the path where that value stands [QSHST#door]. A refusal of
 the runtime holds its facts in the order the kind of its refusal wires
 them, a fact the kind does not wire a defect of the runtime,
-`::builtin/RefusalFactNotDeclaredError`, and the trace last: the
-value it refuses as `:actualValue`, whatever that value equals, and its
-kind as `:actualTag`, but a refusal of the subject its step was served,
-which holds the kind of that value alone, the first frame holding the
-subject, a host refusing its own so through `refusingTheSubject`
-[QSHST#source], and a refusal of a part of the subject holds no index and
-no key, the path of its frame naming the part [QSERR#trace]; an error a
-reader writes holds its facts as written,
+`::builtin/RefusalFactNotDeclaredError`, and the trace last; a refusal of
+the read of a path and of a step of the language holds the value it
+refuses as `:actualValue`, whatever that value equals, and its kind as
+`:actualTag`, but a refusal of the subject its step was served, which
+holds the kind of that value alone, the first frame holding the subject,
+a host refusing its own so through `refusingTheSubject` [QSHST#source];
+an error a reader writes holds its facts as written,
 a `:trace` it writes where it stands and the trace its flight begins
 last. A fact is a value of the language: a name a step read, a key a path
 read and the keyword two values file under are keywords, and an index and
@@ -425,23 +429,23 @@ a segment a path read as an index numbers.
 > "hello" | add 1 !| tag
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| get [~(tag) ~(expected) ~(actualTag)]
-[::number/add/addend/KindNotTakenError #[::number] ::string]
+> 1 | add "x" !| get [~(tag) ~(addend | expected) ~(addend | found | tag)]
+[::number/add/AddendKindNotTakenError #[::number] ::string]
 
 > 1 | add 1 2 !| payload | entries | map ~first
-[:actualTag :arity :actualValue :trace]
+[:subject/found :addend/found :surplus/found :trace]
 
-> get [~("zz" | toRegex "zz" !| payload | has /actualValue) ~(::W"x" | toNumber !| get [~(payload | keys) ~(actualTag)])]
-[true [#[:actualTag :trace] ::string]]
+> get [~("zz" | toRegex "zz" !| flags | found) ~(::W"x" | toNumber !| get [~(payload | keys) ~(subject | found)])]
+["zz" [#[:subject/found :trace] ::W"x"]]
 
 > [1 "x"] | sum !| get [~(payload | keys) ~(trace | first | path)]
-[#[:actualTag :actualValue :expected :trace] /1]
+[#[:subject/expected :subject/found :trace] /1]
 
-> ::fn/KindNotTakenError | manifest
-#[::fn/KindNotTakenError/actualTag ::fn/KindNotTakenError/actualValue ::fn/KindNotTakenError/expected ::fn/KindNotTakenError/repair ::fn/KindNotTakenError/trace]
+> ::number/add/AddendKindNotTakenError | manifest
+#[::number/add/AddendKindNotTakenError/addend ::number/add/AddendKindNotTakenError/answer ::number/add/AddendKindNotTakenError/repair ::number/add/AddendKindNotTakenError/subject ::number/add/AddendKindNotTakenError/surplus ::number/add/AddendKindNotTakenError/trace]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | name) ~(::number/plus/by/NotGivenError | binding | name)]
-[:number/plus/by/KindNotTakenError :number/plus/by]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/ByKindNotTakenError | binding | name) ~(::number/plus/ByNotGivenError | binding | name)]
+[:number/plus/ByKindNotTakenError :number/plus]
 
 > ::builtin | manifest | filter ~(binding | name | toString | endsWith "Error") | count
 12
@@ -501,9 +505,11 @@ A host prints a failure nothing caught as its alert, the concentrate of the
 failure: its tag and its facts in the order its kind wires them, each fact
 whole where its print, as `print` answers it, holds three hundred
 characters, the room of a fact, and past them as the cell its host keeps it
-in [QSHST#cell], beside the views the kind of the fact reveals whose answers
-fit that room, flat under the name of the fact and its own [QSPRN#excerpt];
-a host that keeps no cell shows the views alone. Where the alert passes its
+in [QSHST#cell], beside its tag, the first of its views, and the views the
+kind of the fact reveals whose answers fit that room, flat under the name
+of the fact and its own, `:addend/found/tag ::vec` and
+`:addend/found/count 3410` [QSPRN#excerpt]; a host that keeps no cell
+shows the views alone. Where the alert passes its
 room, two thousand characters, its last entries drop until it fits, a kind
 wiring first what a reader needs first. A failure every fact of which
 stands whole prints as its error at rest, `::X!{…}`, and one any fact of
@@ -516,8 +522,8 @@ reading each fact as the failure met it. The caret of a refused text is a
 fact within the room of a fact [QSSYN#refusal].
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/addend/KindNotTakenError::excerpt{$' -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
-3
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
+4
 
 $ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
 :trace ::cell
@@ -528,7 +534,7 @@ $ qlang 'kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\
 ```
 
 ```qlang
-> 1 | add (3410 | range) !| get [~(actualValue | count) ~(actualValue | take 3)]
+> 1 | add (3410 | range) !| get [~(addend | found | count) ~(addend | found | take 3)]
 [3410 [0 1 2]]
 
 > get {:rows ~(5000 | range)} | raise !| get /rows | count

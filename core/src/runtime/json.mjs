@@ -1,7 +1,7 @@
 // [QSSLF#catalog], [QSPRN#json]
 
 import { TAG_HEADER_SYMBOL, makePath, refuseForeign } from '../types.mjs';
-import { declareRefusal, refusingTheSubject } from '../errors.mjs';
+import { declareRefusal } from '../errors.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 import { dispatchQlangValue, printValue, printRegex, printPath } from '../print-value.mjs';
 
@@ -141,7 +141,7 @@ registerPrimitive('string/parseJson', subject => {
   try {
     JSON.parse(subject);
   } catch (jsParseError) {
-    throw refusingTheSubject(new StringParseJsonTextNotJsonError({ message: jsParseError.message, actualValue: subject }));
+    throw new StringParseJsonTextNotJsonError({ message: jsParseError.message });
   }
   return fromJsonText(subject);
 });

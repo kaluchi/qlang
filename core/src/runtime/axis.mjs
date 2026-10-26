@@ -11,14 +11,14 @@ import {
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
-import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
+import { splitAddress } from '../address.mjs';
 
 // [QSERR#site]
 const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
-const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/anchor/NameKindNotTakenError');
-const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/anchor/ElementKindNotTakenError');
+const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/AnchorNameKindNotTakenError');
+const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/AnchorElementKindNotTakenError');
 
 // [QSDSP#walk], [QSERR#site], [QSSLF#near]
 function refusalOf(scope, subject) {
@@ -44,7 +44,7 @@ function recordOfKind(scope, value) {
 function nodeOfRefused(scope, name) {
   const [refusedName] = splitAddress(name);
   if (refusedName === null || !name.endsWith('Error')) return null;
-  return nodeOf(scope, refusedName) ?? (refusedName.startsWith(`${FN_CALL_ADDRESS}/`) ? nodeOf(scope, FN_CALL_ADDRESS) : null);
+  return nodeOf(scope, refusedName);
 }
 
 function nodeUnderAnchor(scope, subject, anchorName) {
@@ -92,7 +92,7 @@ function recordOfAnchors(subject, anchors, state) {
   if (anchors.length === 0) return recordReadBy(subject, NULL, state, AnyDocUnknownNameError);
   return anchors.reduce((reached, anchor, index) => {
     const name = beneathTags(anchor);
-    if (!isKeyword(name)) throw new AnyDocAnchorNameKindNotTakenError({ index, expected: kindsExpected('keyword'), actualValue: anchor });
+    if (!isKeyword(name)) throw new AnyDocAnchorNameKindNotTakenError({ 'anchor/expected': kindsExpected('keyword'), 'anchor/index': index });
     return recordReadBy(index === 0 ? reached : underRecord(reached), name, state, AnyDocUnknownNameError);
   }, subject);
 }
@@ -104,7 +104,7 @@ const pageAt = (subject, anchor, state) => pageOfRecord(recordOfAnchors(subject,
 registerStateReader('any/doc', (subject, anchor, state) => {
   if (!isSet(anchor)) return pageAt(subject, anchor, state);
   const stranger = anchor.map(beneathTags).findIndex(each => !isNull(each) && !isKeyword(each) && !isVec(each));
-  if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ index: stranger, expected: kindsExpected('keyword', 'null', 'vec'), actualValue: anchor[stranger] });
+  if (stranger >= 0) throw new AnyDocAnchorElementKindNotTakenError({ 'anchor/expected': kindsExpected('keyword', 'null', 'vec'), 'anchor/index': stranger });
   return Object.freeze(anchor.map(each => pageAt(subject, each, state)));
 });
 

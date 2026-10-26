@@ -8,13 +8,13 @@
 {"name":"keys-then-query-roundtrip-map","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | query k","expect":"1"}
 {"name":"minus-reads-a-string-as-a-key","query":"{:a 1 :b 2} | minus [\"a\"]","expect":"{:b 2}"}
 {"name":"inter-reads-a-string-as-a-key","query":"{:a 1 :b 2 :c 3} | inter #[\"a\" :c]","expect":"{:a 1 :c 3}"}
-{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a true] !| get [~(tag) ~(index)]","expect":"[::map/minus/keys/ElementKindNotTakenError 1]"}
+{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a true] !| get [~(tag) ~(keys | index)]","expect":"[::map/minus/KeysElementKindNotTakenError 1]"}
 {"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| tag","expect":"::path/IndexNotIntegerError"}
 {"name":"a-value-given-as-a-key-that-is-no-key-is-a-template","query":"{:email {:home \"a@b\"}} | query (get /email)","expect":"{:home \"a@b\"}"}
-{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| tag) ~({:a 1} | inter [true] !| tag)]","expect":"[::map/inter/keys/KindNotTakenError ::map/inter/keys/ElementKindNotTakenError]"}
+{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| tag) ~({:a 1} | inter [true] !| tag)]","expect":"[::map/inter/KeysKindNotTakenError ::map/inter/KeysElementKindNotTakenError]"}
 {"name":"a-number-names-the-key-of-its-text-in-minus-and-inter","query":"{:\"1\" 5 :b 2} | get [~(minus [1]) ~(inter [1]) ~([{:\"1\" 5 :b 2} [1]] | minus)]","expect":"[{:b 2} {:\"1\" 5} {:b 2}]"}
-{"name":"get-and-query-refuse-a-value-that-names-no-part","query":"{:true 1 :k null :f true} | get [~(get (get /k) !| tag) ~(get (get /f) !| tag) ~(query #\"a\" !| tag) ~(get ::a !| tag)]","expect":"[::any/get/path/KindNotTakenError ::any/get/path/KindNotTakenError ::any/query/path/KindNotTakenError ::any/get/path/KindNotTakenError]"}
+{"name":"get-and-query-refuse-a-value-that-names-no-part","query":"{:true 1 :k null :f true} | get [~(get (get /k) !| tag) ~(get (get /f) !| tag) ~(query #\"a\" !| tag) ~(get ::a !| tag)]","expect":"[::any/get/PathKindNotTakenError ::any/get/PathKindNotTakenError ::any/query/PathKindNotTakenError ::any/get/PathKindNotTakenError]"}
 {"name":"get-reads-a-set-a-value-under-a-tag-and-a-quote-as-templates","query":"{:a 1} | get [~(get #[/a]) ~(get ::Box[/a]) ~(get ~(get /a)) ~(get !{:x /a})]","expect":"[#[1] ::Box[1] 1 !{:x 1}]"}
 {"name":"a-key-a-modifier-failed-to-compute-answers-its-failure","query":"{} | get (get /k) !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]","expect":"[::any/get/path/KindNotTakenError [2 3]]"}
+{"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]","expect":"[::any/get/PathKindNotTakenError [2 3]]"}
 {"name":"get-and-query-read-a-key-beneath-its-tags-and-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [~(get ::K:a) ~(query ::K:b 7) ~(has ::K:a) ~(get ::T#/a)]","expect":"[1 7 true ::T#1]"}

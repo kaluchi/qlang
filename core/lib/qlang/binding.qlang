@@ -40,21 +40,21 @@
         |~~ `::binding` holds the record of a name, a map, which `binding`
             reads from its address, `::vec/sort | binding`.
         ~~|
-    | throws :name/KindNotTakenError
+    | throws :NameKindNotTakenError
         |~~ The name of a binding is the keyword it binds, `:sort`. ~~|
-    | throws :docs/KindNotTakenError
+    | throws :DocsKindNotTakenError
         |~~ The docs of a binding are a vector, one doc for each doc of the
             slot of its declaration.
         ~~|
-    | throws :docs/ElementKindNotTakenError
+    | throws :DocsElementKindNotTakenError
         |~~ Each of the docs of a binding is a doc, a page of its
             declaration.
         ~~|
-    | throws :source/KindNotTakenError
+    | throws :SourceKindNotTakenError
         |~~ The source of a binding is the quote of the step that declared
             it, or null for a binding no declaration wrote.
         ~~|
-    | throws :origin/KindNotTakenError
+    | throws :OriginKindNotTakenError
         |~~ The origin of a binding is the keyword of the source or the cell
             it was read from, or null for a name a call binds.
         ~~|
@@ -75,10 +75,10 @@
     | proves :readsBackFromItsPrint
         |~~ The record of a name reads back from its print. ~~|
         ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)
-    | proves :docs/NotGivenError/refusesARecordWithNoDocs
+    | proves :DocsNotGivenError/refusesARecordWithNoDocs
         |~~ A binding a reader writes holds every field of the record. ~~|
-        ~(::binding{:name :x} !| tag | eq ::binding/docs/NotGivenError)
-    | proves :name/KindNotTakenError/refusesANameThatIsNoKeyword
+        ~(::binding{:name :x} !| tag | eq ::binding/DocsNotGivenError)
+    | proves :NameKindNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of a binding is a keyword. ~~|
-        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/name/KindNotTakenError)
+        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/NameKindNotTakenError)
 

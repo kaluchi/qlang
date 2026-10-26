@@ -9,14 +9,14 @@
 {"name":"a-source-that-reads-a-field-of-its-map-opens-to-the-field","query":"\"{:name \\\"alice\\\" :age 30} | get /name\" | parse | open","expect":"\"alice\""}
 {"name":"a-source-that-maps-its-vector-opens-to-the-images","query":"\"[1 2 3] | map ~(add 10)\" | parse | open","expect":"[11 12 13]"}
 {"name":"a-source-that-catches-its-own-failure-opens-to-the-catch","query":"\"\\\"hello\\\" | add 1 !| tag\" | parse | open","expect":"::number/add/SubjectNotNumberError"}
-{"name":"apply-refuses-a-number-for-its-code-naming-the-kinds-it-takes","query":"42 | apply it","raises":"::any/apply/code/KindNotTakenError!{:expected #[::fn ::path ::quote] :actualTag ::number :actualValue 42 :trace ::trace[::frame[42 ~(apply it)]]}"}
+{"name":"apply-refuses-a-number-for-its-code-naming-the-kinds-it-takes","query":"42 | apply it","raises":"::any/apply/CodeKindNotTakenError!{:subject/found 42 :code/expected #[::fn ::path ::quote] :code/found 42 :trace ::trace[::frame[42 ~(apply it)]]}"}
 {"name":"apply-runs-a-quote-against-its-subject","query":"5 | apply ~(mul 2)","expect":"10"}
-{"name":"apply-refuses-a-value-of-another-kind-naming-its-kind","query":"42 | apply 1 !| get [~(tag) ~(actualTag)]","expect":"[::any/apply/code/KindNotTakenError ::number]"}
+{"name":"apply-refuses-a-value-of-another-kind-naming-its-kind","query":"42 | apply 1 !| get [~(tag) ~(code | found | tag)]","expect":"[::any/apply/CodeKindNotTakenError ::number]"}
 {"name":"apply-keeps-declarations-inside","query":"1 | apply ~(:x 2) | x !| tag","expect":"::call/UnknownNameError"}
 {"name":"apply-runs-a-pipeline-quote-against-the-subject","query":"5 | apply ~(add 1 | mul 2)","expect":"12"}
-{"name":"apply-takes-code-and-refuses-a-number-under-its-input","query":"5 | apply 3 !| tag","expect":"::any/apply/code/KindNotTakenError"}
+{"name":"apply-takes-code-and-refuses-a-number-under-its-input","query":"5 | apply 3 !| tag","expect":"::any/apply/CodeKindNotTakenError"}
 {"name":"a-value-that-is-no-quote-opens-nothing","query":"5 | open !| tag","expect":"::quote/open/SubjectNotQuoteError"}
 {"name":"open-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/open","expect":"true"}
-{"name":"the-args-of-apply-are-a-vector","query":"5 | apply ~(it) 7 !| tag","expect":"::any/apply/args/KindNotTakenError"}
-{"name":"a-path-applied-takes-no-args","query":"{:a 1} | apply /a [1] !| tag","expect":"::any/apply/args/NotTakenError"}
+{"name":"the-args-of-apply-are-a-vector","query":"5 | apply ~(it) 7 !| tag","expect":"::any/apply/ArgsKindNotTakenError"}
+{"name":"a-path-applied-takes-no-args","query":"{:a 1} | apply /a [1] !| tag","expect":"::any/apply/ArgsNotTakenError"}
 {"name":"open-runs-a-quote-from-null","query":"~(it) | open","expect":"null"}

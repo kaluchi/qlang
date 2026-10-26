@@ -156,7 +156,7 @@ describe('assembling steps by hand', () => {
   it('an error at rest under the tag of its site is a value under a tag, which no text writes as a step', async () => {
     expect(await evalQuery('get [~("x" | add 1 !| payload | minus #[:trace] | tag ::number/add/SubjectNotNumberError)] | tag ::quote !| tag')).toEqual(await evalQuery('::quote/ElementNotStepError'));
     expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ~("x" | add 1 !| payload | minus #[:trace])} | tag ::construct | get [~(it)] | tag ::quote | toString'))
-      .toBe('::number/add/SubjectNotNumberError!{:actualTag ::string}');
+      .toBe('::number/add/SubjectNotNumberError!{:subject/expected #[::number] :subject/found "x"}');
   });
 
   it('a required field left out does not fit the schema', async () => {

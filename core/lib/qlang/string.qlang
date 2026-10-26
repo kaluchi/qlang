@@ -63,7 +63,7 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string#1 !| get [~(tag) ~(actualTag)] | eq [::string/PayloadKindNotTakenError ::number])
+        ~(::string#1 !| get [~(tag) ~(found | tag)] | eq [::string/PayloadKindNotTakenError ::number])
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -154,15 +154,15 @@
     | takes :count
         |~~ How many characters to take, computed against the subject. ~~|
         /0 ::number
-    | throws :count/KindNotTakenError
+    | throws :CountKindNotTakenError
         |~~ The count is a number, `"abc" | take 2`; text that holds one
             is read by `toNumber` first, `take ("2" | toNumber)`.
         ~~|
-    | holds :count/NotIntegerError
+    | holds :CountNotIntegerError
         |~~ The count is a whole number, `"abc" | take 2`; a fraction is
             rounded first, `take (1.5 | round)`.
         ~~|
-        ~(eq (floor))
+        ~(count | eq (floor))
     | returns
         |~~ The first characters of the string, under the tags of the
             subject.
@@ -183,12 +183,12 @@
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name"ab" | take 1 | eq ::Name"a")
-    | proves :count/KindNotTakenError/refusesAString
+    | proves :CountKindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~("abc" | take "2" !| tag | eq ::string/take/count/KindNotTakenError)
-    | proves :count/NotIntegerError/refusesAFraction
+        ~("abc" | take "2" !| tag | eq ::string/take/CountKindNotTakenError)
+    | proves :CountNotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
-        ~("abc" | take 1.5 !| tag | eq ::string/take/count/NotIntegerError)
+        ~("abc" | take 1.5 !| tag | eq ::string/take/CountNotIntegerError)
     | impl ::builtin{}
 
 :string/drop
@@ -206,15 +206,15 @@
     | takes :count
         |~~ How many characters to drop, computed against the subject. ~~|
         /0 ::number
-    | throws :count/KindNotTakenError
+    | throws :CountKindNotTakenError
         |~~ The count is a number, `"abc" | drop 2`; text that holds one
             is read by `toNumber` first, `drop ("2" | toNumber)`.
         ~~|
-    | holds :count/NotIntegerError
+    | holds :CountNotIntegerError
         |~~ The count is a whole number, `"abc" | drop 2`; a fraction is
             rounded first, `drop (1.5 | round)`.
         ~~|
-        ~(eq (floor))
+        ~(count | eq (floor))
     | returns
         |~~ The characters after the ones dropped, under the tags of the
             subject.
@@ -235,12 +235,12 @@
     | proves :answersUnderTheTagOfTheSubject
         |~~ A string under a tag answers under the tag. ~~|
         ~(::Name"ab" | drop 1 | eq ::Name"b")
-    | proves :count/NotIntegerError/refusesAFraction
+    | proves :CountNotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
-        ~("abc" | drop 0.5 !| tag | eq ::string/drop/count/NotIntegerError)
-    | proves :count/KindNotTakenError/refusesAString
+        ~("abc" | drop 0.5 !| tag | eq ::string/drop/CountNotIntegerError)
+    | proves :CountKindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~("abc" | drop "1" !| tag | eq ::string/drop/count/KindNotTakenError)
+        ~("abc" | drop "1" !| tag | eq ::string/drop/CountKindNotTakenError)
     | impl ::builtin{}
 
 :string/split
@@ -266,11 +266,11 @@
             against the subject.
         ~~|
         /0 #[::regex ::string]
-    | throws :separator/KindNotTakenError
+    | throws :SeparatorKindNotTakenError
         |~~ The separator is a text or a regex, `#"[,;]"`; a keyword
             gives its name by `toString`.
         ~~|
-    | throws :separator/NotGivenError
+    | throws :SeparatorNotGivenError
         |~~ `split` needs the separator to cut at, `split ","`: a text
             cuts at its spaces by `split " "`, and at its line breaks by
             `lines`.
@@ -326,13 +326,13 @@
         ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
-        ~(42 | split "," !| get [~(tag) ~(actualTag)] | eq [::string/split/SubjectNotStringError ::number])
-    | proves :separator/KindNotTakenError/refusesAKeyword
+        ~(42 | split "," !| get [~(tag) ~(subject | found | tag)] | eq [::string/split/SubjectNotStringError ::number])
+    | proves :SeparatorKindNotTakenError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
-        ~("abc" | split :b !| tag | eq ::string/split/separator/KindNotTakenError)
-    | proves :separator/NotGivenError/refusesACallWithNoSeparator
+        ~("abc" | split :b !| tag | eq ::string/split/SeparatorKindNotTakenError)
+    | proves :SeparatorNotGivenError/refusesACallWithNoSeparator
         |~~ A call with no separator is refused under the input. ~~|
-        ~("abc" | split !| tag | eq ::string/split/separator/NotGivenError)
+        ~("abc" | split !| tag | eq ::string/split/SeparatorNotGivenError)
     | impl ::builtin{}
 
 :string/lines
@@ -390,7 +390,7 @@
         ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
-        ~(42 | lines !| get [~(tag) ~(actualTag)] | eq [::string/lines/SubjectNotStringError ::number])
+        ~(42 | lines !| get [~(tag) ~(subject | found | tag)] | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| tag | eq ::string/lines/ArgsBeyondInputsError)
@@ -515,7 +515,7 @@
         ~(::Name" a " | trim | eq ::Name"a")
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
-        ~(42 | trim !| get [~(tag) ~(actualTag)] | eq [::string/trim/SubjectNotStringError ::number])
+        ~(42 | trim !| get [~(tag) ~(subject | found | tag)] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
 
 :string/contains
@@ -541,7 +541,7 @@
             subject.
         ~~|
         /0 #[::regex ::string]
-    | throws :needle/KindNotTakenError
+    | throws :NeedleKindNotTakenError
         |~~ The needle is a text or a regex, `#"\d+"`; a keyword gives
             its name by `toString`.
         ~~|
@@ -574,9 +574,9 @@
         |~~ A vector of strings is asked for a whole element, not a piece.
         ~~|
         ~(["ab"] | contains "a" | not)
-    | proves :needle/KindNotTakenError/refusesAKeyword
+    | proves :NeedleKindNotTakenError/refusesAKeyword
         |~~ A keyword is no needle. ~~|
-        ~("hi" | contains :h !| tag | eq ::string/contains/needle/KindNotTakenError)
+        ~("hi" | contains :h !| tag | eq ::string/contains/NeedleKindNotTakenError)
     | proves :namesTheKindsThatAnswerIt
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
@@ -599,7 +599,7 @@
         |~~ The text the string begins with, computed against the subject.
         ~~|
         /0 ::string
-    | throws :prefix/KindNotTakenError
+    | throws :PrefixKindNotTakenError
         |~~ The prefix is a string, `"abc" | startsWith "ab"`; a keyword
             gives its name by `toString` first,
             `startsWith (:ab | toString)`, and a regex at the start of
@@ -636,9 +636,9 @@
     | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the beginning of. ~~|
         ~(["a"] | startsWith "a" !| tag | eq ::string/startsWith/SubjectNotStringError)
-    | proves :prefix/KindNotTakenError/refusesAKeyword
+    | proves :PrefixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no prefix. ~~|
-        ~("hi" | startsWith :h !| tag | eq ::string/startsWith/prefix/KindNotTakenError)
+        ~("hi" | startsWith :h !| tag | eq ::string/startsWith/PrefixKindNotTakenError)
     | impl ::builtin{}
 
 :string/endsWith
@@ -655,7 +655,7 @@
     | takes :suffix
         |~~ The text the string ends with, computed against the subject. ~~|
         /0 ::string
-    | throws :suffix/KindNotTakenError
+    | throws :SuffixKindNotTakenError
         |~~ The suffix is a string, `"abc" | endsWith "bc"`; a keyword
             gives its name by `toString` first,
             `endsWith (:bc | toString)`, and a regex at the end of the
@@ -691,9 +691,9 @@
     | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the end of. ~~|
         ~(["a"] | endsWith "a" !| tag | eq ::string/endsWith/SubjectNotStringError)
-    | proves :suffix/KindNotTakenError/refusesAKeyword
+    | proves :SuffixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no suffix. ~~|
-        ~("hi" | endsWith :i !| tag | eq ::string/endsWith/suffix/KindNotTakenError)
+        ~("hi" | endsWith :i !| tag | eq ::string/endsWith/SuffixKindNotTakenError)
     | impl ::builtin{}
 
 :string/prepend
@@ -711,7 +711,7 @@
     | takes :prefix
         |~~ The text put in front, computed against the subject. ~~|
         /0 #[::keyword ::string]
-    | throws :prefix/KindNotTakenError
+    | throws :PrefixKindNotTakenError
         |~~ The prefix is a string, or a keyword written as its name; a
             number becomes text by `toString`.
         ~~|
@@ -732,9 +732,9 @@
     | proves :writesAKeywordAsItsName
         |~~ A keyword goes in front as its name. ~~|
         ~("x" | prepend :a | eq "ax")
-    | proves :prefix/KindNotTakenError/refusesANumber
+    | proves :PrefixKindNotTakenError/refusesANumber
         |~~ A number prefix is refused; `toString` makes it text. ~~|
-        ~("x" | prepend 42 !| tag | eq ::string/prepend/prefix/KindNotTakenError)
+        ~("x" | prepend 42 !| tag | eq ::string/prepend/PrefixKindNotTakenError)
     | impl ::builtin{}
 
 :string/append
@@ -751,7 +751,7 @@
     | takes :suffix
         |~~ The text put after, computed against the subject. ~~|
         /0 #[::keyword ::string]
-    | throws :suffix/KindNotTakenError
+    | throws :SuffixKindNotTakenError
         |~~ The suffix is a string, or a keyword written as its name; a
             number becomes text by `toString`.
         ~~|
@@ -772,9 +772,9 @@
     | proves :writesAKeywordAsItsName
         |~~ A keyword goes after as its name. ~~|
         ~("x" | append :a | eq "xa")
-    | proves :suffix/KindNotTakenError/refusesANumber
+    | proves :SuffixKindNotTakenError/refusesANumber
         |~~ A number suffix is refused; `toString` makes it text. ~~|
-        ~("x" | append 42 !| tag | eq ::string/append/suffix/KindNotTakenError)
+        ~("x" | append 42 !| tag | eq ::string/append/SuffixKindNotTakenError)
     | impl ::builtin{}
 
 :string/parseJson
@@ -805,8 +805,7 @@
         |~~ `parseJson` could not read the subject as JSON. The message of
             the reader of JSON rides on `:message`.
         ~~|
-        ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
+        ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string)
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -857,7 +856,7 @@
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
         ~(42 | parseJson
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(subject | found | tag)]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
     | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|
@@ -936,7 +935,6 @@
             around it is cut first by `trim`, `" 42" | trim | toNumber`,
             and a number among other words is taken out first by `split`.
         ~~|
-        ::fn/SubjectRefusedError
     | proves :readsTheNumberItWrites
         |~~ A string turns into the number it writes. ~~|
         ~(["42" "-1.5" "2.5e-3"] | map ~toNumber | eq [42 -1.5 0.0025])
@@ -990,7 +988,6 @@
             a space, the empty text and a name that begins with a digit
             name no tag.
         ~~|
-        ::fn/SubjectRefusedError
     | proves :namesATag
         |~~ A string names the tag of its text. ~~|
         ~(["vec" "number/add"] | map ~toTag | eq [::vec ::number/add])
@@ -1043,7 +1040,7 @@
     | takes :regex
         |~~ The regex the text is read by, `#"(\d+)ms"`. ~~|
         /0 ::regex
-    | throws :regex/KindNotTakenError
+    | throws :RegexKindNotTakenError
         |~~ The regex is a `#"…"`; text that holds one becomes a regex by
             `toRegex`, and a text looked for as it is is asked by
             `contains`.
@@ -1060,9 +1057,9 @@
     | proves :answersNullForAGroupThatTookNoPart
         |~~ A group that took no part is null. ~~|
         ~("5" | match #"(\d)(x)?" | eq ["5" "5" null])
-    | proves :regex/KindNotTakenError/refusesAString
+    | proves :RegexKindNotTakenError/refusesAString
         |~~ Text is no regex; `toRegex` reads it as one. ~~|
-        ~("a1" | match "\\d" !| tag | eq ::string/match/regex/KindNotTakenError)
+        ~("a1" | match "\\d" !| tag | eq ::string/match/RegexKindNotTakenError)
     | impl ::builtin{}
 
 :string/capture
@@ -1079,11 +1076,11 @@
     | takes :regex
         |~~ The regex whose groups are named, `#"(?<level>\w+)"`. ~~|
         /0 ::regex
-    | throws :regex/KindNotTakenError
+    | throws :RegexKindNotTakenError
         |~~ The regex is a `#"…"` that names its groups, `(?<name>…)`. ~~|
-    | proves :regex/KindNotTakenError/refusesANumber
+    | proves :RegexKindNotTakenError/refusesANumber
         |~~ A number is no regex. ~~|
-        ~("a" | capture 5 !| tag | eq ::string/capture/regex/KindNotTakenError)
+        ~("a" | capture 5 !| tag | eq ::string/capture/RegexKindNotTakenError)
     | returns
         |~~ The named groups of the first match, or `null`. ~~|
         #[::map ::null]
@@ -1092,7 +1089,6 @@
             and this regex names none: `match` answers its groups by
             their indices, `match #"(\w+)" | get /1`.
         ~~|
-        ::fn/InvariantNotHeldError
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
         ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
@@ -1119,11 +1115,11 @@
     | takes :regex
         |~~ The regex every match of which is read, `#"\d+"`. ~~|
         /0 ::regex
-    | throws :regex/KindNotTakenError
+    | throws :RegexKindNotTakenError
         |~~ The regex is a `#"…"`; text becomes one by `toRegex`. ~~|
-    | proves :regex/KindNotTakenError/refusesANumber
+    | proves :RegexKindNotTakenError/refusesANumber
         |~~ A number is no regex. ~~|
-        ~("a" | scan 5 !| tag | eq ::string/scan/regex/KindNotTakenError)
+        ~("a" | scan 5 !| tag | eq ::string/scan/RegexKindNotTakenError)
     | returns |~~ The text of every match, in order. ~~| ::vec
     | proves :readsEveryMatch
         |~~ Every match comes, in order. ~~|
@@ -1153,33 +1149,32 @@
     | takes :needle
         |~~ What is looked for, a regex or a text. ~~|
         /0 #[::regex ::string]
-    | throws :needle/KindNotTakenError
+    | throws :NeedleKindNotTakenError
         |~~ What is looked for is a `#"…"` or a text; a keyword gives its
             name by `toString`.
         ~~|
-    | proves :needle/KindNotTakenError/refusesANumber
+    | proves :NeedleKindNotTakenError/refusesANumber
         |~~ A needle that is no regex and no string is refused. ~~|
-        ~("a" | replace 5 "b" !| tag | eq ::string/replace/needle/KindNotTakenError)
+        ~("a" | replace 5 "b" !| tag | eq ::string/replace/NeedleKindNotTakenError)
     | takes :with
         |~~ What replaces each match: a string, or code that
             answers one from the match, a quote or a path.
         ~~|
         /1 #[::path ::quote ::string]
-    | throws :with/KindNotTakenError
+    | throws :WithKindNotTakenError
         |~~ The replacement is a string, `replace #"\s+" " "`, or code
             that answers one from the vector of the match,
             `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`, a
             path reading a group of it, `replace #"(\d)x" /1`.
         ~~|
-    | proves :with/KindNotTakenError/refusesANumber
+    | proves :WithKindNotTakenError/refusesANumber
         |~~ A replacement that is no string and no quote is refused. ~~|
-        ~("a" | replace "a" 5 !| tag | eq ::string/replace/with/KindNotTakenError)
-    | throws :with/AnswerKindNotTakenError
+        ~("a" | replace "a" 5 !| tag | eq ::string/replace/WithKindNotTakenError)
+    | throws :WithAnswerKindNotTakenError
         |~~ The code of `replace` answers the text that replaces
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
-        ::fn/KindNotTakenError
     | returns |~~ The text with every match replaced. ~~| ::string
     | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|
@@ -1215,9 +1210,9 @@
             whether the regex names other groups or none.
         ~~|
         ~("abc" | get [~(replace #"(?<n>b)" "$<zz>") ~(replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
-    | proves :with/AnswerKindNotTakenError/refusesANumber
+    | proves :WithAnswerKindNotTakenError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
-        ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(tag) ~(expected)] | eq [::string/replace/with/AnswerKindNotTakenError #[::string]])
+        ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(tag) ~(with | expected)] | eq [::string/replace/WithAnswerKindNotTakenError #[::string]])
     | impl ::builtin{}
 
 :string/toRegex
@@ -1237,17 +1232,16 @@
             call gives none or null, `toRegex "im"`.
         ~~|
         ~(query /0 null) #[::null ::string]
-    | throws :flags/KindNotTakenError
+    | throws :FlagsKindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
-    | proves :flags/KindNotTakenError/refusesANumber
+    | proves :FlagsKindNotTakenError/refusesANumber
         |~~ Flags that are no string are refused. ~~|
-        ~("a" | toRegex 5 !| tag | eq ::string/toRegex/flags/KindNotTakenError)
-    | throws :flags/NotFlagsError
+        ~("a" | toRegex 5 !| tag | eq ::string/toRegex/FlagsKindNotTakenError)
+    | throws :FlagsNotFlagsError
         |~~ The flags are `i` to ignore case, `m` for `^` and `$` at every
             line and `s` for a dot that matches a line break, each written
             once, `toRegex "im"`.
         ~~|
-        ::fn/InvariantNotHeldError
     | returns |~~ The regex the source writes, with its flags. ~~| ::regex
     | throws :TextNotRegexError
         |~~ `toRegex` reads the string as the source of a regex, and it
@@ -1258,15 +1252,13 @@
         ~(wires :message
               |~~ Why the source is no regex, and its repair where one shows.
               ~~|
-              ::string
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
+              ::string)
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
             regex: the literal reads back by `parse | open`, its flags
             among it.
         ~~|
-        ::fn/SubjectRefusedError
     | proves :readsTheSource
         |~~ A string reads as the regex whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
@@ -1277,9 +1269,9 @@
     | proves :takesNullForNoFlags
         |~~ Null gives no flags, as it gives a regex its own. ~~|
         ~("a" | toRegex null | eq #"a")
-    | proves :flags/NotFlagsError/refusesALetterOfNoFlag
+    | proves :FlagsNotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that is no flag is refused. ~~|
-        ~("a" | toRegex "x" !| tag | eq ::string/toRegex/flags/NotFlagsError)
+        ~("a" | toRegex "x" !| tag | eq ::string/toRegex/FlagsNotFlagsError)
     | proves :TextNotRegexError/refusesAnOpenGroup
         |~~ A source the engine cannot read is refused. ~~|
         ~("(a" | toRegex !| tag | eq ::string/toRegex/TextNotRegexError)
@@ -1309,7 +1301,6 @@
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
         ~~|
-        ::fn/SubjectRefusedError
     | proves :readsTheEscapes
         |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
         ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])

@@ -74,7 +74,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('a refusal a host\'s verb throws carrying a :trace of another shape answers the refusal of the kind', async () => {
     const notebook = await hostHanding('at Foo.bar(Foo.java:1)');
-    expect(await answerIn(notebook, '1 | thrown | add 1 !| get [~(tag) ~(actualValue) ~(trace | map ~failed)] | eq [::trace/PayloadKindNotTakenError "at Foo.bar(Foo.java:1)" [~(thrown)]]')).toBe(true);
+    expect(await answerIn(notebook, '1 | thrown | add 1 !| get [~(tag) ~(found) ~(trace | map ~failed)] | eq [::trace/PayloadKindNotTakenError "at Foo.bar(Foo.java:1)" [~(thrown)]]')).toBe(true);
     expect(await answerIn(notebook, '1 | thrown | add 1 !| 0')).toBe(0);
   });
 
@@ -138,7 +138,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
   });
 
   it('the refusal of a trace a host hands names the trace it refused, whatever the subject of its step', async () => {
-    expect(await answerIn(await hostHanding(5), '7 | answered !| get [~(tag) ~(actualValue)] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
+    expect(await answerIn(await hostHanding(5), '7 | answered !| get [~(tag) ~(found)] | eq [::trace/PayloadKindNotTakenError 5]')).toBe(true);
   });
 });
 

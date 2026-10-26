@@ -10,13 +10,13 @@ maps. The requirements of each section are the cases of its file under
 A vector and a set answer `count`, and `size` and `length` as it does,
 `empty`, `first` and `last`, `take` and `drop` a count of elements,
 clamped to what there is, a count whole where it equals its floor, a
-fraction refused as `::vec/take/count/NotIntegerError` and a value of
-another kind as `…/count/KindNotTakenError`, `reverse`, the reverse of a
+fraction refused as `::vec/take/CountNotIntegerError` and a value of
+another kind as `…/CountKindNotTakenError`, `reverse`, the reverse of a
 set a vector and of a vector under a tag the vector under that tag,
 `flat`, which lifts one level under the tags of its subject, and
 `flatten` as it does, `concat`, the vectors the call gives joined after
 the subject under the tags they share, a value given that is no vector
-refused as `::vec/concat/vectors/ElementKindNotTakenError`, so
+refused as `::vec/concat/VectorsElementKindNotTakenError`, so
 `reduce [] ~(concat)` joins the vectors a vector holds, `join`, the texts
 of the elements under the tags its strings share, `sum`, the numbers the
 elements hold beneath their tags added under the tags they share, an
@@ -117,7 +117,7 @@ code is refused with the repair.
 [2 3]
 
 > [1 2] | map (add 1) !| tag
-::vec/map/code/KindNotTakenError
+::vec/map/CodeKindNotTakenError
 ```
 
 ## filter
@@ -140,8 +140,8 @@ step's frame naming the element on either road [QSERR#trace].
 
 `reduce` folds a vector, a set or a map's values from a seed by code of
 any form, the seed first and the code after it, a call with one arg
-refused as `::vec/reduce/reducer/NotGivenError` and code computed at the
-call as `::vec/reduce/reducer/KindNotTakenError`. The fold reads the
+refused as `::vec/reduce/ReducerNotGivenError` and code computed at the
+call as `::vec/reduce/ReducerKindNotTakenError`. The fold reads the
 steps of its code: a quote of one step that is a call with no modifiers,
 by the name of a verb or its address, `~(add)` or `~(number/add)`,
 written or assembled from data alike, is the short form, which calls the
@@ -180,9 +180,9 @@ the `:other` map, the later value of a key standing, `merge` answering as
 it does; and the `minus` and `inter` of a map take off or keep the
 `:keys` a map, a vector or a set names, each read as a key [QSPTH#key].
 A call that gives none is refused under
-the input, `::set/union/other/NotGivenError` as
-`::map/union/other/NotGivenError`, and a value of another kind, null
-among them, as `::set/union/other/KindNotTakenError`. A vector folds the
+the input, `::set/union/OtherNotGivenError` as
+`::map/union/OtherNotGivenError`, and a value of another kind, null
+among them, as `::set/union/OtherKindNotTakenError`. A vector folds the
 sets or the maps it holds, from its first element as it is written, and
 takes no value beside them, `[#[1] #[2]] | union 5` refused as
 `ArgsBeyondInputsError`. A fold takes a set or a map first, a value of
@@ -206,7 +206,7 @@ under the tags the values it combines share, a later value of a map's
 difference or common part naming keys and sharing none, each laid
 through its kind, and refuses at each value its kind, its pair and then
 its tags. `unionOf` unites the maps or the sets its call computes, one
-part at least, `::any/unionOf/parts/EmptyError` refusing none, under the
+part at least, `::any/unionOf/PartsEmptyError` refusing none, under the
 tags they share; one part answers itself.
 
 ```qlang
@@ -223,10 +223,10 @@ tags they share; one part answers itself.
 [#[] #[2] #[1 2] #[1 2]]
 
 > #[#[1] #[2]] | union
-|~| raised, and no !| caught it ::set/union/other/NotGivenError!{ … }
+|~| raised, and no !| caught it ::set/union/OtherNotGivenError!{ … }
 
 > #[#[1] #[2]] | union null
-|~| raised, and no !| caught it ::set/union/other/KindNotTakenError!{ … }
+|~| raised, and no !| caught it ::set/union/OtherKindNotTakenError!{ … }
 
 > [1 2] | union !| tag
 ::vec/union/ElementKindNotTakenError
@@ -264,8 +264,8 @@ frame naming the element in each [QSERR#trace].
 > [1 2 3] | groupBy ~(gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(expected)]
-[::vec/indexBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
+> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(key | expected)]
+[::vec/indexBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| tag
 ::vec/groupBy/KeyTakenError

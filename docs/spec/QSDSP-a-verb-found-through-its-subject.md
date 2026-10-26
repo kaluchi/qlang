@@ -32,7 +32,7 @@ and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
 kind. `is` answers whether the walk of a value's tags reaches a value of
 one of the kinds it is given, one kind at least, a call of none refused
-as `::any/is/kinds/EmptyError`, `::any` among them; a tag name is a value
+as `::any/is/KindsEmptyError`, `::any` among them; a tag name is a value
 of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true,
 and a tag the walk of a value reaches, laid over it, changes nothing
 [QSLIT#tag]. A kind that wires the parts of its payload closes its tag
@@ -65,7 +65,7 @@ part its kind names so.
 [true false true true]
 
 > get [~(5 | is !| tag) ~(!{} | get [~(is ::map) ~(tag ::map)])]
-[::any/is/kinds/EmptyError [true !{}]]
+[::any/is/KindsEmptyError [true !{}]]
 
 > get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
 [::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
@@ -90,7 +90,7 @@ refused, where one verb holds the name, by that verb under its own
 address, with its page and its repair, `42 | keys` as
 `::map/keys/SubjectNotMapError`, and where several hold it by the call
 [QSDSP#refusal]. A refinement a verb checks of its subject is an
-invariant under its subject, `holds :subject/NotIntegerError`, and one
+invariant under its subject, `holds :SubjectNotIntegerError`, and one
 that names a concept a kind of its own, written where the value is made,
 `x | tag ::Pos | f`, its kind answering there. A
 verb is called by its name or by its address, which checks the subject
@@ -196,7 +196,7 @@ answers a set under no tag over a vector under one,
 `::Box[2 1 2] | distinct` answering `#[1 2]`, and the distinct elements
 beneath the tag of a vector, a quote or a doc stay under it by
 `within ~(distinct)`. An answer the rule brings to none of the kinds is
-refused as `…/answer/KindNotTakenError`. A verb whose answer names
+refused as `…/AnswerKindNotTakenError`. A verb whose answer names
 `::any`, or that names none, hands on what it computed, `map` among
 them, and no chain of the catalog names a kind its verb does not answer
 under the rule, which the laws of each verb hold [QSSLF#laws].
@@ -209,7 +209,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 [2 3]
 
 > :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| tag
-::vec/n/answer/KindNotTakenError
+::vec/n/AnswerKindNotTakenError
 
 > get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
 [::set ::set ::any ::any]

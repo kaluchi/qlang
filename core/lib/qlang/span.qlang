@@ -48,7 +48,7 @@
         |~~ Each part of a span is a whole number, an offset from zero or a
             line or a column from one.
         ~~|
-    | throws :end/NotReadError
+    | throws :EndNotReadError
         |~~ A span holds six numbers, the point of its start and the point
             after its end, three numbers each: `:actualValue` holds the
             refusal of the point its last numbers make.
@@ -67,9 +67,9 @@
             parse stopped.
         ~~|
         ~("[1\n2" | parse !| location | start | line | eq 2)
-    | proves :end/NotReadError/refusesThreeNumbers
+    | proves :EndNotReadError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| get [~(tag) ~(actualValue | tag)] | eq [::span/end/NotReadError ::point/offset/NotGivenError])
+        ~(::span[0 1 1] !| get [~(tag) ~(found | tag)] | eq [::span/EndNotReadError ::point/OffsetNotGivenError])
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
         ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)

@@ -10,7 +10,7 @@ import { codeOf, applyFunction, layTag } from '../eval.mjs';
 import { rootState, rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 
-const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
+const AnyApplyArgsNotTakenError = declareRefusal('any/apply/ArgsNotTakenError');
 
 // [QSSYN#refusal], [QSPRN#span]
 export async function refusalOfAParse(parseError, scope, uri) {
@@ -31,7 +31,7 @@ registerPrimitive('quote/toString', quote => printQuoteSource(quote));
 
 registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args, state) => {
   if (isFn(code)) return await applyFunction(code, subject, args, state);
-  if (args.length > 0) throw new AnyApplyArgsNotTakenError({ actualValue: args });
+  if (args.length > 0) throw new AnyApplyArgsNotTakenError({});
   return await code(subject);
 }));
 

@@ -14,23 +14,23 @@ to the digits its call gives, a whole number, none where it gives none,
 half away from zero as its digits are written, so a number below a half
 rounds down, a negative count rounding to tens and beyond,
 `15 | round -1` answering `20`, and a fraction refused as
-`::number/round/digits/NotIntegerError`. An answer stands under the tags
+`::number/round/DigitsNotIntegerError`. An answer stands under the tags
 the subject and the number given share, a bare one sharing any,
 `::W#2.7 | floor` answering `::W#2` and `5 | add ::W#2` `::W#7`, and two
 numbers under two tags are refused as the pair,
 `::call/KindsMismatchedError` [QSDSP#answer]. A subject that is no number is
 refused as `::number/add/SubjectNotNumberError` and an input that is no
-number as `::number/add/addend/KindNotTakenError`. Every answer is a
+number as `::number/add/AddendKindNotTakenError`. Every answer is a
 finite double: one past the doubles is refused as
 `::number/NotFiniteError` at the step that made it, whichever verb
 computed it, its trace holding that step and the subject it ran on, and
 one within them is given,
 `1 | round 400` answering `1`, a division by zero under the divisor of
-`div`, `::number/div/divisor/ZeroError`, and a remainder by zero under
-that of `mod`, `::number/mod/divisor/ZeroError`. `range` answers the
+`div`, `::number/div/DivisorZeroError`, and a remainder by zero under
+that of `mod`, `::number/mod/DivisorZeroError`. `range` answers the
 whole numbers from zero below its subject, `[]` from zero and below, a
 fraction refused by the invariant of its subject,
-`::number/range/subject/NotIntegerError`, and a count past the length a
+`::number/range/SubjectNotIntegerError`, and a count past the length a
 vector may have as `::number/range/CountTooLargeError`.
 
 ```qlang
@@ -53,7 +53,7 @@ vector may have as `::number/range/CountTooLargeError`.
 [1 0]
 
 > 10 | div 0 !| tag
-::number/div/divisor/ZeroError
+::number/div/DivisorZeroError
 
 > 5 | range
 [0 1 2 3 4]
@@ -69,8 +69,8 @@ Values of one subject are combined by the verbs of one subject on
 `sumOf` and `mulOf` combine one value or more, `subOf` and `divOf` two,
 under the tags the numbers share as the steps they run combine them
 [QSDSP#answer], a call of `sumOf` that gives none refused as
-`::any/sumOf/numbers/EmptyError` and one of `subOf` that gives one as
-`::any/subOf/subtrahend/NotGivenError`.
+`::any/sumOf/NumbersEmptyError` and one of `subOf` that gives one as
+`::any/subOf/SubtrahendNotGivenError`.
 
 ```qlang
 > 1 | add 1 2 !| get [~(tag) ~(doc | content | contains "sumOf")]
@@ -80,7 +80,7 @@ under the tags the numbers share as the steps they run combine them
 12
 
 > {:a 1} | get [~(sumOf !| tag) ~(subOf /a !| tag)]
-[::any/sumOf/numbers/EmptyError ::any/subOf/subtrahend/NotGivenError]
+[::any/sumOf/NumbersEmptyError ::any/subOf/SubtrahendNotGivenError]
 
 > {:a ::Cents#5 :b ::Dollars#2} | get [~(sumOf (get /a) (get /b) !| tag) ~(mulOf (get /a) 3)]
 [::call/KindsMismatchedError ::Cents#15]

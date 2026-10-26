@@ -3,7 +3,7 @@
 {"name":"groupBy-takes-a-path","query":"[{:s :x} {:s :y} {:s :x}] | groupBy /s | map ~(count)","expect":"{:x 2 :y 1}"}
 {"name":"filter-takes-a-path","query":"[{:a true} {:a false}] | filter /a","expect":"[{:a true}]"}
 {"name":"a-path-the-code-takes-reads-strictly","query":"[{:n 1} {:m 2}] | map /n !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"an-input-of-a-value-refuses-a-path","query":"5 | mul /a !| tag","expect":"::number/mul/multiplier/KindNotTakenError"}
+{"name":"an-input-of-a-value-refuses-a-path","query":"5 | mul /a !| tag","expect":"::number/mul/MultiplierKindNotTakenError"}
 {"name":"an-input-given-a-path-names-its-repair","query":"5 | mul /qty !| repair","expect":"~(mul (get /qty))"}
 {"name":"an-input-given-a-path-among-other-args-names-its-repair","query":"\"abc\" | replace /x \"y\" !| repair","expect":"~(replace (get /x) \"y\")"}
 {"name":"the-verbs-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}

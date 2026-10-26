@@ -7,6 +7,7 @@ import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
 import { chainOfKind } from '../chain.mjs';
+import { ANY_KIND_NAME } from '../address.mjs';
 import { callVerbOn } from '../eval.mjs';
 import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -28,10 +29,15 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 }
 
 // [QSPRN#excerpt]
+export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
+
+// [QSPRN#excerpt], [QSPRN#legend]
+export const FIRST_VIEW = 'tag';
+
 function viewsRevealedOf(value, scope) {
   for (const kindName of kindsOfWalk(value)) {
     const kind = kindOfAValueOf(scope, kindName);
-    if (kind !== null && chainOfKind(kind).reveals.length > 0) return chainOfKind(kind).reveals.map(name => [name, nodeOf(scope, `${kindName}/${name}`)]);
+    if (kind !== null && chainOfKind(kind).reveals.length > 0) return chainOfKind(kind).reveals.map(name => [name, verbOfAView(scope, kindName, name)]);
   }
   return [];
 }
@@ -39,7 +45,7 @@ function viewsRevealedOf(value, scope) {
 export function viewsOfKinds(scope, state = rootState(null, scope)) {
   return async value => {
     const views = [];
-    for (const [name, verb] of viewsRevealedOf(value, scope)) {
+    for (const [name, verb] of [[FIRST_VIEW, verbOfAView(scope, ANY_KIND_NAME, FIRST_VIEW)], ...viewsRevealedOf(value, scope)]) {
       if (verb === null) continue;
       const answered = await callVerbOn(verb, value, state);
       if (!isErrorValue(answered)) views.push([name, answered]);

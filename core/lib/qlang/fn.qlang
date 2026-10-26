@@ -50,14 +50,13 @@
             of another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
-        ::kind/InvariantNotHeldError
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain
             takes, written with the modifiers the page of its verb names in
             their order, `::fn/takes | doc` those of `takes`, whether the
             verb wrote it or the literal: `:command` holds the command as
             written, `:index` the index of the modifier refused, from zero,
-            or of the first left out, and `:actualValue` the modifier.
+            or of the first left out, and `:found` the modifier.
             ::link~(::fn/on | doc) ::link~(::fn/takes | doc)
             ::link~(::fn/returns | doc) ::link~(::fn/throws | doc)
             ::link~(::fn/holds | doc)
@@ -67,39 +66,27 @@
           | wires :index
               |~~ The index, from zero, of the element refused. ~~|
               ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :found |~~ The modifier refused. ~~| ~(query /found))
     | throws :NameDeclaredTwiceError
         |~~ A name of a chain is declared once: an input, a refusal
             and an invariant each by its name, the subject and the answer
-            by theirs, and an invariant names no refusal the kinds of its
-            input name, `:by/KindNotTakenError`.
+            by theirs, and an invariant names no refusal the kinds of an
+            input name, `:ByKindNotTakenError`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
-    | throws :NameUnderNoInputError
-        |~~ A refusal or an invariant written with a path is named under
-            the subject, an input taken before it or the answer,
-            `:by/TooBigError`, and an invariant is written with one.
-        ~~|
-        ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The chain that declares the name twice. ~~|)
     | throws :LawUnderNoNameError
         |~~ A law written with a path is named under a name the function
             declares before it: an input, a refusal, an invariant, a fact,
             the subject or the answer, the refusal an input's kinds name
-            among them, `proves :by/KindNotTakenError/refusesAString …`.
+            among them, `proves :ByKindNotTakenError/refusesAString …`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The chain the law stands in. ~~|)
     | throws :RecipeKindNotTakenError
         |~~ The recipe is a quote, a primitive of the host, or null for a
             contract, whether `impl` gives it or the literal writes it.
         ~~|
-        ::kind/KindNotTakenError
     | throws :RecipeMissingError
         |~~ A function runs the recipe it holds: a contract holds none, and
             a `::builtin{}` runs the primitive a host handed with the
@@ -114,125 +101,44 @@
                   holds no function equal to the one refused.
               ~~|
               ::tag
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
-    | throws :KindNotTakenError
-        |~~ A value an input reads of none of the kinds it takes, or one
-            that is no vector where it takes the kinds of each element, is
-            refused under the input, `::number/add/addend/KindNotTakenError`,
-            and an answer of none of the kinds `returns` names under the
-            answer: every such refusal is closed by the kind of this one, the
-            page of each standing under its own verb, and a refusal a
-            primitive raises of a value of none of the kinds it takes shares
-            it by its tag, `::vec/filter/ConditionKindNotTakenError`.
-            ::link~(::fn/takes | doc) ::link~(::fn/returns | doc)
-        ~~|
-        ~(wires :repair
-              |~~ The step the call was likely meant as: where it gave a path
-                  for the value the path names, `mul (get /qty)` for
-                  `mul /qty`, and null where it gave none.
-              ~~|
-              ::quote
-          | wires :expected |~~ The kinds taken. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
-    | throws :ElementKindNotTakenError
-        |~~ An element of none of the kinds an input takes for each element
-            is refused under the input, `::vec/concat/vectors/ElementKindNotTakenError`,
-            the first element so refused: every such refusal is closed by the
-            kind of this one, and a refusal a primitive raises of an element
-            of none of the kinds it takes shares it by its tag,
-            `::any/allOf/ConditionKindNotTakenError`.
-            ::link~(::fn/takes | doc)
-        ~~|
-        ~(wires :index |~~ The index, from zero, of the first element refused. ~~| ::number
-          | wires :expected |~~ The kinds each element takes. ~~| ::set
-          | wires :actualTag |~~ The kind of the element refused. ~~| ::tag
-          | wires :actualValue |~~ The element refused. ~~|)
-    | throws :NotGivenError
-        |~~ An input the args of the call leave out is refused under the
-            input, `::vec/map/code/NotGivenError`, the args its
-            `actualValue`: every such refusal is closed by the kind of this
-            one.
-            ::link~(::fn/takes | doc)
-        ~~|
-        ~(wires :actualTag |~~ The kind of the args, the address of the verb. ~~| ::tag
-          | wires :actualValue |~~ The args of the call, under the address of the verb. ~~|)
-    | throws :ArgsBeyondInputsError
-        |~~ Args past those the inputs of a verb read are refused under the
-            verb, `::number/add/ArgsBeyondInputsError`: every such refusal is
-            closed by the kind of this one.
-            ::link~(::fn/takes | doc)
-        ~~|
-        ~(wires :actualTag |~~ The kind of the args, the address of the verb. ~~| ::tag
-          | wires :arity |~~ How many args the inputs read. ~~| ::number
-          | wires :actualValue |~~ The args of the call, under the address of the verb. ~~|)
-    | throws :SubjectRefusedError
-        |~~ A subject the verb does not serve, of none of the kinds its
-            label and `on` name, is refused under the verb as
-            `SubjectNot` and the label, `::number/add/SubjectNotNumberError`,
-            and a subject an invariant of the subject does not hold of under
-            the name the invariant gives: every such refusal is closed by the
-            kind of this one, the first frame of its trace holding the
-            subject, and a refusal a primitive raises of its subject shares
-            it by its tag, `::string/toNumber/TextNotNumberError`.
-            ::link~(::fn/on | doc) ::link~(::fn/holds | doc)
-        ~~|
-        ~(wires :repair
-              |~~ The step the call was likely meant as: where the subject is
-                  a path for the value it names, `get /tags | count` for
-                  `/tags | count`, and null where it is none.
-              ~~|
-              ::quote
-          | wires :actualTag |~~ The kind of the subject refused. ~~| ::tag)
-    | throws :InvariantNotHeldError
-        |~~ An input or an answer an invariant of the function does not hold
-            of is refused under the name the invariant gives,
-            `::number/div/divisor/ZeroError`: every such refusal is closed by
-            the kind of this one, and a refusal a primitive raises of an
-            input its rule does not hold of shares it by its tag,
-            `::string/toRegex/flags/NotFlagsError`.
-            ::link~(::fn/holds | doc)
-        ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The input or the answer the invariant refused. ~~|)
-    | proves :KindNotTakenError/readsTheFactsByTheirNames
+          | wires :found |~~ The function whose recipe is missing. ~~|)
+    | proves :readsTheSlotsOfARefusalByTheirNames
         |~~ A value an input refuses answers its kinds, its kind and itself
             by their names.
         ~~|
-        ~(1 | add "x" !| get [~(expected) ~(actualTag) ~(actualValue)] | eq [#[::number] ::string "x"])
-    | proves :KindNotTakenError/namesTheRepairOfAPath
+        ~(1 | add "x" !| get [~(addend | expected) ~(addend | found | tag) ~(addend | found)] | eq [#[::number] ::string "x"])
+    | proves :namesTheRepairOfAPath
         |~~ A path the call gives for the value it names names the step
             that reads it.
         ~~|
         ~(5 | mul /qty !| repair | eq ~(mul (get /qty)))
-    | proves :KindNotTakenError/namesNoRepairOfAPathANameHolds
+    | proves :namesNoRepairOfAPathANameHolds
         |~~ A path a name holds is no path the step wrote, and names no
             repair.
         ~~|
         ~(:p /qty | 5 | mul p !| repair | eq null)
-    | proves :KindNotTakenError/namesNoRepairOfAPathADefaultReads
+    | proves :namesNoRepairOfAPathADefaultReads
         |~~ A path an input reads by default is no path the step wrote, and
             names no repair.
         ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| ~(query /0 /one) ::number | impl ~(add by)) | 5 | plus !| repair | eq null)
-    | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
+    | proves :readsTheIndexOfAnElementRefused
         |~~ An element an input refuses answers its index. ~~|
-        ~([1] | concat [2] 3 !| get [~(index) ~(actualValue)] | eq [1 3])
-    | proves :NotGivenError/readsTheArgs
+        ~([1] | concat [2] 3 !| get [~(vectors | index) ~(vectors | found | get /1)] | eq [1 3])
+    | proves :leavesOutAnInputTheArgsLeaveOut
         |~~ An input the args leave out answers the args of the call. ~~|
-        ~([1 2] | map !| actualValue | eq ::vec/map[])
-    | proves :ArgsBeyondInputsError/readsTheArity
+        ~([1 2] | map !| get [~(subject | found) ~(code)] | eq [[1 2] null])
+    | proves :readsWhatWentWhereWhereArgsPassTheInputs
         |~~ Args past the inputs answer how many the inputs read. ~~|
-        ~(1 | add 1 2 !| get [~(arity) ~(actualValue)] | eq [1 ::number/add[1 2]])
-    | proves :SubjectRefusedError/readsTheKindOfTheSubject
+        ~(1 | add 1 2 !| get [~(addend | found) ~(surplus | found)] | eq [1 [2]])
+    | proves :readsTheSubjectItDoesNotServe
         |~~ A subject the verb does not serve answers its kind, the first
             frame of the trace holding it.
         ~~|
-        ~("x" | add 1 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "x"])
-    | proves :InvariantNotHeldError/readsTheValueRefused
+        ~("x" | add 1 !| get [~(subject | found | tag) ~(trace | first | subject)] | eq [::string "x"])
+    | proves :readsTheInputAnInvariantRefuses
         |~~ An input an invariant refuses answers itself. ~~|
-        ~(10 | div 0 !| actualValue | eq 0)
+        ~(10 | div 0 !| divisor | found | eq 0)
     | proves :isBuiltByCommands
         |~~ A function is built from the noun. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | tag | eq ::fn)
@@ -259,24 +165,24 @@
         |~~ An invariant written under an input refuses a value that
             breaks it.
         ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [500]
-          !| get [~(tag) /actualValue]
-          |  eq [::fn/call/by/TooBigError 500])
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by)) [500]
+          !| get [~(tag) /:by/found]
+          |  eq [::fn/call/ByTooBigError 500])
     | proves :holdsTheInvariantsOfItsSubject
         |~~ An invariant written under the subject refuses a subject that
             breaks it, before the inputs are read.
         ~~|
-        ~(-5 | apply (::fn | holds :subject/NotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) !| tag | eq ::fn/call/subject/NotAboveZeroError)
+        ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) !| tag | eq ::fn/call/SubjectNotAboveZeroError)
     | proves :holdsTheInvariantsOfItsAnswer
-        |~~ An invariant written under the answer refuses an answer that
+        |~~ An invariant written after `returns` refuses an answer that
             breaks it.
         ~~|
-        ~(5 | apply (::fn | holds :answer/TooBigError |~~ A number past ten. ~~| ~(lt 10) | impl ~(add 100))
-          !| get [~(tag) /actualValue]
-          |  eq [::fn/call/answer/TooBigError 105])
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | holds :AnswerTooBigError |~~ A number past ten. ~~| ~(answer | lt 10) | impl ~(add 100))
+          !| get [~(tag) /:answer/found]
+          |  eq [::fn/call/AnswerTooBigError 105])
     | proves :answersTheFailureOfACondition
         |~~ A condition that fails answers its failure. ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(get /nope) | impl ~(add by)) [3]
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | get /nope) | impl ~(add by)) [3]
           !| tag
           |  eq ::path/SubjectHasNoPartsError)
     | proves :answersTheFailureOfAModifier
@@ -297,9 +203,9 @@
         ~(::fn[[] ~(1)] !| tag | eq ::fn/PayloadNotPairError)
     | proves :CommandNotTakenError/refusesACommandItsVerbWrites
         |~~ A command its verb writes with what the chain does not take is
-            refused as the literal's is, the command its `:actualValue`.
+            refused as the literal's is, the modifier its `:found`.
         ~~|
-        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
+        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(found)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
     | proves :CommandNotTakenError/countsTheObjectsAsTheLiteralDoes
         |~~ A command its verb writes with a modifier left out or past the
             last is refused as the literal's is.
@@ -366,13 +272,12 @@
         |~~ An invariant named as the refusal of its input's kinds is
             refused.
         ~~|
-        ~(::fn[~(takes :by |~~ How much. ~~| /0 ::number | holds :by/KindNotTakenError |~~ Positive. ~~| ~(gt 0)) ~(1)] !| tag | eq ::fn/NameDeclaredTwiceError)
-    | proves :NameUnderNoInputError/refusesARefusalUnderNoInput
-        |~~ A refusal under a name no input takes is refused. ~~|
-        ~(::fn[~(throws :x/TooBigError |~~ Too big. ~~|) ~(1)] !| tag | eq ::fn/NameUnderNoInputError)
-    | proves :NameUnderNoInputError/refusesAnInvariantOfNoInput
-        |~~ An invariant written with no path holds of nothing. ~~|
-        ~(::fn[~(holds :TooBigError |~~ Too big. ~~| ~(lt 10)) ~(1)] !| tag | eq ::fn/NameUnderNoInputError)
+        ~(::fn[~(takes :by |~~ How much. ~~| /0 ::number | holds :ByKindNotTakenError |~~ Positive. ~~| ~(by | gt 0)) ~(1)] !| tag | eq ::fn/NameDeclaredTwiceError)
+    | proves :CommandNotTakenError/refusesARefusalNamedWithAPath
+        |~~ A refusal and an invariant are named one level under the
+            function, by a name of one segment.
+        ~~|
+        ~(::fn[~(takes :by |~~ b ~~| /0 | holds :by/TooBigError |~~ Too big. ~~| ~(by | lt 10)) ~(1)] !| get [~(tag) ~(index)] | eq [::fn/CommandNotTakenError 0])
     | proves :LawUnderNoNameError/refusesALawUnderNoName
         |~~ A law under a name the function does not declare is refused. ~~|
         ~(::fn[~(proves :x/holds |~~ An x. ~~| ~(true)) ~(1)] !| tag | eq ::fn/LawUnderNoNameError)
@@ -394,7 +299,7 @@
         |~~ The call of a function `apply` runs or whose inputs `fill`
             reads, which no verb names: a refusal of its subject, its
             args, its inputs, its answer or its invariants is named under
-            it, `::fn/call/by/KindNotTakenError`, as a verb's is named
+            it, `::fn/call/ByKindNotTakenError`, as a verb's is named
             under its address, and reads this page, the pages of the roles
             staying with the function; a function named under a label
             names them under its address, where each reads its own.
@@ -404,11 +309,59 @@
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [1 2] !| tag | eq ::fn/call/ArgsBeyondInputsError)
     | proves :call/refusesAnInputLeftOut
         |~~ An input the args leave out is refused. ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) !| tag | eq ::fn/call/by/NotGivenError)
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) !| tag | eq ::fn/call/ByNotGivenError)
     | proves :call/pagesTheRefusalsNamedUnderIt
         |~~ A refusal named under the call reads its page. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| doc | eq (::fn/call | doc))
+    | tells :subject
+        |~~ The subject of a verb: the value its call ran on, as the pipe
+            handed it, its tags with it.
+        ~~|
+    | tells :surplus
+        |~~ The args of a call past those the inputs of its verb read. ~~|
+    | tells :answer
+        |~~ The answer the recipe of a verb gave. ~~|
+    | tells :repair
+        |~~ The step the call was likely meant as: where it gave a path for
+            the value the path names, `mul (get /qty)` for `mul /qty`, where
+            its subject is a path for the value it names,
+            `get /tags | count` for `/tags | count`, and null where it gave
+            none.
+        ~~|
     | impl ::builtin{}
+
+:fn/slot
+  |~~ A slot of a verb as the verdict of a refusal tells it, the subject,
+      an input, the args past the inputs or the answer: what the verb
+      expects there and what the call put there, `addend/expected` and
+      `addend/found`, the value found whole or as the cell its host keeps
+      it in, its own names beneath it, `addend/found/count`, and never a
+      name of the verb. A slot is read from a refusal by its name and its
+      probes by theirs, `!| addend | found`.
+      ::link~(::fn | doc) ::link~(::error | doc)
+  ~~|
+  ::kind[~(accepts |~~ The probes of the slot, a map. ~~| ::map
+    | wires :expected
+        |~~ The kinds the rule takes: those of the value of the slot, as the
+            chain of its verb writes them, of the part of it the path of the
+            frame or `index` names, or of what its code answered.
+        ~~|
+        ~(query /expected) #[::set ::null]
+    | wires :found
+        |~~ What the call put in the slot: the value as the call gave it, its
+            tags with it.
+        ~~|
+        ~(query /found)
+    | wires :answer
+        |~~ What the code of the slot answered: where the verb ran it on a
+            part, the answer it refused.
+        ~~|
+        ~(query /answer)
+    | wires :index
+        |~~ The index of the element refused: from zero, the first of the slot
+            so refused.
+        ~~|
+        ~(query /index) #[::number ::null]) null]
 
 :fn/on
   |~~ Names the subject of a function, its page and the kinds it serves,
@@ -436,7 +389,7 @@
             refuses another under its call, the kinds its `:expected`.
         ~~|
         ~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
-          | get [~(5 | apply f) ~("x" | apply f !| get [~(tag) /expected])]
+          | get [~(5 | apply f) ~("x" | apply f !| get [~(tag) /:subject/expected])]
           | eq [6 [::fn/call/SubjectKindNotTakenError #[::number]]])
     | proves :pagesTheSubjectOfAVerb
         |~~ The page of the subject is the page of its node under the
@@ -483,7 +436,7 @@
         ~(::fn | takes :by |~~ How much. ~~| /0 | inputs | map /name | eq [:by])
     | proves :holdsTheKinds
         |~~ An input of kinds refuses a value of none under its name. ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| tag | eq ::fn/call/by/KindNotTakenError)
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| tag | eq ::fn/call/ByKindNotTakenError)
     | proves :holdsTheValueAsItIsGiven
         |~~ An input holds the value as the call gives it, its tags with it,
             where the walk of its tags reaches one of its kinds.
@@ -497,7 +450,7 @@
             input where `throws` gives it no page.
         ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by))
-          | ::number/plus/by/KindNotTakenError
+          | ::number/plus/ByKindNotTakenError
           | doc
           | content
           | trim
@@ -517,19 +470,19 @@
     | proves :refusesAnElementOfNoneOfItsKinds
         |~~ An element of none of the kinds is refused with its index. ~~|
         ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
-          !| get [~(tag) /index]
-          |  eq [::fn/call/xs/ElementKindNotTakenError 1])
+          !| get [~(tag) /:xs/index]
+          |  eq [::fn/call/XsElementKindNotTakenError 1])
     | proves :refusesNoVectorOfElements
         |~~ A value that is no vector is refused where the input names the
             kinds of each element.
         ~~|
-        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| tag | eq ::fn/call/xs/KindNotTakenError)
+        ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [5] !| tag | eq ::fn/call/XsKindNotTakenError)
     | proves :pagesTheRefusalOfTheKindsOfEachElementByItsInput
         |~~ The refusal the kinds of each element name reads the page of
             the input where `throws` gives it no page.
         ~~|
         ~(:number/w (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))
-          | ::number/w/xs/ElementKindNotTakenError
+          | ::number/w/XsElementKindNotTakenError
           | doc
           | content
           | trim
@@ -552,7 +505,7 @@
         ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| ~(first | sub "x") | impl ~(add by)) [3]
           !| tag
-          |  eq ::number/sub/subtrahend/KindNotTakenError)
+          |  eq ::number/sub/SubtrahendKindNotTakenError)
     | proves :refusesAStepWrittenForItsQuote
         |~~ A modifier computed at the call that failed, where the input
             that reads it takes a quote, is refused under its
@@ -562,7 +515,7 @@
           | [1 2]
           | each (add 1)
           !| tag
-          |  eq ::vec/each/code/KindNotTakenError)
+          |  eq ::vec/each/CodeKindNotTakenError)
     | proves :refusesAStepWrittenForAQuoteOfTheArgsAtItsIndex
         |~~ Where the input that reads the args whole takes quotes, a
             modifier that failed is refused at its index.
@@ -570,8 +523,8 @@
         ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
           | 5
           | w ~(add 1) (get /x)
-          !| get [~(tag) ~(index)]
-          | eq [::number/w/cs/ElementKindNotTakenError 1])
+          !| get [~(tag) ~(cs | index)]
+          | eq [::number/w/CsElementKindNotTakenError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | takes :by |~~ How much. ~~| /0 !| tag | eq ::fn/takes/SubjectNotFnError)
@@ -579,7 +532,7 @@
         |~~ A name that is no keyword is refused by the chain, which holds
             what each command writes.
         ~~|
-        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError 0 "by"]))
+        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(found)] | eq [::fn/CommandNotTakenError 0 "by"]))
     ::builtin{}]
 
 :fn/returns
@@ -607,14 +560,14 @@
         |~~ An answer of another kind is refused under the answer of the
             call, the kind its `:expected`.
         ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /expected] | eq [::fn/call/answer/KindNotTakenError #[::number]])
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /:answer/expected] | eq [::fn/call/AnswerKindNotTakenError #[::number]])
     | proves :refusesAnAnswerOfNoneOfItsKinds
         |~~ An answer of none of several kinds is refused under the answer
             of the call.
         ~~|
         ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
-          !| get [~(tag) /actualValue]
-          |  eq [::fn/call/answer/KindNotTakenError true])
+          !| get [~(tag) /:answer/found]
+          |  eq [::fn/call/AnswerKindNotTakenError true])
     | proves :passesTheFailureOfTheRecipe
         |~~ A recipe that fails answers its failure, which no kind brings.
         ~~|
@@ -630,25 +583,26 @@
     ::builtin{}]
 
 :fn/throws
-  |~~ Names a refusal of a function, its page and the kind of its facts,
+  |~~ Names a refusal of a function, its page and its own facts,
       `::fn | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
       under the subject, an input or the answer where it is written with a
       path, the page of the refusal the kinds of an input name among them;
-      under a label it is a refusal of the verb. The facts are the commands
-      of the kind of the refusal, a quote, each `wires` a fact read by the
-      key of its name in the facts of the error, and `throws` builds the
-      kind of them, its payload the error the refusal raises, an `::error`,
-      and its wiring ending with `trace`, so the error at rest of the
-      refusal answers each fact by its name, `!| bound`. A refusal the
-      rules of the chain lay, of the kinds of an input, of an input left
-      out, of args past the inputs and of a subject of another label, takes
-      the kind of its family, `::fn/KindNotTakenError`, and its `throws`
-      writes its page alone. A refusal that shares the kind of another names
-      it by its tag instead of the quote,
-      `| throws :ConditionKindNotTakenError |~~ … ~~| ::fn/KindNotTakenError`,
-      its error at rest closed by the kind that closes the refusal the tag
+      under a label it is a refusal of the verb. A refusal of a verb is the
+      verdict of the verb, an `::error` whose kind wires each slot of the
+      verb, the subject, each input, the args past the inputs as
+      `surplus` and the answer, each read by its name and its probes by
+      theirs, `!| addend | found`, then `repair`, then the facts the
+      quote wires, each `wires` a fact read by the key of its name, and
+      `trace` last, so the error at rest answers each by its name,
+      `!| bound`. A refusal the rules of the chain lay, of the kinds of an
+      input, of an input left out, of args past the inputs and of a
+      subject of another label, is such a verdict, and its `throws` writes
+      its page alone. A refusal that shares the kind of another names it by
+      its tag instead of the quote,
+      `| throws :KeyTakenError |~~ … ~~| ::vec/groupBy/KeyTakenError`, its
+      error at rest closed by the kind that closes the refusal the tag
       names.
-      ::link~(::kind/wires | doc) ::link~(::fn/KindNotTakenError | doc)
+      ::link~(::kind/wires | doc) ::link~(::fn/slot | doc)
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -678,8 +632,8 @@
         |~~ A refusal the kinds of an input name takes the page `throws`
             gives it.
         ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :by/KindNotTakenError |~~ By is a number. ~~| | impl ~(add by))
-          | ::number/plus/by/KindNotTakenError
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :ByKindNotTakenError |~~ By is a number. ~~| | impl ~(add by))
+          | ::number/plus/ByKindNotTakenError
           | doc
           | content
           | trim
@@ -690,13 +644,16 @@
     ::builtin{}]
 
 :fn/holds
-  |~~ Writes an invariant of the subject, an input or the answer, a quote
-      under `::invariant`: the refusal of a value that breaks it, named
-      under the subject, the input or the answer, its page, and the
-      condition the value answers true to,
-      `| holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100)`. An
-      invariant of the subject holds of the subject the walk served, before
-      the inputs are read, `| holds :subject/NotIntegerError |~~ A whole number. ~~| ~(eq (floor))`.
+  |~~ Writes an invariant of a function, a quote under `::invariant`: the
+      refusal of a call that breaks it, named one level under the function,
+      its page, and the condition the call answers true to, a small recipe,
+      the subject in the pipe and each input by its name,
+      `| holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100)`,
+      `| holds :SubjectNotIntegerError |~~ A whole number. ~~| ~(eq (floor))`.
+      It runs once the inputs are held and before the recipe, or, written
+      after `returns`, once the answer is held, which it reads as `answer`;
+      a name the chain declares reads its value past a verb of the subject
+      of that name, the verb called by its address, `vec/count`.
       ::link~(::invariant | doc)
   ~~|
   ::fn[~(on
@@ -704,9 +661,9 @@
         ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal of
-            a value that breaks it, a keyword read as a tag, written with a path
-            under the subject, an input or the answer, `:by/TooBigError`; its
-            page, a doc; and the condition the value answers true to, a quote.
+            a call that breaks it, a keyword of one segment read as a tag,
+            `:ByTooBigError`; its page, a doc; and the condition the call
+            answers true to, a quote.
         ~~|
         ~(it)
     | returns |~~ The function with the invariant. ~~| ::fn
@@ -718,21 +675,21 @@
         |~~ An invariant of a function named under a label is a node of
             the verb.
         ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by))
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by))
           | 5
           | plus 500
           !| tag
-          |  eq ::number/plus/by/TooBigError)
+          |  eq ::number/plus/ByTooBigError)
     | proves :writesAnInvariantOfTheSubject
         |~~ An invariant of the subject of a verb refuses a subject that
             breaks it under the verb.
         ~~|
-        ~(:number/inc (::fn | holds :subject/NotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) | get [~(5 | inc) ~(-5 | inc !| tag)] | eq [6 ::number/inc/subject/NotAboveZeroError])
+        ~(:number/inc (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) | get [~(5 | inc) ~(-5 | inc !| tag)] | eq [6 ::number/inc/SubjectNotAboveZeroError])
     | proves :passesAValueThatKeepsIt
         |~~ A value that keeps every invariant of its input goes on to the
             recipe.
         ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [3] | eq 8)
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by)) [3] | eq 8)
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | fn/holds :x/E |~~ An e. ~~| ~(true) !| tag | eq ::fn/holds/SubjectNotFnError))
@@ -774,8 +731,8 @@
         |~~ A law written under the refusal an input's kinds name lies
             under it.
         ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | proves :by/KindNotTakenError/refusesAString |~~ A string is refused. ~~| ~(5 | plus "x" !| tag | eq ::number/plus/by/KindNotTakenError) | impl ~(add by))
-          | ::number/plus/by/KindNotTakenError
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | proves :ByKindNotTakenError/refusesAString |~~ A string is refused. ~~| ~(5 | plus "x" !| tag | eq ::number/plus/ByKindNotTakenError) | impl ~(add by))
+          | ::number/plus/ByKindNotTakenError
           | runLaws
           | map /ok
           | eq [true])
@@ -836,9 +793,6 @@
         |~~ `fill` writes into code, a quote: a contract or a primitive has
             none.
         ~~|
-        ~(wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | proves :writesTheArgs
         |~~ The value goes into the head of the code. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3 | add by))
@@ -861,13 +815,13 @@
           | eq ~(:d |~~ A doc. ~~| (|~~ x ~~|) | d | content))
     | proves :holdsTheKinds
         |~~ A value of none of the kinds of its input is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/by/KindNotTakenError)
+        ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/ByKindNotTakenError)
     | proves :SubjectNotFnError/refusesANumber
         |~~ A number is no function. ~~|
         ~(5 | fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
     | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
     ::builtin{}]
 
 :fn/inputs

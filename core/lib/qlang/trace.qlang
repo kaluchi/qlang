@@ -43,16 +43,11 @@
             of values, and a vector under a tag of another kind among them,
             whose frames `payload` reads first.
         ~~|
-        ::kind/PayloadKindNotTakenError
     | throws :ElementKindNotTakenError
         |~~ Every element of a trace is a frame, `::frame["x" ~(add 1)]`;
             `:index` names the first that is not, and `:expected` the kind
             of a frame.
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :holdsAFrameForEachStep
         |~~ A failure inside the code of `map` holds the frame of the step
             that failed and the frame of `map`.
@@ -85,7 +80,7 @@
         |~~ A number a map writes as its trace is refused when it is
             raised.
         ~~|
-        ~({:a 1 :trace 5} | raise !| get [~(tag) ~(actualTag)] | eq [::trace/PayloadKindNotTakenError ::number])
+        ~({:a 1 :trace 5} | raise !| get [~(tag) ~(found | tag)] | eq [::trace/PayloadKindNotTakenError ::number])
     | proves :ElementKindNotTakenError/refusesAMap
         |~~ An element that is no frame is refused at its index. ~~|
         ~(::trace[{:failed ~(add 1)}] !| get [~(tag) ~(index)] | eq [::trace/ElementKindNotTakenError 0])

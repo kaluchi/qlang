@@ -183,7 +183,7 @@ payload, `5 | tag ::tagged` refused as
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name
 lays it over the value in the pipe through the tag's kind,
 `5 | tag ::Foo`, a name that is no tag name refused as
-`::any/tag/name/KindNotTakenError`, and given none answers the tag of the
+`::any/tag/NameKindNotTakenError`, and given none answers the tag of the
 value, a vector of a tag and a value the vector it is.
 
 ```qlang
@@ -205,8 +205,8 @@ value, a vector of a tag and a value the vector it is.
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | tag) ~(::vec/take/count/NotIntegerError#5 !| tag) ~(:limit 5 | ::limit#1 !| tag)]
-[::vec/sort ::vec/take/count/NotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
+> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5 | ::limit#1 !| tag)]
+[::vec/sort ::vec/take/CountNotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
 ```
 
 ## closed

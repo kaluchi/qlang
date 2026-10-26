@@ -21,7 +21,7 @@ const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and a
 
 const FN_COMMANDS = [
   ['on |~~ A number. ~~| ::number'],
-  ['takes :by |~~ How much,\n    a number. ~~| /0 ::number', 'holds :by/TooBigError |~~ Below ten. ~~| ~(lt 10)'],
+  ['takes :by |~~ How much,\n    a number. ~~| /0 ::number', 'holds :ByTooBigError |~~ Below ten. ~~| ~(by | lt 10)'],
   ['takes :xs |~~ The values. ~~| ~(drop 1) [#[::number ::string]]'],
   ['takes :d |~~ A default. ~~| ~(query /2 3)'],
   ['returns |~~ The answer. ~~| #[::number ::string]'],
@@ -30,7 +30,7 @@ const FN_COMMANDS = [
 ];
 const KIND_COMMANDS = [
   ['accepts |~~ The payload,\n    a map. ~~| ::map'],
-  ['wires :w |~~ The width. ~~| /w ::number', 'holds :w/NotPositiveError |~~ Above\n    zero. ~~| ~(gt 0)'],
+  ['wires :w |~~ The width. ~~| /w ::number', 'holds :WNotPositiveError |~~ Above\n    zero. ~~| ~(w | gt 0)'],
   ['wires :tags |~~ The tags. ~~| ~(query /tags []) [::string]'],
   ['tells :note |~~ A note. ~~|'],
   ['holds :TooWideError |~~ Narrow. ~~| ~(get /w | lt 100)'],

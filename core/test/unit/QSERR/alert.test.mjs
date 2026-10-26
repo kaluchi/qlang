@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { alertOf, ROOM_OF_A_FACT, ROOM_OF_AN_ALERT } from '../../../src/excerpt.mjs';
+import { alertOf, ROOM_OF_A_FACT, ROOM_OF_AN_ALERT } from '../../../src/rooms.mjs';
 
 const isExcerpt = value => value instanceof Map && printValue(value).startsWith('::excerpt{');
 const LONG = 'a long line of text to leave out for sure, which runs on long enough that a room of a fact holds it not';

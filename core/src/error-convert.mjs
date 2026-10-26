@@ -4,7 +4,7 @@ import { kindOfAValueOf } from './nouns.mjs';
 import { chainOfKind } from './chain.mjs';
 import { nameOfContinuation } from './parse.mjs';
 import { printValue } from './print-value.mjs';
-import { lengthOf, ROOM_OF_A_FACT } from './excerpt.mjs';
+import { lengthOf, ROOM_OF_A_FACT } from './rooms.mjs';
 
 // [QSERR#site]
 recordRefusal('quote/ParseError');

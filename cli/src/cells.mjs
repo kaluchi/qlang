@@ -14,9 +14,6 @@ const SOURCE = 'source.qlang';
 const NAMES = 'names.qlang';
 const ANSWER = 'answer.qlang';
 
-// The identity of the root the command line boots, the sources and the code
-// of the core and of the command line, so a cell another root kept is held
-// by none.
 const CODE_OF_THE_ROOT = [
   [dirname(dirname(fileURLToPath(import.meta.resolve('@kaluchi/qlang-core')))), ['lib', 'src', 'host', 'gen']],
   [join(dirname(fileURLToPath(import.meta.url)), '..'), ['lib', 'src']]
@@ -46,9 +43,6 @@ function rootIdentity() {
 
 const cellFolder = identity => join(tmpdir(), 'qlang', rootIdentity(), 'cells', identity);
 
-// The values a query declared, each as the core prints it, so reading them
-// back runs no body again; a node a declaration laid holds no source and
-// comes again with it.
 function namesOf(scope) {
   const declared = [];
   for (const [name, entry] of scope) {

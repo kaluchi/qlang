@@ -3,7 +3,7 @@ import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { ROOM_OF_A_FACT } from '../../../src/excerpt.mjs';
+import { ROOM_OF_A_FACT } from '../../../src/rooms.mjs';
 
 describe('what a refusal of the parser says', () => {
   it('lists no class of characters among the continuations of a refusal', () => {

@@ -5,7 +5,7 @@ import { declareRefusal } from './errors.mjs';
 import { makeSet } from './ordering.mjs';
 import {
   makeKeyword, isKeyword, isTag, isRegex, isPath, isDoc, isQuote, isVec, isMap, isSet, isTagged, isValueClass,
-  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
+  makeTag, makeTagged, makeQuote, errorAtRest, payloadBeneath, canonicalKeywordLiteral, ERROR_TAG, QUOTE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 
 const CALL_TAG      = makeTag('call');
@@ -91,8 +91,27 @@ function holdsWithin(value, test) {
 
 export const computesWithin = value => holdsWithin(value, isComputingStep);
 
+// [QSLIT#closed]
+const TEMPLATE_WITHIN = 80;
+
+function templateOf(literal, written) {
+  const whole = written.quoting(literal);
+  return Array.from(whole).length <= TEMPLATE_WITHIN ? whole : templateCut(literal, written);
+}
+
+function templateCut(literal, written) {
+  if (isComputingStep(literal)) return written.quoting(literal);
+  if (!computesWithin(literal)) return '…';
+  if (isConstructStep(literal)) return `${literal.get('tag').literal}${templateCut(literal.get('payload'), written)}`;
+  const fields = errorFieldsOf(literal);
+  if (fields !== null || isBareMap(literal)) return `${fields === null ? '{' : '!{'}${runsCut([...(fields ?? literal)].map(([key, part]) => (computesWithin(part) ? `${canonicalKeywordLiteral(key)} ${templateCut(part, written)}` : '…')))}}`;
+  return `${isSet(literal) ? '#[' : '['}${runsCut(literal.map(part => templateCut(part, written)))}]`;
+}
+
+const runsCut = pieces => pieces.filter((piece, at) => piece !== '…' || pieces[at - 1] !== '…').join(' ');
+
 function literalMessage(literal, written) {
-  const template = written.quoting(literal);
+  const template = templateOf(literal, written);
   const tagged = isConstructStep(literal) && errorFieldsOf(literal.get('payload')) !== null;
   if (errorFieldsOf(literal) === null && !tagged) return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${template}\``;
   return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${template.slice(template.indexOf('!') + 1)}${tagged ? ` | tag ${literal.get('tag').literal}` : ''} | raise\``;

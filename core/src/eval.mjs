@@ -381,7 +381,7 @@ function readsTheValueItHolds(verb, record, state) {
   return parts !== undefined && parts.get(name) === bindingValueOf(record);
 }
 
-// [D407]
+// [QSBLD#value]
 async function partCalled(address, modifiers, state) {
   const [labelName, name] = splitAddress(address);
   const walked = walkToKinds(state.pipeValue, [labelName]);

@@ -10,7 +10,8 @@
       prints any answer, its comments painted as comments, and the text
       read back is the value it tells.
       `"~{" | parse !| legend` tells the error at rest of a parse, and
-      `payload` answers the value told.
+      `payload` answers the value told; a tag name tells the kind it names,
+      a comment for each name the kind wires, `::span | legend`.
       ::link~(::any/legend | doc) ::link~(::any/print | doc)
   ~~|
   ::kind

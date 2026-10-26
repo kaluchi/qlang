@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { excerptWithin, alertOf, lengthOf, ANSWER_BUDGET } from '../excerpt.mjs';
+import { excerptWithin, alertOf, lengthOf, ANSWER_BUDGET } from '../rooms.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';

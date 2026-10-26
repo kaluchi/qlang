@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { excerptWithin } from '../../../src/excerpt.mjs';
+import { excerptWithin } from '../../../src/rooms.mjs';
 
 const partsOf = excerpt => excerpt.get('parts');
 

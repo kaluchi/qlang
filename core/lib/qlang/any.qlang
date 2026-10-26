@@ -529,7 +529,14 @@
       read by its name answers its own legend in turn,
       `"~{" | parse !| location | legend`. A value of a kind that wires
       nothing stands on one line beside its gloss, and a container that
-      holds legends lays each on a line of its own. Every comment is
+      holds legends lays each on a line of its own. A tag name lays out the
+      kind it names, beneath the tag a comment for each name the kind wires,
+      in its order: the name, the path it reads where it reads no key of its
+      own name, its kind and the gloss of its page, so `::point | legend`
+      tells the parts of a point before a point is held and
+      `kinds | map ~legend` the parts of every kind. A legend is an answer,
+      printed within the budget of every answer, and one past it lays each
+      part past three hundred characters as its excerpt. Every comment is
       closed, `|~ … ~|`, and whitespace, so the text read back is the
       subject, `print` answering the text and `payload` the subject.
       ::link~(::legend | doc) ::link~(::kind/wires | doc)
@@ -558,6 +565,17 @@
             gloss of its kind.
         ~~|
         ~({:a 1} | legend | print | lines | count | eq 1)
+    | proves :laysOutTheKindATagNames
+        |~~ A tag name lays out the names its kind wires, a comment each. ~~|
+        ~(::point | legend | print | lines | get /2 | eq "|~ line /1 ::number · The line of the point, counted from one ~|")
+    | proves :readsATagNameBackAsTheTag
+        |~~ The legend of a tag name reads back as the tag. ~~|
+        ~(::span | legend | print | parse | open | eq ::span)
+    | proves :laysAPartPastTheBudgetAsItsExcerpt
+        |~~ A legend past the budget lays a part past three hundred
+            characters as its excerpt.
+        ~~|
+        ~(1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:of ::vec :count 5000")] | eq [true true])
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)

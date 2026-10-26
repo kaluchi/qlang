@@ -7,12 +7,14 @@ import { chainOfKind } from '../chain.mjs';
 import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, wiringOf, tagOf, beneathTags, payloadBeneath, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
 import { printsOfKinds } from './print.mjs';
+import { excerptWithin, sizeOf, lengthOf, ROOM_OF_A_FACT, ANSWER_BUDGET } from '../rooms.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
 const LEAST_COLUMN = 16;
 
-function legendOf(value, scope, printedOf) {
+function legendOf(value, scope, printedOf, excerpted = false) {
   const ofTheHead = glossOf(pageOf(scope, value), scope);
+  if (isTag(value)) return legendOfAKind(value, ofTheHead, scope);
   const kind = kindOfAValueOf(scope, tagOf(value).name);
   const wiring = wiringOf(value);
   const fields = kind === null || wiring === undefined ? [] : chainOfKind(kind).fields;
@@ -20,14 +22,33 @@ function legendOf(value, scope, printedOf) {
   const atPlaces = new Map(laid === null ? [] : fields.filter(({ place }) => place?.path.segments.length === 1).map(field => [field.place.path.segments[0], field]));
   if (atPlaces.size === 0) return aligned([[printValue(value, 0, printedOf, true), ofTheHead]]);
   const lines = [[laid.open, ofTheHead]];
-  for (const [key, part] of laid.parts) {
+  for (const [key, whole] of laid.parts) {
     const field = atPlaces.get(String(key));
+    const part = excerpted && sizeOf(whole, printedOf) > ROOM_OF_A_FACT ? excerptWithin(whole, ROOM_OF_A_FACT, printedOf) : whole;
     const printed = printValue(part, 1, printedOf, true);
     const said = field === undefined ? null : laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name);
     lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
   lines.push([laid.close, null]);
   return aligned(lines);
+}
+
+// [QSPRN#legend]
+function legendOfAKind(tag, ofTheHead, scope) {
+  const kind = kindOfAValueOf(scope, tag.name);
+  const fields = kind === null ? [] : chainOfKind(kind).fields;
+  const head = aligned([[printValue(tag), ofTheHead]]);
+  return [head, ...fields.map(field => closed(joined(partOfAKind(field), glossOf(field.page, scope))))].join('\n');
+}
+
+const readsItsOwnKey = (name, place) => place.path.segments.length === 1 && place.path.segments[0] === name.name;
+
+const partOfAKind = ({ name, place, written }) => [name.name, place === null || readsItsOwnKey(name, place) ? null : printValue(place.path), written === null ? null : printValue(written)].filter(piece => piece !== null).join(' ');
+
+// [QSPRN#legend]
+function legendWithin(told, scope, printedOf) {
+  const whole = legendOf(told, scope, printedOf);
+  return lengthOf(whole) <= ANSWER_BUDGET ? whole : legendOf(told, scope, printedOf, true);
 }
 
 function payloadLaidOut(value) {
@@ -81,5 +102,5 @@ function pageLinkedFrom(page, scope) {
 
 registerStateReader('legend/print', async (subject, state) => {
   const told = payloadBeneath(subject);
-  return legendOf(told, state.scope, await printsOfKinds(told, state.scope, state));
+  return legendWithin(told, state.scope, await printsOfKinds(told, state.scope, state));
 });

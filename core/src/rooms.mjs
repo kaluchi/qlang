@@ -17,9 +17,7 @@ const printedByNoKind = () => undefined;
 
 export const sizeOf = (value, printedOf = printedByNoKind) => lengthOf(printValue(value, 0, printedOf));
 
-// The parts an excerpt may show, the entries of a map and the elements of a
-// vector under their indices, or null where it tells a value by the text of
-// its print.
+// [QSPRN#excerpt]
 function partsOf(value, printedOf) {
   if (typeof value === 'string' || printedOf(value) !== undefined) return null;
   const beneath = beneathTags(value);
@@ -29,7 +27,6 @@ function partsOf(value, printedOf) {
 
 const textOf = (value, printedOf) => (typeof value === 'string' ? value : printValue(value, 0, printedOf));
 
-// [QSPRN#excerpt]
 export function excerptWithin(value, room, printedOf = printedByNoKind) {
   const of = tagOf(value);
   const entries = partsOf(value, printedOf);
@@ -62,8 +59,6 @@ export function excerptWithin(value, room, printedOf = printedByNoKind) {
   return makeExcerpt(of, entries.length, new Map([...head, ...tail]));
 }
 
-// A text whole where it fits, and otherwise its first and its last
-// characters, as many of each as the room holds, under their offsets.
 function excerptOfText(of, characters, room, printedOf) {
   const excerptOf = shown => makeExcerpt(of, characters.length, shown);
   const whole = excerptOf(new Map([['0', characters.join('')]]));

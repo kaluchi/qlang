@@ -16,6 +16,9 @@ export const lengthOf = text => Array.from(text).length;
 
 export const sizeOf = (value, printedOf) => lengthOf(printValue(value, 0, printedOf));
 
+// [QSPRN#excerpt], [QSPRN#legend]
+export const FIRST_VIEW = 'tag';
+
 // [QSPRN#excerpt]
 const isEmpty = value => (isMap(value) ? value.size === 0 : (isVec(value) || typeof value === 'string') && value.length === 0);
 
@@ -53,7 +56,7 @@ export async function alertOf(error, { keep, viewsOf }, printedOf) {
     let under = place.name;
     while (isOpenTag(beneath)) {
       under = `${under}/${PAYLOAD_NAME}`;
-      show(`${under}/tag`, tagOf(beneath.payload));
+      show(`${under}/${FIRST_VIEW}`, tagOf(beneath.payload));
       beneath = beneath.payload;
     }
     for (const [key, part] of keyedPartsOf(beneath)) {
@@ -74,9 +77,9 @@ export async function alertOf(error, { keep, viewsOf }, printedOf) {
     return makeErrorValue(error.tag, new Map(entries), { told: whole && shown.length === laid.length ? null : makeExcerpt(entries) });
   };
   let shown = laid;
-  while (shown.length > 0 && sizeOf(alertOver(shown), printedOf) > ROOM_OF_AN_ALERT) {
-    const last = Math.max(...shown.map(entry => entry.rank));
-    shown = shown.filter(entry => entry.rank !== last);
+  for (const dropped of [...laid].sort((left, right) => right.rank - left.rank)) {
+    if (sizeOf(alertOver(shown), printedOf) <= ROOM_OF_AN_ALERT) break;
+    shown = shown.filter(entry => entry !== dropped);
   }
   return alertOver(shown);
 }

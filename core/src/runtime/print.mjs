@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { alertOf, lengthOf, ANSWER_BUDGET } from '../rooms.mjs';
+import { alertOf, lengthOf, ANSWER_BUDGET, FIRST_VIEW } from '../rooms.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
@@ -30,9 +30,6 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 
 // [QSPRN#excerpt]
 export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
-
-// [QSPRN#excerpt], [QSPRN#legend]
-export const FIRST_VIEW = 'tag';
 
 function viewsRevealedOf(value, scope) {
   for (const kindName of kindsOfWalk(value)) {

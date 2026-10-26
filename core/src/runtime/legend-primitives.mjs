@@ -2,11 +2,12 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, underTagLiteral, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf, kindsOfWalk, nodeOf, slotsOfAVerdict } from '../nouns.mjs';
+import { kindOfAValueOf, kindsOfWalk, nodeOf, probesOfASlot, slotsOfAVerdict } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe, PAYLOAD_NAME } from '../chain.mjs';
 import { isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, isCell, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG, LEGEND_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds, verbOfAView, FIRST_VIEW } from './print.mjs';
+import { printsOfKinds, verbOfAView } from './print.mjs';
+import { FIRST_VIEW } from '../rooms.mjs';
 import { ANY_KIND_NAME } from '../address.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
@@ -63,7 +64,7 @@ function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
     const kindNames = kindsShownAt(segments.slice(0, cut).join('/'), parts);
     if (kindNames !== null) return glossOfTheRest(segments.slice(cut), kindNames, scope);
   }
-  return glossOfTheRest(segments, [tagOf(kind).name], scope, kind);
+  return glossOfTheRest(segments, [], scope, kind);
 }
 
 // [D467]
@@ -80,7 +81,7 @@ function glossOfTheRest(rest, kindNames, scope, ownKind = null) {
   const kind = ownKind ?? kindNames.map(kindName => kindOfAValueOf(scope, kindName)).find(found => found !== null) ?? null;
   const field = kind === null ? undefined : chainOfKind(kind).fields.find(({ name }) => name.name === rest[0]);
   if (field !== undefined && rest.length === 2 && slotsOfAVerdict(kind)?.has(rest[0])) {
-    const probes = new Map(chainOfKind(kindOfAValueOf(scope, field.written.name)).fields.map(({ name: probeName, page }) => [probeName.name, page]));
+    const probes = new Map(probesOfASlot(scope).map(({ name: probeName, page }) => [probeName.name, page]));
     return joined(glossOf(field.page, scope), glossOf(probes.get(rest[1]), scope));
   }
   if (field !== undefined && rest.length === 1) return glossOf(field.page, scope);

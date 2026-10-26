@@ -634,7 +634,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const recipe = recipeOf(fn);
   const steps = isQuote(recipe) ? recipe : null;
   const handed = steps === null ? handedWithin(recipe, fn, state.scope) : undefined;
-  if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn, of: addressNamedBy(recipe) });
+  if (steps === null && handed === undefined) throw new FnRecipeMissingError({ found: fn, of: addressNamedBy(recipe) });
   let walked = subjectOfCall(chain, labelName, state.pipeValue);
   const subjectRefused = expected => slotsPoured(state.pipeValue, [], { [`${SUBJECT_NAME}${EXPECTED_OF_A_SLOT}`]: expected });
   if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), subjectRefused(kindsExpected(...chain.subject.kinds)), state.scope);

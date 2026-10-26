@@ -41,7 +41,6 @@
             a number is made prose by `toString` first,
             `get ["a" ~(5 | toString)] | tag ::doc`.
         ~~|
-        ::kind/ElementKindNotTakenError
     | proves :isThePageOfAName
         |~~ The page of a name is a doc. ~~|
         ~(::number/add | doc | tag | eq ::doc)

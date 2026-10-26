@@ -26,7 +26,6 @@
             `!| (get /kind | print)`.
             ::link~(::fail | doc)
         ~~|
-        ::kind/InvariantNotHeldError
     | throws :StepNotCommandError
         |~~ A value after `!|` is the recovery the catch answers, but for a
             path, which the verb that takes it reads: `:message` names that
@@ -34,8 +33,7 @@
             ::link~(::fail | doc) ::link~(::qlang/pipeline | doc)
         ~~|
         ~(wires :message |~~ What the rule says of the path, the verb that takes it. ~~| ::string
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The value written after the bang. ~~|)
     | proves :holdsItsStep
         |~~ The fail track holds its step as a quote. ~~|
         ~(~(!| get /kind) | first | payload | eq ~(get /kind))

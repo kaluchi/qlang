@@ -22,7 +22,7 @@ const DocElementKindNotTakenError = declareRefusal('doc/ElementKindNotTakenError
 
 function docConstructor(payload) {
   payload.forEach((element, index) => {
-    if (!isDocSegment(element)) throw new DocElementKindNotTakenError({ index, expected: kindsExpected('quote', 'string'), actualValue: element });
+    if (!isDocSegment(element)) throw new DocElementKindNotTakenError({ expected: kindsExpected('quote', 'string'), found: payload, index });
   });
   return makeDoc(payload);
 }

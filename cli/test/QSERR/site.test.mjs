@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createNotebook, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, kindsSharedBy, tagOf, splitAddress, FAMILY_OF } from '@kaluchi/qlang-core';
+import { createNotebook, nodeAddresses, nodeOf, isVerb, ruleRefusalsOf, kindsSharedBy, tagOf, splitAddress } from '@kaluchi/qlang-core';
 import { declaredRefusals } from '@kaluchi/qlang-core/errors';
 
 const ofTheCore = new Set(declaredRefusals());
@@ -22,7 +22,6 @@ const ruleBorn = new Set(holders.flatMap(address => ruleRefusalsOf(notebook.scop
 const shared = new Set(holders.flatMap(address => kindsSharedBy(notebook.scope, address)));
 
 const isPaged = address => nodeOf(notebook.scope, address)?.get('docs').length > 0 && ['doc', 'kind'].includes(kindAt(address));
-const families = new Set(Object.values(FAMILY_OF));
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && isPaged(address));
 
 describe('every refusal a site of the core or of the command line declares has its page under its noun', () => {
@@ -37,7 +36,7 @@ describe('every refusal a site of the core or of the command line declares has i
 describe('every page of a refusal is declared by a site or raised by rule', () => {
   for (const address of refusalPages) {
     it(`${address} is declared by its site or raised by rule`, () => {
-      expect(declared.has(address) || ruleBorn.has(address) || families.has(address) || shared.has(address), `${address} has a page, and no site declares it, no rule raises it, no family of a rule it is and no refusal shares its kind`).toBe(true);
+      expect(declared.has(address) || ruleBorn.has(address) || shared.has(address), `${address} has a page, and no site declares it, no rule raises it and no refusal shares its kind`).toBe(true);
     });
   }
 

@@ -50,14 +50,13 @@
             of another shape, a first that is no quote and a pair under
             another tag among them, is refused.
         ~~|
-        ::kind/InvariantNotHeldError
     | throws :CommandNotTakenError
         |~~ Each step of the chain of a function is a command the chain
             takes, written with the modifiers the page of its verb names in
             their order, `::fn/takes | doc` those of `takes`, whether the
             verb wrote it or the literal: `:command` holds the command as
             written, `:index` the index of the modifier refused, from zero,
-            or of the first left out, and `:actualValue` the modifier.
+            or of the first left out, and `:found` the modifier.
             ::link~(::fn/on | doc) ::link~(::fn/takes | doc)
             ::link~(::fn/returns | doc) ::link~(::fn/throws | doc)
             ::link~(::fn/holds | doc)
@@ -67,8 +66,7 @@
           | wires :index
               |~~ The index, from zero, of the element refused. ~~|
               ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :found |~~ The modifier refused. ~~| ~(query /found))
     | throws :NameDeclaredTwiceError
         |~~ A name of a chain is declared once: an input, a refusal
             and an invariant each by its name, the subject and the answer
@@ -76,8 +74,7 @@
             input name, `:ByKindNotTakenError`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The chain that declares the name twice. ~~|)
     | throws :LawUnderNoNameError
         |~~ A law written with a path is named under a name the function
             declares before it: an input, a refusal, an invariant, a fact,
@@ -85,13 +82,11 @@
             among them, `proves :ByKindNotTakenError/refusesAString …`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The chain the law stands in. ~~|)
     | throws :RecipeKindNotTakenError
         |~~ The recipe is a quote, a primitive of the host, or null for a
             contract, whether `impl` gives it or the literal writes it.
         ~~|
-        ::kind/KindNotTakenError
     | throws :RecipeMissingError
         |~~ A function runs the recipe it holds: a contract holds none, and
             a `::builtin{}` runs the primitive a host handed with the
@@ -106,8 +101,7 @@
                   holds no function equal to the one refused.
               ~~|
               ::tag
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+          | wires :found |~~ The function whose recipe is missing. ~~|)
     | proves :readsTheSlotsOfARefusalByTheirNames
         |~~ A value an input refuses answers its kinds, its kind and itself
             by their names.
@@ -209,9 +203,9 @@
         ~(::fn[[] ~(1)] !| tag | eq ::fn/PayloadNotPairError)
     | proves :CommandNotTakenError/refusesACommandItsVerbWrites
         |~~ A command its verb writes with what the chain does not take is
-            refused as the literal's is, the command its `:actualValue`.
+            refused as the literal's is, the modifier its `:found`.
         ~~|
-        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
+        ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(found)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
     | proves :CommandNotTakenError/countsTheObjectsAsTheLiteralDoes
         |~~ A command its verb writes with a modifier left out or past the
             last is refused as the literal's is.
@@ -538,7 +532,7 @@
         |~~ A name that is no keyword is refused by the chain, which holds
             what each command writes.
         ~~|
-        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(actualValue)] | eq [::fn/CommandNotTakenError 0 "by"]))
+        ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(found)] | eq [::fn/CommandNotTakenError 0 "by"]))
     ::builtin{}]
 
 :fn/returns

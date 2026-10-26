@@ -71,8 +71,8 @@ function modifierNotTaken(step, commands) {
   const modifiers = step.get('modifiers') ?? [];
   const rules = [...taken, ...optional];
   const index = rules.findIndex((rule, at) => (at < modifiers.length ? !rule(modifiers[at]) : at < taken.length));
-  if (index !== -1) return { index, actualValue: modifiers[index] };
-  return modifiers.length > rules.length ? { index: rules.length, actualValue: modifiers[rules.length] } : null;
+  if (index !== -1) return { index, found: modifiers[index] };
+  return modifiers.length > rules.length ? { index: rules.length, found: modifiers[rules.length] } : null;
 }
 
 function kindsOf(value) {
@@ -92,7 +92,7 @@ function namesOf(quote, DeclaredTwiceError) {
   return {
     named,
     declare(name) {
-      if (declared.has(name)) throw new DeclaredTwiceError({ name: makeKeyword(name), actualValue: quote });
+      if (declared.has(name)) throw new DeclaredTwiceError({ name: makeKeyword(name), found: quote });
       declared.add(name);
       named.add(name);
     },
@@ -132,12 +132,12 @@ function readChainOfFn(quote) {
         keepTheKindOfARefusal(chain, first.name, third);
         break;
       case 'holds':
-        if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, actualValue: quote });
+        if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, found: quote });
         names.declare(first.name);
         chain.invariants.push({ name: first.name, page: second, condition: third, ofTheAnswer: chain.answer !== null });
         break;
       default:
-        if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new FnLawUnderNoNameError({ name: first, actualValue: quote });
+        if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new FnLawUnderNoNameError({ name: first, found: quote });
         names.declare(first.name);
         chain.laws.push({ name: first.name, page: second, query: third });
     }
@@ -163,7 +163,7 @@ function readChainOfKind(quote) {
         break;
       }
       case 'wires': {
-        if (!isSelector(third) && fourth !== undefined) throw new KindCommandNotTakenError({ command: makeQuote([step]), index: 3, actualValue: fourth });
+        if (!isSelector(third) && fourth !== undefined) throw new KindCommandNotTakenError({ command: makeQuote([step]), index: 3, found: fourth });
         names.declare(first.name);
         const selector = isSelector(third) ? third : makePath([first.name]);
         const { each, kinds, written } = kindsWritten(isSelector(third) ? fourth : third);
@@ -183,7 +183,7 @@ function readChainOfKind(quote) {
         kind.reveals.push(first.name);
         break;
       case 'holds':
-        if (names.named.has(first.name)) throw new KindNameDeclaredTwiceError({ name: first, actualValue: quote });
+        if (names.named.has(first.name)) throw new KindNameDeclaredTwiceError({ name: first, found: quote });
         names.declare(first.name);
         kind.invariants.push({ name: first.name, page: second, condition: third });
         break;
@@ -193,7 +193,7 @@ function readChainOfKind(quote) {
         keepTheKindOfARefusal(kind, first.name, third);
         break;
       default:
-        if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new KindLawUnderNoNameError({ name: first, actualValue: quote });
+        if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new KindLawUnderNoNameError({ name: first, found: quote });
         names.declare(first.name);
         kind.laws.push({ name: first.name, page: second, query: third });
     }

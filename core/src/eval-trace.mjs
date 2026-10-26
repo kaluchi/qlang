@@ -27,10 +27,10 @@ function frameOf(element) {
 }
 
 export function framesOfTrace(payload) {
-  if (!isVec(payload) || !holdsNoOtherTag(payload, TRACE_TAG.name)) throw new TracePayloadKindNotTakenError({ expected: kindsExpected('vec'), actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, TRACE_TAG.name)) throw new TracePayloadKindNotTakenError({ expected: kindsExpected('vec'), found: payload });
   const frames = payload.map(frameOf);
   const index = frames.findIndex(frame => frame === undefined);
-  if (index !== -1) throw new TraceElementKindNotTakenError({ index, expected: kindsExpected(FRAME_TAG.name), actualValue: payload[index] });
+  if (index !== -1) throw new TraceElementKindNotTakenError({ expected: kindsExpected(FRAME_TAG.name), found: payload, index });
   return frames;
 }
 

@@ -347,16 +347,6 @@ export function kindsSharedBy(scope, address) {
 }
 
 // [QSERR#site]
-export const FAMILY_OF = Object.freeze({
-  payloadKinds: 'kind/PayloadKindNotTakenError',
-  elementsOfAKind: 'kind/ElementKindNotTakenError',
-  partKinds: 'kind/KindNotTakenError',
-  partNotGiven: 'kind/NotGivenError',
-  partNotRead: 'kind/NotReadError',
-  invariantOfAKind: 'kind/InvariantNotHeldError'
-});
-
-// [QSERR#site]
 const VERDICT_OF_A_VERB = Symbol('verdictOfAVerb');
 const VERDICT_OF_A_KIND = Symbol('verdictOfAKind');
 
@@ -449,7 +439,8 @@ function closingKindAt(scope, tagName) {
     if (family === VERDICT_OF_A_KIND) return verdictKindOfAKind(scope, holder);
     if (family !== OWN_KIND) return kindOfAValueOf(scope, family);
     const own = isKind(value) ? value : null;
-    return isVerbValue(bindingValueOf(nodeOf(scope, holder))) ? verdictKindOfAVerb(scope, holder, own) : kindThrowsFinishes(own);
+    if (isVerbValue(bindingValueOf(nodeOf(scope, holder)))) return verdictKindOfAVerb(scope, holder, own);
+    return own === null && kindOfAValueOf(scope, holder) !== null ? verdictKindOfAKind(scope, holder) : kindThrowsFinishes(own);
   }
   return isKind(value) ? value : null;
 }

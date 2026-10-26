@@ -161,8 +161,8 @@ describe('the refusals a verb that is a function raises by rule', () => {
 
   it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', async () => {
     const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2)');
-    expect([kindsSharedBy(scopeAfterCell, 'set/groupBy'), kindsSharedBy(scopeAfterCell, 'group'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
-      .toEqual([['vec/groupBy/KeyTakenError'], ['kind/InvariantNotHeldError'], [], []]);
+    expect([kindsSharedBy(scopeAfterCell, 'set/groupBy'), kindsSharedBy(scopeAfterCell, 'bind'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
+      .toEqual([['vec/groupBy/KeyTakenError'], ['call/PayloadNotSchemaError'], [], []]);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {

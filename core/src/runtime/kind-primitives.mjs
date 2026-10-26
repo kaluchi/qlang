@@ -16,7 +16,7 @@ const KindPayloadNotPairError = declareRefusal('kind/PayloadNotPairError');
 const KindConstructorKindNotTakenError = declareRefusal('kind/ConstructorKindNotTakenError');
 
 function madeKind(commands, constructor) {
-  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorKindNotTakenError({ expected: kindsExpected('builtin', 'null'), actualValue: constructor });
+  if (!(isNull(constructor) || isBuiltinDescriptor(constructor))) throw new KindConstructorKindNotTakenError({ expected: kindsExpected('builtin', 'null'), found: constructor });
   const kind = makeTagged(KIND_TAG, Object.freeze([commands, constructor]));
   chainOfKind(kind);
   return kind;
@@ -24,7 +24,7 @@ function madeKind(commands, constructor) {
 
 // [QSLIT#tag]
 registerPrimitive('kind', payload => {
-  if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, KIND_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new KindPayloadNotPairError({ found: payload });
   return madeKind(...payload);
 });
 

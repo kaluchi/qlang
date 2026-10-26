@@ -12,9 +12,9 @@
 {"name":"an-error-raised-again-without-its-trace-starts-its-trace-at-that-raise","query":"!{:kind :oops} | raise | count | add 1 !| minus #[:trace] | raise !| get [~(tag) ~(get /trace | map ~failed)]","expect":"[::error [~(raise)]]"}
 {"name":"a-raise-of-an-error-that-writes-its-trace-passes-no-frame","query":"!{:kind :oops :trace ::trace[::frame[1 ~(pre)]]} | raise !| get /trace","expect":"::trace[::frame[1 ~(pre)]]"}
 {"name":"a-trace-an-error-literal-writes-resumes-at-its-last-frame","query":"!{:kind :oops :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| get /trace | last | skipped","expect":"~(count)"}
-{"name":"a-number-an-error-literal-writes-as-its-trace-is-refused-by-its-kind-when-raised","query":"!{:kind :oops :trace 5} | raise !| get [~(tag) ~(actualTag)]","expect":"[::trace/PayloadKindNotTakenError ::number]"}
+{"name":"a-number-an-error-literal-writes-as-its-trace-is-refused-by-its-kind-when-raised","query":"!{:kind :oops :trace 5} | raise !| get [~(tag) ~(found | tag)]","expect":"[::trace/PayloadKindNotTakenError ::number]"}
 {"name":"a-number-an-error-raised-again-writes-as-its-trace-is-refused-by-its-kind","query":"!{:kind :oops} | raise | count !| union {:trace 5} | raise !| tag","expect":"::trace/PayloadKindNotTakenError"}
-{"name":"a-trace-that-is-a-quote-is-refused","query":"!{:kind :oops :trace ~(| pre)} | raise !| get [~(tag) ~(actualTag)]","expect":"[::trace/PayloadKindNotTakenError ::quote]"}
+{"name":"a-trace-that-is-a-quote-is-refused","query":"!{:kind :oops :trace ~(| pre)} | raise !| get [~(tag) ~(found | tag)]","expect":"[::trace/PayloadKindNotTakenError ::quote]"}
 {"name":"the-step-of-an-error-literal-whose-trace-is-no-vector-of-frames-is-data","query":"~(!{:kind :oops :trace 5}) | first | get /trace","expect":"5"}
 {"name":"the-step-of-an-error-literal-whose-trace-is-no-vector-of-frames-is-refused-when-it-runs","query":"~(!{:kind :oops :trace 5} | raise) | apply it !| tag","expect":"::trace/PayloadKindNotTakenError"}
 {"name":"a-tagged-error-literal-whose-trace-is-no-vector-of-frames-is-refused-when-raised","query":"::Foo::Bar!{:trace 5} | raise !| get [~(tag) ~(trace | map ~(failed | toString))]","expect":"[::trace/PayloadKindNotTakenError [\"raise\"]]"}

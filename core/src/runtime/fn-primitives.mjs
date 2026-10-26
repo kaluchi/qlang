@@ -19,14 +19,14 @@ const FnRecipeKindNotTakenError = declareRefusal('fn/RecipeKindNotTakenError');
 const FnFillRecipeKindNotTakenError = declareRefusal('fn/fill/RecipeKindNotTakenError');
 
 function madeFn(commands, recipe) {
-  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeKindNotTakenError({ expected: kindsExpected('builtin', 'null', 'quote'), actualValue: recipe });
+  if (!(isNull(recipe) || isQuote(recipe) || isBuiltinDescriptor(recipe))) throw new FnRecipeKindNotTakenError({ expected: kindsExpected('builtin', 'null', 'quote'), found: recipe });
   const fn = makeTagged(FN_TAG, Object.freeze([commands, recipe]));
   chainOfFn(fn);
   return fn;
 }
 
 registerPrimitive('fn', payload => {
-  if (!isVec(payload) || !holdsNoOtherTag(payload, FN_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ actualValue: payload });
+  if (!isVec(payload) || !holdsNoOtherTag(payload, FN_TAG_NAME) || payload.length !== 2 || !isQuote(payload[0])) throw new FnPayloadNotPairError({ found: payload });
   return madeFn(...payload);
 });
 

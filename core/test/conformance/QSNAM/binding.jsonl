@@ -15,5 +15,5 @@
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":":limit 10 | env | get /limit | value","expect":"10"}
 {"name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":":foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content)","expect":"\"New doc.\\nWith second remark.\""}
 {"name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content)","expect":"\"Captured value.\""}
-{"decision":"D466","name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| tag) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| tag) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/DocsNotGivenError ::binding/NameKindNotTakenError true]"}
+{"name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| tag) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| tag) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/DocsNotGivenError ::binding/NameKindNotTakenError true]"}
 {"name":"the-record-of-a-name-reads-back-from-its-print","query":":x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b","expect":"true"}

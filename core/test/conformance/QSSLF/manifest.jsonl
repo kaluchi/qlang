@@ -1,10 +1,10 @@
 {"name":"a-noun-lists-a-verb-that-resides-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
-{"decision":"D466","name":"the-manifest-of-a-verb-lists-its-inputs","query":"::any/query | manifest","expect":"#[::any/query/PathKindNotTakenError ::any/query/default ::any/query/path]"}
+{"name":"the-manifest-of-a-verb-lists-its-inputs","query":"::any/query | manifest","expect":"#[::any/query/PathKindNotTakenError ::any/query/default ::any/query/path]"}
 {"name":"a-tag-over-a-tag-name-shows-the-kind-of-tag-names","query":"::Box::vec | manifest | eq (::tag | manifest)","expect":"true"}
 {"name":"manifest-reads-the-kind-of-a-value","query":"5 | manifest | eq (::number | manifest)","expect":"true"}
 {"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
 {"name":"the-comparisons-live-on-any-and-on-no-kind-they-compare","query":"get [~(::any | manifest | has ::any/gt) ~(::string | manifest | has ::string/gt)]","expect":"[true false]"}
-{"decision":"D466","name":"each-kind-declares-the-inputs-and-the-answer-of-its-verb","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/ArgsBeyondInputsError ::vec/take/CountKindNotTakenError ::vec/take/CountNotGivenError ::vec/take/CountNotIntegerError ::vec/take/answer ::vec/take/count] #[::string/take/CountKindNotTakenError ::string/take/CountNotIntegerError ::string/take/answer ::string/take/count]]"}
+{"name":"each-kind-declares-the-inputs-and-the-answer-of-its-verb","query":"get [~(::vec/take | manifest) ~(::string/take | manifest)]","expect":"[#[::vec/take/ArgsBeyondInputsError ::vec/take/CountKindNotTakenError ::vec/take/CountNotGivenError ::vec/take/CountNotIntegerError ::vec/take/answer ::vec/take/count] #[::string/take/CountKindNotTakenError ::string/take/CountNotIntegerError ::string/take/answer ::string/take/count]]"}
 {"name":"a-kind-lists-the-verbs-that-live-on-it","query":"::number | manifest | has ::number/add","expect":"true"}
 {"name":"the-verbs-of-any-value-live-at-the-bottom","query":"::any | manifest | has ::any/doc","expect":"true"}
 {"name":"manifest-is-asked-of-a-noun","query":"::vec | manifest | filter ~(eq ::vec/count) | count","expect":"1"}
@@ -16,9 +16,9 @@
 {"name":"manifest-answers-the-nodes-of-a-topic-as-tag-names","query":"::qlang | manifest | every ~(tag | eq ::tag)","expect":"true"}
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
 {"name":"the-chapters-are-nodes-under-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
-{"decision":"D466","name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/AddendKindNotTakenError ::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
-{"decision":"D466","name":"an-input-lists-the-probes-of-its-slot","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/answer ::number/add/addend/expected ::number/add/addend/found ::number/add/addend/index]"}
-{"decision":"D466","name":"the-refusal-of-an-input-of-several-kinds-lies-under-its-verb","query":"get [~(::vec/sort | binding | value | inputs | map /kinds) ~(::vec/sort | manifest | has ::vec/sort/KeyKindNotTakenError)]","expect":"[[#[::null ::path ::quote]] true]"}
+{"name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/AddendKindNotTakenError ::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
+{"name":"an-input-lists-the-probes-of-its-slot","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/answer ::number/add/addend/expected ::number/add/addend/found ::number/add/addend/index]"}
+{"name":"the-refusal-of-an-input-of-several-kinds-lies-under-its-verb","query":"get [~(::vec/sort | binding | value | inputs | map /kinds) ~(::vec/sort | manifest | has ::vec/sort/KeyKindNotTakenError)]","expect":"[[#[::null ::path ::quote]] true]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(tag) ~(name)]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}
 {"name":"the-topic-lists-the-refusal-of-an-answer-past-the-budget","query":"::qlang | manifest | has ::qlang/AnswerBeyondBudgetError","expect":"true"}

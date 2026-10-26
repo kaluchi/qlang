@@ -3,10 +3,10 @@
 {"name":"an-error-literal-may-write-no-facts","query":"!{}","expect":"!{}"}
 {"name":"an-error-literal-under-the-tag-of-a-kind-answers-the-refusal-of-the-kind","query":"::number!{:a 1} !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"an-error-literal-a-kind-refuses-is-caught-at-rest-as-a-value-that-prints","query":"::number!{:a 1} !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
-{"decision":"D466","name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| found","expect":"!{:a 1}"}
+{"name":"the-refusal-of-the-kind-holds-the-facts-it-refused","query":"::number!{:a 1} !| found","expect":"!{:a 1}"}
 {"name":"an-error-literal-under-the-tag-of-a-kind-in-a-vector-holds-the-refusal","query":"[::number!{:a 1}] | first !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"an-error-literal-under-the-tag-of-vectors-answers-their-refusal","query":"::vec!{:a 1} !| tag","expect":"::vec/PayloadKindNotTakenError"}
-{"decision":"D466","name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
+{"name":"the-error-literal-stays-under-the-tag-of-maps-and-is-refused-by-a-label-of-maps","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]","expect":"[!{:a 1} [::Late/PayloadKindNotTakenError ::error]]"}
 {"name":"an-error-literal-under-a-tag-no-node-answers-keeps-the-tag","query":"::Oops!{:a 1} | raise !| tag","expect":"::Oops"}
 {"name":"an-error-literal-under-a-label-meets-the-label-s-invariants","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 1} !| tag","expect":"::Box/k"}
 {"name":"an-error-literal-under-a-label-whose-invariants-hold-keeps-the-tag","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(get /a | gt 5)) | ::Box!{:a 9} | raise !| tag","expect":"::Box"}
@@ -25,11 +25,11 @@
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| tag","expect":"::error"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
-{"decision":"D466","name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) ~(found | tag)]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
+{"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) ~(found | tag)]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
 {"name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | :v it | print | parse | open | eq v)]","expect":"[true true]"}
 {"name":"an-error-at-rest-under-the-kind-of-errors-alone-is-read-by-its-paths","query":"!{:reason :late} | raise !| get [~(tag) /reason]","expect":"[::error :late]"}
-{"decision":"D466","name":"an-error-literal-of-a-refusal-holds-its-facts-to-the-kinds-its-refusal-wires","query":"::number/add/SubjectNotNumberError!{:subject/expected 5} !| tag","expect":"::number/add/subject/ExpectedKindNotTakenError"}
-{"decision":"D466","name":"an-error-at-rest-holds-no-excerpt-as-a-fact","query":"::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag","expect":"::number/add/AddendKindNotTakenError/TraceKindNotTakenError"}
-{"decision":"D466","name":"the-excerpt-of-a-refusal-answers-its-facts-by-their-names","query":"::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | get [~(tag) ~(addend | expected) ~(addend | found | tag) ~(subject)]","expect":"[::number/add/AddendKindNotTakenError #[::number] ::cell null]"}
-{"decision":"D466","name":"a-fact-an-error-at-rest-does-not-hold-reads-as-null","query":"::number/add/AddendKindNotTakenError!{} | get [~(addend) ~(subject) ~(trace)]","expect":"[null null null]"}
+{"name":"an-error-literal-of-a-refusal-holds-its-facts-to-the-kinds-its-refusal-wires","query":"::number/add/SubjectNotNumberError!{:subject/expected 5} !| tag","expect":"::number/add/subject/ExpectedKindNotTakenError"}
+{"name":"an-error-at-rest-holds-no-excerpt-as-a-fact","query":"::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag","expect":"::number/add/AddendKindNotTakenError/TraceKindNotTakenError"}
+{"name":"the-excerpt-of-a-refusal-answers-its-facts-by-their-names","query":"::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | get [~(tag) ~(addend | expected) ~(addend | found | tag) ~(subject)]","expect":"[::number/add/AddendKindNotTakenError #[::number] ::cell null]"}
+{"name":"a-fact-an-error-at-rest-does-not-hold-reads-as-null","query":"::number/add/AddendKindNotTakenError!{} | get [~(addend) ~(subject) ~(trace)]","expect":"[null null null]"}
 {"name":"the-excerpt-of-an-error-reads-back-under-the-kind-of-errors","query":"::error::excerpt{:rows ::cell\"f410f1df625c\" :rows/count 5000} | get [~(tag) ~(get /:rows/count) ~(raise !| tag)]","expect":"[::error 5000 ::any/raise/SubjectKindNotTakenError]"}

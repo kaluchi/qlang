@@ -21,22 +21,22 @@
 {"name":"minus-folds-the-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | minus","expect":"#[:a :c]"}
 {"name":"inter-folds-the-sets-a-vector-holds","query":"[#[:a :b :c] #[:b :d]] | inter","expect":"#[:b]"}
 {"name":"union-folds-the-maps-a-vector-holds","query":"[{:name \"Alice\"} {:score 100}] | union","expect":"{:name \"Alice\" :score 100}"}
-{"decision":"D466","name":"a-union-of-nothing-is-refused","query":"[] | union","raises":"::vec/union/SubjectEmptyError!{:subject/found [] :trace ::trace[::frame[[] ~(union)]]}"}
+{"name":"a-union-of-nothing-is-refused","query":"[] | union","raises":"::vec/union/SubjectEmptyError!{:subject/found [] :trace ::trace[::frame[[] ~(union)]]}"}
 {"name":"the-fold-of-a-vector-of-one-set-answers-that-set","query":"[#[:only]] | union","expect":"#[:only]"}
 {"name":"unionOf-merges-the-maps-the-call-gives","query":"{:anchor true} | unionOf {:name \"Alice\"} {:age 30}","expect":"{:name \"Alice\" :age 30}"}
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| tag","expect":"::vec/union/ArgsBeyondInputsError"}
 {"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| addresses","expect":"#[::map/union ::set/union ::vec/union]"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]"}
-{"decision":"D466","name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(tag) ~(other | found | tag)]","expect":"[::set/union/OtherKindNotTakenError ::vec]"}
-{"decision":"D466","name":"a-map-folds-no-values","query":"{:a 1} | union !| tag","expect":"::map/union/OtherNotGivenError"}
-{"decision":"D466","name":"a-set-given-no-set-is-refused-under-its-input","query":"#[] | union !| tag","expect":"::set/union/OtherNotGivenError"}
-{"decision":"D466","name":"a-set-refuses-null-for-the-set-its-call-gives","query":"#[#[1] #[2]] | union null !| tag","expect":"::set/union/OtherKindNotTakenError"}
-{"decision":"D466","name":"unionOf-takes-one-part-at-least-and-answers-under-the-tags-they-share","query":"get [~({} | unionOf !| tag) ~(5 | unionOf {:a 1} ::T{:b 2})]","expect":"[::any/unionOf/PartsEmptyError ::T{:a 1 :b 2}]"}
-{"decision":"D466","name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| tag","expect":"::map/minus/KeysKindNotTakenError"}
-{"decision":"D466","name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| tag","expect":"::map/union/OtherKindNotTakenError"}
+{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(tag) ~(other | found | tag)]","expect":"[::set/union/OtherKindNotTakenError ::vec]"}
+{"name":"a-map-folds-no-values","query":"{:a 1} | union !| tag","expect":"::map/union/OtherNotGivenError"}
+{"name":"a-set-given-no-set-is-refused-under-its-input","query":"#[] | union !| tag","expect":"::set/union/OtherNotGivenError"}
+{"name":"a-set-refuses-null-for-the-set-its-call-gives","query":"#[#[1] #[2]] | union null !| tag","expect":"::set/union/OtherKindNotTakenError"}
+{"name":"unionOf-takes-one-part-at-least-and-answers-under-the-tags-they-share","query":"get [~({} | unionOf !| tag) ~(5 | unionOf {:a 1} ::T{:b 2})]","expect":"[::any/unionOf/PartsEmptyError ::T{:a 1 :b 2}]"}
+{"name":"minus-of-a-map-takes-a-set-of-keys","query":"{:a 1} | minus :a !| tag","expect":"::map/minus/KeysKindNotTakenError"}
+{"name":"union-of-a-map-refuses-a-value-of-another-kind","query":"{:a 1} | union [1] !| tag","expect":"::map/union/OtherKindNotTakenError"}
 {"name":"a-pair-the-algebra-has-no-rule-for-names-its-kinds","query":"[#[1] {:a 1}] | union !| get [~(tag) ~(leftTag) ~(rightTag)]","expect":"[::call/KindsMismatchedError ::set ::map]"}
 {"name":"merge-answers-as-union-over-maps","query":"{:a 1 :b 2} | get [~(merge {:b 3 :c 4}) ~(union {:b 3 :c 4})]","expect":"[{:a 1 :b 3 :c 4} {:a 1 :b 3 :c 4}]"}
-{"decision":"D466","name":"merge-refuses-a-value-that-is-no-map","query":"{:a 1} | merge #[:b] !| tag","expect":"::map/merge/OtherKindNotTakenError"}
+{"name":"merge-refuses-a-value-that-is-no-map","query":"{:a 1} | merge #[:b] !| tag","expect":"::map/merge/OtherKindNotTakenError"}
 {"name":"a-fold-of-the-algebra-names-the-path-of-the-element-and-the-key-it-refuses","query":"get [~([#[1] #[2] {:a 1}] | union !| get [~(tag) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(tag) ~(trace | last | path)])]","expect":"[[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]"}
 {"name":"a-fold-of-the-algebra-answers-under-the-tag-its-values-share","query":"get [~([::A#[1] #[2]] | union) ~([::A#[1] ::B#[2]] | union !| tag) ~(#[1] | union ::A#[2])]","expect":"[::A#[1 2] ::call/KindsMismatchedError ::A#[1 2]]"}
 {"name":"a-fold-of-the-algebra-lays-the-tags-its-values-share-through-their-kind","query":":Rec |~~ R. ~~| (::kind | holds :HasAError |~~ No a. ~~| ~(has /a | not)) | get [~([::Rec{:b 1} {:a 2}] | union !| tag) ~([{:a 2} ::Rec{:b 1}] | union !| tag) ~({:a 2} | union ::Rec{:b 1} !| tag) ~([::Rec{:b 1} {:c 2}] | union) ~([::A#[1 2] ::B#[2]] | minus !| get [~(tag) ~(trace | last | path)])]","expect":"[::Rec/HasAError ::Rec/HasAError ::Rec/HasAError ::Rec{:b 1 :c 2} [::call/KindsMismatchedError /1]]"}

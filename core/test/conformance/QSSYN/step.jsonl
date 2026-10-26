@@ -15,7 +15,7 @@
 {"name":"a-comma-in-the-parentheses-of-a-quote-names-the-command-form","query":"\"[1] | map ~(add 1, 2)\" | parse !| message","expect":"\"modifiers are separated by spaces, not by commas: `f a b`\""}
 {"name":"a-path-before-a-word-names-the-read-of-the-part","query":"\"{:tags [1 2]} | /tags count\" | parse !| message","expect":"\"`/tags` is a path, a value: a part is read by `get`, `get /tags | count`, and a verb is called by its name alone, `tags count`\""}
 {"name":"a-call-written-by-habit-runs-where-its-input-takes-a-value","query":"5 | add(1)","expect":"6"}
-{"decision":"D466","name":"a-call-written-by-habit-is-refused-where-its-input-takes-code","query":"[1 2] | filter(gt(1)) !| tag","expect":"::vec/filter/PredicateKindNotTakenError"}
+{"name":"a-call-written-by-habit-is-refused-where-its-input-takes-code","query":"[1 2] | filter(gt(1)) !| tag","expect":"::vec/filter/PredicateKindNotTakenError"}
 {"name":"a-quote-of-a-path-with-a-leading-pipe-is-refused","query":"\"[{:n 1}] | map ~(| /n)\" | parse !| message","expect":"\"the quote of a path answers the path, which no verb wants: give the path bare, `/n`\""}
 {"name":"a-literal-of-paths-written-after-the-catch-names-get","query":"\"!{:k 1 :j 2} | raise !| [/k /j]\" | parse !| message","expect":"\"a literal that holds a path or a quote is the template `get` reads: write `get [/k /j]`\""}
 {"name":"a-quote-written-after-the-catch-names-apply","query":"\"\\\"x\\\" | add 1 !| ~(get /message)\" | parse !| message","expect":"\"code runs on the value in the pipe by `apply`: write `apply ~(…)`\""}

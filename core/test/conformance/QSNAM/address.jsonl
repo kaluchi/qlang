@@ -7,5 +7,5 @@
 {"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(tag) ~(address) ~(nearest)]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
 {"name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1) | ::number/f[1] | tag","expect":"::number/f"}
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | tag","expect":"::code"}
-{"decision":"D466","name":"the-tag-of-an-invariant-lays-its-refusal-over-an-error-at-rest-alone","query":"::vec/take/CountNotIntegerError#5 !| tag","expect":"::vec/take/CountNotIntegerError/PayloadKindNotTakenError"}
+{"name":"the-tag-of-an-invariant-lays-its-refusal-over-an-error-at-rest-alone","query":"::vec/take/CountNotIntegerError#5 !| tag","expect":"::vec/take/CountNotIntegerError/PayloadKindNotTakenError"}
 {"name":"a-verb-is-what-its-declaration-wrote-a-function-or-a-quote","query":":number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]","expect":"[::fn ::quote 6 6]"}

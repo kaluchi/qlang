@@ -7,7 +7,7 @@
 {"name":"a-call-on-a-subject-of-another-kind-names-the-form-that-fits","query":"{:price 100 :qty 3} | mul (get /price) (get /qty) !| get [~(tag) ~(doc | content | contains \"mulOf\")]","expect":"[::number/mul/SubjectNotNumberError true]"}
 {"name":"two-fields-compare-by-the-subject-in-the-pipe","query":"{:a 2 :b 1} | gt (get /a) (get /b) !| tag","expect":"::any/gt/ArgsBeyondInputsError"}
 {"name":"a-call-of-more-values-reads-the-page-of-its-refusal","query":"5 | eq 5 6 !| doc | content | contains \"one of several\"","expect":"true"}
-{"decision":"D466","name":"sumOf-takes-one-number-at-least","query":"{:a 1} | sumOf !| tag","expect":"::any/sumOf/NumbersEmptyError"}
+{"name":"sumOf-takes-one-number-at-least","query":"{:a 1} | sumOf !| tag","expect":"::any/sumOf/NumbersEmptyError"}
 {"name":"subOf-takes-two-values","query":"{:a 1} | subOf /a 1 1 !| tag","expect":"::any/subOf/ArgsBeyondInputsError"}
-{"decision":"D466","name":"subOf-given-one-value-is-refused","query":"{:a 1} | subOf /a !| tag","expect":"::any/subOf/SubtrahendNotGivenError"}
+{"name":"subOf-given-one-value-is-refused","query":"{:a 1} | subOf /a !| tag","expect":"::any/subOf/SubtrahendNotGivenError"}
 {"name":"the-verbs-of-one-subject-combine-numbers-under-the-tags-they-share","query":"{:a ::Cents#5 :b ::Dollars#2} | get [~(sumOf (get /a) (get /b) !| tag) ~(subOf /a /b !| tag) ~(mulOf (get /a) 3) ~(divOf /a 5)]","expect":"[::call/KindsMismatchedError ::call/KindsMismatchedError ::Cents#15 ::Cents#1]"}

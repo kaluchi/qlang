@@ -23,7 +23,7 @@
 {"name":"code-after-the-alternative-that-answers-stays-unrun","query":"{:a 1} | coalesce /a ~(div 0)","expect":"1"}
 {"name":"the-alternatives-after-a-later-one-that-answers-stay-unrun","query":"{:b 99} | coalesce /a /b ~(div 0) ~(\"unreached\")","expect":"99"}
 {"name":"coalesce-runs-the-quote-after-a-path-that-misses","query":"{} | coalesce /missing ~(\"safe\")","expect":"\"safe\""}
-{"decision":"D466","name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","raises":"::any/coalesce/AlternativesEmptyError!{:subject/found {} :alternatives/found ::any/coalesce[] :trace ::trace[::frame[{} ~(coalesce)]]}"}
+{"name":"coalesce-with-no-alternative-is-refused","query":"{} | coalesce","raises":"::any/coalesce/AlternativesEmptyError!{:subject/found {} :alternatives/found ::any/coalesce[] :trace ::trace[::frame[{} ~(coalesce)]]}"}
 {"name":"coalesce-reads-a-path-of-several-segments-as-an-alternative","query":"{:user {:name \"Alice\"}} | coalesce /admin /user/name ~(\"Unknown\")","expect":"\"Alice\""}
 {"name":"coalesce-answers-the-first-alternative-where-none-is-null","query":"{:a {:b {:c 42}}} | coalesce /a/b/c /a/b /a ~(0)","expect":"42"}
 {"name":"coalesce-passes-a-missing-field-to-the-next-alternative","query":"{:a 1} | coalesce /b /a","expect":"1"}
@@ -33,9 +33,9 @@
 {"name":"coalesce-with-a-quote-keeps-the-subject-out","query":"{:a 2} | coalesce /missing \"fallback\"","expect":"\"fallback\""}
 {"name":"an-alternative-that-is-no-quote-answers-itself","query":"{:a 1} | coalesce /b (get /a)","expect":"1"}
 {"name":"query-and-coalesce-give-a-default","query":"{:a 1} | query /port | coalesce 8080","expect":"8080"}
-{"decision":"D466","name":"coalesce-of-several-values-alone-is-refused","query":"{:t null} | coalesce (get /t) 30 !| get [~(tag) ~(alternatives | found)]","expect":"[::any/coalesce/AlternativesValuesAloneError ::any/coalesce[null 30]]"}
+{"name":"coalesce-of-several-values-alone-is-refused","query":"{:t null} | coalesce (get /t) 30 !| get [~(tag) ~(alternatives | found)]","expect":"[::any/coalesce/AlternativesValuesAloneError ::any/coalesce[null 30]]"}
 {"name":"coalesce-reads-the-subject-before-one-value-and-first-among-several-by-a-quote","query":"get [~(5 | coalesce 30) ~(null | coalesce 30) ~(5 | coalesce ~(it) null 30)]","expect":"[5 30 5]"}
-{"decision":"D466","name":"coalesce-answers-a-failure-of-its-code-other-than-a-missed-part","query":"get [~({} | coalesce ~(nosuchword) 30 !| tag) ~({} | coalesce ~(1 | div 0) ~(2) !| tag) ~(null | coalesce ~(add 1) 0 !| tag)]","expect":"[::call/UnknownNameError ::number/div/DivisorZeroError ::number/add/SubjectNotNumberError]"}
+{"name":"coalesce-answers-a-failure-of-its-code-other-than-a-missed-part","query":"get [~({} | coalesce ~(nosuchword) 30 !| tag) ~({} | coalesce ~(1 | div 0) ~(2) !| tag) ~(null | coalesce ~(add 1) 0 !| tag)]","expect":"[::call/UnknownNameError ::number/div/DivisorZeroError ::number/add/SubjectNotNumberError]"}
 {"name":"coalesce-answers-the-refusal-of-a-path-query-refuses","query":"get [~({:a 5} | coalesce /a/b 0 !| tag) ~([1] | coalesce /a 0 !| tag)]","expect":"[::path/SubjectHasNoPartsError ::path/IndexNotIntegerError]"}
 {"name":"coalesce-passes-over-null-on-the-way-and-an-index-past-the-end","query":"get [~({:a null} | coalesce /a/b 0) ~([1] | coalesce /5 0)]","expect":"[0 0]"}
 {"name":"coalesce-passes-over-a-part-its-code-misses","query":"{} | coalesce ~(get /a | add 1) 0","expect":"0"}

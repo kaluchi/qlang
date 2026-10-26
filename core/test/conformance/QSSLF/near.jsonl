@@ -12,4 +12,4 @@
 {"name":"an-anchor-a-number-lacks-names-only-the-verbs-it-reaches","query":"1 | doc :and !| nearest","expect":"[:add]"}
 {"name":"an-anchor-a-tag-lacks-names-the-verbs-its-walk-reaches","query":"::vec | doc :manifst !| nearest","expect":"[:manifest]"}
 {"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| nearest | has :sumOf","expect":"true"}
-{"decision":"D466","name":"an-anchor-near-a-fact-of-a-refusal-names-the-fact-its-kind-wires","query":"::number/add/SubjectNotNumberError | doc :subjct !| nearest","expect":"[:subject]"}
+{"name":"an-anchor-near-a-fact-of-a-refusal-names-the-fact-its-kind-wires","query":"::number/add/SubjectNotNumberError | doc :subjct !| nearest","expect":"[:subject]"}

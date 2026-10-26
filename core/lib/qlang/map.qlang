@@ -223,7 +223,6 @@
             names the first entry whose value is none, and a field is
             read first, `map /amount | sum`.
         ~~|
-        ::fn/KindNotTakenError
     | throws :ArgsBeyondInputsError
         |~~ `sum` takes no value: a field of each value is read first by
             `map`, `map /amount | sum`.
@@ -239,8 +238,7 @@
         ~({:a {:amount 1} :b {:amount 2}} | map /amount | sum | eq 3)
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
-        ~({:a 1 :b "two"} | sum
-          !| get [~(tag) ~(actualTag) ~(trace | last | path) ~(expected)]
+        ~({:a 1 :b "two"} | sum !| get [~(tag) ~(subject | found | get /b | tag) ~(trace | last | path) ~(subject | expected)]
           |  eq [::map/sum/ElementKindNotTakenError ::string /b #[::number]])
     | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
@@ -269,7 +267,6 @@
         |~~ `avg` takes the mean of the numbers the map holds; the path
             of its frame names the first entry whose value is none.
         ~~|
-        ::fn/KindNotTakenError
     | proves :answersTheMean
         |~~ The mean of one and three is two. ~~|
         ~({:a 1 :b 3} | avg | eq 2)
@@ -283,8 +280,7 @@
         ~({:a 1e308 :b -1e308} | avg | eq 0)
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
-        ~({:a 1 :b "two"} | avg
-          !| get [~(tag) ~(actualTag) ~(trace | last | path) ~(expected)]
+        ~({:a 1 :b "two"} | avg !| get [~(tag) ~(subject | found | get /b | tag) ~(trace | last | path) ~(subject | expected)]
           |  eq [::map/avg/ElementKindNotTakenError ::string /b #[::number]])
     | impl ::builtin{}
 
@@ -452,7 +448,6 @@
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
-        ::fn/KindNotTakenError
     | proves :keepsTheKeys
         |~~ The entries kept keep their keys. ~~|
         ~({:a 1 :b 2 :c 3} | filter ~(gt 1) | eq {:b 2 :c 3})
@@ -472,8 +467,7 @@
         ~({:a 1} | filter (gt 0) !| tag | eq ::map/filter/predicate/KindNotTakenError)
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:a 1} | filter ~(1)
-          !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]
+        ~({:a 1} | filter ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
           |  eq [::map/filter/ConditionKindNotTakenError /a ::number #[::boolean]])
     | impl ::builtin{}
 
@@ -505,7 +499,6 @@
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
         ~~|
-        ::fn/KindNotTakenError
     | proves :holdsOfEveryValue
         |~~ Every value is positive. ~~|
         ~({:a 1 :b 2 :c 3} | every ~(gt 0))
@@ -519,8 +512,7 @@
         ~({} | every ~(gt 0))
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:a 1} | every ~(1)
-          !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]
+        ~({:a 1} | every ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
           |  eq [::map/every/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -557,7 +549,6 @@
             entry; the path of its frame names the entry whose predicate
             answered another kind.
         ~~|
-        ::fn/KindNotTakenError
     | proves :holdsOfSomeValue
         |~~ One positive value is enough. ~~|
         ~({:a -1 :b 0 :c 2} | any ~(gt 0))
@@ -566,8 +557,7 @@
         ~({} | any ~(gt 0) | not)
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:a 1} | any ~(1)
-          !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]
+        ~({:a 1} | any ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
           |  eq [::map/any/ConditionKindNotTakenError /a ::number #[::boolean]])
     | proves :predicate/KindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
@@ -1029,7 +1019,6 @@
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
-        ::fn/ElementKindNotTakenError
     | returns
         |~~ The entries whose keys are not among the keys, under the tags
             of the map.
@@ -1060,8 +1049,7 @@
         |~~ A boolean among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
-        ~({:a 1} | minus [:a true]
-          !| get [~(tag) ~(actualTag) ~(index) ~(expected)]
+        ~({:a 1} | minus [:a true] !| get [~(tag) ~(keys | found | get /1 | tag) ~(keys | index) ~(keys | expected)]
           |  eq [::map/minus/keys/ElementKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
     | impl ::builtin{}
 
@@ -1089,7 +1077,6 @@
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
-        ::fn/ElementKindNotTakenError
     | returns
         |~~ The entries whose keys are among the keys, under the tags of
             the map.
@@ -1111,8 +1098,7 @@
         |~~ A vector among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
-        ~({:a 1} | inter [[:a]]
-          !| get [~(tag) ~(actualTag) ~(index) ~(expected)]
+        ~({:a 1} | inter [[:a]] !| get [~(tag) ~(keys | found | get /0 | tag) ~(keys | index) ~(keys | expected)]
           |  eq [::map/inter/keys/ElementKindNotTakenError ::vec 0 #[::keyword ::number ::string]])
     | proves :keys/KindNotTakenError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the

@@ -45,7 +45,7 @@
 {"name":"an-anchor-of-doc-is-a-keyword-a-vector-or-a-set","query":"::qlang | doc 5 !| tag","expect":"::any/doc/anchor/KindNotTakenError"}
 {"name":"an-anchor-of-source-is-a-keyword","query":"::vec/take | source 1 !| tag","expect":"::any/source/anchor/KindNotTakenError"}
 {"name":"every-axis-of-a-record-reads-the-node-under-an-anchor","query":"get [~(::vec | manifest :take | eq (::vec/take | manifest)) ~(::qlang | laws :errors | eq (::qlang/errors | laws))]","expect":"[true true]"}
-{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-index-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(tag) ~(index)]","expect":"[::any/doc/anchor/ElementKindNotTakenError 1]"}
+{"name":"an-anchor-of-a-set-that-is-no-keyword-is-refused-at-its-index-in-the-set","query":"::qlang | doc #[:pipeline ::x] !| get [~(tag) ~(anchor | index)]","expect":"[::any/doc/anchor/ElementKindNotTakenError 1]"}
 {"name":"a-set-of-anchors-takes-null-and-anchors-read-in-turn","query":"::qlang | doc #[null [:pipeline]] | count","expect":"2"}
 {"name":"an-undeclared-tag-declares-no-node","query":"[::AutoFoo[1] ::AutoFoo[2]] | (::AutoFoo | binding) !| tag","expect":"::any/binding/UnknownNameError"}
 {"name":"an-undeclared-tag-alone-names-no-binding","query":"::AutoBareOnly | binding !| tag","expect":"::any/binding/UnknownNameError"}
@@ -56,6 +56,6 @@
 {"name":"a-refusal-raised-by-rule-reads-the-page-that-repairs-the-call","query":"5 | eq !| doc | content | contains \"with no value\"","expect":"true"}
 {"name":"a-refusal-raised-by-rule-with-no-page-of-its-own-reads-the-page-of-what-refused","query":"5 | gte !| get [~(tag) ~(doc | content | contains \"compared with\")]","expect":"[::any/gte/value/NotGivenError true]"}
 {"name":"a-refusal-under-an-address-nothing-declares-is-refused-as-a-name-nothing-declares","query":"::nothere/FooError | doc !| get [~(tag) ~(name)]","expect":"[::any/doc/UnknownNameError ::nothere/FooError]"}
-{"name":"a-set-of-anchors-refuses-an-element-by-the-kinds-it-takes","query":"::vec | doc #[:take 5] !| get [~(tag) ~(index) ~(expected)]","expect":"[::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]]"}
-{"name":"a-name-read-in-turn-that-is-no-keyword-is-refused-at-its-index","query":"::vec | doc [:take 1] !| get [~(tag) ~(index) ~(expected)]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
-{"name":"a-vector-in-a-set-of-anchors-refuses-a-name-by-its-index-in-the-vector","query":"::vec | doc #[[:take 1]] !| get [~(tag) ~(index) ~(expected)]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
+{"name":"a-set-of-anchors-refuses-an-element-by-the-kinds-it-takes","query":"::vec | doc #[:take 5] !| get [~(tag) ~(anchor | index) ~(anchor | expected)]","expect":"[::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]]"}
+{"name":"a-name-read-in-turn-that-is-no-keyword-is-refused-at-its-index","query":"::vec | doc [:take 1] !| get [~(tag) ~(anchor | index) ~(anchor | expected)]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}
+{"name":"a-vector-in-a-set-of-anchors-refuses-a-name-by-its-index-in-the-vector","query":"::vec | doc #[[:take 1]] !| get [~(tag) ~(anchor | index) ~(anchor | expected)]","expect":"[::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]]"}

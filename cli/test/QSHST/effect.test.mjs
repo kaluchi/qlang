@@ -41,7 +41,7 @@ describe('out — the subject, written when it is a string', () => {
     const cellEntry = await runQuery('42 | out', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalRaised(cellEntry, 'any/out/SubjectKindNotTakenError', {
-      actualTag: { name: 'number' }
+      'subject/found': 42
     });
   });
 });
@@ -88,7 +88,7 @@ describe('err — the subject, written when it is a string', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | err', io);
     expectRefusalRaised(cellEntry, 'any/err/SubjectKindNotTakenError', {
-      actualTag: { name: 'vec' }
+      'subject/found': [1, 2, 3]
     });
   });
 });

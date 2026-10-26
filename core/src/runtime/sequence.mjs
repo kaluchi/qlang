@@ -35,7 +35,7 @@ const SetZipElementKindNotTakenError = declareRefusal('set/zip/ElementKindNotTak
 function columnsOf(vectors, ElementKindNotTakenError) {
   const columns = vectors.map(beneathTags);
   columns.forEach((column, index) => {
-    if (!Array.isArray(column)) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('vec'), actualValue: vectors[index] }), index);
+    if (!Array.isArray(column)) throw refusingAPart(new ElementKindNotTakenError({ 'subject/expected': kindsExpected('vec') }), index);
   });
   const length = columns.length === 0 ? 0 : Math.min(...columns.map(column => column.length));
   return Array.from({ length }, (_, index) => columns.map(column => column[index]));
@@ -54,7 +54,7 @@ function eachNumber(elements, ElementKindNotTakenError, take) {
   const tally = new TagsInCommon();
   for (const [count, [at, element]] of elements.entries()) {
     const number = numberBeneath(element);
-    if (number === undefined) throw refusingAPart(new ElementKindNotTakenError({ expected: kindsExpected('number'), actualValue: element }), at);
+    if (number === undefined) throw refusingAPart(new ElementKindNotTakenError({ 'subject/expected': kindsExpected('number') }), at);
     const met = tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     take(number, count);
@@ -169,7 +169,7 @@ async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
   if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
-  throw refusingAPart(new ConditionKindNotTakenError({ expected: kindsExpected('boolean'), actualValue: verdict }), at);
+  throw refusingAPart(new ConditionKindNotTakenError({ 'predicate/expected': kindsExpected('boolean'), 'predicate/answer': verdict }), at);
 }
 
 async function keptElements(sequence, predicate, ConditionKindNotTakenError) {
@@ -220,10 +220,10 @@ async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenErro
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(key, answer, index);
   const named = keywordFiledFor(beneathTags(answer));
-  if (named === null) throw refusingAPart(new KeyKindNotTakenError({ expected: KINDS_A_KEY_FILES_UNDER, actualValue: answer }), index);
+  if (named === null) throw refusingAPart(new KeyKindNotTakenError({ 'key/expected': KINDS_A_KEY_FILES_UNDER, 'key/answer': answer }), index);
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
-  else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ key: named, taken, actualValue: answer }), index);
+  else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ 'key/answer': named, taken }), index);
   return named;
 }
 
@@ -304,7 +304,7 @@ registerStateReader('vec/join', (subject, separator, state) => {
   const tally = new TagsInCommon();
   const texts = subject.map((element, at) => {
     const text = beneathTags(element);
-    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementKindNotTakenError({ expected: kindsExpected('keyword', 'string'), actualValue: element }), at);
+    if (typeof text !== 'string' && !isKeyword(text)) throw refusingAPart(new VecJoinElementKindNotTakenError({ 'subject/expected': kindsExpected('keyword', 'string') }), at);
     const met = isKeyword(text) ? null : tally.meet(element);
     if (met !== null) throw refusingAPart(pairRefused(met, element), at);
     return writtenAsText(text);

@@ -1,7 +1,7 @@
 // [QSDSP#residence], [QSBLD#fn], [QSHST#source]
 
 import { kindsExpected, readingState, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
-import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
+import { declareRefusal } from '@kaluchi/qlang-core/errors';
 import { keepCell } from './cells.mjs';
 
 const AnyOutSubjectKindNotTakenError = declareRefusal('any/out/SubjectKindNotTakenError');
@@ -11,7 +11,7 @@ const AnyErrSubjectKindNotTakenError = declareRefusal('any/err/SubjectKindNotTak
 function makeWriter(writer, recordEffect, SubjectError) {
   return (subject, text) => {
     const written = text === null ? subject : text;
-    if (typeof written !== 'string') throw refusingTheSubject(new SubjectError({ expected: kindsExpected('string'), actualValue: subject }));
+    if (typeof written !== 'string') throw new SubjectError({ 'subject/expected': kindsExpected('string') });
     writer(written + '\n');
     recordEffect();
     return subject;

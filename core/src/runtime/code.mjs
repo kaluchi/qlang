@@ -31,7 +31,7 @@ registerPrimitive('quote/toString', quote => printQuoteSource(quote));
 
 registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args, state) => {
   if (isFn(code)) return await applyFunction(code, subject, args, state);
-  if (args.length > 0) throw new AnyApplyArgsNotTakenError({ actualValue: args });
+  if (args.length > 0) throw new AnyApplyArgsNotTakenError({});
   return await code(subject);
 }));
 

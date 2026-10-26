@@ -1,9 +1,9 @@
 // [QSPTH#get], [QSPTH#query], [QSPTH#template], [QSPTH#write], [QSPTH#verbs]
 
 import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } from '../primitives.mjs';
-import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
-import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
+import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
+import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { layTag } from '../eval.mjs';
 import { atPath } from '../eval-trace.mjs';
 import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
@@ -121,10 +121,10 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
 
 // [QSPTH#value], [QSPTH#key], [QSPTH#verbs]
 registerPrimitive('vec/toPath', keys => {
-  if (keys.length === 0) throw refusingTheSubject(new VecToPathSubjectEmptyError({ actualValue: keys }));
+  if (keys.length === 0) throw new VecToPathSubjectEmptyError({});
   return makePath(keys.map((element, index) => {
     const key = beneathTags(element);
-    if (!isKeyAlone(key)) throw refusingAPart(new VecToPathElementKindNotTakenError({ expected: kindsExpected(...KINDS_OF_A_KEY_ALONE), actualValue: element }), index);
+    if (!isKeyAlone(key)) throw refusingAPart(new VecToPathElementKindNotTakenError({ 'subject/expected': kindsExpected(...KINDS_OF_A_KEY_ALONE) }), index);
     return keyNameOf(key);
   }));
 });
@@ -132,6 +132,6 @@ registerPrimitive('path/toPath', path => path);
 
 registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
-  if (!pointer.startsWith('/')) throw refusingTheSubject(new StringToPathNotPointerError({ actualValue: text }));
+  if (!pointer.startsWith('/')) throw new StringToPathNotPointerError({});
   return makePath(pointer.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~')));
 });

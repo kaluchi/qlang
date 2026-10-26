@@ -27,7 +27,7 @@
 {"name":"match-refuses-a-text-for-a-regex","query":"\"abc\" | match \"a\" !| tag","expect":"::string/match/regex/KindNotTakenError"}
 {"name":"a-regex-flagged-m-anchors-at-every-line","query":"\"a\nb\" | get [~(contains #\"^b$\") ~(contains #\"^b$\"m)]","expect":"[false true]"}
 {"name":"a-replacement-text-writes-the-text-around-the-match-and-a-dollar","query":"\"xay\" | replace #\"a\" \"[$`|$'|$$]\"","expect":"\"x[x|y|$]y\""}
-{"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| get [~(tag) ~(expected)]","expect":"[::string/replace/with/AnswerKindNotTakenError #[::string]]"}
+{"name":"a-replacement-code-that-answers-no-string-is-refused","query":"\"a\" | replace #\"a\" ~(1) !| get [~(tag) ~(with | expected)]","expect":"[::string/replace/with/AnswerKindNotTakenError #[::string]]"}
 {"name":"capture-answers-null-where-the-regex-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}
 {"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| tag","expect":"::string/toRegex/flags/KindNotTakenError"}
 {"name":"a-two-digit-group-the-regex-lacks-reads-as-the-group-of-its-first-digit","query":"\"abc\" | replace #\"(b)\" \"[$10]\"","expect":"\"a[b0]c\""}

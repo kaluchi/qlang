@@ -16,15 +16,15 @@ const AnyWithNamesNameWrittenTwiceError = declareRefusal('any/with/names/NameWri
 function selectorsOf(names) {
   const selectors = new Map();
   const select = (name, selector) => {
-    if (!readsAsName(name)) throw new AnyWithNamesKeyNotNameError({ name: makeKeyword(name), actualValue: names });
-    if (selectors.has(name)) throw new AnyWithNamesNameWrittenTwiceError({ name: makeKeyword(name), actualValue: names });
+    if (!readsAsName(name)) throw new AnyWithNamesKeyNotNameError({ name: makeKeyword(name) });
+    if (selectors.has(name)) throw new AnyWithNamesNameWrittenTwiceError({ name: makeKeyword(name) });
     selectors.set(name, selector);
   };
   for (const [index, part] of (isMap(names) ? [names] : names).entries()) {
     if (isPath(part)) select(part.segments[part.segments.length - 1], part);
-    else if (!isMap(part)) throw new AnyWithNamesElementKindNotTakenError({ index, expected: kindsExpected('map', 'path'), actualValue: part });
+    else if (!isMap(part)) throw new AnyWithNamesElementKindNotTakenError({ 'names/expected': kindsExpected('map', 'path'), 'names/index': index });
     else for (const [name, selector] of part) {
-      if (!isPath(selector) && !isQuote(selector)) throw new AnyWithNamesSelectorKindNotTakenError({ name: makeKeyword(name), expected: kindsExpected('path', 'quote'), actualValue: selector });
+      if (!isPath(selector) && !isQuote(selector)) throw new AnyWithNamesSelectorKindNotTakenError({ name: makeKeyword(name), selector });
       select(name, selector);
     }
   }

@@ -4,7 +4,7 @@ import { makeKeyword, makeTag, makeRegex, isKeyword, isTag, isVec, isRegex, tagO
 import { makeSet, kindsExpected } from '../ordering.mjs';
 import { canonicalFlags, regexProblem, textRefusal } from '../regex-read.mjs';
 import { registerPrimitive } from '../primitives.mjs';
-import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
+import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { readsAsBareKeyword } from '../name-chars.mjs';
 import { splitAddress } from '../address.mjs';
 import { parseSource } from '../parse.mjs';
@@ -43,12 +43,12 @@ const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameN
 registerPrimitive('number/toNumber', number => number);
 registerPrimitive('string/toNumber', text => {
   const number = numberWritten(text);
-  if (number === null) throw refusingTheSubject(new StringToNumberTextNotNumberError({ actualValue: text }));
+  if (number === null) throw new StringToNumberTextNotNumberError({});
   return number;
 });
 registerPrimitive('keyword/toNumber', key => {
   const number = numberWritten(key.name);
-  if (number === null) throw refusingTheSubject(new KeywordToNumberNameNotNumberError({ actualValue: key }));
+  if (number === null) throw new KeywordToNumberNameNotNumberError({});
   return number;
 });
 
@@ -57,11 +57,11 @@ const KeywordToTagNameNotTagError = declareRefusal('keyword/toTag/NameNotTagErro
 
 registerPrimitive('tag/toTag', tag => tag);
 registerPrimitive('string/toTag', text => {
-  if (!readsAsBareKeyword(text)) throw refusingTheSubject(new StringToTagTextNotTagError({ actualValue: text }));
+  if (!readsAsBareKeyword(text)) throw new StringToTagTextNotTagError({});
   return makeTag(text);
 });
 registerPrimitive('keyword/toTag', key => {
-  if (!readsAsBareKeyword(key.name)) throw refusingTheSubject(new KeywordToTagNameNotTagError({ actualValue: key }));
+  if (!readsAsBareKeyword(key.name)) throw new KeywordToTagNameNotTagError({});
   return makeTag(key.name);
 });
 
@@ -74,15 +74,15 @@ const RegexToRegexFlagsNotFlagsError = declareRefusal('regex/toRegex/flags/NotFl
 registerPrimitive('regex/toRegex', (regex, written) => {
   if (written === null) return regex;
   const flags = canonicalFlags(written);
-  if (flags === null) throw new RegexToRegexFlagsNotFlagsError({ actualValue: written });
+  if (flags === null) throw new RegexToRegexFlagsNotFlagsError({});
   return makeRegex(regex.source, flags);
 });
 registerPrimitive('string/toRegex', (text, written) => {
   const flags = canonicalFlags(written ?? '');
-  if (flags === null) throw new StringToRegexFlagsNotFlagsError({ actualValue: written });
-  if (literalWritten(text, isRegex) !== null) throw refusingTheSubject(new StringToRegexLiteralNotSourceError({ actualValue: text }));
+  if (flags === null) throw new StringToRegexFlagsNotFlagsError({});
+  if (literalWritten(text, isRegex) !== null) throw new StringToRegexLiteralNotSourceError({});
   const problem = regexProblem(text, flags);
-  if (problem !== null) throw refusingTheSubject(new StringToRegexTextNotRegexError({ message: textRefusal(problem), actualValue: text }));
+  if (problem !== null) throw new StringToRegexTextNotRegexError({ message: textRefusal(problem) });
   return makeRegex(text, flags);
 });
 
@@ -97,9 +97,9 @@ function mapOfPairs(pairs) {
   const built = new Map();
   pairs.forEach((element, index) => {
     const pair = beneathTags(element);
-    if (!isVec(pair) || pair.length !== 2) throw refusingAPart(new VecToMapElementNotPairError({ actualValue: element }), index);
+    if (!isVec(pair) || pair.length !== 2) throw refusingAPart(new VecToMapElementNotPairError({}), index);
     const key = keywordFiledFor(beneathTags(pair[0]));
-    if (key === null) throw refusingAPart(new VecToMapKeyKindNotTakenError({ expected: KINDS_A_KEY_FILES_UNDER, actualValue: pair[0] }), index, 0);
+    if (key === null) throw refusingAPart(new VecToMapKeyKindNotTakenError({ 'subject/expected': KINDS_A_KEY_FILES_UNDER }), index, 0);
     built.set(key.name, pair[1]);
   });
   return built;

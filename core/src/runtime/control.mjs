@@ -19,7 +19,7 @@ async function verdictOfConditions(subject, conditions, decisive, ConditionKindN
   for (const [index, condition] of conditions.entries()) {
     const verdict = typeof condition === 'function' ? await condition(subject) : condition;
     if (isErrorValue(verdict)) return verdict;
-    if (typeof beneathTags(verdict) !== 'boolean') throw new ConditionKindNotTakenError({ index, expected: kindsExpected('boolean'), actualValue: verdict });
+    if (typeof beneathTags(verdict) !== 'boolean') throw new ConditionKindNotTakenError({ 'conditions/expected': kindsExpected('boolean'), 'conditions/answer': verdict, 'conditions/index': index });
     if (beneathTags(verdict) === decisive) return decisive;
   }
   return !decisive;
@@ -47,7 +47,7 @@ registerPrimitive('any/cond', runsAsCode(['clauses'], async (subject, clauses) =
     const answer = await clauses[clauseIndex](subject);
     if (isErrorValue(answer)) return answer;
     if (typeof beneathTags(answer) !== 'boolean') {
-      throw new AnyCondConditionKindNotTakenError({ index: clauseIndex, expected: kindsExpected('boolean'), actualValue: answer });
+      throw new AnyCondConditionKindNotTakenError({ 'clauses/expected': kindsExpected('boolean'), 'clauses/answer': answer, 'clauses/index': clauseIndex });
     }
     if (beneathTags(answer)) return await clauses[clauseIndex + 1](subject);
     clauseIndex += 2;

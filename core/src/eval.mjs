@@ -644,11 +644,16 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(called)) return called;
   const pour = refused => slotsPoured(state.pipeValue, chain.inputs.map(({ name }, at) => [name.name, called.given[at]]), refused);
   const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
-  const running = steps === null
-    ? runPrimitive(handed.primitive, walked.served, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
-    : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
-  const answer = isThenable(running) ? await running : running;
-  if (isErrorValue(answer)) return answer;
+  let answer;
+  try {
+    const running = steps === null
+      ? runPrimitive(handed.primitive, walked.served, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
+      : (await evalPipeline(steps, nestState(called.state, state.pipeValue, called.recipeScope))).pipeValue;
+    answer = isThenable(running) ? await running : running;
+  } catch (thrown) {
+    throw pouredInto(thrown, address, pour, state.scope);
+  }
+  if (isErrorValue(answer)) return failurePoured(answer, address, pour, state.scope);
   const kinds = chain.answer?.kinds ?? null;
   const broughtFrom = laid === null ? walked : { ...walked, passedTags: laid };
   const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, broughtFrom, state, pour);
@@ -658,6 +663,22 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 
 // [QSERR#site]
 const kindsServed = (labelName, chain) => kindsExpected(labelName, ...(chain.subject?.kinds ?? []));
+
+// A refusal under the verb, a primitive's throw or a failure its recipe
+// raised, takes the slots of the call beneath the facts it laid itself.
+const isVerdictOfTheVerb = (tagName, address, scope) => tagName.startsWith(`${address}/`) && slotsOfAVerdict(kindOfAValueOf(scope, tagName)) !== undefined;
+
+function pouredInto(thrown, address, pour, scope) {
+  if (!(thrown instanceof QlangError) || thrown instanceof QlangDefect || thrown.address === undefined || !isVerdictOfTheVerb(thrown.address, address, scope)) return thrown;
+  thrown.facts = { ...pour({}), ...thrown.facts };
+  return thrown;
+}
+
+function failurePoured(failure, address, pour, scope) {
+  if (!isVerdictOfTheVerb(failure.tag.name, address, scope)) return failure;
+  const poured = Object.entries(pour({})).filter(([, value]) => value !== undefined);
+  return makeErrorValue(failure.tag, factsInOrder(failure.tag, new Map([...poured, ...failure.facts]), scope), { originalError: failure.originalError, told: failure.told });
+}
 
 // [QSHST#source]
 const HANDED_BY_ADDRESS = new WeakMap();

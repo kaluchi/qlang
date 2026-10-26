@@ -25,7 +25,7 @@ export function spanOfLocation(loc, source) {
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
 // [QSERR#site]
-const PROBES_OF_A_SLOT = ['expected', 'found', 'index'];
+const PROBES_OF_A_SLOT = ['expected', 'found', 'answer', 'index'];
 
 export function factsInOrder(tag, facts, scope) {
   const kind = kindOfAValueOf(scope, tag.name);

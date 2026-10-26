@@ -2,7 +2,7 @@
 
 import { isSet, isVec, isMap, beneathTags, TagsInCommon, pairRefused } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
-import { declareRefusal, refusingTheSubject, refusingAPart } from '../errors.mjs';
+import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, asCombiner } from '../primitives.mjs';
 import { isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
 import { underSharedTags } from '../eval.mjs';
@@ -49,8 +49,8 @@ function keyNamesOf(keysValue, KeyRefusal, at) {
   return new Set(keysValue.map((keyOfEntry, index) => {
     const key = beneathTags(keyOfEntry);
     if (isKeyAlone(key)) return keyNameOf(key);
-    if (at === undefined) throw new KeyRefusal({ index, expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry });
-    throw refusingAPart(new KeyRefusal({ expected: KINDS_NAMING_A_MAP_KEY, actualValue: keyOfEntry }), at, index);
+    if (at === undefined) throw new KeyRefusal({ 'keys/expected': KINDS_NAMING_A_MAP_KEY, 'keys/index': index });
+    throw refusingAPart(new KeyRefusal({ 'subject/expected': KINDS_NAMING_A_MAP_KEY }), at, index);
   }));
 }
 
@@ -86,13 +86,13 @@ function interPair(left, right, { KeyKindNotTakenError }, at) {
 }
 
 function foldOf(values, pair, refusals, readsEvery, state) {
-  if (values.length === 0) throw refusingTheSubject(new refusals.SubjectEmptyError({ actualValue: values }));
+  if (values.length === 0) throw new refusals.SubjectEmptyError({});
   const first = beneathTags(values[0]);
   const tally = new TagsInCommon();
   let folded = first;
   for (const [at, value] of values.entries()) {
     const read = beneathTags(value);
-    if ((readsEvery || at === 0) && !isSet(read) && !isMap(read)) throw refusingAPart(new refusals.ElementKindNotTakenError({ expected: kindsExpected('map', 'set'), actualValue: value }), at);
+    if ((readsEvery || at === 0) && !isSet(read) && !isMap(read)) throw refusingAPart(new refusals.ElementKindNotTakenError({ 'subject/expected': kindsExpected('map', 'set') }), at);
     if (at > 0) folded = pair(folded, read, refusals, at);
     const met = at === 0 || readsEvery || isSet(first) ? tally.meet(value) : null;
     if (met !== null) throw refusingAPart(pairRefused(met, value), at);

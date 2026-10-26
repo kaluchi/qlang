@@ -164,7 +164,7 @@
       as an alert, the concentrate of its facts: each fact whole within
       three hundred characters and past them as the ::cell its host keeps
       it in, beside the views its kind reveals, while `!|` reads each fact
-      whole, `!| actualValue | take 3`. `!| doc` answers the page of what refused, the page saying how to
+      whole, `!| subject | found | take 3`. `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
@@ -768,7 +768,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | open | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| get [~(tag) ~(expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
+        ~([1 2] | filter ~(1) !| get [~(tag) ~(predicate | expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)

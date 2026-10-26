@@ -142,13 +142,12 @@
             its frame names the first element that is no vector, the
             vectors its elements hold read first, `map /a | zip`.
         ~~|
-        ::fn/KindNotTakenError
     | proves :keepsEqualColumns
         |~~ The columns stand in a vector, two equal ones kept. ~~|
         ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
-        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
+        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
         ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])
@@ -195,7 +194,6 @@
             the path of its frame naming the element and `:expected` the
             kinds a key files under.
         ~~|
-        ::fn/KindNotTakenError
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one
@@ -231,7 +229,7 @@
         ~(#[1 "a"] | groupBy ~(tag) | eq {:number #[1] :string #["a"]})
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
-        ~(#[1 "1"] | groupBy !| get [~(tag) ~(key) ~(taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
+        ~(#[1 "1"] | groupBy !| get [~(tag) ~(key | answer) ~(taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
     | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
@@ -241,7 +239,7 @@
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
         ~~|
-        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(expected)] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(key | expected)] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :set/toVec

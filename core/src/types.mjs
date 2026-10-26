@@ -151,10 +151,7 @@ export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';
 
 // [QSERR#rest]
-export function errorAtRest(tag, facts) {
-  const ofKind = makeTagged(ERROR_TAG, facts);
-  return tag.name === ERROR_TAG.name ? ofKind : makeTagged(tag, ofKind);
-}
+export const errorAtRest = facts => makeTagged(ERROR_TAG, facts);
 
 // [QSSLF#doc]
 export const DOC_TAG_NAME = 'doc';

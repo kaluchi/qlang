@@ -84,9 +84,8 @@ export function cellPrimitives(sourcesOfTheRoot) {
       if (!existsSync(join(folder, ANSWER))) throw refusingTheSubject(new CellAnswerNotHeldError({ actualValue: cell }));
       const names = readFileSync(join(folder, NAMES), 'utf8');
       const answer = readFileSync(join(folder, ANSWER), 'utf8');
-      const read = await (await createNotebook({ sources: sourcesOfTheRoot() })).evalCell(names === '' ? answer : `${names}\n| ${answer}`);
-      if (read.defect !== null) throw read.defect;
-      return read.result;
+      const { scope } = await createNotebook({ sources: sourcesOfTheRoot() });
+      return await evalQuery(names === '' ? answer : `${names}\n| ${answer}`, scope);
     }
   };
 }

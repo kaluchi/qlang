@@ -22,3 +22,4 @@
 {"name":"the-legend-of-a-tag-name-reads-back-as-the-tag","query":"::span | legend | print | parse | open","expect":"::span"}
 {"name":"a-legend-past-the-budget-lays-a-part-past-the-room-of-a-fact-as-its-excerpt","query":"1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains \":actualValue ::excerpt{:count 5000 :first [\")]","expect":"[true true]"}
 {"name":"a-tag-name-whose-kind-wires-nothing-stands-on-one-line","query":"::vec | legend | print | lines | count","expect":"1"}
+{"name":"the-legend-of-a-tag-name-names-a-part-of-no-kind-and-one-its-kind-computes","query":":Pair |~~ Two numbers. ~~| (::kind | accepts |~~ The two. ~~| [::number] | wires :left |~~ The left one. ~~| /0 | wires :sum |~~ The sum of both. ~~| ~(sum)) | ::Pair | legend | print | lines | drop 1","expect":"[\"|~ left /0 · The left one ~|\" \"|~ sum · The sum of both ~|\"]"}

@@ -39,8 +39,7 @@ export async function boundAnswer(answer, scope, written = null, keep = null) {
   const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return answer;
   const facts = { characters, budget: ANSWER_BUDGET, answer };
-  const cell = keep === null ? null : await keep(answer);
-  if (cell !== null) facts.cell = cell;
+  if (keep !== null) facts.cell = await keep(answer);
   return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError(facts), undefined, scope), excerptsOfKinds(scope), printedOf);
 }
 

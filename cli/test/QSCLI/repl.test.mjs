@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { runRepl } from '../../src/repl.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
@@ -125,6 +128,14 @@ describe('an answer printed whole and a failure as its alert', () => {
     expect(printed).toContain('4998 4999]\n');
     expect(printed).not.toContain('::qlang/AnswerBeyondBudgetError');
     expect(printed).toContain('::number/add/SubjectNotNumberError');
+  });
+
+  it('keeps the line it runs as the source of the cell a tap past the budget keeps', async () => {
+    const replHarness = captureRepl('5000 | range | tap :big | count\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const [, identity] = stripAnsi(replHarness.stderrText()).match(/::cell"([0-9a-f]{12})"/);
+    const folder = readdirSync(join(tmpdir(), 'qlang')).map(root => join(tmpdir(), 'qlang', root, 'cells', identity)).find(existsSync);
+    expect(readFileSync(join(folder, 'source.qlang'), 'utf8')).toBe('5000 | range | tap :big | count');
   });
 
   it('prints a failure as its alert, a fact past the room of a fact shown as its excerpt', async () => {

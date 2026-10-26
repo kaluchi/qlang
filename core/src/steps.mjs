@@ -278,7 +278,7 @@ export const groupStep = steps => makeTagged(GROUP_TAG, makeQuote(steps));
 // [QSQUO#step]
 function stepOfValue(value) {
   const fields = errorFieldsOf(value);
-  if (fields !== null) return errorAtRest(ERROR_TAG, new Map([...fields].map(([key, fact]) => [key, stepOfValue(fact)])));
+  if (fields !== null) return errorAtRest(new Map([...fields].map(([key, fact]) => [key, stepOfValue(fact)])));
   if (isSet(value)) return makeSet(value.map(stepOfValue));
   if (isQuote(value) && isPathAlone(value)) return constructOf(new Map([['tag', QUOTE_TAG], ['payload', Object.freeze([value[0]])]]));
   if (isQuote(value) || isDoc(value)) return value;

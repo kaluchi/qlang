@@ -10,3 +10,6 @@
 {"name":"a-budget-past-the-budget-of-every-answer-is-that-budget","query":"100000 | range | excerpt 300000 | print | count | lte 16000","expect":"true"}
 {"name":"a-map-whose-end-holds-no-entry-whole-tells-the-ends-of-its-print","query":"get {:rows ~(5000 | range) :name \"x\"} | excerpt | get [/count ~(get /head | startsWith \"{:rows [0 1\") ~(get /tail | endsWith \":name \\\"x\\\"}\")]","expect":"[2 true true]"}
 {"name":"a-cut-of-a-print-falls-where-a-word-ends","query":"kinds | add 1 !| trace | excerpt | get /subject | split \" \" | filter ~(anyOf (eq \"…\") (startsWith \"::\") (startsWith \"#[::\") | not)","expect":"[]"}
+{"name":"a-trace-of-no-frame-tells-no-step","query":"::trace[] | excerpt","expect":"::excerpt{:failed []}"}
+{"name":"a-trace-past-a-room-too-small-for-its-subject-tells-its-steps-alone","query":"kinds | add 1 !| trace | excerpt 40","expect":"::excerpt{:failed [~(add 1)]}"}
+{"name":"a-cut-stays-within-a-word-where-no-space-lies-in-the-half-beside-it","query":"get [~(400 | range | map ~(\"x\") | join \"\") \" yyy\"] | join \"\" | excerpt 80 | get [~(get /tail | startsWith \"x\") ~(get /tail | endsWith \" yyy\")]","expect":"[true true]"}

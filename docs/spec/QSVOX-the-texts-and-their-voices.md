@@ -151,7 +151,8 @@ held against the text the closeout writes [QSREQ#probe]. A chapter grown past on
 chapters of one topic each, which cite one another by their sections.
 
 `check:conventions` refuses a citation of a section its chapter lacks and no
-record in transit brings, a section written since the baseline that no
+record in transit brings, a section a chapter writes twice, whose citation
+would name two texts, a section written since the baseline that no
 record dissolved into [QSWRK#reconciliation], and in a chapter a citation of
 a record, the history of a form and a sentence that says what the text
 leaves out, and in a chapter of the language a word or a path of the

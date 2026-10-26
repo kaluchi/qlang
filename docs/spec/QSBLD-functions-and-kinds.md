@@ -44,16 +44,20 @@ the kind of the refusal, the quote `throws` writes after its page,
 each `wires` a fact read by the key of its name and one carried at times
 by `query`; `throws` builds the kind of them, its payload the `::error`
 the refusal raises and its wiring ending with `trace`, a payload or a
-`trace` the quote writes refused as `::kind/NameDeclaredTwiceError`, and
-a refusal of a verb is its verdict, the slots of the verb wired before the
-facts the quote writes [QSERR#site]. The quote, no kind, stands in the commands, so the
+`trace` the quote writes refused as `::kind/NameDeclaredTwiceError`; a
+refusal of a verb is its verdict, the slots of the verb wired before the
+facts the quote writes, and a refusal of a kind the verdict of the kind,
+the probes of a slot but `answer` wired before them, `expected`, `found`
+and `index`, a fact the quote writes under the name of a probe giving that
+probe its page [QSERR#site]. The quote, no kind, stands in the commands, so the
 literal of the function reads back as itself. Instead of the quote
 `throws` writes the tag of a refusal whose kind its refusal shares,
 `throws :KeyTakenError |~~ … ~~| ::vec/groupBy/KeyTakenError`: the
-error at rest of the refusal is closed by the kind that closes the refusal
-the tag names, its facts read by their names and paged by the wiring of
-that kind, and its node holds its page; a refusal that names itself, or a
-round of them, shares no kind and stays open.
+refusal is the verdict of its holder and holds beside its slots the facts
+that kind wires, read by their names and paged by its wiring, the slots of
+another verb where that kind is the verdict of that verb, and its node
+holds its page; a refusal that names itself, or a round of them, shares no
+kind and is the verdict of its holder alone.
 
 A verb serves the values of its label and of the kinds `on` names, of
 tag names the noun's own alone [QSDSP#tagname], refusing any other

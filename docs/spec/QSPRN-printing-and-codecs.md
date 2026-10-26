@@ -94,10 +94,12 @@ true
 ## legend
 
 `legend`, a verb of `::any`, answers the legend of its subject, a value
-under `::legend`, a kind of the core whose `print` lays the print of the
-value it tells out by that value's kind [QSBLD#value], so a host prints a
-legend as it prints any answer, painted by the tokens of the language, and
-`payload` answers the value told. A part the kind reads by a path of one
+under `::legend`, a kind of the core whose `print` writes its tag,
+`::legend::point[`, a number, a boolean, null and a path touching it by
+`#`, `::legend#5`, and lays the print of the value it tells out by that
+value's kind [QSBLD#value], so a host prints a legend as it prints any
+answer, painted by the tokens of the language, and `payload` answers the
+value told. A part the kind reads by a path of one
 segment, a key of the map or an index of the vector it is laid over,
 stands on a line of its own beside its gloss, a part at an index beside
 its name too, which its print does not write; the head, the tag and the
@@ -105,16 +107,26 @@ bracket the value opens with, stands beside the gloss of the page `doc`
 reads of the subject [QSSLF#axis]; a part no name wires stands with no
 comment, and a part the kind computes, by code or a longer path, stands in
 no legend, `manifest` naming it and `doc` reading its page. A value of a
-kind that wires nothing, one whose payload holds no key or index and one
-its kind prints itself stand on one line beside their gloss. The gloss of
+kind that wires nothing and one whose payload holds no key or index stand
+on one line beside their gloss, and a value its kind prints itself is laid
+out as its literal, its parts as their kinds print them. A key beneath a
+name the kind wires reads by three rules: its first segment the name, a
+slot where the kind is the verdict of a verb; the next a probe of the slot,
+glossed beside it, `:addend/found`; and a name beneath a value a view of
+that value, glossed by the verb of the view its tags walk to, or the tag
+the alert shows first of a value past its room, `:addend/found/count`
+beside `|~ count ::number · How many elements the vector holds ~|`. A key
+an excerpt lays deep reads so from the kind the excerpt shows nearest
+above it, the tag beneath an open tag, the tag a part shows first or the
+kind of a part that stands whole [QSPRN#excerpt]. The gloss of
 a page is its first words, before the first colon, semicolon or period its
 prose ends a clause with, a span between backquotes and a quote of code
 read whole, on one line; the page of a link alone is glossed by the page
 `doc` reads of the tag it links to, and a page that leads to no words
 leaves a part at a key with no comment and a part at an index named alone.
 Each gloss is a closed comment, `|~ … ~|`, which ends where it closes, and
-whitespace [QSSYN#comment], so the text reads back as the subject in any
-layout it stands in; each part prints as `print` prints it, the print of
+whitespace [QSSYN#comment], so the text reads back as the legend in any
+layout it stands in, `payload` the subject; each part prints as `print` prints it, the print of
 its kind among them, on one line, and the glosses of the lines within half
 the width of a line stand aligned at a column of sixteen at least. A
 vector, a set or a map that holds a legend lays each of its parts on a
@@ -122,7 +134,8 @@ line of its own. A tag name lays out the kind it names: the tag beside the
 gloss of its page and beneath it a closed comment for each name the kind
 wires, in the order it wires them, the name, the path it reads where it
 reads no key of its own name, the kind of the part and the gloss of its
-page, so the print reads back as the tag and `kinds | map ~legend` tells
+page, so the print reads back as the legend of the tag and
+`kinds | map ~legend` tells
 the parts of every kind before a value of it is held; beneath them stands a
 closed comment for each view the kind reveals [QSPRN#excerpt], its name,
 the kind its verb answers and the gloss of the page of that answer, a view
@@ -132,7 +145,7 @@ answer, printed within the budget of every answer as any answer is
 
 ```sh
 $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
-::Box{          |~ A parcel ~|
+::legend::Box{  |~ A parcel ~|
   :w 3          |~ The width ~|
   :note "x"
 }
@@ -140,12 +153,12 @@ $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in
 
 ```qlang
 > [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | open) ~(first | tag)]
-[4 [1 2] ::legend]
+[4 [::legend#1 ::legend#2] ::legend]
 
 > ::point | legend | print | lines | get /2
 "|~ line /1 ::number · The line of the point, counted from one ~|"
 
-> ::span | legend | print | parse | open
+> ::span | legend | print | parse | open | payload
 ::span
 
 > ::trace | legend | print | lines | drop 1 | first
@@ -153,6 +166,9 @@ $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in
 
 > 1 | add (5000 | range) !| legend | print | get [~(count | gt 16000) ~(contains "4999]")]
 [true true]
+
+> ::qlang/AnswerBeyondBudgetError::excerpt{:answer ::cell"dba04efcdf7d" :answer/tag ::legend :answer/payload/tag ::number/add/AddendKindNotTakenError :answer/addend/expected #[::number]} | legend | print | lines | get /4 | split "|~ " | get /1
+"The number added to the subject, computed against the subject · The kinds the rule takes ~|"
 ```
 
 ## json
@@ -196,9 +212,17 @@ a fact, three hundred characters, stands as the cell its host keeps it in
 [QSHST#cell], beside its tag, the first of its views, and the views the
 kind of the fact reveals whose answers fit that room, each flat under the
 name of the fact and its own, `:addend/found/tag ::vec` and
-`:addend/found/count 3410` [QSERR#alert], and a failure any fact of which
-gave way prints as `::excerpt`, the map of the facts it shows, under the tag
-of its refusal [QSERR#rest]. A kind reveals its views in its chain,
+`:addend/found/count 3410` [QSERR#alert], and beside its parts, each by the
+same rule under the name of the fact and its own, its own cell among it
+where it passes its room: a map by its keys, an error at rest and an
+excerpt by their facts, so a refusal a value holds shows its slots, and a
+value under a tag its kind does not wire by the parts of what it holds, as
+the walk of a verb passes that tag, the tag of what it holds under
+`payload/tag`; a vector, a set, a string, a quote and a doc stand as their
+views. A key is the chain a reader types, `:answer/addend/found/count`
+read as `::cell"…" | answer | addend | found | count`, and a failure any
+fact of which gave way prints as `::excerpt`, the map of the facts it
+shows, under the tag of its refusal [QSERR#rest]. A kind reveals its views in its chain,
 `| reveals :count`, each the name of a verb of the kind that takes no value
 [QSBLD#kind], read as the verb of the kind that reveals it or of `::any`
 where that kind declares none of its name, `shape` the verb of every
@@ -253,8 +277,10 @@ prints whole, and one past the budget prints as the failure
 whose facts are `:characters`, the characters of the print, `:budget`,
 and `:answer`, the answer, which its alert shows as any fact past the
 room of a fact, the cell its host keeps it in, where it keeps one
-[QSHST#cell], beside the views its kind reveals [QSPRN#excerpt]. The
-command line writes no flag that sets or cuts the budget [QSCLI#answer].
+[QSHST#cell], beside the views its kind reveals and its parts
+[QSPRN#excerpt], so the alert of a legend past the budget shows the facts
+of the refusal it tells. The command line writes no flag that sets or
+cuts the budget [QSCLI#answer].
 
 ```sh
 $ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
@@ -262,6 +288,11 @@ $ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep 
 :budget 16000
 :answer ::cell"…"
 :answer/count 3000
+
+$ qlang '1 | add (3410 | range) !| legend' < /dev/null | grep -o -E '^  :answer/(payload/tag|subject/found|addend/found/count) .*'
+  :answer/payload/tag ::number/add/AddendKindNotTakenError
+  :answer/subject/found 1
+  :answer/addend/found/count 3410
 ```
 
 ## span

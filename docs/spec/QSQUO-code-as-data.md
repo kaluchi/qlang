@@ -118,7 +118,7 @@ parser, which gives the path bare.
 > get [~(::call[1] !| get [~(tag) ~(expected)]) ~(::fail[1] !| get [~(tag) ~(expected)]) ~(::call{:name 1} !| field)]
 [[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
 
-> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) ~(actualTag) ~(print | parse | open | eq e)]
+> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) ~(found | tag) ~(print | parse | open | eq e)]
 [::construct/LiteralComputesError ::map true]
 
 > "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)

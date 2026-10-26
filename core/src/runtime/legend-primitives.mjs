@@ -67,7 +67,7 @@ function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
   return glossOfTheRest(segments, [], scope, kind);
 }
 
-// [D467]
+// [QSPRN#legend]
 function kindsShownAt(above, parts) {
   let beneath = null;
   for (let at = `${above}/${PAYLOAD_NAME}`; parts.has(`${at}/${FIRST_VIEW}`); at = `${at}/${PAYLOAD_NAME}`) beneath = parts.get(`${at}/${FIRST_VIEW}`);

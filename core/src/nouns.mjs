@@ -471,7 +471,7 @@ function verdictKindOf(declaring, holder, build) {
   return kind;
 }
 
-// [D467]
+// [QSERR#site]
 const NO_SLOTS = new Map();
 const NO_FACTS = { commands: [], fields: [], slots: NO_SLOTS, wired: new Set() };
 

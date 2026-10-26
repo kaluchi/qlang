@@ -48,11 +48,10 @@ with the index as `:index`; a segment that is no whole number on a value
 read by index, `::path/IndexNotIntegerError`, and a value on the path
 that has no parts, `::path/SubjectHasNoPartsError`, each naming the
 segment it could not read as `:segment`. A path reads beneath the tags
-over each value it meets, each refusal naming the value it met beneath
-them as `:actualValue`, but at the subject of the step that reads it,
-`get`, `query`, `has`, a write and a path run as code, whose kind alone
-it names [QSERR#site], the selector of an input or a field holding the args
-or the payload it met; and a vector, a set, a doc, a quote, a function
+over each value it meets, each refusal holding the value it met beneath
+them as `:found`, the subject of the step that reads it among them,
+`get`, `query`, `has`, a write and a path run as code [QSERR#site], the
+selector of an input or a field holding the args or the payload it met; and a vector, a set, a doc, a quote, a function
 and a kind read by index. No path reads beneath a closed tag
 [QSBLD#value]: a value whose kind wires its parts is read by their names,
 bare, and a path that reaches it is refused as `::path/TagClosedError`,
@@ -74,11 +73,11 @@ reads as any value.
 > {:a 5} | get /a/b !| get [~(tag) ~(segment)]
 [::path/SubjectHasNoPartsError :b]
 
-> {:b ::T#5} | get /b/c !| get [~(tag) ~(actualValue)]
+> {:b ::T#5} | get /b/c !| get [~(tag) ~(found)]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| found | actualValue)]
-[[#[:actualTag :path :segment :trace] ::number] [1 2]]
+> get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| found | found)]
+[[#[:found :path :segment :trace] 5] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
 [[::path/TagClosedError #[:end :endColumn :endLine :endOffset :start :startColumn :startLine :startOffset] ~(start | line)] 1]

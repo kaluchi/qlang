@@ -377,16 +377,18 @@ primitive's throw or a failure the recipe of the verb raises under it, the
 slot refused telling its `expected` beside its `found`: a refusal of a
 part of the subject lays it under `subject`, the path of its frame naming
 the part [QSERR#trace], and a refusal of an element of an input lays its
-`index` beside it. A refusal a kind raises at its door and in its
-constructor is the verdict of the kind, the part refused under `found`
-beside `expected` and `index`, a `throws` of a kind with no facts of its
-own taking it, and a refusal the chain of a function or of a kind lays
-holds the modifier or the chain refused under `found` beside its own
-facts. A refusal that shares the kind of another by its tag takes that
-kind and pours no slot where that kind is no verdict, the refusals of the
-axes of a name sharing `::any/UnknownNameError` [QSBLD#kind]; a refusal
-of a function `apply` runs, under `::fn/call`, declares none and stays
-open. The refusal of a primitive takes the address
+`index` beside it. A refusal a kind raises at its door, in its
+constructor or by a `throws` of its chain is the verdict of the kind, the
+probes of a slot but `answer`, the part refused under `found` beside
+`expected` and `index`, the facts its `throws` writes beside them, and a
+refusal the chain of a function or of a kind lays holds the modifier or
+the chain refused under `found` beside its own facts. A refusal that
+shares the kind of another by its tag is the verdict of its verb, every
+slot poured, the facts that kind wires beside its slots, the refusals of
+the axes of a name sharing `::any/UnknownNameError`, `::nope | doc`
+holding `subject/found` and `anchor/found` beside `name`, `addresses` and
+`nearest` [QSBLD#fn]; a refusal of a function `apply` runs, under
+`::fn/call`, declares none and stays open. The refusal of a primitive takes the address
 of the verb that ran it, but for a pair a step relates or combines and
 cannot, which the call refuses as `::call/KindsMismatchedError`
 [QSDSP#answer], a refusal of the read of a path sits under
@@ -414,12 +416,11 @@ verb and the path where that value stands [QSHST#door]. A refusal of
 the runtime holds its facts in the order the kind of its refusal wires
 them, a fact the kind does not wire a defect of the runtime,
 `::builtin/RefusalFactNotDeclaredError`, and the trace last; a refusal of
-the read of a path and of a step of the language holds the value it
-refuses as `:actualValue`, whatever that value equals, and its kind as
-`:actualTag`, but a refusal of the subject its step was served, which
-holds the kind of that value alone, the first frame holding the subject,
-a host refusing its own so through `refusingTheSubject` [QSHST#source];
-an error a reader writes holds its facts as written,
+the read of a path and of a step of the language and a defect of the
+runtime hold the value their rule met as `:found`, whatever that value
+equals, the subject of the step among them, and no fact retells its kind,
+which `found | tag` reads [QSHST#source]; an error a reader writes holds
+its facts as written,
 a `:trace` it writes where it stands and the trace its flight begins
 last. A fact is a value of the language: a name a step read, a key a path
 read and the keyword two values file under are keywords, and an index and
@@ -451,7 +452,10 @@ a segment a path read as an index numbers.
 12
 
 > ::qlang/AnswerBeyondBudgetError | manifest
-#[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/trace]
+#[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/expected ::qlang/AnswerBeyondBudgetError/found ::qlang/AnswerBeyondBudgetError/index ::qlang/AnswerBeyondBudgetError/trace]
+
+> ::nope | doc !| payload | keys
+#[:addresses :anchor/found :name :nearest :subject/found :trace]
 ```
 
 ## print
@@ -508,10 +512,13 @@ characters, the room of a fact, and past them as the cell its host keeps it
 in [QSHST#cell], beside its tag, the first of its views, and the views the
 kind of the fact reveals whose answers fit that room, flat under the name
 of the fact and its own, `:addend/found/tag ::vec` and
-`:addend/found/count 3410` [QSPRN#excerpt]; a host that keeps no cell
-shows the views alone. Where the alert passes its
-room, two thousand characters, its last entries drop until it fits, a kind
-wiring first what a reader needs first. A failure every fact of which
+`:addend/found/count 3410`, and beside them its parts by the same rule,
+each under the name of the fact and its own, so a key is the chain that
+reads it [QSPRN#excerpt]; a host that keeps no cell shows the views and
+the parts alone. The room of the alert, two thousand characters, goes to
+the facts before the parts beneath them, and where the alert passes it the
+entries laid deepest and last drop until it fits, a kind wiring first what
+a reader needs first. A failure every fact of which
 stands whole prints as its error at rest, `::X!{…}`, and one any fact of
 which gave way or dropped as the excerpt of its facts under its tag,
 `::X::excerpt{…}`, a failure of no refusal `::error::excerpt{…}`, which the
@@ -531,6 +538,10 @@ $ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace 
 
 $ qlang 'kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
 2
+
+$ qlang 'get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
+  :record/a 1
+  :record/rows/count 5000
 ```
 
 ```qlang

@@ -42,8 +42,8 @@ the laws of the name its subject reads, takes no anchor, refusing one as
 `::any/tutorial/ArgsBeyondInputsError`.
 
 A tag nothing declares whose last name ends in `Error` reads the record
-of the address before it, and under the call of a function, where no node
-declares that address, the page of `::fn/call` [QSBLD#fn]; any other name nothing declares is refused
+of the address before it, the call of a function, `::fn/call`, among them
+[QSBLD#fn]; any other name nothing declares is refused
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the

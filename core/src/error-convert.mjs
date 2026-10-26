@@ -34,7 +34,6 @@ export function factsInOrder(tag, facts, scope) {
   for (const name of chainOfKind(kind).wired.keys()) {
     if (facts.has(name)) ordered.set(name, facts.get(name));
     for (const probe of PROBES_OF_A_SLOT) if (facts.has(`${name}/${probe}`)) ordered.set(`${name}/${probe}`, facts.get(`${name}/${probe}`));
-    for (const [key, fact] of facts) if (key.startsWith(`${name}/`) && !ordered.has(key)) ordered.set(key, fact);
   }
   for (const name of facts.keys()) {
     if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: makeKeyword(name) });

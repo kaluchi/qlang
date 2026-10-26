@@ -254,11 +254,9 @@ const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag
 const ACCEPTS_THE_ERROR = commandStep('accepts', [pageLinkingTo(ERROR_TAG), makeSet([ERROR_TAG, EXCERPT_TAG])]);
 const WIRES_THE_TRACE = commandStep('wires', [makeKeyword('trace'), pageLinkingTo(TRACE_TAG), TRACE_TAG]);
 const finishedOver = commands => makeTagged(KIND_TAG, Object.freeze([makeQuote([ACCEPTS_THE_ERROR, ...commands, WIRES_THE_TRACE]), null]));
-const KIND_OF_A_PAGE_ALONE = finishedOver([]);
 const FINISHED_KINDS = new WeakMap();
 
 export function kindThrowsFinishes(kind) {
-  if (kind === null) return KIND_OF_A_PAGE_ALONE;
   let finished = FINISHED_KINDS.get(kind);
   if (finished === undefined) FINISHED_KINDS.set(kind, finished = finishedOver(commandsOf(kind)));
   return finished;

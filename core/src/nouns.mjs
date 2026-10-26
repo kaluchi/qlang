@@ -3,7 +3,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
-  tagOf, bindingValueOf, makeBinding, makeKeyword, makeDoc, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  tagOf, bindingValueOf, makeBinding, makeKeyword, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -440,7 +440,7 @@ function closingKindAt(scope, tagName) {
     if (family !== OWN_KIND) return kindOfAValueOf(scope, family);
     const own = isKind(value) ? value : null;
     if (isVerbValue(bindingValueOf(nodeOf(scope, holder)))) return verdictKindOfAVerb(scope, holder, own);
-    return own === null && kindOfAValueOf(scope, holder) !== null ? verdictKindOfAKind(scope, holder) : kindThrowsFinishes(own);
+    return own === null ? verdictKindOfAKind(scope, holder) : kindThrowsFinishes(own);
   }
   return isKind(value) ? value : null;
 }
@@ -456,8 +456,7 @@ function isSlotOfAVerb(scope, address) {
   return SLOTS_OF_EVERY_VERB.has(name) || chainOfFn(isFn(value) ? value : functionOfRecipe(value)).inputs.some(input => input.name.name === name);
 }
 
-const NO_PAGE = makeDoc([]);
-const pageAt = (scope, address) => nodeOf(scope, address)?.get('docs')[0] ?? NO_PAGE;
+const pageAt = (scope, address) => nodeOf(scope, address).get('docs')[0];
 
 const VERDICT_KINDS = new WeakMap();
 const SLOTS_OF_VERDICTS = new WeakMap();

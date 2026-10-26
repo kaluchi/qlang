@@ -11,7 +11,7 @@ import {
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { nearestTagNames, nearestNodes } from '../nearest-names.mjs';
-import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
+import { splitAddress } from '../address.mjs';
 
 // [QSERR#site]
 const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
@@ -44,7 +44,7 @@ function recordOfKind(scope, value) {
 function nodeOfRefused(scope, name) {
   const [refusedName] = splitAddress(name);
   if (refusedName === null || !name.endsWith('Error')) return null;
-  return nodeOf(scope, refusedName) ?? (refusedName.startsWith(`${FN_CALL_ADDRESS}/`) ? nodeOf(scope, FN_CALL_ADDRESS) : null);
+  return nodeOf(scope, refusedName);
 }
 
 function nodeUnderAnchor(scope, subject, anchorName) {

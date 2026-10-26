@@ -252,7 +252,7 @@ function layerOf(scope, address, origin, { pages, refusalKinds }) {
   let under = scope;
   const lay = (lastName, page, value) => {
     const name = `${address}/${lastName}`;
-    under = scopeSet(under, name, makeBinding({ name: makeKeyword(name), docs: page === null ? [] : [page], value, origin }));
+    under = scopeSet(under, name, makeBinding({ name: makeKeyword(name), docs: [page], value, origin }));
   };
   return {
     lay,

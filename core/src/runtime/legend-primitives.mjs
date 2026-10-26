@@ -4,7 +4,7 @@ import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
 import { kindOfAValueOf, kindsOfWalk, nodeOf, slotsOfAVerdict } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe } from '../chain.mjs';
-import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG } from '../types.mjs';
+import { isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
 import { printsOfKinds, verbOfAView, FIRST_VIEW } from './print.mjs';
 import { ANY_KIND_NAME } from '../address.mjs';
@@ -27,7 +27,7 @@ function legendOf(value, scope, printedOf) {
     const field = atPlaces.get(String(key));
     const printed = printValue(part, 1, printedOf, true);
     const said = field !== undefined ? (laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name))
-      : laid.keyed ? glossOfAKeyBeneath(String(key), parts, kind, atPlaces, scope) : null;
+      : glossOfAKeyBeneath(String(key), parts, kind, atPlaces, scope);
     lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
   lines.push([laid.close, null]);
@@ -60,8 +60,8 @@ function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
   const field = atPlaces.get(name);
   if (field === undefined || beneath.length === 0) return null;
   if (beneath.length === 1 && slotsOfAVerdict(kind)?.has(name)) {
-    const probe = chainOfKind(kindOfAValueOf(scope, field.written.name)).fields.find(({ name: probeName }) => probeName.name === beneath[0]);
-    return probe === undefined ? null : joined(glossOf(field.page, scope), glossOf(probe.page, scope));
+    const probes = new Map(chainOfKind(kindOfAValueOf(scope, field.written.name)).fields.map(({ name: probeName, page }) => [probeName.name, page]));
+    return joined(glossOf(field.page, scope), glossOf(probes.get(beneath[0]), scope));
   }
   const above = key.slice(0, key.lastIndexOf('/'));
   const tagShown = parts.get(`${above}/${FIRST_VIEW}`);
@@ -78,7 +78,7 @@ function payloadLaidOut(value) {
   const { literal } = value[TAG_HEADER_SYMBOL];
   if (isMap(value)) return { open: `${literal}{`, close: '}', parts: [...value], keyed: true };
   if (isVec(value)) return { open: `${literal}[`, close: ']', parts: [...value.entries()], keyed: false };
-  const beneath = isValueClass(value, 'underTag') ? value.payload : null;
+  const beneath = value.payload;
   if (beneath?.[TAG_HEADER_SYMBOL]?.name === ERROR_TAG.name) return { open: `${literal}!{`, close: '}', parts: [...beneath], keyed: true };
   return isExcerpt(beneath) ? { open: `${literal}${EXCERPT_TAG.literal}{`, close: '}', parts: [...beneath], keyed: true } : null;
 }

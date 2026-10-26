@@ -26,16 +26,16 @@ async function runLaw({ law, quote, says }, callerState) {
   const result = new Map();
   result.set('law', law);
   result.set('says', says);
-  const actualValue = await codeOf(quote, callerState)(null);
-  if (isErrorValue(actualValue)) {
+  const actual = await codeOf(quote, callerState)(null);
+  if (isErrorValue(actual)) {
     result.set('actual', null);
-    result.set('error', await errorAtRestOf(actualValue, callerState));
+    result.set('error', await errorAtRestOf(actual, callerState));
     result.set('ok', false);
     return result;
   }
-  result.set('actual', actualValue);
+  result.set('actual', actual);
   result.set('error', null);
-  result.set('ok', beneathTags(actualValue) === true);
+  result.set('ok', beneathTags(actual) === true);
   return result;
 }
 

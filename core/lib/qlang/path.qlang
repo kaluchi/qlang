@@ -50,9 +50,7 @@
         ~~|
         ~(wires :index |~~ The index the path read, counted from the end when negative. ~~| ::number
           | wires :length |~~ How many elements the value holds. ~~| ::number
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :KeyNotInMapError
         |~~ A path names a key the map holds, so a misspelled field is
             found where `get` reads it; `:key` holds the key read, and
@@ -71,9 +69,7 @@
           | wires :nearest
               |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
               ::vec
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :TagClosedError
         |~~ A value under a kind that wires its parts is read by the names
             its kind wires, each bare, `card | took`, and no path reads or
@@ -89,9 +85,7 @@
           | wires :repair
               |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
               ::quote
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and
@@ -107,9 +101,7 @@
         ~(wires :segment
               |~~ The segment the path read, a key or an index. ~~|
               ~(query /segment) #[::keyword ::null ::number]
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :IndexNotIntegerError
         |~~ A vector is read by an index, `/0`, and a set by the index of
             an element in its one order; `:segment` holds the segment read,
@@ -119,9 +111,7 @@
             ::link~(::path | doc) ::link~(::vec/filter | doc)
         ~~|
         ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
+          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | tag | eq ::path)
@@ -171,10 +161,10 @@
     | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
         ~(42 | get /foo
-          !| get [~(tag) ~(segment) ~(actualTag)] | eq [::path/SubjectHasNoPartsError :foo ::number])
+          !| get [~(tag) ~(segment) ~(found | tag)] | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [~(tag) ~(actualTag)] | eq [::path/SubjectHasNoPartsError ::null])
+        ~(null | get /k !| get [~(tag) ~(found)] | eq [::path/SubjectHasNoPartsError null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by an index, not a field. ~~|
         ~([10 20 30] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])

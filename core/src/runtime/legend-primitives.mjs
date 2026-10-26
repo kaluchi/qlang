@@ -66,8 +66,7 @@ function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
   return glossOfTheRest(segments, [tagOf(kind).name], scope, kind);
 }
 
-// The kinds the excerpt shows of the value laid at a key: the tag beneath an
-// open tag, the tag it shows first, or the walk of a part that stands whole.
+// [D467]
 function kindsShownAt(above, parts) {
   let beneath = null;
   for (let at = `${above}/${PAYLOAD_NAME}`; parts.has(`${at}/${FIRST_VIEW}`); at = `${at}/${PAYLOAD_NAME}`) beneath = parts.get(`${at}/${FIRST_VIEW}`);
@@ -77,8 +76,6 @@ function kindsShownAt(above, parts) {
   return parts.has(above) && !isCell(parts.get(above)) ? [...kindsOfWalk(parts.get(above))] : null;
 }
 
-// The rest of a key read by the kind laid above it: a slot of its verdict and
-// a probe of the slot, a name it wires, or a view its walk reaches.
 function glossOfTheRest(rest, kindNames, scope, ownKind = null) {
   const kind = ownKind ?? kindNames.map(kindName => kindOfAValueOf(scope, kindName)).find(found => found !== null) ?? null;
   const field = kind === null ? undefined : chainOfKind(kind).fields.find(({ name }) => name.name === rest[0]);

@@ -27,8 +27,8 @@ beforeAll(async () => {
       ':any/twice ::builtin{}',
       ':any/same ::builtin{}',
       ':any/again (::any/answer | binding | value)',
-      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :actualTag |~~ The kind refused. ~~| ~(query /actualTag) #[::null ::tag] | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue)) | impl ::builtin{})',
-      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :actualTag |~~ The kind refused. ~~| ~(query /actualTag) #[::null ::tag] | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue)) | impl ::builtin{})',
+      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{})',
+      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{})',
       ':any/break ::builtin{}',
       ':Raw |~~ A raw. ~~| (::kind | impl ::builtin{})',
       ':Kept |~~ A kept. ~~| (::kind | impl ::builtin{})',
@@ -39,8 +39,8 @@ beforeAll(async () => {
       'any/later': async index => ANSWERS[index],
       'any/twice': subject => [subject, subject],
       'any/same': subject => subject,
-      'any/refuse': index => { throw new AnyRefuseRefusedError({ actualValue: ANSWERS[index] }); },
-      'any/refuseLater': async index => { throw new AnyRefuseRefusedError({ actualValue: ANSWERS[index] }); },
+      'any/refuse': index => { throw new AnyRefuseRefusedError({ value: ANSWERS[index] }); },
+      'any/refuseLater': async index => { throw new AnyRefuseRefusedError({ value: ANSWERS[index] }); },
       'any/break': index => { throw new AnyBreakBrokenError({ detail: ANSWERS[index] }); },
       'Raw': payload => ({ raw: payload }),
       'Kept': payload => payload,
@@ -130,10 +130,10 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
-    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) ~(actualValue)]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
+    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) ~(value)]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
     expect((await notebook.evalCell(`${answering(undefined)} | refuse !| tag`)).result).toEqual(makeTag('any/refuse/RefusedError'));
-    expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/actualValue', 'object Object'));
-    expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/actualValue', 'object Object'));
+    expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/value', 'object Object'));
+    expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/value', 'object Object'));
   });
 
   it('raises past the fail track a defect a host\'s primitive throws, whatever its facts hold', async () => {
@@ -179,7 +179,7 @@ describe('the second door: what a host hands where the core takes it', () => {
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await notebook.evalCell('tag', { initialPipeValue: value });
       expect([cell.result, cell.defect], account).toEqual([null, expect.any(BuiltinForeignValueError)]);
-      expect(cell.defect.facts, account).toEqual({ actualValue: account });
+      expect(cell.defect.facts, account).toEqual({ found: account });
       expect(cell.defect.message).toBe(`the core met ${account}, a value of no kind of the language`);
     }
   });
@@ -187,8 +187,8 @@ describe('the second door: what a host hands where the core takes it', () => {
   it('raises each value of no kind a name of a scope holds, as a record or as it lies, where a query or a notebook takes the scope', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       for (const scope of [await scopeHolding(value), new Map(await langRuntime()).set('held', value)]) {
-        await expect(evalQuery('1', scope), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
-        await expect(createNotebook({ scope }), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
+        await expect(evalQuery('1', scope), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { found: account } });
+        await expect(createNotebook({ scope }), account).rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { found: account } });
       }
     }
   });
@@ -276,11 +276,10 @@ describe('a failure of JavaScript lifted to a failure of the host', () => {
 });
 
 it('leaves out a fact its site hands as undefined', async () => {
-  const typeErr = new TestsProbeTypeError({ index: undefined, actualValue: null });
-  const errorVal = errorFromQlang(typeErr, 42, await langRuntime());
+  const typeErr = new TestsProbeTypeError({ index: undefined, found: null });
+  const errorVal = errorFromQlang(typeErr, await langRuntime());
   expect(errorVal.facts.has('index')).toBe(false);
-  expect(errorVal.facts.get('actualValue')).toBe(null);
-  expect(errorVal.facts.get('actualTag')).toEqual(makeTag('null'));
+  expect(errorVal.facts.get('found')).toBe(null);
 });
 
 describe('the answer of a primitive a host hands', () => {
@@ -344,7 +343,7 @@ describe('the codec of JSON refuses a value of no kind of the language where it 
   it('names what it refused as JavaScript holds it, and no kind of it', () => {
     let refused;
     try { toPlain([Symbol('s')]); } catch (error) { refused = error; }
-    expect(refused.facts).toEqual({ actualValue: 'symbol Symbol(s)' });
+    expect(refused.facts).toEqual({ found: 'symbol Symbol(s)' });
   });
 });
 
@@ -384,7 +383,7 @@ describe('a number past the doubles, refused by the printer and the codec of JSO
       try { printValue(leaked); } catch (caught) { thrown = caught; }
       expect(thrown).toBeInstanceOf(BuiltinForeignValueError);
       expect(thrown.name).toBe('ForeignValueError');
-      expect(thrown.facts.actualValue).toBe(`number ${leaked}`);
+      expect(thrown.facts.found).toBe(`number ${leaked}`);
     }
   });
 
@@ -418,7 +417,7 @@ describe('a notebook takes what its host hands by the scan of the door', () => {
     const sessionInstance = await createNotebook();
     for (const [value, , account] of valuesOfNoKind()) {
       const cell = await sessionInstance.evalCell(':late 1 | tag', { initialPipeValue: value });
-      expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { actualValue: account }]);
+      expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { found: account }]);
       expect(cell.scopeAfterCell.has('late')).toBe(false);
     }
     expect((await sessionInstance.evalCell('1 | add 1')).result).toBe(2);
@@ -427,7 +426,7 @@ describe('a notebook takes what its host hands by the scan of the door', () => {
   it('refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
       await expect(createNotebook({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
-        .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { actualValue: account } });
+        .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { found: account } });
     }
   });
 });

@@ -57,9 +57,6 @@
             the index it stands at.
             ::link~(::quote | doc)
         ~~|
-        ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
     | throws :StepNotCommandError
         |~~ A step after the first is a command, a call, a declaration or
             a group, and a value stands at the head, where it is the
@@ -72,10 +69,7 @@
         ~~|
         ~(wires :message
               |~~ What the rule says of the value, the verb that takes it. ~~|
-              ::string
-          | wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::string)
     | throws :LiteralComputesError
         |~~ A literal computes nothing: the step at `:index` is a literal
             that holds a name or a group, which the shape `get` builds
@@ -87,10 +81,7 @@
               |~~ What the rule says of the literal, the template `get` builds it
                   from.
               ~~|
-              ::string
-          | wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::string)
     | throws :ParseError
         |~~ The source does not read as qlang: `:marker` puts a caret
             beneath `:source` under the character where the reading

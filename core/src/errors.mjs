@@ -11,7 +11,6 @@ export class QlangError extends Error {
 }
 
 // [QSERR#site], [QSERR#trace]
-export const refusingTheSubject = refusal => Object.assign(refusal, { refusesTheSubject: true });
 export const refusingAPart = (refusal, ...segments) => Object.assign(refusal, { part: segments });
 
 export class QlangDefect extends QlangError {

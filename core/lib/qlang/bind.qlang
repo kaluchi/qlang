@@ -61,9 +61,7 @@
               |~~ What the rule says of the literal, the template `get` builds it
                   from.
               ~~|
-              ::string
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::string)
     | throws :NounNotDeclaredError
         |~~ A name with a path is declared under the noun its path names
             before its last name, and that noun is declared before it, so

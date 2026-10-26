@@ -61,7 +61,7 @@
     | throws :AddressKindNotTakenError
         |~~ A module of the runtime registered a primitive under an address
             that is no string, a defect of the runtime found as it loads,
-            `:actualValue` naming the address as JavaScript holds it. The
+            `:found` naming the address as JavaScript holds it. The
             address is the text of the verb's address, `number/add`.
         ~~|
     | throws :PrimitiveNotHandedError
@@ -88,7 +88,7 @@
             a tag that is no tag, a vector or a map that holds itself, or a
             number past the finite doubles, a value JavaScript leaves
             undefined reading as null. It is a defect of the host, raised past the fail track,
-            `:actualValue` naming the value as JavaScript holds it, its type
+            `:found` naming the value as JavaScript holds it, its type
             and its name or its maker, `"function hello"`, or what makes a
             vector or a map of no kind; the printer and the codec of JSON
             raise it too for a value of no kind a host hands a cell.

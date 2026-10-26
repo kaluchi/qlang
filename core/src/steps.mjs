@@ -121,7 +121,7 @@ function literalMessage(literal, written) {
 }
 
 function heldAsALiteral(literal, Refusal, facts, written) {
-  if (written.computesWithin(literal)) throw new Refusal({ actualValue: literal, ...facts, message: literalMessage(literal, written) });
+  if (written.computesWithin(literal)) throw new Refusal({ found: literal, ...facts, message: literalMessage(literal, written) });
 }
 
 function laterStepMessage(step, written) {
@@ -180,9 +180,9 @@ const CONSTRUCT = {
 
 // [QSQUO#step]
 function recordFrom(payload, record) {
-  for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: null });
+  for (const name of record.required) if (!payload.has(name)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), found: null });
   for (const [name, value] of payload) {
-    if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), actualValue: value });
+    if (!Object.hasOwn(record.fields, name) || !record.fields[name](value)) throw new record.PayloadNotSchemaError({ field: makeKeyword(name), found: value });
   }
   return makeTagged(record.tag, new Map(payload));
 }
@@ -200,7 +200,7 @@ export function callOf(payload, written) {
 
 export function bindOf(payload, written) {
   const bind = recordFrom(payload, BIND);
-  if (!bind.has('docs') && !bind.has('body')) throw new BindPayloadNotSchemaError({ field: makeKeyword('body'), actualValue: null });
+  if (!bind.has('docs') && !bind.has('body')) throw new BindPayloadNotSchemaError({ field: makeKeyword('body'), found: null });
   const name = bind.get('name');
   if (!readsAsBareKeyword(name.name) || (!declaresKind(bind) && LITERAL_WORDS.has(name.name))) throw new BindNameNotCallableError({ name, message: nameMessage(name, written) });
   if (holdsALiteral(bind.get('body'))) heldAsALiteral(bind.get('body'), BindLiteralComputesError, {}, written);
@@ -210,14 +210,14 @@ export function bindOf(payload, written) {
 // [QSQUO#step], [QSLIT#closed]
 export function constructOf(payload) {
   const construct = recordFrom(payload, CONSTRUCT);
-  if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: makeKeyword('tag'), actualValue: construct.get('tag') });
+  if (construct.get('tag').name === ERROR_TAG.name && isOfTheKindOfErrors(construct.get('payload'))) throw new ConstructPayloadNotSchemaError({ field: makeKeyword('tag'), found: construct.get('tag') });
   return construct;
 }
 
 // [QSLIT#closed], [QSQUO#step]
 export function constructOfData(payload, written) {
   const construct = constructOf(payload);
-  heldAsALiteral(construct, ConstructLiteralComputesError, { actualValue: payload }, written);
+  heldAsALiteral(construct, ConstructLiteralComputesError, { found: payload }, written);
   return construct;
 }
 
@@ -241,14 +241,14 @@ export function groupOf(payload) {
 // [QSQUO#step], [QSSYN#step]
 export function quoteOf(payload, written) {
   payload.forEach((element, index) => {
-    if (!isStep(element)) throw new QuoteElementNotStepError({ index, actualValue: element });
+    if (!isStep(element)) throw new QuoteElementNotStepError({ index, found: element });
   });
   payload.forEach((step, index) => {
     if (holdsALiteral(step)) heldAsALiteral(step, QuoteLiteralComputesError, { index }, written);
   });
   payload.forEach((step, index) => {
     if (index > 0 && !standsAsCommand(step) && !isFailStep(step) && !declaresAName(payload[index - 1])) {
-      throw new QuoteStepNotCommandError({ index, message: chainMessage(payload, index, written) ?? laterStepMessage(step, written), actualValue: step });
+      throw new QuoteStepNotCommandError({ index, message: chainMessage(payload, index, written) ?? laterStepMessage(step, written), found: step });
     }
   });
   return makeQuote(payload);

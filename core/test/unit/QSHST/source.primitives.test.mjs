@@ -23,7 +23,7 @@ describe('the table of the primitives — registering before the bootstrap', () 
     } catch (e) {
       expect(e).toBeInstanceOf(QlangDefect);
       expect(e.name).toBe('AddressKindNotTakenError');
-      expect(e.facts.actualValue).toBe('null');
+      expect(e.facts.found).toBe('null');
       expect(e.facts.expected.map(kind => kind.name)).toEqual(['string']);
     }
   });

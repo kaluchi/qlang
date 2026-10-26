@@ -5,7 +5,7 @@ import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
-import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
+import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
 import { readPath, partsOfTemplate, isMissedPart, MISSED } from './path-read.mjs';
 import {
@@ -80,7 +80,7 @@ function evaluatorOf(step) {
 
 function errorOfThrow(caughtError, subject, scope) {
   if (caughtError instanceof QlangDefect) throw caughtError;
-  return caughtError instanceof QlangError ? errorFromQlang(caughtError, subject, scope) : errorFromForeign(caughtError, scope);
+  return caughtError instanceof QlangError ? errorFromQlang(caughtError, scope) : errorFromForeign(caughtError, scope);
 }
 
 export async function factsWithTheirTrace(facts, state) {
@@ -361,7 +361,7 @@ async function callByName(lookupName, modifiers, state, call) {
     if (addresses.length > 0) {
       const nearest = nearestVerbs(state.scope, addresses, state.pipeValue);
       const repair = isPath(state.pipeValue) ? repairOfPathSubject(state.pipeValue, call) : undefined;
-      throw refusingTheSubject(new CallKindAnswersNoVerbError({ name: makeKeyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, actualValue: state.pipeValue }));
+      throw new CallKindAnswersNoVerbError({ name: makeKeyword(lookupName), addresses, nearest: nearest.length > 0 ? nearest : undefined, repair, found: state.pipeValue });
     }
     throw new CallUnknownNameError({ name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses });
   }
@@ -408,7 +408,7 @@ async function applyBinding(entry, name, lastName, modifiers, state) {
 
 // [QSNAM#value], [QSDSP#residence]
 function valueCalled(value, name, lastName, modifiers, state) {
-  if (modifiers.length > 0) throw new CallValueTakesNoModifiersError({ name: makeKeyword(name), actualValue: value, addresses: addressesOf(state.scope, lastName) });
+  if (modifiers.length > 0) throw new CallValueTakesNoModifiersError({ name: makeKeyword(name), found: value, addresses: addressesOf(state.scope, lastName) });
   return withPipeValue(state, value);
 }
 
@@ -498,7 +498,7 @@ function partAtThePlace(subject, { path, soft }, scope) {
     const part = readPath(subject, path, soft);
     return part === MISSED ? null : part;
   } catch (refusal) {
-    return errorFromQlang(refusal, undefined, scope);
+    return errorFromQlang(refusal, scope);
   }
 }
 
@@ -885,7 +885,7 @@ export async function layTag(tagName, laidOver, state) {
   const kind = kindOfAValueOf(state.scope, tagName);
   if (kind !== null) return await underKind(tagName, kind, payload, state);
   if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
-  throw new ConstructTagNamesAValueError({ address: makeTag(tagName), actualValue: declared });
+  throw new ConstructTagNamesAValueError({ address: makeTag(tagName), found: declared });
 }
 
 // [QSBLD#value]
@@ -995,7 +995,7 @@ function codeOfPath(path, callState) {
     try {
       return readPath(subject, path);
     } catch (refusal) {
-      return answerOfStep(errorFromQlang(refusal, subject, callState.scope), step, subject, callState.scope);
+      return answerOfStep(errorFromQlang(refusal, callState.scope), step, subject, callState.scope);
     }
   };
 }

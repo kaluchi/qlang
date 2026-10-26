@@ -1,4 +1,4 @@
-import { makeKeyword, makeErrorValue, makeTag, tagOf } from './types.mjs';
+import { makeKeyword, makeErrorValue, makeTag } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
 import { kindOfAValueOf } from './nouns.mjs';
 import { chainOfKind } from './chain.mjs';
@@ -41,11 +41,9 @@ export function factsInOrder(tag, facts, scope) {
   return ordered;
 }
 
-export function errorFromQlang(qlangError, subject, scope) {
+export function errorFromQlang(qlangError, scope) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
-  if (facts.has('actualValue')) facts.set('actualTag', tagOf(facts.get('actualValue')));
-  if (qlangError.refusesTheSubject === true && subject !== undefined) facts.delete('actualValue');
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 

@@ -61,7 +61,7 @@ export async function boundAnswer(answer, scope, written = null, keep = null) {
   if (isErrorValue(answer)) return alertOf(answer, room, printedOf);
   const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return answer;
-  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, answer }), undefined, scope), room, printedOf);
+  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, answer }), scope), room, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';

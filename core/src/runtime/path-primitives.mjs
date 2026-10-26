@@ -63,14 +63,14 @@ async function written(value, path, at, write, state) {
   let bare;
   let slot;
   if (isMap(value)) {
-    if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path, at);
+    if (!value.has(segment) && !(last && write.adds)) throw keyNotInMap(value, segment, path);
     bare = new Map(value);
     slot = segment;
   } else if (isVec(value)) {
     bare = [...value];
-    slot = indexIn(value, segment, path, at);
+    slot = indexIn(value, segment, path);
   } else {
-    throw noPartsOn(value, segment, path, at);
+    throw noPartsOn(value, segment, path);
   }
   if (last && write.removes) {
     if (isMap(bare)) bare.delete(slot);

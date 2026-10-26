@@ -43,7 +43,7 @@
         ~~|
         ::map
     | reveals :count
-    | reveals :keys
+    | reveals :shape
     | throws :PayloadKindNotTakenError
         |~~ `::map` reads its payload as the map it is, and a value of no
             map is refused: the pairs of a vector build a map by `toMap`,

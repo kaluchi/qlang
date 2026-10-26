@@ -14,7 +14,7 @@ it('answers the refusal instead of an answer past the budget, the answer told by
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);
   expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
-  expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/count', 3000]]);
+  expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/count', 3000], ['answer/shape', await core.evalQuery('::shape[{:id ::number :name ::string}]', scope)], ['answer/first', answer[0]], ['answer/last', answer[2999]]]);
 });
 
 it('names the cell its host keeps the answer in as its answer, where the host keeps one', async () => {

@@ -2,11 +2,11 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf, nodeOf } from '../nouns.mjs';
+import { kindOfAValueOf } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe } from '../chain.mjs';
 import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, isFn, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds } from './print.mjs';
+import { printsOfKinds, verbOfAView } from './print.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
 const LEAST_COLUMN = 16;
@@ -36,13 +36,13 @@ function legendOfAKind(tag, ofTheHead, scope) {
   const kind = kindOfAValueOf(scope, tag.name);
   const { fields, reveals } = kind === null ? { fields: [], reveals: [] } : chainOfKind(kind);
   const head = aligned([[printValue(tag), ofTheHead]]);
-  const views = reveals.map(name => viewOfAKind(scope, `${tag.name}/${name}`, name));
+  const views = reveals.map(name => viewOfAKind(scope, tag.name, name));
   return [head, ...fields.map(field => closed(joined(partOfAKind(field), glossOf(field.page, scope)))), ...views].join('\n');
 }
 
 // [QSPRN#legend], [QSPRN#excerpt]
-function viewOfAKind(scope, address, name) {
-  const record = nodeOf(scope, address);
+function viewOfAKind(scope, kindName, name) {
+  const record = verbOfAView(scope, kindName, name);
   if (record === null) return closed(name);
   const verb = bindingValueOf(record);
   const answer = chainOfFn(isFn(verb) ? verb : functionOfRecipe(verb)).answer;

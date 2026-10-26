@@ -41,6 +41,9 @@
         ~~|
         ::vec
     | reveals :count
+    | reveals :shape
+    | reveals :first
+    | reveals :last
     | throws :PayloadKindNotTakenError
         |~~ `::vec` reads its payload as the vector it is, and a value of
             no vector is refused: the pairs of a map are a vector by

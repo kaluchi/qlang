@@ -5,3 +5,5 @@
 {"name":"an-excerpt-reads-back-as-itself","query":"::excerpt{:actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | :e it | print | parse | open | eq e","expect":"true"}
 {"name":"a-fact-told-as-its-cell-reads-by-its-name-and-a-view-by-its-key","query":"::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]","expect":"[::cell 3410]"}
 {"name":"no-verb-cuts-a-value-to-a-room","query":"[1 2] | excerpt !| tag","expect":"::call/UnknownNameError"}
+{"decision":"D465","name":"a-vector-reveals-its-count-its-shape-and-its-two-ends","query":"::vec | legend | print | lines | drop 1 | map ~(split \" \" | get /1)","expect":"[\"count\" \"shape\" \"first\" \"last\"]"}
+{"decision":"D465","name":"a-map-reveals-its-count-and-its-shape","query":"::map | legend | print | lines | drop 1 | map ~(split \" \" | get /1)","expect":"[\"count\" \"shape\"]"}

@@ -27,11 +27,11 @@ describe('a host prints a failure as the concentrate of its facts', () => {
     const { kept, keep } = keeping();
     const alert = await alertOf('1 | add (3410 | range)', keep);
     expect([printValue(alert).startsWith('::number/add/addend/KindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('actualValue')), alert.facts.get('actualValue/count'), kept[0].length])
-      .toEqual([true, ['expected', 'actualTag', 'actualValue', 'actualValue/count', 'trace'], '::cell"kept1"', 3410, 3410]);
+      .toEqual([true, ['expected', 'actualTag', 'actualValue', 'actualValue/count', 'actualValue/shape', 'actualValue/first', 'actualValue/last', 'trace'], '::cell"kept1"', 3410, 3410]);
   });
 
   it('tells a fact past the room by its views alone where its host keeps no cell', async () => {
-    expect([...(await alertOf('1 | add (3410 | range)')).facts.keys()]).toEqual(['expected', 'actualTag', 'actualValue/count', 'trace']);
+    expect([...(await alertOf('1 | add (3410 | range)')).facts.keys()]).toEqual(['expected', 'actualTag', 'actualValue/count', 'actualValue/shape', 'actualValue/first', 'actualValue/last', 'trace']);
   });
 
   it('shows the views of a trace past the room that fit, a view that answers nothing left out', async () => {

@@ -575,7 +575,7 @@
     | proves :laysOutTheViewsATagNameReveals
         |~~ A tag name lays out beneath its parts the views its kind reveals.
         ~~|
-        ~(::vec | legend | print | lines | last | eq "|~ count ::number · How many elements the vector holds ~|")
+        ~(::vec | legend | print | lines | drop 1 | map ~(split " " | get /1) | eq ["count" "shape" "first" "last"])
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)

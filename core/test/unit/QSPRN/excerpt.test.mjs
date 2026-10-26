@@ -6,11 +6,11 @@ import { viewsOfKinds } from '../../../src/runtime/print.mjs';
 const viewsOf = async query => viewsOfKinds(await langRuntime())(await evalQuery(query));
 
 it('reads the views of the first kind of the walk of its tags that reveals any, a set those of vectors', async () => {
-  expect(await viewsOf('#[3 1 2]')).toEqual([['count', 3]]);
+  expect(await viewsOf('#[3 1 2]')).toEqual([['count', 3], ['shape', await evalQuery('::shape#[::number]')], ['first', 1], ['last', 3]]);
 });
 
 it('reads the views of a map, a string and a trace, each by the verb it names', async () => {
-  expect(await viewsOf('{:b 2 :a 1}')).toEqual([['count', 2], ['keys', await evalQuery('#[:a :b]')]]);
+  expect(await viewsOf('{:b 2 :a 1}')).toEqual([['count', 2], ['shape', await evalQuery('::shape{:b ::number :a ::number}')]]);
   expect(await viewsOf('"abc"')).toEqual([['count', 3]]);
   expect(await viewsOf('[1 "x" 3] | map ~(mul 2) !| trace')).toEqual([['failed', await evalQuery('[~(mul 2) ~(map ~(mul 2))]')], ['subject', 'x'], ['paths', await evalQuery('[/1]')]]);
 });

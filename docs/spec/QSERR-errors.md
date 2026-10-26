@@ -24,10 +24,14 @@ their names, `!| actualTag`, no path reads beneath its tag [QSPTH#get], and
 `payload` answers the `::error` beneath it, which holds a fact past the
 wiring of the kind; the walk of its tags meets no `::error`, so it is a
 value of its refusal alone. The literal of an error of a refusal holds
-each fact it holds to the kinds its kind wires, but an excerpt, which
-stands for any fact, and a fact it does not hold reads null by its name, so
-the alert of a failure reads back as an error at rest of its tag
-[QSERR#alert].
+each fact it holds to the kinds its kind wires, and a fact it does not hold
+reads null by its name; an error at rest holds no excerpt as a fact, which
+its kind refuses as a value of another kind. The kind of errors and the
+kind of each refusal take the excerpt of the facts a host prints too,
+`::X::excerpt{…}` and `::error::excerpt{…}` [QSERR#alert], its facts read
+by their names, or by their keys under `::error`, each its value, its
+excerpt or nothing, while `raise` refuses it as no map of facts
+[QSERR#raise].
 
 Under `::error` alone, or under a tag no node declares, an error at rest
 is a map of facts no refusal declares: it holds the facts it is written
@@ -68,8 +72,14 @@ true
 > ::number/add/SubjectNotNumberError!{:actualTag 5} !| tag
 ::number/add/SubjectNotNumberError/actualTag/KindNotTakenError
 
-> ::number/add/addend/KindNotTakenError!{:trace ::excerpt{:of ::trace :count 2 :parts {}}} | get [~(trace | count) ~(expected)]
-[2 null]
+> ::number/add/addend/KindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
+::number/add/addend/KindNotTakenError/trace/KindNotTakenError
+
+> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :trace ::excerpt{:failed []}} | get [~(tag) ~(actualTag) ~(expected)]
+[::number/add/addend/KindNotTakenError ::vec null]
+
+> ::error::excerpt{:rows ::excerpt{:count 5000}} | get [~(tag) ~(get /rows/count)]
+[::error 5000]
 ```
 
 ## raise
@@ -79,8 +89,12 @@ it puts its subject on the fail track, a map beneath the tags over it, a
 map as `::error{…}`, a map under a tag as the error of the outermost tag
 and the error at rest of a refusal as the error of its refusal; a subject
 that is no map beneath its tags, a value under a tag over another value
-among them, is refused as `::any/raise/SubjectKindNotTakenError`. An
-error at rest raised again is the error it was.
+among them, is refused as `::any/raise/SubjectKindNotTakenError`, and so is
+the excerpt of the facts of a failure a host prints, `::X::excerpt{…}`,
+which tells the failure and holds it not, its `:actualTag` `::excerpt`,
+before any fact is laid under its kind, so the refusal is the step's and no
+door of a kind of a fact answers it. An error at rest raised again is the
+error it was.
 
 ```qlang
 > {:k 1} | raise !| tag
@@ -91,6 +105,9 @@ error at rest raised again is the error it was.
 
 > "x" | add 1 !| raise !| tag
 ::number/add/SubjectNotNumberError
+
+> ::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)]
+[::any/raise/SubjectKindNotTakenError ::excerpt]
 ```
 
 ## catch
@@ -482,27 +499,37 @@ $ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^  :sour
 A host prints a failure nothing caught as its alert, the concentrate of the
 failure: its tag and its facts in the order its kind wires them, each fact
 whole where its print, as `print` answers it, holds three hundred
-characters, the room of a fact, and past them as its excerpt within those
-three hundred [QSPRN#excerpt], an excerpt standing at the top of the facts
-alone and nothing laid open beneath a fact; where the alert passes its
-room, two thousand characters, its last facts drop until it fits, a kind
-wiring first what a reader needs first. The line of the raise and the page
-of the refusal stand beside the room. A failure holds its facts whole as it
+characters, the room of a fact, and past them as the excerpt the tag of the
+fact gives within those three hundred [QSPRN#excerpt], one level, nothing
+laid open beneath an excerpt; where the alert passes its room, two thousand
+characters, its last facts drop until it fits, a kind wiring first what a
+reader needs first. A failure every fact of which stands whole prints as
+its error at rest, `::X!{…}`, and one a fact of which gave way or dropped
+as the excerpt of its facts under its tag, `::X::excerpt{…}`, a failure of
+no refusal `::error::excerpt{…}`, which the kind of its tag reads back, each
+fact by its name [QSERR#rest]. The line of the raise and the page of the
+refusal stand beside the room. A failure holds its facts whole as it
 flies, and `!|` meets it live, a step after the catch reading each fact as
-the failure met it, while the alert reads back as an error at rest of its
-tag, each excerpt the excerpt it is [QSERR#rest]. The caret of a refused
-text is a fact within the room of a fact [QSSYN#refusal].
+the failure met it. The caret of a refused text is a fact within the room
+of a fact [QSSYN#refusal].
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :actualValue ::excerpt{$' -e '^    :count 3410$'
-2
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/addend/KindNotTakenError::excerpt{$' -e '^  :actualValue ::excerpt{$' -e '^    :count 3410$'
+3
 
-$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::excerpt\{|:count 1001'
+$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::excerpt\{|:count 1001|:subject 999'
 :trace ::excerpt{
 :count 1001
+:subject 999
+
+$ qlang 'kinds | add 1' < /dev/null | grep -c -e '^::number/add/SubjectNotNumberError::excerpt{$' -e '^    :failed \[~(add 1)\]$' -e '^    :subject "#\[::absent'
+3
 ```
 
 ```qlang
 > 1 | add (3410 | range) !| get [~(actualValue | count) ~(actualValue | take 3)]
 [3410 [0 1 2]]
+
+> get {:rows ~(5000 | range)} | raise !| get /rows | count
+5000
 ```

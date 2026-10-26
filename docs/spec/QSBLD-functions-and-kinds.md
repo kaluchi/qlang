@@ -297,8 +297,9 @@ the set of no kinds takes no payload, its refusal holding the empty set
 as `:expected`, and a kind whose chain names no kind of its payload takes
 any. The door reads each part the kind wires once, by its selector, as
 the value is built: a part the payload leaves out is refused under its
-name as `…/NotGivenError`, a fact an error at rest does not hold reading
-null instead and an excerpt standing for any fact of one [QSERR#rest], one its selector fails to read as
+name as `…/NotGivenError`, a fact the facts of an error at rest do not
+hold reading null instead and an excerpt standing for any fact of the
+excerpt of those facts [QSERR#rest], one its selector fails to read as
 `…/NotReadError`, the failure at rest its `:actualValue`, and a value of
 none of its kinds under its name; a part no name wires is taken and read
 by nothing. The invariants of the value hold of the payload beneath the

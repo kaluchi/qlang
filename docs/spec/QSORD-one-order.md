@@ -40,7 +40,7 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > [/b /a/c /a] | sort | map ~(print)
 ["/a" "/a/c" "/b"]
 
-> get [~([::aaa#1 ::excerpt{:of ::vec :count 1 :parts {}}] | sort | map ~tag) ~([::desc#1 ::excerpt{:of ::vec :count 1 :parts {}} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
+> get [~([::aaa#1 ::excerpt{:count 1}] | sort | map ~tag) ~([::desc#1 ::excerpt{:count 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
 [[::aaa ::excerpt] [::map ::quote ::doc ::desc ::excerpt]]
 ```
 

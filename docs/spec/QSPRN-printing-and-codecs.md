@@ -125,8 +125,8 @@ page, so the print reads back as the tag and `kinds | map ~legend` tells
 the parts of every kind before a value of it is held. A legend is an
 answer, printed within the budget of every answer [QSPRN#budget], and a
 legend that lays its parts out a line each and passes the budget lays each
-part past the room of a fact, three hundred characters, as its excerpt
-[QSPRN#excerpt].
+part past the room of a fact, three hundred characters, as the excerpt its
+tag gives [QSPRN#excerpt].
 
 ```sh
 $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
@@ -146,7 +146,7 @@ $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in
 > ::span | legend | print | parse | open
 ::span
 
-> 1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:of ::vec :count 5000")]
+> 1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")]
 [true true]
 ```
 
@@ -186,42 +186,65 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 
 ## excerpt
 
-`excerpt`, a verb of `::any`, answers the excerpt of its subject within the
-characters of print it takes, three hundred where it takes none, a value of
-`::excerpt`: `of` the tag of the subject, `count` its elements, its entries
-or the characters of its text, as `count` counts them, and `parts` the
-parts it shows whole, taken from its two ends inward by turns, an end
-stopping at its first part that passes what the room leaves. A vector, a
-set, a quote and a doc show their elements under their indices and a map
-its entries under their keys; a string, a value with no parts and one its
-kind prints show the first and the last characters of their text under
-their offsets, which `drop` reads to them; and a value that fits shows
-whole. `excerpt` always answers an excerpt, so the kind of its answer is
-known before the call, and refuses a budget that is no whole count above
-zero, `::any/excerpt/budget/NotCountError`, and one past the budget of
-every answer, `::any/excerpt/budget/PastTheBudgetError`, which names that
-budget. The kind of an excerpt wires its three names, so `count` answers
-the count of the value told and no verb of that value answers it, a step
-after it meeting a value of its own kind and never data with a hole; an
-excerpt prints as a map under its tag and reads back as itself. A host
-shows so a fact of a failure past the room of a fact [QSERR#alert] and an
-answer past the budget [QSPRN#budget].
+`excerpt` answers the excerpt of its subject within the characters of
+print it takes, three hundred where it takes none and the budget of every
+answer at the most, a value of `::excerpt`, a map under its tag: the tag
+of the subject gives it under its label, found by the walk of the
+subject's tags as `print` is [QSDSP#walk], and counts it itself, so the
+excerpt a tag gives holds no excerpt and no tag asks another for one. A
+vector, and a set by it, that fits stands whole in `:first`, and one past
+its room tells `:count` its elements and `:first` and `:last` the
+elements at its two ends that fit whole, taken from the ends inward by
+turns, an end stopping at its first element that does not fit; a map tells
+its entries the same way, under their keys; and where an end of either
+holds no part whole, `:head` and `:tail` tell the first and the last
+characters of its print on one line instead, so a record whose first field
+is long shows its keys. A string that fits stands whole in `:head`, and
+one past its room tells `:characters`, as `count` counts them, `:head`
+and `:tail`. A trace tells `:failed`, the step that failed at each level
+from where the failure arose, `:count` its frames where some are left out,
+`:paths` the paths of the parts the verbs of the levels it shows ran their
+code on, and `:subject` the value the step that failed met, whole where it
+fits beside the steps and otherwise the ends of its print, the steps then
+taking half the room [QSERR#trace]. A value no tag tells, `::any/excerpt`,
+shows `:characters`, `:head` and `:tail` of its print on one line, a print
+that fits standing whole in `:head`. A cut of characters falls where a
+word ends, at the space nearest the cut within the half of the end beside
+it, and a count stands only where parts are left out, a count of what the
+reader sees whole telling nothing. A tag of the reader tells its own
+values by an `excerpt` under its label. Each `excerpt` always answers an
+excerpt, so the kind of its answer is known before the call, and refuses a
+budget that is no whole count above zero under its own address,
+`::vec/excerpt/budget/NotCountError` for a vector. An excerpt is a map read
+by its keys, `get /count`, which a verb meets as the map it is; it prints
+as a map under its tag and reads back as itself. A host shows so a fact of
+a failure past the room of a fact [QSERR#alert] and an answer past the
+budget [QSPRN#budget].
 
 ```qlang
-> 3410 | range | excerpt | get [~(of) ~(count) ~(parts | get [/0 /3409])]
-[::vec 3410 [0 3409]]
+> 3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)]
+[3410 0 3409]
 
-> [1 2] | excerpt
-::excerpt{:of ::vec :count 2 :parts {:"0" 1 :"1" 2}}
+> [1 2 3] | excerpt
+::excerpt{:first [1 2 3]}
 
-> 1000 | range | map ~("ab") | join "" | excerpt 80 | get [~(of) ~(count) ~(parts | keys | count) ~(print | count | lte 80)]
-[::string 2000 2 true]
+> get {:rows ~(5000 | range) :name "x"} | excerpt | get [/count ~(get /head | startsWith "{:rows [0 1") ~(get /tail | endsWith ":name \"x\"}")]
+[2 true true]
 
-> 3410 | range | excerpt | take 3 !| tag
-::call/KindAnswersNoVerbError
+> 1000 | range | map ~("ab") | join "" | excerpt 80 | get [/characters ~(print | count | lte 80) ~(get /head | startsWith "ab")]
+[2000 true true]
 
-> [1 2] | excerpt 300000 !| get [~(tag) ~(budget)]
-[::any/excerpt/budget/PastTheBudgetError 16000]
+> kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith "#[::absent")]
+[[~(add 1)] true]
+
+> 12345 | excerpt
+::excerpt{:head "12345"}
+
+> [1 2] | excerpt 0 !| tag
+::vec/excerpt/budget/NotCountError
+
+> 100000 | range | excerpt 300000 | print | count | lte 16000
+true
 
 > 1000 | range | excerpt | :e it | print | parse | open | eq e
 true

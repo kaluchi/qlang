@@ -1,7 +1,7 @@
 // [QSPRN#excerpt], [QSERR#alert], [QSPRN#budget]
 
 import { makeErrorValue, makeExcerpt, makeQuote, partsOfFrame } from './types.mjs';
-import { printValue } from './print-value.mjs';
+import { printValue, docText } from './print-value.mjs';
 
 // [QSPRN#budget]
 export const ANSWER_BUDGET = 16000;
@@ -19,6 +19,8 @@ export const sizeOf = (value, printedOf = printedByNoKind) => lengthOf(printValu
 
 // [QSPRN#excerpt]
 const countWhereLeftOut = (count, shown) => (shown < count ? [['count', count]] : []);
+
+const LINE_BREAK = /\s*\n\s*/g;
 
 const isSpace = character => character === ' ' || character === '\n' || character === '\t';
 
@@ -50,7 +52,9 @@ function excerptOfCharacters(characters, facts, room, printedOf) {
   return excerptOf(...endsWithin(characters, excerptOf, room, printedOf));
 }
 
-const printedOnALine = (value, printedOf) => Array.from(printValue(value, 0, printedOf, true));
+const onOneLine = text => text.replace(LINE_BREAK, ' ');
+
+const printedOnALine = (value, printedOf) => Array.from(onOneLine(printValue(value, 0, printedOf, true)));
 
 const mostThatHolds = (low, high, holds) => {
   let most = low;
@@ -79,7 +83,7 @@ function excerptOfParts(value, parts, keptOf, room, printedOf) {
     ...(head.length > 0 ? [['first', keptOf(head)]] : []),
     ...(tail.length > 0 ? [['last', keptOf(tail)]] : [])
   ]);
-  const whole = shownOf(parts, []);
+  const whole = makeExcerpt([['first', keptOf(parts)]]);
   if (sizeOf(whole, printedOf) <= room) return whole;
   const { head, tail } = takenFromTheEnds(parts, shownOf, room, printedOf);
   if (head.length > 0 && tail.length > 0) return shownOf(head, tail);
@@ -90,11 +94,21 @@ export const excerptOfElements = (elements, room, printedOf = printedByNoKind) =
 
 export const excerptOfEntries = (map, room, printedOf = printedByNoKind) => excerptOfParts(map, [...map], shown => new Map(shown), room, printedOf);
 
+export const excerptOfSteps = (quote, room, printedOf = printedByNoKind) => excerptOfParts(quote, [...quote], makeQuote, room, printedOf);
+
 export function excerptOfText(text, room, printedOf = printedByNoKind) {
   const whole = makeExcerpt([['head', text]]);
   if (sizeOf(whole, printedOf) <= room) return whole;
   const characters = Array.from(text);
   return excerptOfCharacters(characters, [['characters', characters.length]], room, printedOf);
+}
+
+export function excerptOfProse(doc, room, printedOf = printedByNoKind) {
+  const text = docText(doc);
+  const prose = onOneLine(text);
+  const whole = makeExcerpt([['head', prose]]);
+  if (sizeOf(whole, printedOf) <= room) return whole;
+  return excerptOfCharacters(Array.from(prose), [['characters', lengthOf(text)]], room, printedOf);
 }
 
 export const excerptOfPrint = (value, room, printedOf = printedByNoKind) => excerptOfText(printedOnALine(value, printedOf).join(''), room, printedOf);

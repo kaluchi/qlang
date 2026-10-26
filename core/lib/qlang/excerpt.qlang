@@ -9,9 +9,10 @@
       a vector and a set `:count`, `:first` and `:last`, the elements at its
       two ends that fit whole, `[0 1 2 … 3409]` told as
       `::excerpt{:count 3410 :first [0 1 2 3] :last [3408 3409]}`, a map its
-      entries at its two ends the same way, and either, where an end holds
-      no part whole, `:head` and `:tail`, the ends of its print; a string
-      `:characters`, `:head` and `:tail`, its first and its last characters;
+      entries at its two ends the same way and a quote its steps, each end a
+      quote, and each, where an end holds no part whole, `:head` and
+      `:tail`, the ends of its print; a string `:characters`, `:head` and
+      `:tail`, its first and its last characters, and a doc so its prose;
       a trace `:failed`, the step that failed at each level, `:paths` and
       `:subject`, the value the step that failed met; and any other value the
       first and the last characters of its print. A count stands where parts

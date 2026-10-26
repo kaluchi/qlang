@@ -585,8 +585,9 @@
   |~~ Answers the excerpt of the subject within the characters of print the
       call gives, three hundred where it gives none, a value of
       `::excerpt`: the tag of the subject tells it in its own words, a
-      vector and a set by `:first` and `:last`, a map the same way, a string
-      by `:head` and `:tail`, and a trace by `:failed` and `:subject`, each
+      vector and a set by `:first` and `:last`, a map and a quote the same
+      way, a string and a doc by `:head` and `:tail`, and a trace by
+      `:failed` and `:subject`, each
       with its count where parts are left out; and a value no tag tells,
       this verb, by `:head` and `:tail`, the first and the last characters
       of its print on one line, each cut where a word ends, and

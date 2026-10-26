@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { alertOf, lengthOf, excerptOfElements, excerptOfEntries, excerptOfText, excerptOfPrint, excerptOfFrames, ANSWER_BUDGET } from '../rooms.mjs';
+import { alertOf, lengthOf, excerptOfElements, excerptOfEntries, excerptOfSteps, excerptOfProse, excerptOfText, excerptOfPrint, excerptOfFrames, ANSWER_BUDGET } from '../rooms.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject } from '../nouns.mjs';
@@ -69,6 +69,8 @@ const excerptWithinItsBudget = told => async (subject, budget, state) => told(su
 
 registerStateReader('vec/excerpt', excerptWithinItsBudget(excerptOfElements));
 registerStateReader('map/excerpt', excerptWithinItsBudget(excerptOfEntries));
+registerStateReader('quote/excerpt', excerptWithinItsBudget(excerptOfSteps));
+registerStateReader('doc/excerpt', excerptWithinItsBudget(excerptOfProse));
 registerStateReader('string/excerpt', excerptWithinItsBudget(excerptOfText));
 registerStateReader('trace/excerpt', excerptWithinItsBudget(excerptOfFrames));
 registerStateReader('any/excerpt', excerptWithinItsBudget(excerptOfPrint));

@@ -13,3 +13,8 @@
 {"name":"a-trace-of-no-frame-tells-no-step","query":"::trace[] | excerpt","expect":"::excerpt{:failed []}"}
 {"name":"a-trace-past-a-room-too-small-for-its-subject-tells-its-steps-alone","query":"kinds | add 1 !| trace | excerpt 40","expect":"::excerpt{:failed [~(add 1)]}"}
 {"name":"a-cut-stays-within-a-word-where-no-space-lies-in-the-half-beside-it","query":"get [~(400 | range | map ~(\"x\") | join \"\") \" yyy\"] | join \"\" | excerpt 80 | get [~(get /tail | startsWith \"x\") ~(get /tail | endsWith \" yyy\")]","expect":"[true true]"}
+{"decision":"D463","name":"a-quote-tells-the-steps-at-its-two-ends-each-a-quote","query":"100 | range | map ~(\"add 1\") | join \" | \" | parse | excerpt | get [/count ~(get /first | tag) ~(get /last | tag)]","expect":"[100 ::quote ::quote]"}
+{"decision":"D463","name":"a-quote-that-fits-stands-whole-in-its-first","query":"~(add 1 | mul 2) | excerpt","expect":"::excerpt{:first ~(add 1 | mul 2)}"}
+{"decision":"D463","name":"a-doc-tells-the-ends-of-its-prose-and-the-characters-of-its-text","query":"::qlang | doc | :page it | excerpt | get [~(get /characters | eq (page | content | count)) ~(get /head | startsWith \"qlang is a pipeline\")]","expect":"[true true]"}
+{"decision":"D463","name":"a-cut-reads-a-line-break-as-a-space","query":"::qlang | doc | excerpt | get [~(get /head | contains \"\\n\") ~(get /tail | contains \"\\n\")]","expect":"[false false]"}
+{"decision":"D463","name":"an-empty-vector-stands-whole-in-its-first","query":"[] | excerpt","expect":"::excerpt{:first []}"}

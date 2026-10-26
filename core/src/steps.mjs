@@ -104,9 +104,12 @@ function templateCut(literal, written) {
   if (!computesWithin(literal)) return '…';
   if (isConstructStep(literal)) return `${literal.get('tag').literal}${templateCut(literal.get('payload'), written)}`;
   const fields = errorFieldsOf(literal);
-  if (fields !== null || isBareMap(literal)) return `${fields === null ? '{' : '!{'}${runsCut([...(fields ?? literal)].map(([key, part]) => (computesWithin(part) ? `${canonicalKeywordLiteral(key)} ${templateCut(part, written)}` : '…')))}}`;
+  if (fields !== null) return `!{${entriesCut(fields, written)}}`;
+  if (isBareMap(literal)) return `{${entriesCut(literal, written)}}`;
   return `${isSet(literal) ? '#[' : '['}${runsCut(literal.map(part => templateCut(part, written)))}]`;
 }
+
+const entriesCut = (entries, written) => runsCut([...entries].map(([key, part]) => (computesWithin(part) ? `${canonicalKeywordLiteral(key)} ${templateCut(part, written)}` : '…')));
 
 const runsCut = pieces => pieces.filter((piece, at) => piece !== '…' || pieces[at - 1] !== '…').join(' ');
 

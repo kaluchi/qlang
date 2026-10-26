@@ -29,7 +29,7 @@ export function streamPrimitives(ioContext) {
     'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
     // [QSHST#effect], [QSHST#cell]
     'any/tap': readingState(async (subject, label, state) => {
-      const kept = answer => keepCell({ query: ioContext.query ?? '', scope: state.scope, answer });
+      const kept = answer => keepCell({ query: ioContext.query, scope: state.scope, answer });
       const shown = await printAnswer(await boundAnswer(subject, state.scope, null, kept), state.scope);
       ioContext.stderrWrite(`[tap ${label.name}] ${shown}\n`);
       return subject;

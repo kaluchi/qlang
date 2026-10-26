@@ -13,7 +13,7 @@ import {
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, EXCERPT_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
+  ERROR_TAG, TRACE_TAG, isExcerpt, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
@@ -861,8 +861,6 @@ async function underKind(tagName, kind, payload, state) {
 
 // [QSERR#rest]
 const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.length === 1 && payloadRole.kinds[0] === ERROR_TAG.name;
-
-const isExcerpt = value => tagOf(value).name === EXCERPT_TAG.name;
 
 // [QSBLD#value], [QSERR#rest]
 function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) {

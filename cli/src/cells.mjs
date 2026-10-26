@@ -1,6 +1,6 @@
 // [QSHST#cell]
 
-import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, statSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,9 +10,11 @@ import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
 
 const CellAnswerNotHeldError = declareRefusal('cell/answer/NotHeldError');
 
+const STORE = join(tmpdir(), 'qlang');
 const SOURCE = 'source.qlang';
 const NAMES = 'names.qlang';
 const ANSWER = 'answer.qlang';
+const AGE_OF_A_CELL = 24 * 60 * 60 * 1000;
 
 const CODE_OF_THE_ROOT = [
   [dirname(dirname(fileURLToPath(import.meta.resolve('@kaluchi/qlang-core')))), ['lib', 'src', 'host', 'gen']],
@@ -20,7 +22,6 @@ const CODE_OF_THE_ROOT = [
 ];
 
 function filesUnder(folder) {
-  if (!existsSync(folder)) return [];
   return readdirSync(folder, { withFileTypes: true }).flatMap(entry => {
     const path = join(folder, entry.name);
     return entry.isDirectory() ? filesUnder(path) : /\.(mjs|qlang)$/.test(entry.name) ? [path] : [];
@@ -41,7 +42,7 @@ function rootIdentity() {
   return identityOfTheRoot = hash.digest('hex').slice(0, 12);
 }
 
-const cellFolder = identity => join(tmpdir(), 'qlang', rootIdentity(), 'cells', identity);
+const cellFolder = identity => join(STORE, rootIdentity(), 'cells', identity);
 
 function namesOf(scope) {
   const declared = [];
@@ -51,11 +52,24 @@ function namesOf(scope) {
   return declared.join('\n| ');
 }
 
+// [QSHST#cell]
+function cellsAged(now) {
+  for (const root of readdirSync(STORE)) {
+    const cells = join(STORE, root, 'cells');
+    for (const identity of readdirSync(cells)) {
+      const folder = join(cells, identity);
+      const kept = statSync(folder, { throwIfNoEntry: false });
+      if (kept !== undefined && now - kept.mtimeMs > AGE_OF_A_CELL) rmSync(folder, { recursive: true, force: true });
+    }
+  }
+}
+
 // [QSHST#cell], [QSPRN#budget]
 export async function keepCell({ query, scope, answer }) {
   const identity = randomBytes(6).toString('hex');
   const folder = cellFolder(identity);
   mkdirSync(folder, { recursive: true, mode: 0o700 });
+  cellsAged(Date.now());
   writeFileSync(join(folder, SOURCE), query);
   writeFileSync(join(folder, NAMES), namesOf(scope));
   writeFileSync(join(folder, ANSWER), printValue(answer));

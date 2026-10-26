@@ -92,11 +92,13 @@ cell.defect;              // what was raised past the fail track, else null
   the scope it is handed answers, by default over the scope of the root
   `langRuntime()` answers, a defect raised to its caller; a declaration
   it makes names its origin as every cell's does, `:cell-1`.
-- `boundAnswer(answer, scope, written?)` answers what a host prints for an
-  answer within `ANSWER_BUDGET` characters of its print or of the text
-  `written` the host writes for it: the answer that fits
-  as it is, one past the budget as `::qlang/AnswerBeyondBudgetError` with
-  its head, and a failure as its alert within the budget; `printAnswer(
+- `boundAnswer(answer, scope, written?, keep?)` answers what a host prints
+  for an answer within `ANSWER_BUDGET` characters of its print or of the
+  text `written` the host writes for it: the answer that fits as it is,
+  one past the budget as `::qlang/AnswerBeyondBudgetError`, the answer shown
+  as its `::excerpt` beside the `::cell` that `keep`, where the host hands
+  one, answers for it, and a failure as its alert, each fact whole within
+  three hundred characters and past them as its excerpt; `printAnswer(
   value, scope)` writes a value as the language prints it, the print a
   kind declares among it and a failure under the line that says it was
   raised. `printValue(value)` writes the literal of a value, which

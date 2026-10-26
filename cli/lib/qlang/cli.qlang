@@ -224,9 +224,11 @@
       `<tmp>/qlang/<root>/cells/<id>/` the query, `source.qlang`, the values
       it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
       core prints it, `<root>` the identity of the sources and the code it
-      booted, so a cell kept over other sources is held by none. A value
-      under a kind the keeping query declared answers its names where the
-      reading query declares that kind again, and `payload` in any query.
+      booted, so a cell kept over other sources is held by none, and a
+      cell older than a day leaves when the command line keeps another. A
+      value under a kind the keeping query declared answers its names where
+      the reading query declares that kind again, and `payload` in any
+      query.
       ::link~(::cell | doc) ::link~(::qlang/AnswerBeyondBudgetError | doc)
   ~~|
   ::fn
@@ -236,9 +238,9 @@
             the refusal of an answer past the budget names.
         ~~|
     | throws :NotHeldError
-        |~~ The command line holds no such cell: the temporary folder was
-            emptied, the cell was kept over other sources or by another
-            host, or none drew it. The answer is read again by the query
+        |~~ The command line holds no such cell: it aged past a day, the
+            temporary folder was emptied, the cell was kept over other
+            sources or by another host, or none drew it. The answer is read again by the query
             that made it, narrowed by `get`, `take` or `count` so it prints
             within the budget.
             ::link~(::qlang/AnswerBeyondBudgetError | doc)

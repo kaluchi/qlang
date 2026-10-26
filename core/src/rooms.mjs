@@ -1,6 +1,6 @@
-// [QSPRN#excerpt], [QSERR#alert], [QSPRN#budget]
+// [QSERR#alert], [QSPRN#budget], [QSPRN#excerpt]
 
-import { makeErrorValue, makeExcerpt, makeQuote, partsOfFrame } from './types.mjs';
+import { makeErrorValue, makeExcerpt, isMap, isVec } from './types.mjs';
 import { printValue } from './print-value.mjs';
 
 // [QSPRN#budget]
@@ -13,129 +13,27 @@ export const ROOM_OF_AN_ALERT = 2000;
 // [QSTXT#string]
 export const lengthOf = text => Array.from(text).length;
 
-const printedByNoKind = () => undefined;
-
-export const sizeOf = (value, printedOf = printedByNoKind) => lengthOf(printValue(value, 0, printedOf));
+export const sizeOf = (value, printedOf) => lengthOf(printValue(value, 0, printedOf));
 
 // [QSPRN#excerpt]
-const countWhereLeftOut = (count, shown) => (shown < count ? [['count', count]] : []);
+const isEmpty = value => (isMap(value) ? value.size === 0 : (isVec(value) || typeof value === 'string') && value.length === 0);
 
-const isSpace = character => character === ' ' || character === '\n' || character === '\t';
-
-function endsAtWords(characters, kept) {
-  const head = characters.slice(0, kept);
-  const tail = characters.slice(characters.length - kept);
-  const headCut = isSpace(characters[kept]) ? kept : head.findLastIndex(isSpace);
-  const tailCut = isSpace(characters[characters.length - kept - 1]) ? 0 : tail.findIndex(isSpace) + 1;
-  return [
-    head.slice(0, headCut > kept / 2 ? headCut : kept).join('').trimEnd(),
-    tail.slice(tailCut < kept / 2 ? tailCut : 0).join('').trimStart()
-  ];
-}
-
-function endsWithin(characters, excerptOf, room, printedOf) {
-  const endsOf = kept => [characters.slice(0, kept).join(''), characters.slice(characters.length - kept).join('')];
-  let low = 0;
-  let high = Math.floor((characters.length - 1) / 2);
-  while (low < high) {
-    const middle = (low + high + 1) >> 1;
-    if (sizeOf(excerptOf(...endsOf(middle)), printedOf) <= room) low = middle;
-    else high = middle - 1;
+// [QSERR#alert], [QSPRN#excerpt]
+export async function alertOf(error, { keep, viewsOf }, printedOf) {
+  const shown = [];
+  for (const [name, fact] of error.facts) {
+    if (sizeOf(fact, printedOf) <= ROOM_OF_A_FACT) {
+      shown.push([name, fact]);
+      continue;
+    }
+    if (keep !== null) shown.push([name, await keep(fact)]);
+    for (const [view, value] of await viewsOf(fact)) {
+      if (!isEmpty(value) && sizeOf(value, printedOf) <= ROOM_OF_A_FACT) shown.push([`${name}/${view}`, value]);
+    }
   }
-  return endsAtWords(characters, low);
-}
-
-function excerptOfCharacters(characters, facts, room, printedOf) {
-  const excerptOf = (head, tail) => makeExcerpt([...facts, ['head', head], ['tail', tail]]);
-  return excerptOf(...endsWithin(characters, excerptOf, room, printedOf));
-}
-
-const printedOnALine = (value, printedOf) => Array.from(printValue(value, 0, printedOf, true));
-
-const mostThatHolds = (low, high, holds) => {
-  let most = low;
-  let above = high;
-  while (most < above) {
-    const middle = (most + above + 1) >> 1;
-    if (holds(middle)) most = middle;
-    else above = middle - 1;
-  }
-  return most;
-};
-
-function takenFromTheEnds(parts, shownOf, room, printedOf) {
-  const fits = (heads, tails) => sizeOf(shownOf(parts.slice(0, heads), parts.slice(parts.length - tails)), printedOf) <= room;
-  const turns = mostThatHolds(0, parts.length, taken => fits(Math.ceil(taken / 2), Math.floor(taken / 2)));
-  let heads = Math.ceil(turns / 2);
-  let tails = Math.floor(turns / 2);
-  if (turns % 2 === 0) tails = mostThatHolds(tails, parts.length - heads, taken => fits(heads, taken));
-  else heads = mostThatHolds(heads, parts.length - tails, taken => fits(taken, tails));
-  return { head: parts.slice(0, heads), tail: parts.slice(parts.length - tails) };
-}
-
-function excerptOfParts(value, parts, keptOf, room, printedOf) {
-  const shownOf = (head, tail) => makeExcerpt([
-    ...countWhereLeftOut(parts.length, head.length + tail.length),
-    ...(head.length > 0 ? [['first', keptOf(head)]] : []),
-    ...(tail.length > 0 ? [['last', keptOf(tail)]] : [])
-  ]);
-  const whole = shownOf(parts, []);
-  if (sizeOf(whole, printedOf) <= room) return whole;
-  const { head, tail } = takenFromTheEnds(parts, shownOf, room, printedOf);
-  if (head.length > 0 && tail.length > 0) return shownOf(head, tail);
-  return excerptOfCharacters(printedOnALine(value, printedOf), [['count', parts.length]], room, printedOf);
-}
-
-export const excerptOfElements = (elements, room, printedOf = printedByNoKind) => excerptOfParts(elements, [...elements], shown => Object.freeze([...shown]), room, printedOf);
-
-export const excerptOfEntries = (map, room, printedOf = printedByNoKind) => excerptOfParts(map, [...map], shown => new Map(shown), room, printedOf);
-
-export function excerptOfText(text, room, printedOf = printedByNoKind) {
-  const whole = makeExcerpt([['head', text]]);
-  if (sizeOf(whole, printedOf) <= room) return whole;
-  const characters = Array.from(text);
-  return excerptOfCharacters(characters, [['characters', characters.length]], room, printedOf);
-}
-
-export const excerptOfPrint = (value, room, printedOf = printedByNoKind) => excerptOfText(printedOnALine(value, printedOf).join(''), room, printedOf);
-
-export function excerptOfFrames(trace, room, printedOf = printedByNoKind) {
-  const frames = trace.map(partsOfFrame);
-  const failed = frames.map(({ unfinished }) => makeQuote([unfinished[0]]));
-  const excerptOf = (taken, subject) => {
-    const paths = frames.slice(0, taken).map(({ path }) => path).filter(path => path !== undefined && path !== null);
-    return makeExcerpt([
-      ...countWhereLeftOut(trace.length, taken), ['failed', Object.freeze(failed.slice(0, taken))],
-      ...(paths.length > 0 ? [['paths', Object.freeze(paths)]] : []), ...(subject === undefined ? [] : [['subject', subject]])
-    ]);
-  };
-  const stepsWithin = (within, subject) => {
-    let taken = 0;
-    while (taken < failed.length && sizeOf(excerptOf(taken + 1, subject), printedOf) <= within) taken++;
-    return taken;
-  };
-  if (frames.length === 0) return excerptOf(0);
-  const { subject } = frames[0];
-  const besideTheWhole = stepsWithin(room, subject);
-  if (besideTheWhole > 0) return excerptOf(besideTheWhole, subject);
-  const taken = Math.max(stepsWithin(Math.floor(room / 2)), Math.min(1, stepsWithin(room)));
-  const characters = printedOnALine(subject, printedOf);
-  const [head, tail] = endsWithin(characters, (head, tail) => excerptOf(taken, `${head} … ${tail}`), room, printedOf);
-  return head === '' ? excerptOf(taken) : excerptOf(taken, `${head} … ${tail}`);
-}
-
-// [QSERR#alert]
-export async function alertOf(error, excerptOf, printedOf = printedByNoKind) {
-  const facts = new Map();
-  for (const [name, fact] of error.facts) facts.set(name, sizeOf(fact, printedOf) <= ROOM_OF_A_FACT ? fact : await excerptOf(fact));
-  const alertOver = shown => {
-    const whole = shown.size === error.facts.size && [...shown].every(([name, fact]) => fact === error.facts.get(name));
-    return makeErrorValue(error.tag, shown, { told: whole ? null : makeExcerpt(shown) });
-  };
-  let alert = alertOver(facts);
-  while (facts.size > 0 && sizeOf(alert, printedOf) > ROOM_OF_AN_ALERT) {
-    facts.delete([...facts.keys()].at(-1));
-    alert = alertOver(facts);
-  }
-  return alert;
+  const whole = shown.length === error.facts.size && shown.every(([name, fact]) => fact === error.facts.get(name));
+  const alertOver = taken => makeErrorValue(error.tag, new Map(shown.slice(0, taken)), { told: whole && taken === shown.length ? null : makeExcerpt(shown.slice(0, taken)) });
+  let taken = shown.length;
+  while (taken > 0 && sizeOf(alertOver(taken), printedOf) > ROOM_OF_AN_ALERT) taken--;
+  return alertOver(taken);
 }

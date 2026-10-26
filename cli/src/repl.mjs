@@ -11,6 +11,7 @@ import {
 import { cliSources } from './cli-sources.mjs';
 import { DEFAULT_SUBJECT } from './stdin.mjs';
 import { cellText } from './render.mjs';
+import { keepCell } from './cells.mjs';
 import { highlightAnsi } from './highlight-ansi.mjs';
 import { createLineEditor } from './line-editor.mjs';
 
@@ -122,7 +123,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
 async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (wroteByOut && !isErrorValue(result)) return null;
-    const shown = isErrorValue(result) ? await boundAnswer(result, scope) : result;
+    const shown = isErrorValue(result) ? await boundAnswer(result, scope, null, value => keepCell({ query: cellEntry.source, scope, value })) : result;
     return await printAnswer(shown, scope);
   });
   if (stderrText !== undefined) stderrWrite(stderrText);

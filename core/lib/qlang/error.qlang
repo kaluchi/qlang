@@ -97,7 +97,7 @@
             under `::error`, its facts read by their keys, and `raise` refuses
             it as no map of facts.
         ~~|
-        ~(::error::excerpt{:rows ::excerpt{:count 5000}} | get [~(tag) ~(get /rows/count) ~(raise !| tag)] | eq [::error 5000 ::any/raise/SubjectKindNotTakenError])
+        ~(::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count) ~(raise !| tag)] | eq [::error 5000 ::any/raise/SubjectKindNotTakenError])
     | proves :readsAnErrorAtRestAsItself
         |~~ The kind of errors over an error at rest is that error. ~~|
         ~(!{:by 3} | tag ::error | eq !{:by 3})

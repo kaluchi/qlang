@@ -13,4 +13,4 @@
 {"name":"raise-resides-on-every-value-and-refuses-one-that-is-no-map","query":"5 | raise !| tag","expect":"::any/raise/SubjectKindNotTakenError"}
 {"name":"raise-refuses-a-value-under-a-tag-over-no-map","query":"::Foo[1] | raise !| tag","expect":"::any/raise/SubjectKindNotTakenError"}
 {"name":"a-caught-refusal-raised-again-under-its-closed-tag-is-the-error-it-was","query":"\"x\" | add 1 !| raise !| get [~(tag) ~(actualTag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
-{"name":"raise-refuses-the-excerpt-of-a-failure-as-no-map-of-facts","query":"::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)]","expect":"[::any/raise/SubjectKindNotTakenError ::excerpt]"}
+{"name":"raise-refuses-the-excerpt-of-a-failure-as-no-map-of-facts","query":"::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::cell\"093225005142\" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(actualTag)]","expect":"[::any/raise/SubjectKindNotTakenError ::excerpt]"}

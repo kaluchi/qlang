@@ -33,6 +33,9 @@
             frames plain or under `::trace`, built into the trace, a frame
             under a tag read as the frame beneath it.
         ~~|
+    | reveals :failed
+    | reveals :subject
+    | reveals :paths
     | throws :PayloadKindNotTakenError
         |~~ A trace is the vector of its frames in the order the failure
             flew, `::trace[::frame["x" ~(add 1)]]`: a payload of another
@@ -88,35 +91,49 @@
         ~(::trace[{:failed ~(add 1)}] !| get [~(tag) ~(index)] | eq [::trace/ElementKindNotTakenError 0])
     | impl ::builtin{}
 
-:trace/excerpt
-  |~~ Answers the excerpt of the trace within the characters the call
-      gives, three hundred where it gives none: `:failed` the step that
-      failed at each level, from the level where the failure arose, as many
-      as fit, `:count` its frames where some are left out, `:paths` the paths
-      of the parts the verbs of the levels it shows ran their code on, and
-      `:subject` the value the step that failed met, whole where it fits
-      beside the steps, and otherwise the first and the last characters of
-      its print on one line, each cut where a word ends, the steps then
-      taking half the room. The trace whole is read live,
-      `!| trace`.
-      ::link~(::excerpt | doc) ::link~(::trace | doc)
+:trace/failed
+  |~~ Answers the step that failed at each level of the trace, from the
+      level where the failure arose to the level that reads it, each the
+      quote of its one step, `[1 "x" 3] | map ~(mul 2) !| trace | failed`
+      answering `[~(mul 2) ~(map ~(mul 2))]`, as `map ~failed` reads
+      them a frame at a time. A host shows it beside a trace past the room
+      of a fact, `:trace/failed`.
+      ::link~(::frame/failed | doc) ::link~(::kind/reveals | doc)
   ~~|
   ::fn
-    | takes :budget
-        |~~ The characters of the print of the excerpt, three hundred where
-            the call gives none; a budget past the budget of every answer is
-            that budget.
-        ~~|
-        ~(query /0 300) ::number
-    | throws :budget/KindNotTakenError
-        |~~ The budget is a number of characters, `excerpt 80`. ~~|
-    | holds :budget/NotCountError
-        |~~ The budget is a whole count of characters above zero,
-            `excerpt 80`.
-        ~~|
-        ~(allOf (gt 0) ~(eq (floor)))
-    | returns |~~ The steps that failed, the paths of the parts and the subject met. ~~| ::excerpt
-    | proves :tellsTheStepsThatFailed
-        |~~ A trace tells the step that failed at each level. ~~|
-        ~(kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith "#[::absent")] | eq [[~(add 1)] true])
-    | impl ::builtin{}
+    | returns |~~ The steps that failed, level by level. ~~| ::vec
+    | proves :readsTheStepThatFailedAtEachLevel
+        |~~ The step of each level, from the one that refused. ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trace | failed | eq [~(mul 2) ~(map ~(mul 2))])
+    | impl ~(map ~failed)
+
+:trace/subject
+  |~~ Answers the subject the step that failed met, the value the frame
+      where the failure arose holds, `"x" | add 1 !| trace | subject`
+      answering `"x"`, the value a refusal of a subject leaves to the
+      trace. A host shows it beside a trace past the room of a fact,
+      `:trace/subject`.
+      ::link~(::frame/subject | doc) ::link~(::kind/reveals | doc)
+  ~~|
+  ::fn
+    | returns |~~ The subject the step that failed met. ~~| ::any
+    | proves :readsTheSubjectTheStepMet
+        |~~ The subject of the frame where the failure arose. ~~|
+        ~("x" | add 1 !| trace | subject | eq "x")
+    | impl ~(first | subject)
+
+:trace/paths
+  |~~ Answers the paths of the parts the verbs of its levels ran their code
+      on, from the level where the failure arose outward, a level that ran
+      none naming none, `[1 "x" 3] | map ~(mul 2) !| trace | paths`
+      answering `[/1]`, so a failure inside the code a verb ran on an
+      element tells which element. A host shows it beside a trace past the
+      room of a fact, `:trace/paths`.
+      ::link~(::frame/path | doc) ::link~(::kind/reveals | doc)
+  ~~|
+  ::fn
+    | returns |~~ The paths of the parts, level by level. ~~| ::vec
+    | proves :readsThePathsOfTheParts
+        |~~ The path of the element `map` ran its code on. ~~|
+        ~([1 "x" 3] | map ~(mul 2) !| trace | paths | eq [/1])
+    | impl ~(map ~path | filter ~(ne null))

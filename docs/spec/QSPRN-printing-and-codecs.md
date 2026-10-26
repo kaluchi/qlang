@@ -49,10 +49,11 @@ reads it [QSNAM#owner], an answer that is no string printed instead:
 a print a reader declares under a label of the root answers the reader's
 own calls alone, and a print a label declares serves its values and no
 tag name of it. A kind's own `print` gives the text it chooses, which
-reads back where it writes the kind's literal. The excerpt a host shows of
-a fact of a failure or of an answer past the budget is a value of
-`::excerpt` [QSPRN#excerpt], which prints as any value under its tag, so the
-print holds all it is given. The print of a failure finds the print of each
+reads back where it writes the kind's literal. A failure a host tells past
+its rooms is a value of `::excerpt` under the tag of its refusal
+[QSPRN#excerpt], which prints as any value under its tag, and a fact past
+the room of a fact the cell its host keeps it in, so the print holds all it
+is given and cuts nothing. The print of a failure finds the print of each
 part of its facts as the print of every value does. Every host prints an answer through the one print of the
 core, `boundAnswer`, within the budget of every answer [QSPRN#budget],
 the command line a string as its text and the REPL and the site as its
@@ -122,11 +123,12 @@ gloss of its page and beneath it a closed comment for each name the kind
 wires, in the order it wires them, the name, the path it reads where it
 reads no key of its own name, the kind of the part and the gloss of its
 page, so the print reads back as the tag and `kinds | map ~legend` tells
-the parts of every kind before a value of it is held. A legend is an
-answer, printed within the budget of every answer [QSPRN#budget], and a
-legend that lays its parts out a line each and passes the budget lays each
-part past the room of a fact, three hundred characters, as the excerpt its
-tag gives [QSPRN#excerpt].
+the parts of every kind before a value of it is held; beneath them stands a
+closed comment for each view the kind reveals [QSPRN#excerpt], its name,
+the kind its verb answers and the gloss of the page of that answer, a view
+that names no verb of the kind standing by its name. A legend is an
+answer, printed within the budget of every answer as any answer is
+[QSPRN#budget], every part of it whole.
 
 ```sh
 $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
@@ -146,7 +148,10 @@ $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in
 > ::span | legend | print | parse | open
 ::span
 
-> 1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")]
+> ::trace | legend | print | lines | drop 1 | first
+"|~ failed ::vec · The steps that failed, level by level ~|"
+
+> 1 | add (5000 | range) !| legend | print | get [~(count | gt 16000) ~(contains "4999]")]
 [true true]
 ```
 
@@ -186,68 +191,44 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 
 ## excerpt
 
-`excerpt` answers the excerpt of its subject within the characters of
-print it takes, three hundred where it takes none and the budget of every
-answer at the most, a value of `::excerpt`, a map under its tag: the tag
-of the subject gives it under its label, found by the walk of the
-subject's tags as `print` is [QSDSP#walk], and counts it itself, so the
-excerpt a tag gives holds no excerpt and no tag asks another for one. A
-vector, and a set by it, that fits stands whole in `:first`, and one past
-its room tells `:count` its elements and `:first` and `:last` the
-elements at its two ends that fit whole, taken from the ends inward by
-turns, an end stopping at its first element that does not fit; a map tells
-its entries the same way, under their keys; and where an end of either
-holds no part whole, `:head` and `:tail` tell the first and the last
-characters of its print on one line instead, so a record whose first field
-is long shows its keys. A string that fits stands whole in `:head`, and
-one past its room tells `:characters`, as `count` counts them, `:head`
-and `:tail`. A trace tells `:failed`, the step that failed at each level
-from where the failure arose, `:count` its frames where some are left out,
-`:paths` the paths of the parts the verbs of the levels it shows ran their
-code on, and `:subject` the value the step that failed met, whole where it
-fits beside the steps and otherwise the ends of its print, the steps then
-taking half the room [QSERR#trace]. A value no tag tells, `::any/excerpt`,
-shows `:characters`, `:head` and `:tail` of its print on one line, a print
-that fits standing whole in `:head`. A cut of characters falls where a
-word ends, at the space nearest the cut within the half of the end beside
-it, and a count stands only where parts are left out, a count of what the
-reader sees whole telling nothing. A tag of the reader tells its own
-values by an `excerpt` under its label. Each `excerpt` always answers an
-excerpt, so the kind of its answer is known before the call, and refuses a
-budget that is no whole count above zero under its own address,
-`::vec/excerpt/budget/NotCountError` for a vector. An excerpt is a map read
-by its keys, `get /count`, which a verb meets as the map it is; it prints
-as a map under its tag and reads back as itself. A host shows so a fact of
-a failure past the room of a fact [QSERR#alert] and an answer past the
-budget [QSPRN#budget].
+A host prints no value cut to a room: a fact of a failure past the room of
+a fact, three hundred characters, stands as the cell its host keeps it in
+[QSHST#cell], beside the views the kind of the fact reveals whose answers
+fit that room, each flat under the name of the fact and its own,
+`:actualValue/count 3410` [QSERR#alert], and a failure any fact of which
+gave way prints as `::excerpt`, the map of the facts it shows, under the tag
+of its refusal [QSERR#rest]. A kind reveals its views in its chain,
+`| reveals :count`, each the name of a verb of the kind that takes no value
+[QSBLD#kind]; a value shows the views of the first kind of the walk of its
+tags that reveals any, each read as the verb of that kind, so a set shows
+those of vectors, and a view whose verb refuses the value or that names no
+verb of the kind stands not, nor does one that answers an empty vector,
+set, map or string. `::vec` reveals `count`; `::map` `count` and `keys`;
+`::string` `count`; `::doc` `links`; and `::trace` `failed`, the steps that
+failed level by level, `subject`, the subject the step that failed met,
+and `paths`, the paths of the parts its verbs ran their code on. An excerpt
+is a map read by its keys, a view by its key under the tag of a refusal,
+`payload | get /:actualValue/count`, and prints and reads back as itself;
+no verb cuts a value to a room, and the whole is read live, a fact of a
+failure by `!|` and a cell by `answer`.
 
 ```qlang
-> 3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)]
-[3410 0 3409]
+> [1 "x" 3] | map ~(mul 2) !| trace | get [~(failed) ~(subject) ~(paths)]
+[[~(mul 2) ~(map ~(mul 2))] "x" [/1]]
 
-> [1 2 3] | excerpt
-::excerpt{:first [1 2 3]}
-
-> get {:rows ~(5000 | range) :name "x"} | excerpt | get [/count ~(get /head | startsWith "{:rows [0 1") ~(get /tail | endsWith ":name \"x\"}")]
-[2 true true]
-
-> 1000 | range | map ~("ab") | join "" | excerpt 80 | get [/characters ~(print | count | lte 80) ~(get /head | startsWith "ab")]
-[2000 true true]
-
-> kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith "#[::absent")]
-[[~(add 1)] true]
-
-> 12345 | excerpt
-::excerpt{:head "12345"}
-
-> [1 2] | excerpt 0 !| tag
-::vec/excerpt/budget/NotCountError
-
-> 100000 | range | excerpt 300000 | print | count | lte 16000
+> ::excerpt{:actualValue ::cell"f410f1df625c" :actualValue/count 3410} | :e it | print | parse | open | eq e
 true
 
-> 1000 | range | excerpt | :e it | print | parse | open | eq e
-true
+> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]
+[::cell 3410]
+
+> [1 2] | excerpt !| tag
+::call/UnknownNameError
+```
+
+```sh
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
+2
 ```
 
 ## budget
@@ -259,18 +240,17 @@ Every host but the REPL prints an answer within one budget,
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` instead, under the line of the raise,
 whose facts are `:characters`, the characters of the print, `:budget`,
-`:answer`, the answer, which its alert shows as its excerpt
-[QSPRN#excerpt], and `:cell`, the cell its host keeps the answer in,
-where it keeps one [QSHST#cell]. A query tells a value within a budget of
-its own by `excerpt`, and the command line writes no flag that sets or
-cuts the budget [QSCLI#answer].
+and `:answer`, the answer, which its alert shows as any fact past the
+room of a fact, the cell its host keeps it in, where it keeps one
+[QSHST#cell], beside the views its kind reveals [QSPRN#excerpt]. The
+command line writes no flag that sets or cuts the budget [QSCLI#answer].
 
 ```sh
-$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget|count) [0-9]+|:cell ::cell"[0-9a-f]{12}"' | sed 's/"[0-9a-f]*"/"…"/'
+$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
 :characters 70891
 :budget 16000
-:count 3000
-:cell ::cell"…"
+:answer ::cell"…"
+:answer/count 3000
 ```
 
 ## span

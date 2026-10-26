@@ -494,6 +494,42 @@
         ~(::number | tells :x |~~ An x. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
     ::builtin{}]
 
+:kind/reveals
+  |~~ Reveals a view of the values of a kind, `::kind | reveals :count`:
+      the name of a verb of the kind that takes no value, whose answer is a
+      fact of the value by that name. A host shows the views of a fact past
+      the room of a fact beside the cell it keeps the fact in, each under
+      the name of the fact and its own, `:actualValue/count 3410`, and the
+      legend of the tag name lays them out beside the names the kind wires.
+      A value shows the views of the first kind of the walk of its tags that
+      reveals any, so a set shows the views of vectors.
+      ::link~(::kind/wires | doc) ::link~(::cell | doc)
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the verb
+            the view reads, a keyword of one segment, neither `payload` nor
+            a word of a literal.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the view. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `reveals` names a view of the noun's kind, `::kind | reveals …`,
+            or of a kind.
+        ~~|
+    | proves :laysTheViewInTheLegendOfItsTag
+        |~~ The legend of the tag name lays a view out beside the names the
+            kind wires, the kind of what its verb answers and its gloss.
+        ~~|
+        ~(:Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size)
+          | :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count))
+          | ::Bag | legend | print | lines | last
+          | eq "|~ size ::number · How many things ~|")
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | reveals :x !| tag | eq ::kind/reveals/SubjectNotKindError))
+    ::builtin{}]
+
 :kind/holds
   |~~ Writes an invariant of a kind, a quote under `::invariant`: the
       refusal of a value that breaks it, its page, and the condition the

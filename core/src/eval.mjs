@@ -13,7 +13,7 @@ import {
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isExcerpt, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
+  ERROR_TAG, TRACE_TAG, isExcerpt, isCell, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
@@ -871,7 +871,7 @@ function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) 
 function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts) {
   const fieldAddress = `${tagName}/${field.name.name}`;
   if (ofFacts !== null && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
-  if (ofFacts?.told && isExcerpt(read)) return read;
+  if (ofFacts?.told && isCell(read)) return read;
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
   if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);

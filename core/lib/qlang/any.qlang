@@ -1,11 +1,11 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
    the verbs every value answers.
-   The rules it holds: [QSDSP#residence], [QSPRN#print], [QSPRN#excerpt]. ~|
+   The rules it holds: [QSDSP#residence], [QSPRN#print]. ~|
 
 :any
   |~~ Any is the kind beneath every kind, where the verbs every value
-      answers live: `tag`, `eq`, `doc`, `print`, `json`, `excerpt`,
-      `if` and their kin. A verb that means the same for every
+      answers live: `tag`, `eq`, `doc`, `print`, `json`, `if` and
+      their kin. A verb that means the same for every
       value is written once here, and the walk from a name to its verb
       ends here, after the kinds of the subject.
 
@@ -478,15 +478,15 @@
       declared under it, `:Box/print`, and the print of a value takes it
       for each part of that kind; a print the reader declares under a kind
       of the language, `:number/print`, answers the reader's own calls
-      alone. The call takes no value: a print within a budget is
-      `excerpt 80 | print`.
-      ::link~(::any/json | doc) ::link~(::any/excerpt | doc)
+      alone. The call takes no value: a part is printed by reading it
+      first, `get /a | print`.
+      ::link~(::any/json | doc) ::link~(::any/legend | doc)
   ~~|
   ::fn
     | returns |~~ The literal the subject prints as. ~~| ::string
     | throws :ArgsBeyondInputsError
-        |~~ `print` writes the whole subject and takes no value: a print
-            within a budget of characters is `excerpt 80 | print`.
+        |~~ `print` writes the whole subject and takes no value: a part is
+            printed by reading it first, `get /a | print`.
         ~~|
     | proves :printsANumber
         |~~ A number prints as its literal. ~~|
@@ -534,9 +534,10 @@
       in its order: the name, the path it reads where it reads no key of its
       own name, its kind and the gloss of its page, so `::point | legend`
       tells the parts of a point before a point is held and
-      `kinds | map ~legend` the parts of every kind. A legend is an answer,
-      printed within the budget of every answer, and one past it lays each
-      part past three hundred characters as its excerpt. Every comment is
+      `kinds | map ~legend` the parts of every kind, and beneath them a
+      comment for each view the kind reveals, its kind and the gloss of what
+      its verb answers. A legend is an answer, printed within the budget of
+      every answer as any answer is. Every comment is
       closed, `|~ … ~|`, and whitespace, so the text read back is the
       subject, `print` answering the text and `payload` the subject.
       ::link~(::legend | doc) ::link~(::kind/wires | doc)
@@ -571,60 +572,14 @@
     | proves :readsATagNameBackAsTheTag
         |~~ The legend of a tag name reads back as the tag. ~~|
         ~(::span | legend | print | parse | open | eq ::span)
-    | proves :laysAPartPastTheBudgetAsItsExcerpt
-        |~~ A legend past the budget lays a part past three hundred
-            characters as its excerpt.
+    | proves :laysOutTheViewsATagNameReveals
+        |~~ A tag name lays out beneath its parts the views its kind reveals.
         ~~|
-        ~(1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")] | eq [true true])
+        ~(::vec | legend | print | lines | last | eq "|~ count ::number · How many elements the vector holds ~|")
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)
     | impl ~(tag ::legend)
-
-:any/excerpt
-  |~~ Answers the excerpt of the subject within the characters of print the
-      call gives, three hundred where it gives none, a value of
-      `::excerpt`: the tag of the subject tells it in its own words, a
-      vector and a set by `:first` and `:last`, a map the same way, a string
-      by `:head` and `:tail`, and a trace by `:failed` and `:subject`, each
-      with its count where parts are left out; and a value no tag tells,
-      this verb, by `:head` and `:tail`, the first and the last characters
-      of its print on one line, each cut where a word ends, and
-      `:characters` the characters of the print, a print that fits standing
-      whole in `:head`. A tag of the reader tells its own values by an
-      `excerpt` under its label. It always answers an
-      excerpt, a value that fits shown whole in it, so the kind of its
-      answer is known before the call, and a host tells so a fact of a
-      failure past the room of a fact and an answer past the budget.
-      ::link~(::excerpt | doc) ::link~(::any/print | doc)
-      ::link~(::qlang/AnswerBeyondBudgetError | doc)
-  ~~|
-  ::fn
-    | takes :budget
-        |~~ The characters of the print of the excerpt, three hundred where
-            the call gives none; a budget past the budget of every answer is
-            that budget.
-        ~~|
-        ~(query /0 300) ::number
-    | throws :budget/KindNotTakenError
-        |~~ The budget is a number of characters, `excerpt 80`. ~~|
-    | holds :budget/NotCountError
-        |~~ The budget is a whole count of characters above zero,
-            `excerpt 80`.
-        ~~|
-        ~(allOf (gt 0) ~(eq (floor)))
-    | returns |~~ The excerpt of the print of the subject. ~~| ::excerpt
-    | proves :tellsThePrintByItsEnds
-        |~~ A value no tag tells shows the ends of its print. ~~|
-        ~(get [~(12345 | excerpt) ~(::Point#7 | excerpt 300)] | eq [::excerpt{:head "12345"} ::excerpt{:head "::Point#7"}])
-    | proves :budget/KindNotTakenError/refusesAString
-        |~~ A budget that is no number is refused under the input. ~~|
-        ~(5 | excerpt "x" !| tag | eq ::any/excerpt/budget/KindNotTakenError)
-    | proves :budget/NotCountError/refusesNoneAndAFraction
-        |~~ A budget of no characters or of a fraction of one is refused.
-        ~~|
-        ~(get [~(5 | excerpt 0 !| tag) ~(5 | excerpt 2.5 !| tag)] | eq [::any/excerpt/budget/NotCountError ::any/excerpt/budget/NotCountError])
-    | impl ::builtin{}
 
 :any/if
   |~~ Answers the branch the condition chooses, run against the subject:
@@ -2806,7 +2761,7 @@
         |~~ The excerpt of a failure, which a host prints, is no map of facts
             to raise.
         ~~|
-        ~(::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)] | eq [::any/raise/SubjectKindNotTakenError ::excerpt])
+        ~(::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(actualTag)] | eq [::any/raise/SubjectKindNotTakenError ::excerpt])
     | proves :raisesTheSubject
         |~~ `{…} | raise` raises the subject, a map the step builds among
             them.

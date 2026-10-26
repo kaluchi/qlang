@@ -29,8 +29,9 @@ reads null by its name; an error at rest holds no excerpt as a fact, which
 its kind refuses as a value of another kind. The kind of errors and the
 kind of each refusal take the excerpt of the facts a host prints too,
 `::X::excerpt{…}` and `::error::excerpt{…}` [QSERR#alert], its facts read
-by their names, or by their keys under `::error`, each its value, its
-excerpt or nothing, while `raise` refuses it as no map of facts
+by their names, or by their keys under `::error`, each its value, the cell
+its host keeps it in or nothing, and a view a key no name wires, read by
+`payload | get`, while `raise` refuses it as no map of facts
 [QSERR#raise].
 
 Under `::error` alone, or under a tag no node declares, an error at rest
@@ -75,10 +76,10 @@ true
 > ::number/add/addend/KindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
 ::number/add/addend/KindNotTakenError/trace/KindNotTakenError
 
-> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :trace ::excerpt{:failed []}} | get [~(tag) ~(actualTag) ~(expected)]
-[::number/add/addend/KindNotTakenError ::vec null]
+> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(tag) ~(actualTag) ~(actualValue | tag) ~(expected)]
+[::number/add/addend/KindNotTakenError ::vec ::cell null]
 
-> ::error::excerpt{:rows ::excerpt{:count 5000}} | get [~(tag) ~(get /rows/count)]
+> ::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count)]
 [::error 5000]
 ```
 
@@ -106,7 +107,7 @@ error it was.
 > "x" | add 1 !| raise !| tag
 ::number/add/SubjectNotNumberError
 
-> ::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)]
+> ::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(actualTag)]
 [::any/raise/SubjectKindNotTakenError ::excerpt]
 ```
 
@@ -397,7 +398,7 @@ addresses and pages a query reads as it reads any name's. The refusal of
 an answer past the budget of every host's print,
 `::qlang/AnswerBeyondBudgetError`, stands under `::qlang`, the topic
 of the language, with its facts `:characters`,
-`:budget`, `:answer` and `:cell`: no step raises it and no `!|`
+`:budget` and `:answer`: no step raises it and no `!|`
 reaches it, since a host raises it after the last step of the query
 [QSPRN#budget]. A failure
 inside a primitive a host hands is
@@ -446,7 +447,7 @@ a segment a path read as an index numbers.
 12
 
 > ::qlang/AnswerBeyondBudgetError | manifest
-#[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/cell ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/trace]
+#[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/trace]
 ```
 
 ## print
@@ -499,31 +500,31 @@ $ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^  :sour
 A host prints a failure nothing caught as its alert, the concentrate of the
 failure: its tag and its facts in the order its kind wires them, each fact
 whole where its print, as `print` answers it, holds three hundred
-characters, the room of a fact, and past them as the excerpt the tag of the
-fact gives within those three hundred [QSPRN#excerpt], one level, nothing
-laid open beneath an excerpt; where the alert passes its room, two thousand
-characters, its last facts drop until it fits, a kind wiring first what a
-reader needs first. A failure every fact of which stands whole prints as
-its error at rest, `::X!{…}`, and one a fact of which gave way or dropped
-as the excerpt of its facts under its tag, `::X::excerpt{…}`, a failure of
-no refusal `::error::excerpt{…}`, which the kind of its tag reads back, each
-fact by its name [QSERR#rest]. The line of the raise and the page of the
-refusal stand beside the room. A failure holds its facts whole as it
-flies, and `!|` meets it live, a step after the catch reading each fact as
-the failure met it. The caret of a refused text is a fact within the room
-of a fact [QSSYN#refusal].
+characters, the room of a fact, and past them as the cell its host keeps it
+in [QSHST#cell], beside the views the kind of the fact reveals whose answers
+fit that room, flat under the name of the fact and its own [QSPRN#excerpt];
+a host that keeps no cell shows the views alone. Where the alert passes its
+room, two thousand characters, its last entries drop until it fits, a kind
+wiring first what a reader needs first. A failure every fact of which
+stands whole prints as its error at rest, `::X!{…}`, and one any fact of
+which gave way or dropped as the excerpt of its facts under its tag,
+`::X::excerpt{…}`, a failure of no refusal `::error::excerpt{…}`, which the
+kind of its tag reads back, each fact by its name [QSERR#rest]. The line of
+the raise and the page of the refusal stand beside the room. A failure holds
+its facts whole as it flies, and `!|` meets it live, a step after the catch
+reading each fact as the failure met it. The caret of a refused text is a
+fact within the room of a fact [QSSYN#refusal].
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/addend/KindNotTakenError::excerpt{$' -e '^  :actualValue ::excerpt{$' -e '^    :count 3410$'
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/addend/KindNotTakenError::excerpt{$' -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
 3
 
-$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::excerpt\{|:count 1001|:subject 999'
-:trace ::excerpt{
-:count 1001
-:subject 999
+$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
+:trace ::cell
+:trace/subject 999
 
-$ qlang 'kinds | add 1' < /dev/null | grep -c -e '^::number/add/SubjectNotNumberError::excerpt{$' -e '^    :failed \[~(add 1)\]$' -e '^    :subject "#\[::absent'
-3
+$ qlang 'kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
+2
 ```
 
 ```qlang

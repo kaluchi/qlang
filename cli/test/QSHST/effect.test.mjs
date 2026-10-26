@@ -135,12 +135,12 @@ describe('tap', () => {
     expect(io.stderrText()).toBe('[tap x] [box]\n');
   });
 
-  it('writes the refusal instead of a subject past the budget, the subject shown as its excerpt and kept in a cell, and goes on', async () => {
+  it('writes the refusal instead of a subject past the budget, the subject kept in a cell beside the views of its kind, and goes on', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
     expect(cellEntry.result).toBe(3000);
     expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{/);
-    expect(io.stderrText()).toContain(':answer ::excerpt{');
+    expect(io.stderrText()).toMatch(/\n {2}:answer ::cell"[0-9a-f]{12}"\n {2}:answer\/count 3000\n/);
     const [cell] = io.stderrText().match(/::cell"[0-9a-f]{12}"/);
     expect((await runQuery(`${cell} | answer | count`, captureIoContext())).result).toBe(3000);
   });

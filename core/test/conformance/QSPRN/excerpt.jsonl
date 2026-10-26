@@ -1,15 +1,7 @@
-{"name":"a-vector-tells-the-elements-at-its-two-ends-and-its-count","query":"3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)]","expect":"[3410 0 3409]"}
-{"name":"a-vector-that-fits-shows-whole-and-tells-no-count","query":"[1 2 3] | excerpt","expect":"::excerpt{:first [1 2 3]}"}
-{"name":"a-string-tells-its-head-its-tail-and-its-characters","query":"1000 | range | map ~(\"ab\") | join \"\" | excerpt 80 | get [/characters ~(print | count | lte 80) ~(get /head | startsWith \"ab\")]","expect":"[2000 true true]"}
-{"name":"a-string-that-fits-stands-whole-in-its-head","query":"\"short\" | excerpt","expect":"::excerpt{:head \"short\"}"}
-{"name":"a-map-tells-the-entries-at-its-two-ends","query":"100 | range | map ~(get [~(toString | append \"k\" | toKeyword) ~(it)]) | toMap | excerpt 120 | get [/count ~(get /first | keys | first) ~(get /last | keys | last)]","expect":"[100 :\"0k\" :\"99k\"]"}
-{"name":"a-trace-tells-the-steps-that-failed","query":"kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith \"#[::absent\")]","expect":"[[~(add 1)] true]"}
-{"name":"a-value-no-tag-tells-shows-its-print","query":"12345 | excerpt","expect":"::excerpt{:head \"12345\"}"}
-{"name":"an-excerpt-is-a-map-read-by-its-keys","query":"3410 | range | excerpt | keys","expect":"#[:count :first :last]"}
-{"name":"an-excerpt-reads-back-as-itself","query":"1000 | range | excerpt | :e it | print | parse | open | eq e","expect":"true"}
-{"name":"a-budget-past-the-budget-of-every-answer-is-that-budget","query":"100000 | range | excerpt 300000 | print | count | lte 16000","expect":"true"}
-{"name":"a-map-whose-end-holds-no-entry-whole-tells-the-ends-of-its-print","query":"get {:rows ~(5000 | range) :name \"x\"} | excerpt | get [/count ~(get /head | startsWith \"{:rows [0 1\") ~(get /tail | endsWith \":name \\\"x\\\"}\")]","expect":"[2 true true]"}
-{"name":"a-cut-of-a-print-falls-where-a-word-ends","query":"kinds | add 1 !| trace | excerpt | get /subject | split \" \" | filter ~(anyOf (eq \"…\") (startsWith \"::\") (startsWith \"#[::\") | not)","expect":"[]"}
-{"name":"a-trace-of-no-frame-tells-no-step","query":"::trace[] | excerpt","expect":"::excerpt{:failed []}"}
-{"name":"a-trace-past-a-room-too-small-for-its-subject-tells-its-steps-alone","query":"kinds | add 1 !| trace | excerpt 40","expect":"::excerpt{:failed [~(add 1)]}"}
-{"name":"a-cut-stays-within-a-word-where-no-space-lies-in-the-half-beside-it","query":"get [~(400 | range | map ~(\"x\") | join \"\") \" yyy\"] | join \"\" | excerpt 80 | get [~(get /tail | startsWith \"x\") ~(get /tail | endsWith \" yyy\")]","expect":"[true true]"}
+{"name":"a-trace-tells-the-steps-that-failed","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | failed","expect":"[~(mul 2) ~(map ~(mul 2))]"}
+{"name":"a-trace-tells-the-subject-the-step-that-failed-met","query":"\"x\" | add 1 !| trace | subject","expect":"\"x\""}
+{"name":"a-trace-tells-the-paths-of-the-parts-its-verbs-ran-on","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | paths","expect":"[/1]"}
+{"name":"an-excerpt-is-a-map-read-by-its-keys","query":"::excerpt{:actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | keys","expect":"#[:actualValue :actualValue/count]"}
+{"name":"an-excerpt-reads-back-as-itself","query":"::excerpt{:actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | :e it | print | parse | open | eq e","expect":"true"}
+{"name":"a-fact-told-as-its-cell-reads-by-its-name-and-a-view-by-its-key","query":"::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell\"f410f1df625c\" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]","expect":"[::cell 3410]"}
+{"name":"no-verb-cuts-a-value-to-a-room","query":"[1 2] | excerpt !| tag","expect":"::call/UnknownNameError"}

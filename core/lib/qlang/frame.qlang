@@ -158,7 +158,7 @@
         ~("x" | add 1 !| trace | first | failed | first | tag | eq ::call)
     | proves :SubjectNotFrameError/refusesAQuote
         |~~ A quote is no frame. ~~|
-        ~(~(add 1) | failed !| tag | eq ::frame/failed/SubjectNotFrameError)
+        ~(~(add 1) | frame/failed !| tag | eq ::frame/failed/SubjectNotFrameError)
     | impl ~(unfinished | take 1)
 
 :frame/skipped

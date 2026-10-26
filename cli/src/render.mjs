@@ -36,7 +36,7 @@ export async function renderCellOutcome(cellEntry, outcomeOpts) {
   let failed = isErrorValue(cellEntry.result);
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
     if (didExplicitStdoutEffect) return null;
-    const kept = answer => keepCell({ query: cellEntry.source, scope, answer });
+    const kept = value => keepCell({ query: cellEntry.source, scope, value });
     const shown = await boundAnswer(result, scope, typeof result === 'string' ? result : null, kept);
     failed = isErrorValue(shown);
     return await shownText(shown, result, scope, cellEntry.page ?? null);

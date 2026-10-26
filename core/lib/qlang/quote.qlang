@@ -72,7 +72,7 @@
         ~~|
         ~(wires :message
               |~~ What the rule says of the value, the verb that takes it. ~~|
-              ~(query /message) #[::null ::string]
+              ::string
           | wires :index |~~ The index, from zero, of the element refused. ~~| ::number
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~|)
@@ -104,9 +104,9 @@
         ~(wires :source
               |~~ The line of the text where the reading stopped, cut around
                   that point by an ellipsis where its print would pass the
-                  excerpt of an alert.
+                  room of a fact of an alert, three hundred characters.
               ~~|
-              ~(query /source) #[::null ::string]
+              ::string
           | wires :marker
               |~~ A caret under the character of `:source` where the reading
                   stopped and a tilde under each other character of its span
@@ -114,34 +114,34 @@
                   `:source`, each character counted as its print writes it,
                   so the two print in one column.
               ~~|
-              ~(query /marker) #[::null ::string]
+              ::string
           | wires :message
               |~~ What the grammar says where the reading stopped, a bracket
                   left open among it.
               ~~|
-              ~(query /message) #[::null ::string]
+              ::string
           | wires :expected
               |~~ The continuations the reading could take where it stopped: each
                   the text of a literal or a part of the grammar named as a
                   keyword, `:name`, `:whitespace`, `:end-of-source`, beside
                   what it met as `:found`.
               ~~|
-              ~(query /expected) #[::null ::vec]
+              ::vec
           | wires :found
               |~~ What the reading met where it stopped, none at the end of the
                   source.
               ~~|
-              ~(query /found) #[::null ::string]
+              ::string
           | wires :location
               |~~ The span of the text where the reading stopped: null where the
                   reading stopped at no point of it.
               ~~|
-              ~(query /location) #[::null ::span]
+              ::span
           | wires :origin
               |~~ Where the text came from, the source, the cell or the verb that
                   read it.
               ~~|
-              ~(query /origin) #[::keyword ::null])
+              ::keyword)
     | proves :countsItsSteps
         |~~ A quote of three steps counts three. ~~|
         ~(~(1 | add 1 | mul 2) | count | eq 3)

@@ -58,12 +58,14 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     : stderrWrite;
 
   let wroteByOut = false;
+  let runningLine = '';
   const notebook = await createNotebook({
     sources: cliSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
       stderrWrite: writeDiagnostic,
-      recordStdoutEffect: () => { wroteByOut = true; }
+      recordStdoutEffect: () => { wroteByOut = true; },
+      get query() { return runningLine; }
     })
   });
 
@@ -109,6 +111,7 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
       }
 
       wroteByOut = false;
+      runningLine = rawLine;
       const cellEntry = await notebook.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
       await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
       lineEditor.prompt();

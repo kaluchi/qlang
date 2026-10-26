@@ -21,8 +21,9 @@ A query runs on what stdin holds, JSON as values and any other text as
 a string, and its answer is printed as the language prints it, a
 string as its text, so a query that ends in `| json` writes JSON. Every
 answer prints within one budget of characters, and one past it as
-`::qlang/AnswerBeyondBudgetError` with its head; `| print | out` and
-`| json | out` write the whole. A query that reads no subject,
+`::qlang/AnswerBeyondBudgetError` with its excerpt and the cell that
+keeps it, which `::cell"…" | answer` reads back in a later query;
+`| print | out` and `| json | out` write the whole. A query that reads no subject,
 `[1 2 3] | sum`, reads no stdin, and one headed by `in` reads the text
 as it came.
 

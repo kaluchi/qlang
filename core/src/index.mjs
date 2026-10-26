@@ -15,7 +15,7 @@ export { printValue } from './print-value.mjs';
 export { kindsExpected } from './ordering.mjs';
 export { toPlain, fromPlain, StringParseJsonTextNotJsonError } from './runtime/json.mjs';
 export { printAnswer, boundAnswer } from './runtime/print.mjs';
-export { ANSWER_BUDGET } from './elide.mjs';
+export { ANSWER_BUDGET } from './rooms.mjs';
 export { readingState } from './primitives.mjs';
 export { isNameStart, isNameContinue, NAME_REGEX } from './name-chars.mjs';
 export { makeKeyword, isKeyword, makeTag, isTag, isErrorValue, makeErrorValue, tagOf } from './types.mjs';

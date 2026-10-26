@@ -1,8 +1,8 @@
 # QSPRN · Printing, codecs and spans of text
 
 How a value is written as text and read back, the legend that glosses
-its parts, what a budget leaves out, and the span where a reading of text
-stopped. The requirements of each
+its parts, the excerpt that tells a value within a room, the budget of an
+answer, and the span where a reading of text stopped. The requirements of each
 section are the cases of its file under `core/test/conformance/QSPRN/`.
 
 ## print
@@ -33,11 +33,9 @@ indented by four, a keyword on the line before it, since a keyword that
 begins a line opens a declaration; a declaration with a page writes its
 name on its line and each doc of its slot on a line of its own, indented
 by two, its body on the line of its last doc, since a body begun on a
-later line runs on through the steps after it [QSSYN#line]. An elision stands on one line whatever it
-holds, so a container that holds one keeps the layout its other parts
-give it, and a value of `::frame` stands on one line whatever it holds as
-well, a value of `::trace` of two frames or more putting each frame on a
-line of its own. On one line every part stands on one line, every part of
+later line runs on through the steps after it [QSSYN#line]. A value of
+`::frame` stands on one line whatever it holds, a value of `::trace` of
+two frames or more putting each frame on a line of its own. On one line every part stands on one line, every part of
 a quote among it, the modifiers of its calls, the docs and the body of
 its declarations and the parts of its literals, which read back as the
 same steps, so a frame lays the quote it holds on one line; a host that
@@ -51,11 +49,11 @@ reads it [QSNAM#owner], an answer that is no string printed instead:
 a print a reader declares under a label of the root answers the reader's
 own calls alone, and a print a label declares serves its values and no
 tag name of it. A kind's own `print` gives the text it chooses, which
-reads back where it writes the kind's literal. What the alert of a failure and the
-head of an answer past the budget leave out stands as an `::elision`
-before the print, so the print holds all it is given. The print of a
-failure finds the print of each part of its facts as the print of every
-value does. Every host prints an answer through the one print of the
+reads back where it writes the kind's literal. The excerpt a host shows of
+a fact of a failure or of an answer past the budget is a value of
+`::excerpt` [QSPRN#excerpt], which prints as any value under its tag, so the
+print holds all it is given. The print of a failure finds the print of each
+part of its facts as the print of every value does. Every host prints an answer through the one print of the
 core, `boundAnswer`, within the budget of every answer [QSPRN#budget],
 the command line a string as its text and the REPL and the site as its
 literal.
@@ -119,7 +117,16 @@ layout it stands in; each part prints as `print` prints it, the print of
 its kind among them, on one line, and the glosses of the lines within half
 the width of a line stand aligned at a column of sixteen at least. A
 vector, a set or a map that holds a legend lays each of its parts on a
-line of its own.
+line of its own. A tag name lays out the kind it names: the tag beside the
+gloss of its page and beneath it a closed comment for each name the kind
+wires, in the order it wires them, the name, the path it reads where it
+reads no key of its own name, the kind of the part and the gloss of its
+page, so the print reads back as the tag and `kinds | map ~legend` tells
+the parts of every kind before a value of it is held. A legend is an
+answer, printed within the budget of every answer [QSPRN#budget], and a
+legend that lays its parts out a line each and passes the budget lays each
+part past the room of a fact, three hundred characters, as the excerpt its
+tag gives [QSPRN#excerpt].
 
 ```sh
 $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
@@ -132,6 +139,15 @@ $ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in
 ```qlang
 > [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | open) ~(first | tag)]
 [4 [1 2] ::legend]
+
+> ::point | legend | print | lines | get /2
+"|~ line /1 ::number · The line of the point, counted from one ~|"
+
+> ::span | legend | print | parse | open
+::span
+
+> 1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")]
+[true true]
 ```
 
 ## json
@@ -168,81 +184,70 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 #[:trace]
 ```
 
-## elide
+## excerpt
 
-`elide` answers a value whose print fits a budget of characters, a whole
-count above zero, another number refused as
-`::any/elide/budget/NotCountError` and a value of another kind as
-`::any/elide/budget/KindNotTakenError`, where it can, each part it leaves
-out giving way to an elision, a value of the kind `::elision`.
-The largest part gives way first, or instead a part within it that
-prints more than half of it, and a part gives way only where the least it
-gives way to prints shorter than it, so where no part's least is shorter
-the answer stands over the budget. Each part gives way by its kind, at
-the top as beneath it. A vector, a set and a map keep their first half
-and an elision of the rest, which its `:read` reads by `drop`, halving
-until they give way whole beneath the top, while the top keeps its first
-part at the least. A map's rest stands under the key `:"…"`: a map whose
-kept entries hold that key of the data keeps the entries before it, and
-gives way whole where it is the first. A set stands in the one order, its
-elision where `::elision` ranks, and the parts a vector and a map keep
-stand at the paths that read them in the value. A value under a tag
-halves as its payload, its tag kept over what it keeps, and gives way
-whole with its tags. A string, a doc, a quote and a part a kind prints
-its own way give way whole, their elision holding under `:head` the first
-characters of their text or of that print, the top read back by the empty
-quote, `~()`; a frame keeps its steps and its path, its subject alone
-giving way, read by the name its kind wires, `~(!| get /trace/1 | subject)`,
-and an atom stands. An elision holds `:read`, the query that,
-continued from the value `elide` took, reads the part left out, and
-`:size`, the elements or the entries of a container its `:read` answers,
-or the characters of a text, as `count` counts them, or of a print, an
-elision the value holds counting as one element. An elision prints on one
-line, the printer of the core writing it, since a view is cut before the
-print a kind declares is asked for, so the budget goes to the parts the
-view shows. The print of a view reads back as the view, but under a kind
-that checks its parts, as `::trace` takes frames alone, which refuses the
-elision it holds. A value whose print fits is answered as it is.
+`excerpt` answers the excerpt of its subject within the characters of
+print it takes, three hundred where it takes none and the budget of every
+answer at the most, a value of `::excerpt`, a map under its tag: the tag
+of the subject gives it under its label, found by the walk of the
+subject's tags as `print` is [QSDSP#walk], and counts it itself, so the
+excerpt a tag gives holds no excerpt and no tag asks another for one. A
+vector, and a set by it, that fits stands whole in `:first`, and one past
+its room tells `:count` its elements and `:first` and `:last` the
+elements at its two ends that fit whole, taken from the ends inward by
+turns, an end stopping at its first element that does not fit; a map tells
+its entries the same way, under their keys; and where an end of either
+holds no part whole, `:head` and `:tail` tell the first and the last
+characters of its print on one line instead, so a record whose first field
+is long shows its keys. A string that fits stands whole in `:head`, and
+one past its room tells `:characters`, as `count` counts them, `:head`
+and `:tail`. A trace tells `:failed`, the step that failed at each level
+from where the failure arose, `:count` its frames where some are left out,
+`:paths` the paths of the parts the verbs of the levels it shows ran their
+code on, and `:subject` the value the step that failed met, whole where it
+fits beside the steps and otherwise the ends of its print, the steps then
+taking half the room [QSERR#trace]. A value no tag tells, `::any/excerpt`,
+shows `:characters`, `:head` and `:tail` of its print on one line, a print
+that fits standing whole in `:head`. A cut of characters falls where a
+word ends, at the space nearest the cut within the half of the end beside
+it, and a count stands only where parts are left out, a count of what the
+reader sees whole telling nothing. A tag of the reader tells its own
+values by an `excerpt` under its label. Each `excerpt` always answers an
+excerpt, so the kind of its answer is known before the call, and refuses a
+budget that is no whole count above zero under its own address,
+`::vec/excerpt/budget/NotCountError` for a vector. An excerpt is a map read
+by its keys, `get /count`, which a verb meets as the map it is; it prints
+as a map under its tag and reads back as itself. A host shows so a fact of
+a failure past the room of a fact [QSERR#alert] and an answer past the
+budget [QSPRN#budget].
 
 ```qlang
-> 1000 | range | elide 120 | print
-"[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 ::elision{:size 984 :read ~(drop 16)}]"
+> 3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)]
+[3410 0 3409]
 
-> 100 | range | elide 10 | last | get [~(tag) /size /read]
-[::elision 99 ~(drop 1)]
+> [1 2 3] | excerpt
+::excerpt{:first [1 2 3]}
 
-> [1 2] | elide 100
-[1 2]
+> get {:rows ~(5000 | range) :name "x"} | excerpt | get [/count ~(get /head | startsWith "{:rows [0 1") ~(get /tail | endsWith ":name \"x\"}")]
+[2 true true]
 
-> [[] {:n 1} "short"] | elide 3
-[[] {:n 1} "short"]
+> 1000 | range | map ~("ab") | join "" | excerpt 80 | get [/characters ~(print | count | lte 80) ~(get /head | startsWith "ab")]
+[2000 true true]
 
-> 200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | tag)]
-[2 ::elision]
+> kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith "#[::absent")]
+[[~(add 1)] true]
 
-> [1 2] | elide 0 !| tag
-::any/elide/budget/NotCountError
+> 12345 | excerpt
+::excerpt{:head "12345"}
 
-> 1000 | range | map ~(get [~(it) ~(it)]) | toMap | get [~(print | count) ~(elide 2000 | print | count | lte 2000)]
-[12783 true]
+> [1 2] | excerpt 0 !| tag
+::vec/excerpt/budget/NotCountError
 
-> 300 | range | tag ::Box | elide 100 | get [~(tag) ~(print | count | lte 100)]
-[::Box true]
+> 100000 | range | excerpt 300000 | print | count | lte 16000
+true
 
-> 200 | range | map ~("a") | join "" | elide 50 | get [~(tag) /size /read]
-[::elision 200 ~()]
-
-> get [~({"a": 1, "…": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7} | elide 34 | get /"…"/size) ~({"…": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6} | elide 20 | get /read)]
-[6 ~()]
-
-> get [~(1000 | range | elide 120 | elide 40) ~([1 2 3 4 5 6 7 8 9 10 11 12 ::elision{:size 1000 :read ~(drop 12)}] | elide 30)]
-[[0 ::elision{:size 16 :read ~(drop 1)}] [1 ::elision{:size 12 :read ~(drop 1)}]]
-
-> get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b
-::elision{:size 300 :read ~(get /b)}
-
-> [{:n 1} "x" 3] | map ~(mul 2) !| trace | elide 60 | print | parse | open !| tag
-::trace/ElementKindNotTakenError
+> 1000 | range | excerpt | :e it | print | parse | open | eq e
+true
 ```
 
 ## budget
@@ -252,20 +257,20 @@ Every host but the REPL prints an answer within one budget,
 `count` counts a string, which is never smaller than the first screen,
 `[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
 prints whole, and one past the budget prints as the failure
-`::qlang/AnswerBeyondBudgetError` instead, whose facts are
-`:characters`, the characters of the print, `:budget`, `:actualTag`,
-the kind of the answer, and `:actualValue`, its head, the answer cut to
-the excerpt of an alert [QSERR#alert], or given way whole where no cut
-fits it, the `:read` of each elision there continuing the query from the
-answer, `~(drop 12)` [QSERR#site]. A query cuts a value by `elide`
-[QSPRN#elide], and the command line writes no flag that sets or cuts the
-budget [QSCLI#answer].
+`::qlang/AnswerBeyondBudgetError` instead, under the line of the raise,
+whose facts are `:characters`, the characters of the print, `:budget`,
+`:answer`, the answer, which its alert shows as its excerpt
+[QSPRN#excerpt], and `:cell`, the cell its host keeps the answer in,
+where it keeps one [QSHST#cell]. A query tells a value within a budget of
+its own by `excerpt`, and the command line writes no flag that sets or
+cuts the budget [QSCLI#answer].
 
 ```sh
-$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|::elision\{:size [0-9]+ :read ~\(drop [0-9]+\)\}'
+$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget|count) [0-9]+|:cell ::cell"[0-9a-f]{12}"' | sed 's/"[0-9a-f]*"/"…"/'
 :characters 70891
 :budget 16000
-::elision{:size 2988 :read ~(drop 12)}
+:count 3000
+:cell ::cell"…"
 ```
 
 ## span

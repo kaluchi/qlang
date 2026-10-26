@@ -13,7 +13,6 @@ import {
   isKeyword,
   isFrame,
   isTrace,
-  ELISION_TAG,
   ERROR_TAG,
   LEGEND_TAG,
   formOf,
@@ -86,10 +85,10 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// [QSERR#print]
+// [QSERR#print], [QSERR#alert]
 function printErrorValue(e, indent, printedOf) {
-  const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  return `${tagHead}${printMapLike('!{', e.facts, indent, printedOf)}`;
+  if (e.told !== null) return `${e.tag.literal}${printValue(e.told, indent, printedOf)}`;
+  return `${e.tag.name === ERROR_TAG.name ? '' : e.tag.literal}${printMapLike('!{', e.facts, indent, printedOf)}`;
 }
 
 // [QSLIT#tag]
@@ -104,14 +103,14 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
   if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), (isTrace(tagged) && tagged.length > 1) || tagged.some(isLegend));
   if (isOfTheKindOfErrors(tagged)) return printMapLike('!{', tagged, indent, printedOf, oneLine);
-  if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine || tagged[TAG_HEADER_SYMBOL].name === ELISION_TAG.name);
+  if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine);
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
 }
 
 // [QSPRN#print]
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => ((isMap(v) || isVec(v)) && v[TAG_HEADER_SYMBOL]?.name !== ELISION_TAG.name) || isLegend(v));
+  const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v) || isLegend(v));
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }

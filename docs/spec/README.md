@@ -27,8 +27,8 @@ The chapters, in the order the concepts rest on each other:
 | [QSBLD](QSBLD-functions-and-kinds.md) | a function and a kind built by commands |
 | [QSERR](QSERR-errors.md) | an error at rest and in flight, and the alert a host prints of a failure |
 | [QSSLF](QSSLF-the-language-describes-itself.md) | the language describes itself: axes, laws, docs, the first page, the catalog |
-| [QSPRN](QSPRN-printing-and-codecs.md) | printing, codecs, elision, the budget of an answer, a span of text |
-| [QSHST](QSHST-hosts.md) | hosts and their boundary: the sources and the primitives a host hands, the doors, the notebook, the streams and the tokens |
+| [QSPRN](QSPRN-printing-and-codecs.md) | printing, codecs, the legend, the excerpt, the budget of an answer, a span of text |
+| [QSHST](QSHST-hosts.md) | hosts and their boundary: the sources and the primitives a host hands, the doors, the notebook, the streams, the cell and the tokens |
 | [QSCLI](QSCLI-the-command-line.md) | the command line and its REPL: the answer, standard input, the shell, the colour and the line editor |
 | [QSLSP](QSLSP-the-language-server.md) | the language server and the editor: what the server reads, reaches and offers, the symbols of a document, and the extension |
 

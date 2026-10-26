@@ -13,7 +13,7 @@ import {
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
   isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
+  ERROR_TAG, TRACE_TAG, isExcerpt, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
@@ -375,20 +375,20 @@ async function callByName(lookupName, modifiers, state, call) {
 // [QSDSP#residence]
 function readsTheValueItHolds(verb, record, state) {
   const address = verb.get('name').name;
-  return isNodeOfAPart(verb, state.scope) && partReadBy(address, state.pipeValue).part === bindingValueOf(record);
+  if (!isNodeOfAPart(verb, state.scope)) return false;
+  const [labelName, name] = splitAddress(address);
+  const parts = wiringOf(walkToKinds(state.pipeValue, [labelName])?.served);
+  return parts !== undefined && parts.get(name) === bindingValueOf(record);
 }
 
-function partReadBy(address, subject) {
+// [QSBLD#value]
+async function partCalled(address, modifiers, state) {
   const [labelName, name] = splitAddress(address);
-  const walked = walkToKinds(subject, [labelName]);
-  return walked === null ? null : { part: wiringOf(walked.served).get(name) };
-}
-
-function partCalled(address, modifiers, state) {
-  const [labelName, name] = splitAddress(address);
-  const read = partReadBy(address, state.pipeValue);
-  if (read === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
-  return valueCalled(read.part, name, name, modifiers, state);
+  const walked = walkToKinds(state.pipeValue, [labelName]);
+  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
+  const served = wiringOf(walked.served) === undefined ? await layTag(labelName, walked.served, state) : walked.served;
+  if (isErrorValue(served)) return withPipeValue(state, served);
+  return valueCalled(wiringOf(served).get(name), name, name, modifiers, state);
 }
 
 // [QSNAM#value]
@@ -837,16 +837,17 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariantsOfAField, invariantsOfTheValue } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
+  const ofFacts = holdsTheFactsOfAnError(payloadRole) ? { told: isExcerpt(held) } : null;
   const parts = new Map();
   for (const field of fields) {
-    const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened);
+    const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened, ofFacts);
     const part = isThenable(reading) ? await reading : reading;
     if (isErrorValue(part)) return part;
     parts.set(field.name.name, part);
@@ -858,14 +859,19 @@ async function underKind(tagName, kind, payload, state) {
   return refused ?? labelled;
 }
 
-// [QSBLD#value]
-function fieldRead(tagName, field, payload, invariants, state, opened) {
-  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened);
-  return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened));
+// [QSERR#rest]
+const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.includes(ERROR_TAG.name) === true;
+
+// [QSBLD#value], [QSERR#rest]
+function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) {
+  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened, ofFacts);
+  return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts));
 }
 
-function fieldHeld(tagName, field, payload, read, invariants, state, opened) {
+function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts) {
   const fieldAddress = `${tagName}/${field.name.name}`;
+  if (ofFacts !== null && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
+  if (ofFacts?.told && isExcerpt(read)) return read;
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
   if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);

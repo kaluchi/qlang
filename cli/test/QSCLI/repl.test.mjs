@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { runRepl } from '../../src/repl.mjs';
 import { captureRepl, stripAnsi } from '../helpers/scripted-repl.mjs';
 
@@ -127,16 +130,26 @@ describe('an answer printed whole and a failure as its alert', () => {
     expect(printed).toContain('::number/add/SubjectNotNumberError');
   });
 
-  it('prints a failure as its alert, the subject of a frame of its trace cut to an elision whose `:read` reaches it', async () => {
+  it('keeps the line it runs as the source of the cell a tap past the budget keeps', async () => {
+    const replHarness = captureRepl('5000 | range | tap :big | count\n.exit\n');
+    await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
+    const [, identity] = stripAnsi(replHarness.stderrText()).match(/::cell"([0-9a-f]{12})"/);
+    const folder = readdirSync(join(tmpdir(), 'qlang')).map(root => join(tmpdir(), 'qlang', root, 'cells', identity)).find(existsSync);
+    expect(readFileSync(join(folder, 'source.qlang'), 'utf8')).toBe('5000 | range | tap :big | count');
+  });
+
+  it('prints a failure as its alert, a fact past the room of a fact shown as its excerpt', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| trace | get /1 | subject)');
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::excerpt\{\n {4}:failed \[~\(nope\) ~\(filter ~\(nope\)\)\]\n {4}:paths \[\/0\]\n {4}:subject \{:n 0\}\n/);
   });
 
-  it('prints the alert of a runaway recursion within the budget', async () => {
+  it('prints the alert of a runaway recursion within its room', async () => {
     const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| trace | drop ');
+    const shown = stripAnsi(replHarness.stdoutText());
+    expect(shown).toContain(':count 1001');
+    expect(shown.length).toBeLessThan(2100);
   });
 });

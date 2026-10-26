@@ -1,0 +1,2 @@
+{"name":"a-cell-is-an-identity-under-its-tag-that-reads-back-as-itself","query":"::cell\"a3f9c2d1e04b\" | :c it | get [~(tag) ~(payload) ~(print | parse | open | eq c)]","expect":"[::cell \"a3f9c2d1e04b\" true]"}
+{"name":"an-identity-that-holds-a-slash-names-no-cell","query":"::cell\"../x\" !| tag","expect":"::cell/PayloadNotIdentityError"}

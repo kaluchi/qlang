@@ -216,10 +216,12 @@ literals, fixed by its text, which reads no name and no subject, and a
 tag it writes is laid through the label the scope declares under that
 name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
-is refused by the parser, which names the literal whole as the template
-of `get`, its tags and its brackets kept, `[::Box[x] 1]` naming
-`get [::Box[~(x)] 1]` [QSPTH#template], and inside an error literal names
-the facts built by `get` and made an error by `raise`; code in
+is refused by the parser, which names the literal as the template of
+`get`, its tags and its brackets kept, `[::Box[x] 1]` naming
+`get [::Box[~(x)] 1]` [QSPTH#template], a template past a line, eighty
+characters, written by its parts that compute alone, each run of the rest
+cut to `…`, and inside an error literal names the facts built by `get` and
+made an error by `raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it
@@ -229,6 +231,9 @@ that computes reads as prose.
 ```qlang
 > "[(5 | add 1) 2]" | parse !| message
 "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(5 | add 1) 2]`"
+
+> "[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 (add 1) 27 28 29 30]" | parse !| message | contains "write `get [… ~(add 1) …]`"
+true
 
 > "::Width(5)" | parse !| message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"

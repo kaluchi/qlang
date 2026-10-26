@@ -151,10 +151,7 @@ export const BINDING_TAG_NAME = 'binding';
 const BUILTIN_TAG_NAME = 'builtin';
 
 // [QSERR#rest]
-export function errorAtRest(tag, facts) {
-  const ofKind = makeTagged(ERROR_TAG, facts);
-  return tag.name === ERROR_TAG.name ? ofKind : makeTagged(tag, ofKind);
-}
+export const errorAtRest = facts => makeTagged(ERROR_TAG, facts);
 
 // [QSSLF#doc]
 export const DOC_TAG_NAME = 'doc';
@@ -245,7 +242,7 @@ export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
-export const ELISION_TAG     = makeTag('elision');
+export const EXCERPT_TAG     = makeTag('excerpt');
 export const LEGEND_TAG      = makeTag('legend');
 export const ERROR_TAG       = makeTag('error');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
@@ -414,8 +411,14 @@ export function makeTrace(frames) {
   return makeTagged(TRACE_TAG, [...frames]);
 }
 
-export function makeErrorValue(tag, facts, { originalError = null } = {}) {
-  return Object.freeze(brandValueClass({ tag, facts, originalError }, 'error'));
+// [QSPRN#excerpt]
+export const isExcerpt = value => isMap(value) && value[TAG_HEADER_SYMBOL]?.name === EXCERPT_TAG.name;
+
+export const makeExcerpt = facts => makeTagged(EXCERPT_TAG, new Map(facts));
+
+// [QSERR#alert]
+export function makeErrorValue(tag, facts, { originalError = null, told = null } = {}) {
+  return Object.freeze(brandValueClass({ tag, facts, originalError, told }, 'error'));
 }
 
 // [QSLIT#kind]

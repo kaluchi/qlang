@@ -1,10 +1,10 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
    the verbs every value answers.
-   The rules it holds: [QSDSP#residence], [QSPRN#print]. ~|
+   The rules it holds: [QSDSP#residence], [QSPRN#print], [QSPRN#excerpt]. ~|
 
 :any
   |~~ Any is the kind beneath every kind, where the verbs every value
-      answers live: `tag`, `eq`, `doc`, `print`, `json`, `elide`,
+      answers live: `tag`, `eq`, `doc`, `print`, `json`, `excerpt`,
       `if` and their kin. A verb that means the same for every
       value is written once here, and the walk from a name to its verb
       ends here, after the kinds of the subject.
@@ -479,14 +479,14 @@
       for each part of that kind; a print the reader declares under a kind
       of the language, `:number/print`, answers the reader's own calls
       alone. The call takes no value: a print within a budget is
-      `elide 80 | print`.
-      ::link~(::any/json | doc) ::link~(::any/elide | doc)
+      `excerpt 80 | print`.
+      ::link~(::any/json | doc) ::link~(::any/excerpt | doc)
   ~~|
   ::fn
     | returns |~~ The literal the subject prints as. ~~| ::string
     | throws :ArgsBeyondInputsError
         |~~ `print` writes the whole subject and takes no value: a print
-            within a budget of characters is `elide 80 | print`.
+            within a budget of characters is `excerpt 80 | print`.
         ~~|
     | proves :printsANumber
         |~~ A number prints as its literal. ~~|
@@ -529,7 +529,14 @@
       read by its name answers its own legend in turn,
       `"~{" | parse !| location | legend`. A value of a kind that wires
       nothing stands on one line beside its gloss, and a container that
-      holds legends lays each on a line of its own. Every comment is
+      holds legends lays each on a line of its own. A tag name lays out the
+      kind it names, beneath the tag a comment for each name the kind wires,
+      in its order: the name, the path it reads where it reads no key of its
+      own name, its kind and the gloss of its page, so `::point | legend`
+      tells the parts of a point before a point is held and
+      `kinds | map ~legend` the parts of every kind. A legend is an answer,
+      printed within the budget of every answer, and one past it lays each
+      part past three hundred characters as its excerpt. Every comment is
       closed, `|~ … ~|`, and whitespace, so the text read back is the
       subject, `print` answering the text and `payload` the subject.
       ::link~(::legend | doc) ::link~(::kind/wires | doc)
@@ -558,138 +565,65 @@
             gloss of its kind.
         ~~|
         ~({:a 1} | legend | print | lines | count | eq 1)
+    | proves :laysOutTheKindATagNames
+        |~~ A tag name lays out the names its kind wires, a comment each. ~~|
+        ~(::point | legend | print | lines | get /2 | eq "|~ line /1 ::number · The line of the point, counted from one ~|")
+    | proves :readsATagNameBackAsTheTag
+        |~~ The legend of a tag name reads back as the tag. ~~|
+        ~(::span | legend | print | parse | open | eq ::span)
+    | proves :laysAPartPastTheBudgetAsItsExcerpt
+        |~~ A legend past the budget lays a part past three hundred
+            characters as its excerpt.
+        ~~|
+        ~(1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")] | eq [true true])
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)
     | impl ~(tag ::legend)
 
-:any/elide
-  |~~ Answers the subject within a budget of characters of its print,
-      what does not fit given way to elisions, values of `::elision`, and
-      a value whose print fits as it is. The largest part gives way first,
-      or instead a part within it that prints more than half of it,
-      each by its kind, at the top as beneath it. A vector, a set and a
-      map keep the first half of their parts, and half of those until it
-      fits, ending with an elision of the rest, a map's under the key
-      `:"…"`, which a map whose kept entries hold that key keeps the
-      entries before, giving way whole where it is the first, and a set
-      standing in the one order; beneath the top they give way whole at
-      the last, and the top keeps its first part. A value under a tag
-      halves as its payload, its tag kept over what it keeps, and gives
-      way whole with its tags. A string, a doc, a quote and a part a kind
-      prints its own way give way whole, the elision keeping under
-      `:head` the first characters of their text or of that print, the
-      top read back by `~()`, and an atom stands. A part gives way only
-      where the least it gives way to prints shorter than it, `[]` or
-      `{:n 1}` staying. An elision's `:size` counts the elements or the
-      entries its `:read`, continued from the value `elide` took,
-      answers, or the characters of a text, as `count` counts them, or
-      of a print, and an elision the subject holds counts as one element.
-      A view prints and reads back as itself, but under a kind that
-      checks its parts, as `::trace` takes frames alone, which refuses
-      the elision it holds. The call gives the budget, a number; a host
-      cuts so the head of an answer past the budget of every answer and
-      the alert of a failure.
-      ::link~(::elision | doc) ::link~(::any/print | doc)
+:any/excerpt
+  |~~ Answers the excerpt of the subject within the characters of print the
+      call gives, three hundred where it gives none, a value of
+      `::excerpt`: the tag of the subject tells it in its own words, a
+      vector and a set by `:first` and `:last`, a map the same way, a string
+      by `:head` and `:tail`, and a trace by `:failed` and `:subject`, each
+      with its count where parts are left out; and a value no tag tells,
+      this verb, by `:head` and `:tail`, the first and the last characters
+      of its print on one line, each cut where a word ends, and
+      `:characters` the characters of the print, a print that fits standing
+      whole in `:head`. A tag of the reader tells its own values by an
+      `excerpt` under its label. It always answers an
+      excerpt, a value that fits shown whole in it, so the kind of its
+      answer is known before the call, and a host tells so a fact of a
+      failure past the room of a fact and an answer past the budget.
+      ::link~(::excerpt | doc) ::link~(::any/print | doc)
       ::link~(::qlang/AnswerBeyondBudgetError | doc)
   ~~|
   ::fn
     | takes :budget
-        |~~ The budget, in characters of the print. ~~|
-        /0 ::number
+        |~~ The characters of the print of the excerpt, three hundred where
+            the call gives none; a budget past the budget of every answer is
+            that budget.
+        ~~|
+        ~(query /0 300) ::number
     | throws :budget/KindNotTakenError
-        |~~ The budget is a number of characters, `elide 80`. ~~|
+        |~~ The budget is a number of characters, `excerpt 80`. ~~|
     | holds :budget/NotCountError
         |~~ The budget is a whole count of characters above zero,
-            `elide 80`.
+            `excerpt 80`.
         ~~|
         ~(allOf (gt 0) ~(eq (floor)))
-    | throws :budget/NotGivenError
-        |~~ `elide` keeps the subject within the budget the call gives,
-            the characters of its print, `elide 80`.
-        ~~|
-    | returns
-        |~~ The subject within the budget, its parts that did not fit
-            given way to elisions.
-        ~~|
-        ::any
-    | proves :leavesWhatFits
-        |~~ A value within the budget stays whole. ~~|
-        ~([1 2] | elide 100 | eq [1 2])
-    | proves :elidesTheLargestPart
-        |~~ The largest part gives way to an elision. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
-          | elide 40 | get /s | tag | eq ::elision)
-    | proves :keepsTheHeadOfAString
-        |~~ The elision of a string keeps its first characters. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
-          | elide 40 | get /s/head | eq "a long line of text to leave out, which ")
-    | proves :keepsAPartShorterThanItsElision
-        |~~ A part whose elision prints no shorter than it stays. ~~|
-        ~([[] {:n 1} "short"] | elide 3 | eq [[] {:n 1} "short"])
-    | proves :countsATextByItsCharacters
-        |~~ The elision of a text counts and keeps characters as `count`
-            and `take` do.
-        ~~|
-        ~(61 | range | map ~("😀") | join "" | :s it | {} | put /s s | elide 30 | get /s | get [/size ~(get /head | count)] | eq [61 30])
-    | proves :halvesAVectorUntilItFits
-        |~~ A vector keeps its first elements and ends with an elision of
-            the rest.
-        ~~|
-        ~(["alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel" "india" "juliet"]
-          | elide 80
-          | eq ["alpha" "bravo" "charlie" "delta" "echo" ::elision{:size 5 :read ~(drop 5)}])
-    | proves :keepsTheTagOverTheCut
-        |~~ A value under a tag halves as its payload, its tag kept. ~~|
-        ~(300 | range | tag ::Box | elide 100 | get [~(tag) ~(payload | last | tag)] | eq [::Box ::elision])
-    | proves :givesAValueUnderATagWayWithItsTags
-        |~~ A value under a tag given way whole gives way with its tags. ~~|
-        ~(get {:b ~(300 | range | tag ::Box) :n 1} | elide 40 | get /b | tag | eq ::elision)
-    | proves :readsBackRefusedWhereAKindChecksItsParts
-        |~~ The print of a cut trace reads back refused, a trace taking
-            frames alone.
-        ~~|
-        ~([{:n 1} "x" 3] | map ~(mul 2) !| trace | elide 60 | print | parse | open !| tag | eq ::trace/ElementKindNotTakenError)
-    | proves :keepsTheRestOfAMapUnderAnEllipsis
-        |~~ A map keeps its first entries and its rest under `:"…"`. ~~|
-        ~({:a 1 :b 2 :c 3 :d 4 :e 5 :f 6 :g 7 :h 8} | elide 40 | keys | eq #[:a :"…"])
-    | proves :keepsTheFirstElementOfTheTop
-        |~~ The top keeps its first element, the part within it giving way.
-        ~~|
-        ~(200 | range | map ~("a") | join "" | :s it | get [~(s) ~(s)] | elide 200 | get [~(count) ~(last | tag)] | eq [2 ::elision])
-    | proves :halvesASetInTheOneOrder
-        |~~ A set keeps the first half of its elements and stands in the one
-            order.
-        ~~|
-        ~(40 | range | toSet | elide 60 | get [~(tag) ~(last | tag)] | eq [::set ::elision])
-    | proves :givesADocWayWithTheHeadOfItsText
-        |~~ A doc beneath the top gives way whole, its elision keeping the
-            first characters of its text.
-        ~~|
-        ~(get [~(::vec/sort | doc)] | elide 100 | get /0/head | tag | eq ::string)
-    | proves :countsThePrintAKindGives
-        |~~ The budget counts the print a kind gives a part. ~~|
-        ~(:Box |~~ B ~~| | :Box/print ~("b") | [::Box#1 ::Box#2 ::Box#3 ::Box#4 ::Box#5 ::Box#6 ::Box#7] | elide 10 | print | count | eq 15)
-    | proves :readsTheElidedPartBack
-        |~~ An elision holds the query that reads its part back. ~~|
-        ~({:s "a long line of text to leave out, which runs on long enough that its elision prints shorter than it" :n 1}
-          | :v it | elide 40 | get /s/read | :r it | v | apply r | eq (v | get /s))
-    | proves :givesAStringAtTheTopWayWithItsHead
-        |~~ A string alone gives way whole, read back by the empty quote. ~~|
-        ~(200 | range | map ~("a") | join "" | elide 50 | get [~(tag) /read] | eq [::elision ~()])
-    | proves :countsAnElisionItHoldsAsOneElement
-        |~~ An elision the subject holds counts as one element. ~~|
-        ~([1 2 3 4 5 6 7 8 9 10 11 12 ::elision{:size 1000 :read ~(drop 12)}] | elide 30 | last | get /size | eq 12)
+    | returns |~~ The excerpt of the print of the subject. ~~| ::excerpt
+    | proves :tellsThePrintByItsEnds
+        |~~ A value no tag tells shows the ends of its print. ~~|
+        ~(get [~(12345 | excerpt) ~(::Point#7 | excerpt 300)] | eq [::excerpt{:head "12345"} ::excerpt{:head "::Point#7"}])
     | proves :budget/KindNotTakenError/refusesAString
         |~~ A budget that is no number is refused under the input. ~~|
-        ~([1 2] | elide "x" !| tag | eq ::any/elide/budget/KindNotTakenError)
-    | proves :budget/NotGivenError/refusesACallWithNoBudget
-        |~~ A call with no budget is refused under the input. ~~|
-        ~([1 2] | elide !| tag | eq ::any/elide/budget/NotGivenError)
+        ~(5 | excerpt "x" !| tag | eq ::any/excerpt/budget/KindNotTakenError)
     | proves :budget/NotCountError/refusesNoneAndAFraction
         |~~ A budget of no characters or of a fraction of one is refused.
         ~~|
-        ~(get [~([1 2] | elide 0 !| tag) ~([1 2] | elide 2.5 !| tag)] | eq [::any/elide/budget/NotCountError ::any/elide/budget/NotCountError])
+        ~(get [~(5 | excerpt 0 !| tag) ~(5 | excerpt 2.5 !| tag)] | eq [::any/excerpt/budget/NotCountError ::any/excerpt/budget/NotCountError])
     | impl ::builtin{}
 
 :any/if
@@ -2857,7 +2791,10 @@
     | throws :SubjectKindNotTakenError
         |~~ `raise` raises a map, beneath the tags over it: a value of
             another kind is put in one first, `get {:value ~(it)} | raise`,
-            or the error is written as its literal, `!{:reason :late} | raise`.
+            or the error is written as its literal, `!{:reason :late} | raise`;
+            an excerpt, which a host prints of a failure past its rooms, tells
+            the failure and holds it not, its facts read by their names and
+            the failure raised again by the query that made it.
         ~~|
         ~(wires :expected |~~ The kind raised, `#[::map]`. ~~| ::set
           | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
@@ -2865,6 +2802,11 @@
         |~~ `raise` takes no value: what the error says is a fact of the
             map, `{:message "boom"} | raise`.
         ~~|
+    | proves :SubjectKindNotTakenError/refusesAnExcerpt
+        |~~ The excerpt of a failure, which a host prints, is no map of facts
+            to raise.
+        ~~|
+        ~(::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)] | eq [::any/raise/SubjectKindNotTakenError ::excerpt])
     | proves :raisesTheSubject
         |~~ `{…} | raise` raises the subject, a map the step builds among
             them.

@@ -2,6 +2,7 @@
 
 import { kindsExpected, readingState, boundAnswer, printAnswer } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingTheSubject } from '@kaluchi/qlang-core/errors';
+import { keepCell } from './cells.mjs';
 
 const AnyOutSubjectKindNotTakenError = declareRefusal('any/out/SubjectKindNotTakenError');
 const AnyErrSubjectKindNotTakenError = declareRefusal('any/err/SubjectKindNotTakenError');
@@ -26,9 +27,10 @@ export function streamPrimitives(ioContext) {
     [IN_ADDRESS]: async () => ioContext.stdinReader(),
     'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectKindNotTakenError),
     'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
-    // [QSHST#effect]
+    // [QSHST#effect], [QSHST#cell]
     'any/tap': readingState(async (subject, label, state) => {
-      const shown = await printAnswer(await boundAnswer(subject, state.scope), state.scope);
+      const kept = answer => keepCell({ query: ioContext.query, scope: state.scope, answer });
+      const shown = await printAnswer(await boundAnswer(subject, state.scope, null, kept), state.scope);
       ioContext.stderrWrite(`[tap ${label.name}] ${shown}\n`);
       return subject;
     })

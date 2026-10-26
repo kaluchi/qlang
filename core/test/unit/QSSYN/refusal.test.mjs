@@ -3,7 +3,7 @@ import { parseSource, SourceParseError } from '../../../src/parse.mjs';
 import { refusalOf } from '../../helpers/read-text.mjs';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
-import { EXCERPT_CHARACTERS } from '../../../src/elide.mjs';
+import { ROOM_OF_A_FACT } from '../../../src/rooms.mjs';
 
 describe('what a refusal of the parser says', () => {
   it('lists no class of characters among the continuations of a refusal', () => {
@@ -67,7 +67,7 @@ describe('the `:marker` beneath the `:source` of a refusal of a parse', () => {
 
   it('cuts a line past the excerpt of an alert around the point by an ellipsis on each side it cuts, the two printing within the excerpt in one column', async () => {
     const { source, marker } = await columnsOf(`"${'x'.repeat(500)}" | add(1)(2) | "${'y'.repeat(500)}"`);
-    expect([source.startsWith('"…x'), source.endsWith('y…"'), source.length, marker.length]).toEqual([true, true, EXCERPT_CHARACTERS - 1, EXCERPT_CHARACTERS - 1]);
+    expect([source.startsWith('"…x'), source.endsWith('y…"'), source.length, marker.length]).toEqual([true, true, ROOM_OF_A_FACT - 1, ROOM_OF_A_FACT - 1]);
     expect(marker.indexOf('^~~')).toBe(source.indexOf('(2)'));
   });
 

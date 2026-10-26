@@ -8,7 +8,7 @@ section are the cases of its file under `core/test/conformance/QSORD/`.
 
 Values order first by kind: null, boolean, number, string, regex,
 keyword, tag name, path, vector, set, map, quote and doc, and after them
-every value under another tag by the name of its tag, an elision, a desc,
+every value under another tag by the name of its tag, a desc, an excerpt,
 a label, an error at rest and a kind of a host among them. Within a kind,
 numbers order by value,
 `false` before `true`, and a text by its code points, the characters a
@@ -40,8 +40,8 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > [/b /a/c /a] | sort | map ~(print)
 ["/a" "/a/c" "/b"]
 
-> get [~([::aaa#1 ::elision{:size 1}] | sort | map ~tag) ~([::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
-[[::aaa ::elision] [::map ::quote ::doc ::desc ::elision]]
+> get [~([::aaa#1 ::excerpt{:count 1}] | sort | map ~tag) ~([::desc#1 ::excerpt{:count 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
+[[::aaa ::excerpt] [::map ::quote ::doc ::desc ::excerpt]]
 ```
 
 ## set

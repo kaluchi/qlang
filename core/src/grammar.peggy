@@ -263,8 +263,8 @@
   // An error literal, a tag before its bang the tagged literal of it,
   // `::Late!{…}` the literal `::Late::error!{…}` [QSERR#rest].
   function errorRead(tag, entries) {
-    if (tag === null) return entriesRead(facts => errorAtRest(ERROR_TAG, facts), entries);
-    return taggedRead(tag, entriesRead(facts => errorAtRest(ERROR_TAG, facts), entries, [], { ...span(), start: tag.span.end }));
+    if (tag === null) return entriesRead(facts => errorAtRest(facts), entries);
+    return taggedRead(tag, entriesRead(facts => errorAtRest(facts), entries, [], { ...span(), start: tag.span.end }));
   }
 
   // The segments of a doc, the span of its text to its last word and the spans

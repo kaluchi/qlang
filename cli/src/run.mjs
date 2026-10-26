@@ -5,7 +5,7 @@ import { cliSources } from './cli-sources.mjs';
 import { liftOfInput } from './stdin.mjs';
 
 export async function runQuery(queryText, ioContext, { stdinText = '' } = {}) {
-  const notebook = await createNotebook({ sources: cliSources(ioContext) });
+  const notebook = await createNotebook({ sources: cliSources({ ...ioContext, query: queryText }) });
   const lifted = await liftOfInput(notebook, stdinText);
   const cellEntry = lifted.raised ?? await notebook.evalCell(queryText, lifted);
   if (!isErrorValue(cellEntry.result)) return cellEntry;

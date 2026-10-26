@@ -1,0 +1,37 @@
+|~ `::cell`, the kind of the identity under which a host keeps a value for
+   the work with state, and what is declared under it: its invariant and
+   its laws; its word `answer` is its host's.
+   The rules it holds: [QSHST#cell]. ~|
+
+:cell
+  |~~ A cell is the interface a host gives for the work with state inside
+      the language: an identity under its tag, `::cell"a3f9c2d1e04b"`,
+      letters, digits and hyphens, whose literal reads back as itself in any
+      later query, and its word `answer`, which its host declares and which
+      reads at the call what the host keeps under it. The command line keeps
+      so an answer past the budget of every answer, which its refusal names
+      under `:cell`, and `::cell"a3f9c2d1e04b" | answer | take 3` reads the
+      first three elements of the whole. A host that keeps no cell names
+      none, and its `answer` refuses a cell it does not hold.
+      ::link~(::qlang/AnswerBeyondBudgetError | doc) ::link~(::qlang/hosts | doc)
+  ~~|
+  ::kind
+    | accepts |~~ The identity of the cell, letters, digits and hyphens. ~~| ::string
+    | throws :PayloadKindNotTakenError
+        |~~ A cell is named by its identity, a string,
+            `::cell"a3f9c2d1e04b"`.
+        ~~|
+    | holds :PayloadNotIdentityError
+        |~~ The identity of a cell is letters, digits and hyphens, so it
+            names no folder past the store its host keeps.
+        ~~|
+        ~(contains #"^[A-Za-z0-9-]+$")
+    | proves :readsBackAsItself
+        |~~ A cell reads back as itself. ~~|
+        ~(::cell"a3f9c2d1e04b" | :c it | print | parse | open | eq c)
+    | proves :PayloadNotIdentityError/refusesASlash
+        |~~ An identity that holds a slash is refused. ~~|
+        ~(::cell"../x" !| tag | eq ::cell/PayloadNotIdentityError)
+    | proves :PayloadKindNotTakenError/refusesANumber
+        |~~ A number names no cell. ~~|
+        ~(::cell#12 !| tag | eq ::cell/PayloadKindNotTakenError)

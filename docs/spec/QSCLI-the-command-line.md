@@ -11,9 +11,11 @@ The command line writes the answer of a query as the language prints it,
 whatever data standard input held, a string as its text, within the
 budget of every answer [QSPRN#budget] but in the REPL, which prints the
 answer of a cell whole [QSCLI#repl]. No flag sets or cuts the budget: a
-query cuts a value by `elide` [QSPRN#elide], and writes it whole through
-the door it opens itself, `out` a text, `print | out` the literal of a
-value and `json | out` its JSON. A reader who wants JSON converts the
+query tells a value within a budget of its own by `excerpt`
+[QSPRN#excerpt], reads an answer past the budget back from the cell its
+refusal names, `::cell"…" | answer` [QSHST#cell], and writes it whole
+through the door it opens itself, `out` a text, `print | out` the literal
+of a value and `json | out` its JSON. A reader who wants JSON converts the
 answer in the query, `| json`. A query that wrote to standard output by
 `out` holds the channel: its answer and its failure stay unwritten, no
 refusal of its print is raised, and the code is the one its answer exits
@@ -156,7 +158,7 @@ The REPL runs a cell at a time in one notebook, each cell a scope of its
 own [QSNAM#scope], its first the query `-i` is given, and prints the
 answer of each cell whole, as its literal, a string among them and an
 answer past the budget of every answer [QSPRN#budget] as well, and a
-failure as its alert within that budget [QSERR#alert], without its page,
+failure as its alert [QSERR#alert], without its page,
 painted whether or not standard output is a terminal
 [QSCLI#colour]; a cell that wrote by `out` holds the channel, no value of
 its answer printed after it, while its failure prints; a defect raised

@@ -1,7 +1,7 @@
 // Holds every «…» quote of the documents against the messages the
 // maintainer typed, in every transcript of the project, and says first
 // which directories it read and how many transcripts each gave [QSVOX#folders]. A
-// quote matches up to whitespace; an elision is written […] and each
+// quote matches up to whitespace; an omission is written […] and each
 // fragment around it is looked up alone. Fenced blocks are code and are
 // skipped. Runs in a session on the maintainer's machine, since it reads
 // the transcripts.

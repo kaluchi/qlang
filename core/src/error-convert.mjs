@@ -1,6 +1,6 @@
-import { makeKeyword, makeErrorValue, makeTag, tagOf } from './types.mjs';
+import { makeKeyword, makeErrorValue, makeTag } from './types.mjs';
 import { declareDefect, recordRefusal } from './errors.mjs';
-import { kindOfAValueOf } from './nouns.mjs';
+import { kindOfAValueOf, probesOfASlot, slotsOfAVerdict } from './nouns.mjs';
 import { chainOfKind } from './chain.mjs';
 import { nameOfContinuation } from './parse.mjs';
 import { printValue } from './print-value.mjs';
@@ -25,15 +25,15 @@ export function spanOfLocation(loc, source) {
 const codePointsIn = (source, from, to) => Array.from(source.slice(from, to)).length;
 
 // [QSERR#site]
-const PROBES_OF_A_SLOT = ['expected', 'found', 'answer', 'index'];
-
 export function factsInOrder(tag, facts, scope) {
   const kind = kindOfAValueOf(scope, tag.name);
   if (kind === null) return facts;
+  const slots = slotsOfAVerdict(kind);
+  const probes = slots === undefined ? [] : probesOfASlot(scope).map(({ name }) => name.name);
   const ordered = new Map();
   for (const name of chainOfKind(kind).wired.keys()) {
     if (facts.has(name)) ordered.set(name, facts.get(name));
-    for (const probe of PROBES_OF_A_SLOT) if (facts.has(`${name}/${probe}`)) ordered.set(`${name}/${probe}`, facts.get(`${name}/${probe}`));
+    if (slots?.has(name)) for (const probe of probes) if (facts.has(`${name}/${probe}`)) ordered.set(`${name}/${probe}`, facts.get(`${name}/${probe}`));
   }
   for (const name of facts.keys()) {
     if (!ordered.has(name)) throw new BuiltinRefusalFactNotDeclaredError({ address: tag, fact: makeKeyword(name) });
@@ -41,11 +41,9 @@ export function factsInOrder(tag, facts, scope) {
   return ordered;
 }
 
-export function errorFromQlang(qlangError, subject, scope) {
+export function errorFromQlang(qlangError, scope) {
   const tag = makeTag(qlangError.address);
   const facts = new Map(Object.entries(qlangError.facts).filter(([, value]) => value !== undefined));
-  if (facts.has('actualValue')) facts.set('actualTag', tagOf(facts.get('actualValue')));
-  if (qlangError.refusesTheSubject === true && subject !== undefined) facts.delete('actualValue');
   return makeErrorValue(tag, factsInOrder(tag, facts, scope), { originalError: qlangError });
 }
 

@@ -12,7 +12,7 @@ import { BuiltinForeignValueError } from './types.mjs';
 // [QSHST#door]
 function takenFromAHost(value) {
   const foreign = foreignPartOf(value);
-  if (foreign !== null) throw new BuiltinForeignValueError({ actualValue: foreign.account });
+  if (foreign !== null) throw new BuiltinForeignValueError({ found: foreign.account });
   return value;
 }
 

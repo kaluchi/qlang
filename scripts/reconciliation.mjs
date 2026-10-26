@@ -224,9 +224,9 @@ export function citableOf(repoRoot) {
 export function unresolvedSections(repoRoot) {
   const chapters = chaptersOfSpec(repoRoot);
   const citable = citableOf(repoRoot);
+  const unresolved = sectionsWrittenTwice(repoRoot);
   const citing = [...citingCodeOf(repoRoot), ...filesUnder(repoRoot, 'core/test/conformance', /\.jsonl$/),
     ...CITING_DOCUMENTS, ...filesUnder(repoRoot, JOURNAL, /\.md$/).filter(path => !path.includes('/replaced/') && !path.startsWith(`${RESEARCH}/`)), ...filesUnder(repoRoot, 'docs/spec', /\.md$/)];
-  const unresolved = [];
   for (const file of citing.filter(path => existsSync(join(repoRoot, path)))) {
     readText(join(repoRoot, file)).split(/\r?\n/).forEach((line, index) => {
       for (const [whole, chapter, section] of line.matchAll(SECTION_CITATION)) {
@@ -238,6 +238,21 @@ export function unresolvedSections(repoRoot) {
     });
   }
   return unresolved;
+}
+
+// A section is written once in its chapter, so its citation names one text.
+function sectionsWrittenTwice(repoRoot) {
+  const twice = [];
+  for (const path of filesUnder(repoRoot, 'docs/spec', /^QS[A-Z]{3}-.+\.md$/)) {
+    const seen = new Set();
+    readText(join(repoRoot, path)).split(/\r?\n/).forEach((line, index) => {
+      if (!line.startsWith('## ')) return;
+      const section = line.slice(3).trim();
+      if (seen.has(section)) twice.push({ where: `${path}:${index + 1}`, problem: `writes the section ${section} a second time: a citation of [${path.split('/').pop().slice(0, 5)}#${section}] names one text [QSVOX#chapter]` });
+      seen.add(section);
+    });
+  }
+  return twice;
 }
 
 // The records in transit, each with the sections it overrides: a record

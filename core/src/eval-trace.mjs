@@ -39,7 +39,7 @@ function heldTrace(error, scope) {
   try {
     return [error, framesOfTrace(error.facts.get('trace'))];
   } catch (refusal) {
-    return [errorFromQlang(refusal, undefined, scope), []];
+    return [errorFromQlang(refusal, scope), []];
   }
 }
 

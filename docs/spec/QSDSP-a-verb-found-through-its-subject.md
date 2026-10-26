@@ -81,7 +81,7 @@ reader extending a noun of the root among them, and so does a name the
 kind of a label wires, its call answering that part of the subject,
 `card | took`, by its address `card | Card/took`, and taking no modifiers
 [QSBLD#value], whether a node lies at its address or the wiring alone names
-it, the facts of a refusal among them, `!| actualTag` [QSERR#rest]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
+it, the facts of a refusal among them, `!| found` [QSERR#rest]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
 `::string/count`, one primitive serving several where they share it. A
 verb serves the values the walk of their tags brings to its label and,
 beside them, a value of the kinds its `on` names, of tag names the
@@ -145,8 +145,8 @@ true
 
 A name whose verbs reside on several kinds, none of which the walk of
 the subject reaches, is refused by the call as
-`::call/KindAnswersNoVerbError`, with the name as `:name`, the subject's
-outermost tag as `:actualTag`, the addresses of the verbs of that name
+`::call/KindAnswersNoVerbError`, with the subject as `:found`, the name
+as `:name`, the addresses of the verbs of that name
 as `:addresses`, where the pages of those verbs lead to one, `:nearest`,
 the verbs they link that the subject answers and whose answer is a kind
 those verbs answer, and, where the subject is a path, `:repair`, the
@@ -157,8 +157,8 @@ declares under a second noun makes the refusal of a name one verb of the
 root holds the call's, its address beside the root's.
 
 ```qlang
-> 5 | count !| get [~(tag) ~(actualTag) ~(addresses)]
-[::call/KindAnswersNoVerbError ::number #[::map/count ::string/count ::vec/count]]
+> 5 | count !| get [~(tag) ~(found) ~(addresses)]
+[::call/KindAnswersNoVerbError 5 #[::map/count ::string/count ::vec/count]]
 
 > :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) ~(addresses)]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]

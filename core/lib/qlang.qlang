@@ -163,7 +163,7 @@
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert, the concentrate of its facts: each fact whole within
       three hundred characters and past them as the ::cell its host keeps
-      it in, beside its tag and the views its kind reveals, while `!|` reads each fact
+      it in, beside its tag, its views and its parts, while `!|` reads each fact
       whole, `!| subject | found | take 3`. `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 
@@ -209,8 +209,9 @@
             instead of it: `:characters` tells the characters of the print
             and `:answer` holds the answer, which the alert shows as the
             cell where the host keeps it, whose `answer` reads it back
-            whole, `::cell"…" | answer | take 3`, beside its tag and the
-            views its kind reveals, `:answer/count`.
+            whole, `::cell"…" | answer | take 3`, beside its tag, the
+            views its kind reveals and its parts, `:answer/count` and
+            `:answer/addend/found`, each key the chain that reads it.
             Narrow the answer by `get`, `take`, `keys`, `count` or
             `shape`, or, where the host has streams, write it whole through
             the door the query opens itself: `out` a text, `print | out` the
@@ -948,8 +949,8 @@
             whole; `print | out` writes an answer whole. A failure the host
             prints is an alert, the concentrate of its facts within two
             thousand characters, each fact whole within three hundred and
-            past them as the cell the host keeps it in, beside its tag and
-            the views its kind reveals that fit, `:addend/found/count`, the last facts
+            past them as the cell the host keeps it in, beside its tag, the
+            views its kind reveals that fit and its parts, `:addend/found/count`, the last facts
             dropped where the alert passes its room, a failure any fact of
             which gave way told as an `::excerpt` under the tag of its
             refusal; the command line writes below it

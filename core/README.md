@@ -80,9 +80,8 @@ cell.defect;              // what was raised past the fail track, else null
   `@kaluchi/qlang-core/errors`, a refusal of a kind named by the role of
   the value it refuses with the kinds it takes as the fact `:expected`,
   `kindsExpected('string')`, and paged under its noun in the host's
-  source, a refusal of the subject its call was served thrown through
-  `refusingTheSubject`, which holds the kind of that subject alone, and a
-  refusal of a part of it through `refusingAPart` with the segments of the
+  source, the value its rule met as the fact `:found`, and a refusal of a
+  part of the subject through `refusingAPart` with the segments of the
   part's path, which the frame of the step names; a failure of the host's
   own world is an error value,
   `makeErrorValue(makeTag('Late'), facts)`, its facts a map, a keyword

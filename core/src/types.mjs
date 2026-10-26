@@ -451,10 +451,10 @@ export function tagOf(v) {
 
 // [QSHST#door]
 export const BuiltinForeignValueError = declareDefect('builtin/ForeignValueError',
-  ({ actualValue }) => `the core met ${actualValue}, a value of no kind of the language`);
+  ({ found }) => `the core met ${found}, a value of no kind of the language`);
 
 export function refuseForeign(value) {
-  throw new BuiltinForeignValueError({ actualValue: accountOfForeign(value) });
+  throw new BuiltinForeignValueError({ found: accountOfForeign(value) });
 }
 
 export function accountOfForeign(value) {

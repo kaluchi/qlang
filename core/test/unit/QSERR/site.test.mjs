@@ -13,30 +13,29 @@ import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
 const probeScope = async () => (await createNotebook({ sources: [{ uri: 'tests/probe', source:
-  ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :actualTag |~~ The kind. ~~| ::tag | wires :actualValue |~~ The value. ~~|)' }] })).scope;
+  ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :value |~~ The value. ~~| ::string | wires :note |~~ A note. ~~|)' }] })).scope;
 
 describe('a refusal converted to a failure', () => {
   it('converts a refusal — its address the tag, its facts in the order the kind of its refusal wires them', async () => {
-    const typeErr = new TestsProbeTypeError({ actualValue: 'the-value' });
-    const errorVal = errorFromQlang(typeErr, 'the-subject', await probeScope());
+    const typeErr = new TestsProbeTypeError({ note: 'a note', value: 'the-value' });
+    const errorVal = errorFromQlang(typeErr, await probeScope());
     expect(isErrorValue(errorVal)).toBe(true);
     const desc = errorVal.facts;
     expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
-    expect(desc.get('actualValue')).toBe('the-value');
-    expect(desc.get('actualTag')).toEqual(makeTag('string'));
-    expect([...desc.keys()]).toEqual(['actualTag', 'actualValue']);
+    expect(desc.get('value')).toBe('the-value');
+    expect([...desc.keys()]).toEqual(['value', 'note']);
   });
 
   it('converts the refusal of an unknown name with the facts its label declares', async () => {
     const unresolvedErr = new CallUnknownNameError({ addresses: makeSet([]), name: makeKeyword('myName') });
-    const errorVal = errorFromQlang(unresolvedErr, 42, await langRuntime());
+    const errorVal = errorFromQlang(unresolvedErr, await langRuntime());
     expect(errorVal.tag).toEqual(makeTag('call/UnknownNameError'));
     expect([...errorVal.facts.keys()]).toEqual(['name', 'addresses']);
   });
 
   it('refuses a fact the kind of its refusal does not wire, a defect of the runtime', async () => {
     const scope = await probeScope();
-    expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), 42, scope)).toThrow(/carries :undeclared/);
+    expect(() => errorFromQlang(new TestsProbeTypeError({ undeclared: 1 }), scope)).toThrow(/carries :undeclared/);
   });
 });
 

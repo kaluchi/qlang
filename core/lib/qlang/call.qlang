@@ -41,9 +41,7 @@
             `:modifiers`.
             ::link~(::call | doc)
         ~~|
-        ~(wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|
-          | wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
+        ~(wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
     | throws :NameNotCallableError
         |~~ The name of a call is one a step calls, names joined by `/`,
             each a letter or `_` and the letters, digits, `_` and `-` after
@@ -65,10 +63,7 @@
               |~~ What the rule says of the literal, the template `get` builds it
                   from.
               ~~|
-              ::string
-          | wires :index |~~ The index, from zero, of the element refused. ~~| ::number
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::string)
     | throws :HostFailureError
         |~~ A failure inside a primitive: an error of the language the
             runtime is written in escaped a verb, or the primitive a host
@@ -104,9 +99,7 @@
               |~~ The addresses where a verb of that name lives: one a
                   declaration shadows among them.
               ~~|
-              ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::set)
     | throws :ValueMeetsVerbError
         |~~ A name the scope binds to a value is the name of a verb the
             subject answers, and the step does not choose between them:
@@ -140,8 +133,8 @@
         ~(wires :name |~~ The name of the reader's value the held code read. ~~| ::keyword)
     | throws :KindAnswersNoVerbError
         |~~ The kind of the subject has no verb of the name while other
-            kinds have one: `:name` holds the name, `:actualTag` the kind
-            of the subject, and `:addresses` the verbs of the name and the
+            kinds have one: `:name` holds the name, `:found` the subject,
+            and `:addresses` the verbs of the name and the
             kinds they serve, and `:nearest`, where a page leads to one,
             the verbs the pages of those verbs lead to that the subject
             answers and that answer a kind the verbs answer, the act its
@@ -167,8 +160,7 @@
               ::vec
           | wires :repair
               |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
-              ::quote
-          | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
+              ::quote)
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
             `:leftTag` and `:rightTag` name their kinds where their tags
@@ -340,7 +332,7 @@
             it.
         ~~|
         ~(5 | :five it | five 42
-          !| get [~(tag) ~(name) ~(actualTag)] | eq [::call/ValueTakesNoModifiersError :five ::number])
+          !| get [~(tag) ~(name) ~(found | tag)] | eq [::call/ValueTakesNoModifiersError :five ::number])
     | proves :ValueTakesNoModifiersError/namesWhereAVerbOfTheNameLives
         |~~ The refusal names where a verb of the name lives that the
             subject does not reach.
@@ -353,7 +345,7 @@
         |~~ The refusal names the kind of the subject and where the verbs
             of the name live.
         ~~|
-        ~(1 | count !| get [~(actualTag) ~(addresses | has ::vec/count)] | eq [::number true])
+        ~(1 | count !| get [~(found | tag) ~(addresses | has ::vec/count)] | eq [::number true])
     | proves :KindAnswersNoVerbError/namesTheRepairOfAPath
         |~~ A name called on a path names the repair, the step the call was
             likely meant as.

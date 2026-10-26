@@ -2,8 +2,8 @@
 {"name":"append-writes-a-text-after-a-string","query":"\"hello\" | append \" world\"","expect":"\"hello world\""}
 {"name":"prepend-of-the-empty-text-leaves-the-string","query":"\"x\" | prepend \"\"","expect":"\"x\""}
 {"name":"append-of-the-empty-text-leaves-the-string","query":"\"x\" | append \"\"","expect":"\"x\""}
-{"name":"prepend-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | prepend \"x\"","raises":"::call/KindAnswersNoVerbError!{\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :actualTag ::number\n  :trace ::trace[::frame[42 ~(prepend \"x\")]]\n}"}
-{"name":"append-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | append \"x\"","raises":"::call/KindAnswersNoVerbError!{\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :actualTag ::number\n  :trace ::trace[::frame[42 ~(append \"x\")]]\n}"}
+{"name":"prepend-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | prepend \"x\"","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :prepend\n  :addresses #[::string/prepend ::vec/prepend]\n  :trace ::trace[::frame[42 ~(prepend \"x\")]]\n}"}
+{"name":"append-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | append \"x\"","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :trace ::trace[::frame[42 ~(append \"x\")]]\n}"}
 {"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\""}
 {"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\""}
 {"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map ~lower | distinct | count","expect":"2"}

@@ -1,41 +1,41 @@
 {"name":"a-path-reads-two-segments","query":"{:a {:b 99}} | get /a/b","expect":"99"}
-{"name":"get-refuses-a-key-with-a-slash-the-map-lacks","query":"{:qlang/error 42} | get /:qlang/http","raises":"::path/KeyNotInMapError!{\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :actualTag ::map\n  :trace ::trace[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n}"}
+{"name":"get-refuses-a-key-with-a-slash-the-map-lacks","query":"{:qlang/error 42} | get /:qlang/http","raises":"::path/KeyNotInMapError!{\n  :found {:qlang/error 42}\n  :key :qlang/http\n  :nearest []\n  :path /:qlang/http\n  :trace ::trace[::frame[{:qlang/error 42} ~(get /:qlang/http)]]\n}"}
 {"name":"a-path-of-bare-keys-reads-three","query":"{:a {:b {:c 42}}} | get /a/b/c","expect":"42"}
-{"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","raises":"::path/KeyNotInMapError!{\n  :key :b\n  :nearest [:a]\n  :path /b\n  :actualTag ::map\n  :trace ::trace[::frame[{:a 1} ~(get /b)]]\n}"}
+{"name":"a-key-json-lacks-is-refused","query":"{:a 1} | get /b","raises":"::path/KeyNotInMapError!{\n  :found {:a 1}\n  :key :b\n  :nearest [:a]\n  :path /b\n  :trace ::trace[::frame[{:a 1} ~(get /b)]]\n}"}
 {"name":"get-reads-a-nested-path","query":"{:a {:b [10 20]}} | get /a/b/-1","expect":"20"}
 {"name":"get-refuses-a-missed-key-with-the-keys-near-it","query":"{:emails [] :age 3} | get /email !| nearest","expect":"[:emails]"}
 {"name":"get-refuses-an-index-past-the-end","query":"[1 2] | get /5 !| tag","expect":"::path/IndexOutOfBoundsError"}
 {"name":"get-refuses-a-value-on-the-path-that-has-no-parts","query":"{:a 5} | get /a/b !| tag","expect":"::path/SubjectHasNoPartsError"}
 {"name":"a-read-that-misses-names-the-path-it-followed","query":"{:a {:b 1}} | get /a/c !| path","expect":"/a/c"}
 {"name":"a-path-of-one-key-reads-the-value-under-it","query":"{:name \"Alice\"} | get /name","expect":"\"Alice\""}
-{"name":"get-refuses-a-key-the-map-lacks-with-no-key-near-it","query":"{:name \"Alice\"} | get /age","raises":"::path/KeyNotInMapError!{\n  :key :age\n  :nearest []\n  :path /age\n  :actualTag ::map\n  :trace ::trace[::frame[{:name \"Alice\"} ~(get /age)]]\n}"}
+{"name":"get-refuses-a-key-the-map-lacks-with-no-key-near-it","query":"{:name \"Alice\"} | get /age","raises":"::path/KeyNotInMapError!{\n  :found {:name \"Alice\"}\n  :key :age\n  :nearest []\n  :path /age\n  :trace ::trace[::frame[{:name \"Alice\"} ~(get /age)]]\n}"}
 {"name":"a-path-of-two-keys-reads-a-map-within-a-map","query":"{:point {:x 5 :y 7}} | get /point/x","expect":"5"}
 {"name":"a-path-reads-maps-nested-at-any-depth","query":"{:a {:b {:c {:d 42}}}} | get /a/b/c/d","expect":"42"}
 {"name":"the-index-zero-reads-the-first-element","query":"[10 20 30] | get /0","expect":"10"}
 {"name":"an-index-reads-the-element-counted-from-zero","query":"[10 20 30] | get /1","expect":"20"}
 {"name":"a-negative-index-counts-from-the-end","query":"[10 20 30] | get /-1","expect":"30"}
-{"name":"an-index-past-the-end-is-refused-with-the-length","query":"[10 20 30] | get /99","raises":"::path/IndexOutOfBoundsError!{\n  :index 99\n  :length 3\n  :path /99\n  :actualTag ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /99)]]\n}"}
-{"name":"a-negative-index-past-the-start-is-refused-with-the-length","query":"[10 20 30] | get /-99","raises":"::path/IndexOutOfBoundsError!{\n  :index -99\n  :length 3\n  :path /-99\n  :actualTag ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /-99)]]\n}"}
-{"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","raises":"::path/IndexNotIntegerError!{\n  :segment :name\n  :path /name\n  :actualTag ::vec\n  :trace ::trace[::frame[[10 20 30] ~(get /name)]]\n}"}
+{"name":"an-index-past-the-end-is-refused-with-the-length","query":"[10 20 30] | get /99","raises":"::path/IndexOutOfBoundsError!{\n  :found [10 20 30]\n  :index 99\n  :length 3\n  :path /99\n  :trace ::trace[::frame[[10 20 30] ~(get /99)]]\n}"}
+{"name":"a-negative-index-past-the-start-is-refused-with-the-length","query":"[10 20 30] | get /-99","raises":"::path/IndexOutOfBoundsError!{\n  :found [10 20 30]\n  :index -99\n  :length 3\n  :path /-99\n  :trace ::trace[::frame[[10 20 30] ~(get /-99)]]\n}"}
+{"name":"a-name-segment-on-a-vector-is-refused","query":"[10 20 30] | get /name","raises":"::path/IndexNotIntegerError!{\n  :found [10 20 30]\n  :segment :name\n  :path /name\n  :trace ::trace[::frame[[10 20 30] ~(get /name)]]\n}"}
 {"name":"a-path-reads-a-key-then-an-index-then-a-key","query":"{\"items\": [{\"id\": 1} {\"id\": 2}]} | get /items/0/id","expect":"1"}
 {"name":"a-path-reads-an-index-from-the-end-between-two-keys","query":"{\"users\": [{\"email\": \"a@x\"} {\"email\": \"b@x\"}]} | get /users/-1/email","expect":"\"b@x\""}
 {"name":"a-path-reads-an-index-then-a-key","query":"[{\"name\": \"alice\"} {\"name\": \"bob\"}] | get /1/name","expect":"\"bob\""}
 {"name":"a-map-reads-a-segment-of-digits-as-the-key-that-spells-it","query":"{\"0\": [0 1]} | get /0","expect":"[0 1]"}
 {"name":"a-path-reads-a-key-then-two-indices","query":"{\"rows\": [[1 2] [3 4]]} | get /rows/1/0","expect":"3"}
-{"name":"get-refuses-a-segment-of-null-as-a-subject-with-no-parts","query":"null | get /any","raises":"::path/SubjectHasNoPartsError!{\n  :segment :any\n  :path /any\n  :actualTag ::null\n  :trace ::trace[::frame[null ~(get /any)]]\n}"}
+{"name":"get-refuses-a-segment-of-null-as-a-subject-with-no-parts","query":"null | get /any","raises":"::path/SubjectHasNoPartsError!{\n  :found null\n  :segment :any\n  :path /any\n  :trace ::trace[::frame[null ~(get /any)]]\n}"}
 {"name":"a-descriptor-reads-its-field-by-path","query":"::builtin{:note :draft} | get /note","expect":":draft"}
-{"name":"get-refuses-a-segment-of-a-number-as-a-subject-with-no-parts","query":"42 | get /foo","raises":"::path/SubjectHasNoPartsError!{\n  :segment :foo\n  :path /foo\n  :actualTag ::number\n  :trace ::trace[::frame[42 ~(get /foo)]]\n}"}
+{"name":"get-refuses-a-segment-of-a-number-as-a-subject-with-no-parts","query":"42 | get /foo","raises":"::path/SubjectHasNoPartsError!{\n  :found 42\n  :segment :foo\n  :path /foo\n  :trace ::trace[::frame[42 ~(get /foo)]]\n}"}
 {"name":"get-reads-beneath-the-tags","query":"::Box{:w 3} | get /w","expect":"3"}
 {"name":"a-path-reads-beneath-the-tags-stacked-over-a-map","query":"::Box::Crate{:a 1} | get /a","expect":"1"}
-{"name":"a-doc-is-read-by-indices-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","raises":"::path/IndexNotIntegerError!{\n  :segment :unknownKey\n  :path /unknownKey\n  :actualTag ::doc\n  :trace ::trace[::frame[|~~ x ~~| ~(get /unknownKey)]]\n}"}
-{"name":"get-refuses-a-name-segment-on-a-set","query":"#[:a] | get /foo","raises":"::path/IndexNotIntegerError!{\n  :segment :foo\n  :path /foo\n  :actualTag ::set\n  :trace ::trace[::frame[#[:a] ~(get /foo)]]\n}"}
+{"name":"a-doc-is-read-by-indices-as-a-vector-is","query":"|~~ x ~~| | get /unknownKey","raises":"::path/IndexNotIntegerError!{\n  :found |~~ x ~~|\n  :segment :unknownKey\n  :path /unknownKey\n  :trace ::trace[::frame[|~~ x ~~| ~(get /unknownKey)]]\n}"}
+{"name":"get-refuses-a-name-segment-on-a-set","query":"#[:a] | get /foo","raises":"::path/IndexNotIntegerError!{\n  :found #[:a]\n  :segment :foo\n  :path /foo\n  :trace ::trace[::frame[#[:a] ~(get /foo)]]\n}"}
 {"name":"a-set-reads-an-index-in-its-one-order","query":"#[:z :x :y] | get /0","expect":":x"}
 {"name":"a-set-reads-a-negative-index-from-the-end-of-its-order","query":"#[:z :x :y] | get /-1","expect":":z"}
 {"name":"get-refuses-an-index-past-the-end-of-a-set","query":"#[:a :b] | get /99 !| tag","expect":"::path/IndexOutOfBoundsError"}
 {"name":"a-quote-a-function-and-a-kind-read-by-index","query":"get [~(~(add 1 | mul 2) | get /1 | tag) ~(::fn[~(takes :by |~~ b ~~| /0) ~(add by)] | get /1) ~(::kind | wires :w |~~ w ~~| /w ::number | get /0)]","expect":"[::call ~(add by) ~(wires :w |~~ w ~~| /w ::number)]"}
-{"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(tag) ~(actualValue)]) ~(get /m/y !| get [~(tag) ~(actualValue)])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
-{"name":"a-read-that-fails-at-the-subject-of-its-step-holds-the-kind-of-the-value-it-met-alone","query":"get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(::T#null | get /a !| actualTag)]","expect":"[[#[:actualTag :path :segment :trace] ::number] ::null]"}
-{"name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get [~(tag) ~(found | actualValue)]","expect":"[::Box/WNotReadError [1 2]]"}
+{"name":"a-refusal-of-a-path-names-the-value-it-met-beneath-its-tags","query":"{:b ::T#5 :m ::A::T{:x 1}} | get [~(get /b/c !| get [~(tag) ~(found)]) ~(get /m/y !| get [~(tag) ~(found)])]","expect":"[[::path/SubjectHasNoPartsError 5] [::path/KeyNotInMapError ::T{:x 1}]]"}
+{"name":"a-read-that-fails-at-the-subject-of-its-step-holds-the-value-it-met","query":"get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(::T#null | get /a !| found)]","expect":"[[#[:found :path :segment :trace] 5] null]"}
+{"name":"the-read-of-the-selector-of-a-field-holds-the-payload-it-met","query":":Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| get [~(tag) ~(found | found)]","expect":"[::Box/WNotReadError [1 2]]"}
 {"name":"a-path-beneath-a-closed-tag-is-refused-repaired-by-the-names","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /took !| get [~(tag) ~(repair) ~(names)]","expect":"[::path/TagClosedError ~(took) #[:took]]"}
 {"name":"a-path-by-an-index-beneath-a-closed-tag-is-refused-with-no-repair","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | get /1 !| query [~(tag) ~(repair)]","expect":"[::path/TagClosedError null]"}
 {"name":"the-repair-of-a-path-beneath-a-closed-tag-reads-on-by-a-path-past-its-part","query":"[1 \"x\"] | map ~(mul 2) !| get /trace/-1/subject/1 !| repair","expect":"~(trace | get /-1 | subject | get /1)"}

@@ -96,7 +96,7 @@ function literalsOf(count, seed) {
       () => errorOf([]),
       () => errorOf(['::E']),
       built,
-      () => pick([written('[::error{}]'), written('[::number/add/SubjectNotNumberError::error{:actualTag ::string}]'),
+      () => pick([written('[::error{}]'), written('[::number/add/SubjectNotNumberError::error{:subject/found "x"}]'),
         computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
@@ -204,11 +204,11 @@ describe('the printer writes the literal of a value', () => {
 
   it('prints a failure of three facts a fact a line', () => {
     const err = makeErrorValue(makeTag('Test'), new Map([
-      ['actualTag', makeTag('number')],
+      ['found', makeTag('number')],
       ['message', 'boom'],
       ['index', 1]
     ]));
-    expect(printValue(err)).toBe('::Test!{\n  :actualTag ::number\n  :message "boom"\n  :index 1\n}');
+    expect(printValue(err)).toBe('::Test!{\n  :found ::number\n  :message "boom"\n  :index 1\n}');
   });
 });
 

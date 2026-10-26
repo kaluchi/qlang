@@ -65,10 +65,10 @@ lays its tag over the payload as it is. A host's verb refuses a call by a refusa
 at its site by its address through `./errors`, a value of none of the
 kinds its holder takes refused by the holder's role with those kinds as
 `:expected`, which `kindsExpected` of the root makes, and paged under its
-noun in the host's source, a refusal of the subject its call was served thrown
-through `refusingTheSubject`, which holds the kind of that value alone,
-and a refusal of a part of it through `refusingAPart` with the segments
-of the part's path, which the frame of the step names [QSERR#site],
+noun in the host's source, the value its rule met as `:found` whether it
+is the subject or a part of it, and a refusal of a part of the subject
+through `refusingAPart` with the segments of the part's path, which the
+frame of the step names [QSERR#site],
 [QSERR#trace]; a failure of the host's own world is the error
 value `makeErrorValue` makes of a tag and a map of its facts, and a host
 lays a tag over its answer through the language, by the kind its verb
@@ -180,7 +180,7 @@ value JavaScript leaves undefined is null wherever the language reads
 it. The subject a host hands a cell and the values of the scope it hands
 a notebook or `evalQuery` are held where the core takes them, by the same
 scan: a value of no kind there is a defect of the host, raised past the
-fail track as `::builtin/ForeignValueError`, whose `:actualValue` names
+fail track as `::builtin/ForeignValueError`, whose `:found` names
 the value as JavaScript holds it, its type and its name or its maker,
 `"function hello"`, `"number Infinity"`, or what makes a container of no
 kind, `"a map whose key number 1 is no string"`; the printer, the codec
@@ -192,7 +192,7 @@ builds a lawful answer by from data it holds parsed.
 ```sh
 $ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/obj (::fn | returns |~~ O. ~~| ::any | impl ::builtin{})', primitives: { 'any/obj': () => ({ a: 1 }) } }] }); const e = await s.evalCell('obj !| tag | toString'); console.log(e.result, 'scope' in s, 'scopeAfterCell' in e)"
 call/HostFailureError true true
-$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('tag', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.actualValue)"
+$ node --input-type=module -e "const { createNotebook } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('tag', { initialPipeValue: function hello() {} }); console.log(e.defect.address, e.defect.facts.found)"
 builtin/ForeignValueError function hello
 ```
 
@@ -258,79 +258,7 @@ $ qlang ':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count' < /d
 [tap x] [box]
 1
 
-$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|:answer ::cell|:answer/count 5000|^5000
-```
-
-The words of the streams of a process, `in`, `out`, `err` and `tap`, are
-the command line's, beside `table`, and a host that runs as a command takes
-them with their source from `./cli-sources` of the command line's package.
-
-## cell
-
-A cell is the interface a host gives for the work with state inside the
-language: `::cell`, a kind of the core over its identity, letters, digits
-and hyphens, whose literal reads back as itself in any later query, and its
-word `answer`, which its host declares and which reads at the call what the
-host keeps under it. The command line, its REPL among it, keeps so an
-answer and a subject at a `tap` past the budget of every answer
-[QSPRN#budget] and a fact of a failure past the room of a fact
-[QSERR#alert], which the alert names instead of the value, under the
-identity of what it keeps, twelve digits of hexadecimal of the hash of the
-query, the values it declared and the print of the value, so one value of
-one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
-`<root>` the identity of the sources and the code it booted, the query,
-`source.qlang`, the values the query declared, each as the core prints it,
-`names.qlang`, and the answer as the core prints it, `answer.qlang`, the
-`print` of every kind left out; a cell older than a day leaves when it
-keeps another, and one kept again stays a day more. `answer` reads the answer back over the root and those
-values, a value under a kind the query declared answering its names where
-the reading query declares that kind again and `payload` in any, and
-refuses a cell it does not hold as `::cell/answer/NotHeldError`. A host
-that keeps no cell names none.
-
-```qlang
-> ::cell"a3f9c2d1e04b" | :c it | get [~(tag) ~(payload) ~(print | parse | open | eq c)]
-[::cell "a3f9c2d1e04b" true]
-
-> ::cell"../x" !| tag
-::cell/PayloadNotIdentityError
-```
-
-```sh
-$ qlang "$(qlang '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
-3000
-
-$ qlang '::cell"000000000000" | answer !| tag' < /dev/null
-::cell/answer/NotHeldError
-
-$ for i in 1 2; do qlang '1 | add (3410 | range)' < /dev/null | grep -o '::cell"[0-9a-f]*"'; done | sort -u | wc -l
-1
-```
-
-## tokens
-
-The core's `tokenize`, of `./highlight`, the door of the core that loads
-its parser and the parts it keeps and no runtime, names each token of a source by
-what it writes in the language, one sense to a kind: a literal by the
-kind of its value, `null`, `boolean`, `number`, `string`, `regex`,
-`keyword`, `tag` and `path`; `quote` the `~(` and `)` of a quote and the
-`~` of its short form, what it holds painted as the code it is; `vec`,
-`set`, `map` and `error` the brackets of a container and of an error
-literal; `doc` the prose of a doc, its quotes, the code its spans
-between backquotes hold and the tags written before a quote of it
-painted as they are; `comment`; `declaration` the name a declaration
-writes; `verb` the name of a call that names a word of the root, by its
-last name or its address, read by the name alone, and `name` any other;
-`group` the parentheses of a group; `fail` the combinator `!|`;
-`punctuation` the rest a gap holds; `whitespace`; and `unparsed` the
-source past where its parse stopped. Each host coats those kinds its own
-way: the command line by a colour [QSCLI#colour], the language server by
-a type of semantic token [QSLSP#server], the extension of the editor by
-a class of highlight.js [QSLSP#extension], and the site by a class named
-for the kind, the examples of its pages split into a prompt and its
-query, the lines that continue it and an answer, each query painted with
-the context of its lines.
-
+$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|:answer ::cell|:answer/count 5000|^5000$'
 [tap big] |~| raised, and no !| caught it
 :answer ::cell
 :answer/count 5000
@@ -352,8 +280,8 @@ answer and a subject at a `tap` past the budget of every answer
 [QSPRN#budget] and a fact of a failure past the room of a fact
 [QSERR#alert], which the alert names instead of the value, under the
 identity of what it keeps, twelve digits of hexadecimal of the hash of the
-values the query declared and the print of the value, so one value is one
-cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
+query, the values it declared and the print of the value, so one value of
+one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
 `<root>` the identity of the sources and the code it booted, the query,
 `source.qlang`, the values the query declared, each as the core prints it,
 `names.qlang`, and the answer as the core prints it, `answer.qlang`, the

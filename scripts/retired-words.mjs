@@ -108,4 +108,5 @@ export const RETIRED_WORDS = [
   { regex: /`explain`|\|\s*explain\b|\bany\/explain\b|::explanation\b/, written: 'the page of a value, of an error at rest the page of the refusal it carries, `doc`', by: 'D452' },
   { regex: /\bcaretOf\b/, written: 'the caret a refusal of a parse holds beneath its line, the fact `:marker`, which a host prints as any fact', by: 'D460' },
   { regex: /\belid(?:e|es|ed|ing)\b|\belisions?\b|\bELISION_TAG\b/i, written: 'the excerpt of a value within a room, `excerpt`, a value of `::excerpt`, and the concentrate of a failure a host prints, its alert', by: 'D407' },
+  { regex: /\bactual(?:Tag|Value)\b|\brefusingTheSubject\b/, written: 'the value the rule of a refusal met, `found`, its kind `found | tag`', by: 'D467' },
 ];

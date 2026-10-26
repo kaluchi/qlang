@@ -13,7 +13,7 @@ it('prints a value a host hands under `::error` over a payload that is no map as
 });
 
 it('converts a refusal whose site hands no facts to an error of no facts', async () => {
-  const errorVal = errorFromQlang(new TestsProbeTypeError(), 10, await langRuntime());
+  const errorVal = errorFromQlang(new TestsProbeTypeError(), await langRuntime());
   expect(errorVal.tag).toEqual(makeTag('tests/ProbeTypeError'));
   expect([...errorVal.facts.keys()]).toEqual([]);
 });

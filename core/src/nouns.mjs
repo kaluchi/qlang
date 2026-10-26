@@ -3,7 +3,7 @@
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
   isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
-  tagOf, bindingValueOf, makeBinding, makeKeyword, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND
+  tagOf, bindingValueOf, makeBinding, makeKeyword, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND, TRACE_TAG
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
@@ -437,10 +437,10 @@ function closingKindAt(scope, tagName) {
     if (family === undefined) break;
     if (family === VERDICT_OF_A_VERB) return verdictKindOfAVerb(scope, holder);
     if (family === VERDICT_OF_A_KIND) return verdictKindOfAKind(scope, holder);
-    if (family !== OWN_KIND) return kindOfAValueOf(scope, family);
-    const own = isKind(value) ? value : null;
-    if (isVerbValue(bindingValueOf(nodeOf(scope, holder)))) return verdictKindOfAVerb(scope, holder, own);
-    return own === null ? verdictKindOfAKind(scope, holder) : kindThrowsFinishes(own);
+    const shared = family === OWN_KIND ? null : family;
+    const facts = factsOfARefusal(scope, shared === null ? value : bindingValueOf(nodeOf(scope, shared)), shared);
+    if (isVerbValue(bindingValueOf(nodeOf(scope, holder)))) return verdictKindOfAVerb(scope, holder, facts);
+    return verdictKindOfAKind(scope, holder, facts);
   }
   return isKind(value) ? value : null;
 }
@@ -463,46 +463,58 @@ const SLOTS_OF_VERDICTS = new WeakMap();
 
 export const slotsOfAVerdict = kind => SLOTS_OF_VERDICTS.get(kind);
 
-function verdictKindOf(chain, holder, build) {
-  let byHolder = VERDICT_KINDS.get(chain);
-  if (byHolder === undefined) VERDICT_KINDS.set(chain, byHolder = new Map());
+function verdictKindOf(declaring, holder, build) {
+  let byHolder = VERDICT_KINDS.get(declaring);
+  if (byHolder === undefined) VERDICT_KINDS.set(declaring, byHolder = new Map());
   let kind = byHolder.get(holder);
   if (kind === undefined) byHolder.set(holder, kind = build());
   return kind;
 }
 
-const VERDICT_KINDS_OF_OWN_FACTS = new WeakMap();
+// [QSERR#site]
+const NO_SLOTS = new Map();
+const NO_FACTS = { commands: [], fields: [], slots: NO_SLOTS, wired: new Set() };
 
-function verdictKindOfAVerb(scope, verbAddress, own = null) {
-  const value = bindingValueOf(nodeOf(scope, verbAddress));
-  const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
-  if (own !== null) {
-    if (!VERDICT_KINDS_OF_OWN_FACTS.has(own)) VERDICT_KINDS_OF_OWN_FACTS.set(own, verdictKindBuilt(scope, verbAddress, chain, [...commandsOf(own)]));
-    return VERDICT_KINDS_OF_OWN_FACTS.get(own);
-  }
-  return verdictKindOf(chain, verbAddress, () => verdictKindBuilt(scope, verbAddress, chain, []));
+const fieldsAsWired = fields => fields.map(({ name, page, written }) => ({ name: name.name, page, kinds: written }));
+
+function factsOfARefusal(scope, declared, shared) {
+  if (isKind(declared)) return { key: declared, commands: [...commandsOf(declared)], fields: [], slots: NO_SLOTS, wired: chainOfKind(kindThrowsFinishes(declared)).wired };
+  const kind = shared === null ? null : kindOfAValueOf(scope, shared);
+  if (kind === null) return null;
+  const fields = fieldsAsWired(chainOfKind(kind).fields.filter(({ name }) => name.name !== TRACE_TAG.name));
+  return { key: kind, commands: [], fields, slots: slotsOfAVerdict(kind) ?? NO_SLOTS, wired: new Set(fields.map(({ name }) => name)) };
 }
 
-function verdictKindBuilt(scope, verbAddress, chain, ownCommands) {
+// [QSERR#site]
+export const probesOfASlot = scope => chainOfKind(kindOfAValueOf(scope, SLOT_KIND_ADDRESS)).fields;
+
+function verdictKindOfAVerb(scope, verbAddress, facts = null) {
+  const value = bindingValueOf(nodeOf(scope, verbAddress));
+  const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
+  return verdictKindOf(facts?.key ?? chain, verbAddress, () => verdictKindBuilt(scope, verbAddress, chain, facts ?? NO_FACTS));
+}
+
+function verdictKindBuilt(scope, verbAddress, chain, { commands, fields, slots: sharedSlots }) {
   const slots = [
     [SUBJECT_NAME, chain.subject?.page ?? pageAt(scope, `fn/${SUBJECT_NAME}`)],
     ...chain.inputs.map(({ name, page }) => [name.name, page]),
     ...(chain.arity === null ? [] : [[SURPLUS_NAME, pageAt(scope, `fn/${SURPLUS_NAME}`)]]),
     [ANSWER_NAME, chain.answer?.page ?? pageAt(scope, `fn/${ANSWER_NAME}`)]
   ];
-  const kind = kindOfAVerdict([
+  const ofTheVerb = [
     ...slots.map(([name, page]) => ({ name, page, kinds: makeTag(`${verbAddress}/${name}`) })),
     { name: REPAIR_NAME, page: pageAt(scope, `fn/${REPAIR_NAME}`), kinds: CORE_KIND.quote }
-  ], ownCommands);
-  SLOTS_OF_VERDICTS.set(kind, new Map(slots.map(([name]) => [name, `${verbAddress}/${name}`])));
+  ];
+  const named = new Set(ofTheVerb.map(({ name }) => name));
+  const kind = kindOfAVerdict([...ofTheVerb, ...fields.filter(({ name }) => !named.has(name))], commands);
+  SLOTS_OF_VERDICTS.set(kind, new Map([...slots.map(([name]) => [name, `${verbAddress}/${name}`]), ...[...sharedSlots].filter(([name]) => !named.has(name))]));
   return kind;
 }
 
-const PROBES_OF_A_KIND = [['expected', CORE_KIND.set], ['found', null], ['index', CORE_KIND.number]];
-
-function verdictKindOfAKind(scope, kindAddress) {
-  const chain = chainOfKind(kindOfAValueOf(scope, kindAddress));
-  return verdictKindOf(chain, kindAddress, () => kindOfAVerdict(PROBES_OF_A_KIND.map(([name, kinds]) => ({ name, page: pageAt(scope, `${SLOT_KIND_ADDRESS}/${name}`), kinds }))));
+function verdictKindOfAKind(scope, kindAddress, facts = null) {
+  const { commands, fields, wired } = facts ?? NO_FACTS;
+  const probes = probesOfASlot(scope).filter(({ name }) => name.name !== ANSWER_NAME && !wired.has(name.name));
+  return verdictKindOf(facts?.key ?? chainOfKind(kindOfAValueOf(scope, kindAddress)), kindAddress, () => kindOfAVerdict([...fieldsAsWired(probes), ...fields], commands));
 }
 
 function namesUnderOf(scope, nounName) {

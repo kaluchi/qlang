@@ -57,8 +57,9 @@
 //       baseline holds is held by a case or closed by the line of its
 //       fate; the code, the tests and the cases cite the records in force,
 //       the documents that hold the work those in force or waiting on a
-//       target; a citation names a section the specification holds or
-//       one a record in transit brings; and a section of a chapter is
+//       target; a citation names a section the specification holds,
+//       written once in its chapter, or one a record in transit brings;
+//       and a section of a chapter is
 //       written since the baseline by a record dissolved into it [QSWRK#reconciliation].
 //
 //   (10) The links of the documents: a link of a document to a file of

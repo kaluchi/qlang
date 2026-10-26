@@ -50,7 +50,7 @@
         ~~|
     | throws :EndNotReadError
         |~~ A span holds six numbers, the point of its start and the point
-            after its end, three numbers each: `:actualValue` holds the
+            after its end, three numbers each: `:found` holds the
             refusal of the point its last numbers make.
             ::link~(::point | doc)
         ~~|

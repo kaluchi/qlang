@@ -21,7 +21,7 @@
 {"name":"a-trace-started-again-holds-the-steps-skipped-after-its-raise","query":"!{:kind :oops} | raise | count !| minus #[:trace] | raise | add 1 !| get /trace | last | skipped","expect":"~(add 1)"}
 {"name":"the-pipe-passes-a-failure-by-a-verb-that-runs-code","query":"!{:kind :oops} | raise | map ~(add 1) !| get /trace | last | skipped | toString","expect":"\"map ~(add 1)\""}
 {"name":"an-error-literal-under-a-tag-that-writes-an-empty-trace-starts-a-trace-at-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| get /trace | map ~failed","expect":"[~(raise)]"}
-{"name":"the-trace-of-the-error-of-a-refusal-that-flew-no-step-is-null","query":"::number/add/SubjectNotNumberError!{:actualTag ::string} | trace","expect":"null"}
+{"name":"the-trace-of-the-error-of-a-refusal-that-flew-no-step-is-null","query":"::number/add/SubjectNotNumberError!{:subject/found \"x\"} | trace","expect":"null"}
 {"name":"the-trace-of-an-error-at-rest-that-flew-no-step-is-no-key-of-it","query":"::error{:a 1} | get /trace !| get [~(tag) ~(key)]","expect":"[::path/KeyNotInMapError :trace]"}
 {"name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| payload | keys","expect":"#[:subject/expected :subject/found :trace]"}
 {"name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
@@ -76,7 +76,7 @@
 {"name":"a-set-of-frames-is-no-trace-written-or-raised","query":"get [~(::trace#[::frame[1 ~(a)]] !| tag) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag)]","expect":"[::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError]"}
 {"name":"an-error-literal-whose-trace-is-no-vector-of-frames-stands-as-a-value","query":"!{:a 1 :trace 5} | get [~(tag) /trace]","expect":"[::error 5]"}
 {"name":"a-frame-reads-the-step-that-failed-the-steps-skipped-and-the-steps-left-unfinished","query":"\"x\" | add 1 | mul 2 !| trace | first | get [~(failed) ~(skipped) ~(unfinished) ~(failed | first | tag)]","expect":"[~(add 1) ~(mul 2) ~(add 1 | mul 2) ::call]"}
-{"name":"the-trace-of-the-error-of-a-refusal-is-held-to-its-kind","query":"get [~(::number/add/SubjectNotNumberError!{:actualTag ::string :trace ::trace[::frame[1 ~(pre)]]} | trace) ~(::number/add/SubjectNotNumberError!{:actualTag ::string :trace 5} !| tag)]","expect":"[::trace[::frame[1 ~(pre)]] ::number/add/SubjectNotNumberError/TraceKindNotTakenError]"}
+{"name":"the-trace-of-the-error-of-a-refusal-is-held-to-its-kind","query":"get [~(::number/add/SubjectNotNumberError!{:subject/found \"x\" :trace ::trace[::frame[1 ~(pre)]]} | trace) ~(::number/add/SubjectNotNumberError!{:subject/found \"x\" :trace 5} !| tag)]","expect":"[::trace[::frame[1 ~(pre)]] ::number/add/SubjectNotNumberError/TraceKindNotTakenError]"}
 {"name":"a-trace-reads-a-frame-under-a-tag-as-the-frame-beneath-it","query":"get [~(::trace[::X::frame[1 ~(a)]]) ~({:trace [::X::frame[1 ~(a)]]} | raise !| get /trace)]","expect":"[::trace[::frame[1 ~(a)]] ::trace[::frame[1 ~(a)]]]"}
 {"name":"a-map-that-writes-a-plain-vector-of-frames-raises-as-its-literal-raised","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise","raises":"!{:a 1 :trace ::trace[::frame[1 ~(pre)]]}"}
 {"name":"a-frame-laid-over-a-tagged-vector-or-a-set-is-refused-by-its-kind","query":"get [~(::frame::X[1 ~(a)] !| get [~(tag) ~(found | tag)]) ~(::frame#[1 ~(a)] !| get [~(tag) ~(found | tag)])]","expect":"[[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]"}

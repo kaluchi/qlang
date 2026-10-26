@@ -53,9 +53,7 @@
               |~~ What the rule says of the literal, the template `get` builds it
                   from.
               ~~|
-              ::string
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::string)
     | throws :TagNamesAValueError
         |~~ The tag before a payload addresses a kind, a label declared by
             its chain or by its page alone, a verb, whose args it lays
@@ -70,9 +68,7 @@
               |~~ The tag, whose node is neither a label, a verb nor an
                   invariant.
               ~~|
-              ::tag
-          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
-          | wires :actualValue |~~ The value refused. ~~|)
+              ::tag)
     | proves :holdsTheTagAndThePayload
         |~~ The step holds its tag and its payload. ~~|
         ~(~(::Box[1 2]) | first | get [/tag /payload] | eq [::Box [1 2]])
@@ -110,7 +106,7 @@
     | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
         ~(:limit 5 | ::limit[1]
-          !| get [~(tag) ~(address) ~(actualTag)] | eq [::construct/TagNamesAValueError ::limit ::number])
+          !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::limit ::number])
     | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | tag | eq ::vec/take)

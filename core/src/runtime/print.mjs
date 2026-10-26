@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { isErrorValue } from '../types.mjs';
-import { alertOf, lengthOf, ANSWER_BUDGET } from '../rooms.mjs';
+import { alertOf, lengthOf, ANSWER_BUDGET, FIRST_VIEW } from '../rooms.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
 import { nodeOf, residenceOnSubject, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
@@ -31,9 +31,6 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
 // [QSPRN#excerpt]
 export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
 
-// [QSPRN#excerpt], [QSPRN#legend]
-export const FIRST_VIEW = 'tag';
-
 function viewsRevealedOf(value, scope) {
   for (const kindName of kindsOfWalk(value)) {
     const kind = kindOfAValueOf(scope, kindName);
@@ -61,7 +58,7 @@ export async function boundAnswer(answer, scope, written = null, keep = null) {
   if (isErrorValue(answer)) return alertOf(answer, room, printedOf);
   const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
   if (characters <= ANSWER_BUDGET) return answer;
-  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, answer }), undefined, scope), room, printedOf);
+  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, answer }), scope), room, printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';

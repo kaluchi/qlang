@@ -160,8 +160,8 @@ describe('assembling steps by hand', () => {
   });
 
   it('a required field left out does not fit the schema', async () => {
-    expect(await evalQuery('::call{:modifiers []} !| get [~(tag) ~(field) ~(actualTag)]'))
-      .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name ::null]'));
+    expect(await evalQuery('::call{:modifiers []} !| get [~(tag) ~(field) ~(found)]'))
+      .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name null]'));
   });
 
   it('an index, a tag name and calls and paths inside a container are steps', async () => {
@@ -207,7 +207,7 @@ describe('assembling steps by hand', () => {
     for (const [query, address] of refusals) {
       expect(await evalQuery(`${query} !| get [~(tag) ~(:e it | print | parse | open | eq e)]`), query).toEqual([makeTag(address), true]);
     }
-    expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| actualValue | tag')).toEqual(makeTag('map'));
+    expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| found | tag')).toEqual(makeTag('map'));
   });
 
   it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own', async () => {

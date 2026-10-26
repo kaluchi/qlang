@@ -94,7 +94,7 @@ function printErrorValue(e, indent, printedOf) {
 // [QSLIT#tag]
 const KINDS_AFTER_HASH = new Set(['number', 'boolean', 'null', 'path']);
 
-function underTagLiteral(tagLiteral, payload, payloadPrint) {
+export function underTagLiteral(tagLiteral, payload, payloadPrint) {
   return KINDS_AFTER_HASH.has(formOf(payload)) ? `${tagLiteral}#${payloadPrint}` : tagLiteral + payloadPrint;
 }
 

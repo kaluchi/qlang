@@ -60,7 +60,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalByAddress(cellEntry, 'any/out/text/KindNotTakenError', {
-      actualTag: { name: 'number' }
+      'text/found': 43
     });
   });
 
@@ -69,7 +69,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
     expectRefusalByAddress(cellEntry, 'string/prepend/prefix/KindNotTakenError', {
-      actualTag: { name: 'number' }
+      'prefix/found': 42
     });
   });
 });
@@ -105,7 +105,7 @@ describe('err — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
     expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
-      actualTag: { name: 'number' }
+      'text/found': 43
     });
   });
 });
@@ -124,7 +124,7 @@ describe('tap', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
     expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
-      actualTag: { name: 'string' }
+      'label/found': 'oops'
     });
   });
 

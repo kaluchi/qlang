@@ -53,7 +53,7 @@
         ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::doc"x" !| get [~(tag) ~(actualTag)] | eq [::doc/PayloadKindNotTakenError ::string])
+        ~(::doc"x" !| get [~(tag) ~(found | tag)] | eq [::doc/PayloadKindNotTakenError ::string])
     | proves :ElementKindNotTakenError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
         ~(["a" 1] | tag ::doc !| get [~(tag) ~(index) ~(expected)] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
@@ -92,7 +92,7 @@
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
         ~(:x 1 | ::x | doc | content
-          !| get [~(tag) ~(actualTag)] | eq [::doc/content/SubjectNotDocError ::null])
+          !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| tag | eq ::doc/content/SubjectNotDocError)
@@ -141,10 +141,10 @@
         ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-        ~(|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(actualTag)] | eq [::number/PayloadKindNotTakenError ::quote])
+        ~(|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(found | tag)] | eq [::number/PayloadKindNotTakenError ::quote])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | doc/segments !| get [~(tag) ~(actualTag)] | eq [::doc/segments/SubjectNotDocError ::string])
+        ~("text" | doc/segments !| get [~(tag) ~(subject | found | tag)] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/toVec
@@ -199,7 +199,7 @@
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
-          !| get [~(tag) ~(actualTag)] | eq [::doc/links/SubjectNotDocError ::string])
+          !| get [~(tag) ~(subject | found | tag)] | eq [::doc/links/SubjectNotDocError ::string])
     | impl ::builtin{}
 
 :doc/snippets
@@ -231,6 +231,6 @@
         ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | snippets !| get [~(tag) ~(actualTag)] | eq [::doc/snippets/SubjectNotDocError ::string])
+        ~("text" | snippets !| get [~(tag) ~(subject | found | tag)] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{}
 

@@ -6,7 +6,7 @@
 {"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":":k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":":by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3","expect":"8"}
 {"name":"a-value-of-the-sentence-shadows-no-verb-the-recipe-of-a-function-calls","query":":twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
-{"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| actualValue | name","expect":":q"}
+{"name":"a-recipe-reads-no-quote-its-query-names","query":":x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| code | found | name","expect":":q"}
 {"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))) | [1 2] | addAll 10","expect":"[11 12]"}
 {"name":"a-recipe-of-a-function-reads-a-verb-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
 {"name":"a-verb-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)) | 2 | m it","expect":"22"}

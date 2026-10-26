@@ -64,12 +64,12 @@
         ~({:a 1 :b 2} | entries | toMap | eq {:a 1 :b 2})
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::map#1 !| get [~(tag) ~(actualTag)] | eq [::map/PayloadKindNotTakenError ::number])
+        ~(::map#1 !| get [~(tag) ~(found | tag)] | eq [::map/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/refusesThePairsOfAVector
         |~~ The pairs of a vector are refused; `toMap` builds them into a
             map.
         ~~|
-        ~([[:a 1]] | tag ::map !| get [~(tag) ~(actualTag)] | eq [::map/PayloadKindNotTakenError ::vec])
+        ~([[:a 1]] | tag ::map !| get [~(tag) ~(found | tag)] | eq [::map/PayloadKindNotTakenError ::vec])
     | proves :keepsAValueOfItsKind
         |~~ A value of `::map` already, a map under a tag of its own and an
             error at rest, stays as it is; `payload` reads the map beneath.
@@ -333,7 +333,7 @@
             refused.
         ~~|
         ~({:a {:n 1}} | min (get /n)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::map/min/key/KindNotTakenError ::path/KeyNotInMapError])
     | impl ::builtin{}
 
@@ -768,7 +768,7 @@
             the seed as the reducer.
         ~~|
         ~({:a 1} | reduce ~(add) 0
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(reducer | found | tag)]
           |  eq [::map/reduce/reducer/KindNotTakenError ::number])
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
@@ -814,7 +814,7 @@
         ~([{:a 1} {:b 2}] | map ~keys | eq [#[:a] #[:b]])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
-        ~(42 | keys !| get [~(tag) ~(actualTag)] | eq [::map/keys/SubjectNotMapError ::number])
+        ~(42 | keys !| get [~(tag) ~(subject | found | tag)] | eq [::map/keys/SubjectNotMapError ::number])
     | impl ::builtin{}
 
 :map/vals
@@ -840,7 +840,7 @@
         ~({} | vals | eq [])
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
-        ~([1 2] | vals !| get [~(tag) ~(actualTag)] | eq [::map/vals/SubjectNotMapError ::vec])
+        ~([1 2] | vals !| get [~(tag) ~(subject | found | tag)] | eq [::map/vals/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/entries
@@ -876,7 +876,7 @@
         ~({:a 1 :tmp 2} | entries | filter ~(get /0 | ne :tmp) | toMap | eq {:a 1})
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
-        ~([1 2] | entries !| get [~(tag) ~(actualTag)] | eq [::map/entries/SubjectNotMapError ::vec])
+        ~([1 2] | entries !| get [~(tag) ~(subject | found | tag)] | eq [::map/entries/SubjectNotMapError ::vec])
     | impl ::builtin{}
 
 :map/has
@@ -928,7 +928,7 @@
     | proves :key/KindNotTakenError/refusesAVector
         |~~ A vector key is refused. ~~|
         ~({:a 1} | has [1]
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::map/has/key/KindNotTakenError ::vec])
     | impl ::builtin{}
 

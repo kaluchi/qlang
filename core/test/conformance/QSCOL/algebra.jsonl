@@ -27,7 +27,7 @@
 {"name":"a-vector-takes-no-value-beside-it","query":"[#[1]] | union #[2] !| tag","expect":"::vec/union/ArgsBeyondInputsError"}
 {"name":"union-of-a-number-is-refused-with-the-addresses-of-union","query":"42 | union !| addresses","expect":"#[::map/union ::set/union ::vec/union]"}
 {"name":"a-tag-over-a-set-comes-back-on-union","query":"::Box#[1 2] | union #[3]","expect":"::Box#[1 2 3]"}
-{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(tag) ~(actualTag)]","expect":"[::set/union/other/KindNotTakenError ::vec]"}
+{"name":"a-set-refuses-another-value-of-another-kind","query":"#[1] | union [2] !| get [~(tag) ~(other | found | tag)]","expect":"[::set/union/other/KindNotTakenError ::vec]"}
 {"name":"a-map-folds-no-values","query":"{:a 1} | union !| tag","expect":"::map/union/other/NotGivenError"}
 {"name":"a-set-given-no-set-is-refused-under-its-input","query":"#[] | union !| tag","expect":"::set/union/other/NotGivenError"}
 {"name":"a-set-refuses-null-for-the-set-its-call-gives","query":"#[#[1] #[2]] | union null !| tag","expect":"::set/union/other/KindNotTakenError"}

@@ -23,6 +23,8 @@ const KindLawUnderNoNameError = declareRefusal('kind/LawUnderNoNameError');
 export const ANSWER_NAME = 'answer';
 export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
+export const SURPLUS_NAME = 'surplus';
+export const REPAIR_NAME = 'repair';
 
 const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isKeyword(value) && readsAsName(value.name);
@@ -278,6 +280,11 @@ export function kindThrowsFinishes(kind) {
   let finished = FINISHED_KINDS.get(kind);
   if (finished === undefined) FINISHED_KINDS.set(kind, finished = finishedOver(commandsOf(kind)));
   return finished;
+}
+
+// [QSERR#site]
+export function kindOfAVerdict(fields, ownCommands = []) {
+  return finishedOver([...fields.map(({ name, page, kinds }) => commandStep('wires', [makeKeyword(name), page, ...(kinds ? [kinds] : [])])), ...ownCommands]);
 }
 
 function kindOfARefusalWritten(commands) {

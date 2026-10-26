@@ -32,7 +32,7 @@
         ~(::boolean#false | eq false)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number is no boolean and is refused. ~~|
-        ~(::boolean#1 !| get [~(tag) ~(actualTag)] | eq [::boolean/PayloadKindNotTakenError ::number])
+        ~(::boolean#1 !| get [~(tag) ~(found | tag)] | eq [::boolean/PayloadKindNotTakenError ::number])
 
 :boolean/not
   |~~ Answers the other boolean, `true | not` answering `false`, and so
@@ -71,10 +71,10 @@
         ~([1 2] | filter ~(gt 1 | not) | eq [1])
     | proves :SubjectNotBooleanError/refusesNull
         |~~ Null is no boolean; it is asked for by `eq null`. ~~|
-        ~(null | not !| get [~(tag) ~(actualTag)] | eq [::boolean/not/SubjectNotBooleanError ::null])
+        ~(null | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::null])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A number is no boolean, and `not` refuses it. ~~|
-        ~(0 | not !| get [~(tag) ~(actualTag)] | eq [::boolean/not/SubjectNotBooleanError ::number])
+        ~(0 | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::number])
     | proves :SubjectNotBooleanError/refusesAConditionGivenAsAValue
         |~~ A condition given to `not` leaves it a subject that is no
             boolean.
@@ -138,10 +138,10 @@
         ~(true | and (eq true))
     | proves :condition/KindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(true | and 1 !| get [~(tag) ~(actualTag)] | eq [::boolean/and/condition/KindNotTakenError ::number])
+        ~(true | and 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/and/condition/KindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
-        ~(1 | and true !| get [~(tag) ~(actualTag)] | eq [::boolean/and/SubjectNotBooleanError ::number])
+        ~(1 | and true !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/and/SubjectNotBooleanError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoBooleans
         |~~ A third condition is refused under the verb. ~~|
         ~(true | and true true !| tag | eq ::boolean/and/ArgsBeyondInputsError)
@@ -202,10 +202,10 @@
         ~(false | or (not))
     | proves :condition/KindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(false | or 1 !| get [~(tag) ~(actualTag)] | eq [::boolean/or/condition/KindNotTakenError ::number])
+        ~(false | or 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/or/condition/KindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
-        ~(1 | or true !| get [~(tag) ~(actualTag)] | eq [::boolean/or/SubjectNotBooleanError ::number])
+        ~(1 | or true !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/or/SubjectNotBooleanError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoBooleans
         |~~ A third condition is refused under the verb. ~~|
         ~(false | or true true !| tag | eq ::boolean/or/ArgsBeyondInputsError)

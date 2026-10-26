@@ -41,7 +41,7 @@
         ~(~(!| get /kind) | first | payload | eq ~(get /kind))
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::fail !| get [~(tag) ~(actualTag)] | eq [::fail/PayloadKindNotTakenError ::number])
+        ~(42 | tag ::fail !| get [~(tag) ~(found | tag)] | eq [::fail/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/buildsTheStepOfAStep
         |~~ The quote of a step builds the step the fail track runs. ~~|
         ~(~(get /kind) | tag ::fail | get [~(it)] | tag ::quote | eq ~(!| get /kind))

@@ -63,7 +63,7 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string#1 !| get [~(tag) ~(actualTag)] | eq [::string/PayloadKindNotTakenError ::number])
+        ~(::string#1 !| get [~(tag) ~(found | tag)] | eq [::string/PayloadKindNotTakenError ::number])
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -326,7 +326,7 @@
         ~(["a,b" "c"] | map ~(split ",") | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
-        ~(42 | split "," !| get [~(tag) ~(actualTag)] | eq [::string/split/SubjectNotStringError ::number])
+        ~(42 | split "," !| get [~(tag) ~(subject | found | tag)] | eq [::string/split/SubjectNotStringError ::number])
     | proves :separator/KindNotTakenError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
         ~("abc" | split :b !| tag | eq ::string/split/separator/KindNotTakenError)
@@ -390,7 +390,7 @@
         ~(["a\nb" "c"] | map ~lines | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
-        ~(42 | lines !| get [~(tag) ~(actualTag)] | eq [::string/lines/SubjectNotStringError ::number])
+        ~(42 | lines !| get [~(tag) ~(subject | found | tag)] | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| tag | eq ::string/lines/ArgsBeyondInputsError)
@@ -515,7 +515,7 @@
         ~(::Name" a " | trim | eq ::Name"a")
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
-        ~(42 | trim !| get [~(tag) ~(actualTag)] | eq [::string/trim/SubjectNotStringError ::number])
+        ~(42 | trim !| get [~(tag) ~(subject | found | tag)] | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{}
 
 :string/contains
@@ -857,7 +857,7 @@
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
         ~(42 | parseJson
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(subject | found | tag)]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
     | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|

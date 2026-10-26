@@ -65,7 +65,7 @@
         ~([#[2 1] ~(a | b) ::Box[1]] | map ~(tag ::vec | tag) | eq [::set ::quote ::Box])
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::vec{:a 1} !| get [~(tag) ~(actualTag)] | eq [::vec/PayloadKindNotTakenError ::map])
+        ~(::vec{:a 1} !| get [~(tag) ~(found | tag)] | eq [::vec/PayloadKindNotTakenError ::map])
 
 :vec/count
   |~~ Answers the number of elements the vector holds, `[1 2 3] | count`
@@ -408,7 +408,7 @@
             the call, and its error is refused.
         ~~|
         ~([3 1] | min (get /age)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::vec/min/key/KindNotTakenError ::path/IndexNotIntegerError])
     | proves :answersTheFirstOfASet
         |~~ A set answers its least element without a key, its first. ~~|
@@ -633,14 +633,14 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | filter (count | gt 1)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/filter/predicate/KindNotTakenError ::boolean])
     | proves :predicate/KindNotTakenError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([{:a true}] | filter (get /a)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/filter/predicate/KindNotTakenError ::path/IndexNotIntegerError])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
@@ -717,7 +717,7 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | every (count | gt 1)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/every/predicate/KindNotTakenError ::boolean])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
@@ -783,7 +783,7 @@
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | any (count | gt 1)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/any/predicate/KindNotTakenError ::boolean])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
@@ -1011,7 +1011,7 @@
             refused.
         ~~|
         ~([{:kind :a}] | groupBy :a
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::vec/groupBy/key/KindNotTakenError ::keyword])
     | proves :KeyKindNotTakenError/refusesAVectorKey
         |~~ A vector key is refused at its element, with the kinds a key
@@ -1115,7 +1115,7 @@
             refused.
         ~~|
         ~([{:id :a}] | indexBy :a
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::vec/indexBy/key/KindNotTakenError ::keyword])
     | proves :keepsTheLastOfAlikeKeysInTheOneOrderOfASet
         |~~ Of two elements of a set under one key, the last in the one
@@ -1124,7 +1124,7 @@
         ~(#[{:id :a :v 2} {:id :a :v 1}] | indexBy /id | get /a/v | eq 2)
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number has no elements to file. ~~|
-        ~(42 | indexBy !| get [~(tag) ~(actualTag)] | eq [::vec/indexBy/SubjectNotVecError ::number])
+        ~(42 | indexBy !| get [~(tag) ~(subject | found | tag)] | eq [::vec/indexBy/SubjectNotVecError ::number])
     | proves :KeyKindNotTakenError/refusesAVectorKey
         |~~ A vector key is refused at its element, with the kinds a key
             files under.
@@ -1231,7 +1231,7 @@
         |~~ A number given as the key is computed at the call, and
             refused.
         ~~|
-        ~([3 1 2] | sort 1 !| get [~(tag) ~(actualTag)] | eq [::vec/sort/key/KindNotTakenError ::number])
+        ~([3 1 2] | sort 1 !| get [~(tag) ~(key | found | tag)] | eq [::vec/sort/key/KindNotTakenError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the verb. ~~|
         ~([{:a 1}] | sort /a /b !| tag | eq ::vec/sort/ArgsBeyondInputsError)
@@ -1287,10 +1287,10 @@
         ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
     | proves :count/KindNotTakenError/refusesAString
         |~~ A string is no count. ~~|
-        ~([1 2 3] | take "2" !| get [~(tag) ~(actualTag)] | eq [::vec/take/count/KindNotTakenError ::string])
+        ~([1 2 3] | take "2" !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/count/KindNotTakenError ::string])
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | take 1.5 !| get [~(tag) ~(actualTag)] | eq [::vec/take/count/NotIntegerError ::number])
+        ~([1 2 3] | take 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/count/NotIntegerError ::number])
     | proves :keepsTheTag
         |~~ A vector under a tag keeps its tag. ~~|
         ~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
@@ -1347,7 +1347,7 @@
         ~(~(add 1 | mul 2) | drop 1 | eq ~(mul 2))
     | proves :count/NotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(actualTag)] | eq [::vec/drop/count/NotIntegerError ::number])
+        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/drop/count/NotIntegerError ::number])
     | proves :count/KindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~([1 2] | drop "1" !| tag | eq ::vec/drop/count/KindNotTakenError)
@@ -1446,7 +1446,7 @@
         ~([[1 2] [2 3]] | get [~(flat) ~(map ~(toSet) | toSet | flat)] | eq [[1 2 2 3] #[1 2 3]])
     | proves :SubjectNotVecError/refusesABoolean
         |~~ A boolean holds nothing to splice. ~~|
-        ~(true | flat !| get [~(tag) ~(actualTag)] | eq [::vec/flat/SubjectNotVecError ::boolean])
+        ~(true | flat !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flat/SubjectNotVecError ::boolean])
     | impl ::builtin{}
 
 :vec/flatten
@@ -1469,7 +1469,7 @@
         ~([[1 2] [3 [4]]] | get [~(flatten) ~(flat)] | eq [[1 2 3 [4]] [1 2 3 [4]]])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number holds nothing to splice. ~~|
-        ~(42 | flatten !| get [~(tag) ~(actualTag)] | eq [::vec/flatten/SubjectNotVecError ::number])
+        ~(42 | flatten !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flatten/SubjectNotVecError ::number])
     | impl ~(flat)
 
 :vec/concat
@@ -1632,14 +1632,14 @@
     | proves :reducer/KindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~([1 2 3] | reduce 0 1
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(reducer | found | tag)]
           |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
     | proves :reducer/KindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed is read as the seed, and
             the seed as the reducer.
         ~~|
         ~([1 2 3] | reduce ~(add) 0
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(reducer | found | tag)]
           |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
     | proves :reducer/NotGivenError/readsALoneQuoteAsTheSeed
         |~~ A call of the reducer alone lacks the reducer. ~~|
@@ -1965,14 +1965,14 @@
     | proves :separator/KindNotTakenError/refusesANumber
         |~~ A number separator is refused. ~~|
         ~(["a" "b"] | join 42
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(separator | found | tag)]
           |  eq [::vec/join/separator/KindNotTakenError ::number])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of strings. ~~|
-        ~(42 | join "," !| get [~(tag) ~(actualTag)] | eq [::vec/join/SubjectNotVecError ::number])
+        ~(42 | join "," !| get [~(tag) ~(subject | found | tag)] | eq [::vec/join/SubjectNotVecError ::number])
     | proves :SubjectNotVecError/refusesAMap
         |~~ A map is no vector of strings. ~~|
-        ~({:a "x"} | join "," !| get [~(tag) ~(actualTag)] | eq [::vec/join/SubjectNotVecError ::map])
+        ~({:a "x"} | join "," !| get [~(tag) ~(subject | found | tag)] | eq [::vec/join/SubjectNotVecError ::map])
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ A number among the strings is refused at its index. ~~|
         ~(["a" 42 "c"] | join ","

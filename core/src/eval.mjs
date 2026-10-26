@@ -24,9 +24,9 @@ import {
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld, residenceOnSubject,
-  returnsItsLabel, CallValueWithheldError
+  returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -324,8 +324,9 @@ function repairOfPathSubject(path, call) {
 }
 
 function repairOfRefusedPath(refused, call, subject) {
-  if (!refused.facts.has('actualValue')) return isPath(subject) ? repairOfPathSubject(subject, call) : null;
-  const value = refused.facts.get('actualValue');
+  const slot = slotRefusedIn(refused.facts);
+  if (slot === null || slot === SUBJECT_NAME) return isPath(subject) ? repairOfPathSubject(subject, call) : null;
+  const value = refused.facts.get(`${slot}/found`);
   if (!isPath(value)) return null;
   const modifiers = call.get('modifiers') ?? [];
   const written = modifiers.findIndex(modifier => isPath(modifier)
@@ -349,7 +350,10 @@ function wiresTheRepair(tag, scope) {
   return kind !== null && chainOfKind(kind).wired.has(REPAIR_NAME);
 }
 
-const REPAIR_NAME = 'repair';
+const slotRefusedIn = facts => {
+  for (const key of facts.keys()) if (key.endsWith(EXPECTED_OF_A_SLOT)) return key.slice(0, -EXPECTED_OF_A_SLOT.length);
+  return null;
+};
 
 // [QSNAM#reach], [QSQUO#held], [QSDSP#residence]
 async function callByName(lookupName, modifiers, state, call) {
@@ -385,7 +389,7 @@ function readsTheValueItHolds(verb, record, state) {
 async function partCalled(address, modifiers, state) {
   const [labelName, name] = splitAddress(address);
   const walked = walkToKinds(state.pipeValue, [labelName]);
-  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
+  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), slotsPoured(state.pipeValue, []), state.scope));
   const served = wiringOf(walked.served) === undefined ? await layTag(labelName, walked.served, state) : walked.served;
   if (isErrorValue(served)) return withPipeValue(state, served);
   return valueCalled(wiringOf(served).get(name), name, name, modifiers, state);
@@ -414,23 +418,39 @@ async function callByAddress(call, address, modifierSteps, state) {
 }
 
 // [QSBLD#fn], [QSERR#site]
-function refusalUnder(tagName, facts, scope, refused = facts.actualValue) {
+function refusalUnder(tagName, facts, scope) {
   const tag = makeTag(tagName);
-  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)).set('actualTag', tagOf(refused)), scope));
+  return makeErrorValue(tag, factsInOrder(tag, new Map(Object.entries(facts)), scope));
 }
 
-function heldByItsKinds({ kinds, each }, refusalOf, value, scope, asGiven = false) {
+// [QSERR#site]
+const EXPECTED_OF_A_SLOT = '/expected';
+const SUBJECT_FOUND = `${SUBJECT_NAME}/found`;
+
+function slotsPoured(subject, held, refused = {}) {
+  const facts = { [SUBJECT_FOUND]: subject };
+  for (const [name, value] of held) facts[`${name}/found`] = value;
+  return Object.assign(facts, refused);
+}
+
+function slotRefused(name, { expected, found, index }) {
+  const facts = { [`${name}${EXPECTED_OF_A_SLOT}`]: expected, [`${name}/found`]: found };
+  if (index !== undefined) facts[`${name}/index`] = index;
+  return facts;
+}
+
+function heldByItsKinds({ kinds, each }, value, refusalOf, asGiven = false) {
   if (!each) {
     if (kinds === null) return value;
     const reached = walkToKinds(value, kinds);
-    if (reached === null) return refusalUnder(refusalOf(false), { expected: kindsExpected(...kinds), actualValue: value }, scope);
+    if (reached === null) return refusalOf(false, { expected: kindsExpected(...kinds) });
     return asGiven ? value : reached.served;
   }
   const elements = walkToKinds(value, ['vec']);
-  if (elements === null) return refusalUnder(refusalOf(false), { expected: kindsExpected('vec'), actualValue: value }, scope);
+  if (elements === null) return refusalOf(false, { expected: kindsExpected('vec') });
   if (kinds === null) return elements.served;
   const refused = refusedElementOf(elements.served, kinds);
-  if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
+  if (refused !== null) return refusalOf(true, { expected: kindsExpected(...kinds), index: refused.index });
   if (isQuote(elements.served) || isDoc(elements.served)) return elements.served;
   const served = asGiven ? [...elements.served] : Array.from(elements.served, element => walkToKinds(element, kinds).served);
   return isSet(elements.served) ? makeSet(served) : Object.freeze(served);
@@ -444,11 +464,11 @@ function refusedElementOf(elements, kinds) {
 }
 
 // [QSBLD#value]
-async function invariantRefusal(invariants, address, value, state, scope, held = value, facts = { actualValue: held }) {
+async function invariantRefusal(invariants, address, value, state, scope, factsOf) {
   for (const { name, condition } of invariants) {
     const answer = (await evalPipeline(condition, nestState(state, value, scope))).pipeValue;
     if (isErrorValue(answer)) return answer;
-    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, facts, scope, held);
+    if (beneathTags(answer) !== true) return refusalUnder(`${address}/${name}`, factsOf(), scope);
   }
   return null;
 }
@@ -549,10 +569,10 @@ async function keptUnderTags(answer, reached, ownKind, passedTags, state) {
 }
 
 // [QSBLD#answer]
-function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state) {
+function answerUnderItsLabel(answer, { address, kinds }, labelName, walked, state, pour) {
   const others = kinds.filter(kind => kind !== labelName);
   if (walkToKinds(answer, others) !== null) return answer;
-  const refused =() => refusalUnder(kindsRefusalAddress(address), { expected: kindsExpected(...kinds), actualValue: answer }, state.scope);
+  const refused = () => refusalUnder(kindsRefusalAddress(address), pour(slotRefused(ANSWER_NAME, { expected: kindsExpected(...kinds), found: answer })), state.scope);
   if (returnsItsLabel(kinds, labelName)) {
     if (walkToKinds(answer, [labelName]) !== null) return keptAsSubject(answer, walked.served, walked.passedTags, state);
     const keeping = () => keptOfTheLabel(answer, labelName, walked, refused, state);
@@ -610,17 +630,19 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const handed = steps === null ? handedWithin(recipe, fn, state.scope) : undefined;
   if (steps === null && handed === undefined) throw new FnRecipeMissingError({ actualValue: fn, of: addressNamedBy(recipe) });
   let walked = subjectOfCall(chain, labelName, state.pipeValue);
-  if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), { expected: kindsExpected(...chain.subject.kinds) }, state.scope, state.pipeValue);
-  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue);
+  const subjectRefused = expected => slotsPoured(state.pipeValue, [], { [`${SUBJECT_NAME}${EXPECTED_OF_A_SLOT}`]: expected });
+  if (walked === null && labelName === null) return refusalUnder(subjectKindsRefusalAddress(address), subjectRefused(kindsExpected(...chain.subject.kinds)), state.scope);
+  if (walked === null) return refusalUnder(subjectRefusalAddress(address, labelName), subjectRefused(kindsServed(labelName, chain)), state.scope);
   if (handed !== undefined && handed.labelName !== labelName) {
     walked = subjectOfCall(chain, handed.labelName, state.pipeValue);
-    if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), {}, state.scope, state.pipeValue);
+    if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), subjectRefused(kindsServed(handed.labelName, chain)), state.scope);
   }
   const scope = callScopeOf(state, ofTheRoot);
-  const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, state.pipeValue, {});
+  const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, () => slotsPoured(state.pipeValue, []));
   if (refusedSubject !== null) return refusedSubject;
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight, steps !== null && walked.byLabel ? wiringOf(walked.served) : undefined);
   if (isErrorValue(called)) return called;
+  const pour = refused => slotsPoured(state.pipeValue, chain.inputs.map(({ name }, at) => [name.name, called.given[at]]), refused);
   const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
   const running = steps === null
     ? runPrimitive(handed.primitive, walked.served, handedTo(handed.primitive, chain, called, state, flight), withFlight(called.state, flight), address)
@@ -629,10 +651,13 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(answer)) return answer;
   const kinds = chain.answer?.kinds ?? null;
   const broughtFrom = laid === null ? walked : { ...walked, passedTags: laid };
-  const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, broughtFrom, state);
+  const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, broughtFrom, state, pour);
   if (isErrorValue(brought)) return brought;
-  return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope) ?? brought;
+  return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope, () => pour({ [`${ANSWER_NAME}/found`]: brought })) ?? brought;
 }
+
+// [QSERR#site]
+const kindsServed = (labelName, chain) => kindsExpected(labelName, ...(chain.subject?.kinds ?? []));
 
 // [QSHST#source]
 const HANDED_BY_ADDRESS = new WeakMap();
@@ -756,37 +781,47 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
-    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope);
+    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values);
     values.push(value);
     keepOrigins(origins, value, modifier.origin ?? heldIn(state), state);
   }
   const called = withCall(state, origins);
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
-  if (chain.arity !== null && values.length > chain.arity) return refusalUnder(argsBeyondInputsAddress(address), { arity: chain.arity, actualValue: argsValue() }, scope);
+  if (chain.arity !== null && values.length > chain.arity) {
+    return refusalUnder(argsBeyondInputsAddress(address), slotsPoured(state.pipeValue, inputsOfTheArgs(chain, values), { [`${SURPLUS_NAME}/found`]: Object.freeze(values.slice(chain.arity)) }), scope);
+  }
   const recipeScope = recipeSteps === null ? null : withTheParts(scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() })), parts)
     .set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name), ...(parts?.keys() ?? [])]) });
   const overArgs = () => nestState(called, argsValue(), scope);
   const inputValues = [];
   const given = [];
+  const poured = [];
   for (const input of chain.inputs) {
     const { name } = input;
     const inputAddress = `${address}/${name.name}`;
     depthBelow(state);
     const reached = selectedValue(input.reading, values, overArgs);
     const read = isThenable(reached) ? await reached : reached;
-    if (read === MISSED_ARG || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), { actualValue: argsValue() }, scope);
+    if (read === MISSED_ARG || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), slotsPoured(state.pipeValue, poured), scope);
     if (isErrorValue(read)) return read;
     given.push(read);
-    const held = heldByItsKinds(input, refusalsUnder(inputAddress), read, scope, recipeSteps !== null);
+    const refusalOf = (each, refused) => refusalUnder(refusalsUnder(inputAddress)(each), slotsPoured(state.pipeValue, poured, slotRefused(name.name, { ...refused, found: read })), scope);
+    const held = heldByItsKinds(input, read, refusalOf, recipeSteps !== null);
     if (isErrorValue(held)) return held;
-    const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope);
+    poured.push([name.name, read]);
+    const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope, () => slotsPoured(state.pipeValue, poured));
     if (refused !== null) return refused;
     inputValues.push(held);
     if (recipeSteps !== null) recipeScope.set(name.name, makeBinding({ name, value: held }));
   }
   return { values: inputValues, given, origins, recipeScope, state: called };
 }
+
+// [QSERR#site]
+const inputsOfTheArgs = (chain, values) => chain.inputs
+  .filter(({ reading }) => reading.oneArg && !reading.readsArgs && reading.index < values.length)
+  .map(({ name, reading }) => [name.name, values[reading.index]]);
 
 // [QSBLD#recipe]
 function withTheParts(scope, parts) {
@@ -795,7 +830,7 @@ function withTheParts(scope, parts) {
 }
 
 // [QSQUO#modifier]
-async function refusalOfFailedModifier(chain, address, index, error, state, scope) {
+async function refusalOfFailedModifier(chain, address, index, error, state, scope, values) {
   if (error.tag.name === CallValueWithheldError.prototype.address) return error;
   const input = chain.inputs.find(({ reading }) => reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
   if (!(input?.kinds?.includes('quote') ?? false)) return error;
@@ -803,10 +838,10 @@ async function refusalOfFailedModifier(chain, address, index, error, state, scop
   if (isErrorValue(atRest)) return atRest;
   const inputAddress = `${address}/${input.name.name}`;
   if (input.each && input.reading.readsArgs) {
-    return refusalUnder(elementsRefusalAddress(inputAddress), { index, expected: kindsExpected(...input.kinds), actualValue: atRest }, scope);
+    return refusalUnder(elementsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected: kindsExpected(...input.kinds), found: Object.freeze([...values, atRest]), index })), scope);
   }
   const expected = input.each ? kindsExpected('vec') : kindsExpected(...input.kinds);
-  return refusalUnder(kindsRefusalAddress(inputAddress), { expected, actualValue: atRest }, scope);
+  return refusalUnder(kindsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected, found: atRest })), scope);
 }
 
 // [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
@@ -829,11 +864,11 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   const refusalOf = each => `${tagName}/${payloadRefusalName(each)}`;
   const ownKinds = each ? ['vec'] : kinds;
   if (ownKinds !== null && !ownKinds.includes(tagOf(payload).name)) {
-    return refusalUnder(refusalOf(false), { expected: kindsExpected(...ownKinds), actualValue: payload }, scope);
+    return refusalUnder(refusalOf(false), { expected: kindsExpected(...ownKinds), found: payload }, scope);
   }
   if (!each || kinds === null) return payload;
   const refused = refusedElementOf(payload, kinds);
-  if (refused !== null) return refusalUnder(refusalOf(true), { index: refused.index, expected: kindsExpected(...kinds), actualValue: refused.element }, scope);
+  if (refused !== null) return refusalUnder(refusalOf(true), { expected: kindsExpected(...kinds), found: payload, index: refused.index }, scope);
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
@@ -844,7 +879,7 @@ async function underKind(tagName, kind, payload, state) {
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
-  const ofFacts = holdsTheFactsOfAnError(payloadRole) ? { told: isExcerpt(held) } : null;
+  const ofFacts = holdsTheFactsOfAnError(payloadRole) ? { told: isExcerpt(held), slots: slotsOfAVerdict(kind) } : null;
   const parts = new Map();
   for (const field of fields) {
     const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened, ofFacts);
@@ -855,7 +890,7 @@ async function underKind(tagName, kind, payload, state) {
   const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed, fields.length === 0 ? undefined : parts);
-  const refused = invariantsOfTheValue.length === 0 ? null : await invariantRefusal(invariantsOfTheValue, tagName, constructed, state, opened(), labelled);
+  const refused = invariantsOfTheValue.length === 0 ? null : await invariantRefusal(invariantsOfTheValue, tagName, constructed, state, opened(), () => ({ found: payload }));
   return refused ?? labelled;
 }
 
@@ -864,24 +899,34 @@ const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.includes(ERROR
 
 // [QSBLD#value], [QSERR#rest]
 function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) {
+  const slot = ofFacts?.slots?.get(field.name.name);
+  if (slot !== undefined) return slotOfTheFacts(slot, field.name.name, payload, state);
   if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened, ofFacts);
   return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts));
+}
+
+// [QSERR#site]
+async function slotOfTheFacts(address, name, facts, state) {
+  const probes = new Map();
+  for (const [key, fact] of facts) if (key.startsWith(`${name}/`)) probes.set(key.slice(name.length + 1), fact);
+  return probes.size === 0 ? null : await layTag(address, probes, state);
 }
 
 function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts) {
   const fieldAddress = `${tagName}/${field.name.name}`;
   if (ofFacts !== null && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
   if (ofFacts?.told && isCell(read)) return read;
-  if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
+  if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { found: payload }, state.scope);
   if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
-  const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);
+  const refusalOf = (each, refused) => refusalUnder(refusalsUnder(fieldAddress)(each), { ...refused, found: read }, state.scope);
+  const held = heldByItsKinds(field, read, refusalOf);
   if (isErrorValue(held)) return held;
-  return invariants.length === 0 ? read : invariantRefusal(invariants, tagName, read, state, opened()).then(refused => refused ?? read);
+  return invariants.length === 0 ? read : invariantRefusal(invariants, tagName, read, state, opened(), () => ({ found: read })).then(refused => refused ?? read);
 }
 
 async function refusalOfAPartNotRead(fieldAddress, read, state) {
   const atRest = await errorAtRestOf(read, state);
-  return isErrorValue(atRest) ? atRest : refusalUnder(notReadAddress(fieldAddress), { actualValue: atRest }, state.scope);
+  return isErrorValue(atRest) ? atRest : refusalUnder(notReadAddress(fieldAddress), { found: atRest }, state.scope);
 }
 
 // [QSNAM#scope], [QSNAM#verb], [QSQUO#held], [QSERR#trace]

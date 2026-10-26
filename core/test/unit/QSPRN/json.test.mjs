@@ -79,7 +79,7 @@ it('writes a failure in JSON as the object of its $error, its tag and its facts'
   const plain = toPlain(await evalQuery('"x" | add 1'));
   expect(Object.keys(plain)).toEqual(['$error']);
   expect(plain.$error.$tag).toBe('number/add/SubjectNotNumberError');
-  expect(plain.$error.facts.actualTag).toBe('::string');
+  expect(plain.$error.facts['subject/found']).toBe('x');
 });
 
 it('a tag over a set writes its payload as the array of its elements in JSON', () => {

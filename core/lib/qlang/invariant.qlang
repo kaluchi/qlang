@@ -56,5 +56,5 @@
         |~~ The condition of an invariant is a quote, a quote under another
             tag refused.
         ~~|
-        ~(::invariant::Foo~(gt 0) !| get [~(tag) ~(actualTag)] | eq [::invariant/PayloadKindNotTakenError ::Foo])
+        ~(::invariant::Foo~(gt 0) !| get [~(tag) ~(found | tag)] | eq [::invariant/PayloadKindNotTakenError ::Foo])
 

@@ -46,7 +46,7 @@
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| get [~(tag) ~(actualTag)] | eq [::keyword/PayloadKindNotTakenError ::string])
+        ~(::keyword"k" !| get [~(tag) ~(found | tag)] | eq [::keyword/PayloadKindNotTakenError ::string])
 
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:foo | toString`

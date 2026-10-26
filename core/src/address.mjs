@@ -13,6 +13,8 @@ export const TAGGED_KIND_NAME = 'tagged';
 export const subjectRefusalAddress = (address, labelName) => `${address}/SubjectNot${capitalOf(labelName)}Error`;
 // [QSBLD#fn]
 export const FN_CALL_ADDRESS = 'fn/call';
+// [QSERR#site]
+export const SLOT_KIND_ADDRESS = 'fn/slot';
 export const subjectKindsRefusalAddress = address => `${address}/SubjectKindNotTakenError`;
 export const argsBeyondInputsAddress = address => `${address}/ArgsBeyondInputsError`;
 export const notGivenAddress = holderAddress => `${holderAddress}/NotGivenError`;

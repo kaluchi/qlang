@@ -142,7 +142,7 @@
         ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| get [~(tag) ~(actualTag)] | eq [::path/PayloadKindNotTakenError ::vec])
+        ~([:a 0] | tag ::path !| get [~(tag) ~(found | tag)] | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
         |~~ An index past the end is refused with the length. ~~|
         ~([10 20 30] | get /99 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError 99 3])

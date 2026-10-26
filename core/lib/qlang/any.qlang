@@ -83,7 +83,7 @@
         |~~ `sort desc` turns the vector, which `sort` refuses as no key.
         ~~|
         ~([1 3 2] | sort desc
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(key | found | tag)]
           |  eq [::vec/sort/key/KindNotTakenError ::desc])
     | proves :turnsBackToTheValue
         |~~ A value turned twice is the value. ~~|
@@ -663,27 +663,27 @@
     | proves :condition/KindNotTakenError/refusesAQuote
         |~~ A condition given as a quote is code and no boolean. ~~|
         ~(5 | if ~(gt 0) ~(1) ~(2)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(condition | found | tag)]
           |  eq [::any/if/condition/KindNotTakenError ::quote])
     | proves :condition/KindNotTakenError/refusesNull
         |~~ A null condition is refused. ~~|
         ~({:flag null} | if (get /flag) ~(1) ~(2)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(condition | found | tag)]
           |  eq [::any/if/condition/KindNotTakenError ::null])
     | proves :condition/KindNotTakenError/refusesANumber
         |~~ A number condition is refused. ~~|
         ~(5 | if 1 ~("yes") ~("no")
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(condition | found | tag)]
           |  eq [::any/if/condition/KindNotTakenError ::number])
     | proves :then/KindNotTakenError/refusesAString
         |~~ A string given as the then branch is refused. ~~|
         ~(5 | if true "yes" ~("no")
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(then | found | tag)]
           |  eq [::any/if/then/KindNotTakenError ::string])
     | proves :else/KindNotTakenError/refusesAString
         |~~ A string given as the else branch is refused. ~~|
         ~(5 | if true ~("yes") "no"
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(else | found | tag)]
           |  eq [::any/if/else/KindNotTakenError ::string])
     | proves :else/NotGivenError/refusesACallWithoutElse
         |~~ A call without the else branch is refused under the input. ~~|
@@ -795,7 +795,7 @@
     | proves :alternatives/EmptyError/refusesNoAlternative
         |~~ A coalesce of no alternative is refused. ~~|
         ~({} | coalesce
-          !| get [~(tag) ~(actualValue)]
+          !| get [~(tag) ~(alternatives | found)]
           |  eq [::any/coalesce/alternatives/EmptyError ::any/coalesce[]])
     | proves :alternatives/ValuesAloneError/refusesSeveralValues
         |~~ Several values alone are refused. ~~|
@@ -864,7 +864,7 @@
     | proves :clauses/ElementKindNotTakenError/refusesAComputedPredicate
         |~~ A predicate computed at the call is refused at its index. ~~|
         ~(5 | cond (gt 3) ~("big")
-          !| get [~(tag) ~(index)]
+          !| get [~(tag) ~(clauses | index)]
           |  eq [::any/cond/clauses/ElementKindNotTakenError 0])
     | proves :clauses/NoBranchesError/refusesNoPair
         |~~ A cond of no pair is refused. ~~|
@@ -948,11 +948,11 @@
         ~(5 | apply ~(:x 1 | x) | :y it | env | has :x | not)
     | proves :code/KindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
-        ~(42 | apply 1 !| get [~(tag) ~(actualTag)] | eq [::any/apply/code/KindNotTakenError ::number])
+        ~(42 | apply 1 !| get [~(tag) ~(code | found | tag)] | eq [::any/apply/code/KindNotTakenError ::number])
     | proves :code/KindNotTakenError/refusesTheErrorOfAStep
         |~~ The error a step answered at the call is refused as no code. ~~|
         ~(5 | apply (get /nope)
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(code | found | tag)]
           |  eq [::any/apply/code/KindNotTakenError ::path/SubjectHasNoPartsError])
     | proves :code/NotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
@@ -1716,7 +1716,7 @@
     | proves :refusesAPayloadUnderAnotherTag
         |~~ A kind takes its payload by the payload's own tag. ~~|
         ~(:Nums |~~ Numbers. ~~| (::kind | accepts |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(found | tag)]
           |  eq [::Nums/PayloadKindNotTakenError ::T])
     | proves :nestsATaggedValue
         |~~ A tag over a tagged value nests it. ~~|
@@ -1735,7 +1735,7 @@
           |  eq ::number/add/addend/KindNotTakenError)
     | proves :name/KindNotTakenError/refusesAKeyword
         |~~ A keyword given as the name is refused under the input. ~~|
-        ~(5 | tag :box !| get [~(tag) ~(actualTag)] | eq [::any/tag/name/KindNotTakenError ::keyword])
+        ~(5 | tag :box !| get [~(tag) ~(name | found | tag)] | eq [::any/tag/name/KindNotTakenError ::keyword])
     | proves :ArgsBeyondInputsError/refusesTwoTags
         |~~ Two tags given to one call are refused under the verb. ~~|
         ~(5 | tag ::Box ::Crate !| tag | eq ::any/tag/ArgsBeyondInputsError)
@@ -1830,7 +1830,7 @@
     | proves :numbers/ElementKindNotTakenError/refusesText
         |~~ Text is no number, and is refused at its index. ~~|
         ~({} | sumOf "1"
-          !| get [~(tag) ~(index)]
+          !| get [~(tag) ~(numbers | index)]
           |  eq [::any/sumOf/numbers/ElementKindNotTakenError 0])
     | impl ~(get numbers | sum)
 
@@ -1871,7 +1871,7 @@
     | proves :factors/ElementKindNotTakenError/refusesAString
         |~~ A string is no factor, and is refused at its index. ~~|
         ~({:a 2} | mulOf /a "x"
-          !| get [~(tag) ~(index)]
+          !| get [~(tag) ~(factors | index)]
           |  eq [::any/mulOf/factors/ElementKindNotTakenError 1])
     | proves :multipliesTwoFields
         |~~ The price and the quantity of one line multiply. ~~|
@@ -1916,7 +1916,7 @@
     | proves :minuend/KindNotTakenError/refusesAString
         |~~ A minuend that is a string is refused under the input. ~~|
         ~({:p 1} | subOf "a" /p
-          !| get [~(tag) ~(actualTag)]
+          !| get [~(tag) ~(minuend | found | tag)]
           |  eq [::any/subOf/minuend/KindNotTakenError ::string])
     | proves :subtrahend/NotGivenError/refusesOneNumber
         |~~ A call with the minuend alone is refused under the subtrahend.
@@ -2062,7 +2062,7 @@
             among them.
         ~~|
         ~({:a 1} | allOf (get /b | eq 1)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::path/KeyNotInMapError])
     | proves :conditions/ElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
@@ -2073,12 +2073,12 @@
             index.
         ~~|
         ~({:age 15} | allOf (get /age | gte 18) (get /licence)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]
           |  eq [::any/allOf/conditions/ElementKindNotTakenError 1 ::path/KeyNotInMapError])
     | proves :conditions/ElementKindNotTakenError/refusesANumber
         |~~ A number is no condition, and is refused at its index. ~~|
         ~({:age 15} | allOf (get /age)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::number])
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersAString
         |~~ A quote that answers a string is refused at its index. ~~|
@@ -2159,7 +2159,7 @@
             among them.
         ~~|
         ~({:score 99} | anyOf (get /vip | eq true)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::path/KeyNotInMapError])
     | proves :conditions/ElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
@@ -2169,12 +2169,12 @@
             earlier one holds, and its error is refused at its index.
         ~~|
         ~({:vip true} | anyOf (get /vip) (get /score | gt 95)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]
           |  eq [::any/anyOf/conditions/ElementKindNotTakenError 1 ::path/KeyNotInMapError])
     | proves :conditions/ElementKindNotTakenError/refusesANumber
         |~~ A number is no condition, and is refused at its index. ~~|
         ~({:a 1} | anyOf (get /a)
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::number])
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersANumber
         |~~ A quote that answers a number is refused at its index. ~~|
@@ -2309,7 +2309,7 @@
     | proves :kinds/ElementKindNotTakenError/refusesAKeyword
         |~~ A keyword is no kind, and is refused at its index. ~~|
         ~(5 | is :number
-          !| get [~(tag) ~(index) ~(actualTag)]
+          !| get [~(tag) ~(kinds | index) ~(kinds | found | get /0 | tag)]
           |  eq [::any/is/kinds/ElementKindNotTakenError 0 ::keyword])
     | impl ::builtin{}
 
@@ -2353,7 +2353,7 @@
         ~~|
     | proves :path/KindNotTakenError/refusesNull
         |~~ A key the data leaves null is refused. ~~|
-        ~({:k null} | get (get /k) !| get [~(tag) ~(actualTag)] | eq [::any/get/path/KindNotTakenError ::null])
+        ~({:k null} | get (get /k) !| get [~(tag) ~(path | found | tag)] | eq [::any/get/path/KindNotTakenError ::null])
     | proves :path/KindNotTakenError/readsTheKeyOfABooleanByItsKeyword
         |~~ The group of `true` is read by its keyword. ~~|
         ~([1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)] | eq [::any/get/path/KindNotTakenError [2 3]])

@@ -69,7 +69,7 @@
         ~("[1\n2" | parse !| location | start | line | eq 2)
     | proves :end/NotReadError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| get [~(tag) ~(actualValue | tag)] | eq [::span/end/NotReadError ::point/offset/NotGivenError])
+        ~(::span[0 1 1] !| get [~(tag) ~(found | tag)] | eq [::span/end/NotReadError ::point/offset/NotGivenError])
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
         ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)

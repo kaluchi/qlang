@@ -173,22 +173,22 @@
           | wires :actualValue |~~ The value or the part the invariant refused. ~~|)
     | proves :PayloadKindNotTakenError/readsTheKindsTaken
         |~~ A payload a kind refuses answers the kinds it takes. ~~|
-        ~(::number"5" !| get [~(expected) ~(actualValue)] | eq [#[::number] "5"])
+        ~(::number"5" !| get [~(expected) ~(found)] | eq [#[::number] "5"])
     | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
         |~~ An element of a payload a kind refuses answers its index. ~~|
-        ~(::span[0 1 1 "x" 1 5] !| get [~(index) ~(actualValue)] | eq [3 "x"])
+        ~(::span[0 1 1 "x" 1 5] !| get [~(index) ~(found | get /3)] | eq [3 "x"])
     | proves :KindNotTakenError/readsThePartRefused
         |~~ A part of none of its kinds answers itself. ~~|
-        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:w "x"} !| get [~(expected) ~(actualValue)] | eq [#[::number] "x"])
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:w "x"} !| get [~(expected) ~(found)] | eq [#[::number] "x"])
     | proves :NotGivenError/readsThePayload
         |~~ A part the payload lacks answers the payload. ~~|
-        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:h 1} !| actualValue | eq {:h 1})
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ::number) | ::Box{:h 1} !| found | eq {:h 1})
     | proves :NotReadError/readsTheFailureAtRest
         |~~ A part whose selector fails answers the failure at rest. ~~|
-        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /n | add 1)) | ::Box{:n "x"} !| actualValue | tag | eq ::number/add/SubjectNotNumberError)
+        ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| ~(get /n | add 1)) | ::Box{:n "x"} !| found | tag | eq ::number/add/SubjectNotNumberError)
     | proves :InvariantNotHeldError/readsTheValueRefused
         |~~ A value an invariant of its kind refuses answers itself. ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Pos#-3 !| actualValue | payload | eq -3)
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Pos#-3 !| found | eq -3)
     | proves :isBuiltByCommands
         |~~ A kind is built from the noun. ~~|
         ~(::kind | accepts |~~ The sizes. ~~| ::map | tag | eq ::kind)
@@ -236,7 +236,7 @@
             payload under another tag refused.
         ~~|
         ~(:Count |~~ A count. ~~| (::kind | accepts |~~ The number. ~~| ::number)
-          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) ~(actualTag)]) ~(::Width#3 | payload | tag ::Count)]
+          | get [~(::Count#3 | payload) ~(::Count::Width#3 !| get [~(tag) ~(found | tag)]) ~(::Width#3 | payload | tag ::Count)]
           | eq [3 [::Count/PayloadKindNotTakenError ::Width] ::Count#3])
     | proves :readsAField
         |~~ A field of none of its kinds is refused under the field. ~~|

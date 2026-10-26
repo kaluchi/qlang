@@ -58,7 +58,7 @@
         ~("#{1}" | parse !| message | contains "#[")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| get [~(tag) ~(actualTag)] | eq [::set/PayloadKindNotTakenError ::map])
+        ~(::set{:not :a-vec} !| get [~(tag) ~(found | tag)] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :set/sort

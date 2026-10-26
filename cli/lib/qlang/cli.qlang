@@ -299,10 +299,10 @@
         ~({:name "alice"} | get [~(it)] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(tag) ~(actualTag)] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
         ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(actualTag) ~(expected)]

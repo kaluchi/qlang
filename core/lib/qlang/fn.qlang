@@ -200,7 +200,7 @@
         |~~ A value an input refuses answers its kinds, its kind and itself
             by their names.
         ~~|
-        ~(1 | add "x" !| get [~(expected) ~(actualTag) ~(actualValue)] | eq [#[::number] ::string "x"])
+        ~(1 | add "x" !| get [~(addend | expected) ~(addend | found | tag) ~(addend | found)] | eq [#[::number] ::string "x"])
     | proves :KindNotTakenError/namesTheRepairOfAPath
         |~~ A path the call gives for the value it names names the step
             that reads it.
@@ -218,21 +218,21 @@
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| ~(query /0 /one) ::number | impl ~(add by)) | 5 | plus !| repair | eq null)
     | proves :ElementKindNotTakenError/readsTheIndexOfTheElement
         |~~ An element an input refuses answers its index. ~~|
-        ~([1] | concat [2] 3 !| get [~(index) ~(actualValue)] | eq [1 3])
-    | proves :NotGivenError/readsTheArgs
+        ~([1] | concat [2] 3 !| get [~(vectors | index) ~(vectors | found | get /1)] | eq [1 3])
+    | proves :NotGivenError/leavesTheInputOut
         |~~ An input the args leave out answers the args of the call. ~~|
-        ~([1 2] | map !| actualValue | eq ::vec/map[])
-    | proves :ArgsBeyondInputsError/readsTheArity
+        ~([1 2] | map !| get [~(subject | found) ~(code)] | eq [[1 2] null])
+    | proves :ArgsBeyondInputsError/readsWhatWentWhere
         |~~ Args past the inputs answer how many the inputs read. ~~|
-        ~(1 | add 1 2 !| get [~(arity) ~(actualValue)] | eq [1 ::number/add[1 2]])
+        ~(1 | add 1 2 !| get [~(addend | found) ~(surplus | found)] | eq [1 [2]])
     | proves :SubjectRefusedError/readsTheKindOfTheSubject
         |~~ A subject the verb does not serve answers its kind, the first
             frame of the trace holding it.
         ~~|
-        ~("x" | add 1 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "x"])
+        ~("x" | add 1 !| get [~(subject | found | tag) ~(trace | first | subject)] | eq [::string "x"])
     | proves :InvariantNotHeldError/readsTheValueRefused
         |~~ An input an invariant refuses answers itself. ~~|
-        ~(10 | div 0 !| actualValue | eq 0)
+        ~(10 | div 0 !| divisor | found | eq 0)
     | proves :isBuiltByCommands
         |~~ A function is built from the noun. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | tag | eq ::fn)
@@ -260,7 +260,7 @@
             breaks it.
         ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :by/TooBigError |~~ Under a hundred. ~~| ~(lt 100) | impl ~(add by)) [500]
-          !| get [~(tag) /actualValue]
+          !| get [~(tag) /:by/found]
           |  eq [::fn/call/by/TooBigError 500])
     | proves :holdsTheInvariantsOfItsSubject
         |~~ An invariant written under the subject refuses a subject that
@@ -272,7 +272,7 @@
             breaks it.
         ~~|
         ~(5 | apply (::fn | holds :answer/TooBigError |~~ A number past ten. ~~| ~(lt 10) | impl ~(add 100))
-          !| get [~(tag) /actualValue]
+          !| get [~(tag) /:answer/found]
           |  eq [::fn/call/answer/TooBigError 105])
     | proves :answersTheFailureOfACondition
         |~~ A condition that fails answers its failure. ~~|
@@ -408,7 +408,43 @@
     | proves :call/pagesTheRefusalsNamedUnderIt
         |~~ A refusal named under the call reads its page. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| doc | eq (::fn/call | doc))
+    | tells :subject
+        |~~ The subject of a verb, the value its call ran on, as the pipe
+            handed it, its tags with it.
+        ~~|
+    | tells :surplus
+        |~~ The args of a call past those the inputs of its verb read. ~~|
+    | tells :answer
+        |~~ The answer the recipe of a verb gave. ~~|
+    | tells :repair
+        |~~ The step the call was likely meant as: where it gave a path for
+            the value the path names, `mul (get /qty)` for `mul /qty`, where
+            its subject is a path for the value it names,
+            `get /tags | count` for `/tags | count`, and null where it gave
+            none.
+        ~~|
     | impl ::builtin{}
+
+:fn/slot
+  |~~ A slot of a verb as the verdict of a refusal tells it, the subject,
+      an input, the args past the inputs or the answer: what the verb
+      expects there and what the call put there, `addend/expected` and
+      `addend/found`, the value found whole or as the cell its host keeps
+      it in, its own names beneath it, `addend/found/count`, and never a
+      name of the verb. A slot is read from a refusal by its name and its
+      probes by theirs, `!| addend | found`.
+      ::link~(::fn | doc) ::link~(::error | doc)
+  ~~|
+  ::kind[~(accepts |~~ The probes of the slot, a map. ~~| ::map
+    | wires :expected
+        |~~ The kinds the slot takes, as the chain of its verb writes them.
+        ~~|
+        ~(query /expected) #[::set ::null]
+    | wires :found |~~ What the call put in the slot, as the call gave it. ~~| ~(query /found)
+    | wires :index
+        |~~ The index, from zero, of the first element of the slot refused.
+        ~~|
+        ~(query /index) #[::number ::null]) null]
 
 :fn/on
   |~~ Names the subject of a function, its page and the kinds it serves,
@@ -436,7 +472,7 @@
             refuses another under its call, the kinds its `:expected`.
         ~~|
         ~(:f (::fn | on |~~ A number. ~~| ::number | impl ~(add 1))
-          | get [~(5 | apply f) ~("x" | apply f !| get [~(tag) /expected])]
+          | get [~(5 | apply f) ~("x" | apply f !| get [~(tag) /:subject/expected])]
           | eq [6 [::fn/call/SubjectKindNotTakenError #[::number]]])
     | proves :pagesTheSubjectOfAVerb
         |~~ The page of the subject is the page of its node under the
@@ -517,7 +553,7 @@
     | proves :refusesAnElementOfNoneOfItsKinds
         |~~ An element of none of the kinds is refused with its index. ~~|
         ~(5 | apply (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs)) [[1 "a"]]
-          !| get [~(tag) /index]
+          !| get [~(tag) /:xs/index]
           |  eq [::fn/call/xs/ElementKindNotTakenError 1])
     | proves :refusesNoVectorOfElements
         |~~ A value that is no vector is refused where the input names the
@@ -570,7 +606,7 @@
         ~(:number/w (::fn | takes :cs |~~ Codes. ~~| ~(it) [::quote] | impl ~(1))
           | 5
           | w ~(add 1) (get /x)
-          !| get [~(tag) ~(index)]
+          !| get [~(tag) ~(cs | index)]
           | eq [::number/w/cs/ElementKindNotTakenError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
@@ -607,13 +643,13 @@
         |~~ An answer of another kind is refused under the answer of the
             call, the kind its `:expected`.
         ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /expected] | eq [::fn/call/answer/KindNotTakenError #[::number]])
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /:answer/expected] | eq [::fn/call/answer/KindNotTakenError #[::number]])
     | proves :refusesAnAnswerOfNoneOfItsKinds
         |~~ An answer of none of several kinds is refused under the answer
             of the call.
         ~~|
         ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
-          !| get [~(tag) /actualValue]
+          !| get [~(tag) /:answer/found]
           |  eq [::fn/call/answer/KindNotTakenError true])
     | proves :passesTheFailureOfTheRecipe
         |~~ A recipe that fails answers its failure, which no kind brings.

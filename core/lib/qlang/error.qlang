@@ -69,7 +69,7 @@
         |~~ An error of a refusal answers the facts its refusal declares and
             its trace by their names.
         ~~|
-        ~("x" | add 1 !| get [~(actualTag) ~(trace | count)] | eq [::string 1])
+        ~("x" | add 1 !| get [~(subject | found | tag) ~(trace | count)] | eq [::string 1])
     | proves :refusesAPathBeneathARefusal
         |~~ No path reads beneath the tag of a refusal. ~~|
         ~("x" | add 1 !| get /actualTag !| tag | eq ::path/TagClosedError)

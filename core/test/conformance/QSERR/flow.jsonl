@@ -1,4 +1,4 @@
-{"name":"map-answers-its-first-failure","query":"[1 \"x\" 3] | map ~(add 10) !| get [~(tag) ~(actualTag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
+{"name":"map-answers-its-first-failure","query":"[1 \"x\" 3] | map ~(add 10) !| get [~(tag) ~(subject | found | tag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
 {"name":"code-that-recovers-keeps-every-element","query":"[1 \"x\" 3] | map ~(add 10 !| 0)","expect":"[11 0 13]"}
 {"name":"code-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] | map ~(add 10 !| tag) | filter ~(eq ::number/add/SubjectNotNumberError) | count","expect":"2"}
 {"name":"an-input-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| tag","expect":"::error"}
@@ -12,8 +12,8 @@
 {"name":"an-error-literal-answers-the-refusal-of-a-fact","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | !{:a ::Pos#-3} !| tag","expect":"::Pos/NotPositiveError"}
 {"name":"a-declaration-whose-body-fails-answers-the-failure","query":":x (1 | div 0) | 5 !| trace | map ~failed","expect":"[~(div 0) ~(:x (1 | div 0))]"}
 {"name":"a-declaration-whose-body-fails-binds-nothing","query":":x (1 | div 0) !| env | has :x","expect":"false"}
-{"name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::number/add/SubjectNotNumberError) | map ~actualTag","expect":"[::string]"}
-{"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| actualValue | tag","expect":"::call/KindsMismatchedError"}
+{"name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::number/add/SubjectNotNumberError) | map ~(subject | found | tag)","expect":"[::string]"}
+{"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| predicate | found | tag","expect":"::call/KindsMismatchedError"}
 {"name":"a-value-input-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| tag","expect":"::error"}
 {"name":"a-tag-over-a-failed-payload-answers-the-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::Foo[::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}
 {"name":"a-constructor-of-the-core-never-meets-a-failure","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | ::set[::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}

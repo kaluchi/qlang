@@ -339,7 +339,7 @@
         |~~ `!|` catches a failure, its step running on the error at rest,
             which holds its facts.
         ~~|
-        ~("x" | add 1 !| actualTag | eq ::string)
+        ~("x" | add 1 !| subject | found | tag | eq ::string)
     | proves :refusesUnderTheInput
         |~~ An input of none of its kinds is refused under the input. ~~|
         ~(1 | add "x" !| tag | eq ::number/add/addend/KindNotTakenError)
@@ -831,7 +831,7 @@
         ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedSubject
         |~~ The first frame holds the subject the step refused. ~~|
-        ~("a" | mul 2 !| get [~(actualTag) ~(trace | first | subject)] | eq [::string "a"])
+        ~("a" | mul 2 !| get [~(subject | found) ~(trace | first | subject)] | eq ["a" "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|
         ~(:f ~(add "x" | mul 2) | 5 | apply f | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply f)])

@@ -375,20 +375,20 @@ async function callByName(lookupName, modifiers, state, call) {
 // [QSDSP#residence]
 function readsTheValueItHolds(verb, record, state) {
   const address = verb.get('name').name;
-  return isNodeOfAPart(verb, state.scope) && partReadBy(address, state.pipeValue).part === bindingValueOf(record);
+  if (!isNodeOfAPart(verb, state.scope)) return false;
+  const [labelName, name] = splitAddress(address);
+  const parts = wiringOf(walkToKinds(state.pipeValue, [labelName])?.served);
+  return parts !== undefined && parts.get(name) === bindingValueOf(record);
 }
 
-function partReadBy(address, subject) {
+// [D407]
+async function partCalled(address, modifiers, state) {
   const [labelName, name] = splitAddress(address);
-  const walked = walkToKinds(subject, [labelName]);
-  return walked === null ? null : { part: wiringOf(walked.served).get(name) };
-}
-
-function partCalled(address, modifiers, state) {
-  const [labelName, name] = splitAddress(address);
-  const read = partReadBy(address, state.pipeValue);
-  if (read === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
-  return valueCalled(read.part, name, name, modifiers, state);
+  const walked = walkToKinds(state.pipeValue, [labelName]);
+  if (walked === null) return withPipeValue(state, refusalUnder(subjectRefusalAddress(address, labelName), {}, state.scope, state.pipeValue));
+  const served = wiringOf(walked.served) === undefined ? await layTag(labelName, walked.served, state) : walked.served;
+  if (isErrorValue(served)) return withPipeValue(state, served);
+  return valueCalled(wiringOf(served).get(name), name, name, modifiers, state);
 }
 
 // [QSNAM#value]

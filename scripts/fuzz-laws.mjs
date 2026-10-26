@@ -46,8 +46,7 @@ function variantOf(law) {
 const scope = await langRuntime();
 const counts = { variants: 0, values: 0, unparsed: 0 };
 
-// What a variant breaks, or null; an answer that holds an elision stays
-// out of the reading back, since its print writes a cut.
+// What a variant breaks, or null.
 async function breakOf(text) {
   try {
     const answer = await evalQuery(text, scope);
@@ -57,7 +56,6 @@ async function breakOf(text) {
     }
     counts.values++;
     const printed = printValue(answer);
-    if (printed.includes('::elision')) return null;
     return compareValues(answer, await evalQuery(printed, scope)) === 0 ? null : `reads back as another value: ${printed.slice(0, 80)}`;
   } catch (thrown) {
     return `threw: ${String(thrown?.message ?? thrown).slice(0, 120)}`;

@@ -4,7 +4,7 @@ import { kindOfAValueOf } from './nouns.mjs';
 import { chainOfKind } from './chain.mjs';
 import { nameOfContinuation } from './parse.mjs';
 import { printValue } from './print-value.mjs';
-import { lengthOf, EXCERPT_CHARACTERS } from './elide.mjs';
+import { lengthOf, ROOM_OF_A_FACT } from './excerpt.mjs';
 
 // [QSERR#site]
 recordRefusal('quote/ParseError');
@@ -63,7 +63,7 @@ export function errorFromParse(parseError, scope, location, uri = parseError.uri
 }
 
 // [QSSYN#refusal]
-const MARKED_LINE_WITHIN = EXCERPT_CHARACTERS - 3;
+const MARKED_LINE_WITHIN = ROOM_OF_A_FACT - 3;
 
 function markedLineOf(line, [, startLine, startColumn, , endLine, endColumn]) {
   const characters = Array.from(line);

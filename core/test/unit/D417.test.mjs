@@ -25,13 +25,13 @@ it('folds by the one call of a quote faster than by a call with modifiers over t
 }, 60_000);
 
 it('reaches a verb of the name a reader declares under its label beside the verbs of the root, and a query that declares none does not', async () => {
-  expect(await evalQuery(':Box |~~ A box. ~~| | :Box/count ~(7) | 5 | count !| addresses | eq #[::Box/count ::map/count ::string/count ::vec/count]')).toBe(true);
-  expect(await evalQuery('5 | count !| addresses | eq #[::map/count ::string/count ::vec/count]')).toBe(true);
+  expect(await evalQuery(':Box |~~ A box. ~~| | :Box/count ~(7) | 5 | count !| addresses | eq #[::Box/count ::excerpt/count ::map/count ::string/count ::vec/count]')).toBe(true);
+  expect(await evalQuery('5 | count !| addresses | eq #[::excerpt/count ::map/count ::string/count ::vec/count]')).toBe(true);
 });
 
 it('reaches a verb of the name a later source of the root declares, and a root without that source does not', async () => {
   const later = await createNotebook({ sources: [{ uri: 'tests/later', source: ':Crate |~~ A crate. ~~|\n:Crate/count ~(7)' }] });
-  expect((await later.evalCell('5 | count !| addresses | eq #[::Crate/count ::map/count ::string/count ::vec/count]')).result).toBe(true);
+  expect((await later.evalCell('5 | count !| addresses | eq #[::Crate/count ::excerpt/count ::map/count ::string/count ::vec/count]')).result).toBe(true);
   expect(await evalQuery('5 | count !| addresses | has ::Crate/count')).toBe(false);
 });
 

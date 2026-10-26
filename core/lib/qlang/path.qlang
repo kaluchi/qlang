@@ -88,7 +88,7 @@
         ~(wires :names |~~ The names the kind of the value wires. ~~| ::set
           | wires :repair
               |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
-              ~(query /repair) #[::null ::quote]
+              ::quote
           | wires :path |~~ The path to the part the refusal stands at. ~~| ::path
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))

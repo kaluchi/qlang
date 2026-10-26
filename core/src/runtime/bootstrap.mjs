@@ -5,7 +5,7 @@ import { declareDefect } from '../errors.mjs';
 export const LANGUAGE_SOURCES = Object.freeze([
   'qlang/builtin', 'qlang/kind', 'qlang/fn', 'qlang', 'qlang/tag', 'qlang/null', 'qlang/boolean', 'qlang/number', 'qlang/string',
   'qlang/keyword', 'qlang/regex', 'qlang/vec', 'qlang/set', 'qlang/map', 'qlang/quote', 'qlang/doc',
-  'qlang/binding', 'qlang/error', 'qlang/trace', 'qlang/frame', 'qlang/each', 'qlang/absent', 'qlang/nullable', 'qlang/shape', 'qlang/elision', 'qlang/desc',
+  'qlang/binding', 'qlang/error', 'qlang/trace', 'qlang/frame', 'qlang/each', 'qlang/absent', 'qlang/nullable', 'qlang/shape', 'qlang/excerpt', 'qlang/cell', 'qlang/desc',
   'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/invariant',
   'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/path', 'qlang/span', 'qlang/point', 'qlang/bind',
   'qlang/fail', 'qlang/group', 'qlang/legend', 'qlang/any'

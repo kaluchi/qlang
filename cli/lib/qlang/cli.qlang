@@ -1,10 +1,10 @@
 |~ The command line: its topic, `::cli`, and the names it declares under
-   the kinds of their subjects, `table` under `::vec` and the names of
-   the streams under `::any`. Their primitives take the values alone, the
-   served subject and the values of their inputs, but that of `tap`, which
-   reads the state of its call.
+   the kinds of their subjects, `table` under `::vec`, the names of the
+   streams under `::any` and `answer` under `::cell`. Their primitives
+   take the values alone, the served subject and the values of their
+   inputs, but that of `tap`, which reads the state of its call.
    The rules it holds: [QSHST#effect], [QSDSP#residence], [QSCLI#repl],
-   [QSCLI#stdin]. ~|
+   [QSCLI#stdin], [QSHST#cell]. ~|
 
 :cli
   |~~ The command line runs a query on what a shell hands it and prints
@@ -38,8 +38,8 @@
       writes what the conversion made: `| json` the JSON text of the
       answer, `| table` a vector of maps drawn as a table, `| print` the
       literal of the answer, a string in its quotes. A failure prints as
-      its alert, the error at rest `::Tag!{…}` with the subject where it
-      arose cut to an excerpt, under the line
+      its alert, the error at rest `::Tag!{…}`, each fact whole within
+      three hundred characters and past them as its excerpt, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
       the call, a refused text holding a caret beneath its line, `:marker`
@@ -55,18 +55,17 @@
 
       Every answer prints within one budget of characters, but in the
       REPL, which prints it whole, and one past it prints as
-      `::qlang/AnswerBeyondBudgetError`, whose `:budget`
-      names the budget, with its head, each `::elision` in it a `:read`
-      that continues the query to the part;
-      `print | out` or `json | out` writes the whole, and `| elide N` cuts
-      an answer on purpose. `in`, `out`, `err` and `tap` read and write the
-      streams, `tap` showing a value halfway through a query on stderr as
+      `::qlang/AnswerBeyondBudgetError`, whose `:budget` names the
+      budget, with its excerpt and the cell whose `answer` reads the whole
+      later; `print | out` or `json | out` writes the whole, and
+      `| excerpt N` tells an answer on purpose. `in`, `out`, `err` and
+      `tap` read and write the streams, `tap` showing a value halfway through a query on stderr as
       an answer prints; a query that writes to stdout by `out` holds the
       channel, and its answer is left unwritten. A value one query hands
       another over a pipe keeps its kinds as its literal, `print | out`
       writing it and `in | parse | open` reading it back.
       ::link~(::any/json | doc) ::link~(::vec/table | doc)
-      ::link~(::qlang/errors | doc) ::link~(::any/elide | doc)
+      ::link~(::qlang/errors | doc) ::link~(::any/excerpt | doc)
       ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
@@ -214,6 +213,47 @@
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
         ~(5 | tap :a :b !| tag | eq ::any/tap/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
+:cell/answer
+  |~~ Answers the value the command line keeps under the cell, read back
+      over the root and the names the query that kept it declared:
+      `::cell"a3f9c2d1e04b" | answer | take 3` reads the first three
+      elements of an answer that passed the budget of every answer, its
+      refusal naming the cell under `:cell`. The command line keeps under
+      `<tmp>/qlang/<root>/cells/<id>/` the query, `source.qlang`, the values
+      it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
+      core prints it, `<root>` the identity of the sources and the code it
+      booted, so a cell kept over other sources is held by none. A value
+      under a kind the keeping query declared answers its names where the
+      reading query declares that kind again, and `payload` in any query.
+      ::link~(::cell | doc) ::link~(::qlang/AnswerBeyondBudgetError | doc)
+  ~~|
+  ::fn
+    | returns |~~ The value the cell keeps. ~~| ::any
+    | throws :SubjectNotCellError
+        |~~ `answer` reads a cell, `::cell"a3f9c2d1e04b" | answer`, the one
+            the refusal of an answer past the budget names.
+        ~~|
+    | throws :NotHeldError
+        |~~ The command line holds no such cell: the temporary folder was
+            emptied, the cell was kept over other sources or by another
+            host, or none drew it. The answer is read again by the query
+            that made it, narrowed by `get`, `take` or `count` so it prints
+            within the budget.
+            ::link~(::qlang/AnswerBeyondBudgetError | doc)
+        ~~|
+        ~(wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the cell. ~~| ::tag)
+    | throws :ArgsBeyondInputsError
+        |~~ `answer` reads the whole a cell keeps and takes no value: a part
+            of it is read after it, `answer | take 3`.
+        ~~|
+    | proves :NotHeldError/refusesACellNoneKept
+        |~~ A cell no query kept is refused. ~~|
+        ~(::cell"000000000000" | answer !| tag | eq ::cell/answer/NotHeldError)
+    | proves :SubjectNotCellError/refusesANumber
+        |~~ A number names no cell. ~~|
+        ~(5 | cell/answer !| tag | eq ::cell/answer/SubjectNotCellError)
     | impl ::builtin{}
 
 :vec/table

@@ -66,8 +66,8 @@
         ~(wires :command |~~ The command as written, a quote of its step. ~~| ::quote
           | wires :index
               |~~ The index, from zero, of the element refused. ~~|
-              ~(query /index) #[::null ::number]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ~(query /actualTag) #[::null ::tag]
+              ::number
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :NameDeclaredTwiceError
         |~~ A name of a chain is declared once: an input, a refusal
@@ -113,7 +113,7 @@
               |~~ The address the descriptor of the recipe names: where the root
                   holds no function equal to the one refused.
               ~~|
-              ~(query /of) #[::null ::tag]
+              ::tag
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~|)
     | throws :KindNotTakenError
@@ -132,7 +132,7 @@
                   for the value the path names, `mul (get /qty)` for
                   `mul /qty`, and null where it gave none.
               ~~|
-              ~(query /repair) #[::null ::quote]
+              ::quote
           | wires :expected |~~ The kinds taken. ~~| ::set
           | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~|)
@@ -183,7 +183,7 @@
                   a path for the value it names, `get /tags | count` for
                   `/tags | count`, and null where it is none.
               ~~|
-              ~(query /repair) #[::null ::quote]
+              ::quote
           | wires :actualTag |~~ The kind of the subject refused. ~~| ::tag)
     | throws :InvariantNotHeldError
         |~~ An input or an answer an invariant of the function does not hold

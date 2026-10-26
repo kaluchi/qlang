@@ -1,18 +1,18 @@
-// [QSPRN#print], [QSPRN#elide], [QSPRN#budget]
+// [QSPRN#print], [QSPRN#excerpt], [QSPRN#budget]
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue, tagOf, makeErrorValue } from '../types.mjs';
-import { elideToBudget, alertWithin, headOfAnswer, lengthOf, ANSWER_BUDGET } from '../elide.mjs';
+import { isErrorValue } from '../types.mjs';
+import { excerptWithin, alertOf, lengthOf, ANSWER_BUDGET } from '../excerpt.mjs';
 import { rootState, markRootVerbScope } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
-import { kindOfAValueOf, nodeOf, residenceOnSubject } from '../nouns.mjs';
-import { chainOfKind } from '../chain.mjs';
+import { nodeOf, residenceOnSubject } from '../nouns.mjs';
 import { callVerbOn } from '../eval.mjs';
 import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 
 const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
+const AnyExcerptBudgetPastTheBudgetError = declareRefusal('any/excerpt/budget/PastTheBudgetError');
 
 // [QSPRN#print]
 export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
@@ -27,21 +27,16 @@ export async function printAnswer(value, scope, state = rootState(value, scope))
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
 
-// [QSPRN#budget]
-export async function boundAnswer(answer, scope, written = null) {
+// [QSPRN#budget], [QSERR#alert], [QSHST#cell]
+export async function boundAnswer(answer, scope, written = null, keep = null) {
   const printedOf = await printsOfKinds(answer, scope);
-  const failed = isErrorValue(answer);
-  const shown = failed ? alertWithin(answer, ANSWER_BUDGET, printedOf, readByItsNames(answer.tag, scope)) : answer;
-  const characters = lengthOf(written ?? printValue(shown, 0, printedOf));
-  if (characters <= ANSWER_BUDGET) return shown;
-  const refused = errorFromQlang(new QlangAnswerBeyondBudgetError({ characters, budget: ANSWER_BUDGET, actualValue: headOfAnswer(answer, printedOf) }), undefined, scope);
-  return alertWithin(makeErrorValue(refused.tag, new Map(refused.facts).set('actualTag', failed ? answer.tag : tagOf(answer))), ANSWER_BUDGET, printedOf, true);
-}
-
-// [QSERR#alert]
-function readByItsNames(tag, scope) {
-  const kind = kindOfAValueOf(scope, tag.name);
-  return kind !== null && chainOfKind(kind).fields.length > 0;
+  if (isErrorValue(answer)) return alertOf(answer, printedOf);
+  const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
+  if (characters <= ANSWER_BUDGET) return answer;
+  const facts = { characters, budget: ANSWER_BUDGET, answer };
+  const cell = keep === null ? null : await keep(answer);
+  if (cell !== null) facts.cell = cell;
+  return alertOf(errorFromQlang(new QlangAnswerBeyondBudgetError(facts), undefined, scope), printedOf);
 }
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
@@ -64,4 +59,9 @@ async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKin
 }
 
 registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));
-registerStateReader('any/elide', async (subject, budget, state) => elideToBudget(subject, budget, await printsOfKinds(subject, state.scope, state)));
+
+// [QSPRN#excerpt]
+registerStateReader('any/excerpt', async (subject, budget, state) => {
+  if (budget > ANSWER_BUDGET) throw new AnyExcerptBudgetPastTheBudgetError({ budget: ANSWER_BUDGET, actualValue: budget });
+  return excerptWithin(subject, budget, await printsOfKinds(subject, state.scope, state));
+});

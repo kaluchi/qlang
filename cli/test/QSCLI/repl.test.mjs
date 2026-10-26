@@ -127,16 +127,18 @@ describe('an answer printed whole and a failure as its alert', () => {
     expect(printed).toContain('::number/add/SubjectNotNumberError');
   });
 
-  it('prints a failure as its alert, the subject of a frame of its trace cut to an elision whose `:read` reaches it', async () => {
+  it('prints a failure as its alert, a fact past the room of a fact shown as its excerpt', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| trace | get /1 | subject)');
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/:trace ::excerpt\{\n\s+:of ::trace\n\s+:count 2\n/);
   });
 
-  it('prints the alert of a runaway recursion within the budget', async () => {
+  it('prints the alert of a runaway recursion within its room', async () => {
     const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toContain(':read ~(!| trace | drop ');
+    const shown = stripAnsi(replHarness.stdoutText());
+    expect(shown).toContain(':count 1001');
+    expect(shown.length).toBeLessThan(2100);
   });
 });

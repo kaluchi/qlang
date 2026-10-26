@@ -90,7 +90,7 @@
         ~(wires :message |~~ The host's account of the failure. ~~| ::string
           | wires :causes
               |~~ The accounts of the failures beneath it, outermost first. ~~|
-              ~(query /causes) #[::null ::vec])
+              ::vec)
     | throws :ValueTakesNoModifiersError
         |~~ A name the scope binds to a value, and a part the kind of the
             subject wires, take no modifiers: the value is read bare,
@@ -161,10 +161,10 @@
               ::set
           | wires :nearest
               |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
-              ~(query /nearest) #[::null ::vec]
+              ::vec
           | wires :repair
               |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
-              ~(query /repair) #[::null ::quote]
+              ::quote
           | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
@@ -360,7 +360,7 @@
         |~~ `:addresses` lists every kind the name serves. ~~|
         ~(5 | count
           !| get [~(tag) ~(addresses)]
-          |  eq [::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]])
+          |  eq [::call/KindAnswersNoVerbError #[::excerpt/count ::map/count ::string/count ::vec/count]])
     | proves :KindAnswersNoVerbError/namesTheVerbsOfAReadersNouns
         |~~ The verbs of the name under a reader's nouns are named by
             their addresses.

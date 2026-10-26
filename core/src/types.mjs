@@ -245,7 +245,7 @@ export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
 export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
 export const DESC_TAG        = makeTag('desc');
 export const DOC_TAG         = makeTag(DOC_TAG_NAME);
-export const ELISION_TAG     = makeTag('elision');
+export const EXCERPT_TAG     = makeTag('excerpt');
 export const LEGEND_TAG      = makeTag('legend');
 export const ERROR_TAG       = makeTag('error');
 export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
@@ -412,6 +412,12 @@ export function partsOfFrame(frame) {
 
 export function makeTrace(frames) {
   return makeTagged(TRACE_TAG, [...frames]);
+}
+
+// [QSPRN#excerpt]
+export function makeExcerpt(of, count, parts) {
+  const payload = new Map([['of', of], ['count', count], ['parts', parts]]);
+  return makeTagged(EXCERPT_TAG, payload, WIRINGS_THE_ROOT_HANDS.get(EXCERPT_TAG.name)(payload));
 }
 
 export function makeErrorValue(tag, facts, { originalError = null } = {}) {

@@ -2,19 +2,21 @@ import { it, expect, beforeAll } from 'vitest';
 import { answerText } from '../../src/render.mjs';
 import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
 
-// [QSPRN#budget]
 let scope;
 beforeAll(async () => {
   scope = await langRuntime();
 });
 
-it('cuts the alert of a failure within the budget, its trace kept to its first frames', async () => {
+const alertOf = text => text.split('\n').filter(line => !line.startsWith('|~|')).join('\n');
+
+it('writes the alert of a runaway recursion within its room, its trace shown as the excerpt of its frames', async () => {
   const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);
-  expect(text).toContain(':read ~(!| trace | drop ');
+  expect(alertOf(text)).toMatch(/:trace ::excerpt\{\n\s+:of ::trace\n\s+:count 1001\n/);
+  expect(alertOf(text).length).toBeLessThanOrEqual(2000);
 }, 60_000);
 
-it('writes a failure whose alert passes the budget as the refusal above the prose of the refusal\'s page', async () => {
+it('writes a failure of more facts than its room holds as the alert of its first facts, above the prose of its page', async () => {
   const failure = await evalQuery('3000 | range | map ~(get [~(toString | append "k" | toKeyword) ~(it)]) | toMap | raise', scope);
   const text = await answerText(failure, scope, 'The page of the failure.');
-  expect([text.includes('::qlang/AnswerBeyondBudgetError!{'), text.includes('print | out'), text.includes('The page of the failure.')]).toEqual([true, true, false]);
+  expect([text.startsWith('|~| raised, and no !| caught it\n!{\n  :"0k" 0\n'), alertOf(text).length <= 2000, text.includes(':trace'), text.includes('The page of the failure.')]).toEqual([true, true, false, true]);
 });

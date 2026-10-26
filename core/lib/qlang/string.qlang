@@ -108,7 +108,7 @@
         |~~ A number answers no `count`, and the refusal names the kinds
             that do.
         ~~|
-        ~(5 | count !| addresses | eq #[::map/count ::string/count ::vec/count])
+        ~(5 | count !| addresses | eq #[::excerpt/count ::map/count ::string/count ::vec/count])
     | impl ::builtin{}
 
 :string/size
@@ -815,7 +815,7 @@
             none where the number is the whole text; a literal of qlang past
             the range is the parser's own refusal.
         ~~|
-        ~(wires :path |~~ The path to the part the refusal stands at. ~~| ~(query /path) #[::null ::path])
+        ~(wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
     | proves :readsANumber
         |~~ A JSON number reads as a number. ~~|
         ~("42" | parseJson | eq 42)

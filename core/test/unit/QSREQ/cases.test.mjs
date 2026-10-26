@@ -44,6 +44,20 @@ async function answersAsWritten(answer, test) {
 
 const chapterOf = file => /^(QS[A-Z]{3})\//.exec(file)?.[1] ?? null;
 
+// [QSVOX#chapter]
+function sectionsBroughtIn(decisionsDir) {
+  const brought = new Set();
+  if (!existsSync(decisionsDir)) return brought;
+  for (const name of readdirSync(decisionsDir).filter(entry => /^D\d+\.md$/.test(entry))) {
+    const lines = readFileSync(join(decisionsDir, name), 'utf8').split(/\r?\n/);
+    const at = lines.findIndex(line => line.startsWith('Overrides '));
+    for (let line = at; at !== -1 && line < lines.length && (line === at || lines[line].startsWith('[QS')); line++) {
+      for (const [, section] of lines[line].matchAll(/\[(QS[A-Z]{3}#[a-z-]+)\]/g)) brought.add(section);
+    }
+  }
+  return brought;
+}
+
 const casesByFile = files.map(file => ({
   file,
   cases: readFileSync(join(conformanceDir, file), 'utf8')
@@ -84,10 +98,12 @@ describe('conformance: the requirements agree', () => {
     expect(terse).toEqual([]);
   });
 
-  it('stands each file as a section of a chapter of the specification', () => {
+  it('stands each file as a section of a chapter of the specification or one a record in transit brings', () => {
     const specDir = join(here, '..', '..', '..', '..', 'docs', 'spec');
+    const brought = sectionsBroughtIn(join(here, '..', '..', '..', '..', 'docs', 'journal'));
     const homeless = files.filter(file => {
       const [chapter, section] = [chapterOf(file), file.split('/').pop().replace(/\.jsonl$/, '')];
+      if (brought.has(`${chapter}#${section}`)) return false;
       const spec = chapter !== null && existsSync(specDir) ? readdirSync(specDir).find(name => name.startsWith(`${chapter}-`)) : undefined;
       return spec === undefined || !readFileSync(join(specDir, spec), 'utf8').split(/\r?\n/).includes(`## ${section}`);
     });

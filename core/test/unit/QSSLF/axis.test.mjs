@@ -48,7 +48,7 @@ describe('the axes read the node a tag addresses', () => {
 
   it('a tag of a name several kinds answer is refused with the addresses of its pages, one on each kind that answers it', async () => {
     expect([...await evalQuery('::count | doc !| addresses')])
-      .toEqual([makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
+      .toEqual([makeTag('excerpt/count'), makeTag('map/count'), makeTag('string/count'), makeTag('vec/count')]);
   });
 
   it('::quote | source reads the declaration of the kind in the source of the catalog that declares it', async () => {

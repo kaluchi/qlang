@@ -68,8 +68,8 @@
         ~(wires :command |~~ The command as written, a quote of its step. ~~| ::quote
           | wires :index
               |~~ The index, from zero, of the element refused. ~~|
-              ~(query /index) #[::null ::number]
-          | wires :actualTag |~~ The kind of the value refused. ~~| ~(query /actualTag) #[::null ::tag]
+              ::number
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,

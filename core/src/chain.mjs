@@ -4,10 +4,9 @@ import { declareRefusal } from './errors.mjs';
 import { readsAsBareKeyword, readsAsName } from './name-chars.mjs';
 import {
   isDoc, isKeyword, isPath, isSet, isQuote, isTag, makeDoc, makeKeyword, makePath, makeQuote, makeTag, makeTagged, commandsOf,
-  FN_TAG_NAME, KIND_TAG_NAME, BUILTIN_TAG, ERROR_TAG, TRACE_TAG, CORE_KIND, TAG_HEADER_SYMBOL
+  FN_TAG_NAME, KIND_TAG_NAME, BUILTIN_TAG, ERROR_TAG, TRACE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { isCallStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
-import { makeSet } from './ordering.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
 import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
@@ -263,9 +262,7 @@ function placeOf(selector) {
 const KIND_TAG = makeTag(KIND_TAG_NAME);
 const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag, commandStep('doc', [])]))]);
 const ACCEPTS_THE_ERROR = commandStep('accepts', [pageLinkingTo(ERROR_TAG), ERROR_TAG]);
-const WIRES_THE_TRACE = commandStep('wires', [
-  makeKeyword('trace'), pageLinkingTo(TRACE_TAG), makeQuote([commandStep('query', [makePath(['trace'])])]), makeSet([CORE_KIND.null, TRACE_TAG])
-]);
+const WIRES_THE_TRACE = commandStep('wires', [makeKeyword('trace'), pageLinkingTo(TRACE_TAG), TRACE_TAG]);
 const finishedOver = commands => makeTagged(KIND_TAG, Object.freeze([makeQuote([ACCEPTS_THE_ERROR, ...commands, WIRES_THE_TRACE]), null]));
 const KIND_OF_A_PAGE_ALONE = finishedOver([]);
 const FINISHED_KINDS = new WeakMap();

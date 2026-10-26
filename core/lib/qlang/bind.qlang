@@ -98,7 +98,7 @@
               ::keyword
           | wires :noun
               |~~ The label or the verb the name is declared under. ~~|
-              ~(query /noun) #[::null ::tag])
+              ::tag)
     | throws :NameDeclaredTwiceError
         |~~ A name is declared once in a scope: the steps of a pipeline
             that the pipe or the fail track joins share one scope, and a

@@ -16,7 +16,7 @@ it('refuses in every spelling a generic word the texts write in no sense: in pro
 
 it('leaves the words that share the letters of a word refused whole, and the words written instead', () => {
   for (const text of [
-    'a regex', 'the shape of a value', 'the leaves of a value', 'the opener of a comment', 'an elision', 'the selector of an input', '::frame/path', ':arity',
+    'a regex', 'the shape of a value', 'the leaves of a value', 'the opener of a comment', 'an excerpt', 'the selector of an input', '::frame/path', ':arity',
     'replace', 'replaced', 'a placeholder', 'Placeholder', 'workplace', 'placement', 'a stint',
     'trim_trailing_whitespace', 'a trailing newline', 'Trailing', 'the Nissan XTrail', 'a makeTrailer helper', 'a TRAILER of a print',
     'Minty', 'reflects', 'lift', 'a plain map'
@@ -63,9 +63,9 @@ it('refuses the names a refusal, a conversion, an empty subject, the repair of a
   ]) expect(refused(text), text).toBe(true);
 });
 
-it('leaves the refusals written instead, the read of an elision, the caret beneath a refused line, a bracket opened and the scope a call opens', () => {
+it('leaves the refusals written instead, the read of a part, the caret beneath a refused line, a bracket opened and the scope a call opens', () => {
   for (const text of [
-    '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':repair/namesAWrittenPathAlone', 'the read of an elision', '`:read` continues the query to it',
+    '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':repair/namesAWrittenPathAlone', '`:read` continues the query to it',
     'the `:marker` beneath the `:source`', 'carries :ParseError/marker', 'markedLineOf',
     'a valid identifier', 'IdentStart', ':end-of-source', 'findNameOccurrences', '`[` opened at line 1, column 1 is never closed', 'the scope a call opens',
     '`open` runs a quote, a link or a snippet', 'the error at rest a catch holds'
@@ -157,4 +157,12 @@ it('leaves the stint, the closeout, the reconciliation, the notebook and the wal
     'a stint, one branch', 'the closeout of a stint', 'the reconciliation of the tree with its baseline', 'scripts/reconciliation.mjs', '`createNotebook({ scope })`',
     'the baseline, the last merge on master', 'Shift+F12 finds the references', 'the walk of a value\'s tags', 'core/src/parsed-parts.mjs', 'the scan of the door'
   ]) expect(refused(text), text).toBe(false);
+});
+
+it('refuses the names the cut of a value to a budget once had', () => {
+  for (const text of ['elide', 'x | elide 4000', '::elision', 'an elision of the rest', 'Elisions', 'elided', 'ELISION_TAG']) expect(refused(text), text).toBe(true);
+});
+
+it('leaves the excerpt, the concentrate of a failure and the words beside the cut', () => {
+  for (const text of ['excerpt', '::excerpt', 'x | excerpt 4000', 'the concentrate of a failure', 'an ellipsis on each side', 'delight', 'the alert of a failure']) expect(refused(text), text).toBe(false);
 });

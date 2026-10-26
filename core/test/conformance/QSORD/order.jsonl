@@ -9,7 +9,7 @@
 {"name":"sort-puts-tagged-values-after-the-core-by-tag-name","query":"[::B{:x 1} ::A[1] {:y 2}] | sort","expect":"[{:y 2} ::A[1] ::B{:x 1}]"}
 {"name":"sort-orders-nulls-as-equals","query":"[null 1 null] | sort","expect":"[null null 1]"}
 {"name":"sort-orders-errors-at-rest-by-tag-then-fields","query":"[::B::error{} ::error{:k 2} ::error{:k 1}] | sort","expect":"[::B!{} !{:k 1} !{:k 2}]"}
-{"name":"sort-ranks-an-elision-among-the-tags-by-its-name","query":"[::Z[1] ::elision{:size 2} ::elision{:size 1}] | sort","expect":"[::Z[1] ::elision{:size 1} ::elision{:size 2}]"}
+{"decision":"D407","name":"sort-ranks-an-excerpt-among-the-tags-by-its-name","query":"[::Z[1] ::excerpt{:of ::vec :count 2 :parts {}} ::excerpt{:of ::vec :count 1 :parts {}}] | sort | map ~(get [~(tag) ~(count)])","expect":"[[::Z 1] [::excerpt 1] [::excerpt 2]]"}
 {"name":"sort-orders-one-tag-by-payload","query":"[::A[2] ::A[1]] | sort","expect":"[::A[1] ::A[2]]"}
 {"name":"sort-orders-tagged-atoms-by-payload","query":"[::A#2 ::A#1] | sort","expect":"[::A#1 ::A#2]"}
 {"name":"sort-puts-a-map-of-fewer-keys-first","query":"[{:a 1 :b 2} {:a 1}] | sort","expect":"[{:a 1} {:a 1 :b 2}]"}
@@ -23,7 +23,7 @@
 {"name":"paths-rank-segment-by-segment-an-index-as-its-text","query":"[/9 /10] | sort | map ~print","expect":"[\"/10\" \"/9\"]"}
 {"name":"a-doc-ranks-by-its-segments-a-run-of-prose-before-a-quote","query":"[[~(b)] [\"z\"]] | map ~(tag ::doc) | sort | map ~segments","expect":"[[\"z\"] [~(b)]]"}
 {"name":"sort-orders-docs-of-prose-by-their-text","query":"[|~~ b ~~| |~~ a ~~|] | sort","expect":"[|~~ a ~~| |~~ b ~~|]"}
-{"name":"a-desc-and-an-elision-rank-after-a-doc-by-the-names-of-their-tags","query":"[::desc#1 ::elision{:size 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag","expect":"[::map ::quote ::doc ::desc ::elision]"}
+{"decision":"D407","name":"a-desc-and-an-excerpt-rank-after-a-doc-by-the-names-of-their-tags","query":"[::excerpt{:of ::vec :count 1 :parts {}} ::desc#1 ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag","expect":"[::map ::quote ::doc ::desc ::excerpt]"}
 {"name":"quotes-rank-by-their-steps","query":"[~(b) ~(a | b) ~(a)] | sort","expect":"[~(a) ~(a | b) ~(b)]"}
 {"name":"strings-order-by-their-code-points-as-they-count","query":"[\"😀\" \"ﬁ\" \"a\" \"👍\"] | sort","expect":"[\"a\" \"ﬁ\" \"👍\" \"😀\"]"}
 {"name":"a-comparison-of-strings-reads-their-code-points","query":"get [~(\"😀\" | gt \"ﬁ\") ~(\"ﬁ\" | lt \"😀\") ~(\"😀\" | gt \"a\")]","expect":"[true true true]"}

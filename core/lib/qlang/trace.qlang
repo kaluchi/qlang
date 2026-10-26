@@ -48,7 +48,7 @@
         ~~|
         ~(wires :index |~~ The index, from zero, of the element refused. ~~| ::number
           | wires :expected |~~ The kinds taken, where a value of none of them was refused. ~~| ::set
-          | wires :actualTag |~~ The kind of the value refused. ~~| ~(query /actualTag) #[::null ::tag]
+          | wires :actualTag |~~ The kind of the value refused. ~~| ::tag
           | wires :actualValue |~~ The value refused. ~~| ~(query /actualValue))
     | proves :holdsAFrameForEachStep
         |~~ A failure inside the code of `map` holds the frame of the step

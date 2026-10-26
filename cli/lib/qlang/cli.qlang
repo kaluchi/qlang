@@ -40,7 +40,7 @@
       literal of the answer, a string in its quotes. A failure prints as
       its alert, the error at rest `::Tag!{…}`, each fact whole within
       three hundred characters and past them as the cell the command line
-      keeps it in, beside its tag and the views its kind reveals,
+      keeps it in, beside its tag, the views its kind reveals and its parts,
       `::Tag::excerpt{…}`, under the line
       `|~| raised, and no !| caught it` and above the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair

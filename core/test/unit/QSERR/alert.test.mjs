@@ -40,6 +40,25 @@ describe('a host prints a failure as the concentrate of its facts', () => {
     expect([[...alert.facts.keys()], printValue(alert.facts.get('trace/failed'))]).toEqual([['subject/expected', 'subject/found', 'subject/found/tag', 'subject/found/count', 'subject/found/shape', 'subject/found/first', 'subject/found/last', 'trace', 'trace/tag', 'trace/failed'], '[~(add 1)]']);
   });
 
+  it('lays out the parts of a fact past its room by its keys, each past its own room its cell beside its views', async () => {
+    const { keep } = keeping();
+    const alert = await alertOf('get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise', keep);
+    expect([[...alert.facts.keys()], alert.facts.get('record/a'), printValue(alert.facts.get('record/rows')), alert.facts.get('record/rows/count')])
+      .toEqual([['record', 'record/tag', 'record/count', 'record/shape', 'record/a', 'record/rows', 'record/rows/tag', 'record/rows/count', 'record/rows/shape', 'record/rows/first', 'record/rows/last', 'trace', 'trace/tag', 'trace/failed'], 1, '::cell"kept3"', 5000]);
+  });
+
+  it('passes a tag its kind does not wire, the tag beneath it under payload, and lays out the facts of a refusal it holds', async () => {
+    const keys = [...(await alertOf('1 | add (3410 | range) !| legend')).facts.keys()];
+    expect(keys.slice(0, 7)).toEqual(['characters', 'budget', 'answer/tag', 'answer/payload/tag', 'answer/subject/found', 'answer/addend/expected', 'answer/addend/found/tag']);
+    expect(keys.at(-1)).toBe('answer/trace');
+  });
+
+  it('gives the room to the facts before the parts beneath them', async () => {
+    const alert = await alertOf('get {:wide ~(3000 | range | map ~(get [~(toKeyword) ~(it)]) | toMap) :note "x"} | raise');
+    const kept = [...alert.facts.keys()];
+    expect([kept.includes('note'), kept.includes('wide/0'), kept.includes('wide/2999'), printValue(alert).length <= ROOM_OF_AN_ALERT]).toEqual([true, true, false, true]);
+  });
+
   it('drops its last facts where the alert passes its room', async () => {
     const facts = Array.from({ length: 12 }, (_, at) => `:f${at} ${JSON.stringify('x'.repeat(250))}`).join(' ');
     const alert = await alertOf(`!{${facts}} | raise`);

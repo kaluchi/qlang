@@ -297,7 +297,8 @@ the set of no kinds takes no payload, its refusal holding the empty set
 as `:expected`, and a kind whose chain names no kind of its payload takes
 any. The door reads each part the kind wires once, by its selector, as
 the value is built: a part the payload leaves out is refused under its
-name as `…/NotGivenError`, one its selector fails to read as
+name as `…/NotGivenError`, a fact an error at rest does not hold reading
+null instead and an excerpt standing for any fact of one [QSERR#rest], one its selector fails to read as
 `…/NotReadError`, the failure at rest its `:actualValue`, and a value of
 none of its kinds under its name; a part no name wires is taken and read
 by nothing. The invariants of the value hold of the payload beneath the
@@ -310,7 +311,10 @@ A kind that wires a part closes its tag. A value of it is read by the
 names its kind wires alone, each bare, `card | took`, the name residing on
 the label as its words do [QSDSP#walk]; no path reads or writes beneath
 the tag, `::path/TagClosedError` [QSPTH#get], a value of the kind built
-anew through its door, and `payload` answers the payload bare. A kind that
+anew through its door, and `payload` answers the payload bare. A value laid
+under the tag before the kind was declared answers a name of the kind
+through the door of the kind, as its print read back is read, its names or
+the refusal of the door. A kind that
 wires no part stays open, its tag passing the words of its payload,
 `::Width#2 | add 3` answering `::Width#5`.
 
@@ -338,6 +342,9 @@ wires no part stays open, its tag passing the words of its payload,
 
 > :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(actualValue | tag)]
 [::E/n/NotReadError ::string/toNumber/TextNotNumberError]
+
+> ::Box{:w 3} | :Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number) | w
+3
 ```
 
 ## label

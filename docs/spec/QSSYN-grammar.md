@@ -241,8 +241,8 @@ true
 
 A source the parser refuses answers `::quote/ParseError` with its
 `:source`, the line where the reading stopped, cut around that point by
-an ellipsis on each side it cuts where its print would pass the excerpt
-of an alert [QSERR#alert]; its `:marker`, spaces, a caret `^` under the
+an ellipsis on each side it cuts where its print would pass the room of a
+fact of an alert, three hundred characters [QSERR#alert]; its `:marker`, spaces, a caret `^` under the
 character of `:source` where the reading stopped and a tilde under each
 other character of its span on that line, a span that runs past the line
 reaching its end, and spaces after them to the end of `:source`, each

@@ -1,7 +1,7 @@
-{"decision":"D407","name":"an-excerpt-tells-a-vector-by-its-kind-its-count-and-the-parts-at-its-two-ends","query":"3410 | range | excerpt | get [~(of) ~(count) ~(parts | get [/0 /3409])]","expect":"[::vec 3410 [0 3409]]"}
-{"decision":"D407","name":"an-excerpt-of-a-value-that-fits-shows-it-whole","query":"[1 2] | excerpt","expect":"::excerpt{:of ::vec :count 2 :parts {:\"0\" 1 :\"1\" 2}}"}
-{"decision":"D407","name":"an-excerpt-answers-no-verb-of-the-value-it-tells","query":"3410 | range | excerpt | take 3 !| tag","expect":"::call/KindAnswersNoVerbError"}
-{"decision":"D407","name":"an-excerpt-of-a-string-shows-its-first-and-its-last-characters","query":"1000 | range | map ~(\"ab\") | join \"\" | excerpt 80 | get [~(of) ~(count) ~(parts | keys | count) ~(print | count | lte 80)]","expect":"[::string 2000 2 true]"}
-{"decision":"D407","name":"an-excerpt-shows-a-map-under-its-keys","query":"{:a 1 :b 2} | excerpt | parts","expect":"{:a 1 :b 2}"}
-{"decision":"D407","name":"an-excerpt-takes-a-budget-no-larger-than-the-budget-of-every-answer","query":"[1 2] | excerpt 300000 !| get [~(tag) ~(budget)]","expect":"[::any/excerpt/budget/PastTheBudgetError 16000]"}
-{"decision":"D407","name":"an-excerpt-reads-back-as-itself","query":"1000 | range | excerpt | :e it | print | parse | open | eq e","expect":"true"}
+{"name":"an-excerpt-tells-a-vector-by-its-kind-its-count-and-the-parts-at-its-two-ends","query":"3410 | range | excerpt | get [~(of) ~(count) ~(parts | get [/0 /3409])]","expect":"[::vec 3410 [0 3409]]"}
+{"name":"an-excerpt-of-a-value-that-fits-shows-it-whole","query":"[1 2] | excerpt","expect":"::excerpt{:of ::vec :count 2 :parts {:\"0\" 1 :\"1\" 2}}"}
+{"name":"an-excerpt-answers-no-verb-of-the-value-it-tells","query":"3410 | range | excerpt | take 3 !| tag","expect":"::call/KindAnswersNoVerbError"}
+{"name":"an-excerpt-of-a-string-shows-its-first-and-its-last-characters","query":"1000 | range | map ~(\"ab\") | join \"\" | excerpt 80 | get [~(of) ~(count) ~(parts | keys | count) ~(print | count | lte 80)]","expect":"[::string 2000 2 true]"}
+{"name":"an-excerpt-shows-a-map-under-its-keys","query":"{:a 1 :b 2} | excerpt | parts","expect":"{:a 1 :b 2}"}
+{"name":"an-excerpt-takes-a-budget-no-larger-than-the-budget-of-every-answer","query":"[1 2] | excerpt 300000 !| get [~(tag) ~(budget)]","expect":"[::any/excerpt/budget/PastTheBudgetError 16000]"}
+{"name":"an-excerpt-reads-back-as-itself","query":"1000 | range | excerpt | :e it | print | parse | open | eq e","expect":"true"}

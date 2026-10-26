@@ -158,7 +158,7 @@ root holds the call's, its address beside the root's.
 
 ```qlang
 > 5 | count !| get [~(tag) ~(actualTag) ~(addresses)]
-[::call/KindAnswersNoVerbError ::number #[::map/count ::string/count ::vec/count]]
+[::call/KindAnswersNoVerbError ::number #[::excerpt/count ::map/count ::string/count ::vec/count]]
 
 > :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) ~(addresses)]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]

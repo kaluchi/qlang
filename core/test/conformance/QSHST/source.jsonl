@@ -5,7 +5,7 @@
 {"name":"the-kind-of-a-tag-name-is-declared-in-the-source-of-its-noun","query":"::tag | binding | origin","expect":":qlang/tag"}
 {"name":"a-kind-names-the-source-of-its-noun","query":"::vec | binding | origin","expect":":qlang/vec"}
 {"name":"an-addressed-built-in-answers-its-descriptor","query":"::vec/take | binding | value | get /1 | tag","expect":"::builtin"}
-{"decision":"D407","name":"a-kind-with-no-verb-of-its-own-has-a-source-of-its-page","query":"[::binding ::excerpt ::invariant ::law ::link ::snippet] | map ~(binding | origin)","expect":"[:qlang/binding :qlang/excerpt :qlang/invariant :qlang/law :qlang/link :qlang/snippet]"}
+{"name":"a-kind-with-no-verb-of-its-own-has-a-source-of-its-page","query":"[::binding ::excerpt ::invariant ::law ::link ::snippet] | map ~(binding | origin)","expect":"[:qlang/binding :qlang/excerpt :qlang/invariant :qlang/law :qlang/link :qlang/snippet]"}
 {"name":"the-source-of-the-language-declares-its-topic-alone","query":"kinds | filter ~(binding | origin | eq :qlang)","expect":"#[::qlang]"}
 {"name":"the-recipe-of-a-verb-of-the-host-is-its-descriptor","query":"::vec/sort | binding | value | get /1 | tag","expect":"::builtin"}
 {"name":"a-declaration-of-a-query-names-its-cell-as-its-origin","query":":x 1 | env | get /x | origin","expect":":cell-1"}

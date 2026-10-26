@@ -282,8 +282,8 @@ topic. A chapter tells in prose what it rests on and what rests on it,
 with links to go deeper, and its value is the set of the kinds that are
 it, data, so a chapter is no label [QSNAM#root]. The first page tells
 the budget every answer prints within and the refusal of an answer past
-it, how a query cuts an answer, `elide`, and what the `::elision` of a
-part left out reads. Every link of every page of the catalog opens a
+it, the cell that keeps the answer and `answer` that reads it back, the
+concentrate a failure prints as, and how `excerpt` tells a value. Every link of every page of the catalog opens a
 doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 
@@ -297,7 +297,7 @@ true
 > get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
-> ::qlang | doc | content | get [~(contains "x | elide 4000") ~(contains "an ::elision whose `:read` continues") ~(contains "::qlang/AnswerBeyondBudgetError")]
+> ::qlang | doc | content | get [~(contains "x | excerpt 4000") ~(contains "the ::cell that") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
 > kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | map ~(manifest) | flat | :n5 it | get [~(n5 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4) ~(n5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))]

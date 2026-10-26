@@ -3,7 +3,8 @@
 What a host hands the language and what the language leaves to it: the
 sources and the primitives a host hands, the doors a value enters by, the
 notebook a query runs in, the verbs of a host for the streams of its
-process, and the tokens the core hands its painters. The cases of
+process, the cell a host keeps a value in, and the tokens the core hands
+its painters. The cases of
 `core/test/conformance/QSHST/` and the tests of the core's host hold its
 sections; the command line is [QSCLI], and the language server and the
 editor [QSLSP].
@@ -232,8 +233,8 @@ standard output and `err` as a line of standard error, each whole, and
 `tap` writes `[tap <label>]` and its subject on standard error halfway
 through a query as a host prints an answer, the print a kind declares
 among it, within the budget of every answer and past it as the refusal
-instead, whose reads continue the query from the subject at the
-`tap`; the query goes on with the subject as it came, and `err print`
+instead, the subject shown as its excerpt beside the cell the command line
+keeps it in [QSHST#cell]; the query goes on with the subject as it came, and `err print`
 writes a look whole. What changes the world
 is a verb of its host, addressing the same names the queries read, and
 its result a noun that queries read. A verb of a host has one output, a
@@ -257,15 +258,51 @@ $ qlang ':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count' < /d
 [tap x] [box]
 1
 
-$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|::elision\{:size [0-9]+ :read ~\(drop [0-9]+\)\}|^5000$'
+$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|:answer ::excerpt\{|^5000$'
 [tap big] |~| raised, and no !| caught it
-::elision{:size 4921 :read ~(drop 79)}
+:answer ::excerpt{
 5000
 ```
 
 The words of the streams of a process, `in`, `out`, `err` and `tap`, are
 the command line's, beside `table`, and a host that runs as a command takes
 them with their source from `./cli-sources` of the command line's package.
+
+## cell
+
+A cell is the interface a host gives for the work with state inside the
+language: `::cell`, a kind of the core over its identity, letters, digits
+and hyphens, whose literal reads back as itself in any later query, and its
+word `answer`, which its host declares and which reads at the call what the
+host keeps under it. The command line keeps so an answer and a subject at a
+`tap` past the budget of every answer, drawing the identity, twelve digits
+of hexadecimal, which the refusal of the print names under `:cell`
+[QSPRN#budget], and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
+`<root>` the identity of the sources and the code it booted, the query,
+`source.qlang`, the values the query declared, each as the core prints it,
+`names.qlang`, and the answer as the core prints it, `answer.qlang`, the
+`print` of every kind left out; a cell older than a day leaves when it
+keeps another. `answer` reads the answer back over the root and those
+values, a value under a kind the query declared answering its names where
+the reading query declares that kind again and `payload` in any, and
+refuses a cell it does not hold as `::cell/answer/NotHeldError`. A host
+that keeps no cell names none.
+
+```qlang
+> ::cell"a3f9c2d1e04b" | :c it | get [~(tag) ~(payload) ~(print | parse | open | eq c)]
+[::cell "a3f9c2d1e04b" true]
+
+> ::cell"../x" !| tag
+::cell/PayloadNotIdentityError
+```
+
+```sh
+$ qlang "$(qlang '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
+3000
+
+$ qlang '::cell"000000000000" | answer !| tag' < /dev/null
+::cell/answer/NotHeldError
+```
 
 ## tokens
 

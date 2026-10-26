@@ -77,7 +77,7 @@ reads as any value.
 > {:b ::T#5} | get /b/c !| get [~(tag) ~(actualValue)]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| actualValue | actualValue)]
+> get [~(::T#5 | get /a !| get [~(payload | keys) ~(actualTag)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| found | actualValue)]
 [[#[:actualTag :path :segment :trace] ::number] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
@@ -173,7 +173,7 @@ reading `:b` under `:a`.
 > {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]
 
-> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(index) ~(expected)]) ~([{:a 1} [true]] | minus !| tag)]
+> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(keys | index) ~(keys | expected)]) ~([{:a 1} [true]] | minus !| tag)]
 [[::map/minus/KeysElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b

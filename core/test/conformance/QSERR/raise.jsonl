@@ -12,5 +12,5 @@
 {"name":"error-takes-the-outermost-tag-over-its-map","query":"{:k 1} | tag ::Foo | tag ::Bar | raise !| tag","expect":"::Bar"}
 {"name":"raise-resides-on-every-value-and-refuses-one-that-is-no-map","query":"5 | raise !| tag","expect":"::any/raise/SubjectKindNotTakenError"}
 {"name":"raise-refuses-a-value-under-a-tag-over-no-map","query":"::Foo[1] | raise !| tag","expect":"::any/raise/SubjectKindNotTakenError"}
-{"name":"a-caught-refusal-raised-again-under-its-closed-tag-is-the-error-it-was","query":"\"x\" | add 1 !| raise !| get [~(tag) ~(subject | found | tag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
-{"name":"raise-refuses-the-excerpt-of-a-failure-as-no-map-of-facts","query":"::number/add/SubjectNotNumberError::excerpt{:subject/found #[1] :trace ::cell\"093225005142\" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(subject | found | payload | tag)]","expect":"[::any/raise/SubjectKindNotTakenError ::excerpt]"}
+{"decision":"D466","name":"a-caught-refusal-raised-again-under-its-closed-tag-is-the-error-it-was","query":"\"x\" | add 1 !| raise !| get [~(tag) ~(subject | found | tag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
+{"decision":"D466","name":"raise-refuses-the-excerpt-of-a-failure-as-no-map-of-facts","query":"::number/add/SubjectNotNumberError::excerpt{:subject/found #[1] :trace ::cell\"093225005142\" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(subject | found | payload | tag)]","expect":"[::any/raise/SubjectKindNotTakenError ::excerpt]"}

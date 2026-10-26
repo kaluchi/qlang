@@ -489,15 +489,16 @@
 :kind/throws
   |~~ Names a refusal of a kind, its page and the kind of its facts,
       `::kind | throws :TooWideError |~~ A parcel past its height. ~~| ~(wires :h |~~ The height. ~~| ::number)`,
-      under a field where it is written with a path, the page of the
-      refusal the kinds of a field name among them; a refusal a primitive
-      of the kind raises is paged so. The facts are the commands of the
-      kind of the refusal, a quote, which `throws` builds into the kind as
-      `::fn/throws` does, the refusal of a payload and of a part a rule
-      lays taking the kind of its family, `::kind/KindNotTakenError`, and
-      one that shares the kind of another naming it by its tag, as
+      one level under the kind, the page of the refusal the kinds of a
+      field name among them, `:WKindNotTakenError`; a refusal a primitive
+      of the kind raises is paged so. A refusal that names no facts is the
+      verdict of the kind, the part refused under `found` beside
+      `expected` and `index`, as the refusal of a payload and of a part a
+      rule lays is; the facts a quote names are the commands of the kind of
+      the refusal, which `throws` builds into the kind as `::fn/throws`
+      does, and one that shares the kind of another names it by its tag, as
       `::fn/throws` does.
-      ::link~(::fn/throws | doc) ::link~(::kind/KindNotTakenError | doc)
+      ::link~(::fn/throws | doc) ::link~(::fn/slot | doc)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers

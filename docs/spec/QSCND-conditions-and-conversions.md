@@ -75,7 +75,7 @@ computed in their order before their kinds are read [QSQUO#modifier].
 > {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
 false
 
-> 5 | allOf ~(1) !| get [~(tag) ~(index)]
+> 5 | allOf ~(1) !| get [~(tag) ~(conditions | index)]
 [::any/allOf/ConditionKindNotTakenError 0]
 
 > 5 | allOf ~(true | tag ::Ok)
@@ -237,7 +237,7 @@ taking `::desc` off a value under it and laying it over any other, so
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) ~(expected)]
+> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) ~(subject | expected)]
 [::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1] | toKeyword !| tag

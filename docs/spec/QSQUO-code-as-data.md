@@ -163,7 +163,7 @@ the same quote.
 > ~(:a 1 | :b 2) | toString
 ":a 1\n| :b 2"
 
-> ~(add 1 | mul 2) | parse !| get [~(tag) ~(actualTag)]
+> ~(add 1 | mul 2) | parse !| get [~(tag) ~(subject | found | tag)]
 [::string/parse/SubjectNotStringError ::quote]
 
 > "add (" | parse !| get [~(tag) ~(source) ~(origin)]
@@ -219,8 +219,8 @@ part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 the condition of `if`, which always runs, is a value. An input that
 takes code takes a quote or a path, a group that computes a quote among
 them, `apply` a function too, and refuses a value computed at the call
-that none of its kinds takes, a failure among it, under its own address,
-the value its `:actualValue` and its tag its `:actualTag`, but for a
+that none of its kinds takes, a failure among it, one level under the
+verb by the input's name raised, the value the input's `found`, but for a
 name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of
 its modifier on as the answer of the call.

@@ -186,29 +186,34 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 [::string/parseJson/NumberNotFiniteError /0]
 
 > "1e400" | parseJson !| payload | keys
-#[:trace]
+#[:subject/found :trace]
 ```
 
 ## excerpt
 
 A host prints no value cut to a room: a fact of a failure past the room of
 a fact, three hundred characters, stands as the cell its host keeps it in
-[QSHST#cell], beside the views the kind of the fact reveals whose answers
-fit that room, each flat under the name of the fact and its own,
-`:actualValue/count 3410` [QSERR#alert], and a failure any fact of which
+[QSHST#cell], beside its tag, the first of its views, and the views the
+kind of the fact reveals whose answers fit that room, each flat under the
+name of the fact and its own, `:addend/found/tag ::vec` and
+`:addend/found/count 3410` [QSERR#alert], and a failure any fact of which
 gave way prints as `::excerpt`, the map of the facts it shows, under the tag
 of its refusal [QSERR#rest]. A kind reveals its views in its chain,
 `| reveals :count`, each the name of a verb of the kind that takes no value
-[QSBLD#kind]; a value shows the views of the first kind of the walk of its
-tags that reveals any, each read as the verb of that kind, so a set shows
-those of vectors, and a view whose verb refuses the value or that names no
-verb of the kind stands not, nor does one that answers an empty vector,
-set, map or string. `::vec` reveals `count`; `::map` `count` and `keys`;
-`::string` `count`; `::doc` `links`; and `::trace` `failed`, the steps that
-failed level by level, `subject`, the subject the step that failed met,
-and `paths`, the paths of the parts its verbs ran their code on. An excerpt
-is a map read by its keys, a view by its key under the tag of a refusal,
-`payload | get /:actualValue/count`, and prints and reads back as itself;
+[QSBLD#kind], read as the verb of the kind that reveals it or of `::any`
+where that kind declares none of its name, `shape` the verb of every
+value; a value shows the views of the first kind of the walk of its tags
+that reveals any, so a set shows those of vectors, and a view whose verb
+refuses the value or that names no verb stands not, nor does one that
+answers an empty vector, set, map or string. `::vec` reveals `count`,
+`shape`, `first` and `last`, its size, its structure without its data and
+the elements at its two ends; `::map` `count` and `shape`; `::string`
+`count`; `::doc` `links`; and `::trace` `failed`, the steps that failed
+level by level, `subject`, the subject the step that failed met, and
+`paths`, the paths of the parts its verbs ran their code on; the legend of
+a tag name reads each view so. An excerpt is a map read by its keys, a view
+by its key under the tag of a refusal, `payload | get /:addend/found/count`,
+and prints and reads back as itself;
 no verb cuts a value to a room, and the whole is read live, a fact of a
 failure by `!|` and a cell by `answer`.
 
@@ -216,19 +221,25 @@ failure by `!|` and a cell by `answer`.
 > [1 "x" 3] | map ~(mul 2) !| trace | get [~(failed) ~(subject) ~(paths)]
 [[~(mul 2) ~(map ~(mul 2))] "x" [/1]]
 
-> ::excerpt{:actualValue ::cell"f410f1df625c" :actualValue/count 3410} | :e it | print | parse | open | eq e
+> ::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | :e it | print | parse | open | eq e
 true
 
-> ::number/add/AddendKindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]
+> ::number/add/AddendKindNotTakenError::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [~(addend | found | tag) ~(payload | get /:addend/found/count)]
 [::cell 3410]
+
+> ::vec | legend | print | lines | drop 1 | map ~(split " " | get /1)
+["count" "shape" "first" "last"]
+
+> ::map | legend | print | lines | drop 1 | map ~(split " " | get /1)
+["count" "shape"]
 
 > [1 2] | excerpt !| tag
 ::call/UnknownNameError
 ```
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
-2
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
+3
 ```
 
 ## budget

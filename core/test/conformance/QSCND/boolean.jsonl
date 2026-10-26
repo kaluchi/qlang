@@ -4,21 +4,21 @@
 {"name":"or-answers-false-where-neither-holds","query":"false | or false","expect":"false"}
 {"name":"not-turns-true-into-false","query":"true | not","expect":"false"}
 {"name":"not-turns-false-into-true","query":"false | not","expect":"true"}
-{"name":"not-null-is-refused","query":"null | not !| get [~(tag) ~(subject | found | tag)]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
+{"decision":"D466","name":"not-null-is-refused","query":"null | not !| get [~(tag) ~(subject | found | tag)]","expect":"[::boolean/not/SubjectNotBooleanError ::null]"}
 {"name":"not-zero-is-refused","query":"0 | not !| tag","expect":"::boolean/not/SubjectNotBooleanError"}
 {"name":"not-empty-string-is-refused","query":"\"\" | not !| tag","expect":"::boolean/not/SubjectNotBooleanError"}
 {"name":"filter-by-allOf-keeps-the-elements-that-meet-every-condition","query":"[{:active true :age 25} {:active true :age 15} {:active false :age 30}] | filter ~(allOf (get /active) (get /age | gte 18))","expect":"[{:active true :age 25}]"}
 {"name":"and-refuses-a-subject-of-another-kind","query":"1 | and true !| tag","expect":"::boolean/and/SubjectNotBooleanError"}
-{"name":"or-refuses-a-condition-of-another-kind","query":"true | or 1 !| tag","expect":"::boolean/or/ConditionKindNotTakenError"}
+{"decision":"D466","name":"or-refuses-a-condition-of-another-kind","query":"true | or 1 !| tag","expect":"::boolean/or/ConditionKindNotTakenError"}
 {"name":"a-predicate-may-name-a-verb","query":"[true false] | filter ~(not)","expect":"[false]"}
 {"name":"allOf-holds-two-conditions-of-one-record","query":"{:active true :age 25} | allOf (get /active) (get /age | gte 18)","expect":"true"}
-{"name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]","expect":"[::any/allOf/ConditionsElementKindNotTakenError 1 ::string/endsWith/SubjectNotStringError]"}
+{"decision":"D466","name":"all-of-computes-every-condition-at-the-call","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\") !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]","expect":"[::any/allOf/ConditionsElementKindNotTakenError 1 ::string/endsWith/SubjectNotStringError]"}
 {"name":"all-of-runs-a-quote-in-its-turn","query":"[{:email null} {:email \"a@b.org\"}] | filter ~(allOf (get /email | ne null) ~(get /email | endsWith \".org\")) | count","expect":"1"}
 {"name":"a-condition-of-allOf-is-a-value-or-a-quote","query":"5 | allOf (gt 1) ~(lt 10)","expect":"true"}
 {"name":"if-holds-two-conditions-by-allOf","query":"{:active true :verified true} | if (allOf (get /active) (get /verified)) ~(\"go\") ~(\"stop\")","expect":"\"go\""}
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"filter-by-allOf-of-two-negations-keeps-the-strings-equal-to-neither","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
-{"name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| tag","expect":"::any/allOf/ConditionsEmptyError"}
+{"decision":"D466","name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| tag","expect":"::any/allOf/ConditionsEmptyError"}
 {"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| tag","expect":"::any/allOf/ConditionKindNotTakenError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
-{"name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| conditions | index) ~(5 | allOf 3 (1 | div 0) !| conditions | index)]","expect":"[0 1]"}
+{"decision":"D466","name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| conditions | index) ~(5 | allOf 3 (1 | div 0) !| conditions | index)]","expect":"[0 1]"}

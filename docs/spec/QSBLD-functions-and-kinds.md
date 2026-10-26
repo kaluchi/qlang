@@ -15,8 +15,8 @@ its recipe. It is built from the noun by a chain, each command a verb of
 is named by the noun of the thing, no kind of the catalog bearing the
 name of a command of a chain: `on` names its subject, its page and its
 kinds, `takes` writes an input, `returns` the answer, `throws` a
-refusal and the kind of its facts, `holds` an invariant of the subject, an input
-or the answer, a quote under `::invariant`, `proves` a law, a quote under
+refusal and the kind of its facts, `holds` an invariant of the call, a
+quote under `::invariant`, `proves` a law, a quote under
 `::law`, and `impl` gives it its recipe, code or a host's
 `::builtin{}`, and answers the function it builds, `::fn | impl ~(add 1)`
 the function of no commands `::fn[~() ~(add 1)]`; a command written after
@@ -26,32 +26,30 @@ modifiers whole, as written, its input `modifiers`, and a step of the chain
 written with modifiers its rules do not take is refused as
 `::fn/CommandNotTakenError` whether its verb wrote it or the literal,
 `:command` the command, `:index` the index of the modifier refused, from
-zero, or of the first left out, and `:actualValue` that modifier: each name is written with its page, a doc,
-the name of an input of one segment, neither `answer` nor `subject`,
-which the chain lays itself, nor a word of a literal, a selector is a path
+zero, or of the first left out, and `:found` that modifier: each name is written with its page, a doc,
+the name of an input of one segment, none of the names every verdict
+holds, `subject`, `surplus`, `answer`, `repair` and `trace`, nor a word
+of a literal, a selector is a path
 or a quote, and kinds are a tag or a set of one tag or more, or for an
 input a vector of one of them. A name is declared once,
 `::fn/NameDeclaredTwiceError` refusing a name declared again, an
-invariant named as a refusal the runtime raises by rule under its input
-or its answer among them, the refusal of the kinds and of an input left
-out. A refusal and an invariant written with a path stand under the
-subject, an input taken before it or the answer, an invariant always
-written so, `::fn/NameUnderNoInputError` refusing one under none, and the
-chain lays the subject and the answer where a name stands under them,
-with no page where no command writes one; a law with a path stands under
-a name declared before it, a refusal among them, `::fn/LawUnderNoNameError`
-refusing one under none. The facts a refusal carries are the commands of
+invariant named as a refusal the runtime raises by rule among them, the
+refusal of the kinds and of an input left out. A refusal and an invariant
+are named one level under the function by a name of one segment,
+`:ByTooBigError`, a path in it refused as a command not taken; a law with
+a path stands under a name declared before it, a refusal among them,
+`::fn/LawUnderNoNameError` refusing one under none. The facts a refusal carries are the commands of
 the kind of the refusal, the quote `throws` writes after its page,
 `throws :TooBigError |~~ … ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
 each `wires` a fact read by the key of its name and one carried at times
 by `query`; `throws` builds the kind of them, its payload the `::error`
 the refusal raises and its wiring ending with `trace`, a payload or a
 `trace` the quote writes refused as `::kind/NameDeclaredTwiceError`, and
-a refusal a rule of the chain lays carries the facts of the family of its
-rule [QSERR#site]. The quote, no kind, stands in the commands, so the
+a refusal of a verb is its verdict, the slots of the verb wired before the
+facts the quote writes [QSERR#site]. The quote, no kind, stands in the commands, so the
 literal of the function reads back as itself. Instead of the quote
 `throws` writes the tag of a refusal whose kind its refusal shares,
-`throws :ConditionKindNotTakenError |~~ … ~~| ::fn/KindNotTakenError`: the
+`throws :KeyTakenError |~~ … ~~| ::vec/groupBy/KeyTakenError`: the
 error at rest of the refusal is closed by the kind that closes the refusal
 the tag names, its facts read by their names and paged by the wiring of
 that kind, and its node holds its page; a refusal that names itself, or a
@@ -61,9 +59,9 @@ A verb serves the values of its label and of the kinds `on` names, of
 tag names the noun's own alone [QSDSP#tagname], refusing any other
 subject by its label; a function `apply` runs serves the kinds `on`
 names, or any subject where it names none, another refused as
-`::fn/call/SubjectKindNotTakenError` with the kinds as `:expected`; the
-invariants of the subject hold of the subject served before the inputs
-are read, their refusal holding its kind alone. A function prints as its
+`::fn/call/SubjectKindNotTakenError` with the kinds as `:subject/expected`;
+an invariant holds once the inputs are held, and one written after
+`returns` once the answer is held [QSBLD#recipe]. A function prints as its
 literal, the chain folded into a quote and its recipe after it, null for
 a function with none, which the constructor of `::fn` reads back, a
 payload that is no pair of the quote of a chain and a recipe refused as
@@ -95,7 +93,7 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(actualValue)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(found)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
 [::fn[~() ~(add 1)] [~(takes 5 |~~ x ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
 
 > get [~(::fn[[] ~(1)] !| tag) ~(::fn | returns |~~ A. ~~| #[] !| tag) ~(::fn | takes :null |~~ w ~~| /0 !| tag)]
@@ -129,25 +127,25 @@ and `cond` are the invariants of their inputs.
 
 An input holds a value of its kind the walk of its tags reaches, a recipe
 the value as the call gives it, its tags with it, and a primitive the
-value the walk reaches [QSDSP#answer]: a value of none is refused under
-the input as `…/ByKindNotTakenError`,
-the kinds it takes its `:expected`, a set of tags, and the value of an
-input of each element that is no vector as of no `::vec`; an arg the
+value the walk reaches [QSDSP#answer]: a value of none is refused one
+level under the verb as `…/ByKindNotTakenError`, the input telling the
+kinds it takes as `expected`, a set of tags, and the value as `found`,
+`!| by | expected`, and the value of an input of each element that is
+no vector as of no `::vec`; an arg the
 call leaves out, read strictly by a path or by code, as
 `…/ByNotGivenError`, and a path that meets a value it cannot read with
 the path's refusal, `::path/SubjectHasNoPartsError`; args past the
 arity of the function, the most args its inputs read where every input
-reads the arg at an index, by a path from it or by `query` of one, under
-the call as `…/ArgsBeyondInputsError` with the arity as `:arity`, while an
+reads the arg at an index, by a path from it or by `query` of one, as
+`…/ArgsBeyondInputsError` with those args as `surplus`, while an
 input that reads `/-1`, the args whole or an arg by any other code, `~(get /0)` among it, takes any
-number; and a value that breaks an invariant under the invariant's name,
-the invariant holding of the value as the call gives it, its tags among
-it, which the refusal holds as `:actualValue`. Kinds written as a vector
+number; and a call that breaks an invariant under the invariant's name,
+its verdict holding every slot. Kinds written as a vector
 of one tag or of one set are the kinds of each element: the input holds
 a vector, or a set, of the value of each, a recipe each as given, a quote
 and a doc as they are, a value that is no vector refused as `…/KindNotTakenError`
-and an element of none as `…/ElementKindNotTakenError` with its
-`:index`.
+and an element of none as `…/ElementKindNotTakenError` with the input's
+`index`.
 
 ```qlang
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(5 | plus 2) ~(5 | plus "x" !| tag) ~(5 | plus !| tag) ~(5 | plus 1 2 !| tag)]
@@ -156,11 +154,11 @@ and an element of none as `…/ElementKindNotTakenError` with its
 > :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 4 2] | get [~(top) ~(top 1)]
 [[5 4 2] [5]]
 
-> :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| tag) ~(5 | apply m [[1 "a"]] !| get [~(tag) /index])]
+> :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| tag) ~(5 | apply m [[1 "a"]] !| get [~(tag) /:xs/index])]
 [::fn/call/XsKindNotTakenError [::fn/call/XsElementKindNotTakenError 1]]
 
-> 1 | add 1 2 !| actualValue
-::number/add[1 2]
+> 1 | add 1 2 !| surplus | found
+[2]
 
 > :vec/it ~(99) | :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)) | :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)) | :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)) | 5 | get [~(w 1 2) ~(a) ~(a 2)]
 [::number/w[1 2] 6 7]
@@ -180,7 +178,7 @@ the tags its operands share [QSDSP#answer], held to the label, and stands
 as it is where none is laid; and where the walk reaches none, the one kind `returns` names makes the
 answer as a value is put under it [QSBLD#value]. An answer of none of the
 kinds, a payload the one kind refuses for its kind among them, is
-refused as `…/AnswerKindNotTakenError` with the kinds as `:expected`,
+refused as `…/AnswerKindNotTakenError` with the kinds as `answer/expected`,
 while an invariant of the kind refuses under its own name. A function
 whose `returns` names `::any`, or that has none, hands its answer on as
 it is.
@@ -207,8 +205,15 @@ of `with` sees the names it is given, and an input named as one of them
 is refused where the word is declared, `::bind/NameDeclaredTwiceError`. A value the reader bound
 to a bare name stands outside that scope, a bare step of that name
 refused as `::call/UnknownNameError`, so a value a recipe needs is an
-input. A selector reads the args alone, and an invariant reads its input's
-value alone, as the call gives it. A verb calls itself by its name. A
+input. A selector reads the args alone. The condition of an invariant is a
+small recipe of the same scope, the subject in the pipe and each input by
+its name, `holds :ByTooBigError |~~ … ~~| ~(by | lt 100)`, run once the
+inputs are held and before the recipe, or, written after `returns`, once
+the answer is held, which it reads as `answer`. A name the chain declares,
+an input in the recipe and the conditions of its verb and the answer after
+`returns`, reads its value past a verb of the subject of its name, which
+is called there by its address, `vec/count` [QSNAM#reach]. A verb calls
+itself by its name. A
 recipe written alone under a label takes no args, those given to it
 refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
 
@@ -235,7 +240,8 @@ name, a chapter of a topic among them [QSNAM#root], `reveals` a view of
 its values, the name of a verb of the kind that takes no value, whose
 answer a host shows beside a fact of the kind past the room of a fact
 [QSPRN#excerpt], `holds` an invariant
-of the value or of a field, a quote under `::invariant`, `throws` a
+of the value, each field it wires read by its name, a quote under
+`::invariant`, `throws` a
 refusal and the kind of its facts, as `::fn/throws` writes it, `proves` a
 law, a quote under `::law`, and
 `impl` its constructor, a `::builtin{}`, another value refused as
@@ -255,16 +261,16 @@ names, a kind read back from its print among them [QSHST#source], and
 within no other, so a reader's kind lays its tag by its commands alone,
 whatever its slot holds. A
 name is declared once, `::kind/NameDeclaredTwiceError`, an invariant
-named as a refusal the runtime raises by rule under its field among
-them, the refusal of the kinds and of a field left out, and a step of
+named as a refusal the runtime raises by rule among them, the refusal of
+the kinds and of a field left out, and a step of
 the chain written with modifiers its rules do not take is refused as
 `::kind/CommandNotTakenError` on either road with the facts of
 `::fn/CommandNotTakenError`, the name of a field and of a page of one
 segment, neither `payload` nor a word of a literal; a
-refusal or an invariant written with a path stands under a field read
-before it, and a law under a name declared before it,
-`NameUnderNoFieldError` and `LawUnderNoNameError` refusing one under
-none. A part written with no selector reads the key of its name in the
+refusal and an invariant are named one level under the kind by a name of
+one segment, `:WNegativeError`, a path in it refused as a command not
+taken, and a law under a name declared before it, `LawUnderNoNameError`
+refusing one under none. A part written with no selector reads the key of its name in the
 payload, `wires :w |~~ The width. ~~| ::number`, as a fact of a refusal
 does. A kind prints as its literal, the chain folded
 into a quote and its constructor or null after it, which the constructor
@@ -292,8 +298,9 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 
 A value put under a kind holds a value of its payload's kinds by its own
 tag, the tag of the kind standing over it: a payload whose own tag names
-none of the kinds is refused under the kind, `…/PayloadKindNotTakenError`
-with the kinds as `:expected` and its tag as `:actualTag`, a value under a
+none of the kinds is refused under the kind, `…/PayloadKindNotTakenError`,
+the verdict of the kind, with the kinds as `:expected` and the payload as
+`:found`, a value under a
 tag of its own among them, which is taken off first,
 `::W#5 | payload | tag ::Pos`, or named among the kinds. Where the kinds
 are of each element the payload is a vector by its own tag, and an
@@ -302,17 +309,18 @@ element of none of them, read through its tags, is refused as
 the set of no kinds takes no payload, its refusal holding the empty set
 as `:expected`, and a kind whose chain names no kind of its payload takes
 any. The door reads each part the kind wires once, by its selector, as
-the value is built: a part the payload leaves out is refused under its
-name as `…/NotGivenError`, a fact the facts of an error at rest do not
+the value is built: a part the payload leaves out is refused by its name
+raised, `…/WNotGivenError`, a fact the facts of an error at rest do not
 hold reading null instead and a cell standing for any fact of the
 excerpt of those facts [QSERR#rest], one its selector fails to read as
-`…/NotReadError`, the failure at rest its `:actualValue`, and a value of
-none of its kinds under its name; a part no name wires is taken and read
-by nothing. The invariants of the value hold of the payload beneath the
-tag, the data its page tells of, so a verb in one that keeps its
-subject's kind runs over no tag: each is refused under its name, the value
-under the tag that broke it its `:actualValue`, and an invariant that
-answers an error hands it on.
+`…/WNotReadError`, the failure at rest its `:found`, and a value of none
+of its kinds as `…/WKindNotTakenError`; a part no name wires is taken and
+read by nothing. The invariants of the value hold of the payload beneath
+the tag, the data its page tells of, so a verb in one that keeps its
+subject's kind runs over no tag, each field the kind wires read by its
+name once every field is held: each is refused under its name, the
+payload that broke it its `:found`, and an invariant that answers an
+error hands it on.
 
 A kind that wires a part closes its tag. A value of it is read by the
 names its kind wires alone, each bare, `card | took`, the name residing on
@@ -330,12 +338,12 @@ wires no part stays open, its tag passing the words of its payload,
 [::Box ::Box/WNotGivenError ::Box/WKindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| payload | keys
-#[:actualTag :actualValue :trace]
+#[:found :trace]
 
-> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| actualValue)]
-[[1 2] ::Sorted[2 1]]
+> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| found)]
+[[1 2] [2 1]]
 
-> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number) | get [~(::W#5 | tag ::Pos !| get [~(tag) ~(actualTag)]) ~(::W#5 | payload | tag ::Pos)]
+> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number) | get [~(::W#5 | tag ::Pos !| get [~(tag) ~(found | tag)]) ~(::W#5 | payload | tag ::Pos)]
 [[::Pos/PayloadKindNotTakenError ::W] ::Pos#5]
 
 > :Nums |~~ n ~~| (::kind | accepts |~~ v ~~| [::number]) | get [~(#[2 1] | tag ::Nums !| tag) ~([1 "a"] | tag ::Nums !| get [~(tag) ~(index)])]
@@ -347,7 +355,7 @@ wires no part stays open, its tag passing the words of its payload,
 > :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | get [~(took) ~(get /took !| repair) ~(count !| tag) ~(payload | get /1)]
 [312 ~(took) ::call/KindAnswersNoVerbError 312]
 
-> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(actualValue | tag)]
+> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(found | tag)]
 [::E/NNotReadError ::string/toNumber/TextNotNumberError]
 
 > ::Box{:w 3} | :Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number) | w
@@ -373,7 +381,7 @@ an invariant is refused. The tag of a name that holds a value is
 refused as `::construct/TagNamesAValueError`, while the tag of a verb, a
 contract among them, lays itself over the value [QSNAM#address], and the
 tag of an invariant, whose node holds its quote under `::invariant`, is
-the tag of its refusal, which lays the kind of its family over an error
+the tag of its refusal, which lays the verdict of its kind over an error
 at rest alone [QSERR#rest].
 
 ```qlang
@@ -386,7 +394,7 @@ at rest alone [QSERR#rest].
 > :number/c (::fn | takes :x |~~ x ~~| /0) | get [~(::number/c[1] | tag) ~(:limit 5 | ::limit[1] !| tag)]
 [::number/c ::construct/TagNamesAValueError]
 
-> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | get [~(::Box/TooBigError[1] !| tag) ~(::Box/TooBigError!{:actualTag ::number :actualValue 10} | actualValue)]
+> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | get [~(::Box/TooBigError[1] !| tag) ~(::Box/TooBigError!{:found 10} | found)]
 [::Box/TooBigError/PayloadKindNotTakenError 10]
 
 > ::vec/take/CountNotIntegerError | binding | value | tag

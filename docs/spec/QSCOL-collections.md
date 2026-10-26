@@ -264,7 +264,7 @@ frame naming the element in each [QSERR#trace].
 > [1 2 3] | groupBy ~(gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(expected)]
+> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(key | expected)]
 [::vec/indexBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| tag

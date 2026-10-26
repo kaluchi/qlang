@@ -315,7 +315,7 @@ declaration; a bare name of the root it may declare over [QSNAM#reach].
 true
 
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :TooBigError |~~ t ~~| | returns |~~ r ~~| ::number | impl ~(add by)) | ::number/plus | manifest
-#[::number/plus/TooBigError ::number/plus/answer ::number/plus/by]
+#[::number/plus/ByKindNotTakenError ::number/plus/TooBigError ::number/plus/answer ::number/plus/by]
 
 > ::Nobody[1 2] | tag
 ::Nobody

@@ -131,7 +131,7 @@ describe('an answer printed whole and a failure as its alert', () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
     const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/:trace ::excerpt\{\n\s+:of ::trace\n\s+:count 2\n/);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::excerpt\{\n {4}:failed \[~\(nope\) ~\(filter ~\(nope\)\)\]\n {4}:paths \[\/0\]\n {4}:subject \{:n 0\}\n/);
   });
 
   it('prints the alert of a runaway recursion within its room', async () => {

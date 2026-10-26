@@ -360,7 +360,7 @@
         |~~ `:addresses` lists every kind the name serves. ~~|
         ~(5 | count
           !| get [~(tag) ~(addresses)]
-          |  eq [::call/KindAnswersNoVerbError #[::excerpt/count ::map/count ::string/count ::vec/count]])
+          |  eq [::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]])
     | proves :KindAnswersNoVerbError/namesTheVerbsOfAReadersNouns
         |~~ The verbs of the name under a reader's nouns are named by
             their addresses.

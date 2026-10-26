@@ -844,7 +844,7 @@ async function underKind(tagName, kind, payload, state) {
   if (isErrorValue(held)) return held;
   let scope;
   const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
-  const ofFacts = holdsTheFactsOfAnError(payloadRole);
+  const ofFacts = holdsTheFactsOfAnError(payloadRole) ? { told: isExcerpt(held) } : null;
   const parts = new Map();
   for (const field of fields) {
     const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened, ofFacts);
@@ -860,7 +860,7 @@ async function underKind(tagName, kind, payload, state) {
 }
 
 // [QSERR#rest]
-const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.length === 1 && payloadRole.kinds[0] === ERROR_TAG.name;
+const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.includes(ERROR_TAG.name) === true;
 
 // [QSBLD#value], [QSERR#rest]
 function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) {
@@ -870,8 +870,8 @@ function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) 
 
 function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts) {
   const fieldAddress = `${tagName}/${field.name.name}`;
-  if (ofFacts && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
-  if (ofFacts && isExcerpt(read)) return read;
+  if (ofFacts !== null && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
+  if (ofFacts?.told && isExcerpt(read)) return read;
   if (isErrorValue(read) && isMissedPart(read)) return refusalUnder(notGivenAddress(fieldAddress), { actualValue: payload }, state.scope);
   if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
   const held = heldByItsKinds(field, refusalsUnder(fieldAddress), read, state.scope);

@@ -85,10 +85,10 @@ function printListLike(open, elements, indent, printedOf, oneLine = false, stack
   return `${open}\n${rendered.map(s => pad + s).join('\n')}\n${'  '.repeat(indent)}]`;
 }
 
-// [QSERR#print]
+// [QSERR#print], [QSERR#alert]
 function printErrorValue(e, indent, printedOf) {
-  const tagHead = e.tag.name === ERROR_TAG.name ? '' : e.tag.literal;
-  return `${tagHead}${printMapLike('!{', e.facts, indent, printedOf)}`;
+  if (e.told !== null) return `${e.tag.literal}${printValue(e.told, indent, printedOf)}`;
+  return `${e.tag.name === ERROR_TAG.name ? '' : e.tag.literal}${printMapLike('!{', e.facts, indent, printedOf)}`;
 }
 
 // [QSLIT#tag]

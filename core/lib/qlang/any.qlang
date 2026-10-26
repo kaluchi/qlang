@@ -575,25 +575,26 @@
         |~~ A legend past the budget lays a part past three hundred
             characters as its excerpt.
         ~~|
-        ~(1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:of ::vec :count 5000")] | eq [true true])
+        ~(1 | add (5000 | range) !| legend | print | get [~(count | lt 16000) ~(contains ":actualValue ::excerpt{:count 5000 :first [")] | eq [true true])
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `legend` is refused under the verb. ~~|
         ~([1 2] | legend 80 !| tag | eq ::any/legend/ArgsBeyondInputsError)
     | impl ~(tag ::legend)
 
 :any/excerpt
-  |~~ Answers the excerpt of the subject, a value of `::excerpt`, within
-      the characters of print the call gives, three hundred where it gives
-      none: the kind of the subject, its count and the parts that fit
-      whole, taken from its two ends inward by turns, an end stopping at
-      its first part that does not fit, a vector, a set, a quote and a doc
-      under their indices and a map under its keys, and a string, a value
-      with no parts and one its kind prints by the first and the last
-      characters of their text under their offsets: `3410 | range | excerpt`
-      answers `::excerpt{:of ::vec :count 3410 :parts {:"0" 0 …}}`. It
-      always answers an excerpt, so the kind of its answer is known before
-      the call, a value that fits shown whole in it, and its budget is no
-      larger than the budget of every answer. A host tells so a fact of a
+  |~~ Answers the excerpt of the subject within the characters of print the
+      call gives, three hundred where it gives none, a value of
+      `::excerpt`: the tag of the subject tells it in its own words, a
+      vector and a set by `:first` and `:last`, a map the same way, a string
+      by `:head` and `:tail`, and a trace by `:failed` and `:subject`, each
+      with its count where parts are left out; and a value no tag tells,
+      this verb, by `:head` and `:tail`, the first and the last characters
+      of its print on one line, each cut where a word ends, and
+      `:characters` the characters of the print, a print that fits standing
+      whole in `:head`. A tag of the reader tells its own values by an
+      `excerpt` under its label. It always answers an
+      excerpt, a value that fits shown whole in it, so the kind of its
+      answer is known before the call, and a host tells so a fact of a
       failure past the room of a fact and an answer past the budget.
       ::link~(::excerpt | doc) ::link~(::any/print | doc)
       ::link~(::qlang/AnswerBeyondBudgetError | doc)
@@ -601,7 +602,8 @@
   ::fn
     | takes :budget
         |~~ The characters of the print of the excerpt, three hundred where
-            the call gives none.
+            the call gives none; a budget past the budget of every answer is
+            that budget.
         ~~|
         ~(query /0 300) ::number
     | throws :budget/KindNotTakenError
@@ -611,45 +613,17 @@
             `excerpt 80`.
         ~~|
         ~(allOf (gt 0) ~(eq (floor)))
-    | throws :budget/PastTheBudgetError
-        |~~ An excerpt prints within the budget of every answer, which
-            `:budget` names: a part of a value is read by `get`, `take` or
-            `drop`, and the whole written by `print | out`.
-        ~~|
-        ~(wires :budget |~~ The budget of every answer. ~~| ::number
-          | wires :actualTag |~~ The kind of the budget given. ~~| ::tag
-          | wires :actualValue |~~ The budget given. ~~| ::number)
-    | returns |~~ The excerpt of the subject within the budget. ~~| ::excerpt
-    | proves :showsTheEnds
-        |~~ An excerpt shows the parts at the two ends of a vector. ~~|
-        ~(3410 | range | excerpt | parts | get [/0 /1 /3409] | eq [0 1 3409])
-    | proves :countsTheSubject
-        |~~ An excerpt counts the parts of the value it tells. ~~|
-        ~(3410 | range | excerpt | count | eq 3410)
-    | proves :fitsTheBudget
-        |~~ The print of an excerpt fits its budget. ~~|
-        ~(3410 | range | excerpt 120 | print | count | lte 120)
-    | proves :showsAValueThatFitsWhole
-        |~~ A value that fits answers an excerpt that shows all of it. ~~|
-        ~([1 2] | excerpt | get [~(tag) ~(parts)] | eq [::excerpt {:"0" 1 :"1" 2}])
-    | proves :showsAMapUnderItsKeys
-        |~~ A map shows its entries under their keys. ~~|
-        ~(100 | range | map ~(get [~(toString | toKeyword) ~(it)]) | toMap | excerpt | parts | keys | has :"0")
-    | proves :showsTheEndsOfAString
-        |~~ A string shows its first and its last characters under their
-            offsets.
-        ~~|
-        ~(2000 | range | map ~("ab") | join "" | excerpt | get [~(of) ~(count) ~(parts | get /0 | startsWith "abab")] | eq [::string 4000 true])
+    | returns |~~ The excerpt of the print of the subject. ~~| ::excerpt
+    | proves :tellsThePrintByItsEnds
+        |~~ A value no tag tells shows the ends of its print. ~~|
+        ~(get [~(12345 | excerpt) ~(::Point#7 | excerpt 300)] | eq [::excerpt{:head "12345"} ::excerpt{:head "::Point#7"}])
     | proves :budget/KindNotTakenError/refusesAString
         |~~ A budget that is no number is refused under the input. ~~|
-        ~([1 2] | excerpt "x" !| tag | eq ::any/excerpt/budget/KindNotTakenError)
+        ~(5 | excerpt "x" !| tag | eq ::any/excerpt/budget/KindNotTakenError)
     | proves :budget/NotCountError/refusesNoneAndAFraction
         |~~ A budget of no characters or of a fraction of one is refused.
         ~~|
-        ~(get [~([1 2] | excerpt 0 !| tag) ~([1 2] | excerpt 2.5 !| tag)] | eq [::any/excerpt/budget/NotCountError ::any/excerpt/budget/NotCountError])
-    | proves :budget/PastTheBudgetError/refusesABudgetPastTheBudgetOfEveryAnswer
-        |~~ A budget past the budget of every answer is refused. ~~|
-        ~([1 2] | excerpt 300000 !| get [~(tag) ~(budget)] | eq [::any/excerpt/budget/PastTheBudgetError 16000])
+        ~(get [~(5 | excerpt 0 !| tag) ~(5 | excerpt 2.5 !| tag)] | eq [::any/excerpt/budget/NotCountError ::any/excerpt/budget/NotCountError])
     | impl ::builtin{}
 
 :any/if
@@ -2817,7 +2791,10 @@
     | throws :SubjectKindNotTakenError
         |~~ `raise` raises a map, beneath the tags over it: a value of
             another kind is put in one first, `get {:value ~(it)} | raise`,
-            or the error is written as its literal, `!{:reason :late} | raise`.
+            or the error is written as its literal, `!{:reason :late} | raise`;
+            an excerpt, which a host prints of a failure past its rooms, tells
+            the failure and holds it not, its facts read by their names and
+            the failure raised again by the query that made it.
         ~~|
         ~(wires :expected |~~ The kind raised, `#[::map]`. ~~| ::set
           | wires :actualTag |~~ The kind of the subject refused: the first frame of the trace holds the subject. ~~| ::tag)
@@ -2825,6 +2802,11 @@
         |~~ `raise` takes no value: what the error says is a fact of the
             map, `{:message "boom"} | raise`.
         ~~|
+    | proves :SubjectKindNotTakenError/refusesAnExcerpt
+        |~~ The excerpt of a failure, which a host prints, is no map of facts
+            to raise.
+        ~~|
+        ~(::number/add/SubjectNotNumberError::excerpt{:actualTag ::set :trace ::excerpt{:failed [~(add 1)]}} | raise !| get [~(tag) ~(actualTag)] | eq [::any/raise/SubjectKindNotTakenError ::excerpt])
     | proves :raisesTheSubject
         |~~ `{…} | raise` raises the subject, a map the step builds among
             them.

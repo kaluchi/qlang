@@ -1,54 +1,42 @@
 |~ `::excerpt`, the kind of a value told within a room of characters,
-   and what is declared under it: the names it wires, the kind of the
-   value told, its count and the parts it shows, and its laws.
+   and what is declared under it: the keys the tag of the value told
+   writes, and its laws.
    The rules it holds: [QSPRN#excerpt], [QSERR#alert]. ~|
 
 :excerpt
-  |~~ An excerpt tells a value too large for its room: the kind of the
-      value, how many parts it has and the parts that fit whole, taken from
-      its two ends inward, `::excerpt{:of ::vec :count 3410 :parts {:"0" 0
-      :"1" 1 :"3409" 3409}}`. A vector, a set, a quote and a doc show their
-      elements under their indices and a map its entries under their keys,
-      while a string and a value with no parts or one its kind prints show
-      the first and the last characters of their text under their offsets,
-      which `drop` reads to them. `excerpt` answers one, and a host prints
-      a fact of a failure past the room of a fact so, and an answer past
-      the budget of every answer within its refusal.
+  |~~ An excerpt tells a value too large for its room in the words of the
+      tag the value stands under, which gives its own and counts it itself:
+      a vector and a set `:count`, `:first` and `:last`, the elements at its
+      two ends that fit whole, `[0 1 2 … 3409]` told as
+      `::excerpt{:count 3410 :first [0 1 2 3] :last [3408 3409]}`, a map its
+      entries at its two ends the same way, and either, where an end holds
+      no part whole, `:head` and `:tail`, the ends of its print; a string
+      `:characters`, `:head` and `:tail`, its first and its last characters;
+      a trace `:failed`, the step that failed at each level, `:paths` and
+      `:subject`, the value the step that failed met; and any other value the
+      first and the last characters of its print. A count stands where parts
+      are left out, and the excerpt a tag gives holds no excerpt. A tag of the
+      reader gives its own by `excerpt` under its label. `excerpt` answers
+      one, and a host prints a fact of a failure past the room of a fact so,
+      the failure then as the excerpt of its facts under the tag of its
+      refusal, `::X::excerpt{…}`, and an answer past the budget of every
+      answer within its refusal.
 
-      An excerpt is a value of its own kind, read by its names: `count`
-      answers the count of the value told, and no verb of that value
-      answers it, so a step after it meets an excerpt and never data with
-      a hole. The whole is read live, a fact of a failure by `!|` and an
-      answer past the budget by `answer` of the cell that keeps it.
+      An excerpt is a map under its tag, read by its keys, `get /count`, and
+      a verb meets it as the map it is, never as the value it tells. The
+      whole is read live, a fact of a failure by `!|` and an answer past the
+      budget by `answer` of the cell that keeps it.
       ::link~(::any/excerpt | doc) ::link~(::qlang/hosts | doc)
   ~~|
   ::kind
-    | accepts |~~ The kind of the value told, its count and the parts it shows. ~~| ::map
-    | wires :of |~~ The tag of the value told, which `tag` answers of it. ~~| ::tag
-    | wires :count
-        |~~ The elements of the value told, its entries or the characters of
-            its text, as `count` counts them.
-        ~~|
-        ::number
-    | wires :parts
-        |~~ The parts the excerpt shows whole, under their indices, their
-            keys or the offsets of their characters.
-        ~~|
-        ::map
+    | accepts |~~ The keys the tag of the value told writes. ~~| ::map
     | throws :PayloadKindNotTakenError
-        |~~ An excerpt is the map of the kind of the value it tells, its
-            count and the parts it shows, which `excerpt` writes,
-            `x | excerpt`.
+        |~~ An excerpt is the map of the keys the tag of the value it tells
+            writes, which `excerpt` answers, `x | excerpt`.
         ~~|
-    | proves :countsTheValueItTells
-        |~~ `count` answers the count of the value told. ~~|
-        ~(3410 | range | excerpt | count | eq 3410)
-    | proves :showsTheEndsOfAVector
-        |~~ The first and the last elements show under their indices. ~~|
-        ~(3410 | range | excerpt | parts | get [/0 /3409] | eq [0 3409])
-    | proves :answersNoVerbOfTheValueItTells
-        |~~ An excerpt is no vector: a verb of vectors refuses it. ~~|
-        ~(3410 | range | excerpt | take 3 !| tag | eq ::call/KindAnswersNoVerbError)
+    | proves :tellsAVectorByItsEnds
+        |~~ A vector tells its count and the elements at its two ends. ~~|
+        ~(3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)] | eq [3410 0 3409])
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
         ~(3410 | range | excerpt | :e it | print | parse | open | eq e)

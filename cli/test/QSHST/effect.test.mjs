@@ -139,7 +139,7 @@ describe('tap', () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | tap :big | count', io);
     expect(cellEntry.result).toBe(3000);
-    expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{/);
+    expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{/);
     expect(io.stderrText()).toContain(':answer ::excerpt{');
     const [cell] = io.stderrText().match(/::cell"[0-9a-f]{12}"/);
     expect((await runQuery(`${cell} | answer | count`, captureIoContext())).result).toBe(3000);

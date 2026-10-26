@@ -27,7 +27,8 @@
 
       Raised by `raise`, an error is a failure, which lives in the pipe
       alone; a host prints it as its error at rest, the trace it left
-      among its facts, under the line
+      among its facts, and as the excerpt of its facts, `::error::excerpt{…}`
+      under its tag, where a fact passes the room of a fact, under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
       the print raised flies on from that trace; a query that does not
       parse flew no step and prints its facts alone.
@@ -42,11 +43,17 @@
       ::link~(::qlang/errors | doc)
   ~~|
   ::kind
-    | accepts |~~ The facts of the failure, a map. ~~| ::map
+    | accepts
+        |~~ The facts of the failure, a map, or the excerpt a host prints
+            of them past their rooms.
+        ~~|
+        #[::map ::excerpt]
     | throws :PayloadKindNotTakenError
         |~~ An error at rest holds the facts of a failure as a map,
-            `!{:reason :late}`; a payload of another kind is refused, and a
-            value of another kind is held as a fact, `!{:value [1]}`.
+            `!{:reason :late}`, and the excerpt a host prints of them past
+            their rooms, `::error::excerpt{…}`, tells them; a payload of
+            another kind is refused, and a value of another kind is held as
+            a fact, `!{:value [1]}`.
             ::link~(::error | doc)
         ~~|
     | proves :writesAnErrorAtRestByItsBang
@@ -85,6 +92,12 @@
             another shape among them, which a raise refuses.
         ~~|
         ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| tag)] | eq [5 ::trace/PayloadKindNotTakenError])
+    | proves :readsTheExcerptOfItsFacts
+        |~~ The excerpt a host prints of the facts of an error reads back
+            under `::error`, its facts read by their keys, and `raise` refuses
+            it as no map of facts.
+        ~~|
+        ~(::error::excerpt{:rows ::excerpt{:count 5000}} | get [~(tag) ~(get /rows/count) ~(raise !| tag)] | eq [::error 5000 ::any/raise/SubjectKindNotTakenError])
     | proves :readsAnErrorAtRestAsItself
         |~~ The kind of errors over an error at rest is that error. ~~|
         ~(!{:by 3} | tag ::error | eq !{:by 3})

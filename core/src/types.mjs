@@ -417,13 +417,11 @@ export function makeTrace(frames) {
 // [QSPRN#excerpt]
 export const isExcerpt = value => isMap(value) && value[TAG_HEADER_SYMBOL]?.name === EXCERPT_TAG.name;
 
-export function makeExcerpt(of, count, parts) {
-  const payload = new Map([['of', of], ['count', count], ['parts', parts]]);
-  return makeTagged(EXCERPT_TAG, payload, WIRINGS_THE_ROOT_HANDS.get(EXCERPT_TAG.name)(payload));
-}
+export const makeExcerpt = facts => makeTagged(EXCERPT_TAG, new Map(facts));
 
-export function makeErrorValue(tag, facts, { originalError = null } = {}) {
-  return Object.freeze(brandValueClass({ tag, facts, originalError }, 'error'));
+// [QSERR#alert]
+export function makeErrorValue(tag, facts, { originalError = null, told = null } = {}) {
+  return Object.freeze(brandValueClass({ tag, facts, originalError, told }, 'error'));
 }
 
 // [QSLIT#kind]

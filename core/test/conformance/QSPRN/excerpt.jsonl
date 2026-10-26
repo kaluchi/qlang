@@ -1,7 +1,12 @@
-{"name":"an-excerpt-tells-a-vector-by-its-kind-its-count-and-the-parts-at-its-two-ends","query":"3410 | range | excerpt | get [~(of) ~(count) ~(parts | get [/0 /3409])]","expect":"[::vec 3410 [0 3409]]"}
-{"name":"an-excerpt-of-a-value-that-fits-shows-it-whole","query":"[1 2] | excerpt","expect":"::excerpt{:of ::vec :count 2 :parts {:\"0\" 1 :\"1\" 2}}"}
-{"name":"an-excerpt-answers-no-verb-of-the-value-it-tells","query":"3410 | range | excerpt | take 3 !| tag","expect":"::call/KindAnswersNoVerbError"}
-{"name":"an-excerpt-of-a-string-shows-its-first-and-its-last-characters","query":"1000 | range | map ~(\"ab\") | join \"\" | excerpt 80 | get [~(of) ~(count) ~(parts | keys | count) ~(print | count | lte 80)]","expect":"[::string 2000 2 true]"}
-{"name":"an-excerpt-shows-a-map-under-its-keys","query":"{:a 1 :b 2} | excerpt | parts","expect":"{:a 1 :b 2}"}
-{"name":"an-excerpt-takes-a-budget-no-larger-than-the-budget-of-every-answer","query":"[1 2] | excerpt 300000 !| get [~(tag) ~(budget)]","expect":"[::any/excerpt/budget/PastTheBudgetError 16000]"}
-{"name":"an-excerpt-reads-back-as-itself","query":"1000 | range | excerpt | :e it | print | parse | open | eq e","expect":"true"}
+{"decision":"D461","name":"a-vector-tells-the-elements-at-its-two-ends-and-its-count","query":"3410 | range | excerpt | get [/count ~(get /first | first) ~(get /last | last)]","expect":"[3410 0 3409]"}
+{"decision":"D461","name":"a-vector-that-fits-shows-whole-and-tells-no-count","query":"[1 2 3] | excerpt","expect":"::excerpt{:first [1 2 3]}"}
+{"decision":"D461","name":"a-string-tells-its-head-its-tail-and-its-characters","query":"1000 | range | map ~(\"ab\") | join \"\" | excerpt 80 | get [/characters ~(print | count | lte 80) ~(get /head | startsWith \"ab\")]","expect":"[2000 true true]"}
+{"decision":"D461","name":"a-string-that-fits-stands-whole-in-its-head","query":"\"short\" | excerpt","expect":"::excerpt{:head \"short\"}"}
+{"decision":"D461","name":"a-map-tells-the-entries-at-its-two-ends","query":"100 | range | map ~(get [~(toString | append \"k\" | toKeyword) ~(it)]) | toMap | excerpt 120 | get [/count ~(get /first | keys | first) ~(get /last | keys | last)]","expect":"[100 :\"0k\" :\"99k\"]"}
+{"decision":"D461","name":"a-trace-tells-the-steps-that-failed","query":"kinds | add 1 !| trace | excerpt | get [/failed ~(get /subject | startsWith \"#[::absent\")]","expect":"[[~(add 1)] true]"}
+{"decision":"D461","name":"a-value-no-tag-tells-shows-its-print","query":"12345 | excerpt","expect":"::excerpt{:head \"12345\"}"}
+{"decision":"D461","name":"an-excerpt-is-a-map-read-by-its-keys","query":"3410 | range | excerpt | keys","expect":"#[:count :first :last]"}
+{"decision":"D461","name":"an-excerpt-reads-back-as-itself","query":"1000 | range | excerpt | :e it | print | parse | open | eq e","expect":"true"}
+{"decision":"D461","name":"a-budget-past-the-budget-of-every-answer-is-that-budget","query":"100000 | range | excerpt 300000 | print | count | lte 16000","expect":"true"}
+{"decision":"D461","name":"a-map-whose-end-holds-no-entry-whole-tells-the-ends-of-its-print","query":"get {:rows ~(5000 | range) :name \"x\"} | excerpt | get [/count ~(get /head | startsWith \"{:rows [0 1\") ~(get /tail | endsWith \":name \\\"x\\\"}\")]","expect":"[2 true true]"}
+{"decision":"D461","name":"a-cut-of-a-print-falls-where-a-word-ends","query":"kinds | add 1 !| trace | excerpt | get /subject | split \" \" | filter ~(anyOf (eq \"…\") (startsWith \"::\") (startsWith \"#[::\") | not)","expect":"[]"}

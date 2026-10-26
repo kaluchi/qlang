@@ -53,7 +53,7 @@ describe('runLaws reads a name as laws does', () => {
 
   it('the tag of a name several kinds answer is refused with their addresses', async () => {
     const addresses = await evalQuery('::count | runLaws !| addresses');
-    expect([...addresses].map(address => address.name).sort()).toEqual(['excerpt/count', 'map/count', 'string/count', 'vec/count']);
+    expect([...addresses].map(address => address.name).sort()).toEqual(['map/count', 'string/count', 'vec/count']);
   });
 
   it('a value runs the laws of its kind, as doc reads its page', async () => {

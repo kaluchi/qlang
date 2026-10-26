@@ -108,7 +108,7 @@
         |~~ A number answers no `count`, and the refusal names the kinds
             that do.
         ~~|
-        ~(5 | count !| addresses | eq #[::excerpt/count ::map/count ::string/count ::vec/count])
+        ~(5 | count !| addresses | eq #[::map/count ::string/count ::vec/count])
     | impl ::builtin{}
 
 :string/size
@@ -1320,3 +1320,32 @@
         ~("name" | toPath !| tag | eq ::string/toPath/NotPointerError)
     | impl ::builtin{}
 
+:string/excerpt
+  |~~ Answers the excerpt of the string within the characters the call
+      gives, three hundred where it gives none: a string that fits stands
+      whole in `:head`, and one past them tells `:characters` its
+      characters, as `count` counts them, `:head` its first characters and
+      `:tail` its last, as many of each as the budget holds, each cut where
+      a word ends, at the space nearest the cut within the half of it
+      beside the cut.
+      ::link~(::excerpt | doc) ::link~(::any/excerpt | doc)
+  ~~|
+  ::fn
+    | takes :budget
+        |~~ The characters of the print of the excerpt, three hundred where
+            the call gives none; a budget past the budget of every answer is
+            that budget.
+        ~~|
+        ~(query /0 300) ::number
+    | throws :budget/KindNotTakenError
+        |~~ The budget is a number of characters, `excerpt 80`. ~~|
+    | holds :budget/NotCountError
+        |~~ The budget is a whole count of characters above zero,
+            `excerpt 80`.
+        ~~|
+        ~(allOf (gt 0) ~(eq (floor)))
+    | returns |~~ The characters of the string, its first and its last. ~~| ::excerpt
+    | proves :tellsTheEndsOfAString
+        |~~ A long string shows its first and its last characters. ~~|
+        ~(2000 | range | map ~("ab") | join "" | excerpt | get [/characters ~(get /head | startsWith "abab") ~(get /tail | endsWith "abab")] | eq [4000 true true])
+    | impl ::builtin{}

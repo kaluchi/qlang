@@ -17,7 +17,7 @@ it('answers the refusal instead of an answer past the budget, the answer shown a
   expect([...shown.facts.keys()]).toEqual(['characters', 'budget', 'answer']);
   expect(shown.facts.get('characters')).toBe((await core.printAnswer(answer, scope)).length);
   const excerpt = shown.facts.get('answer');
-  expect([shown.facts.get('budget'), excerpt.get('of'), excerpt.get('count'), excerpt.get('parts').get('0')]).toEqual([core.ANSWER_BUDGET, core.makeTag('vec'), 3000, answer[0]]);
+  expect([shown.facts.get('budget'), excerpt.get('count'), excerpt.get('first')[0]]).toEqual([core.ANSWER_BUDGET, 3000, answer[0]]);
 });
 
 it('names the cell its host keeps the answer in, where the host keeps one', async () => {

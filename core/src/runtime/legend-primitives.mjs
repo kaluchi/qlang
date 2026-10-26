@@ -6,8 +6,8 @@ import { kindOfAValueOf } from '../nouns.mjs';
 import { chainOfKind } from '../chain.mjs';
 import { isValueClass, isMap, isVec, isDoc, isQuote, isTag, wiringOf, tagOf, beneathTags, payloadBeneath, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds } from './print.mjs';
-import { excerptWithin, sizeOf, lengthOf, ROOM_OF_A_FACT, ANSWER_BUDGET } from '../rooms.mjs';
+import { printsOfKinds, excerptsOfKinds } from './print.mjs';
+import { sizeOf, lengthOf, ROOM_OF_A_FACT, ANSWER_BUDGET } from '../rooms.mjs';
 
 const ALIGNED_WITHIN = LINE_WIDTH / 2;
 const LEAST_COLUMN = 16;
@@ -45,10 +45,18 @@ const readsItsOwnKey = (name, place) => place.path.segments.length === 1 && plac
 const partOfAKind = ({ name, place, written }) => [name.name, place === null || readsItsOwnKey(name, place) ? null : printValue(place.path), written === null ? null : printValue(written)].filter(piece => piece !== null).join(' ');
 
 // [QSPRN#legend]
-function legendWithin(told, scope, printedOf) {
-  const whole = legendOf(told, scope, printedOf);
+async function legendWithin(told, state, printedOf) {
+  const whole = legendOf(told, state.scope, printedOf);
   if (lengthOf(whole) <= ANSWER_BUDGET) return whole;
-  return legendOf(told, scope, printedOf, part => (sizeOf(part, printedOf) <= ROOM_OF_A_FACT ? part : excerptWithin(part, ROOM_OF_A_FACT, printedOf)));
+  const long = [];
+  legendOf(told, state.scope, printedOf, part => {
+    if (sizeOf(part, printedOf) > ROOM_OF_A_FACT) long.push(part);
+    return part;
+  });
+  const excerptOf = excerptsOfKinds(state.scope, state);
+  const shown = new Map();
+  for (const part of long) shown.set(part, await excerptOf(part));
+  return legendOf(told, state.scope, printedOf, part => shown.get(part) ?? part);
 }
 
 function payloadLaidOut(value) {
@@ -102,5 +110,5 @@ function pageLinkedFrom(page, scope) {
 
 registerStateReader('legend/print', async (subject, state) => {
   const told = payloadBeneath(subject);
-  return legendWithin(told, state.scope, await printsOfKinds(told, state.scope, state));
+  return await legendWithin(told, state, await printsOfKinds(told, state.scope, state));
 });

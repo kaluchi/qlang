@@ -19,7 +19,7 @@ it('writes the first screen whole, the budget never smaller than it', async () =
 it('writes an answer past the budget as the refusal, the answer shown as its excerpt, above the prose of its page', async () => {
   const scope = await langRuntime();
   const text = await answerText(await evalQuery(past, scope), scope);
-  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError!\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:answer ::excerpt\{\n {4}:of ::vec\n {4}:count 3000\n {4}:parts \{\n {6}:"0" \{:id 0 :name "user"\}/);
+  expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:answer ::excerpt\{\n {4}:count 3000\n {4}:first \[\{:id 0 :name "user"\} /);
   expect(text).toMatch(/\n\}\n\|~\| /);
   expect(text).toContain('`json | out`');
 });

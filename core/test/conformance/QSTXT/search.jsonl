@@ -7,7 +7,7 @@
 {"name":"empty-subject-not-contains-non-empty","query":"\"\" | contains \"x\"","expect":"false"}
 {"name":"contains-asks-for-a-text-case-and-all","query":"\"Hello\" | contains \"hello\"","expect":"false"}
 {"name":"a-string-contains-a-text-equal-to-itself","query":"\"foo\" | contains \"foo\"","expect":"true"}
-{"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","raises":"::string/contains/needle/KindNotTakenError!{:subject/found \"hi\" :needle/expected #[::regex ::string] :needle/found 42 :trace ::trace[::frame[\"hi\" ~(contains 42)]]}"}
+{"name":"a-needle-that-is-no-text-is-refused","query":"\"hi\" | contains 42","raises":"::string/contains/NeedleKindNotTakenError!{:subject/found \"hi\" :needle/expected #[::regex ::string] :needle/found 42 :trace ::trace[::frame[\"hi\" ~(contains 42)]]}"}
 {"name":"filter-keeps-the-strings-that-contain-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(contains \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-keeps-the-records-whose-field-contains-a-text","query":"[{:name \"alice\"} {:name \"bob\"} {:name \"alex\"}] | filter ~(get /name | contains \"al\") | map /name","expect":"[\"alice\" \"alex\"]"}
 {"name":"a-vector-contains-its-elements","query":"[\"ops\" \"db\"] | contains \"ops\"","expect":"true"}
@@ -20,7 +20,7 @@
 {"name":"the-empty-prefix-begins-the-empty-string","query":"\"\" | startsWith \"\"","expect":"true"}
 {"name":"startsWith-asks-for-a-text-case-and-all","query":"\"Hello\" | startsWith \"hello\"","expect":"false"}
 {"name":"a-subject-that-is-no-string-is-refused","query":"42 | startsWith \"x\"","raises":"::string/startsWith/SubjectNotStringError!{:subject/expected #[::string] :subject/found 42 :trace ::trace[::frame[42 ~(startsWith \"x\")]]}"}
-{"name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","raises":"::string/startsWith/prefix/KindNotTakenError!{:subject/found \"hi\" :prefix/expected #[::string] :prefix/found 42 :trace ::trace[::frame[\"hi\" ~(startsWith 42)]]}"}
+{"name":"a-prefix-that-is-no-text-is-refused","query":"\"hi\" | startsWith 42","raises":"::string/startsWith/PrefixKindNotTakenError!{:subject/found \"hi\" :prefix/expected #[::string] :prefix/found 42 :trace ::trace[::frame[\"hi\" ~(startsWith 42)]]}"}
 {"name":"filter-keeps-the-strings-that-start-with-a-text","query":"[\"alice\" \"bob\" \"alex\"] | filter ~(startsWith \"al\")","expect":"[\"alice\" \"alex\"]"}
 {"name":"filter-keeps-the-records-whose-field-starts-with-a-text","query":"[{:path \"/usr/bin\"} {:path \"/etc/hosts\"} {:path \"/usr/lib\"}] | filter ~(get /path | startsWith \"/usr\") | map /path","expect":"[\"/usr/bin\" \"/usr/lib\"]"}
 {"name":"endsWith-finds-a-text-at-the-end-of-a-string","query":"\"hello world\" | endsWith \"world\"","expect":"true"}
@@ -31,8 +31,8 @@
 {"name":"the-empty-suffix-ends-the-empty-string","query":"\"\" | endsWith \"\"","expect":"true"}
 {"name":"endsWith-asks-for-a-text-case-and-all","query":"\"hello\" | endsWith \"World\"","expect":"false"}
 {"name":"endsWith-a-subject-that-is-no-string-is-refused","query":"42 | endsWith \"x\"","raises":"::string/endsWith/SubjectNotStringError!{:subject/expected #[::string] :subject/found 42 :trace ::trace[::frame[42 ~(endsWith \"x\")]]}"}
-{"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","raises":"::string/endsWith/suffix/KindNotTakenError!{:subject/found \"hi\" :suffix/expected #[::string] :suffix/found 42 :trace ::trace[::frame[\"hi\" ~(endsWith 42)]]}"}
+{"name":"a-suffix-that-is-no-text-is-refused","query":"\"hi\" | endsWith 42","raises":"::string/endsWith/SuffixKindNotTakenError!{:subject/found \"hi\" :suffix/expected #[::string] :suffix/found 42 :trace ::trace[::frame[\"hi\" ~(endsWith 42)]]}"}
 {"name":"filter-keeps-the-strings-that-end-with-a-text","query":"[\"alice.txt\" \"bob.md\" \"alex.txt\"] | filter ~(endsWith \".txt\")","expect":"[\"alice.txt\" \"alex.txt\"]"}
 {"name":"filter-keeps-the-records-whose-field-ends-with-a-text","query":"[{:file \"a.qlang\"} {:file \"b.md\"} {:file \"c.qlang\"}] | filter ~(get /file | endsWith \".qlang\") | map /file","expect":"[\"a.qlang\" \"c.qlang\"]"}
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
-{"name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| tag","expect":"::string/contains/needle/KindNotTakenError"}
+{"name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| tag","expect":"::string/contains/NeedleKindNotTakenError"}

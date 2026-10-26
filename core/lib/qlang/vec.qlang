@@ -367,7 +367,7 @@
             gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /age)`, it
             runs on each element, while `(get /age)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -398,13 +398,13 @@
     | proves :answersTheErrorOfTheKey
         |~~ A key that misses its field answers the error of the read. ~~|
         ~([{:a 1} {:b 2}] | min /a !| tag | eq ::path/KeyNotInMapError)
-    | proves :key/KindNotTakenError/refusesAStepWithoutItsQuote
+    | proves :KeyKindNotTakenError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([3 1] | min (get /age)
           !| get [~(tag) ~(key | found | tag)]
-          |  eq [::vec/min/key/KindNotTakenError ::path/IndexNotIntegerError])
+          |  eq [::vec/min/KeyKindNotTakenError ::path/IndexNotIntegerError])
     | proves :answersTheFirstOfASet
         |~~ A set answers its least element without a key, its first. ~~|
         ~(#[3 1 4] | get [~(min) ~(first)] | eq [1 1])
@@ -427,7 +427,7 @@
             gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
     | returns
         |~~ The greatest element, any value, null for the empty vector. ~~|
@@ -447,9 +447,9 @@
     | proves :answersTheFirstOfEqualKeys
         |~~ Of elements whose keys are equal the first answers. ~~|
         ~([{:age 40 :n 1} {:age 40 :n 2}] | max /age | get /n | eq 1)
-    | proves :key/KindNotTakenError/refusesANumber
+    | proves :KeyKindNotTakenError/refusesANumber
         |~~ A key that is no quote is refused under the input. ~~|
-        ~([1 2] | max 1 !| tag | eq ::vec/max/key/KindNotTakenError)
+        ~([1 2] | max 1 !| tag | eq ::vec/max/KeyKindNotTakenError)
     | proves :answersTheLastOfASet
         |~~ A set answers its greatest element without a key, its last. ~~|
         ~(#[3 1 4] | get [~(max) ~(last)] | eq [4 4])
@@ -483,13 +483,13 @@
     | takes :code
         |~~ The code run on each element, a quote. ~~|
         /0 #[::path ::quote]
-    | throws :code/KindNotTakenError
+    | throws :CodeKindNotTakenError
         |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
             written without the tilde, `map (add 1)`, it is computed once
             at the call, against the vector, and refused with what it
             answered.
         ~~|
-    | throws :code/NotGivenError
+    | throws :CodeNotGivenError
         |~~ `map` runs the code the call gives on each element,
             `map ~(add 1)`; a call without it has nothing to run.
         ~~|
@@ -529,12 +529,12 @@
     | proves :answersTheEmptyVector
         |~~ The empty vector answers the empty vector. ~~|
         ~([] | map ~(add 1) | eq [])
-    | proves :code/KindNotTakenError/refusesAStepComputedAtTheCall
+    | proves :CodeKindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
-        ~([1 2] | map (add 1) !| tag | eq ::vec/map/code/KindNotTakenError)
-    | proves :code/NotGivenError/refusesACallWithoutCode
+        ~([1 2] | map (add 1) !| tag | eq ::vec/map/CodeKindNotTakenError)
+    | proves :CodeNotGivenError/refusesACallWithoutCode
         |~~ A call without code is refused under the input. ~~|
-        ~([1 2] | map !| tag | eq ::vec/map/code/NotGivenError)
+        ~([1 2] | map !| tag | eq ::vec/map/CodeNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoCodes
         |~~ Two codes are refused under the verb. ~~|
         ~([1 2] | map ~(add 1) ~(mul 2) !| tag | eq ::vec/map/ArgsBeyondInputsError)
@@ -577,7 +577,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/KindNotTakenError
+    | throws :PredicateKindNotTakenError
         |~~ The predicate is a quote, `filter ~(gt 1)`, or a path,
             `filter /active`; written without the tilde, `filter (gt 1)`,
             it is computed once at the call and refused.
@@ -623,19 +623,19 @@
     | proves :keepsASetASetUnderItsTags
         |~~ A set under a tag stays a set under it. ~~|
         ~(::Box#[1 2 3] | filter ~(gt 1) | eq ::Box#[2 3])
-    | proves :predicate/KindNotTakenError/refusesABoolean
+    | proves :PredicateKindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | filter (count | gt 1)
           !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/filter/predicate/KindNotTakenError ::boolean])
-    | proves :predicate/KindNotTakenError/refusesAStepWithoutItsQuote
+          |  eq [::vec/filter/PredicateKindNotTakenError ::boolean])
+    | proves :PredicateKindNotTakenError/refusesAStepWithoutItsQuote
         |~~ A step written without its quote runs on the whole subject at
             the call, and its error is refused.
         ~~|
         ~([{:a true}] | filter (get /a)
           !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/filter/predicate/KindNotTakenError ::path/IndexNotIntegerError])
+          |  eq [::vec/filter/PredicateKindNotTakenError ::path/IndexNotIntegerError])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | filter ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
@@ -670,7 +670,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/KindNotTakenError
+    | throws :PredicateKindNotTakenError
         |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
             `every /active`; written without the tilde, `every (gt 0)`, it
             is computed once at the call and refused.
@@ -705,12 +705,12 @@
             call.
         ~~|
         ~([{:a 1} {:b 2}] | every ~(get /a | gt 0) !| tag | eq ::path/KeyNotInMapError)
-    | proves :predicate/KindNotTakenError/refusesABoolean
+    | proves :PredicateKindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | every (count | gt 1)
           !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/every/predicate/KindNotTakenError ::boolean])
+          |  eq [::vec/every/PredicateKindNotTakenError ::boolean])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | every ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
@@ -739,7 +739,7 @@
         |~~ The code each element is run through, which answers a boolean.
         ~~|
         /0 #[::path ::quote]
-    | throws :predicate/KindNotTakenError
+    | throws :PredicateKindNotTakenError
         |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
             `any /vip`; written without the tilde, `any (gt 2)`, it is
             computed once at the call and refused.
@@ -769,12 +769,12 @@
     | proves :takesAVerbByItsName
         |~~ A verb by its name stands where a quote would. ~~|
         ~([1 2 3] | :number/big ~(gt 2) | any ~big)
-    | proves :predicate/KindNotTakenError/refusesABoolean
+    | proves :PredicateKindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
         ~([1 2 3] | any (count | gt 1)
           !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/any/predicate/KindNotTakenError ::boolean])
+          |  eq [::vec/any/PredicateKindNotTakenError ::boolean])
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | any ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
@@ -808,7 +808,7 @@
             subject.
         ~~|
         /0
-    | throws :element/NotGivenError
+    | throws :ElementNotGivenError
         |~~ `has` asks for the element the call gives, `has 1`; whether the
             vector holds any element is `empty | not`.
         ~~|
@@ -848,9 +848,9 @@
     | proves :asksAVectorAsOneElement
         |~~ A vector given is one element, not several. ~~|
         ~(#[1 2] | has [1 2] | not)
-    | proves :element/NotGivenError/refusesACallWithNoElement
+    | proves :ElementNotGivenError/refusesACallWithNoElement
         |~~ A call with no element is refused under the input. ~~|
-        ~(#[1 2] | has !| tag | eq ::vec/has/element/NotGivenError)
+        ~(#[1 2] | has !| tag | eq ::vec/has/ElementNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoElements
         |~~ A call with two elements is refused under the verb. ~~|
         ~(#[1 2] | has 1 2 !| tag | eq ::vec/has/ArgsBeyondInputsError)
@@ -922,7 +922,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /kind)`, it
             runs on each element, while `(get /kind)` is computed once at
             the call, against the vector, and refused with what it answered.
@@ -930,7 +930,7 @@
     | returns
         |~~ The elements filed under the keyword their key answered. ~~|
         ::map
-    | throws :KeyKindNotTakenError
+    | throws :KeyAnswerKindNotTakenError
         |~~ The key `groupBy` files an element under is a keyword, since
             the keys of a map are keywords, or a value `toKeyword` names
             one for: a string or a number files under the keyword of its
@@ -991,19 +991,19 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~([1 "1"] | groupBy !| get [~(tag) ~(key | answer) ~(taken) ~(trace | last | path)] | eq [::vec/groupBy/KeyTakenError :"1" 1 /1])
-    | proves :key/KindNotTakenError/refusesAKeyword
+    | proves :KeyKindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:kind :a}] | groupBy :a
           !| get [~(tag) ~(key | found | tag)]
-          |  eq [::vec/groupBy/key/KindNotTakenError ::keyword])
-    | proves :KeyKindNotTakenError/refusesAVectorKey
+          |  eq [::vec/groupBy/KeyKindNotTakenError ::keyword])
+    | proves :KeyAnswerKindNotTakenError/refusesAVectorKey
         |~~ A vector key is refused at its element, with the kinds a key
             files under.
         ~~|
         ~([{:k 2} {:k [1]}] | groupBy /k !| get [~(tag) ~(key | answer | tag) ~(trace | last | path) ~(key | expected)]
-          |  eq [::vec/groupBy/KeyKindNotTakenError ::vec /1 #[::boolean ::keyword ::null ::number ::string ::tag]])
+          |  eq [::vec/groupBy/KeyAnswerKindNotTakenError ::vec /1 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :vec/indexBy
@@ -1029,7 +1029,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /id)`, it
             runs on each element, while `(get /id)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -1043,7 +1043,7 @@
         |~~ `indexBy` files the elements of a vector, a set's among them: a
             map's values are read first, `vals | indexBy /id`.
         ~~|
-    | throws :KeyKindNotTakenError
+    | throws :KeyAnswerKindNotTakenError
         |~~ The key `indexBy` files an element under is a keyword, since
             the keys of a map are keywords, or a value `toKeyword` names
             one for: a string or a number files under the keyword of its
@@ -1093,13 +1093,13 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~([{:id 1} {:id "1"}] | indexBy /id !| get [~(tag) ~(key | answer) ~(taken) ~(trace | last | path)] | eq [::vec/indexBy/KeyTakenError :"1" 1 /1])
-    | proves :key/KindNotTakenError/refusesAKeyword
+    | proves :KeyKindNotTakenError/refusesAKeyword
         |~~ A keyword given as the key is computed at the call, and
             refused.
         ~~|
         ~([{:id :a}] | indexBy :a
           !| get [~(tag) ~(key | found | tag)]
-          |  eq [::vec/indexBy/key/KindNotTakenError ::keyword])
+          |  eq [::vec/indexBy/KeyKindNotTakenError ::keyword])
     | proves :keepsTheLastOfAlikeKeysInTheOneOrderOfASet
         |~~ Of two elements of a set under one key, the last in the one
             order stays.
@@ -1108,12 +1108,12 @@
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number has no elements to file. ~~|
         ~(42 | indexBy !| get [~(tag) ~(subject | found | tag)] | eq [::vec/indexBy/SubjectNotVecError ::number])
-    | proves :KeyKindNotTakenError/refusesAVectorKey
+    | proves :KeyAnswerKindNotTakenError/refusesAVectorKey
         |~~ A vector key is refused at its element, with the kinds a key
             files under.
         ~~|
         ~([{:k [1]}] | indexBy /k !| get [~(tag) ~(key | answer | tag) ~(trace | last | path) ~(key | expected)]
-          |  eq [::vec/indexBy/KeyKindNotTakenError ::vec /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+          |  eq [::vec/indexBy/KeyAnswerKindNotTakenError ::vec /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :vec/sort
@@ -1149,7 +1149,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /age)`, it
             runs on each element, while `(get /age)` is computed once at the
             call, against the vector, and refused with what it answered.
@@ -1209,11 +1209,11 @@
             the error alike.
         ~~|
         ~([{:a 2} {:b 1}] | sort ~(get [/a]) !| tag | eq ::path/KeyNotInMapError)
-    | proves :key/KindNotTakenError/refusesANumber
+    | proves :KeyKindNotTakenError/refusesANumber
         |~~ A number given as the key is computed at the call, and
             refused.
         ~~|
-        ~([3 1 2] | sort 1 !| get [~(tag) ~(key | found | tag)] | eq [::vec/sort/key/KindNotTakenError ::number])
+        ~([3 1 2] | sort 1 !| get [~(tag) ~(key | found | tag)] | eq [::vec/sort/KeyKindNotTakenError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the verb. ~~|
         ~([{:a 1}] | sort /a /b !| tag | eq ::vec/sort/ArgsBeyondInputsError)
@@ -1234,16 +1234,16 @@
   ~~|
   ::fn
     | takes :count |~~ How many. ~~| /0 ::number
-    | throws :count/KindNotTakenError
+    | throws :CountKindNotTakenError
         |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
             is read by `toNumber` first, `take ("2" | toNumber)`.
         ~~|
-    | holds :count/NotIntegerError
+    | holds :CountNotIntegerError
         |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
             rounded first, `take (1.5 | round)`.
         ~~|
-        ~(eq (floor))
-    | throws :count/NotGivenError
+        ~(count | eq (floor))
+    | throws :CountNotGivenError
         |~~ `take` takes as many of the first elements as its call counts,
             `take 2`, and the first alone is `first`.
         ~~|
@@ -1267,12 +1267,12 @@
     | proves :readsASliceAfterADrop
         |~~ A drop and then a take read a slice. ~~|
         ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
-    | proves :count/KindNotTakenError/refusesAString
+    | proves :CountKindNotTakenError/refusesAString
         |~~ A string is no count. ~~|
-        ~([1 2 3] | take "2" !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/count/KindNotTakenError ::string])
-    | proves :count/NotIntegerError/refusesAFraction
+        ~([1 2 3] | take "2" !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountKindNotTakenError ::string])
+    | proves :CountNotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | take 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/count/NotIntegerError ::number])
+        ~([1 2 3] | take 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountNotIntegerError ::number])
     | proves :keepsTheTag
         |~~ A vector under a tag keeps its tag. ~~|
         ~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
@@ -1281,9 +1281,9 @@
             least, a set again.
         ~~|
         ~([3 1 2] | get [~(take 2) ~(toSet | take 2)] | eq [[3 1] #[1 2]])
-    | proves :count/NotGivenError/refusesACallWithNoCount
+    | proves :CountNotGivenError/refusesACallWithNoCount
         |~~ A call with no count is refused under the input. ~~|
-        ~(#[:a :b] | take !| tag | eq ::vec/take/count/NotGivenError)
+        ~(#[:a :b] | take !| tag | eq ::vec/take/CountNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the verb. ~~|
         ~(#[:a :b] | take 1 2 !| tag | eq ::vec/take/ArgsBeyondInputsError)
@@ -1301,15 +1301,15 @@
   ~~|
   ::fn
     | takes :count |~~ How many. ~~| /0 ::number
-    | throws :count/KindNotTakenError
+    | throws :CountKindNotTakenError
         |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
             is read by `toNumber` first, `drop ("2" | toNumber)`.
         ~~|
-    | holds :count/NotIntegerError
+    | holds :CountNotIntegerError
         |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
             rounded first, `drop (1.5 | round)`.
         ~~|
-        ~(eq (floor))
+        ~(count | eq (floor))
     | returns |~~ The elements after the ones dropped. ~~| ::vec
     | throws :ArgsBeyondInputsError
         |~~ `drop` takes one count: the two elements after the first are
@@ -1327,12 +1327,12 @@
     | proves :keepsAQuoteAQuote
         |~~ A quote drops its first steps. ~~|
         ~(~(add 1 | mul 2) | drop 1 | eq ~(mul 2))
-    | proves :count/NotIntegerError/refusesAFraction
+    | proves :CountNotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/drop/count/NotIntegerError ::number])
-    | proves :count/KindNotTakenError/refusesAString
+        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/drop/CountNotIntegerError ::number])
+    | proves :CountKindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
-        ~([1 2] | drop "1" !| tag | eq ::vec/drop/count/KindNotTakenError)
+        ~([1 2] | drop "1" !| tag | eq ::vec/drop/CountKindNotTakenError)
     | proves :dropsTheLeastOfASet
         |~~ A vector drops the first it was written with, its set the
             least, a set again.
@@ -1464,7 +1464,7 @@
   ~~|
   ::fn
     | takes :vectors |~~ The vectors joined after the subject. ~~| ~(it) [::vec]
-    | throws :vectors/ElementKindNotTakenError
+    | throws :VectorsElementKindNotTakenError
         |~~ What `concat` joins is a vector, `concat [2 3]`; a single
             element is put at the end by `append`, `append 2`.
         ~~|
@@ -1482,9 +1482,9 @@
     | proves :answersUnderTheTagOfTheSubject
         |~~ A vector under a tag answers under the tag. ~~|
         ~(::Box[1] | concat [2] | eq ::Box[1 2])
-    | proves :vectors/ElementKindNotTakenError/refusesANumber
+    | proves :VectorsElementKindNotTakenError/refusesANumber
         |~~ A number is no vector to join. ~~|
-        ~([1] | concat 2 !| tag | eq ::vec/concat/vectors/ElementKindNotTakenError)
+        ~([1] | concat 2 !| tag | eq ::vec/concat/VectorsElementKindNotTakenError)
     | impl ::builtin{}
 
 :vec/zip
@@ -1551,14 +1551,14 @@
             the value so far and the element.
         ~~|
         /1 #[::path ::quote]
-    | throws :reducer/KindNotTakenError
+    | throws :ReducerKindNotTakenError
         |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
             seed: written first, `reduce ~(add) 0`, it is read as the
             seed and the seed as the reducer, and written
             without the tilde, `(add)`, it is computed once at the call;
             either is refused.
         ~~|
-    | throws :reducer/NotGivenError
+    | throws :ReducerNotGivenError
         |~~ `reduce` takes the seed first and the reducer after it,
             `reduce 0 ~(add)`; a call of the reducer alone reads it as the
             seed.
@@ -1609,22 +1609,22 @@
         ~([] | reduce 42 ~(add) | eq 42)
     | proves :answersTheErrorOfTheReducer
         |~~ An error the reducer answers answers the call. ~~|
-        ~([1 "x" 3] | reduce 0 ~(add) !| tag | eq ::number/add/addend/KindNotTakenError)
-    | proves :reducer/KindNotTakenError/refusesANumber
+        ~([1 "x" 3] | reduce 0 ~(add) !| tag | eq ::number/add/AddendKindNotTakenError)
+    | proves :ReducerKindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~([1 2 3] | reduce 0 1
           !| get [~(tag) ~(reducer | found | tag)]
-          |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
-    | proves :reducer/KindNotTakenError/refusesTheReducerFirst
+          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
+    | proves :ReducerKindNotTakenError/refusesTheReducerFirst
         |~~ A reducer written before the seed is read as the seed, and
             the seed as the reducer.
         ~~|
         ~([1 2 3] | reduce ~(add) 0
           !| get [~(tag) ~(reducer | found | tag)]
-          |  eq [::vec/reduce/reducer/KindNotTakenError ::number])
-    | proves :reducer/NotGivenError/readsALoneQuoteAsTheSeed
+          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
+    | proves :ReducerNotGivenError/readsALoneQuoteAsTheSeed
         |~~ A call of the reducer alone lacks the reducer. ~~|
-        ~([1 2 3] | reduce ~(add) !| tag | eq ::vec/reduce/reducer/NotGivenError)
+        ~([1 2 3] | reduce ~(add) !| tag | eq ::vec/reduce/ReducerNotGivenError)
     | proves :takesANameOfTwoSteps
         |~~ Two steps under a name of their own fold as one verb. ~~|
         ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)) | [1 2 3] | reduce 0 ~(step) | eq 11)
@@ -1878,7 +1878,7 @@
     | takes :separator
         |~~ The text written between every two elements, `join ", "`. ~~|
         /0 #[::keyword ::string]
-    | throws :separator/KindNotTakenError
+    | throws :SeparatorKindNotTakenError
         |~~ The separator is a string, `["a" "b"] | join ","`, or a
             keyword written as its name; a number writes as text by
             `toString` first, `join (1 | toString)`.
@@ -1931,11 +1931,11 @@
     | proves :joinsTheValuesOfAMap
         |~~ The values of a map are read first. ~~|
         ~({:a "x" :b "y"} | vals | join "," | eq "x,y")
-    | proves :separator/KindNotTakenError/refusesANumber
+    | proves :SeparatorKindNotTakenError/refusesANumber
         |~~ A number separator is refused. ~~|
         ~(["a" "b"] | join 42
           !| get [~(tag) ~(separator | found | tag)]
-          |  eq [::vec/join/separator/KindNotTakenError ::number])
+          |  eq [::vec/join/SeparatorKindNotTakenError ::number])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of strings. ~~|
         ~(42 | join "," !| get [~(tag) ~(subject | found | tag)] | eq [::vec/join/SubjectNotVecError ::number])

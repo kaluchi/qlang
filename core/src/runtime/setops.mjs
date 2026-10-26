@@ -109,7 +109,7 @@ registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VE
 registerPrimitive('set/union', asCombiner((set, other) => mergeSets(set, other, UNION_KEEPS)));
 registerPrimitive('map/union', asCombiner((map, other) => unionOfMaps(map, other)));
 
-const MapMinusKeysElementKindNotTakenError = declareRefusal('map/minus/keys/ElementKindNotTakenError');
+const MapMinusKeysElementKindNotTakenError = declareRefusal('map/minus/KeysElementKindNotTakenError');
 
 const VEC_MINUS = {
   SubjectEmptyError: declareRefusal('vec/minus/SubjectEmptyError'),
@@ -121,7 +121,7 @@ registerStateReader('vec/minus', (vector, state) => foldOf(vector, minusPair, VE
 registerPrimitive('set/minus', asCombiner((set, other) => mergeSets(set, other, MINUS_KEEPS)));
 registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
 
-const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/keys/ElementKindNotTakenError');
+const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/KeysElementKindNotTakenError');
 
 const VEC_INTER = {
   SubjectEmptyError: declareRefusal('vec/inter/SubjectEmptyError'),

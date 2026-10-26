@@ -38,7 +38,7 @@ registerPrimitive('string/scan', (text, regex) => Object.freeze(Array.from(text.
 const SYNTAX_CHARACTERS = /[\\^$.*+?()[\]{}|/]/g;
 const engineOfText = needle => engineOf(needle.replace(SYNTAX_CHARACTERS, '\\$&'), '', 'g');
 
-const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/with/AnswerKindNotTakenError');
+const StringReplaceWithAnswerKindNotTakenError = declareRefusal('string/replace/WithAnswerKindNotTakenError');
 
 async function replacedByCode(text, engine, code) {
   let replaced = '';

@@ -54,7 +54,7 @@ subject, and `and` and `or` join a boolean subject with the
 whatever the subject decides, a subject of another kind refused under
 the verb, `::boolean/and/SubjectNotBooleanError`, and a condition under
 the input. `allOf` and `anyOf` take conditions, one at least,
-`::any/allOf/conditions/EmptyError` refusing none: each a boolean
+`::any/allOf/ConditionsEmptyError` refusing none: each a boolean
 computed at the call, or a quote or a path that answers one in its turn,
 run once every condition before it held for `allOf` and once none did
 for `anyOf`, the first that decides answering with the quotes after it
@@ -67,10 +67,10 @@ computed in their order before their kinds are read [QSQUO#modifier].
 
 ```qlang
 > 5 | if 1 ~(1) ~(2) !| tag
-::any/if/condition/KindNotTakenError
+::any/if/ConditionKindNotTakenError
 
 > true | and 1 !| tag
-::boolean/and/condition/KindNotTakenError
+::boolean/and/ConditionKindNotTakenError
 
 > {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
 false
@@ -88,15 +88,15 @@ true
 two branches, `:then` and `:else`, as quotes or paths, running one of
 them on the subject; an identity branch, `~()`, leaves the subject. A
 condition or a branch the call leaves out is refused,
-`::any/if/else/NotGivenError`, and a branch of another kind,
-`::any/if/then/KindNotTakenError`. `cond` takes its clauses as quotes or
+`::any/if/ElseNotGivenError`, and a branch of another kind,
+`::any/if/ThenKindNotTakenError`. `cond` takes its clauses as quotes or
 paths, pairs of a predicate and a branch run in order, an odd last
 clause the default, null where none matches and no default stands: a
 predicate that answers no boolean is refused as
 `::any/cond/ConditionKindNotTakenError` at its index from zero, one that
 answers a failure hands it on, a clause of another kind is refused as
-`::any/cond/clauses/ElementKindNotTakenError`, and a call with no pair as
-`::any/cond/clauses/NoBranchesError`.
+`::any/cond/ClausesElementKindNotTakenError`, and a call with no pair as
+`::any/cond/ClausesNoBranchesError`.
 
 ```qlang
 > 75 | if (gte 60) ~("pass") ~("fail")
@@ -137,13 +137,13 @@ true
 ## coalesce
 
 `coalesce` answers the first of its alternatives that answers a value,
-one at least, `::any/coalesce/alternatives/EmptyError` refusing none.
+one at least, `::any/coalesce/AlternativesEmptyError` refusing none.
 Each alternative is read in its turn: code, a quote or a path, runs
 against the subject, and a value answers itself; the subject stands
 before the alternative where the call gives one and it is a value, so
 `query /timeout | coalesce 30` reads the timeout, else 30, while several
 values alone, which read no subject, are refused,
-`::any/coalesce/alternatives/ValuesAloneError`, the subject first written
+`::any/coalesce/AlternativesValuesAloneError`, the subject first written
 by a quote, `coalesce ~(it) e 8080`, and a field by a path,
 `coalesce /t 30`. An alternative passes to the next where it answers
 null, beneath the tags over it, or the refusal of a read `query` answers
@@ -164,7 +164,7 @@ unrun.
 [45 30]
 
 > get [~({:t null} | coalesce (get /t) 30 !| tag) ~(9000 | coalesce ~(it) 7000 8080) ~({:t null} | coalesce /t 30)]
-[::any/coalesce/alternatives/ValuesAloneError 9000 30]
+[::any/coalesce/AlternativesValuesAloneError 9000 30]
 
 > {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| tag) ~(coalesce ~(get /items | first | get /cost) 0)]
 [::path/KeyNotInMapError 0]

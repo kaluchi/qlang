@@ -19,6 +19,6 @@
 {"name":"a-quote-in-a-regex-does-not-end-it","query":"\"say \\\"hi\\\"\" | contains #\"\\\"hi\\\"\"","expect":"true"}
 {"name":"a-regex-reads-letters-of-any-script","query":"\"Ünïcödé 42 данные\" | scan #\"\\p{L}+\"","expect":"[\"Ünïcödé\" \"данные\"]"}
 {"name":"a-regex-takes-flags-as-a-string-does","query":"#\"a\" | toRegex \"i\" | eq (\"a\" | toRegex \"i\")","expect":"true"}
-{"name":"a-regex-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| tag","expect":"::regex/toRegex/flags/NotFlagsError"}
+{"name":"a-regex-refuses-letters-of-no-flag","query":"#\"a\" | toRegex \"q\" !| tag","expect":"::regex/toRegex/FlagsNotFlagsError"}
 {"name":"toRegex-with-no-flags-keeps-a-regex-and-gives-a-string-none","query":"get [~(#\"a\"m | toRegex) ~(\"a\" | toRegex)]","expect":"[#\"a\"m #\"a\"]"}
 {"name":"a-string-takes-null-for-no-flags-as-a-regex-takes-it-for-its-own","query":"get [~(\"a\" | toRegex null) ~(#\"a\"m | toRegex null)]","expect":"[#\"a\" #\"a\"m]"}

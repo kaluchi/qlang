@@ -80,7 +80,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
             on each element, while `(get /n)` is computed once at the call,
             against the set, and refused with what it answered.
@@ -100,9 +100,9 @@
     | proves :losesItsOrderToToSet
         |~~ `toSet` after a sort brings the set back in the one order. ~~|
         ~(#[1 2 3] | sort ~(desc) | toSet | eq #[1 2 3])
-    | proves :key/KindNotTakenError/refusesAValueForCode
+    | proves :KeyKindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/key/KindNotTakenError)
+        ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/KeyKindNotTakenError)
     | impl ::builtin{}
 
 :set/reverse
@@ -175,7 +175,7 @@
             none.
         ~~|
         ~(query /0) #[::null ::path ::quote]
-    | throws :key/KindNotTakenError
+    | throws :KeyKindNotTakenError
         |~~ The key is a path, a quote or null: written `~(get /k)`, it runs
             on each element, while `(get /k)` is computed once at the call,
             against the set, and refused with what it answered.
@@ -185,7 +185,7 @@
             group a set.
         ~~|
         ::map
-    | throws :KeyKindNotTakenError
+    | throws :KeyAnswerKindNotTakenError
         |~~ The key `groupBy` files an element under is a keyword, or a
             value `toKeyword` names one for: a string or a number files
             under the keyword of its text, a boolean or null under that of
@@ -230,16 +230,16 @@
     | proves :KeyTakenError/refusesTwoValuesOfOneText
         |~~ A number and a string of one text meet under one key. ~~|
         ~(#[1 "1"] | groupBy !| get [~(tag) ~(key | answer) ~(taken)] | eq [::set/groupBy/KeyTakenError :"1" 1])
-    | proves :key/KindNotTakenError/refusesAKeyWithoutItsQuote
+    | proves :KeyKindNotTakenError/refusesAKeyWithoutItsQuote
         |~~ A key written without its quote mark is refused under the
             input.
         ~~|
-        ~(#[{:k 1}] | groupBy (get /k) !| tag | eq ::set/groupBy/key/KindNotTakenError)
-    | proves :KeyKindNotTakenError/refusesAVectorKey
+        ~(#[{:k 1}] | groupBy (get /k) !| tag | eq ::set/groupBy/KeyKindNotTakenError)
+    | proves :KeyAnswerKindNotTakenError/refusesAVectorKey
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
         ~~|
-        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(key | expected)] | eq [::set/groupBy/KeyKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
+        ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(key | expected)] | eq [::set/groupBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{}
 
 :set/toVec
@@ -310,11 +310,11 @@
   ~~|
   ::fn
     | takes :other |~~ The other set, which the call gives. ~~| /0 ::set
-    | throws :other/KindNotTakenError
+    | throws :OtherKindNotTakenError
         |~~ The other value is a set; a vector is made a set by `toSet`
             first, `#[1] | union ([2 3] | toSet)`.
         ~~|
-    | throws :other/NotGivenError
+    | throws :OtherNotGivenError
         |~~ `union` unites the subject with the set the call gives,
             `#[1] | union #[2]`; the sets a set holds unite by the verb of
             vectors, `#[#[1] #[2]] | vec/union`, or by `flat`.
@@ -334,12 +334,12 @@
     | proves :unitesSeveralOneAfterAnother
         |~~ Several sets unite one after another. ~~|
         ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
-    | proves :other/KindNotTakenError/refusesAVector
+    | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | union [:b] !| tag | eq ::set/union/other/KindNotTakenError)
-    | proves :other/NotGivenError/refusesACallWithNoSet
+        ~(#[:a] | union [:b] !| tag | eq ::set/union/OtherKindNotTakenError)
+    | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1] #[2]] | union !| tag | eq ::set/union/other/NotGivenError)
+        ~(#[#[1] #[2]] | union !| tag | eq ::set/union/OtherNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1] | union #[2] #[3] !| tag | eq ::set/union/ArgsBeyondInputsError)
@@ -357,11 +357,11 @@
   ~~|
   ::fn
     | takes :other |~~ The set whose elements go, which the call gives. ~~| /0 ::set
-    | throws :other/KindNotTakenError
+    | throws :OtherKindNotTakenError
         |~~ The value taken from a set is a set; a vector is made a set by
             `toSet` first, `#[1 2] | minus ([2] | toSet)`.
         ~~|
-    | throws :other/NotGivenError
+    | throws :OtherNotGivenError
         |~~ `minus` takes from the subject the set the call gives,
             `#[1 2] | minus #[2]`; the sets a set holds meet in its one
             order as the vector it is, `toVec | minus`.
@@ -381,12 +381,12 @@
     | proves :takesSeveralOneAfterAnother
         |~~ Several sets go one after another. ~~|
         ~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
-    | proves :other/KindNotTakenError/refusesAMap
+    | proves :OtherKindNotTakenError/refusesAMap
         |~~ A map beside a set is refused under the input. ~~|
-        ~(#[:a] | minus {:a 1} !| tag | eq ::set/minus/other/KindNotTakenError)
-    | proves :other/NotGivenError/refusesACallWithNoSet
+        ~(#[:a] | minus {:a 1} !| tag | eq ::set/minus/OtherKindNotTakenError)
+    | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1] #[2]] | minus !| tag | eq ::set/minus/other/NotGivenError)
+        ~(#[#[1] #[2]] | minus !| tag | eq ::set/minus/OtherNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2 3] | minus #[2] #[3] !| tag | eq ::set/minus/ArgsBeyondInputsError)
@@ -404,11 +404,11 @@
   ~~|
   ::fn
     | takes :other |~~ The set whose elements stay, which the call gives. ~~| /0 ::set
-    | throws :other/KindNotTakenError
+    | throws :OtherKindNotTakenError
         |~~ The other value is a set; a vector is made a set by `toSet`
             first, `#[1 2] | inter ([2] | toSet)`.
         ~~|
-    | throws :other/NotGivenError
+    | throws :OtherNotGivenError
         |~~ `inter` keeps of the subject what the set the call gives holds,
             `#[1 2] | inter #[2]`; what the sets a set holds share is the
             verb of vectors, `#[#[1 2] #[2 3]] | vec/inter`.
@@ -429,12 +429,12 @@
             all.
         ~~|
         ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
-    | proves :other/KindNotTakenError/refusesAVector
+    | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | inter [:a] !| tag | eq ::set/inter/other/KindNotTakenError)
-    | proves :other/NotGivenError/refusesACallWithNoSet
+        ~(#[:a] | inter [:a] !| tag | eq ::set/inter/OtherKindNotTakenError)
+    | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/other/NotGivenError)
+        ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/OtherNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2] | inter #[1] #[2] !| tag | eq ::set/inter/ArgsBeyondInputsError)

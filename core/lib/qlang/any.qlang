@@ -84,7 +84,7 @@
         ~~|
         ~([1 3 2] | sort desc
           !| get [~(tag) ~(key | found | tag)]
-          |  eq [::vec/sort/key/KindNotTakenError ::desc])
+          |  eq [::vec/sort/KeyKindNotTakenError ::desc])
     | proves :turnsBackToTheValue
         |~~ A value turned twice is the value. ~~|
         ~([5 {:n 1} ::Box[2]] | map ~(:v it | desc | desc | eq v) | every ~(it))
@@ -116,7 +116,7 @@
             against the subject.
         ~~|
         /0
-    | throws :value/NotGivenError
+    | throws :ValueNotGivenError
         |~~ `eq` compares the subject with the value its call gives,
             `5 | eq 5`; a call with no value is refused.
         ~~|
@@ -152,9 +152,9 @@
     | proves :comparesTwoFieldsThroughAName
         |~~ Two fields of one record compare through a name. ~~|
         ~({:a 1 :b 1} | :r it | get /a | eq (r | get /b))
-    | proves :value/NotGivenError/refusesACallWithNoValue
+    | proves :ValueNotGivenError/refusesACallWithNoValue
         |~~ A call with no value is refused under the input. ~~|
-        ~(5 | eq !| tag | eq ::any/eq/value/NotGivenError)
+        ~(5 | eq !| tag | eq ::any/eq/ValueNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoValues
         |~~ A call with two values is refused under the verb. ~~|
         ~(5 | eq 5 6 !| tag | eq ::any/eq/ArgsBeyondInputsError)
@@ -178,7 +178,7 @@
             against the subject.
         ~~|
         /0
-    | throws :value/NotGivenError
+    | throws :ValueNotGivenError
         |~~ `ne` compares the subject with the value its call gives,
             `5 | ne 6`; a call with no value is refused.
         ~~|
@@ -194,9 +194,9 @@
     | proves :answersTheOppositeOfEq
         |~~ Two values differ exactly when they are not one value. ~~|
         ~([[1 2] [1 1] [:a "a"]] | map ~(:p it | get /0 | ne (p | get /1)) | eq [true false true])
-    | proves :value/NotGivenError/refusesACallWithNoValue
+    | proves :ValueNotGivenError/refusesACallWithNoValue
         |~~ A call with no value is refused under the input. ~~|
-        ~(5 | ne !| tag | eq ::any/ne/value/NotGivenError)
+        ~(5 | ne !| tag | eq ::any/ne/ValueNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoValues
         |~~ A call with two values is refused under the verb. ~~|
         ~(5 | ne 6 7 !| tag | eq ::any/ne/ArgsBeyondInputsError)
@@ -610,7 +610,7 @@
             call.
         ~~|
         /0 ::boolean
-    | throws :condition/KindNotTakenError
+    | throws :ConditionKindNotTakenError
         |~~ The condition is a boolean computed at the call, `if (gt 0)`:
             a quote, `~(gt 0)`, is code and no boolean, and null or a
             number has no second reading.
@@ -618,18 +618,18 @@
     | takes :then
         |~~ The branch run when the condition holds, a quote. ~~|
         /1 #[::path ::quote]
-    | throws :then/KindNotTakenError
+    | throws :ThenKindNotTakenError
         |~~ The then branch is code, a quote, `~("yes")`, or a path, run
             only when chosen.
         ~~|
     | takes :else
         |~~ The branch run when the condition fails, a quote. ~~|
         /2 #[::path ::quote]
-    | throws :else/KindNotTakenError
+    | throws :ElseKindNotTakenError
         |~~ The else branch is code, a quote, `~("no")`, or a path, run
             only when chosen.
         ~~|
-    | throws :else/NotGivenError
+    | throws :ElseNotGivenError
         |~~ `if` takes both branches: a branch that leaves the subject as
             it is is the empty quote, `if (gt 0) ~(add 1) ~()`.
         ~~|
@@ -668,34 +668,34 @@
     | proves :choosesForEachElement
         |~~ Under `map` the subject is each element. ~~|
         ~([1 -2 3] | map ~(if (gt 0) ~(it) ~(0)) | eq [1 0 3])
-    | proves :condition/KindNotTakenError/refusesAQuote
+    | proves :ConditionKindNotTakenError/refusesAQuote
         |~~ A condition given as a quote is code and no boolean. ~~|
         ~(5 | if ~(gt 0) ~(1) ~(2)
           !| get [~(tag) ~(condition | found | tag)]
-          |  eq [::any/if/condition/KindNotTakenError ::quote])
-    | proves :condition/KindNotTakenError/refusesNull
+          |  eq [::any/if/ConditionKindNotTakenError ::quote])
+    | proves :ConditionKindNotTakenError/refusesNull
         |~~ A null condition is refused. ~~|
         ~({:flag null} | if (get /flag) ~(1) ~(2)
           !| get [~(tag) ~(condition | found | tag)]
-          |  eq [::any/if/condition/KindNotTakenError ::null])
-    | proves :condition/KindNotTakenError/refusesANumber
+          |  eq [::any/if/ConditionKindNotTakenError ::null])
+    | proves :ConditionKindNotTakenError/refusesANumber
         |~~ A number condition is refused. ~~|
         ~(5 | if 1 ~("yes") ~("no")
           !| get [~(tag) ~(condition | found | tag)]
-          |  eq [::any/if/condition/KindNotTakenError ::number])
-    | proves :then/KindNotTakenError/refusesAString
+          |  eq [::any/if/ConditionKindNotTakenError ::number])
+    | proves :ThenKindNotTakenError/refusesAString
         |~~ A string given as the then branch is refused. ~~|
         ~(5 | if true "yes" ~("no")
           !| get [~(tag) ~(then | found | tag)]
-          |  eq [::any/if/then/KindNotTakenError ::string])
-    | proves :else/KindNotTakenError/refusesAString
+          |  eq [::any/if/ThenKindNotTakenError ::string])
+    | proves :ElseKindNotTakenError/refusesAString
         |~~ A string given as the else branch is refused. ~~|
         ~(5 | if true ~("yes") "no"
           !| get [~(tag) ~(else | found | tag)]
-          |  eq [::any/if/else/KindNotTakenError ::string])
-    | proves :else/NotGivenError/refusesACallWithoutElse
+          |  eq [::any/if/ElseKindNotTakenError ::string])
+    | proves :ElseNotGivenError/refusesACallWithoutElse
         |~~ A call without the else branch is refused under the input. ~~|
-        ~(5 | if (gt 0) ~(add 1) !| tag | eq ::any/if/else/NotGivenError)
+        ~(5 | if (gt 0) ~(add 1) !| tag | eq ::any/if/ElseNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdBranch
         |~~ A third branch is refused under the verb. ~~|
         ~(5 | if true ~(1) ~(2) ~(3) !| tag | eq ::any/if/ArgsBeyondInputsError)
@@ -731,20 +731,20 @@
             run against the subject, or a value that answers itself.
         ~~|
         ~(it)
-    | holds :alternatives/EmptyError
+    | holds :AlternativesEmptyError
         |~~ `coalesce` answers the first of its alternatives that answers
             a value, so it takes one at least,
             `coalesce /nickname ~("anonymous")`.
         ~~|
-        ~(count | gt 0)
-    | holds :alternatives/ValuesAloneError
+        ~(alternatives | count | gt 0)
+    | holds :AlternativesValuesAloneError
         |~~ `coalesce` reads the subject before one value,
             `query /t | coalesce 30`, and several values alone read no
             subject: the subject first is written by a quote,
             `coalesce ~(it) e 8080`, a value a name holds by a quote,
             `coalesce ~(e) 8080`, and a field by a path, `coalesce /t 30`.
         ~~|
-        ~(map ~tag | anyOf ~(count | lt 2) ~(has ::quote) ~(has ::path))
+        ~(alternatives | map ~tag | anyOf ~(count | lt 2) ~(has ::quote) ~(has ::path))
     | returns
         |~~ The first answer that is a value, a failure of the code that
             answered it, or null when every alternative passes.
@@ -800,14 +800,14 @@
     | proves :passesAnErrorBeforeIt
         |~~ An error the steps before answered passes over the call. ~~|
         ~({:a 1} | get /missing | coalesce 0 !| tag | eq ::path/KeyNotInMapError)
-    | proves :alternatives/EmptyError/refusesNoAlternative
+    | proves :AlternativesEmptyError/refusesNoAlternative
         |~~ A coalesce of no alternative is refused. ~~|
         ~({} | coalesce
           !| get [~(tag) ~(alternatives | found)]
-          |  eq [::any/coalesce/alternatives/EmptyError ::any/coalesce[]])
-    | proves :alternatives/ValuesAloneError/refusesSeveralValues
+          |  eq [::any/coalesce/AlternativesEmptyError ::any/coalesce[]])
+    | proves :AlternativesValuesAloneError/refusesSeveralValues
         |~~ Several values alone are refused. ~~|
-        ~({:t null} | coalesce (get /t) 30 !| tag | eq ::any/coalesce/alternatives/ValuesAloneError)
+        ~({:t null} | coalesce (get /t) 30 !| tag | eq ::any/coalesce/AlternativesValuesAloneError)
     | proves :keepsZeroAndTheEmptyString
         |~~ Zero and the empty string end the walk. ~~|
         ~([0 ""] | map ~(coalesce 1) | eq [0 ""])
@@ -833,17 +833,17 @@
             turn, a last one alone the default.
         ~~|
         ~(it) [#[::path ::quote]]
-    | throws :clauses/ElementKindNotTakenError
+    | throws :ClausesElementKindNotTakenError
         |~~ Each of the clauses is code, a quote, `~(gte 90)`: a predicate
             runs against the subject in its turn, so one computed at the
             call is refused at its index.
         ~~|
-    | holds :clauses/NoBranchesError
+    | holds :ClausesNoBranchesError
         |~~ `cond` takes its clauses in pairs, a predicate and its branch,
             a last clause alone the default; a call without one pair, a
             lone default among them, has nothing to answer.
         ~~|
-        ~(count | gte 2)
+        ~(clauses | count | gte 2)
     | returns
         |~~ The answer of the branch chosen, null when no predicate holds
             and no default is given.
@@ -868,17 +868,17 @@
     | proves :answersNullWithoutADefault
         |~~ A walk that matches nothing without a default answers null. ~~|
         ~(5 | cond ~(gt 9) ~("big") | eq null)
-    | proves :clauses/ElementKindNotTakenError/refusesAComputedPredicate
+    | proves :ClausesElementKindNotTakenError/refusesAComputedPredicate
         |~~ A predicate computed at the call is refused at its index. ~~|
         ~(5 | cond (gt 3) ~("big")
           !| get [~(tag) ~(clauses | index)]
-          |  eq [::any/cond/clauses/ElementKindNotTakenError 0])
-    | proves :clauses/NoBranchesError/refusesNoPair
+          |  eq [::any/cond/ClausesElementKindNotTakenError 0])
+    | proves :ClausesNoBranchesError/refusesNoPair
         |~~ A cond of no pair is refused. ~~|
-        ~(5 | cond !| tag | eq ::any/cond/clauses/NoBranchesError)
-    | proves :clauses/NoBranchesError/refusesALoneDefault
+        ~(5 | cond !| tag | eq ::any/cond/ClausesNoBranchesError)
+    | proves :ClausesNoBranchesError/refusesALoneDefault
         |~~ A lone default is no pair. ~~|
-        ~(5 | cond ~("only") !| tag | eq ::any/cond/clauses/NoBranchesError)
+        ~(5 | cond ~("only") !| tag | eq ::any/cond/ClausesNoBranchesError)
     | proves :ConditionKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at its index. ~~|
         ~(5 | cond ~(1) ~("yes") !| get [~(tag) ~(clauses | index) ~(clauses | answer | tag) ~(clauses | expected)]
@@ -909,12 +909,12 @@
             name that holds one.
         ~~|
         /0 #[::fn ::path ::quote]
-    | throws :code/KindNotTakenError
+    | throws :CodeKindNotTakenError
         |~~ The code is a quote, `apply ~(add 1)`, a path, `apply /a`, or
             a function: a step written without its quote runs at the call,
             and its answer, an error among them, is no code.
         ~~|
-    | throws :code/NotGivenError
+    | throws :CodeNotGivenError
         |~~ `apply` runs the code the call gives, `apply ~(add 1)`; code
             held as the subject runs on itself by `apply it`.
         ~~|
@@ -922,11 +922,11 @@
         |~~ The args of a function, a vector, as a call holds its args.
         ~~|
         ~(query /1 []) ::vec
-    | throws :args/KindNotTakenError
+    | throws :ArgsKindNotTakenError
         |~~ The args of a function are a vector, `apply f [3]`, as a call
             holds its args.
         ~~|
-    | throws :args/NotTakenError
+    | throws :ArgsNotTakenError
         |~~ A quote and a path take no args: steps run in order inside
             one quote, `apply ~(add 1 | mul 2)`, and args go to a
             function, `apply f [3]`.
@@ -951,28 +951,28 @@
     | proves :keepsTheDeclarationsInside
         |~~ The declarations of the code stay inside it. ~~|
         ~(5 | apply ~(:x 1 | x) | :y it | env | has :x | not)
-    | proves :code/KindNotTakenError/refusesANumber
+    | proves :CodeKindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
-        ~(42 | apply 1 !| get [~(tag) ~(code | found | tag)] | eq [::any/apply/code/KindNotTakenError ::number])
-    | proves :code/KindNotTakenError/refusesTheErrorOfAStep
+        ~(42 | apply 1 !| get [~(tag) ~(code | found | tag)] | eq [::any/apply/CodeKindNotTakenError ::number])
+    | proves :CodeKindNotTakenError/refusesTheErrorOfAStep
         |~~ The error a step answered at the call is refused as no code. ~~|
         ~(5 | apply (get /nope)
           !| get [~(tag) ~(code | found | tag)]
-          |  eq [::any/apply/code/KindNotTakenError ::path/SubjectHasNoPartsError])
-    | proves :code/NotGivenError/refusesACallWithNoCode
+          |  eq [::any/apply/CodeKindNotTakenError ::path/SubjectHasNoPartsError])
+    | proves :CodeNotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
-        ~(~(add 1) | apply !| tag | eq ::any/apply/code/NotGivenError)
+        ~(~(add 1) | apply !| tag | eq ::any/apply/CodeNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdArg
         |~~ A call with an arg after the args of the function is refused
             under the verb.
         ~~|
         ~(5 | apply ~(add 1) [] [] !| tag | eq ::any/apply/ArgsBeyondInputsError)
-    | proves :args/NotTakenError/refusesTheArgsOfAQuote
+    | proves :ArgsNotTakenError/refusesTheArgsOfAQuote
         |~~ A second quote is no arg of the first. ~~|
-        ~(5 | apply ~(add 1) ~(mul 2) !| tag | eq ::any/apply/args/NotTakenError)
-    | proves :args/KindNotTakenError/refusesANumber
+        ~(5 | apply ~(add 1) ~(mul 2) !| tag | eq ::any/apply/ArgsNotTakenError)
+    | proves :ArgsKindNotTakenError/refusesANumber
         |~~ A number is no vector of args. ~~|
-        ~(5 | apply ~(add 1) 3 !| tag | eq ::any/apply/args/KindNotTakenError)
+        ~(5 | apply ~(add 1) 3 !| tag | eq ::any/apply/ArgsKindNotTakenError)
     | proves :runsAFunctionOnItsArgs
         |~~ A function runs on the subject with its args. ~~|
         ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3] | eq 8)
@@ -1094,7 +1094,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | binding :sort`.
         ~~|
@@ -1136,9 +1136,9 @@
     | proves :holdsThePageDocReads
         |~~ The record holds the page `doc` reads. ~~|
         ~(:x |~~ The x. ~~| 1 | ::x | binding | docs | first | eq (::x | doc))
-    | proves :anchor/KindNotTakenError/refusesANumber
+    | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
-        ~(::vec/take | binding 1 !| tag | eq ::any/binding/anchor/KindNotTakenError)
+        ~(::vec/take | binding 1 !| tag | eq ::any/binding/AnchorKindNotTakenError)
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | binding
@@ -1173,7 +1173,7 @@
             null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | source :sort`.
         ~~|
@@ -1228,9 +1228,9 @@
             source.
         ~~|
         ~(::number/add/addend | source | eq null)
-    | proves :anchor/KindNotTakenError/refusesANumber
+    | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
-        ~(::vec/take | source 1 !| tag | eq ::any/source/anchor/KindNotTakenError)
+        ~(::vec/take | source 1 !| tag | eq ::any/source/AnchorKindNotTakenError)
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | source
@@ -1267,15 +1267,15 @@
             call gives none.
         ~~|
         ~(query /0) #[::keyword ::null ::set ::vec]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword, a vector, a set or null, the last
             names of nodes under the subject, `::qlang | doc :pipeline`.
         ~~|
-    | throws :anchor/NameKindNotTakenError
+    | throws :AnchorNameKindNotTakenError
         |~~ A name `doc` reads in turn is a keyword, each naming a node
             under the one before it, `doc [:take :count]`.
         ~~|
-    | throws :anchor/ElementKindNotTakenError
+    | throws :AnchorElementKindNotTakenError
         |~~ An element of a set of anchors is a keyword, a vector of names
             read in turn or null, each reading a page,
             `doc #[:take [:take :count]]`.
@@ -1331,9 +1331,9 @@
     | proves :readsAPageAtEachAnchor
         |~~ A set of anchors reads a page at each. ~~|
         ~(::qlang | doc #[:pipeline :errors] | count | eq 2)
-    | proves :anchor/KindNotTakenError/refusesANumber
+    | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
-        ~(::vec | doc 5 !| tag | eq ::any/doc/anchor/KindNotTakenError)
+        ~(::vec | doc 5 !| tag | eq ::any/doc/AnchorKindNotTakenError)
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | doc
@@ -1355,14 +1355,14 @@
             it.
         ~~|
         ~(::qlang | doc :pipelin !| nearest | eq [:pipeline])
-    | proves :anchor/NameKindNotTakenError/refusesANumberAmongTheNames
+    | proves :AnchorNameKindNotTakenError/refusesANumberAmongTheNames
         |~~ A number among the names read in turn is refused at its index.
         ~~|
-        ~(::vec | doc [:take 1] !| get [~(tag) ~(anchor | index) ~(anchor | expected)] | eq [::any/doc/anchor/NameKindNotTakenError 1 #[::keyword]])
-    | proves :anchor/ElementKindNotTakenError/refusesANumberInASet
+        ~(::vec | doc [:take 1] !| get [~(tag) ~(anchor | index) ~(anchor | expected)] | eq [::any/doc/AnchorNameKindNotTakenError 1 #[::keyword]])
+    | proves :AnchorElementKindNotTakenError/refusesANumberInASet
         |~~ A number in a set of anchors is refused at its index in the set.
         ~~|
-        ~(::vec | doc #[:take 5] !| get [~(tag) ~(anchor | index) ~(anchor | expected)] | eq [::any/doc/anchor/ElementKindNotTakenError 0 #[::keyword ::null ::vec]])
+        ~(::vec | doc #[:take 5] !| get [~(tag) ~(anchor | index) ~(anchor | expected)] | eq [::any/doc/AnchorElementKindNotTakenError 0 #[::keyword ::null ::vec]])
     | proves :ArgsBeyondInputsError/refusesTwoAnchors
         |~~ Two anchors given apart are refused under the verb. ~~|
         ~(::vec | doc :take :count !| tag | eq ::any/doc/ArgsBeyondInputsError)
@@ -1394,7 +1394,7 @@
             keyword, null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | manifest :take`; a noun is the subject,
             `::vec | manifest`.
@@ -1441,9 +1441,9 @@
             it.
         ~~|
         ~(::vec | manifest :take | eq (::vec/take | manifest))
-    | proves :anchor/KindNotTakenError/refusesANounGivenAsTheAnchor
+    | proves :AnchorKindNotTakenError/refusesANounGivenAsTheAnchor
         |~~ A noun given as the anchor is refused; it is the subject. ~~|
-        ~(::qlang | manifest ::vec !| tag | eq ::any/manifest/anchor/KindNotTakenError)
+        ~(::qlang | manifest ::vec !| tag | eq ::any/manifest/AnchorKindNotTakenError)
     | impl ::builtin{}
 
 :any/laws
@@ -1465,7 +1465,7 @@
             keyword, null when the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::qlang | laws :errors`.
         ~~|
@@ -1502,9 +1502,9 @@
         |~~ An anchor reads the laws of the node the name holds under it.
         ~~|
         ~(::qlang | laws :errors | eq (::qlang/errors | laws))
-    | proves :anchor/KindNotTakenError/refusesANumber
+    | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
-        ~(::qlang | laws 1 !| tag | eq ::any/laws/anchor/KindNotTakenError)
+        ~(::qlang | laws 1 !| tag | eq ::any/laws/AnchorKindNotTakenError)
     | impl ::builtin{}
 
 :any/runLaws
@@ -1528,7 +1528,7 @@
             the call gives none.
         ~~|
         ~(query /0) #[::keyword ::null]
-    | throws :anchor/KindNotTakenError
+    | throws :AnchorKindNotTakenError
         |~~ The anchor is a keyword or null, the last name of a node under
             the subject, `::vec | runLaws :sort`.
         ~~|
@@ -1563,9 +1563,9 @@
     | proves :runsTheLawsUnderAnAnchor
         |~~ An anchor runs the laws of the name under the one read. ~~|
         ~(::qlang | runLaws :values | every /ok)
-    | proves :anchor/KindNotTakenError/refusesANumber
+    | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
-        ~(::qlang | runLaws 1 !| tag | eq ::any/runLaws/anchor/KindNotTakenError)
+        ~(::qlang | runLaws 1 !| tag | eq ::any/runLaws/AnchorKindNotTakenError)
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | runLaws
@@ -1656,7 +1656,7 @@
             and the tag of the subject is read.
         ~~|
         ~(query /0) #[::null ::tag]
-    | throws :name/KindNotTakenError
+    | throws :NameKindNotTakenError
         |~~ The name is a tag name, `::Box`; a keyword, `:box`, names a
             field and no kind.
         ~~|
@@ -1735,10 +1735,10 @@
         |~~ An error at rest split and joined back raises as itself. ~~|
         ~(1 | add "1" !| :t (tag) | payload | tag t | raise
           !| tag
-          |  eq ::number/add/addend/KindNotTakenError)
-    | proves :name/KindNotTakenError/refusesAKeyword
+          |  eq ::number/add/AddendKindNotTakenError)
+    | proves :NameKindNotTakenError/refusesAKeyword
         |~~ A keyword given as the name is refused under the input. ~~|
-        ~(5 | tag :box !| get [~(tag) ~(name | found | tag)] | eq [::any/tag/name/KindNotTakenError ::keyword])
+        ~(5 | tag :box !| get [~(tag) ~(name | found | tag)] | eq [::any/tag/NameKindNotTakenError ::keyword])
     | proves :ArgsBeyondInputsError/refusesTwoTags
         |~~ Two tags given to one call are refused under the verb. ~~|
         ~(5 | tag ::Box ::Crate !| tag | eq ::any/tag/ArgsBeyondInputsError)
@@ -1802,12 +1802,12 @@
             verb reads from the subject.
         ~~|
         ~(it) [#[::number ::path]]
-    | holds :numbers/EmptyError
+    | holds :NumbersEmptyError
         |~~ `sumOf` adds the numbers the call gives, one at least,
             `sumOf /x /y`.
         ~~|
-        ~(count | gt 0)
-    | throws :numbers/ElementKindNotTakenError
+        ~(numbers | count | gt 0)
+    | throws :NumbersElementKindNotTakenError
         |~~ Each of the numbers is a number or a path; text that holds one
             is read by `toNumber`, `sumOf (get /x | toNumber) /y`.
         ~~|
@@ -1827,14 +1827,14 @@
     | proves :readsTextByToNumber
         |~~ Text that holds a number is read first by `toNumber`. ~~|
         ~({:x "1" :y 2} | sumOf (get /x | toNumber) /y | eq 3)
-    | proves :numbers/EmptyError/refusesNoNumber
+    | proves :NumbersEmptyError/refusesNoNumber
         |~~ A call with no number is refused under the input. ~~|
-        ~({} | sumOf !| tag | eq ::any/sumOf/numbers/EmptyError)
-    | proves :numbers/ElementKindNotTakenError/refusesText
+        ~({} | sumOf !| tag | eq ::any/sumOf/NumbersEmptyError)
+    | proves :NumbersElementKindNotTakenError/refusesText
         |~~ Text is no number, and is refused at its index. ~~|
         ~({} | sumOf "1"
           !| get [~(tag) ~(numbers | index)]
-          |  eq [::any/sumOf/numbers/ElementKindNotTakenError 0])
+          |  eq [::any/sumOf/NumbersElementKindNotTakenError 0])
     | impl ~(get numbers | sum)
 
 :any/mulOf
@@ -1852,12 +1852,12 @@
             the verb reads from the subject.
         ~~|
         ~(it) [#[::number ::path]]
-    | holds :factors/EmptyError
+    | holds :FactorsEmptyError
         |~~ `mulOf` multiplies the factors the call gives, one at least,
             `mulOf /price /qty`.
         ~~|
-        ~(count | gt 0)
-    | throws :factors/ElementKindNotTakenError
+        ~(factors | count | gt 0)
+    | throws :FactorsElementKindNotTakenError
         |~~ Each of the factors is a number or a path; text that holds one
             is read by `toNumber`.
         ~~|
@@ -1868,14 +1868,14 @@
     | proves :answersOneFactor
         |~~ One factor answers itself. ~~|
         ~({:a 7} | mulOf /a | eq 7)
-    | proves :factors/EmptyError/refusesNoFactor
+    | proves :FactorsEmptyError/refusesNoFactor
         |~~ A call with no factor is refused under the input. ~~|
-        ~({:a 2} | mulOf !| tag | eq ::any/mulOf/factors/EmptyError)
-    | proves :factors/ElementKindNotTakenError/refusesAString
+        ~({:a 2} | mulOf !| tag | eq ::any/mulOf/FactorsEmptyError)
+    | proves :FactorsElementKindNotTakenError/refusesAString
         |~~ A string is no factor, and is refused at its index. ~~|
         ~({:a 2} | mulOf /a "x"
           !| get [~(tag) ~(factors | index)]
-          |  eq [::any/mulOf/factors/ElementKindNotTakenError 1])
+          |  eq [::any/mulOf/FactorsElementKindNotTakenError 1])
     | proves :multipliesTwoFields
         |~~ The price and the quantity of one line multiply. ~~|
         ~({:price 4 :qty 3} | mulOf /price /qty | eq 12)
@@ -1893,18 +1893,18 @@
     | takes :minuend
         |~~ The number subtracted from. ~~|
         /0 #[::number ::path]
-    | throws :minuend/KindNotTakenError
+    | throws :MinuendKindNotTakenError
         |~~ The minuend is a number or a path,
             `{:a 5 :b 3} | subOf /a /b`; text that holds one is read by
             `toNumber` first, `subOf (get /a | toNumber) /b`.
         ~~|
     | takes :subtrahend |~~ The number subtracted. ~~| /1 #[::number ::path]
-    | throws :subtrahend/KindNotTakenError
+    | throws :SubtrahendKindNotTakenError
         |~~ The subtrahend is a number or a path,
             `{:a 5 :b 3} | subOf /a /b`; text that holds one is read by
             `toNumber` first, `subOf /a (get /b | toNumber)`.
         ~~|
-    | throws :subtrahend/NotGivenError
+    | throws :SubtrahendNotGivenError
         |~~ `subOf` subtracts the subtrahend from the minuend and was
             given the minuend alone: `subOf /total /paid`.
         ~~|
@@ -1916,21 +1916,21 @@
     | proves :subtractsASumComputedAsTheSubtrahend
         |~~ A sum subtracted is computed as the subtrahend. ~~|
         ~({:total 10 :a 3 :b 2} | subOf /total (sumOf /a /b) | eq 5)
-    | proves :minuend/KindNotTakenError/refusesAString
+    | proves :MinuendKindNotTakenError/refusesAString
         |~~ A minuend that is a string is refused under the input. ~~|
         ~({:p 1} | subOf "a" /p
           !| get [~(tag) ~(minuend | found | tag)]
-          |  eq [::any/subOf/minuend/KindNotTakenError ::string])
-    | proves :subtrahend/NotGivenError/refusesOneNumber
+          |  eq [::any/subOf/MinuendKindNotTakenError ::string])
+    | proves :SubtrahendNotGivenError/refusesOneNumber
         |~~ A call with the minuend alone is refused under the subtrahend.
         ~~|
-        ~({:t 10} | subOf /t !| tag | eq ::any/subOf/subtrahend/NotGivenError)
+        ~({:t 10} | subOf /t !| tag | eq ::any/subOf/SubtrahendNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
         |~~ A third number is refused under the verb. ~~|
         ~({:t 10 :p 3 :q 1} | subOf /t /p /q !| tag | eq ::any/subOf/ArgsBeyondInputsError)
-    | proves :subtrahend/KindNotTakenError/refusesAString
+    | proves :SubtrahendKindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~({:a 5} | subOf /a "3" !| tag | eq ::any/subOf/subtrahend/KindNotTakenError)
+        ~({:a 5} | subOf /a "3" !| tag | eq ::any/subOf/SubtrahendKindNotTakenError)
     | proves :subtractsTwoFields
         |~~ What is left to pay is the total less what was paid. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
@@ -1952,18 +1952,18 @@
   ~~|
   ::fn
     | takes :dividend |~~ The number divided. ~~| /0 #[::number ::path]
-    | throws :dividend/KindNotTakenError
+    | throws :DividendKindNotTakenError
         |~~ The dividend is a number or a path,
             `{:a 6 :b 3} | divOf /a /b`; text that holds one is read by
             `toNumber` first, `divOf (get /a | toNumber) /b`.
         ~~|
     | takes :divisor |~~ The number divided by. ~~| /1 #[::number ::path]
-    | throws :divisor/KindNotTakenError
+    | throws :DivisorKindNotTakenError
         |~~ The divisor is a number or a path,
             `{:a 6 :b 3} | divOf /a /b`; text that holds one is read by
             `toNumber` first, `divOf /a (get /b | toNumber)`.
         ~~|
-    | throws :divisor/NotGivenError
+    | throws :DivisorNotGivenError
         |~~ `divOf` divides the dividend by the divisor and was given the
             dividend alone: `divOf /sum /count`.
         ~~|
@@ -1980,19 +1980,19 @@
         ~({:sum 7 :count 2} | divOf /sum /count | eq 3.5)
     | proves :refusesADivisorOfZero
         |~~ A divisor of zero is refused as `div` refuses it. ~~|
-        ~({:sum 20 :count 0} | divOf /sum /count !| tag | eq ::number/div/divisor/ZeroError)
-    | proves :divisor/NotGivenError/refusesOneNumber
+        ~({:sum 20 :count 0} | divOf /sum /count !| tag | eq ::number/div/DivisorZeroError)
+    | proves :DivisorNotGivenError/refusesOneNumber
         |~~ A call with the dividend alone is refused under the divisor. ~~|
-        ~({:s 20} | divOf /s !| tag | eq ::any/divOf/divisor/NotGivenError)
+        ~({:s 20} | divOf /s !| tag | eq ::any/divOf/DivisorNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
         |~~ A third number is refused under the verb. ~~|
         ~({:s 20 :c 4 :x 1} | divOf /s /c /x !| tag | eq ::any/divOf/ArgsBeyondInputsError)
-    | proves :dividend/KindNotTakenError/refusesAString
+    | proves :DividendKindNotTakenError/refusesAString
         |~~ A dividend that is no number is refused under the input. ~~|
-        ~({:b 3} | divOf "6" /b !| tag | eq ::any/divOf/dividend/KindNotTakenError)
-    | proves :divisor/KindNotTakenError/refusesAString
+        ~({:b 3} | divOf "6" /b !| tag | eq ::any/divOf/DividendKindNotTakenError)
+    | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~({:a 6} | divOf /a "3" !| tag | eq ::any/divOf/divisor/KindNotTakenError)
+        ~({:a 6} | divOf /a "3" !| tag | eq ::any/divOf/DivisorKindNotTakenError)
     | impl
         ~(get (get [~(dividend) ~(divisor)])
           | :pair it
@@ -2019,12 +2019,12 @@
             least.
         ~~|
         ~(it) [#[::boolean ::path ::quote]]
-    | holds :conditions/EmptyError
+    | holds :ConditionsEmptyError
         |~~ `allOf` asks whether every condition the call gives holds, one
             at least, `allOf (get /active) (get /age | gte 18)`.
         ~~|
-        ~(count | gt 0)
-    | throws :conditions/ElementKindNotTakenError
+        ~(conditions | count | gt 0)
+    | throws :ConditionsElementKindNotTakenError
         |~~ Each modifier of `allOf` is a condition computed at the call,
             `(get /age | gte 18)`, a path whose field answers one,
             `/active`, or a quote that answers one in its turn,
@@ -2059,29 +2059,29 @@
     | proves :answersTheFailureOfAQuote
         |~~ A quote that fails answers its error. ~~|
         ~({:a 1} | allOf ~(get /b | eq 1) !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :b])
-    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
+    | proves :ConditionsElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
         |~~ A field the record lacks is refused at its index, the first
             among them.
         ~~|
         ~({:a 1} | allOf (get /b | eq 1)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
-          |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::path/KeyNotInMapError])
-    | proves :conditions/ElementKindNotTakenError/readsAMissingFieldSoftly
+          |  eq [::any/allOf/ConditionsElementKindNotTakenError 0 ::path/KeyNotInMapError])
+    | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:a 1} | allOf (query /b | eq 1) | not)
-    | proves :conditions/ElementKindNotTakenError/refusesAConditionThatFailedAtTheCall
+    | proves :ConditionsElementKindNotTakenError/refusesAConditionThatFailedAtTheCall
         |~~ A condition computed at the call is computed even where an
             earlier one does not hold, and its error is refused at its
             index.
         ~~|
         ~({:age 15} | allOf (get /age | gte 18) (get /licence)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]
-          |  eq [::any/allOf/conditions/ElementKindNotTakenError 1 ::path/KeyNotInMapError])
-    | proves :conditions/ElementKindNotTakenError/refusesANumber
+          |  eq [::any/allOf/ConditionsElementKindNotTakenError 1 ::path/KeyNotInMapError])
+    | proves :ConditionsElementKindNotTakenError/refusesANumber
         |~~ A number is no condition, and is refused at its index. ~~|
         ~({:age 15} | allOf (get /age)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
-          |  eq [::any/allOf/conditions/ElementKindNotTakenError 0 ::number])
+          |  eq [::any/allOf/ConditionsElementKindNotTakenError 0 ::number])
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersAString
         |~~ A quote that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"} | allOf true /email !| get [~(tag) ~(conditions | index) ~(conditions | answer | tag) ~(conditions | expected)]
@@ -2090,9 +2090,9 @@
         |~~ A quote that compares the field it reads answers a condition.
         ~~|
         ~({:email "a@b.org"} | allOf true ~(get /email | ne null))
-    | proves :conditions/EmptyError/refusesNoCondition
+    | proves :ConditionsEmptyError/refusesNoCondition
         |~~ A call with no condition is refused under the input. ~~|
-        ~({} | allOf !| tag | eq ::any/allOf/conditions/EmptyError)
+        ~({} | allOf !| tag | eq ::any/allOf/ConditionsEmptyError)
     | impl ::builtin{}
 
 :any/anyOf
@@ -2114,12 +2114,12 @@
             least.
         ~~|
         ~(it) [#[::boolean ::path ::quote]]
-    | holds :conditions/EmptyError
+    | holds :ConditionsEmptyError
         |~~ `anyOf` asks whether some condition the call gives holds, one
             at least, `anyOf (get /vip) (get /score | gt 95)`.
         ~~|
-        ~(count | gt 0)
-    | throws :conditions/ElementKindNotTakenError
+        ~(conditions | count | gt 0)
+    | throws :ConditionsElementKindNotTakenError
         |~~ Each modifier of `anyOf` is a condition computed at the call,
             `(get /score | gt 95)`, a path whose field answers one,
             `/vip`, or a quote that answers one in its turn,
@@ -2154,28 +2154,28 @@
     | proves :answersTheFailureOfAQuote
         |~~ A quote that fails answers its error. ~~|
         ~({:vip false} | anyOf (get /vip) ~(get /score | gt 95) !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :score])
-    | proves :conditions/ElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
+    | proves :ConditionsElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
         |~~ A field the record lacks is refused at its index, the first
             among them.
         ~~|
         ~({:score 99} | anyOf (get /vip | eq true)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
-          |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::path/KeyNotInMapError])
-    | proves :conditions/ElementKindNotTakenError/readsAMissingFieldSoftly
+          |  eq [::any/anyOf/ConditionsElementKindNotTakenError 0 ::path/KeyNotInMapError])
+    | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:score 99} | anyOf (query /vip | eq true) (get /score | gt 95))
-    | proves :conditions/ElementKindNotTakenError/refusesAConditionThatFailedAtTheCall
+    | proves :ConditionsElementKindNotTakenError/refusesAConditionThatFailedAtTheCall
         |~~ A condition computed at the call is computed even where an
             earlier one holds, and its error is refused at its index.
         ~~|
         ~({:vip true} | anyOf (get /vip) (get /score | gt 95)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /1 | tag)]
-          |  eq [::any/anyOf/conditions/ElementKindNotTakenError 1 ::path/KeyNotInMapError])
-    | proves :conditions/ElementKindNotTakenError/refusesANumber
+          |  eq [::any/anyOf/ConditionsElementKindNotTakenError 1 ::path/KeyNotInMapError])
+    | proves :ConditionsElementKindNotTakenError/refusesANumber
         |~~ A number is no condition, and is refused at its index. ~~|
         ~({:a 1} | anyOf (get /a)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
-          |  eq [::any/anyOf/conditions/ElementKindNotTakenError 0 ::number])
+          |  eq [::any/anyOf/ConditionsElementKindNotTakenError 0 ::number])
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersANumber
         |~~ A quote that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score !| get [~(tag) ~(conditions | index) ~(conditions | answer | tag) ~(conditions | expected)]
@@ -2184,9 +2184,9 @@
         |~~ A quote that compares the field it reads answers a condition.
         ~~|
         ~({:score 99} | anyOf false ~(get /score | gt 95))
-    | proves :conditions/EmptyError/refusesNoCondition
+    | proves :ConditionsEmptyError/refusesNoCondition
         |~~ A call with no condition is refused under the input. ~~|
-        ~({} | anyOf !| tag | eq ::any/anyOf/conditions/EmptyError)
+        ~({} | anyOf !| tag | eq ::any/anyOf/ConditionsEmptyError)
     | impl ::builtin{}
 
 :any/unionOf
@@ -2201,11 +2201,11 @@
   ~~|
   ::fn
     | takes :parts |~~ The maps or the sets, one at least. ~~| ~(it)
-    | holds :parts/EmptyError
+    | holds :PartsEmptyError
         |~~ `unionOf` unites the parts the call gives, one at least,
             `unionOf /a /b`.
         ~~|
-        ~(count | gt 0)
+        ~(parts | count | gt 0)
     | returns |~~ The parts united, under the tags they share. ~~| ::any
     | proves :mergesTwoFields
         |~~ Two maps one value holds merge. ~~|
@@ -2221,16 +2221,16 @@
         ~({:a #[1] :b #[2]} | unionOf /a /b | eq #[1 2])
     | proves :refusesAMapWithASet
         |~~ A map with a set is refused by `union`. ~~|
-        ~({:a {:x 1} :b #[2]} | unionOf /a /b !| tag | eq ::map/union/other/KindNotTakenError)
+        ~({:a {:x 1} :b #[2]} | unionOf /a /b !| tag | eq ::map/union/OtherKindNotTakenError)
     | proves :answersUnderTheTagsThePartsShare
         |~~ The union stands under the tags the parts share. ~~|
         ~({:a {:x 1} :b ::Box{:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
     | proves :answersOnePart
         |~~ One part answers itself. ~~|
         ~({:a {:x 1}} | unionOf /a | eq {:x 1})
-    | proves :parts/EmptyError/refusesNoPart
+    | proves :PartsEmptyError/refusesNoPart
         |~~ A call with no part to unite is refused under `parts`. ~~|
-        ~({} | unionOf !| tag | eq ::any/unionOf/parts/EmptyError)
+        ~({} | unionOf !| tag | eq ::any/unionOf/PartsEmptyError)
     | impl ~(get parts | :read it | drop 1 | reduce (read | first) ~(union))
 
 :any/is
@@ -2254,15 +2254,15 @@
     | takes :kinds
         |~~ The kinds asked, each a tag name, one at least. ~~|
         ~(it) [::tag]
-    | throws :kinds/ElementKindNotTakenError
+    | throws :KindsElementKindNotTakenError
         |~~ Each of the kinds is a tag name, `::number`; a keyword,
             `:number`, names a field and no kind.
         ~~|
-    | holds :kinds/EmptyError
+    | holds :KindsEmptyError
         |~~ `is` asks of one kind at least, `5 | is ::number`; a call of
             none asks nothing.
         ~~|
-        ~(count | gt 0)
+        ~(kinds | count | gt 0)
     | returns
         |~~ `true` when the walk of the tags reaches one of the kinds,
             `false` otherwise.
@@ -2299,17 +2299,17 @@
     | proves :failsOfOtherKinds
         |~~ A string is neither a number nor null. ~~|
         ~("5" | is ::number ::null | not)
-    | proves :kinds/EmptyError/refusesACallOfNoKind
+    | proves :KindsEmptyError/refusesACallOfNoKind
         |~~ A call of no kind is refused under the kinds. ~~|
-        ~(5 | is !| tag | eq ::any/is/kinds/EmptyError)
+        ~(5 | is !| tag | eq ::any/is/KindsEmptyError)
     | proves :failsOfAMisspeltKind
         |~~ A misspelt kind answers false and is not refused. ~~|
         ~(5 | is ::Numbr | not)
-    | proves :kinds/ElementKindNotTakenError/refusesAKeyword
+    | proves :KindsElementKindNotTakenError/refusesAKeyword
         |~~ A keyword is no kind, and is refused at its index. ~~|
         ~(5 | is :number
           !| get [~(tag) ~(kinds | index) ~(kinds | found | get /0 | tag)]
-          |  eq [::any/is/kinds/ElementKindNotTakenError 0 ::keyword])
+          |  eq [::any/is/KindsElementKindNotTakenError 0 ::keyword])
     | impl ::builtin{}
 
 :any/get
@@ -2341,7 +2341,7 @@
             and quotes.
         ~~|
         /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
-    | throws :path/KindNotTakenError
+    | throws :PathKindNotTakenError
         |~~ The path is a path, `get /a/b`, a key of one segment, a keyword,
             a number or a string, or a template, a vector, a map or a set of
             paths and quotes, or a value under a tag, a quote among them. A
@@ -2350,12 +2350,12 @@
             `groupBy ~(gt 1) | get :true`, `get (… | toKeyword)`, and a key
             computed from data that holds null is refused where it is read.
         ~~|
-    | proves :path/KindNotTakenError/refusesNull
+    | proves :PathKindNotTakenError/refusesNull
         |~~ A key the data leaves null is refused. ~~|
-        ~({:k null} | get (get /k) !| get [~(tag) ~(path | found | tag)] | eq [::any/get/path/KindNotTakenError ::null])
-    | proves :path/KindNotTakenError/readsTheKeyOfABooleanByItsKeyword
+        ~({:k null} | get (get /k) !| get [~(tag) ~(path | found | tag)] | eq [::any/get/PathKindNotTakenError ::null])
+    | proves :PathKindNotTakenError/readsTheKeyOfABooleanByItsKeyword
         |~~ The group of `true` is read by its keyword. ~~|
-        ~([1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)] | eq [::any/get/path/KindNotTakenError [2 3]])
+        ~([1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)] | eq [::any/get/PathKindNotTakenError [2 3]])
     | proves :readsANestedPart
         |~~ A path reads a part at any depth. ~~|
         ~({:a {:b [10 20]}} | get /a/b/-1 | eq 20)
@@ -2401,7 +2401,7 @@
             and quotes.
         ~~|
         /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
-    | throws :path/KindNotTakenError
+    | throws :PathKindNotTakenError
         |~~ The path is a path, `query /a/b`, a key of one segment, a
             keyword, a number or a string, or a template, a vector, a map or
             a set of paths and quotes, or a value under a tag, a quote among
@@ -2410,9 +2410,9 @@
             the keyword `toKeyword` answers, which reads that key,
             `query :true`.
         ~~|
-    | proves :path/KindNotTakenError/refusesABoolean
+    | proves :PathKindNotTakenError/refusesABoolean
         |~~ A boolean is no key. ~~|
-        ~({:a 1} | query true 7 !| tag | eq ::any/query/path/KindNotTakenError)
+        ~({:a 1} | query true 7 !| tag | eq ::any/query/PathKindNotTakenError)
     | takes :default
         |~~ What a missed path answers, held and never run, null when the
             call gives none.
@@ -2464,31 +2464,31 @@
             names and their selectors.
         ~~|
         /0 #[::map ::vec]
-    | throws :names/KindNotTakenError
+    | throws :NamesKindNotTakenError
         |~~ The names are a vector of paths and maps,
             `with [/id /user/name] …`, or a map of names and the paths and
             quotes they read, `with {:t /0 :n ~count} …`.
         ~~|
-    | throws :names/ElementKindNotTakenError
+    | throws :NamesElementKindNotTakenError
         |~~ Each element of the names is a path, which names its part by its
             last key, or a map of names and their selectors; a quote alone
             names no part, and a map gives it a name, `[{:t ~first}]`.
         ~~|
-    | throws :names/SelectorKindNotTakenError
+    | throws :NamesSelectorKindNotTakenError
         |~~ A name reads its part by a path or a quote, `{:t /0 :n ~count}`;
             a value of the data reads no part, so a map of the data names no
             parts, and its keys are named by their paths, `[/a /b]`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :selector |~~ The selector written for the name, of none of the kinds a selector takes. ~~|)
-    | throws :names/KeyNotNameError
+    | throws :NamesKeyNotNameError
         |~~ A name is a name of one segment, as a step calls it: a last key
             that is an index, a quoted key or a word of the literals,
             `/items/0`, `/"first name"`, `/null`, names no part, and a map
             gives the part a name, `[{:first /items/0}]`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
-    | throws :names/NameWrittenTwiceError
+    | throws :NamesNameWrittenTwiceError
         |~~ A name names one part: two paths that end in one key,
             `[/a/name /b/name]`, name their parts by a map,
             `[{:an /a/name :bn /b/name}]`.
@@ -2499,7 +2499,7 @@
             vector, a map or a set of them.
         ~~|
         /1 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
-    | throws :body/KindNotTakenError
+    | throws :BodyKindNotTakenError
         |~~ The body is a template as `get` takes it, a quote, a path or a
             shape of them, `with [/a] ~(a | add 1)`.
         ~~|
@@ -2535,24 +2535,24 @@
             names its part otherwise.
         ~~|
         ~({:type "user" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| tag) ~(with [/id {:t /type}] ~(id | toString | append t))] | eq [::call/ValueMeetsVerbError "7user"])
-    | proves :names/KindNotTakenError/refusesAPath
+    | proves :NamesKindNotTakenError/refusesAPath
         |~~ A path alone is no names. ~~|
-        ~({:a 1} | with /a ~(a) !| tag | eq ::any/with/names/KindNotTakenError)
-    | proves :names/ElementKindNotTakenError/refusesAQuoteAlone
+        ~({:a 1} | with /a ~(a) !| tag | eq ::any/with/NamesKindNotTakenError)
+    | proves :NamesElementKindNotTakenError/refusesAQuoteAlone
         |~~ A quote alone among the names is refused at its index. ~~|
-        ~([::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(tag) ~(names | index)] | eq [::any/with/names/ElementKindNotTakenError 1])
-    | proves :names/SelectorKindNotTakenError/refusesAMapOfTheData
+        ~([::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(tag) ~(names | index)] | eq [::any/with/NamesElementKindNotTakenError 1])
+    | proves :NamesSelectorKindNotTakenError/refusesAMapOfTheData
         |~~ A map of the data names no parts. ~~|
-        ~({:a 1 :b 2} | with it ~(a | mul b) !| tag | eq ::any/with/names/SelectorKindNotTakenError)
-    | proves :names/KeyNotNameError/refusesAnIndex
+        ~({:a 1 :b 2} | with it ~(a | mul b) !| tag | eq ::any/with/NamesSelectorKindNotTakenError)
+    | proves :NamesKeyNotNameError/refusesAnIndex
         |~~ A path that ends in an index names no part. ~~|
-        ~({:items [5 6]} | with [/items/0] ~(it) !| get [~(tag) ~(name)] | eq [::any/with/names/KeyNotNameError :"0"])
-    | proves :names/NameWrittenTwiceError/refusesTwoPathsOfOneKey
+        ~({:items [5 6]} | with [/items/0] ~(it) !| get [~(tag) ~(name)] | eq [::any/with/NamesKeyNotNameError :"0"])
+    | proves :NamesNameWrittenTwiceError/refusesTwoPathsOfOneKey
         |~~ Two paths that end in one key name one part twice. ~~|
-        ~({:a {:name 1} :b {:name 2}} | with [/a/name /b/name] ~(name) !| get [~(tag) ~(name)] | eq [::any/with/names/NameWrittenTwiceError :name])
-    | proves :body/KindNotTakenError/refusesABoolean
+        ~({:a {:name 1} :b {:name 2}} | with [/a/name /b/name] ~(name) !| get [~(tag) ~(name)] | eq [::any/with/NamesNameWrittenTwiceError :name])
+    | proves :BodyKindNotTakenError/refusesABoolean
         |~~ A boolean is no template. ~~|
-        ~({:a 1} | with [/a] true !| tag | eq ::any/with/body/KindNotTakenError)
+        ~({:a 1} | with [/a] true !| tag | eq ::any/with/BodyKindNotTakenError)
     | impl ::builtin{}
 
 :any/put
@@ -2572,13 +2572,13 @@
     | takes :path
         |~~ The path written, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
-    | throws :path/KindNotTakenError
+    | throws :PathKindNotTakenError
         |~~ The path is a path, `put /a/b 2`, or a key of one segment, a
             keyword, a string or a number, `put :a 2`.
         ~~|
-    | proves :path/KindNotTakenError/refusesABoolean
+    | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | put true 2 !| tag | eq ::any/put/path/KindNotTakenError)
+        ~({:a 1} | put true 2 !| tag | eq ::any/put/PathKindNotTakenError)
     | takes :value |~~ The value laid at the path. ~~| /1
     | proves :addsAKey
         |~~ A key the last map lacks is added. ~~|
@@ -2618,25 +2618,25 @@
     | takes :path
         |~~ The path written, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
-    | throws :path/KindNotTakenError
+    | throws :PathKindNotTakenError
         |~~ The path is a path, `update /n ~(add 1)`, or a key of one
             segment, `update :n ~(add 1)`.
         ~~|
-    | proves :path/KindNotTakenError/refusesABoolean
+    | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | update true ~(it) !| tag | eq ::any/update/path/KindNotTakenError)
+        ~({:a 1} | update true ~(it) !| tag | eq ::any/update/PathKindNotTakenError)
     | takes :code
         |~~ The code run on the part, a quote or a path. ~~|
         /1 #[::path ::quote]
-    | throws :code/KindNotTakenError
+    | throws :CodeKindNotTakenError
         |~~ The code is a quote, `update /n ~(add 1)`, or a path,
             `update /n /value`; written without the tilde,
             `update /n (add 1)`, it is computed once at the call and
             refused.
         ~~|
-    | proves :code/KindNotTakenError/refusesANumber
+    | proves :CodeKindNotTakenError/refusesANumber
         |~~ Code that is no quote and no path is refused. ~~|
-        ~({:a 1} | update /a 5 !| tag | eq ::any/update/code/KindNotTakenError)
+        ~({:a 1} | update /a 5 !| tag | eq ::any/update/CodeKindNotTakenError)
     | proves :runsTheCodeOnThePart
         |~~ The part at the path is laid anew by what the code answers. ~~|
         ~({:a {:n 1}} | update /a/n ~(add 1) | eq {:a {:n 2}})
@@ -2666,13 +2666,13 @@
     | takes :path
         |~~ The path of the part taken out, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
-    | throws :path/KindNotTakenError
+    | throws :PathKindNotTakenError
         |~~ The path is a path, `delete /a/b`, or a key of one segment,
             `delete :a`.
         ~~|
-    | proves :path/KindNotTakenError/refusesABoolean
+    | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | delete true !| tag | eq ::any/delete/path/KindNotTakenError)
+        ~({:a 1} | delete true !| tag | eq ::any/delete/PathKindNotTakenError)
     | proves :takesAKeyOut
         |~~ A key is taken out of the map at the path. ~~|
         ~({:a {:b 1 :c 2}} | delete /a/b | eq {:a {:c 2}})

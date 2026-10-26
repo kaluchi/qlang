@@ -175,10 +175,10 @@ the same quote.
 `apply` runs code against its subject: a quote, a path, which reads, or
 a function, which takes its args as one vector, as a call holds its
 args, `apply f [4]`, where a quote and a path take none,
-`::any/apply/args/NotTakenError`, and args that are no vector are
-refused as `::any/apply/args/KindNotTakenError`. Code a quote declares
+`::any/apply/ArgsNotTakenError`, and args that are no vector are
+refused as `::any/apply/ArgsKindNotTakenError`. Code a quote declares
 stays inside its run. A value of another kind is refused as
-`::any/apply/code/KindNotTakenError`. `open`, a verb of `::quote`, runs a
+`::any/apply/CodeKindNotTakenError`. `open`, a verb of `::quote`, runs a
 quote from null, beneath whatever tags stand over it, so a print reads
 back as the value it writes by `parse | open`, and it runs a link and a
 snippet alike.
@@ -194,7 +194,7 @@ snippet alike.
 ::call/UnknownNameError
 
 > 42 | apply 1 !| tag
-::any/apply/code/KindNotTakenError
+::any/apply/CodeKindNotTakenError
 
 > get [~({:a 1} | print | parse | open) ~("10 | add 5" | parse | open)]
 [{:a 1} 15]
@@ -230,13 +230,13 @@ its modifier on as the answer of the call.
 [1 2 3]
 
 > [{:a true}] | filter (get /a) !| tag
-::vec/filter/predicate/KindNotTakenError
+::vec/filter/PredicateKindNotTakenError
 
 > [1 2] | take (get /x) !| tag
 ::path/IndexNotIntegerError
 
 > :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| tag
-::vec/map/code/KindNotTakenError
+::vec/map/CodeKindNotTakenError
 ```
 
 ## held

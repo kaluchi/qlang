@@ -35,7 +35,7 @@
         |~~ The node an invariant of a chain lays under the name of its
             refusal holds a quote under `::invariant`.
         ~~|
-        ~(::vec/take/count/NotIntegerError | binding | value | tag | eq ::invariant)
+        ~(::vec/take/CountNotIntegerError | binding | value | tag | eq ::invariant)
     | proves :readsThePayloadBeneathTheTag
         |~~ An invariant of a kind's value reads the payload beneath the
             tag, so a verb that keeps its subject's kind runs in it.

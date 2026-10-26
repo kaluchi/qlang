@@ -323,8 +323,8 @@ true
 > :number/a (::fn | impl ~(add 1)) | :number/b ~(add 1) | get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]
 [::fn ::quote 6 6]
 
-> get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/count/NotIntegerError#5 !| tag)]
-[6 ::number/add/SubjectNotNumberError ::vec/take/count/NotIntegerError/PayloadKindNotTakenError]
+> get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/CountNotIntegerError#5 !| tag)]
+[6 ::number/add/SubjectNotNumberError ::vec/take/CountNotIntegerError/PayloadKindNotTakenError]
 ```
 
 ## root
@@ -366,7 +366,7 @@ their names, bare [QSBLD#value]: `name`, a keyword, `docs`, the docs of
 its page, `value`, `source`, the declaration, null for a node a chain
 lays, and `origin`, a keyword or null, `::x | binding | value`; a record
 a reader writes is refused where it leaves one out, `::binding{:name :x}`
-as `::binding/docs/NotGivenError`. `env` answers the declarations of
+as `::binding/DocsNotGivenError`. `env` answers the declarations of
 the reader where the step stands, in the recipe of a verb those of the
 query that called it [QSNAM#owner], in code held as data its own and the
 nodes and the labels of the step it runs from [QSQUO#held], each by its
@@ -381,7 +381,7 @@ subject holds under it [QSSLF#axis].
 [:x 1 1 ::map/keys/SubjectNotMapError]
 
 > get [~(::binding{:name :x} !| tag) ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)]
-[::binding/docs/NotGivenError true]
+[::binding/DocsNotGivenError true]
 
 > :x 1 | env | get [~(has :x) ~(has :vec)]
 [true false]

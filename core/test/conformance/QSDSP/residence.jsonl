@@ -25,6 +25,6 @@
 {"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box |~~ Box. ~~| | :Box/w2 ~(get /w | mul 2) | get [~(::Box{:w 3} | Box/w2) ~({:w 3} | Box/w2 !| tag)]","expect":"[6 ::Box/w2/SubjectNotBoxError]"}
 {"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | :Pos/f ~(payload) | get [~(::Pos#5 | f) ~(5 | f !| tag) ~(::Pos#0 !| tag)]","expect":"[5 ::Pos/f/SubjectNotPosError ::Pos/NotPositiveError]"}
 {"name":"a-comparison-of-tags-resides-on-tags","query":"::b | gte ::a","expect":"true"}
-{"name":"an-input-refuses-under-the-address-of-its-kinds-verb","query":"get [~(\"ab\" | take \"x\" !| tag) ~([1] | take \"x\" !| tag)]","expect":"[::string/take/count/KindNotTakenError ::vec/take/count/KindNotTakenError]"}
+{"name":"an-input-refuses-under-the-address-of-its-kinds-verb","query":"get [~(\"ab\" | take \"x\" !| tag) ~([1] | take \"x\" !| tag)]","expect":"[::string/take/CountKindNotTakenError ::vec/take/CountKindNotTakenError]"}
 {"name":"a-subject-that-is-no-string-is-refused-by-the-address","query":"42 | string/contains \"x\"","raises":"::string/contains/SubjectNotStringError!{:subject/expected #[::string] :subject/found 42 :trace ::trace[::frame[42 ~(string/contains \"x\")]]}"}
 {"name":"zip-resides-on-vectors-and-sets-whose-addresses-a-number-is-refused-with","query":"42 | zip !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]"}

@@ -59,7 +59,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | out (add 1)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'any/out/text/KindNotTakenError', {
+    expectRefusalByAddress(cellEntry, 'any/out/TextKindNotTakenError', {
       'text/found': 43
     });
   });
@@ -68,7 +68,7 @@ describe('out — the text the call gives, computed against the subject', () => 
     const io = captureIoContext();
     const cellEntry = await runQuery('"x" | out (prepend 42)', io);
     expect(io.stdoutText()).toBe('');
-    expectRefusalByAddress(cellEntry, 'string/prepend/prefix/KindNotTakenError', {
+    expectRefusalByAddress(cellEntry, 'string/prepend/PrefixKindNotTakenError', {
       'prefix/found': 42
     });
   });
@@ -104,7 +104,7 @@ describe('err — the text the call gives, computed against the subject', () => 
   it('refuses a text of another kind on stderr by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('42 | err (add 1)', io);
-    expectRefusalByAddress(cellEntry, 'any/err/text/KindNotTakenError', {
+    expectRefusalByAddress(cellEntry, 'any/err/TextKindNotTakenError', {
       'text/found': 43
     });
   });
@@ -123,7 +123,7 @@ describe('tap', () => {
   it('refuses a label that is not a keyword by the law of its input', async () => {
     const io = captureIoContext();
     const cellEntry = await runQuery('[1 2 3] | tap "oops"', io);
-    expectRefusalByAddress(cellEntry, 'any/tap/label/KindNotTakenError', {
+    expectRefusalByAddress(cellEntry, 'any/tap/LabelKindNotTakenError', {
       'label/found': 'oops'
     });
   });

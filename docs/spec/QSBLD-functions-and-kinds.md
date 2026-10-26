@@ -71,12 +71,12 @@ payload that is no pair of the quote of a chain and a recipe refused as
 chain takes as `::fn/CommandNotTakenError` and a recipe that is no code,
 there or given by `impl`, as `::fn/RecipeKindNotTakenError`. `apply` hands a
 function its args, a vector or a set, another value refused as
-`::any/apply/args/KindNotTakenError`, and the call of the function is
+`::any/apply/ArgsKindNotTakenError`, and the call of the function is
 refused under `::fn/call/…`, a function whose recipe it cannot run as
 `::fn/RecipeMissingError`, a contract and a `::builtin{}` no host handed
 with it [QSHST#source]; a quote or a path takes empty args alone,
 `[]`, `#[]` or an empty vector under a tag, others refused as
-`::any/apply/args/NotTakenError`; `fill` writes the args into the head
+`::any/apply/ArgsNotTakenError`; `fill` writes the args into the head
 of its code, refused under `::fn/call/…` as a call and, for a function
 whose recipe is no quote, a primitive's or none, as
 `::fn/fill/RecipeKindNotTakenError` at the path of the recipe; and `inputs` answers its inputs, each a
@@ -95,14 +95,14 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(actualValue)]) ~(-5 | apply (::fn | holds :subject/NotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
-[::fn[~() ~(add 1)] [~(takes 5 |~~ x ~~| /0) 0 5] ::fn/call/subject/NotAboveZeroError]
+> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(actualValue)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+[::fn[~() ~(add 1)] [~(takes 5 |~~ x ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
 
 > get [~(::fn[[] ~(1)] !| tag) ~(::fn | returns |~~ A. ~~| #[] !| tag) ~(::fn | takes :null |~~ w ~~| /0 !| tag)]
 [::fn/PayloadNotPairError ::fn/CommandNotTakenError ::fn/CommandNotTakenError]
 
 > 5 | apply ~(add 1) [3] !| tag
-::any/apply/args/NotTakenError
+::any/apply/ArgsNotTakenError
 
 > kinds | inter #[::accepts ::holds ::impl ::on ::proves ::returns ::takes ::tells ::throws ::wires]
 #[]
@@ -130,11 +130,11 @@ and `cond` are the invariants of their inputs.
 An input holds a value of its kind the walk of its tags reaches, a recipe
 the value as the call gives it, its tags with it, and a primitive the
 value the walk reaches [QSDSP#answer]: a value of none is refused under
-the input as `…/by/KindNotTakenError`,
+the input as `…/ByKindNotTakenError`,
 the kinds it takes its `:expected`, a set of tags, and the value of an
 input of each element that is no vector as of no `::vec`; an arg the
 call leaves out, read strictly by a path or by code, as
-`…/by/NotGivenError`, and a path that meets a value it cannot read with
+`…/ByNotGivenError`, and a path that meets a value it cannot read with
 the path's refusal, `::path/SubjectHasNoPartsError`; args past the
 arity of the function, the most args its inputs read where every input
 reads the arg at an index, by a path from it or by `query` of one, under
@@ -151,13 +151,13 @@ and an element of none as `…/ElementKindNotTakenError` with its
 
 ```qlang
 > :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(5 | plus 2) ~(5 | plus "x" !| tag) ~(5 | plus !| tag) ~(5 | plus 1 2 !| tag)]
-[7 ::number/plus/by/KindNotTakenError ::number/plus/by/NotGivenError ::number/plus/ArgsBeyondInputsError]
+[7 ::number/plus/ByKindNotTakenError ::number/plus/ByNotGivenError ::number/plus/ArgsBeyondInputsError]
 
 > :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 4 2] | get [~(top) ~(top 1)]
 [[5 4 2] [5]]
 
 > :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| tag) ~(5 | apply m [[1 "a"]] !| get [~(tag) /index])]
-[::fn/call/xs/KindNotTakenError [::fn/call/xs/ElementKindNotTakenError 1]]
+[::fn/call/XsKindNotTakenError [::fn/call/XsElementKindNotTakenError 1]]
 
 > 1 | add 1 2 !| actualValue
 ::number/add[1 2]
@@ -180,14 +180,14 @@ the tags its operands share [QSDSP#answer], held to the label, and stands
 as it is where none is laid; and where the walk reaches none, the one kind `returns` names makes the
 answer as a value is put under it [QSBLD#value]. An answer of none of the
 kinds, a payload the one kind refuses for its kind among them, is
-refused as `…/answer/KindNotTakenError` with the kinds as `:expected`,
+refused as `…/AnswerKindNotTakenError` with the kinds as `:expected`,
 while an invariant of the kind refuses under its own name. A function
 whose `returns` names `::any`, or that has none, hands its answer on as
 it is.
 
 ```qlang
 > :Box |~~ B ~~| | :Box/half (::fn | returns |~~ The half. ~~| ::string | impl ~(get /0 | div 2)) | ::Box[4] | half !| tag
-::Box/half/answer/KindNotTakenError
+::Box/half/AnswerKindNotTakenError
 
 > :any/f (::fn | returns |~~ r ~~| ::number | impl ~(::W#5)) | 1 | f
 ::W#5
@@ -327,7 +327,7 @@ wires no part stays open, its tag passing the words of its payload,
 
 ```qlang
 > :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)) | get [~(::Box{:w 3} | tag) ~(::Box{} !| tag) ~(::Box{:w "x"} !| tag) ~(::Box{:w 20} !| tag)]
-[::Box ::Box/w/NotGivenError ::Box/w/KindNotTakenError ::Box/TooWideError]
+[::Box ::Box/WNotGivenError ::Box/WKindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)) | ::Box[-1] !| payload | keys
 #[:actualTag :actualValue :trace]
@@ -348,7 +348,7 @@ wires no part stays open, its tag passing the words of its payload,
 [312 ~(took) ::call/KindAnswersNoVerbError 312]
 
 > :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number) | ::E"x" !| get [~(tag) ~(actualValue | tag)]
-[::E/n/NotReadError ::string/toNumber/TextNotNumberError]
+[::E/NNotReadError ::string/toNumber/TextNotNumberError]
 
 > ::Box{:w 3} | :Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number) | w
 3
@@ -389,7 +389,7 @@ at rest alone [QSERR#rest].
 > :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)) | get [~(::Box/TooBigError[1] !| tag) ~(::Box/TooBigError!{:actualTag ::number :actualValue 10} | actualValue)]
 [::Box/TooBigError/PayloadKindNotTakenError 10]
 
-> ::vec/take/count/NotIntegerError | binding | value | tag
+> ::vec/take/CountNotIntegerError | binding | value | tag
 ::invariant
 
 > get [~(::set | binding | value | get /1 | tag) ~(::keyword | binding | value | get /1)]

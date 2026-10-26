@@ -108,7 +108,7 @@
             subject.
         ~~|
         /0 ::boolean
-    | throws :condition/KindNotTakenError
+    | throws :ConditionKindNotTakenError
         |~~ The condition is a boolean, `true | and (5 | gt 3)`; the
             conditions of one value hold together by `allOf`.
         ~~|
@@ -136,9 +136,9 @@
     | proves :computesTheConditionAgainstTheSubject
         |~~ The condition is computed against the subject, a boolean. ~~|
         ~(true | and (eq true))
-    | proves :condition/KindNotTakenError/refusesANumber
+    | proves :ConditionKindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(true | and 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/and/condition/KindNotTakenError ::number])
+        ~(true | and 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/and/ConditionKindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
         ~(1 | and true !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/and/SubjectNotBooleanError ::number])
@@ -171,7 +171,7 @@
             subject.
         ~~|
         /0 ::boolean
-    | throws :condition/KindNotTakenError
+    | throws :ConditionKindNotTakenError
         |~~ The condition is a boolean, `false | or (5 | gt 3)`; the
             conditions of one value hold together by `anyOf`.
         ~~|
@@ -200,9 +200,9 @@
     | proves :computesTheConditionAgainstTheSubject
         |~~ The condition is computed against the subject, a boolean. ~~|
         ~(false | or (not))
-    | proves :condition/KindNotTakenError/refusesANumber
+    | proves :ConditionKindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(false | or 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/or/condition/KindNotTakenError ::number])
+        ~(false | or 1 !| get [~(tag) ~(condition | found | tag)] | eq [::boolean/or/ConditionKindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
         ~(1 | or true !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/or/SubjectNotBooleanError ::number])

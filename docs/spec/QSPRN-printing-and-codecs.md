@@ -219,7 +219,7 @@ failure by `!|` and a cell by `answer`.
 > ::excerpt{:actualValue ::cell"f410f1df625c" :actualValue/count 3410} | :e it | print | parse | open | eq e
 true
 
-> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]
+> ::number/add/AddendKindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(actualValue | tag) ~(payload | get /:actualValue/count)]
 [::cell 3410]
 
 > [1 2] | excerpt !| tag
@@ -269,7 +269,7 @@ through the door of `::point`, three integers its kind wires as `offset`,
 of a parse is laid through the door of its span. A payload that is no
 vector is refused as `…/PayloadKindNotTakenError`, an element that is no
 number as `…/ElementKindNotTakenError` with its `:index`; a span of fewer
-numbers leaves its end unread, `::span/end/NotReadError`, the refusal of
+numbers leaves its end unread, `::span/EndNotReadError`, the refusal of
 the point among its facts, and a point of another length or with a
 fraction is refused by the invariant of its kind,
 `::point/PayloadNotOffsetLineAndColumnError`, which names the roles of its
@@ -280,7 +280,7 @@ numbers.
 ::point[4 1 5]
 
 > ::span[0 1 1] !| tag
-::span/end/NotReadError
+::span/EndNotReadError
 
 > ::span[0 1 "x" 1 1 2] !| get [~(tag) ~(index)]
 [::span/ElementKindNotTakenError 2]

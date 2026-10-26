@@ -10,7 +10,7 @@ import { codeOf, applyFunction, layTag } from '../eval.mjs';
 import { rootState, rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 
-const AnyApplyArgsNotTakenError = declareRefusal('any/apply/args/NotTakenError');
+const AnyApplyArgsNotTakenError = declareRefusal('any/apply/ArgsNotTakenError');
 
 // [QSSYN#refusal], [QSPRN#span]
 export async function refusalOfAParse(parseError, scope, uri) {

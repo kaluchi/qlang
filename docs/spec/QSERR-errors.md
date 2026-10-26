@@ -71,13 +71,13 @@ true
 [::string ::path/TagClosedError ::error false]
 
 > ::number/add/SubjectNotNumberError!{:actualTag 5} !| tag
-::number/add/SubjectNotNumberError/actualTag/KindNotTakenError
+::number/add/SubjectNotNumberError/ActualTagKindNotTakenError
 
-> ::number/add/addend/KindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
-::number/add/addend/KindNotTakenError/trace/KindNotTakenError
+> ::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
+::number/add/AddendKindNotTakenError/TraceKindNotTakenError
 
-> ::number/add/addend/KindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(tag) ~(actualTag) ~(actualValue | tag) ~(expected)]
-[::number/add/addend/KindNotTakenError ::vec ::cell null]
+> ::number/add/AddendKindNotTakenError::excerpt{:actualTag ::vec :actualValue ::cell"f410f1df625c" :actualValue/count 3410} | get [~(tag) ~(actualTag) ~(actualValue | tag) ~(expected)]
+[::number/add/AddendKindNotTakenError ::vec ::cell null]
 
 > ::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count)]
 [::error 5000]
@@ -216,15 +216,15 @@ vector under a tag of another kind among them, is refused as
 `::trace/ElementKindNotTakenError` at its index; a frame takes the vector
 of its parts by its own tag, a vector under a tag and a set refused as
 `::frame/PayloadKindNotTakenError`, a frame of a subject alone as
-`::frame/unfinished/NotGivenError`, a third part that is no path as
-`::frame/path/KindNotTakenError`, and steps that hold none, a null
+`::frame/UnfinishedNotGivenError`, a third part that is no path as
+`::frame/PathKindNotTakenError`, and steps that hold none, a null
 written at the third part and a part past it as
 `::frame/PayloadNotSubjectAndStepsError`. The kind holds a trace wherever
 one is laid: its literal and `tag ::trace`; `raise`, which lays the
 `:trace` of the map or the error at rest it raises through the kind's
 label; and the kind of a refusal, which holds the `:trace` of its error at
 rest to `::trace`, another refused under the refusal as
-`…/trace/KindNotTakenError`, while `/trace` reads the key of an error
+`…/TraceKindNotTakenError`, while `/trace` reads the key of an error
 under `::error` alone and is refused where there is none.
 
 An error at rest that writes a `:trace` holding a frame resumes that
@@ -272,7 +272,7 @@ true
 ~(add 1)
 
 > get [~({:trace 5} | raise !| tag) ~({:trace [5]} | raise !| get [~(tag) ~(index)]) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag) ~(::frame[1] !| tag)]
-[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/unfinished/NotGivenError]
+[::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/UnfinishedNotGivenError]
 
 > get [~(::frame::X[1 ~(a)] !| get [~(tag) ~(actualTag)]) ~(::frame#[1 ~(a)] !| get [~(tag) ~(actualTag)])]
 [[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]
@@ -284,7 +284,7 @@ null
 [[~(::A[::number"x"])] [~(pre) ~(eq raise)]]
 
 > ::number/add/SubjectNotNumberError!{:actualTag ::string :trace 5} !| tag
-::number/add/SubjectNotNumberError/trace/KindNotTakenError
+::number/add/SubjectNotNumberError/TraceKindNotTakenError
 
 > get [~([1 "x"] | sum !| trace | first | path) ~([[1 "x"]] | map ~(sum) !| trace | map ~path) ~([1 "x"] | eq sum !| trace | map ~path) ~({:a 1} | filter ~(5) !| trace | last | path)]
 [/1 [/1 /0] [/1] /a]
@@ -323,7 +323,7 @@ false
 ::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| tag
-::vec/map/code/KindNotTakenError
+::vec/map/CodeKindNotTakenError
 
 > get [~(#[::number"b" ::string#1] !| tag) ~({:k ::number"x" :k 1} | count)]
 [::string/PayloadKindNotTakenError 1]
@@ -334,7 +334,7 @@ false
 Every site that refuses has a tag of its own, its address: the address
 of the site it guards and a last name that says in the language's
 words what was refused, `::number/add/SubjectNotNumberError` for the
-subject of `add` and `::number/add/addend/KindNotTakenError` for its
+subject of `add` and `::number/add/AddendKindNotTakenError` for its
 input. The last name names the refusal alone, so two sites may share
 one, `::construct/LiteralComputesError` beside
 `::quote/LiteralComputesError`. A value of none of the kinds a holder
@@ -426,7 +426,7 @@ a segment a path read as an index numbers.
 ::number/add/SubjectNotNumberError
 
 > 1 | add "x" !| get [~(tag) ~(expected) ~(actualTag)]
-[::number/add/addend/KindNotTakenError #[::number] ::string]
+[::number/add/AddendKindNotTakenError #[::number] ::string]
 
 > 1 | add 1 2 !| payload | entries | map ~first
 [:actualTag :arity :actualValue :trace]
@@ -440,8 +440,8 @@ a segment a path read as an index numbers.
 > ::fn/KindNotTakenError | manifest
 #[::fn/KindNotTakenError/actualTag ::fn/KindNotTakenError/actualValue ::fn/KindNotTakenError/expected ::fn/KindNotTakenError/repair ::fn/KindNotTakenError/trace]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/by/KindNotTakenError | binding | name) ~(::number/plus/by/NotGivenError | binding | name)]
-[:number/plus/by/KindNotTakenError :number/plus/by]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/ByKindNotTakenError | binding | name) ~(::number/plus/ByNotGivenError | binding | name)]
+[:number/plus/ByKindNotTakenError :number/plus/by]
 
 > ::builtin | manifest | filter ~(binding | name | toString | endsWith "Error") | count
 12
@@ -516,7 +516,7 @@ reading each fact as the failure met it. The caret of a refused text is a
 fact within the room of a fact [QSSYN#refusal].
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/addend/KindNotTakenError::excerpt{$' -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
+$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :actualValue ::cell"[0-9a-f]\{12\}"$' -e '^  :actualValue/count 3410$'
 3
 
 $ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'

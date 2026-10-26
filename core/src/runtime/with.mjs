@@ -8,10 +8,10 @@ import { readsAsName } from '../name-chars.mjs';
 import { isPath, isMap, isQuote, isErrorValue, makeKeyword } from '../types.mjs';
 import { readTemplate, readByPath } from './path-primitives.mjs';
 
-const AnyWithNamesElementKindNotTakenError = declareRefusal('any/with/names/ElementKindNotTakenError');
-const AnyWithNamesSelectorKindNotTakenError = declareRefusal('any/with/names/SelectorKindNotTakenError');
-const AnyWithNamesKeyNotNameError = declareRefusal('any/with/names/KeyNotNameError');
-const AnyWithNamesNameWrittenTwiceError = declareRefusal('any/with/names/NameWrittenTwiceError');
+const AnyWithNamesElementKindNotTakenError = declareRefusal('any/with/NamesElementKindNotTakenError');
+const AnyWithNamesSelectorKindNotTakenError = declareRefusal('any/with/NamesSelectorKindNotTakenError');
+const AnyWithNamesKeyNotNameError = declareRefusal('any/with/NamesKeyNotNameError');
+const AnyWithNamesNameWrittenTwiceError = declareRefusal('any/with/NamesNameWrittenTwiceError');
 
 function selectorsOf(names) {
   const selectors = new Map();

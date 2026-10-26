@@ -11,16 +11,16 @@ describe('the refusals by rule of an input that names the kinds of each element'
     expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
       'number/each/SubjectNotNumberError',
       'number/each/ArgsBeyondInputsError',
-      'number/each/xs/NotGivenError',
-      'number/each/xs/KindNotTakenError',
-      'number/each/xs/ElementKindNotTakenError'
+      'number/each/XsNotGivenError',
+      'number/each/XsKindNotTakenError',
+      'number/each/XsElementKindNotTakenError'
     ]);
   });
 
   it('names an element of none of its kinds alone where its selector reads the args whole, which are a vector', async () => {
     const own = await createNotebook();
     await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
-    expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/xs/ElementKindNotTakenError']);
+    expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/XsElementKindNotTakenError']);
   });
 });
 
@@ -60,7 +60,7 @@ describe('the selector of an input', () => {
 
 describe('the args of a call', () => {
   it('refuses under the input an arg the call leaves out', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | put !| tag')).toEqual(makeTag('Box/put/weight/NotGivenError'));
+    expect(await evalQuery(BOX + '::Box[4 2] | put !| tag')).toEqual(makeTag('Box/put/WeightNotGivenError'));
   });
 
   it('reads an arg softly by a selector of query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {

@@ -216,22 +216,22 @@ registerPrimitive('vec/any', runsAsCode(['predicate'], (vector, predicate) => fi
 registerPrimitive('map/any', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionKindNotTakenError)));
 
 // [QSCOL#group]
-async function keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed) {
+async function keywordOf(key, element, index, KeyAnswerKindNotTakenError, KeyTakenError, filed) {
   const answer = key === NULL ? element : await key(element);
   if (isErrorValue(answer)) return failedAt(key, answer, index);
   const named = keywordFiledFor(beneathTags(answer));
-  if (named === null) throw refusingAPart(new KeyKindNotTakenError({ 'key/expected': KINDS_A_KEY_FILES_UNDER, 'key/answer': answer }), index);
+  if (named === null) throw refusingAPart(new KeyAnswerKindNotTakenError({ 'key/expected': KINDS_A_KEY_FILES_UNDER, 'key/answer': answer }), index);
   const taken = filed.get(named.name);
   if (taken === undefined) filed.set(named.name, answer);
   else if (compareValues(taken, answer) !== 0) throw refusingAPart(new KeyTakenError({ 'key/answer': named, taken }), index);
   return named;
 }
 
-async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
+async function bucketsOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const buckets = new Map();
   const filed = new Map();
   for (const [index, element] of sequence.entries()) {
-    const bucketKey = await keywordOf(key, element, index, KeyKindNotTakenError, KeyTakenError, filed);
+    const bucketKey = await keywordOf(key, element, index, KeyAnswerKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(bucketKey)) return bucketKey;
     if (!buckets.has(bucketKey.name)) buckets.set(bucketKey.name, []);
     buckets.get(bucketKey.name).push(element);
@@ -239,30 +239,30 @@ async function bucketsOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
   return buckets;
 }
 
-const VecGroupByKeyKindNotTakenError = declareRefusal('vec/groupBy/KeyKindNotTakenError');
+const VecGroupByKeyAnswerKindNotTakenError = declareRefusal('vec/groupBy/KeyAnswerKindNotTakenError');
 const VecGroupByKeyTakenError = declareRefusal('vec/groupBy/KeyTakenError');
-const SetGroupByKeyKindNotTakenError = declareRefusal('set/groupBy/KeyKindNotTakenError');
+const SetGroupByKeyAnswerKindNotTakenError = declareRefusal('set/groupBy/KeyAnswerKindNotTakenError');
 const SetGroupByKeyTakenError = declareRefusal('set/groupBy/KeyTakenError');
-registerPrimitive('vec/groupBy', runsAsCode(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyKindNotTakenError, VecGroupByKeyTakenError)));
+registerPrimitive('vec/groupBy', runsAsCode(['key'], (vector, key) => bucketsOf(vector, key, VecGroupByKeyAnswerKindNotTakenError, VecGroupByKeyTakenError)));
 registerPrimitive('set/groupBy', runsAsCode(['key'], async (set, key) => {
-  const buckets = await bucketsOf(set, key, SetGroupByKeyKindNotTakenError, SetGroupByKeyTakenError);
+  const buckets = await bucketsOf(set, key, SetGroupByKeyAnswerKindNotTakenError, SetGroupByKeyTakenError);
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
-async function indexOf(sequence, key, KeyKindNotTakenError, KeyTakenError) {
+async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
   for (const [position, element] of sequence.entries()) {
-    const indexKey = await keywordOf(key, element, position, KeyKindNotTakenError, KeyTakenError, filed);
+    const indexKey = await keywordOf(key, element, position, KeyAnswerKindNotTakenError, KeyTakenError, filed);
     if (isErrorValue(indexKey)) return indexKey;
     index.set(indexKey.name, element);
   }
   return index;
 }
 
-const VecIndexByKeyKindNotTakenError = declareRefusal('vec/indexBy/KeyKindNotTakenError');
+const VecIndexByKeyAnswerKindNotTakenError = declareRefusal('vec/indexBy/KeyAnswerKindNotTakenError');
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
-registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyKindNotTakenError, VecIndexByKeyTakenError)));
+registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
 
 // [QSERR#site]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));

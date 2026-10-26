@@ -32,11 +32,11 @@ each under the node the one before it reached,
 `::vec | doc [:take :count]`, the empty vector the page of the subject
 itself, and a set of anchors, a page at each in the order of the set,
 null and a vector of anchors among them. An anchor of another kind is
-refused under the input, `::any/source/anchor/KindNotTakenError` and its
+refused under the input, `::any/source/AnchorKindNotTakenError` and its
 kin, a name read in turn that is no keyword as
-`::any/doc/anchor/NameKindNotTakenError`, its index in its vector its
+`::any/doc/AnchorNameKindNotTakenError`, its index in its vector its
 `:index`, and an element of a set that is neither null, a keyword nor a
-vector as `::any/doc/anchor/ElementKindNotTakenError`, its index in the
+vector as `::any/doc/AnchorElementKindNotTakenError`, its index in the
 one order of the set its `:index`; `tutorial`, which pairs the page and
 the laws of the name its subject reads, takes no anchor, refusing one as
 `::any/tutorial/ArgsBeyondInputsError`.
@@ -76,7 +76,7 @@ true
 1
 
 > ::vec/take | source 1 !| tag
-::any/source/anchor/KindNotTakenError
+::any/source/AnchorKindNotTakenError
 
 > ::nosuchbinding | doc !| get [~(tag) ~(name)]
 [::any/doc/UnknownNameError ::nosuchbinding]
@@ -85,13 +85,13 @@ true
 true
 
 > 5 | gte !| get [~(tag) ~(doc | content | contains "compared with")]
-[::any/gte/value/NotGivenError true]
+[::any/gte/ValueNotGivenError true]
 
 > ::number/add/FooError | binding | name
 :number/add
 
 > get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
-[[::fn/call/by/KindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
+[[::fn/call/ByKindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
 ## manifest
@@ -126,9 +126,9 @@ true
 #[::Box/w]
 
 > ::vec/take/count | manifest
-#[::vec/take/count/KindNotTakenError ::vec/take/count/NotGivenError ::vec/take/count/NotIntegerError]
+#[::vec/take/CountKindNotTakenError ::vec/take/CountNotGivenError ::vec/take/CountNotIntegerError]
 
-> ::vec/take/count/NotIntegerError | binding | value | tag
+> ::vec/take/CountNotIntegerError | binding | value | tag
 ::invariant
 
 > ::vec | manifest :take | eq (::vec/take | manifest)

@@ -17,8 +17,8 @@ import { splitAddress, FN_CALL_ADDRESS } from '../address.mjs';
 const AnySourceUnknownNameError = declareRefusal('any/source/UnknownNameError');
 const AnyDocUnknownNameError = declareRefusal('any/doc/UnknownNameError');
 const AnyBindingUnknownNameError = declareRefusal('any/binding/UnknownNameError');
-const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/anchor/NameKindNotTakenError');
-const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/anchor/ElementKindNotTakenError');
+const AnyDocAnchorNameKindNotTakenError = declareRefusal('any/doc/AnchorNameKindNotTakenError');
+const AnyDocAnchorElementKindNotTakenError = declareRefusal('any/doc/AnchorElementKindNotTakenError');
 
 // [QSDSP#walk], [QSERR#site], [QSSLF#near]
 function refusalOf(scope, subject) {

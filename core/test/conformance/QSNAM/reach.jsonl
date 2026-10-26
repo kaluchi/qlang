@@ -6,7 +6,7 @@
 {"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(env | get /vec | value) ~(::vec[1] | eq [1]) ~([1] | doc | tag)]","expect":"[5 5 true ::doc]"}
 {"name":"a-bare-name-of-the-reader-meets-a-verb-of-the-subject-aloud","query":":filter 5 | [1 2] | filter !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::vec/filter]]"}
 {"name":"a-value-of-the-reader-meets-a-verb-the-reader-declared","query":":vec/second ~(get /1) | :second 5 | get [~(4 | second) ~([7 8 9] | second !| addresses)]","expect":"[5 #[::vec/second]]"}
-{"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-meets-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count)])) | [1 2 3] | firstN 2 !| get [~(tag) ~(name)]","expect":"[::call/ValueMeetsVerbError :count]"}
+{"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-is-read-past-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])) | [1 2 3] | firstN 2","expect":"[2 [1 2] 3]"}
 {"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":":sort 5 | [3 1] | sort /a !| addresses","expect":"#[::vec/sort]"}
 {"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":":page (::vec | doc) | :vec 5 | ::vec | doc | eq page","expect":"true"}
 {"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| tag","expect":"::call/UnknownNameError"}

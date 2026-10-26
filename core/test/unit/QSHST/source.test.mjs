@@ -171,7 +171,7 @@ describe('the sources a host hands', () => {
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :by/KindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{})',
+      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :ByKindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{})',
       ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})',
       ':any/doubled ~(fetch | append fetch)'
     ].join('\n'),
@@ -182,7 +182,7 @@ describe('the sources a host hands', () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('7 | less 2')).result).toBe(5);
     expect((await sessionInstance.evalCell('7 | less "a" !| tag')).result)
-      .toEqual(makeTag('number/less/by/KindNotTakenError'));
+      .toEqual(makeTag('number/less/ByKindNotTakenError'));
   });
 
   it('runs a name of steps the source declares over the host\'s own', async () => {
@@ -194,7 +194,7 @@ describe('the sources a host hands', () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
     expect((await sessionInstance.evalCell('::any/fetch | binding | value | get [~(tag) ~(get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
     const misanswering = await createNotebook({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
-    expect((await misanswering.evalCell('fetch !| tag')).result).toEqual(makeTag('any/fetch/answer/KindNotTakenError'));
+    expect((await misanswering.evalCell('fetch !| tag')).result).toEqual(makeTag('any/fetch/AnswerKindNotTakenError'));
   });
 
   it('records the source a host name came from as its origin', async () => {

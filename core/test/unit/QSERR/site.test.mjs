@@ -145,9 +145,9 @@ describe('the refusals a verb that is a function raises by rule', () => {
     expect(ruleRefusalsOf(notebook.scope, 'number/pick')).toEqual([
       'number/pick/SubjectNotNumberError',
       'number/pick/ArgsBeyondInputsError',
-      'number/pick/by/NotGivenError',
-      'number/pick/by/KindNotTakenError',
-      'number/pick/answer/KindNotTakenError'
+      'number/pick/ByNotGivenError',
+      'number/pick/ByKindNotTakenError',
+      'number/pick/AnswerKindNotTakenError'
     ]);
   });
 
@@ -240,15 +240,15 @@ describe('the refusals a kind raises by rule', () => {
     ].join('\n'));
     expect(ruleRefusalsOf(own.scope, 'Box')).toEqual([
       'Box/PayloadKindNotTakenError',
-      'Box/w/NotGivenError',
-      'Box/w/NotReadError',
-      'Box/w/KindNotTakenError',
-      'Box/tags/NotGivenError',
-      'Box/tags/NotReadError',
-      'Box/tags/KindNotTakenError',
-      'Box/tags/ElementKindNotTakenError',
-      'Box/note/NotGivenError',
-      'Box/note/NotReadError'
+      'Box/WNotGivenError',
+      'Box/WNotReadError',
+      'Box/WKindNotTakenError',
+      'Box/TagsNotGivenError',
+      'Box/TagsNotReadError',
+      'Box/TagsKindNotTakenError',
+      'Box/TagsElementKindNotTakenError',
+      'Box/NoteNotGivenError',
+      'Box/NoteNotReadError'
     ]);
   });
 

@@ -43,9 +43,9 @@
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
         ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)
-    | proves :column/NotGivenError/refusesTwoNumbers
+    | proves :ColumnNotGivenError/refusesTwoNumbers
         |~~ Two numbers leave the column out. ~~|
-        ~(::point[0 1] !| tag | eq ::point/column/NotGivenError)
+        ~(::point[0 1] !| tag | eq ::point/ColumnNotGivenError)
     | proves :PayloadNotOffsetLineAndColumnError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
         ~(::point[0 1 1 4 1 5] !| tag | eq ::point/PayloadNotOffsetLineAndColumnError)

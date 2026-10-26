@@ -4,7 +4,7 @@
 {"name":"proves-writes-a-law-of-the-kind","query":":Guide |~~ A guide. ~~| (::kind | proves :holds |~~ It holds. ~~| ~(true)) | ::Guide | runLaws | map /ok","expect":"[true]"}
 {"name":"throws-wires-a-fact-of-a-refusal-of-the-kind","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| ~(wires :w |~~ The width refused. ~~| ::number)) | ::Box/TooWideError/w | binding | value","expect":"::number"}
 {"name":"a-name-of-a-kind-is-declared-once","query":"::kind | wires :w |~~ The width. ~~| /w | tells :w |~~ A page. ~~| !| tag","expect":"::kind/NameDeclaredTwiceError"}
-{"name":"an-invariant-with-a-path-names-a-field-read-before-it","query":"::kind | holds :w/NegativeError |~~ No width below zero. ~~| ~(gte 0) !| tag","expect":"::kind/NameUnderNoFieldError"}
+{"name":"an-invariant-of-a-kind-reads-a-field-by-its-name","query":":Box |~~ B ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :WNegativeError |~~ No width below zero. ~~| ~(w | gte 0)) | get [~(::Box{:w 1} | w) ~(::Box{:w -1} !| tag)]","expect":"[1 ::Box/WNegativeError]"}
 {"name":"a-law-with-a-path-names-a-name-declared-before-it","query":"::kind | proves :x/y |~~ An x. ~~| ~(true) !| tag","expect":"::kind/LawUnderNoNameError"}
 {"name":"a-fact-of-no-kinds-holds-its-page","query":":Box |~~ A box. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| ~(wires :note |~~ A note. ~~|)) | ::Box/TooWideError/note | binding | value | tag","expect":"::doc"}
 {"name":"a-kind-takes-no-constructor-but-the-hosts","query":"get [~(::kind | impl ~(get {:s ~(it)}) !| tag) ~(::kind | impl 5 !| tag) ~(::kind[~() 5] !| tag)]","expect":"[::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError]"}

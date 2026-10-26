@@ -5,7 +5,7 @@
 {"name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [~(x)])) | 1 | f (!{:k 1} | raise) !| get /trace | map ~failed","expect":"[~(raise) ~(f (!{:k 1} | raise))]"}
 {"name":"a-template-answers-the-failure-a-quote-answers","query":"get [1 ~(\"x\" | add 1)] | count !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"map-over-a-map-answers-its-first-failure","query":"{:a 1 :b \"x\"} | map ~(add 10) !| get [~(tag) ~(trace | map ~failed)]","expect":"[::number/add/SubjectNotNumberError [~(add 10) ~(map ~(add 10))]]"}
-{"name":"a-template-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| tag","expect":"::number/div/divisor/ZeroError"}
+{"name":"a-template-answers-the-first-failure-in-the-order-written","query":"get [~(1 | div 0) ~(\"x\" | add 1)] !| tag","expect":"::number/div/DivisorZeroError"}
 {"name":"the-failure-of-a-quote-flies-from-it-through-its-template","query":"get [1 ~(1 | div 0)] !| trace | map ~failed","expect":"[~(div 0) ~(get [1 ~(1 | div 0)])]"}
 {"name":"a-map-template-answers-the-failure-a-quote-answers","query":"get {:a 1 :b ~(\"x\" | add 1)} !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-set-literal-answers-the-refusal-of-an-element","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)) | #[1 ::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}
@@ -34,9 +34,9 @@
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)) | null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
 {"name":"an-error-among-the-modifiers-answers-before-the-args-meet-the-arity","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)) | 5 | s (!{:k 1} | raise) 2 !| tag","expect":"::error"}
 {"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| tag","expect":"::number/div/divisor/ZeroError"}
-{"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| tag","expect":"::number/div/divisor/ZeroError"}
-{"name":"a-refusal-in-a-branch-of-if-answers-the-call","query":"5 | if (gt 0) ~(add \"x\") ~(0) !| tag","expect":"::number/add/addend/KindNotTakenError"}
+{"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| tag","expect":"::number/div/DivisorZeroError"}
+{"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| tag","expect":"::number/div/DivisorZeroError"}
+{"name":"a-refusal-in-a-branch-of-if-answers-the-call","query":"5 | if (gt 0) ~(add \"x\") ~(0) !| tag","expect":"::number/add/AddendKindNotTakenError"}
 {"name":"an-answer-its-kind-refuses-raises-the-refusal-under-the-tags-a-walk-passed","query":":Foo |~~ F ~~| (::kind | accepts |~~ v ~~| ::vec | holds :LongError |~~ l ~~| ~(count | gt 2)) | ::Bar::Foo[1 2 3] | take 1 !| tag","expect":"::Foo/LongError"}
 {"name":"a-set-literal-runs-its-parts-in-the-one-order-it-holds-them","query":"#[::number\"b\" ::string#1] !| tag","expect":"::string/PayloadKindNotTakenError"}
 {"name":"a-part-a-later-entry-of-its-key-replaces-runs-nowhere","query":"{:k ::number\"x\" :k 1} | count","expect":"1"}

@@ -2,7 +2,7 @@
 
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
-  withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
+  withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
   withCall, originIn, ownScopeOf
 } from './state.mjs';
 import { declareRefusal, refusingTheSubject, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
@@ -26,7 +26,7 @@ import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld, residenceOnSubject,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, invariantsOf, chainOfKind, chainOfFn } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -293,15 +293,12 @@ function nodesOfFunction(fn, address, scope, origin) {
   const chain = chainOfFn(fn);
   const { subject, inputs, answer } = chain;
   const { lay, layKindsRefusal, layRest } = layerOf(scope, address, origin, chain);
-  const standsUnder = role => [...chain.invariants.map(({ name }) => name), ...chain.pages.keys()].some(name => name.startsWith(`${role}/`));
   if (subject !== null) lay(SUBJECT_NAME, subject.page, subject.written ?? subject.page);
-  else if (standsUnder(SUBJECT_NAME)) lay(SUBJECT_NAME, null, null);
   for (const { name, page, selector, kinds, each } of inputs) {
     lay(name.name, page, selector);
     if (kinds !== null) layKindsRefusal((each ? elementsRefusalAddress : kindsRefusalAddress)(name.name), page);
   }
   if (answer !== null) lay(ANSWER_NAME, answer.page, answer.written);
-  else if (standsUnder(ANSWER_NAME)) lay(ANSWER_NAME, null, null);
   return layRest(chain);
 }
 
@@ -370,13 +367,22 @@ async function callByName(lookupName, modifiers, state, call) {
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
   const verb = residenceOnSubject(state.scope, lookupName, state.pipeValue);
-  if (verb !== null && servesTheSubject(verb, state.pipeValue) && !readsTheValueItHolds(verb, reach.record, state)) {
+  if (verb !== null && !DECLARED_BY_A_CHAIN.has(reach.record) && servesTheSubject(verb, state.pipeValue) && !readsTheValueItHolds(verb, reach.record, state)) {
     throw new CallValueMeetsVerbError({ name: makeKeyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
   }
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
 }
 
 // [QSDSP#residence]
+// [QSNAM#scope], [QSBLD#recipe]
+const DECLARED_BY_A_CHAIN = new WeakSet();
+
+function declaredBinding(name, value) {
+  const binding = makeBinding({ name, value });
+  DECLARED_BY_A_CHAIN.add(binding);
+  return binding;
+}
+
 function readsTheValueItHolds(verb, record, state) {
   const address = verb.get('name').name;
   if (!isNodeOfAPart(verb, state.scope)) return false;
@@ -638,11 +644,12 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
     if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), subjectRefused(kindsServed(handed.labelName, chain)), state.scope);
   }
   const scope = callScopeOf(state, ofTheRoot);
-  const refusedSubject = await invariantRefusal(invariantsOf(chain, SUBJECT_NAME), address, walked.served, state, scope, () => slotsPoured(state.pipeValue, []));
-  if (refusedSubject !== null) return refusedSubject;
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight, steps !== null && walked.byLabel ? wiringOf(walked.served) : undefined);
   if (isErrorValue(called)) return called;
   const pour = refused => slotsPoured(state.pipeValue, chain.inputs.map(({ name }, at) => [name.name, called.given[at]]), refused);
+  const ofTheCall = chain.invariants.filter(({ ofTheAnswer }) => !ofTheAnswer);
+  const broken = ofTheCall.length === 0 ? null : await invariantRefusal(ofTheCall, address, state.pipeValue, called.state, called.recipeScope, () => pour({}));
+  if (broken !== null) return broken;
   const laid = handed !== undefined && combinesItsInput(handed.primitive) ? tagsTheOperandsShare(chain, handed.labelName, state.pipeValue, called.given) : null;
   let answer;
   try {
@@ -658,7 +665,10 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   const broughtFrom = laid === null ? walked : { ...walked, passedTags: laid };
   const brought = kinds === null ? answer : await answerUnderItsLabel(answer, { address: `${address}/${ANSWER_NAME}`, kinds }, walked.byLabel ? labelName : null, broughtFrom, state, pour);
   if (isErrorValue(brought)) return brought;
-  return await invariantRefusal(invariantsOf(chain, ANSWER_NAME), address, brought, called.state, scope, () => pour({ [`${ANSWER_NAME}/found`]: brought })) ?? brought;
+  const ofTheAnswer = chain.invariants.filter(invariant => invariant.ofTheAnswer);
+  if (ofTheAnswer.length === 0) return brought;
+  const answered = scopeSet(called.recipeScope, ANSWER_NAME, declaredBinding(makeKeyword(ANSWER_NAME), brought));
+  return await invariantRefusal(ofTheAnswer, address, state.pipeValue, called.state, answered, () => pour({ [`${ANSWER_NAME}/found`]: brought })) ?? brought;
 }
 
 // [QSERR#site]
@@ -811,8 +821,9 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   if (chain.arity !== null && values.length > chain.arity) {
     return refusalUnder(argsBeyondInputsAddress(address), slotsPoured(state.pipeValue, inputsOfTheArgs(chain, values), { [`${SURPLUS_NAME}/found`]: Object.freeze(values.slice(chain.arity)) }), scope);
   }
-  const recipeScope = recipeSteps === null ? null : withTheParts(scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() })), parts)
-    .set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name), ...(parts?.keys() ?? [])]) });
+  const named = recipeSteps !== null || chain.invariants.length > 0;
+  const recipeScope = named ? withTheParts(scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() })), parts) : null;
+  if (recipeSteps !== null) recipeScope.set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name), ...(parts?.keys() ?? [])]) });
   const overArgs = () => nestState(called, argsValue(), scope);
   const inputValues = [];
   const given = [];
@@ -830,10 +841,8 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     const held = heldByItsKinds(input, read, refusalOf, recipeSteps !== null);
     if (isErrorValue(held)) return held;
     poured.push([name.name, read]);
-    const refused = await invariantRefusal(invariantsOf(chain, name.name), address, read, called, scope, () => slotsPoured(state.pipeValue, poured));
-    if (refused !== null) return refused;
     inputValues.push(held);
-    if (recipeSteps !== null) recipeScope.set(name.name, makeBinding({ name, value: held }));
+    if (named) recipeScope.set(name.name, declaredBinding(name, held));
   }
   return { values: inputValues, given, origins, recipeScope, state: called };
 }
@@ -894,7 +903,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
 
 // [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest]
 async function underKind(tagName, kind, payload, state) {
-  const { payload: payloadRole, fields, invariantsOfAField, invariantsOfTheValue } = chainOfKind(kind);
+  const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
@@ -902,7 +911,7 @@ async function underKind(tagName, kind, payload, state) {
   const ofFacts = holdsTheFactsOfAnError(payloadRole) ? { told: isExcerpt(held), slots: slotsOfAVerdict(kind) } : null;
   const parts = new Map();
   for (const field of fields) {
-    const reading = fieldRead(tagName, field, held, invariantsOfAField.get(field.name.name), state, opened, ofFacts);
+    const reading = fieldRead(tagName, field, held, state, opened, ofFacts);
     const part = isThenable(reading) ? await reading : reading;
     if (isErrorValue(part)) return part;
     parts.set(field.name.name, part);
@@ -910,7 +919,7 @@ async function underKind(tagName, kind, payload, state) {
   const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed, fields.length === 0 ? undefined : parts);
-  const refused = invariantsOfTheValue.length === 0 ? null : await invariantRefusal(invariantsOfTheValue, tagName, constructed, state, opened(), () => ({ found: payload }));
+  const refused = invariants.length === 0 ? null : await invariantRefusal(invariants, tagName, constructed, state, scopeWith(opened(), [...parts].map(([name, part]) => [name, declaredBinding(makeKeyword(name), part)])), () => ({ found: payload }));
   return refused ?? labelled;
 }
 
@@ -918,11 +927,11 @@ async function underKind(tagName, kind, payload, state) {
 const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.includes(ERROR_TAG.name) === true;
 
 // [QSBLD#value], [QSERR#rest]
-function fieldRead(tagName, field, payload, invariants, state, opened, ofFacts) {
+function fieldRead(tagName, field, payload, state, opened, ofFacts) {
   const slot = ofFacts?.slots?.get(field.name.name);
   if (slot !== undefined) return slotOfTheFacts(slot, field.name.name, payload, state);
-  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), invariants, state, opened, ofFacts);
-  return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts));
+  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), state, ofFacts);
+  return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, state, ofFacts));
 }
 
 // [QSERR#site]
@@ -932,7 +941,7 @@ async function slotOfTheFacts(address, name, facts, state) {
   return probes.size === 0 ? null : await layTag(address, probes, state);
 }
 
-function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofFacts) {
+function fieldHeld(tagName, field, payload, read, state, ofFacts) {
   const fieldAddress = `${tagName}/${field.name.name}`;
   if (ofFacts !== null && ((isErrorValue(read) && isMissedPart(read)) || read === null)) return null;
   if (ofFacts?.told && isCell(read)) return read;
@@ -940,8 +949,7 @@ function fieldHeld(tagName, field, payload, read, invariants, state, opened, ofF
   if (isErrorValue(read)) return refusalOfAPartNotRead(fieldAddress, read, state);
   const refusalOf = (each, refused) => refusalUnder(refusalsUnder(fieldAddress)(each), { ...refused, found: read }, state.scope);
   const held = heldByItsKinds(field, read, refusalOf);
-  if (isErrorValue(held)) return held;
-  return invariants.length === 0 ? read : invariantRefusal(invariants, tagName, read, state, opened(), () => ({ found: read })).then(refused => refused ?? read);
+  return isErrorValue(held) ? held : read;
 }
 
 async function refusalOfAPartNotRead(fieldAddress, read, state) {

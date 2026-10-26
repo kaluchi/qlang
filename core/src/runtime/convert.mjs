@@ -68,9 +68,9 @@ registerPrimitive('keyword/toTag', key => {
 // [QSTXT#match]
 const StringToRegexTextNotRegexError = declareRefusal('string/toRegex/TextNotRegexError');
 const StringToRegexLiteralNotSourceError = declareRefusal('string/toRegex/LiteralNotSourceError');
-const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/flags/NotFlagsError');
+const StringToRegexFlagsNotFlagsError = declareRefusal('string/toRegex/FlagsNotFlagsError');
 
-const RegexToRegexFlagsNotFlagsError = declareRefusal('regex/toRegex/flags/NotFlagsError');
+const RegexToRegexFlagsNotFlagsError = declareRefusal('regex/toRegex/FlagsNotFlagsError');
 registerPrimitive('regex/toRegex', (regex, written) => {
   if (written === null) return regex;
   const flags = canonicalFlags(written);

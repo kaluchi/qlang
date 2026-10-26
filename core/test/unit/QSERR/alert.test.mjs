@@ -26,7 +26,7 @@ describe('a host prints a failure as the concentrate of its facts', () => {
   it('holds a fact past the room of a fact as the cell its host keeps it in, beside its tag and the views of its kind that fit', async () => {
     const { kept, keep } = keeping();
     const alert = await alertOf('1 | add (3410 | range)', keep);
-    expect([printValue(alert).startsWith('::number/add/addend/KindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('addend/found')), alert.facts.get('addend/found/count'), kept[0].length])
+    expect([printValue(alert).startsWith('::number/add/AddendKindNotTakenError::excerpt{'), [...alert.facts.keys()], printValue(alert.facts.get('addend/found')), alert.facts.get('addend/found/count'), kept[0].length])
       .toEqual([true, ['subject/found', 'addend/expected', 'addend/found', 'addend/found/tag', 'addend/found/count', 'addend/found/shape', 'addend/found/first', 'addend/found/last', 'trace'], '::cell"kept1"', 3410, 3410]);
   });
 

@@ -118,7 +118,7 @@
         |~~ The tag of an invariant lays the kind of its refusal, which
             takes an error at rest alone.
         ~~|
-        ~(::vec/take/count/NotIntegerError#5 !| tag | eq ::vec/take/count/NotIntegerError/PayloadKindNotTakenError)
+        ~(::vec/take/CountNotIntegerError#5 !| tag | eq ::vec/take/CountNotIntegerError/PayloadKindNotTakenError)
     | proves :TagNamesAValueError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
         ~(:limit 5 | limit | tag ::Limit | payload | eq 5)

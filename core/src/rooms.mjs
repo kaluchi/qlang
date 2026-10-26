@@ -2,6 +2,7 @@
 
 import { makeErrorValue, makeExcerpt, isMap, isVec, isValueClass, wiringOf, tagOf, canonicalKeywordLiteral } from './types.mjs';
 import { printValue } from './print-value.mjs';
+import { PAYLOAD_NAME } from './chain.mjs';
 
 // [QSPRN#budget]
 export const ANSWER_BUDGET = 16000;
@@ -24,8 +25,6 @@ function keyedPartsOf(value) {
   if (isMap(value)) return [...value];
   return isValueClass(value, 'underTag') && isMap(value.payload) ? [...value.payload] : [];
 }
-
-const PAYLOAD_NAME = 'payload';
 
 const placeOf = (name, value) => ({ name, value, entries: [], parts: [] });
 

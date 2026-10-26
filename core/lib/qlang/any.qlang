@@ -545,9 +545,11 @@
       `kinds | map ~legend` the parts of every kind, and beneath them a
       comment for each view the kind reveals, its kind and the gloss of what
       its verb answers. A legend is an answer, printed within the budget of
-      every answer as any answer is. Every comment is
-      closed, `|~ … ~|`, and whitespace, so the text read back is the
-      subject, `print` answering the text and `payload` the subject.
+      every answer as any answer is. It prints under its tag,
+      `::legend::point[`, a number, a boolean, null and a path touching it
+      by `#`, `::legend#5`, and every comment is closed, `|~ … ~|`, and
+      whitespace, so the text read back is the legend, `print` answering
+      the text and `payload` the subject.
       ::link~(::legend | doc) ::link~(::kind/wires | doc)
   ~~|
   ::fn
@@ -566,9 +568,11 @@
             part its index reads.
         ~~|
         ~(::span[0 1 1 4 1 5] | legend | print | lines | get /2 | contains "|~ The line of the start, counted from one · startLine ~|")
-    | proves :readsBackAsTheSubject
-        |~~ The print of the legend reads back as the value it tells. ~~|
-        ~("~{" | parse !| :e it | legend | print | parse | open | eq e)
+    | proves :readsBackAsItself
+        |~~ The print of the legend reads back as the legend, its payload the
+            value it tells.
+        ~~|
+        ~("~{" | parse !| :e it | legend | :l it | print | parse | open | get [~(eq l) ~(payload | eq e)] | eq [true true])
     | proves :standsOnOneLineForAKindThatWiresNothing
         |~~ A value of a kind that wires nothing stands on one line beside the
             gloss of its kind.
@@ -577,9 +581,9 @@
     | proves :laysOutTheKindATagNames
         |~~ A tag name lays out the names its kind wires, a comment each. ~~|
         ~(::point | legend | print | lines | get /2 | eq "|~ line /1 ::number · The line of the point, counted from one ~|")
-    | proves :readsATagNameBackAsTheTag
-        |~~ The legend of a tag name reads back as the tag. ~~|
-        ~(::span | legend | print | parse | open | eq ::span)
+    | proves :readsATagNameBackAsItsLegend
+        |~~ The legend of a tag name reads back as the legend of the tag. ~~|
+        ~(::span | legend | print | parse | open | payload | eq ::span)
     | proves :laysOutTheViewsATagNameReveals
         |~~ A tag name lays out beneath its parts the views its kind reveals.
         ~~|

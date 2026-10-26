@@ -105,6 +105,14 @@ describe('the facts of an error under the kind of errors alone, read by their ke
     expect(await continued(query, elision)).toBe(text);
   });
 
+  it('is read by its keys in the alert a host prints, its kind wiring no fact', async () => {
+    const query = 'get {:rows ~(5000 | range)} | raise';
+    const shown = await core.boundAnswer(await evalQuery(query), await core.langRuntime());
+    const [rest] = elisionsOf(shown).filter(elision => printValue(elision.get('read')).includes('rows'));
+    expect(printValue(rest.get('read'))).toBe('~(!| get /rows | drop 79)');
+    expect(await continued(query, rest)).toHaveLength(rest.get('size'));
+  });
+
   it('cuts such an alert past its budget fact by fact, its trace read by its key', async () => {
     const query = `{:a "${LONG}" :b "${LONG}" :c "${LONG}"} | raise | count`;
     const failing = await evalQuery(query);

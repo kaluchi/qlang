@@ -163,7 +163,7 @@
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert: the subject where it arose cut to an excerpt, and each
       subject it passed an ::elision where the elision prints shorter,
-      whose `:read` continues the query to it, `!| get /trace/1 | subject`.
+      whose `:read` continues the query to it, `!| trace | get /1 | subject`.
       `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 

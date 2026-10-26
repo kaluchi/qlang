@@ -1135,9 +1135,10 @@
       value takes against every other, the way a reader ranks what a query
       found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
       first, null, boolean, number, string, regex, keyword, tag name,
-      path, vector, set, map, quote, doc, elision and desc, then every
-      other tag by its name, the errors among them; strings order by
-      their characters, an upper letter before a lower one.
+      path, vector, set, map, quote and doc, then every value under
+      another tag by the name of its tag, a desc, an elision and an error
+      at rest among them; strings order by their characters, an upper
+      letter before a lower one.
 
       With a key the call gives the elements rank by what the key answers
       for each, a vector key index by index, so

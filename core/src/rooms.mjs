@@ -52,33 +52,25 @@ function excerptOfCharacters(characters, facts, room, printedOf) {
 
 const printedOnALine = (value, printedOf) => Array.from(printValue(value, 0, printedOf, true));
 
-function takenFromTheEnds(parts, shownOf, room, printedOf) {
-  const head = [];
-  const tail = [];
-  let low = 0;
-  let high = parts.length - 1;
-  let headOpen = true;
-  let tailOpen = true;
-  const fits = () => sizeOf(shownOf(head, tail), printedOf) <= room;
-  while ((headOpen || tailOpen) && low <= high) {
-    if (headOpen) {
-      head.push(parts[low]);
-      if (fits()) low++;
-      else {
-        head.pop();
-        headOpen = false;
-      }
-    }
-    if (tailOpen && low <= high) {
-      tail.unshift(parts[high]);
-      if (fits()) high--;
-      else {
-        tail.shift();
-        tailOpen = false;
-      }
-    }
+const mostThatHolds = (low, high, holds) => {
+  let most = low;
+  let above = high;
+  while (most < above) {
+    const middle = (most + above + 1) >> 1;
+    if (holds(middle)) most = middle;
+    else above = middle - 1;
   }
-  return { head, tail };
+  return most;
+};
+
+function takenFromTheEnds(parts, shownOf, room, printedOf) {
+  const fits = (heads, tails) => sizeOf(shownOf(parts.slice(0, heads), parts.slice(parts.length - tails)), printedOf) <= room;
+  const turns = mostThatHolds(0, parts.length, taken => fits(Math.ceil(taken / 2), Math.floor(taken / 2)));
+  let heads = Math.ceil(turns / 2);
+  let tails = Math.floor(turns / 2);
+  if (turns % 2 === 0) tails = mostThatHolds(tails, parts.length - heads, taken => fits(heads, taken));
+  else heads = mostThatHolds(heads, parts.length - tails, taken => fits(taken, tails));
+  return { head: parts.slice(0, heads), tail: parts.slice(parts.length - tails) };
 }
 
 function excerptOfParts(value, parts, keptOf, room, printedOf) {

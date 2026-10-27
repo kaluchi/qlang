@@ -16,9 +16,9 @@
 {"name":"a-function-under-a-bare-name-at-the-top-is-refused-as-a-value","query":":f (::fn | impl ~(add 1)) | 5 | apply f !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :f]"}
 {"name":"a-group-among-the-steps-of-the-top-declares-no-value","query":"5 | (:r it | add 1 | mul r) !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :r]"}
 {"name":"a-declaration-after-the-catch-at-the-top-declares-no-value","query":"{} | raise !| :x 1 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :x]"}
-{"decision":"D472","name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~| | :number/double ~(mul 2) | :Box/side |~~ The side of a box. ~~| | :Box/fits |~~ A box fits. ~~| ::law~(true) | 5 | double | get [~(it) ~(::Box/side | doc | content) ~(::Box | laws | keys)]","expect":"[10 \"The side of a box.\" #[:fits]]"}
+{"name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~| | :number/double ~(mul 2) | :Box/side |~~ The side of a box. ~~| | :Box/fits |~~ A box fits. ~~| ::law~(true) | 5 | double | get [~(it) ~(::Box/side | doc | content) ~(::Box | laws | keys)]","expect":"[10 \"The side of a box.\" #[:fits]]"}
 {"name":"code-declares-a-value-for-the-steps-after-it","query":"5 | apply ~(:r it | add 1 | mul r)","expect":"30"}
 {"name":"a-modifier-declares-a-value-in-its-own-group","query":"5 | add (:k 2 | k)","expect":"7"}
-{"decision":"D472","name":"the-top-refuses-a-value-under-an-address-as-under-a-bare-name","query":":Box |~~ A box. ~~| | :Box/side 3 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/side]"}
-{"decision":"D472","name":"the-top-refuses-a-tag-under-an-address","query":":Box |~~ A box. ~~| | :Box/kind ::number !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/kind]"}
-{"decision":"D472","name":"the-top-refuses-a-doc-a-group-lays-under-an-address","query":":Box |~~ A box. ~~| | :Box/note (|~~ A note. ~~|) !| tag","expect":"::bind/ValueAtTheTopError"}
+{"name":"the-top-refuses-a-value-under-an-address-as-under-a-bare-name","query":":Box |~~ A box. ~~| | :Box/side 3 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/side]"}
+{"name":"the-top-refuses-a-tag-under-an-address","query":":Box |~~ A box. ~~| | :Box/kind ::number !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/kind]"}
+{"name":"the-top-refuses-a-doc-a-group-lays-under-an-address","query":":Box |~~ A box. ~~| | :Box/note (|~~ A note. ~~|) !| tag","expect":"::bind/ValueAtTheTopError"}

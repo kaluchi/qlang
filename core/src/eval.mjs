@@ -236,7 +236,7 @@ async function evalBind(bind, state, at) {
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// [D472]
+// [QSNAM#declare]
 const declaresAWord = (nounName, value) => isKind(value) || (nounName !== null && (isVerbValue(value) || isLaw(value)));
 
 // [QSNAM#scope]

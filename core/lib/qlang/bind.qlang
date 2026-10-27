@@ -1,6 +1,6 @@
 |~ `::bind`, the step that declares a name, and what is declared under
    it: its constructor and the refusals of a declaration.
-   The rules it holds: [QSDSP#residence], [D472]. ~|
+   The rules it holds: [QSDSP#residence], [QSNAM#declare]. ~|
 
 :bind
   |~~ A declaration, `:name body`, names what its body answers for the

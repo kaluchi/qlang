@@ -9,7 +9,7 @@
 {"name":"a-group-exposes-the-value-its-declaration-computed","query":"apply ~((:h 1 | :x (h | add 1) | env | inter #[:x]) | get /x | value)","expect":"2"}
 {"name":"a-value-is-held-in-its-record","query":"apply ~(0.07 | :taxRate it | env | get /taxRate | value)","expect":"0.07"}
 {"name":"a-binding-record-holds-its-name","query":"apply ~(:foo 2 | env | get /foo | name)","expect":":foo"}
-{"decision":"D472","name":"env-answers-what-the-reader-declared","query":":Box |~~ A box. ~~| | :Box/y |~~ The y of a box. ~~| | env | get [~(has :Box) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
+{"name":"env-answers-what-the-reader-declared","query":":Box |~~ A box. ~~| | :Box/y |~~ The y of a box. ~~| | env | get [~(has :Box) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
 {"name":"env-answers-a-map","query":"env | tag","expect":"::map"}
 {"name":"a-node-under-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
 {"name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":"apply ~(:limit 10 | env | get /limit | value)","expect":"10"}

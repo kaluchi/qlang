@@ -17,7 +17,7 @@
 {"name":"the-root-lists-the-pages-of-its-concepts","query":"::qlang | manifest | contains ::qlang/pipeline","expect":"true"}
 {"name":"the-chapters-are-nodes-under-the-topic-of-the-language","query":"::qlang | manifest | has ::qlang/values","expect":"true"}
 {"name":"a-verb-lists-the-refusals-declared-under-it","query":"::number/add | manifest | filter ~(toString | endsWith \"Error\")","expect":"#[::number/add/AddendKindNotTakenError ::number/add/ArgsBeyondInputsError ::number/add/SubjectNotNumberError]"}
-{"decision":"D473","name":"an-input-lists-the-parts-of-its-slot","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/answer ::number/add/addend/expected ::number/add/addend/found ::number/add/addend/index]"}
+{"name":"an-input-lists-the-parts-of-its-slot","query":"::number/add/addend | manifest","expect":"#[::number/add/addend/answer ::number/add/addend/expected ::number/add/addend/found ::number/add/addend/index]"}
 {"name":"the-refusal-of-an-input-of-several-kinds-lies-under-its-verb","query":"get [~(::vec/sort | binding | value | inputs | map /kinds) ~(::vec/sort | manifest | has ::vec/sort/KeyKindNotTakenError)]","expect":"[[#[::null ::path ::quote]] true]"}
 {"name":"a-refusal-is-no-noun","query":"::qlang | manifest | has ::quote/ParseError","expect":"false"}
 {"name":"manifest-refuses-a-name-nothing-declares","query":"::Nothing | manifest !| get [~(tag) ~(name)]","expect":"[::any/manifest/UnknownNameError ::Nothing]"}

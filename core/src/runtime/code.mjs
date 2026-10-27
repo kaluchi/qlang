@@ -40,7 +40,7 @@ registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args
 // [QSQUO#held], [QSQUO#apply]
 registerStateReader('quote/answer', async (query, state) => await codeOf(query, state)(null));
 
-// [D471]
+// [QSQUO#held]
 const QuoteFillNamesNameNotReadError = declareRefusal('quote/fill/NamesNameNotReadError');
 
 registerPrimitive('quote/fill', (quote, names) => {

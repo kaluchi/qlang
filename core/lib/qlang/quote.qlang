@@ -4,7 +4,7 @@
    quote is also the vector of its steps, so the verbs of vectors read
    it as one, and a quote under a tag, a link or a snippet of a page,
    reads them through the walk of its tags.
-   The rules it holds: [QSDSP#residence], [D471]. ~|
+   The rules it holds: [QSDSP#residence], [QSQUO#held]. ~|
 
 :quote
   |~~ A quote is code held as a value, `~(add 1 | mul 2)`: steps that

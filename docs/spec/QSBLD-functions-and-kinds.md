@@ -47,9 +47,9 @@ the refusal raises and its wiring ending with `trace`, a payload or a
 `trace` the quote writes refused as `::kind/NameDeclaredTwiceError`; a
 refusal of a verb is its verdict, the slots of the verb wired before the
 facts the quote writes, and a refusal of a kind the verdict of the kind,
-the probes of a slot but `answer` wired before them, `expected`, `found`
-and `index`, a fact the quote writes under the name of a probe giving that
-probe its page [QSERR#site]. The quote, no kind, stands in the commands, so the
+the parts of a slot but `answer` wired before them, `expected`, `found`
+and `index`, a fact the quote writes under the name of a part giving that
+part its page [QSERR#site]. The quote, no kind, stands in the commands, so the
 literal of the function reads back as itself. Instead of the quote
 `throws` writes the tag of a refusal whose kind its refusal shares,
 `throws :KeyTakenError |~~ … ~~| ::vec/groupBy/KeyTakenError`: the
@@ -427,9 +427,10 @@ of what it holds is refused where it stands as
 `::invariant` by its own tag, wherever it is declared, a quote under
 another tag refused by the kind of invariants, and under a verb its `answer`, its `subject` and an input, any quote or
 path a reader declares there, which the selector of an input writes. A page,
-a law and any other value a reader declares by name under a verb or a
-label lie there for `doc`, `manifest` and `runLaws`, a verb under a
-label among them, whatever its name.
+a law and a verb a reader declares by name under a verb or a label lie
+there for `doc`, `manifest` and `runLaws`, whatever its name, and in code
+any other value a reader declares there as well, which the top of a query
+refuses [QSNAM#declare].
 
 ```qlang
 > get [~(:Positive ::invariant~(gt 0) !| tag) ~(:Positive ::invariant::Foo~(gt 0) !| tag)]

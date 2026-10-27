@@ -13,7 +13,7 @@
       In a quote the step is a record that holds the quote of the
       pipeline it stands for, `~((add 1 | mul 2)) | first` answering
       `::group~(add 1 | mul 2)`.
-      ::link~(::bind | doc) ::link~(::qlang/pipeline | doc)
+      ::link~(::bind) ::link~(::qlang/pipeline)
   ~~|
   ::kind
     | accepts
@@ -22,12 +22,12 @@
         |~~ The payload of `::group` is the quote of its pipeline, so
             `~(add 1 | mul 2) | tag ::group` is the step
             `(add 1 | mul 2)`.
-            ::link~(::group | doc)
+            ::link~(::group)
         ~~|
     | throws :PayloadEmptyError
         |~~ A group holds one step at least, and `it` keeps the value as it
             is, `~(it) | tag ::group`.
-            ::link~(::group | doc)
+            ::link~(::group)
         ~~|
     | proves :holdsItsSteps
         |~~ A group holds its steps. ~~|

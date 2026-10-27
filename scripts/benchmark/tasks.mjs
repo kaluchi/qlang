@@ -128,7 +128,7 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'kinds | filter ~(doc | links | map ~toString | any ~(contains "::error | doc"))',
+    reference: 'kinds | filter ~(doc | links | map ~answer | has ::error)',
     answer: '#[::fail]'
   },
   {

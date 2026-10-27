@@ -18,17 +18,19 @@
 {"name":"the-content-of-a-doc-writes-the-stack-before-its-quote","query":"|~~ a ::link~(add 1) b ~~| | content","expect":"\"a ::link~(add 1) b\""}
 {"decision":"D469","name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | eq (print | parse | first)","expect":"true"}
 {"name":"a-quote-in-prose-that-does-not-parse-is-no-snippet","query":"|~~ see ::snippet~(1 | ) here ~~| | snippets | count","expect":"0"}
-{"name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | open !| tag","expect":"::number/add/SubjectNotNumberError"}
-{"name":"a-snippet-opens-to-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open","expect":"2"}
-{"name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec | doc) ~~| | links | first | open | tag","expect":"::doc"}
-{"name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec | doc) c ~~| | segments | map ~tag","expect":"[::string ::quote ::string ::link ::string]"}
-{"name":"a-link-opens-to-the-answer-of-its-query","query":"|~~ ::link~(1 | add 1) ~~| | links | first | open","expect":"2"}
+{"decision":"D470","name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | answer !| tag","expect":"::number/add/SubjectNotNumberError"}
+{"decision":"D470","name":"a-snippet-answers-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | answer","expect":"2"}
+{"decision":"D470","name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec) ~~| | links | first | open | tag","expect":"::doc"}
+{"decision":"D470","name":"a-doc-keeps-its-prose-and-its-quotes-as-segments","query":"|~~ a ~(1) b ::link~(::vec) c ~~| | segments | map ~tag","expect":"[::string ::quote ::string ::link ::string]"}
+{"decision":"D470","name":"a-link-answers-what-its-code-answers","query":"|~~ ::link~(1 | add 1) ~~| | links | first | answer","expect":"2"}
+{"decision":"D470","name":"a-link-opens-the-page-of-the-name-its-code-answers","query":"|~~ See ::link~(::vec/sort). ~~| | links | first | get [~(answer) ~(open | eq (::vec/sort | doc))]","expect":"[::vec/sort true]"}
+{"decision":"D470","name":"open-refuses-a-quote-that-is-no-link","query":"~(1 | add 1) | open !| tag","expect":"::link/open/SubjectNotLinkError"}
 {"name":"a-doc-of-the-catalog-holds-prose-segments","query":"::builtin | doc | segments | first | tag","expect":"::string"}
 {"name":"a-doc-s-quote-under-a-tag-that-takes-no-quote-refuses-the-doc","query":"|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(found | tag)]","expect":"[::number/PayloadKindNotTakenError ::quote]"}
 {"name":"the-refusal-of-a-doc-s-quote-is-caught-at-rest-as-a-value-that-prints","query":"|~~ see ::number~(~(x)) ~~| !| it | print | startsWith \"::number/PayloadKindNotTakenError!{\"","expect":"true"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}
 {"name":"a-doc-s-quote-under-the-tag-of-maps-is-refused-by-their-label","query":"|~~ see ::map~(::vec | doc) ~~| !| tag","expect":"::map/PayloadKindNotTakenError"}
-{"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec | doc) ~~| | segments | get /1 | tag","expect":"::link"}
+{"decision":"D470","name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec) ~~| | segments | get /1 | tag","expect":"::link"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\"see ::vec~(x)\""}
 {"name":"the-quote-of-a-doc-under-the-tag-of-quotes-is-the-quote-itself","query":"|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)","expect":"true"}
 {"name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":":x |~~ see ::map~(x) ~~| 1 !| tag","expect":"::map/PayloadKindNotTakenError"}

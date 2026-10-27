@@ -12,15 +12,15 @@
       `"~{" | parse !| legend` tells the error at rest of a parse, and
       `payload` answers the value told; a tag name tells the kind it names,
       a comment for each name the kind wires, `::span | legend`.
-      ::link~(::any/legend | doc) ::link~(::any/print | doc)
+      ::link~(::any/legend) ::link~(::any/print)
   ~~|
   ::kind
     | accepts |~~ The value the legend tells. ~~|
     | proves :printsUnderItsTagAsTheValueItTellsLaidOut
-        |~~ A legend prints under its tag as the value it tells laid out,
-            read back as the legend.
+        |~~ A legend prints under its tag as the value it tells laid out, read
+            back as the legend.
         ~~|
-        ~(::point[0 1 2] | legend | :l it | print | get [~(startsWith "::legend::point[") ~(parse | open | eq l)] | eq [true true])
+        ~(::point[0 1 2] | legend | get [~(print | startsWith "::legend::point[") ~(eq (print | parse | answer))] | eq [true true])
     | proves :answersTheValueItTellsByPayload
         |~~ `payload` answers the value a legend tells. ~~|
         ~([1 2] | legend | payload | eq [1 2])
@@ -32,7 +32,7 @@
       index on a line of its own beside the gloss of its page, a part at an
       index named beside it, and every comment closed and whitespace, so
       the text reads back as the legend.
-      ::link~(::any/legend | doc)
+      ::link~(::any/legend)
   ~~|
   ::fn
     | returns |~~ The print of the value told, laid out. ~~| ::string

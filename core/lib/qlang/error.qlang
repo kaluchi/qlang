@@ -37,10 +37,10 @@
       answers the site, `::number/add/SubjectNotNumberError`, and
       `trace` the trace. No value holds a failure, so a literal, a name
       or a fact whose part fails answers the failure.
-      ::link~(::kind/wires | doc)
+      ::link~(::kind/wires)
       ::snippet~(::error | manifest) lists its verbs and refusals.
-      ::link~(::fail | doc)
-      ::link~(::qlang/errors | doc)
+      ::link~(::fail)
+      ::link~(::qlang/errors)
   ~~|
   ::kind
     | accepts
@@ -54,7 +54,7 @@
             their rooms, `::error::excerpt{…}`, tells them; a payload of
             another kind is refused, and a value of another kind is held as
             a fact, `!{:value [1]}`.
-            ::link~(::error | doc)
+            ::link~(::error)
         ~~|
     | proves :writesAnErrorAtRestByItsBang
         |~~ The bang writes an error at rest of the kind of errors. ~~|
@@ -64,7 +64,7 @@
         ~("x" | add 1 !| payload | tag | eq ::error)
     | proves :readsItsFacts
         |~~ The facts of an error under `::error` alone read as fields. ~~|
-        ~(::error{:k 1} | get /k | eq 1)
+        ~(::error{:code 404} | get /code | eq 404)
     | proves :readsTheFactsOfARefusalByTheirNames
         |~~ An error of a refusal answers the facts its refusal declares and
             its trace by their names.
@@ -91,7 +91,7 @@
         |~~ An error at rest holds the facts it is written with, a trace of
             another shape among them, which a raise refuses.
         ~~|
-        ~(get [~(!{:a 1 :trace 5} | get /trace) ~(!{:a 1 :trace 5} | raise !| tag)] | eq [5 ::trace/PayloadKindNotTakenError])
+        ~(get [~(!{:code 404 :trace 5} | get /trace) ~(!{:code 404 :trace 5} | raise !| tag)] | eq [5 ::trace/PayloadKindNotTakenError])
     | proves :readsTheExcerptOfItsFacts
         |~~ The excerpt a host prints of the facts of an error reads back
             under `::error`, its facts read by their keys, and `raise` refuses

@@ -22,7 +22,7 @@
       and the steps it skipped. The steps skipped at the level that reads
       a failure run again on another value by `apply`.
       ::snippet~([1 "x" 3] | map ~(mul 2) !| trace | last)
-      ::link~(::trace | doc) ::link~(::qlang/errors | doc)
+      ::link~(::trace) ::link~(::qlang/errors)
   ~~|
   ::kind
     | accepts |~~ The subject, the steps and the path. ~~| ::vec
@@ -80,7 +80,7 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | eq ::frame[[1 "x" 3] ~(map ~(mul 2)) /1])
     | proves :printsOnOneLine
         |~~ A frame prints on one line whatever its subject holds. ~~|
-        ~({:a {:b [1 2]}} | get /c !| trace | first | print | lines | count | eq 1)
+        ~({:user {:tags [1 2]}} | get /group !| trace | first | print | lines | count | eq 1)
     | proves :readsItsPartsByTheirNames
         |~~ A path reads the parts of a frame by the names its kind wires. ~~|
         ~("x" | add 1 | mul 2 !| trace | first | get [~(subject) ~(unfinished) ~(path)] | eq ["x" ~(add 1 | mul 2) null])
@@ -94,10 +94,10 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | subject | eq [1 "x" 3])
     | proves :path/namesTheKeyOfAMap
         |~~ Over a map the path names the key. ~~|
-        ~({:a 1 :b "x"} | map ~(add 1) !| trace | last | path | eq /b)
+        ~({:tea 4 :cake "six"} | map ~(add 1) !| trace | last | path | eq /cake)
     | proves :path/namesThePathUpdateWrote
         |~~ `update` names the path it wrote. ~~|
-        ~({:a {:n "x"}} | update /a/n ~(add 1) !| trace | last | path | eq /a/n)
+        ~({:page {:visits "one"}} | update /page/visits ~(add 1) !| trace | last | path | eq /page/visits)
     | proves :path/namesTheElementAVerbRefused
         |~~ `sum` names the element it refused. ~~|
         ~([1 "x"] | sum !| trace | first | path | eq /1)
@@ -109,7 +109,7 @@
         ~("x" | add 1 !| trace | first | path | eq null)
     | proves :path/readsThePartFromTheSubject
         |~~ The subject of the frame reads the part by its path. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path) | eq "x")
+        ~([1 "x" 3] | map ~(mul 2) !| trace | last | with {:at ~path} ~(subject | get at) | eq "x")
     | proves :UnfinishedNotGivenError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
         ~(::frame["x"] !| tag | eq ::frame/UnfinishedNotGivenError)
@@ -137,8 +137,8 @@
       reads it. The step is code that runs again by `apply` and is written
       as text by `toString`, and `failed | first` reads the record of its form,
       a `::call`.
-      ::link~(::frame/skipped | doc) ::link~(::frame/unfinished | doc)
-      ::link~(::trace | doc)
+      ::link~(::frame/skipped) ::link~(::frame/unfinished)
+      ::link~(::trace)
   ~~|
   ::fn
     | returns |~~ The step that failed, a quote of its one step. ~~| ::quote
@@ -167,8 +167,8 @@
       `"x" | add 1 | mul 2 !| trace | last | skipped` answers `~(mul 2)`,
       the steps left at the level that reads the failure, which run again
       on another value by `apply`.
-      ::link~(::frame/failed | doc) ::link~(::frame/unfinished | doc)
-      ::link~(::any/apply | doc)
+      ::link~(::frame/failed) ::link~(::frame/unfinished)
+      ::link~(::any/apply)
   ~~|
   ::fn
     | returns |~~ The steps skipped, a quote. ~~| ::quote
@@ -184,7 +184,7 @@
         ~("x" | add 1 !| trace | last | skipped | eq ~())
     | proves :runsAgainByApply
         |~~ The steps skipped run again on another value. ~~|
-        ~("x" | add 1 | mul 2 !| trace | last | skipped | :rest it | 5 | apply rest | eq 10)
+        ~("x" | add 1 | mul 2 !| trace | last | skipped | with {:rest ~it} ~(5 | apply rest) | eq 10)
     | proves :SubjectNotFrameError/refusesAVector
         |~~ A vector is no frame. ~~|
         ~([1 2] | skipped !| tag | eq ::frame/skipped/SubjectNotFrameError)

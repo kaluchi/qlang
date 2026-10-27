@@ -13,16 +13,16 @@
 
       It is written `::` and a name, a slash joining names into an
       address, `::vec/count`; a tag that touches a payload puts the
-      payload under it, which ::link~(::tagged | doc) tells. A label is a
+      payload under it, which ::link~(::tagged) tells. A label is a
       kind declared under a name, by the chain that builds it from
-      ::link~(::kind | doc) or by its page alone, and its tag is the
+      ::link~(::kind) or by its page alone, and its tag is the
       address of that name; a tag nothing declares is a kind of identity,
       which checks nothing and lays itself over the value. Tags rank after
       keywords and before paths, and JSON writes a tag as its literal,
       `"::Box"`.
       ::snippet~(kinds) lists the kinds the scope reads, and
-      ::snippet~(::Box::Crate{:a 1} | tag) answers the outer tag.
-      ::link~(::qlang/values | doc)
+      ::snippet~(::Box::Crate{:width 2} | tag) answers the outer tag.
+      ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A tag name, read as itself. ~~| ::tag
@@ -50,7 +50,7 @@
   |~~ Answers the name of the tag as a string, `::vec | toString`
       answering `"vec"`, so a kind joins text. `toTag` turns the name
       back into the tag.
-      ::link~(::string/toTag | doc)
+      ::link~(::string/toTag)
   ~~|
   ::fn
     | returns |~~ The name of the tag, a string. ~~| ::string
@@ -63,7 +63,7 @@
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
       answering `:Box`, as `groupBy ~(tag)` files values by their kinds.
       `toTag` turns the keyword back into the tag.
-      ::link~(::keyword/toTag | doc)
+      ::link~(::keyword/toTag)
   ~~|
   ::fn
     | returns |~~ The keyword of the tag's name. ~~| ::keyword
@@ -76,7 +76,7 @@
   |~~ Answers the tag itself, so `map ~toTag` turns names and tags into
       tags, `["vec" :Box ::map] | map ~toTag` answering
       `[::vec ::Box ::map]`.
-      ::link~(::string/toTag | doc)
+      ::link~(::string/toTag)
   ~~|
   ::fn
     | returns |~~ The tag itself. ~~| ::tag

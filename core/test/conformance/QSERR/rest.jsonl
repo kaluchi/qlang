@@ -26,7 +26,7 @@
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
 {"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) ~(found | tag)]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
-{"name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | :v it | print | parse | open | eq v)]","expect":"[true true]"}
+{"decision":"D470","name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | :v it | print | parse | answer | eq v)]","expect":"[true true]"}
 {"name":"an-error-at-rest-under-the-kind-of-errors-alone-is-read-by-its-paths","query":"!{:reason :late} | raise !| get [~(tag) /reason]","expect":"[::error :late]"}
 {"name":"an-error-literal-of-a-refusal-holds-its-facts-to-the-kinds-its-refusal-wires","query":"::number/add/SubjectNotNumberError!{:subject/expected 5} !| tag","expect":"::number/add/subject/ExpectedKindNotTakenError"}
 {"name":"an-error-at-rest-holds-no-excerpt-as-a-fact","query":"::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag","expect":"::number/add/AddendKindNotTakenError/TraceKindNotTakenError"}

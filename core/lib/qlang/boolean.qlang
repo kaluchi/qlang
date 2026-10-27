@@ -16,7 +16,7 @@
       one value, `5 | allOf (gt 0) (lt 10)` answering `true`. After
       steps, `ok !| false` answers whether they stood.
       ::snippet~(::boolean | manifest) lists its verbs and refusals.
-      ::link~(::any/if | doc) ::link~(::qlang/values | doc)
+      ::link~(::any/if) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A boolean, read as itself. ~~| ::boolean
@@ -44,8 +44,8 @@
       `eq 5 | not`, or asked at once by `ne 5`; given to `not` as a
       value, `5 | not (eq 5)`, it leaves `not` a subject that is no
       boolean, and is refused.
-      ::link~(::any/ne | doc) ::link~(::vec/empty | doc)
-      ::link~(::boolean/and | doc)
+      ::link~(::any/ne) ::link~(::vec/empty)
+      ::link~(::boolean/and)
   ~~|
   ::fn
     | returns
@@ -100,7 +100,7 @@
       `filter ~(allOf (gt 1) (lt 3))`, and of one record the same way,
       `allOf /active (get /age | gte 18)`, three conditions or more among
       them. `or` answers whether one of the two holds.
-      ::link~(::any/allOf | doc) ::link~(::boolean/or | doc)
+      ::link~(::any/allOf) ::link~(::boolean/or)
   ~~|
   ::fn
     | takes :condition
@@ -163,7 +163,7 @@
       one record the same way,
       `anyOf (get /role | eq "admin") (get /role | eq "owner")`, three
       conditions or more among them.
-      ::link~(::any/anyOf | doc) ::link~(::boolean/and | doc)
+      ::link~(::any/anyOf) ::link~(::boolean/and)
   ~~|
   ::fn
     | takes :condition
@@ -219,7 +219,7 @@
 :boolean/toString
   |~~ Answers the literal of the boolean as a string, `true | toString`
       answering `"true"`.
-      ::link~(::string/toString | doc)
+      ::link~(::string/toString)
   ~~|
   ::fn
     | returns |~~ `"true"` or `"false"`. ~~| ::string
@@ -232,7 +232,7 @@
   |~~ Answers the keyword of the boolean's literal, `true | toKeyword`
       answering `:true`, as `groupBy` files the elements a condition
       parts, `[1 2 3] | groupBy ~(gt 1)`.
-      ::link~(::vec/groupBy | doc)
+      ::link~(::vec/groupBy)
   ~~|
   ::fn
     | returns |~~ `:true` or `:false`. ~~| ::keyword

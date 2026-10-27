@@ -29,7 +29,7 @@ it('refuses the names the chain, the slot of a kind and the node under an anchor
     'core/src/runtime/signature.mjs', 'callMemberOn', 'isMemberValue', 'nearestMembers', 'memberRecordOf', 'memberRefusalOf', 'recordAlongPath', 'the membership a set answers',
     'a path of anchors', 'ConstructorNotBuiltinError', 'ConditionNotBooleanError', 'ElementNotNumberError', 'ElementNotSetOrMapError', 'RowNotMapError', 'any/out/SubjectNotStringError',
     'AddressNotStringError', 'AnswerNotStringError', 'PairTagNotTagError', 'RecipeNotCodeError', 'PayloadNotSixNumbersError', 'TagNotKindError', 'KeyNotKeywordOrStringError',
-    'ValueMeetsWordError', 'ValueMeetsVerbError', 'isWord', 'declaresWord', 'fn/params', '| params', '~(params', '`params`', 'typeKeyword', '::any/source/name', 'source/NameKindNotTakenError',
+    'ValueMeetsWordError', 'ValueMeetsVerbError', '::quote/open', 'isWord', 'declaresWord', 'fn/params', '| params', '~(params', '`params`', 'typeKeyword', '::any/source/name', 'source/NameKindNotTakenError',
     '::boolean/and/right', 'or/RightKindNotTakenError', '::fn/takes/objects', '::kind/reads/objects', 'objectNotTaken'
   ]) expect(refused(text), text).toBe(true);
 });
@@ -68,7 +68,7 @@ it('leaves the refusals written instead, the read of a part, the caret beneath a
     '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':repair/namesAWrittenPathAlone', '`:read` continues the query to it',
     'the `:marker` beneath the `:source`', 'carries :ParseError/marker', 'markedLineOf',
     'a valid identifier', 'IdentStart', ':end-of-source', 'findNameOccurrences', '`[` opened at line 1, column 1 is never closed', 'the scope a call opens',
-    '`open` runs a quote, a link or a snippet', 'the error at rest a catch holds'
+    '`answer` runs a quote, a link or a snippet', '`open` opens the page a link names', 'the error at rest a catch holds'
   ]) expect(refused(text), text).toBe(false);
 });
 
@@ -101,7 +101,7 @@ it('refuses the names the read of text into code, the template, the read of a pr
 
 it('leaves parse of a string, open of a link, the tuple of a shape and the names of the shape written instead', () => {
   for (const text of [
-    '"add 1" | parse', '"#[3 1 3]" | parse | open', '5 | apply ~(add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
+    '"add 1" | parse', '"#[3 1 3]" | parse | answer', '::link/open', '5 | apply ~(add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
     'get-reads-two-fields-of-one-record-by-a-template', 'coreKindOf', 'foldersOfForm', 'intoTemplate', ':readsByTheKeyItShows'
   ]) expect(refused(text), text).toBe(false);
 });

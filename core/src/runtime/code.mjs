@@ -35,5 +35,5 @@ registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args
   return await code(subject);
 }));
 
-// [QSQUO#held]
-registerStateReader('quote/open', async (query, state) => await codeOf(query, state)(null));
+// [QSQUO#held], [D470]
+registerStateReader('quote/answer', async (query, state) => await codeOf(query, state)(null));

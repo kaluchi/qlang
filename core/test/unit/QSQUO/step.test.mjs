@@ -205,7 +205,7 @@ describe('assembling steps by hand', () => {
       ['~() | tag ::group', 'group/PayloadEmptyError']
     ];
     for (const [query, address] of refusals) {
-      expect(await evalQuery(`${query} !| get [~(tag) ~(:e it | print | parse | open | eq e)]`), query).toEqual([makeTag(address), true]);
+      expect(await evalQuery(`${query} !| get [~(tag) ~(:e it | print | parse | answer | eq e)]`), query).toEqual([makeTag(address), true]);
     }
     expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| found | tag')).toEqual(makeTag('map'));
   });

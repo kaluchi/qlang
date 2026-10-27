@@ -4,9 +4,9 @@
 {"name":"literals-nested-across-lines-read-at-any-depth","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | get /team/lead/email","expect":"\"alice@example.com\""}
 {"name":"a-literal-across-lines-continues-its-pipeline","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  | map ~(mulOf /price /qty)","expect":"[300 500]"}
 {"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| tag","expect":"::quote/ParseError"}
-{"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | open !| tag","expect":"\"pos\""}
+{"decision":"D470","name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | answer !| tag","expect":"\"pos\""}
 {"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
-{"name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| get [~(x) ~(y)]\" | parse | open","expect":"[[1] 2]"}
+{"decision":"D470","name":"a-declaration-on-the-next-line-ends-a-command-body","query":"\"[1 2] | :x take 1\n:y 2\n| get [~(x) ~(y)]\" | parse | answer","expect":"[[1] 2]"}
 {"decision":"D469","name":"a-tag-name-on-a-later-line-is-the-body","query":"apply ~(:s\n::vec\n| s)","expect":"::vec"}
 {"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":":Box |~~ A box. ~~| | :Box/w\n  ::number | ::Box/w | binding | value","expect":"::number"}
 {"decision":"D469","name":"a-keyword-on-a-later-line-opens-a-declaration-of-its-own","query":"apply ~(:a\n:b 2\n| b)","expect":"2"}

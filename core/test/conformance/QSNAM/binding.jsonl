@@ -16,4 +16,4 @@
 {"decision":"D469","name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":"apply ~(:foo |~~| Old doc.\n1\n| (:foo |~~| New doc.\n|~~| With second remark.\n2\n| ::foo | doc | content))","expect":"\"New doc.\\nWith second remark.\""}
 {"decision":"D469","name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"apply ~(42\n:snapshot |~~| Captured value.\nit\n| (::snapshot | doc | content))","expect":"\"Captured value.\""}
 {"name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| tag) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| tag) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/DocsNotGivenError ::binding/NameKindNotTakenError true]"}
-{"decision":"D469","name":"the-record-of-a-name-reads-back-from-its-print","query":"apply ~(:x |~~ One. ~~| 5 | ::x | binding | eq (print | parse | open))","expect":"true"}
+{"decision":"D469","name":"the-record-of-a-name-reads-back-from-its-print","query":"apply ~(:x |~~ One. ~~| 5 | ::x | binding | eq (print | parse | answer))","expect":"true"}

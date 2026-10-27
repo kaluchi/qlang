@@ -24,8 +24,8 @@
       when `raise` raises it, and an empty trace is none, the raise
       starting one at its own step.
       ::snippet~([1 "x" 3] | map ~(mul 2) !| trace)
-      ::link~(::frame | doc) ::link~(::kind/throws | doc)
-      ::link~(::qlang/errors | doc)
+      ::link~(::frame) ::link~(::kind/throws)
+      ::link~(::qlang/errors)
   ~~|
   ::kind
     | accepts
@@ -62,25 +62,25 @@
     | proves :resumesWhenRaised
         |~~ An error at rest written with frames resumes them when raised.
         ~~|
-        ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| get /trace | eq ::trace[::frame[1 ~(pre | count)]])
+        ~(!{:code 404 :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| get /trace | eq ::trace[::frame[1 ~(pre | count)]])
     | proves :takesAPlainVectorOfFrames
         |~~ A plain vector of frames is a trace. ~~|
         ~([::frame[1 ~(pre)]] | tag ::trace | eq ::trace[::frame[1 ~(pre)]])
     | proves :readsAFrameUnderATag
         |~~ A frame under a tag is read as the frame beneath it. ~~|
-        ~(::trace[::X::frame[1 ~(pre)]] | eq ::trace[::frame[1 ~(pre)]])
+        ~(::trace[::Step::frame[1 ~(pre)]] | eq ::trace[::frame[1 ~(pre)]])
     | proves :PayloadKindNotTakenError/refusesASet
         |~~ A set of frames is no trace, written or raised. ~~|
-        ~(get [~(::trace#[::frame[1 ~(a)]] !| tag) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag)]
+        ~(get [~(::trace#[::frame[1 ~(add 1)]] !| tag) ~({:trace #[::frame[1 ~(add 1)]]} | raise !| tag)]
           | eq [::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError])
     | proves :PayloadKindNotTakenError/refusesAVectorUnderAnotherTag
         |~~ A vector of frames under a tag of another kind is refused. ~~|
-        ~([::frame[1 ~(a)]] | tag ::T | tag ::trace !| tag | eq ::trace/PayloadKindNotTakenError)
+        ~([::frame[1 ~(add 1)]] | tag ::Steps | tag ::trace !| tag | eq ::trace/PayloadKindNotTakenError)
     | proves :PayloadKindNotTakenError/refusesANumberARaiseLays
         |~~ A number a map writes as its trace is refused when it is
             raised.
         ~~|
-        ~({:a 1 :trace 5} | raise !| get [~(tag) ~(found | tag)] | eq [::trace/PayloadKindNotTakenError ::number])
+        ~({:code 404 :trace 5} | raise !| get [~(tag) ~(found | tag)] | eq [::trace/PayloadKindNotTakenError ::number])
     | proves :ElementKindNotTakenError/refusesAMap
         |~~ An element that is no frame is refused at its index. ~~|
         ~(::trace[{:failed ~(add 1)}] !| get [~(tag) ~(index)] | eq [::trace/ElementKindNotTakenError 0])
@@ -93,7 +93,7 @@
       answering `[~(mul 2) ~(map ~(mul 2))]`, as `map ~failed` reads
       them a frame at a time. A host shows it beside a trace past the room
       of a fact, `:trace/failed`.
-      ::link~(::frame/failed | doc) ::link~(::kind/reveals | doc)
+      ::link~(::frame/failed) ::link~(::kind/reveals)
   ~~|
   ::fn
     | returns |~~ The steps that failed, level by level. ~~| ::vec
@@ -108,7 +108,7 @@
       answering `"x"`, the value a refusal of a subject leaves to the
       trace. A host shows it beside a trace past the room of a fact,
       `:trace/subject`.
-      ::link~(::frame/subject | doc) ::link~(::kind/reveals | doc)
+      ::link~(::frame/subject) ::link~(::kind/reveals)
   ~~|
   ::fn
     | returns |~~ The subject the step that failed met. ~~| ::any
@@ -124,7 +124,7 @@
       answering `[/1]`, so a failure inside the code a verb ran on an
       element tells which element. A host shows it beside a trace past the
       room of a fact, `:trace/paths`.
-      ::link~(::frame/path | doc) ::link~(::kind/reveals | doc)
+      ::link~(::frame/path) ::link~(::kind/reveals)
   ~~|
   ::fn
     | returns |~~ The paths of the parts, level by level. ~~| ::vec

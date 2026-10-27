@@ -24,8 +24,8 @@
       one, and `gt` compares two numbers as it compares any two values of
       one kind.
       ::snippet~(::number | manifest) lists its verbs and refusals.
-      ::link~(::string/toNumber | doc) ::link~(::any/gt | doc)
-      ::link~(::qlang/values | doc)
+      ::link~(::string/toNumber) ::link~(::any/gt)
+      ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A number, read as itself, a finite double. ~~| ::number
@@ -73,12 +73,12 @@
       `append`; and text that holds a number is read first by
       `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
-      of one record add by `sumOf /x /y`. Two numbers add beneath the
+      of one record add by `sumOf /price /tax`. Two numbers add beneath the
       tags they share, a bare one sharing any, `::Width#2 | add 3`
       answering `::Width#5`, and two under different tags are refused,
       `::call/KindsMismatchedError`; a sum past the doubles is refused as
       no number.
-      ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
+      ::link~(::number/sub) ::link~(::any/sumOf)
   ~~|
   ::fn
     | takes :addend
@@ -95,14 +95,14 @@
         ::number
     | throws :SubjectNotNumberError
         |~~ `add` adds to a number: two fields of one record add by
-            `sumOf /x /y`, a vector adds to each element by `map`,
+            `sumOf /price /tax`, a vector adds to each element by `map`,
             `map ~(add 1)`, a string joins by `append`, and text that
             holds a number is read first by `toNumber`.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `add` adds one number to the subject: the numbers of a vector
             sum by `sum`, `[1 2 3] | sum`, and two fields of one record
-            add by `sumOf /x /y`.
+            add by `sumOf /price /tax`.
         ~~|
     | proves :addsTheNumber
         |~~ `add` answers the sum. ~~|
@@ -135,7 +135,7 @@
       read first by `toNumber`. The subtrahend is computed against the
       subject, and two fields of one record subtract by
       `subOf /total /paid`. A number under a tag answers under the tag.
-      ::link~(::number/add | doc) ::link~(::any/subOf | doc)
+      ::link~(::number/add) ::link~(::any/subOf)
   ~~|
   ::fn
     | takes :subtrahend
@@ -183,7 +183,7 @@
       `5 | mul it` squares it, and two fields of one record multiply by
       `mulOf /price /qty`. A number under a tag answers under the tag,
       and a product past the doubles is refused as no number.
-      ::link~(::number/div | doc) ::link~(::any/mulOf | doc)
+      ::link~(::number/div) ::link~(::any/mulOf)
   ~~|
   ::fn
     | takes :multiplier
@@ -240,7 +240,7 @@
       `map ~(div 2)`. The divisor is computed against the subject, and
       two fields of one record divide by `divOf /sum /count`. A number
       under a tag answers under the tag.
-      ::link~(::number/mul | doc) ::link~(::any/divOf | doc)
+      ::link~(::number/mul) ::link~(::any/divOf)
   ~~|
   ::fn
     | takes :divisor
@@ -297,7 +297,7 @@
       odd one, and a fraction leaves its own, `7.5 | mod 2` answering
       `1.5`. The divisor is computed against the subject, and a number
       under a tag answers under the tag.
-      ::link~(::number/div | doc)
+      ::link~(::number/div)
   ~~|
   ::fn
     | takes :divisor
@@ -355,7 +355,7 @@
 :number/abs
   |~~ Answers the subject without its sign, `-3 | abs` answering `3`, a
       number under a tag under the tag. It takes no value.
-      ::link~(::number/sub | doc)
+      ::link~(::number/sub)
   ~~|
   ::fn
     | returns
@@ -378,7 +378,7 @@
       `2.7 | floor` answering `2` and `-2.1 | floor` answering `-3`;
       `round` answers the nearest and `ceil` the least not below. It
       takes no value.
-      ::link~(::number/ceil | doc) ::link~(::number/round | doc)
+      ::link~(::number/ceil) ::link~(::number/round)
   ~~|
   ::fn
     | returns
@@ -402,7 +402,7 @@
   |~~ Answers the least whole number not below the subject, `2.1 | ceil`
       answering `3` and `-2.7 | ceil` answering `-2`; `floor` answers
       the greatest not above. It takes no value.
-      ::link~(::number/floor | doc) ::link~(::number/round | doc)
+      ::link~(::number/floor) ::link~(::number/round)
   ~~|
   ::fn
     | returns
@@ -429,7 +429,7 @@
       answers `[]`. A count from one is `range | map ~(add 1)`, and the
       vector reads as any other, `5 | range | map ~(mul 2)`. The subject
       is a whole number. It takes no value.
-      ::link~(::vec/map | doc)
+      ::link~(::vec/map)
   ~~|
   ::fn
     | on |~~ The count, a whole number. ~~|
@@ -452,7 +452,7 @@
               ::number)
     | throws :SubjectNotNumberError
         |~~ `range` counts up to a number: the count of a vector is read
-            first, `[:a :b] | count | range`.
+            first, `[:tea :cake] | count | range`.
         ~~|
     | proves :countsFromZero
         |~~ The numbers start at zero and leave the subject out. ~~|
@@ -471,7 +471,7 @@
         ~(1e10 | range !| get [~(tag) ~(longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
     | proves :SubjectNotNumberError/refusesAVector
         |~~ A vector is counted first. ~~|
-        ~([:a :b] | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotNumberError ::vec])
+        ~([:tea :cake] | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotNumberError ::vec])
     | impl ::builtin{}
 
 :number/round
@@ -483,7 +483,7 @@
       beyond, `1234 | round -2` answering `1200`; and a number rounded
       to zero prints as `0`. The digits are a whole number. The subject
       is a number, and text that holds one is read first by `toNumber`.
-      ::link~(::number/div | doc)
+      ::link~(::number/div)
   ~~|
   ::fn
     | takes :digits
@@ -537,7 +537,7 @@
       `42 | toString` answering `"42"` and `0.5` answering `"0.5"`, so a
       number joins text, `get [~(5 | toString) "px"] | join ""`. `toNumber`
       turns the text back into the number.
-      ::link~(::string/toNumber | doc)
+      ::link~(::string/toNumber)
   ~~|
   ::fn
     | returns |~~ The text that writes the number. ~~| ::string
@@ -546,7 +546,7 @@
         ~([42 -1.5 1e21] | map ~toString | eq ["42" "-1.5" "1e+21"])
     | proves :readsBack
         |~~ A number turned into its string turns back into itself. ~~|
-        ~(0.1 | add 0.2 | :n it | toString | toNumber | eq n)
+        ~(0.1 | add 0.2 | eq (toString | toNumber))
     | impl ::builtin{}
 
 :number/toKeyword
@@ -555,13 +555,13 @@
       number names is read from the map they build,
       `byId | query (get /uid | toKeyword)`. `toNumber` turns the keyword back
       into the number.
-      ::link~(::keyword/toNumber | doc) ::link~(::vec/indexBy | doc)
+      ::link~(::keyword/toNumber) ::link~(::vec/indexBy)
   ~~|
   ::fn
     | returns |~~ The keyword of the number's text. ~~| ::keyword
     | proves :readsTheKeyIndexByFiledItUnder
         |~~ A number turns into the key `indexBy` files it under. ~~|
-        ~([{:id 1 :n "Ann"}] | indexBy /id | query (1 | toKeyword) | get /n | eq "Ann")
+        ~([{:id 1 :name "Ann"}] | indexBy /id | query (1 | toKeyword) | get /name | eq "Ann")
     | proves :readsBack
         |~~ A number turned into its keyword turns back into itself. ~~|
         ~(1 | toKeyword | toNumber | eq 1)
@@ -571,7 +571,7 @@
   |~~ Answers the number itself, so `map ~toNumber` turns numbers and the
       strings that write numbers into numbers, `[1 "2"] | map ~toNumber`
       answering `[1 2]`.
-      ::link~(::string/toNumber | doc)
+      ::link~(::string/toNumber)
   ~~|
   ::fn
     | returns |~~ The number itself. ~~| ::number

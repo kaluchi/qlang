@@ -26,7 +26,7 @@
 {"name":"a-page-holds-the-laws-of-its-claims","query":"::vec/sort | laws | count | gt 0","expect":"true"}
 {"decision":"D469","name":"every-example-of-the-core-passes","query":"kinds | toVec | with {:nodes ~(map ~(manifest) | flat)} [~(it) ~(nodes) ~(nodes | map ~(manifest) | flat)] | flat | every ~(runLaws | every /ok)","expect":"true"}
 {"name":"the-laws-a-page-carried-stand-under-its-name","query":"::number/add | laws | count","expect":"4"}
-{"name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"a\\\\\\\": 1, \\\\\\\"b\\\\\\\": [true, null]}\\\" | parse | open | eq {:a 1 :b [true null]})\""}
+{"decision":"D470","name":"a-law-of-a-spelled-form-shows-the-form","query":"::map | laws | get /readsJson | get /1 | print","expect":"\"~(\\\"{\\\\\\\"id\\\\\\\": 7, \\\\\\\"flags\\\\\\\": [true, null]}\\\" | parse | answer | eq {:id 7 :flags [true null]})\""}
 {"name":"laws-and-runLaws-refuse-a-name-nothing-declares","query":"get [~(::nothere | laws !| tag) ~(::nothere | runLaws !| tag)]","expect":"[::any/laws/UnknownNameError ::any/runLaws/UnknownNameError]"}
 {"name":"a-law-is-a-quote-under-its-kind","query":"get [~(::law#3 !| tag) ~(::law~(true) | payload)]","expect":"[::law/PayloadKindNotTakenError ~(true)]"}
 {"name":"a-law-holds-a-quote-by-its-own-tag","query":"::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]","expect":"[::law/PayloadKindNotTakenError ::Foo]"}

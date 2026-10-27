@@ -21,8 +21,8 @@
       of an input are named where it is taken, `| takes :by … ::number`.
       Declared by a name outside a chain, an invariant holds of nothing
       and is refused.
-      ::link~(::kind/holds | doc) ::link~(::fn/holds | doc)
-      ::link~(::law | doc) ::link~(::qlang/verbs | doc)
+      ::link~(::kind/holds) ::link~(::fn/holds)
+      ::link~(::law) ::link~(::qlang/verbs)
   ~~|
   ::kind
     | accepts |~~ The condition its values keep, a quote. ~~| ::quote

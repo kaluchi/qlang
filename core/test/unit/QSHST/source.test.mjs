@@ -231,7 +231,7 @@ describe('the sources a host hands', () => {
       primitives: { 'any/greet': () => word }
     }] });
     const [hello, hi] = [await greeting('hello'), await greeting('hi')];
-    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | value | get [~(it) ~(print | parse | open)]')).result;
+    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | value | get [~(it) ~(print | parse | answer)]')).result;
     for (const [notebook, fn, word] of [[hello, readBack, 'hello'], [hi, readBack, 'hi'], [hello, readBack, 'hello'], [hi, handed, 'hello']]) {
       expect((await notebook.evalCell('with {:g ~it} ~(null | apply g)', { initialPipeValue: fn })).result).toBe(word);
     }

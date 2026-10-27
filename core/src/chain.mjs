@@ -248,9 +248,9 @@ function placeOf(selector) {
   return rest.length === 0 && isPath(path) && (name === 'get' || name === 'query') ? { path, soft: name === 'query' } : null;
 }
 
-// [QSBLD#fn], [QSERR#rest]
+// [QSBLD#fn], [QSERR#rest], [D470]
 const KIND_TAG = makeTag(KIND_TAG_NAME);
-const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag, commandStep('doc', [])]))]);
+const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag]))]);
 const ACCEPTS_THE_ERROR = commandStep('accepts', [pageLinkingTo(ERROR_TAG), makeSet([ERROR_TAG, EXCERPT_TAG])]);
 const WIRES_THE_TRACE = commandStep('wires', [makeKeyword('trace'), pageLinkingTo(TRACE_TAG), TRACE_TAG]);
 const finishedOver = commands => makeTagged(KIND_TAG, Object.freeze([makeQuote([ACCEPTS_THE_ERROR, ...commands, WIRES_THE_TRACE]), null]));

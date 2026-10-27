@@ -13,17 +13,17 @@
       in essence: text with code in backquotes and quotes of qlang among
       it, ::snippet~(|~~ a ~(add 1) b ~~| | segments) showing the parts
       of one. A quote under `::link` is a link to another page, which
-      `open` follows, one under `::snippet` a query a reader runs to see
-      what it shows, and a quote with no tag code the prose holds. JSON
-      writes a doc as its print.
+      `open` opens, one under `::snippet` a query a reader runs by
+      `answer` to see what it shows, and a quote with no tag code the
+      prose holds. JSON writes a doc as its print.
 
       `content` answers its text, `segments` its prose and its quotes in
       order, `links` its links and `snippets` its snippets, so
       `::vec | doc | links | map ~open` opens every page the page of
       vectors names.
       ::snippet~(::doc | manifest) lists its verbs and refusals.
-      ::link~(::link | doc) ::link~(::snippet | doc)
-      ::link~(::qlang/hypertext | doc)
+      ::link~(::link) ::link~(::snippet)
+      ::link~(::qlang/hypertext)
   ~~|
   ::kind
     | accepts
@@ -62,13 +62,13 @@
   |~~ Answers the text of the doc, a string: its prose with each quote
       written where it stands, `|~~ a ~(add 1) b ~~| | content` answering
       `"a ~(add 1) b"`, and a link or a snippet with its tags,
-      `::link~(::vec | doc)`. The subject is a doc, so the page of a
+      `::link~(::vec)`. The subject is a doc, so the page of a
       name is read by `doc` first, `::vec/join | doc | content`; a name
       declared without a page has none, `doc` answering null, which
       `content` refuses as it refuses a string. The parts of the doc in
       their order `segments` answers, and its links `links`.
-      ::link~(::any/doc | doc) ::link~(::doc/segments | doc)
-      ::link~(::doc/links | doc)
+      ::link~(::any/doc) ::link~(::doc/segments)
+      ::link~(::doc/links)
   ~~|
   ::fn
     | returns
@@ -84,14 +84,13 @@
         ~(|~~ a ~(add 1) b ~~| | content | eq "a ~(add 1) b")
     | proves :writesALinkWithItsTags
         |~~ A link is written with its tags. ~~|
-        ~(|~~ see ::link~(::vec | doc) ~~| | content | eq "see ::link~(::vec | doc)")
+        ~(|~~ see ::link~(::vec) ~~| | content | eq "see ::link~(::vec)")
     | proves :readsThePageOfAVerb
         |~~ The content of a verb's page is its text. ~~|
         ~(::vec/join | doc | content | contains "separator")
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
-        ~(:x 1 | ::x | doc | content
-          !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
+        ~(:number/double ~(mul 2) | ::number/double | doc | content !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| tag | eq ::doc/content/SubjectNotDocError)
@@ -112,8 +111,8 @@
       payload the doc was built from, so `segments | tag ::doc` answers
       the doc again, and `content` writes them as one text. The subject
       is a doc, the page of a name read by `doc` first.
-      ::link~(::doc/content | doc) ::link~(::doc/links | doc)
-      ::link~(::doc/snippets | doc)
+      ::link~(::doc/content) ::link~(::doc/links)
+      ::link~(::doc/snippets)
   ~~|
   ::fn
     | returns
@@ -137,7 +136,7 @@
         ~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
     | proves :buildsTheDocAgainUnderItsTag
         |~~ The segments under `::doc` are the doc again. ~~|
-        ~(|~~ a ~(add 1) b ~~| | :d it | d | segments | tag ::doc | eq d)
+        ~(|~~ Add one, ~(add 1), then double. ~~| | eq (segments | tag ::doc))
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
         ~(|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(found | tag)] | eq [::number/PayloadKindNotTakenError ::quote])
@@ -150,7 +149,7 @@
   |~~ Answers the vector of the doc's segments, as `segments` answers
       them, `::vec/count | doc | toVec | tag` answering `::vec`, as
       `toVec` of a set answers its elements.
-      ::link~(::doc/segments | doc) ::link~(::set/toVec | doc)
+      ::link~(::doc/segments) ::link~(::set/toVec)
   ~~|
   ::fn
     | returns |~~ The vector of the segments. ~~| ::vec
@@ -163,20 +162,18 @@
 
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
-      under a stack of tags that holds `::link`, `::link~(::vec | doc)`
-      or one a tag of a host or a reader stands over, `::Host::link~(…)`,
-      the query a reader follows to
-      another page. A doc without links answers the empty vector, and a
-      snippet is no link. A link opens to what its query answers, so
-      `::vec | doc | links | map ~open` reads every page the page of vectors
-      names, in one query, and `toString` spells its query. The subject is
-      a doc, the page of a name read by `doc` first.
-      ::link~(::quote/open | doc) ::link~(::doc/snippets | doc)
+      under a stack of tags that holds `::link`, `::link~(::vec/sort)` or
+      one a tag of a host or a reader stands over, `::Host::link~(…)`,
+      code that names another page. A doc without links answers the empty
+      vector, and a snippet is no link. A link opens the page it names, so
+      `::vec | doc | links | map ~open` reads every page the page of
+      vectors names, in one query, and `toString` spells its code. The
+      subject is a doc, the page of a name read by `doc` first.
+      ::link~(::link/open) ::link~(::doc/snippets)
   ~~|
   ::fn
     | returns
-        |~~ The links of the doc, each a query that answers another page.
-        ~~|
+        |~~ The links of the doc, each code that names another page. ~~|
         ::vec
     | throws :SubjectNotDocError
         |~~ `links` reads a doc, not its text: the page of a name is read
@@ -184,17 +181,16 @@
         ~~|
     | proves :findsTheLinkInProse
         |~~ A link inside prose is found. ~~|
-        ~(|~~ see ::link~(::vec | manifest) ~~| | links | count | eq 1)
+        ~(|~~ see ::link~(::vec) ~~| | links | count | eq 1)
     | proves :findsALinkUnderAHostTag
         |~~ A link under a host's tag is a link. ~~|
-        ~(|~~ a ::Host::link~(1) b ~~| | links | count | eq 1)
+        ~(|~~ a ::Host::link~(::vec) b ~~| | links | count | eq 1)
     | proves :leavesTheSnippetsOut
         |~~ A doc whose only quote is a snippet has no link. ~~|
         ~(|~~ a ::snippet~(1) b ~~| | links | eq [])
-    | proves :runsWhereItLeads
-        |~~ A link runs the query it holds. ~~|
-        ~(|~~ ::link~(::vec | manifest) ~~| | links | first
-          | :l it | (null | apply l | has ::vec/count))
+    | proves :opensWhereItLeads
+        |~~ A link opens the page it leads to. ~~|
+        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open | eq (::vec/sort | doc))
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
@@ -206,10 +202,10 @@
       quote under a stack of tags that holds `::snippet`, a query a
       reader runs to see what it shows, `::snippet~([2 1] | sort)`. A
       doc without snippets answers the empty vector, and a link is no
-      snippet. A snippet opens to the answer it shows, so
-      `snippets | map ~open` runs every example of a page. The subject is
-      a doc, the page of a name read by `doc` first.
-      ::link~(::quote/open | doc) ::link~(::doc/links | doc)
+      snippet. A snippet answers what it shows, so
+      `snippets | map ~answer` runs every example of a page. The subject
+      is a doc, the page of a name read by `doc` first.
+      ::link~(::quote/answer) ::link~(::doc/links)
   ~~|
   ::fn
     | returns
@@ -224,10 +220,10 @@
         ~(|~~ run ::snippet~([2 1] | sort) ~~| | snippets | count | eq 1)
     | proves :leavesTheLinksOut
         |~~ A doc whose only quote is a link has no snippet. ~~|
-        ~(|~~ a ::link~(1) b ~~| | snippets | eq [])
-    | proves :opensToWhatItShows
-        |~~ A snippet opens to what it shows. ~~|
-        ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~open | eq [[1 2]])
+        ~(|~~ a ::link~(::vec) b ~~| | snippets | eq [])
+    | proves :answersWhatItShows
+        |~~ A snippet answers what it shows. ~~|
+        ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~answer | eq [[1 2]])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | snippets !| get [~(tag) ~(subject | found | tag)] | eq [::doc/snippets/SubjectNotDocError ::string])

@@ -2,13 +2,13 @@
 {"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\""}
 {"name":"print-writes-a-control-character-as-its-escape","query":"\"\\u0007\" | print","expect":"\"\\\"\\\\u0007\\\"\""}
 {"name":"print-writes-a-lone-surrogate-as-its-escape","query":"\"\\uD800\" | print","expect":"\"\\\"\\\\ud800\\\"\""}
-{"name":"print-reads-a-lone-surrogate-back-as-the-string","query":"\"\\uD800\" | print | parse | open | eq \"\\uD800\"","expect":"true"}
+{"decision":"D470","name":"print-reads-a-lone-surrogate-back-as-the-string","query":"\"\\uD800\" | print | parse | answer | eq \"\\uD800\"","expect":"true"}
 {"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\""}
 {"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~ a ~(add 1) ~~|\""}
 {"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\""}
 {"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\""}
 {"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\""}
-{"decision":"D469","name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | eq (print | parse | open)","expect":"true"}
+{"decision":"D469","name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | eq (print | parse | answer)","expect":"true"}
 {"name":"a-doc-holding-a-quote-prints-as-written","query":"|~~ see ~(mul 2) for ref ~~| | print","expect":"\"|~~ see ~(mul 2) for ref ~~|\""}
 {"name":"true-prints-as-its-word","query":"true | print","expect":"\"true\""}
 {"name":"false-prints-as-its-word","query":"false | print","expect":"\"false\""}

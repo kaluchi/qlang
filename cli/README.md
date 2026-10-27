@@ -43,7 +43,7 @@ A value one query hands another over a pipe keeps its kinds as its
 literal:
 
 ```
-qlang '#[:admin :user] | print | out' | qlang 'in | parse | open | count'
+qlang '#[:admin :user] | print | out' | qlang 'in | parse | answer | count'
 2
 ```
 

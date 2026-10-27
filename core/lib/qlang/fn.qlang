@@ -780,7 +780,9 @@
       reads from them, as its call reads it, a quote among them written
       as the data it is, and answers the code:
       `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
-      answers `~(:by |~~ How much. ~~| 3 | add by)`.
+      answers `~(:by |~~ How much. ~~| 3 | add by)`, as a quote takes
+      the values of the names it reads, `~(add by) | fill {:by 3}`.
+      ::link~(::quote/fill)
   ~~|
   ::fn[~(takes :args
         |~~ The args, as a call holds them. ~~|
@@ -816,7 +818,7 @@
         ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/ByKindNotTakenError)
     | proves :SubjectNotFnError/refusesANumber
         |~~ A number is no function. ~~|
-        ~(5 | fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
+        ~(5 | fn/fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
     | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))

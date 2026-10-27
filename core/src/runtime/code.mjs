@@ -5,10 +5,12 @@ import { parseSource } from '../parse.mjs';
 import { printQuoteSource } from '../print-value.mjs';
 import { errorFromParse, spanOfLocation } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
-import { isFn } from '../types.mjs';
+import { isFn, makeKeyword, makeQuote } from '../types.mjs';
 import { codeOf, applyFunction, layTag } from '../eval.mjs';
 import { rootState, rootOf } from '../state.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
+import { declarationStep, namesAQuoteReads } from '../steps.mjs';
+import { nearestOf } from '../nearness.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/ArgsNotTakenError');
 
@@ -37,3 +39,14 @@ registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args
 
 // [QSQUO#held], [QSQUO#apply]
 registerStateReader('quote/answer', async (query, state) => await codeOf(query, state)(null));
+
+// [D471]
+const QuoteFillNamesNameNotReadError = declareRefusal('quote/fill/NamesNameNotReadError');
+
+registerPrimitive('quote/fill', (quote, names) => {
+  const read = namesAQuoteReads(quote);
+  for (const name of names.keys()) {
+    if (!read.includes(name)) throw new QuoteFillNamesNameNotReadError({ name: makeKeyword(name), nearest: Object.freeze(nearestOf(read, name).map(makeKeyword)) });
+  }
+  return makeQuote([...read.filter(name => names.has(name)).map(name => declarationStep(name, [], names.get(name))), ...quote]);
+});

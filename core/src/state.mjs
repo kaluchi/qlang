@@ -80,20 +80,8 @@ export function scopeWith(scope, entries) {
 }
 
 function marksKept(scope, made) {
-  if (isRootVerbScope(scope)) markRootVerbScope(made);
-  if (growsItsTree(scope)) markTreeGrowing(made);
-  return made;
+  return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
 }
-
-// [D468]
-const GROWING_TREES = new WeakSet();
-
-export function markTreeGrowing(scope) {
-  GROWING_TREES.add(scope);
-  return scope;
-}
-
-export const growsItsTree = scope => GROWING_TREES.has(scope);
 
 const ROOT_VERB_SCOPES = new WeakSet();
 

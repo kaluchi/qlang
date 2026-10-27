@@ -3,7 +3,7 @@
 {"name":"a-bare-name-of-the-reader-shadows-the-root","query":":vec 5 | vec","expect":"5"}
 {"name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(tag) ~(nearest)]","expect":"[::call/UnknownNameError [::qlang]]"}
 {"name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| tag) ~(5 | string !| tag)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
-{"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(env | get /vec | value) ~(::vec[1] | eq [1]) ~([1] | doc | tag)]","expect":"[5 5 true ::doc]"}
+{"decision":"D468","name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":":vec 5 | get [~(vec) ~(::vec[1] | eq [1]) ~([1] | doc | tag)] | append (env | get /vec | value)","expect":"[5 true ::doc 5]"}
 {"name":"a-bare-name-of-the-reader-meets-a-verb-of-the-subject-aloud","query":":filter 5 | [1 2] | filter !| get [~(tag) ~(addresses)]","expect":"[::call/ValueMeetsVerbError #[::vec/filter]]"}
 {"name":"a-value-of-the-reader-meets-a-verb-the-reader-declared","query":":vec/second ~(get /1) | :second 5 | get [~(4 | second) ~([7 8 9] | second !| addresses)]","expect":"[5 #[::vec/second]]"}
 {"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-is-read-past-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])) | [1 2 3] | firstN 2","expect":"[2 [1 2] 3]"}

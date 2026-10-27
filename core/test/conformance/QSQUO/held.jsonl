@@ -48,3 +48,4 @@
 {"decision":"D468","name":"the-trace-holds-the-steps-of-written-code-as-the-text-wrote-them","query":":k \"x\" | [1 2] | map ~(add k) !| trace | map ~failed","expect":"[~(add k) ~(map ~(add k))]"}
 {"decision":"D468","name":"code-written-in-code-reads-the-values-its-step-wrote-in-at-each-element","query":":k 1 | [1 2] | map ~(get [~(add k)])","expect":"[[2] [3]]"}
 {"decision":"D468","name":"a-template-a-verb-of-the-language-takes-reaches-it-with-the-values-it-reads-written-in","query":":k 10 | :any/run (::fn | takes :t |~~ The template. ~~| /0 | impl ~(get t)) | 5 | run ::P{:a ~(add k)}","expect":"::P{:a 15}"}
+{"decision":"D468","name":"the-words-of-the-host-in-code-read-what-the-code-holds","query":":vec 5 | get [~(env | has :vec) ~(vec)]","expect":"[false 5]"}

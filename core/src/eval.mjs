@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withWritten, writtenIn, ownScopeOf, markTreeGrowing, growsItsTree
+  withWritten, writtenIn, ownScopeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -223,17 +223,9 @@ async function evalBind(bind, state, at) {
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
   if (WRITTEN_FROM_A_CHAIN.has(bind)) DECLARED_BY_A_CHAIN.add(record);
   const declared = scopeSet(state.scope, name, record);
-  if (!bind.has('body')) return withScope(state, withTheTreeGrown(state.scope, declared));
-  if (isKind(answered)) return withScope(state, withTheTreeGrown(state.scope, nodesOfKind(answered, name, declared, origin)));
-  return withScope(state, withTheTreeGrown(state.scope, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared));
-}
-
-// [D468]
-function withTheTreeGrown(before, after) {
-  if (!growsItsTree(before)) return after;
-  const grown = [];
-  for (const [name, entry] of after) if (typeof name === 'string' && before.get(name) !== entry) grown.push([name, entry]);
-  return after.set(QUERY_KEY, scopeWith(queryTreeOf(before), grown));
+  if (!bind.has('body')) return withScope(state, declared);
+  if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
+  return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
 // [QSNAM#scope]
@@ -748,11 +740,10 @@ function handedTo(primitive, chain, { values, state: called }, state, flight) {
 
 function closerOf(state, names) {
   const written = writtenBy(state, names);
-  let ofTheStep;
-  let held;
+  let lane;
   return quote => {
     const code = written(quote);
-    const lane = writtenIn(state, quote) ? ofTheStep ??= laneStateOf(state, true) : held ??= laneStateOf(state);
+    lane ??= laneStateOf(state);
     return code === quote ? closeQuote(quote, lane) : closeWritten(code, lane);
   };
 }
@@ -769,9 +760,7 @@ function closeWritten(code, lane) {
       if (WRITTEN_FROM_A_CHAIN.has(step)) DECLARED_BY_A_CHAIN.add(record);
       return [step.get('name').name, record];
     });
-    const scope = scopeWith(lane.scope, declared);
-    if (growsItsTree(scope)) scope.set(QUERY_KEY, scopeWith(queryTreeOf(lane.scope), declared.filter(([name]) => !queryTreeOf(lane.scope).has(name))));
-    opened = { steps: makeQuote(code.slice(declared.length)), scope };
+    opened = { steps: makeQuote(code.slice(declared.length)), scope: scopeWith(lane.scope, declared) };
     byLane.set(lane.scope, opened);
   }
   return closeQuote(opened.steps, withScope(lane, opened.scope));
@@ -858,8 +847,8 @@ function writtenBy(state, names) {
   };
 }
 
-function laneStateOf(state, ofTheStep = false) {
-  return withScope(state, laneOf(ownScopeOf(state), ofTheStep));
+function laneStateOf(state) {
+  return withScope(state, laneOf(ownScopeOf(state)));
 }
 
 const HOLDERS_OF_QUOTES = new WeakMap();
@@ -889,7 +878,7 @@ function foldingCodeOf(value, close, called) {
   if (!isQuote(value) || value.length !== 1 || !isCallStep(value[0]) || value[0].has('modifiers')) return onThePair;
   const call = value[0];
   const name = call.get('name').name;
-  const lane = laneStateOf(called, writtenIn(called, value));
+  const lane = laneStateOf(called);
   const records = writtenIn(called, value) ? valuesNamedIn(ownScopeOf(called)) : new Map();
   const read = namesAQuoteReads(value).filter(readName => records.has(readName));
   const callerState = read.length === 0 ? lane : withScope(lane, scopeWith(lane.scope, read.map(readName => [readName, records.get(readName)])));
@@ -1131,19 +1120,15 @@ export function templateClosedIn(template, callState, names = new Map()) {
   return quotesClosedIn(template, closerOf(callState, names));
 }
 
-const LANES = [new WeakMap(), new WeakMap()];
+const LANES = new WeakMap();
 
-function laneOf(scope, ofTheStep) {
-  const lanes = LANES[ofTheStep ? 1 : 0];
-  let lane = lanes.get(scope);
+function laneOf(scope) {
+  let lane = LANES.get(scope);
   if (lane !== undefined) return lane;
   const { scope: kept, values } = nodesAndLabelsOf(scope);
   lane = kept.set(WITHHELD_KEY, new Set([...(scope.get(WITHHELD_KEY) ?? []), ...values]));
-  if (ofTheStep) {
-    lane.set(QUERY_KEY, queryTreeOf(scope));
-    if (!scope.has(QUERY_KEY) || growsItsTree(scope)) markTreeGrowing(lane);
-  }
+  if (scope.has(QUERY_KEY)) lane.set(QUERY_KEY, scope.get(QUERY_KEY));
   if (isRootVerbScope(scope)) markRootVerbScope(lane);
-  lanes.set(scope, lane);
+  LANES.set(scope, lane);
   return lane;
 }

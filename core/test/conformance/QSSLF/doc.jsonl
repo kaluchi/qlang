@@ -16,7 +16,7 @@
 {"name":"the-parts-of-a-doc-are-its-segments","query":"|~~ a ~(add 1) b ~~| | segments","expect":"[\"a \" ~(add 1) \" b\"]"}
 {"name":"a-link-under-a-host-tag-is-a-link","query":"|~~ ::Host::link~(1) ~~| | links | first | tag","expect":"::Host"}
 {"name":"the-content-of-a-doc-writes-the-stack-before-its-quote","query":"|~~ a ::link~(add 1) b ~~| | content","expect":"\"a ::link~(add 1) b\""}
-{"name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | :d it | print | parse | first | eq d","expect":"true"}
+{"decision":"D469","name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | eq (print | parse | first)","expect":"true"}
 {"name":"a-quote-in-prose-that-does-not-parse-is-no-snippet","query":"|~~ see ::snippet~(1 | ) here ~~| | snippets | count","expect":"0"}
 {"name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | open !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-snippet-opens-to-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open","expect":"2"}
@@ -43,7 +43,7 @@
 {"name":"two-docs-of-different-prose-differ","query":"(|~~ a ~~|) | eq (|~~ b ~~|)","expect":"false"}
 {"name":"a-doc-is-not-equal-to-a-string-of-its-word","query":"(|~~ x ~~|) | eq \"x\"","expect":"false"}
 {"name":"a-doc-is-not-equal-to-a-quote-of-its-word","query":"(|~~ x ~~|) | eq ~(x)","expect":"false"}
-{"name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | :d it | eq d","expect":"true"}
+{"decision":"D469","name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | with {:page ~it} ~(eq page)","expect":"true"}
 {"name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| tag","expect":"::doc/PayloadKindNotTakenError"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
 {"name":"a-doc-prints-its-quote-as-print-writes-it-and-reads-a-broken-one-as-prose","query":"get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ a ~(count | 1) b ~~| | segments | count)]","expect":"[\"|~~ a ~(add 1) b ~~|\" 1]"}

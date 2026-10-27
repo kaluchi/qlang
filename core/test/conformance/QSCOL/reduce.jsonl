@@ -11,7 +11,7 @@
 {"name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)","expect":"123"}
 {"name":"a-reducer-names-its-verb-by-its-address","query":"[1 2 3] | reduce 0 ~(number/add)","expect":"6"}
 {"name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 /1","expect":"3"}
-{"decision":"D469","name":"a-value-named-as-the-verb-of-a-fold-meets-the-verb","query":"apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])","expect":"[::call/ValueMeetsVerbError #[::number/add]]"}
+{"decision":"D256","name":"a-value-named-as-the-verb-of-a-fold-takes-the-element-as-no-modifier","query":"apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])","expect":"[::call/ValueTakesNoModifiersError #[::number/add]]"}
 {"name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))","expect":"3"}
 {"name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
 {"name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}

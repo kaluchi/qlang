@@ -137,8 +137,10 @@
             reads each where it keeps them.
         ~~|
     | proves :isAValueOfItsOwn
-        |~~ An empty descriptor is a value like any other. ~~|
-        ~(::builtin{} | :c it | get [1 2] | c | tag | eq ::builtin)
+        |~~ An empty descriptor is a value like any other, which prints and
+            reads back as itself.
+        ~~|
+        ~(::builtin{} | eq (print | parse | open))
     | proves :endsAPrimitive
         |~~ The recipe of a verb a host answers by a primitive is the
             descriptor of its address.

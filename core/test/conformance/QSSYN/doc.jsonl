@@ -1,6 +1,6 @@
 {"decision":"D469","name":"a-line-doc-documents-a-declaration","query":"apply ~(:double |~~| Doubles the input.\n~(mul 2)\n| 5 | apply double)","expect":"10"}
 {"decision":"D469","name":"doc-reads-the-line-doc-of-a-declaration-as-its-page","query":"apply ~(:foo |~~| Doc text.\n42\n| ::foo | doc | content)","expect":"\"Doc text.\""}
-{"decision":"D469","name":"a-block-doc-documents-a-declaration","query":"apply ~(:foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| 5 | foo)","expect":"42"}
+{"decision":"D469","name":"a-block-doc-documents-a-declaration","query":"apply ~(:foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| foo)","expect":"42"}
 {"decision":"D469","name":"doc-reads-the-block-doc-of-a-declaration-as-its-page","query":"apply ~(:foo |~~ Block doc here. ~~| 42\n| ::foo | doc | content)","expect":"\"Block doc here.\""}
 {"decision":"D469","name":"two-line-docs-of-a-slot-join-with-a-line-break-between-them","query":"apply ~(:foo |~~| Doc one.\n|~~| Doc two.\n42\n| ::foo | doc | content)","expect":"\"Doc one.\\nDoc two.\""}
 {"decision":"D469","name":"three-line-docs-of-a-slot-make-three-lines-of-the-page","query":"apply ~(:foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count)","expect":"3"}
@@ -34,10 +34,10 @@
 {"name":"the-tag-of-a-block-doc-is-doc","query":"|~~ x ~~| | tag | eq ::doc","expect":"true"}
 {"name":"a-vector-holds-a-doc-as-its-first-element","query":"[|~~ doc ~~| 42] | first | tag | eq ::doc","expect":"true"}
 {"name":"a-vector-holds-a-doc-as-its-last-element","query":"[42 |~~ doc ~~|] | last | tag | eq ::doc","expect":"true"}
-{"name":"a-doc-that-opens-a-query-is-a-value-a-name-holds","query":"|~~ note ~~| | :n it | n | content","expect":"\"note\""}
+{"decision":"D469","name":"a-doc-that-opens-a-query-is-a-value-a-name-holds","query":"|~~ note ~~| | with {:note ~it} ~(note | content)","expect":"\"note\""}
 {"name":"a-run-of-backquotes-closes-at-a-run-of-as-many","query":"|~~ a ``~(add 1)`` c ~~| | segments","expect":"[\"a ``~(add 1)`` c\"]"}
 {"name":"a-line-doc-reads-a-quote-of-no-code-to-the-parenthesis-that-pairs-it","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | segments","expect":"[\"a ~(b, ~(add 1)) c\"]"}
-{"name":"a-line-doc-that-holds-a-quote-of-no-code-reads-back-from-its-print","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | :d it | print | parse | first | eq d","expect":"true"}
+{"decision":"D469","name":"a-line-doc-that-holds-a-quote-of-no-code-reads-back-from-its-print","query":"\"|~~| a ~(b, ~(add 1)) c\" | parse | first | eq (print | parse | first)","expect":"true"}
 {"name":"a-doc-before-the-key-of-a-map-entry-is-refused-by-the-parser","query":"\"{|~~ doc ~~| :k 1}\" | parse !| get [~(tag) ~(found)]","expect":"[::quote/ParseError \"|\"]"}
 {"name":"a-quote-of-a-line-doc-is-tried-as-code-within-its-line-alone","query":"\"[|~~| x ~(a\\n 1 2 | f\" | parse !| location","expect":"::span[17 2 6 18 2 7]"}
 {"name":"a-line-doc-ends-at-its-line-break-a-carriage-return-before-a-line-feed-left-out-of-its-prose","query":"get [~(\"|~~| x\\r\\n\" | parse | first | content) ~(\"[|~~| x\\r\\n 1]\" | parse | first | first | content) ~(\"|~~| a\\rb\" | parse | first | content)]","expect":"[\"x\" \"x\" \"a\\nb\"]"}

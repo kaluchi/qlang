@@ -592,11 +592,11 @@
             under its address; a quote taken from one label and declared
             under another resides on the second. A name is declared once
             in a scope and again in a scope inside it, which shadows it
-            for the steps after; a value the reader names takes any name a
-            step calls,
-            and a step that calls the name on a subject a verb of that
-            name answers is refused, so the two never meet unseen, the
-            verb called by its address there, `[1 2] | vec/count`; an
+            for the steps after; a name declared in the code stands over a
+            verb of its name, the verb called by its address there,
+            `[1 2] | vec/count`, and a name that holds a value is read where
+            a value stands, a later step refusing it as
+            `::call/ValueAsALaterStepError`; an
             address the root holds is declared once at all, so a reader
             extends a noun of the root and replaces none of its nodes. A
             verb the reader declares under a label shadows a verb of its
@@ -640,11 +640,11 @@
     | proves :names/declaresOnce
         |~~ A name is declared once in a scope. ~~|
         ~(:k 1 | :k 2 !| tag | eq ::bind/NameDeclaredTwiceError)
-    | proves :names/meetsAVerbAloud
-        |~~ A value named as a verb meets the verb aloud where the subject
-            answers it.
+    | proves :names/standsOverAVerbOfItsName
+        |~~ A name `with` gives stands over the verb of its name, which
+            its address calls, and is refused as a later step.
         ~~|
-        ~(:count 5 | get [~(7 | count) ~([1 2] | count !| tag)] | eq [5 ::call/ValueMeetsVerbError])
+        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count) ~(keys | count !| tag)]) | eq [2 3 ::call/ValueAsALaterStepError])
     | proves :names/shadowsForTheReaderAlone
         |~~ A reader's verb shadows a broader one in the reader's call,
             and a verb of the root never sees it.

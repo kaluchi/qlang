@@ -18,12 +18,12 @@ import {
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
-  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
+  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf, declaresAName,
   commandStep, groupStep, declarationStep, namesAQuoteReads
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld, residenceOnSubject,
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
@@ -32,12 +32,11 @@ import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
   notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
 } from './address.mjs';
-import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
+import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall } from './dispatch.mjs';
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // [QSBLD#label]
 const ConstructTagNamesAValueError = declareRefusal('construct/TagNamesAValueError');
-const CallValueMeetsVerbError = declareRefusal('call/ValueMeetsVerbError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
@@ -48,6 +47,9 @@ const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError')
 
 // [D469]
 const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
+
+// [D256]
+const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
 
 // [QSQUO#step], [D469]
 export async function evalPipeline(steps, state, origin = originOf(steps), atTheTop = false) {
@@ -199,7 +201,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe], [D469]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe], [D469], [D256]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -227,8 +229,7 @@ async function evalBind(bind, state, at) {
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
-  if (at.atTheTop && nounName === null && !declaresALabel(record)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
-  if (WRITTEN_FROM_A_CHAIN.has(bind)) DECLARED_BY_A_CHAIN.add(record);
+  if (at.atTheTop && nounName === null && bind.has('body') && !isKind(answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
@@ -311,17 +312,17 @@ function nodesOfFunction(fn, address, scope, origin) {
   return layRest(chain);
 }
 
-// [QSNAM#scope]
+// [QSNAM#scope], [D256]
 function declaresWhatTheCallBinds(steps, scope, name) {
   const recipe = scope.get(RECIPE_KEY);
   return recipe !== undefined && recipe.steps === steps && recipe.names.has(name);
 }
 
-async function evalCall(call, state) {
+async function evalCall(call, state, at) {
   const name = call.get('name').name;
   const modifierSteps = call.get('modifiers') ?? [];
-  if (name.includes('/')) return await callByAddress(call, name, modifierSteps, state);
-  return withRepairOfPath(await callByName(name, modifierSteps.map(step => modifierOf(step, state)), state, call), call, state.pipeValue, state.scope);
+  if (name.includes('/')) return await callByAddress(call, name, modifierSteps, state, at);
+  return withRepairOfPath(await callByName(name, modifierSteps.map(step => modifierOf(step, state)), state, call, at), call, state.pipeValue, state.scope);
 }
 
 // [QSPTH#code], [QSPTH#verbs]
@@ -361,8 +362,8 @@ const slotRefusedIn = facts => {
   return null;
 };
 
-// [QSNAM#reach], [QSQUO#held], [QSDSP#residence]
-async function callByName(lookupName, modifiers, state, call) {
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [D256]
+async function callByName(lookupName, modifiers, state, call, at) {
   refuseWithheld(state.scope, lookupName);
   const reach = bareNameReach(state.scope, lookupName, state.pipeValue);
   if (reach === null) {
@@ -375,29 +376,7 @@ async function callByName(lookupName, modifiers, state, call) {
     throw new CallUnknownNameError({ name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses });
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
-  const verb = residenceOnSubject(state.scope, lookupName, state.pipeValue);
-  if (verb !== null && !DECLARED_BY_A_CHAIN.has(reach.record) && servesTheSubject(verb, state.pipeValue) && !readsTheValueItHolds(verb, reach.record, state)) {
-    throw new CallValueMeetsVerbError({ name: makeKeyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
-  }
-  return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
-}
-
-// [QSDSP#residence]
-// [QSNAM#scope], [QSBLD#recipe]
-const DECLARED_BY_A_CHAIN = new WeakSet();
-
-function declaredBinding(name, value) {
-  const binding = makeBinding({ name, value });
-  DECLARED_BY_A_CHAIN.add(binding);
-  return binding;
-}
-
-function readsTheValueItHolds(verb, record, state) {
-  const address = verb.get('name').name;
-  if (!isNodeOfAPart(verb, state.scope)) return false;
-  const [labelName, name] = splitAddress(address);
-  const parts = wiringOf(walkToKinds(state.pipeValue, [labelName])?.served);
-  return parts !== undefined && parts.get(name) === bindingValueOf(record);
+  return await applyBinding(reach.record, lookupName, lookupName, modifiers, state, at);
 }
 
 // [QSBLD#value]
@@ -410,10 +389,14 @@ async function partCalled(address, modifiers, state) {
   return valueCalled(wiringOf(served).get(name), name, name, modifiers, state);
 }
 
-// [QSNAM#value]
-async function applyBinding(entry, name, lastName, modifiers, state) {
-  return valueCalled(bindingValueOf(entry), name, lastName, modifiers, state);
+// [QSNAM#value], [D256]
+async function applyBinding(entry, name, lastName, modifiers, state, at) {
+  const value = bindingValueOf(entry);
+  if (modifiers.length === 0 && isALaterStep(at)) throw new CallValueAsALaterStepError({ name: makeKeyword(name), found: value, addresses: addressesOf(state.scope, lastName) });
+  return valueCalled(value, name, lastName, modifiers, state);
 }
+
+const isALaterStep = at => at !== undefined && at.index > 0 && !isFailStep(at.steps[at.index]) && !declaresAName(at.steps[at.index - 1]);
 
 // [QSNAM#value], [QSDSP#residence]
 function valueCalled(value, name, lastName, modifiers, state) {
@@ -421,15 +404,15 @@ function valueCalled(value, name, lastName, modifiers, state) {
   return withPipeValue(state, value);
 }
 
-// [QSNAM#address]
-async function callByAddress(call, address, modifierSteps, state) {
+// [QSNAM#address], [D256]
+async function callByAddress(call, address, modifierSteps, state, at) {
   const record = nodeOf(state.scope, address);
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTag(address), nearest: nearestTagNames(state.scope, address) });
   }
   const modifiers = modifierSteps.map(step => modifierOf(step, state));
   if (isVerb(state.scope, address)) return await applyVerb(record, modifiers, state);
-  return await applyBinding(record, address, splitAddress(address)[1], modifiers, state);
+  return await applyBinding(record, address, splitAddress(address)[1], modifiers, state, at);
 }
 
 // [QSBLD#fn], [QSERR#site]
@@ -619,7 +602,7 @@ export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
-// [QSBLD#fn], [QSHST#source], [QSBLD#recipe]
+// [QSBLD#fn], [QSHST#source], [QSBLD#recipe], [D256]
 async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
@@ -677,7 +660,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(brought)) return brought;
   const ofTheAnswer = chain.invariants.filter(invariant => invariant.ofTheAnswer);
   if (ofTheAnswer.length === 0) return brought;
-  const answered = scopeSet(called.recipeScope, ANSWER_NAME, declaredBinding(makeKeyword(ANSWER_NAME), brought));
+  const answered = scopeSet(called.recipeScope, ANSWER_NAME, makeBinding({ name: makeKeyword(ANSWER_NAME), value: brought }));
   return await invariantRefusal(ofTheAnswer, address, state.pipeValue, called.state, answered, () => pour({ [`${ANSWER_NAME}/found`]: brought })) ?? brought;
 }
 
@@ -730,7 +713,7 @@ function tagsTheOperandsShare(chain, labelName, subject, given) {
   return tagsOver(subject).length === 0 ? tally.tags.map(makeTag) : null;
 }
 
-// [QSHST#source], [D468]
+// [QSHST#source], [D468], [D256]
 function handedTo(primitive, chain, { values, state: called }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;
@@ -763,9 +746,7 @@ function closeWritten(code, lane) {
   let opened = byLane.get(lane.scope);
   if (opened === undefined) {
     const declared = code.slice(0, code.findIndex(step => !VALUES_WRITTEN.has(step))).map(step => {
-      const record = makeBinding({ name: step.get('name'), docs: step.get('docs') ?? [], value: VALUES_WRITTEN.get(step), source: makeQuote([step]) });
-      if (WRITTEN_FROM_A_CHAIN.has(step)) DECLARED_BY_A_CHAIN.add(record);
-      return [step.get('name').name, record];
+      return [step.get('name').name, makeBinding({ name: step.get('name'), docs: step.get('docs') ?? [], value: VALUES_WRITTEN.get(step), source: makeQuote([step]) })];
     });
     opened = { steps: makeQuote(code.slice(declared.length)), scope: scopeWith(lane.scope, declared) };
     byLane.set(lane.scope, opened);
@@ -785,7 +766,7 @@ function quotesClosedIn(value, closeOf) {
   return closed;
 }
 
-// [D468]
+// [D468], [D256]
 function quotesWithin(value, into) {
   if (isQuote(value)) {
     into.add(value);
@@ -819,14 +800,12 @@ function valuesNamedIn(scope) {
   return named;
 }
 
-const WRITTEN_FROM_A_CHAIN = new WeakSet();
 const VALUES_WRITTEN = new WeakMap();
 
 function declarationWritten(name, record) {
   const value = bindingValueOf(record);
   const step = declarationStep(name, record.get('docs'), value);
   VALUES_WRITTEN.set(step, value);
-  if (DECLARED_BY_A_CHAIN.has(record)) WRITTEN_FROM_A_CHAIN.add(step);
   return step;
 }
 
@@ -907,7 +886,7 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [QSBLD#recipe]
+// [D417], [QSBLD#input], [QSBLD#recipe], [D256]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts) {
   const values = [];
   const written = new Set();
@@ -948,7 +927,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     if (isErrorValue(held)) return held;
     poured.push([name.name, read]);
     inputValues.push(held);
-    if (named) recipeScope.set(name.name, declaredBinding(name, held));
+    if (named) recipeScope.set(name.name, makeBinding({ name, value: held }));
   }
   return { values: inputValues, given, recipeScope, state: called };
 }
@@ -1025,7 +1004,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest], [D256]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
@@ -1043,7 +1022,7 @@ async function underKind(tagName, kind, payload, state) {
   const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed, fields.length === 0 ? undefined : parts);
-  const refused = invariants.length === 0 ? null : await invariantRefusal(invariants, tagName, constructed, state, scopeWith(opened(), [...parts].map(([name, part]) => [name, declaredBinding(makeKeyword(name), part)])), () => ({ found: payload }));
+  const refused = invariants.length === 0 ? null : await invariantRefusal(invariants, tagName, constructed, state, scopeWith(opened(), [...parts].map(([name, part]) => [name, makeBinding({ name: makeKeyword(name), value: part })])), () => ({ found: payload }));
   return refused ?? labelled;
 }
 

@@ -33,7 +33,7 @@
 {"name":"no-name-of-with-leaves-the-call","query":"{:a 1} | with [/a] ~(a) | a !| get [~(tag) ~(name)]","expect":"[::call/UnknownNameError :a]"}
 {"name":"the-quotes-of-the-body-of-with-see-nothing-of-each-other","query":"{:a 1} | with [/a] [~(:z 5 | a) ~(z)] !| get [~(tag) ~(name)]","expect":"[::call/UnknownNameError :z]"}
 {"name":"a-key-of-the-data-no-name-of-with-names-is-no-name","query":"{:items [1 2] :count 9} | with [/items] ~(items | count)","expect":"2"}
-{"name":"a-name-of-with-meets-a-verb-of-the-subject-aloud","query":"{:type \"user\" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| tag) ~(with [/id {:t /type}] ~(id | toString | append t))]","expect":"[::call/ValueMeetsVerbError \"7user\"]"}
+{"decision":"D256","name":"a-name-of-with-stands-over-a-verb-of-the-subject","query":"{:type \"user\" :id 7} | with [/id /type] ~(id | toString | append type)","expect":"\"7user\""}
 {"name":"with-refuses-names-that-are-no-vector-and-no-map","query":"{:a 1} | with /a ~(a) !| tag","expect":"::any/with/NamesKindNotTakenError"}
 {"name":"with-refuses-a-quote-alone-among-its-names","query":"[::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(tag) ~(names | index)]","expect":"[::any/with/NamesElementKindNotTakenError 1]"}
 {"name":"with-refuses-a-key-that-reads-as-no-name","query":"{:a 1 :null 2 :items [3] :a/b 4} | get [~(with [/items/0] ~(it) !| tag) ~(with [/null] ~(it) !| tag) ~(with {:\"a b\" /a} ~(it) !| tag) ~(with [/:a/b] ~(it) !| tag) ~(with {:a/b /a} ~(it) !| tag)]","expect":"[::any/with/NamesKeyNotNameError ::any/with/NamesKeyNotNameError ::any/with/NamesKeyNotNameError ::any/with/NamesKeyNotNameError ::any/with/NamesKeyNotNameError]"}

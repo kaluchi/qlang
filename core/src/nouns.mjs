@@ -239,9 +239,9 @@ function passesTheTagName(scope, record, kindName, subject, verbName) {
   return isVerbValue(value) && !(chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? []).includes(CORE_KIND.tag.name);
 }
 
-// [QSNAM#reach], [D469]
+// [QSNAM#reach], [D469], [D256]
 export function bareNameReach(scope, name, subject) {
-  if (scope.has(name) && isBinding(scope.get(name))) return { record: scope.get(name), underKind: false };
+  if (scope.has(name) && isBinding(scope.get(name)) && !(isRootVerbScope(scope) && declaresALabel(scope.get(name)))) return { record: scope.get(name), underKind: false };
   const residence = residenceOnSubject(scope, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
   const residences = residencesOf(isRootVerbScope(scope) ? rootScopeOf(scope) : scope, name);

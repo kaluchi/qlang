@@ -1,7 +1,7 @@
 |~ `::call`, the step that calls a name, and what is declared under it:
    its constructor and the refusals of a call, a name that names
    nothing, a kind that answers no verb of the name, a value given
-   modifiers, a value that meets a verb, a value withheld from held code,
+   modifiers, a value written as a later step, a value withheld from held code,
    two values a step cannot relate or combine, a call too deep and a
    failure inside a primitive.
 
@@ -89,7 +89,8 @@
     | throws :ValueTakesNoModifiersError
         |~~ A name the scope binds to a value, and a part the kind of the
             subject wires, take no modifiers: the value is read bare,
-            `with {:five ~(5)} ~(five)`, `card | took`, and `:name` holds the name. A verb of that name the subject does not reach lives
+            `with {:five ~(5)} ~(five)`, `card | took`, and `:name` holds the
+            name. A verb of that name, which the name stands over, lives
             where `:addresses` names, and a call by its address reaches
             it, `string/five`.
             ::link~(::call | doc)
@@ -100,26 +101,21 @@
                   declaration shadows among them.
               ~~|
               ::set)
-    | throws :ValueMeetsVerbError
-        |~~ A name the scope binds to a value is the name of a verb the
-            subject answers, and the step does not choose between them:
-            `[1 2] | with {:count ~(5)} ~(count)` meets `::vec/count`. A
-            name of the reader's takes any name a step calls, and meets a
-            verb only where a step calls the name on a subject the verb
-            answers, `7 | with {:count ~(5)} ~(count)` answering `5`;
-            there the verb is called by its address, `[1 2] | vec/count`,
-            or the value takes another name, `{:limit ~(5)}`. A name a chain declares, an input in
-            the recipe and the conditions of its verb, a field in the
-            conditions of its kind and the answer in a condition written
-            after `returns`, reads its value past the verb. `:name` holds the
-            name, and `:addresses` the verb the subject answers.
-            ::link~(::call | doc) ::link~(::bind | doc)
+    | throws :ValueAsALaterStepError
+        |~~ A step after the head of a pipeline is a command, and the name
+            holds a value, which `:found` holds: a value stands at the head,
+            where it is the subject, after a declaration and after `!|`, or
+            as what a verb takes, and written as a later step it would drop
+            the subject the steps before it answered, as a literal there
+            would. A name declared in the code is read where a value stands,
+            `with [/qty /price] ~(qty | mul price)`, and stands over a verb
+            of its name, which lives where `:addresses` names and is called
+            by its address, `[1 2] | vec/count`; code under a name runs by
+            `apply`, `apply double`. `:name` holds the name.
+            ::link~(::call | doc) ::link~(::bind | doc) ::link~(::any/with | doc)
         ~~|
-        ~(wires :name
-              |~~ The name, which holds a value and names a verb of the subject.
-              ~~|
-              ::keyword
-          | wires :addresses |~~ The address of the verb the subject answers under the name. ~~| ::set)
+        ~(wires :name |~~ The name, which holds a value. ~~| ::keyword
+          | wires :addresses |~~ The addresses where a verb of that name lives, which the name stands over. ~~| ::set)
     | throws :ValueWithheldError
         |~~ Code held as data, a quote in a name, a field or a page, runs
             in a lane of its own, the verbs of the tree and the names it
@@ -308,24 +304,20 @@
             refused.
         ~~|
         ~({:name :take :modifiers [[::call{:name :x}]]} | tag ::call !| get [~(tag) ~(index)] | eq [::call/LiteralComputesError 0])
-    | proves :ValueMeetsVerbError/refusesAValueAndAVerbThatMeet
-        |~~ A value and a verb that meet at a step are refused with the
-            verb's address.
+    | proves :ValueAsALaterStepError/refusesTheNameAfterAStep
+        |~~ The part `with` names `count` stands over the verb of its
+            name: read at the head of the body it answers the part, after
+            `keys |` it is refused, naming where the verb lives, and the
+            verb is called by its address.
         ~~|
-        ~(:count 5 | [1 2] | count !| get [~(tag) ~(addresses)] | eq [::call/ValueMeetsVerbError #[::vec/count]])
-    | proves :ValueMeetsVerbError/readsTheValueWhereNoVerbAnswers
-        |~~ On a subject no verb of the name answers, the value is read. ~~|
-        ~(:count 5 | 7 | count | eq 5)
-    | proves :ValueMeetsVerbError/callsTheVerbByItsAddress
-        |~~ The verb is called by its address beside the value. ~~|
-        ~(:count 5 | [1 2] | vec/count | eq 2)
-    | proves :ValueMeetsVerbError/meetsTheVerbOfAFold
-        |~~ A value named as the verb of a fold meets it there, and the
-            address calls the verb.
+        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(keys | count !| addresses) ~(keys | vec/count)]) | eq [2 #[::map/count ::string/count ::vec/count] 3])
+    | proves :ValueAsALaterStepError/readsANameAfterTheFailTrack
+        |~~ A value stands after `!|`, so a name read there is the
+            recovery, the default of a field that reads as no number.
         ~~|
-        ~(:add 5 | [1 2 3] | get [~(reduce 0 ~(add) !| tag) ~(reduce 0 ~(number/add))] | eq [::call/ValueMeetsVerbError 6])
-    | proves :ValueMeetsVerbError/readsAnInputPastTheVerbInTheRecipeOfItsVerb
-        |~~ An input named as a verb is read past the verb in the recipe of
+        ~({:default 0 :v "x"} | with [/default /v] ~(v | toNumber !| default) | eq 0)
+    | proves :readsAnInputOverAVerbOfItsNameInTheRecipe
+        |~~ An input named as a verb stands over the verb in the recipe of
             its verb, the verb called there by its address.
         ~~|
         ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])) | [1 2 3] | firstN 2 | eq [2 [1 2] 3])

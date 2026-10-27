@@ -27,25 +27,23 @@ describe('the names of the scope', () => {
     expect((await notebook.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
-  it('a value of the reader meets a verb a later source declares, where the subject answers the verb alone', async () => {
+  it('a value of the reader stands over a verb a later source declares, which its address calls, a later step refusing the name', async () => {
     const later = { uri: 'stock', source: ':vec/tally ~(count)' };
-    const alone = await createNotebook({ sources: [] });
-    expect((await alone.evalCell('apply ~(:tally 5 | [1 2] | tally)')).result).toBe(5);
     const beside = await createNotebook({ sources: [later] });
-    const met = 'apply ~(:tally 5 | get [~(7 | tally) ~([1 2] | tally !| get [~(tag) ~(addresses)]) ~([1 2] | vec/tally)])';
-    expect((await beside.evalCell(`${met} | eq [5 [::call/ValueMeetsVerbError #[::vec/tally]] 2]`)).result).toBe(true);
+    const read = '[1 2] | with {:tally ~(5)} ~(get [~(tally) ~(vec/tally) ~(reverse | tally !| get [~(tag) ~(addresses)])])';
+    expect((await beside.evalCell(`${read} | eq [5 2 [::call/ValueAsALaterStepError #[::vec/tally]]]`)).result).toBe(true);
   });
 
-  it('a value of the reader meets a verb of a later source only where the verb serves the subject, its tag name among them', async () => {
+  it('a value of the reader stands over a verb of a later source whatever the subject, a verb of its tag name among them', async () => {
     const later = { uri: 'shop', source: ':Shop |~~ A shop. ~~|\n:Shop/f ~(1)\n:Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5"))' };
     const notebook = await createNotebook({ sources: [later] });
-    const met = 'apply ~(:f 7 | :hours 3 | get [~(::Shop | f) ~(::Shop{} | f !| tag) ~(::Shop | hours !| tag)])';
-    expect((await notebook.evalCell(`${met} | eq [7 ::call/ValueMeetsVerbError ::call/ValueMeetsVerbError]`)).result).toBe(true);
+    const read = 'get [~(::Shop | with {:f ~(7)} ~(f)) ~(::Shop{} | with {:f ~(7)} ~(f)) ~(::Shop | with {:hours ~(3)} ~(hours))]';
+    expect((await notebook.evalCell(`${read} | eq [7 7 3]`)).result).toBe(true);
   });
 
-  it('a reader\'s verb on a label meets a value of its name only on a subject it serves', async () => {
-    const reader = ':Shop |~~ A shop. ~~| | :Shop/f ~(1) | apply ~(:f 7 | get [~(::Shop | f) ~(::Shop{} | f !| tag) ~(5 | f)])';
-    expect(await evalQuery(`${reader} | eq [7 ::call/ValueMeetsVerbError 7]`)).toBe(true);
+  it('a value of the reader stands over a reader\'s verb on a label whatever the subject, the verb called by its address', async () => {
+    const reader = ':Shop |~~ A shop. ~~| | :Shop/f ~(1) | get [~(::Shop | with {:f ~(7)} ~(f)) ~(::Shop{} | with {:f ~(7)} ~(get [~(f) ~(Shop/f)])) ~(5 | with {:f ~(7)} ~(f))]';
+    expect(await evalQuery(`${reader} | eq [7 [7 1] 7]`)).toBe(true);
   });
 });
 

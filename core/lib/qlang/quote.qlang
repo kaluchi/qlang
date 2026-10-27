@@ -271,7 +271,8 @@
       shows. The query is code held as data and runs in a lane of its
       own: it reads the verbs of the tree and the names it binds, which
       stay inside it, and no value the reader named,
-      `with {:k ~(5)} ~(~(k) | open)` refused under `k`. It runs from null, not from the
+      `{:rate 0.2} | with [/rate] ~(~(100 | mul rate) | open)` refused under
+      `rate`. It runs from null, not from the
       subject of `open`: a query that reads a subject, `~(add 1)`, is
       refused on null, and a quote meant for a subject runs against it
       by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by
@@ -294,11 +295,15 @@
         |~~ A snippet opens to what it shows. ~~|
         ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
     | proves :withholdsAValueOfTheReader
-        |~~ A value the reader named is withheld from the query. ~~|
-        ~(:k 5 | ~(k) | open !| tag | eq ::call/ValueWithheldError)
+        |~~ A value the reader named is withheld from the query: a stored
+            query of a tax reads no rate `with` gives the code around it.
+        ~~|
+        ~({:rate 0.2} | with [/rate] ~(~(100 | mul rate) | open !| get [~(tag) ~(name)]) | eq [::call/ValueWithheldError :rate])
     | proves :keepsItsNamesInside
-        |~~ A name the query binds stays inside it. ~~|
-        ~(:k 5 | ~(:k 1) | open | k | eq 5)
+        |~~ A name the query binds stays inside it: the stored query of a
+            tax names its rate for its own steps alone.
+        ~~|
+        ~(~(:rate 0.2 | 100 | mul rate) | open | get [~(it) ~(env | has :rate)] | eq [20 false])
     | proves :runsFromNull
         |~~ The query runs from null. ~~|
         ~(~(tag) | open | eq ::null)

@@ -100,8 +100,10 @@
         ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5) !| tag | eq ::Pos/NotPositiveError)
     | proves :keepsItsNamesInside
-        |~~ A name the code binds stays inside it. ~~|
-        ~(:n 7 | ::Box[1] | within ~(:n 5 | get [~(n)]) | n | eq 7)
+        |~~ A name the code binds stays inside it: the prices shift down by
+            the lowest one, which names nothing after the call.
+        ~~|
+        ~(::Prices[30 10 20] | within ~(:low (min) | map ~(sub low)) | get [~(it) ~(env | has :low)] | eq [::Prices[20 0 10] false])
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])

@@ -2457,9 +2457,10 @@
       name of another, and each quote of the body runs on the subject as
       the quotes of a template of `get` run, the names beside the names of
       its step; no name leaves the call. A key of the subject no name names
-      is read by its path, and a name that meets a verb the subject of its
-      step answers is refused, as every name of a value is, `type` among
-      them, which a map names otherwise, `with [/id {:t /type}] …`.
+      is read by its path, and a name stands over a verb of its name in the
+      body, the verb called by its address there,
+      `::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])`
+      answering `[2 3]`.
       ::link~(::any/get | doc) ::link~(::path | doc)
   ~~|
   ::fn
@@ -2534,11 +2535,11 @@
     | proves :leavesNoNameAfterTheCall
         |~~ No name leaves the call. ~~|
         ~({:a 1} | with [/a] ~(a) | a !| name | eq :a)
-    | proves :meetsAVerbOfTheSubjectAloud
-        |~~ A name that meets a verb of the subject is refused, and a map
-            names its part otherwise.
+    | proves :standsOverAVerbOfItsName
+        |~~ A name stands over a verb of its name in the body, the verb
+            called by its address.
         ~~|
-        ~({:type "user" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| tag) ~(with [/id {:t /type}] ~(id | toString | append t))] | eq [::call/ValueMeetsVerbError "7user"])
+        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)]) | eq [2 3])
     | proves :NamesKindNotTakenError/refusesAPath
         |~~ A path alone is no names. ~~|
         ~({:a 1} | with /a ~(a) !| tag | eq ::any/with/NamesKindNotTakenError)

@@ -278,9 +278,15 @@ names as a value. The scope of a verb's recipe is its own, so code a verb
 holds is refused under a value its recipe names; a law the root declares
 runs in a lane over the root alone. The trace holds the steps as the text
 wrote them, the declarations of the head run before the step that
-failed. A value code needs is an input of a function, `apply f [4]`, or
-a name of the step that hands the code on, and code that calls itself is
-a verb.
+failed. A value code needs is an input of a function, `apply f [4]`, a
+name of the step that hands the code on, or a value `fill` writes at the
+head of a quote: `fill` takes a map of the names the code reads and their
+values and answers the quote with a declaration of each at its head, in
+the order the code reads the names, under the tags the quote came through,
+and refuses a name the code does not read, one it declares itself among
+them, as `::quote/fill/NamesNameNotReadError` with its `:name` and the
+names the code reads near it as `:nearest`. Code that calls itself is a
+verb.
 
 ```qlang
 > [1 2] | apply ~(:bonus 10 | map ~(add bonus))
@@ -315,4 +321,10 @@ true
 
 > [1 2] | apply ~(:bonus "x" | map ~(add bonus) !| trace | map ~failed)
 [~(add bonus) ~(map ~(add bonus))]
+
+> get [~(~(mul qty | add fee) | fill {:fee 5 :qty 3}) ~(5 | apply (~(add bonus) | fill {:bonus 10}))]
+[~(:qty 3 | :fee 5 | mul qty | add fee) 15]
+
+> ~(add myaddend) | fill {:myadend 1} !| get [~(tag) ~(name) ~(nearest)]
+[::quote/fill/NamesNameNotReadError :myadend [:myaddend]]
 ```

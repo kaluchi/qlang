@@ -4,7 +4,7 @@
    quote is also the vector of its steps, so the verbs of vectors read
    it as one, and a quote under a tag, a link or a snippet of a page,
    reads them through the walk of its tags.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSQUO#held]. ~|
 
 :quote
   |~~ A quote is code held as a value, `~(add 1 | mul 2)`: steps that
@@ -15,7 +15,8 @@
       names of that step wherever the verb runs it,
       `{:bonus 10} | with [/bonus] ~([1 2] | map ~(add bonus))` answering `[11 12]`; one held as
       data, in a name, a field or a page, runs in a lane of its own and
-      reads no value the reader named.
+      reads no value the reader named, and `fill` writes the values it
+      needs at its head, `~(mul rate) | fill {:rate 1.2}`.
 
       It is written `~(…)` around a pipeline, and one name drops the
       parentheses, `~count`. A verb that runs code takes a path bare,
@@ -324,5 +325,64 @@
     | proves :refusesAQueryThatReadsASubject
         |~~ Code that reads a subject is refused on null. ~~|
         ~(~(add 1) | answer !| tag | eq ::number/add/SubjectNotNumberError)
+    | impl ::builtin{}
+
+:quote/fill
+  |~~ Answers the quote with the value the call gives for each name the
+      code reads written at its head, a declaration each in the order the
+      code reads them, `~(mul rate) | fill {:rate 1.2}` answering
+      `~(:rate 1.2 | mul rate)`, so code held as data, in a name, a field
+      or a page, runs with the values it needs, as a step writes into the
+      code it hands a verb the values of its scope it reads. A name the
+      code does not read, one it declares itself among them, is refused
+      beside the names it reads near it, and `fill` of a function writes
+      the args of its call into its code.
+      ::link~(::fn/fill) ::link~(::call/ValueWithheldError)
+      ::link~(::qlang/code)
+  ~~|
+  ::fn
+    | takes :names
+        |~~ The names the code reads and the value written for each, a map.
+        ~~|
+        /0 ::map
+    | throws :NamesKindNotTakenError
+        |~~ The names are a map of each name the code reads and its value,
+            `~(mul rate) | fill {:rate 1.2}`.
+        ~~|
+    | throws :NamesNameNotReadError
+        |~~ The code reads every name the call gives, so no name misspelled
+            stands at its head unread: `:name` holds the name given,
+            which the code does not read or declares itself, and `:nearest`
+            the names it reads near it in spelling.
+        ~~|
+        ~(wires :name |~~ The name given, which the code does not read. ~~| ::keyword
+          | wires :nearest
+              |~~ The names the code reads near it in spelling, `[]` where none is near. ~~|
+              ::vec)
+    | returns |~~ The code, the values written at its head. ~~| ::quote
+    | proves :writesTheValueAtTheHead
+        |~~ The rate of a price goes to the head of the code that reads it.
+        ~~|
+        ~(~(mul rate) | fill {:rate 1.2} | eq ~(:rate 1.2 | mul rate))
+    | proves :writesTheNamesInTheOrderTheCodeReadsThem
+        |~~ The quantity and the fee go to the head in the order the code
+            reads them.
+        ~~|
+        ~(~(mul qty | add fee) | fill {:fee 5 :qty 3} | eq ~(:qty 3 | :fee 5 | mul qty | add fee))
+    | proves :runsWithTheValuesWritten
+        |~~ A rule kept as data prices each order with the rate written in.
+        ~~|
+        ~([10 25] | map (~(mul rate) | fill {:rate 1.2}) | eq [12 30])
+    | proves :NamesNameNotReadError/refusesAMisspelledName
+        |~~ A name the code does not read is refused beside the name it
+            reads.
+        ~~|
+        ~(~(mul rate) | fill {:rtae 1.2} !| get [~(tag) ~(name) ~(nearest)] | eq [::quote/fill/NamesNameNotReadError :rtae [:rate]])
+    | proves :NamesNameNotReadError/refusesANameTheCodeDeclares
+        |~~ A name the code declares itself is no name it reads. ~~|
+        ~(~(:rate 1.5 | mul rate) | fill {:rate 1.2} !| tag | eq ::quote/fill/NamesNameNotReadError)
+    | proves :NamesKindNotTakenError/refusesAVector
+        |~~ The values are named by a map. ~~|
+        ~(~(mul rate) | fill [1.2] !| tag | eq ::quote/fill/NamesKindNotTakenError)
     | impl ::builtin{}
 

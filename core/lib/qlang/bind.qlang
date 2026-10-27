@@ -1,14 +1,15 @@
 |~ `::bind`, the step that declares a name, and what is declared under
    it: its constructor and the refusals of a declaration.
-   The rules it holds: [QSDSP#residence]. ~|
+   The rules it holds: [QSDSP#residence], [QSNAM#declare]. ~|
 
 :bind
   |~~ A declaration, `:name body`, names what its body answers for the
       steps after it; it writes its `::binding` into the scope where it
       stands. At the top of a query, of a source and of a cell it declares
-      a word, a kind, a verb or a node under a noun,
-      `:number/double ~(mul 2) | 5 | double` answering `10`, and a value
-      under a bare name is refused there; code names values of its own,
+      a word, a kind or a verb, and a page or a law under a noun,
+      `:number/double ~(mul 2) | 5 | double` answering `10`, and a value is
+      refused there, under a bare name or an address; code names values of
+      its own,
       `{:price 4 :qty 3} | apply ~(:order it | get /price | mul (order | get /qty))`
       answering `12`. The value in the
       pipe passes on unchanged; a group and a quote a verb runs each close
@@ -125,9 +126,10 @@
             steps of a group among them, declares the words its steps share:
             a kind, by its chain or by its page alone, a verb or a recipe
             under the label of the values it serves,
-            `:number/double ~(mul 2)`, and a node under a noun. A value under
-            a bare name is refused there, `:name` naming it: a value goes on
-            in the subject, several as the record `get` builds,
+            `:number/double ~(mul 2)`, and a page or a law under a noun,
+            `:Box/side |~~ The side of a box. ~~|`. A value is refused
+            there, under a bare name or an address, `:name` naming it: a
+            value goes on in the subject, several as the record `get` builds,
             `{:price 4 :qty 3} | get {:price /price :total ~(mulOf /price /qty)}`,
             a name for the code of one step is given by `with`,
             `{:cap 4 :bids [1 5 10]} | with [/cap /bids] ~(bids | filter ~(gt cap))`,

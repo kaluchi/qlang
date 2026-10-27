@@ -883,7 +883,8 @@
             data, a quote in a name, a field or a page, a law and a snippet
             among them, is handed on as it is written, so a value it needs
             is an input of a function, `apply f [4]`, a name `with` gives
-            its body, or is written into it by `fill`.
+            its body, or is written at its head by `fill`,
+            `~(gt lim) | fill {:lim 4}`.
         ~~|
         #[::quote]
     | proves :code/runsByApply

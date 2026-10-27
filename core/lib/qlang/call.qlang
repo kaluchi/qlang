@@ -124,8 +124,9 @@
             hands it to a verb, `filter ~(gt lim)`, which writes into it the
             values of that step it reads, `with` names them for its body,
             the value goes to a function as an input, `apply f [4]`, or
-            `fill` writes it into the code.
-            ::link~(::call) ::link~(::fn/fill)
+            `fill` writes it at the head of the code,
+            `~(gt lim) | fill {:lim 4}`.
+            ::link~(::call) ::link~(::quote/fill)
         ~~|
         ~(wires :name |~~ The name of the reader's value the held code read. ~~| ::keyword)
     | throws :KindAnswersNoVerbError

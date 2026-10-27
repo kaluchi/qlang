@@ -19,15 +19,17 @@ The top of a query, of a source and of a cell, its steps and the steps of
 a group that stands among them, declares the words its steps share: a
 verb or a recipe under the label of the values it serves,
 `:number/double ~(mul 2)`, a kind by its chain or by its page alone,
-`:Box |~~ A box. ~~|`, and a node under a noun, a page, a law or a value
-under its address among them. A bare name declared there with a body that
-builds no kind, a number, a record, a doc, a quote or a function, is
-refused where it stands as `::bind/ValueAtTheTopError` with its `:name`: a
-value goes on in the subject, several as the record `get` builds, a name
-for the code of one step is given by `with` [QSPTH#template], and code run
-again is a verb. Inside a command a name holds a value: in a modifier, in
-a quote, which declares names of its own, and in the recipe of a verb,
-whose inputs its call declares [QSBLD#recipe].
+`:Box |~~ A box. ~~|`, a page under a noun among them, and a law under a
+noun, `:Box/fits |~~ A box fits. ~~| ::law~(true)`. A body declared there
+that builds none of them, a number, a record, a tag, a doc, and under a
+bare name a quote or a function, is refused where it stands as
+`::bind/ValueAtTheTopError` with its `:name`, under a bare name and under
+an address alike: a value goes on in the subject, several as the record
+`get` builds, a name for the code of one step is given by `with`
+[QSPTH#template], and code run again is a verb. Inside a command a name
+holds a value, under a bare name or an address: in a modifier, in a quote,
+which declares names of its own, and in the recipe of a verb, whose inputs
+its call declares [QSBLD#recipe].
 
 The body is a step: a literal, `it` for the value in the pipe, a group
 for what the group computes, a call of a verb, a quote, which is held as
@@ -45,6 +47,9 @@ against the subject at the declaration.
 
 > :rate 2 !| get [~(tag) ~(name)]
 [::bind/ValueAtTheTopError :rate]
+
+> :Box |~~ A box. ~~| | :Box/side 3 !| get [~(tag) ~(name)]
+[::bind/ValueAtTheTopError :Box/side]
 
 > {:price 4 :qty 3} | apply ~(:order it | get /price | mul (order | get /qty))
 12
@@ -93,7 +98,7 @@ name under a noun, which its address calls.
 > ":true 5 | 7" | parse !| message
 "`:true` is the word of a literal, which a step reads as the value: declare another name"
 
-> :false |~~ F. ~~| | :false/rank 3 | ::false/rank | binding | value
+> apply ~(:false |~~ F. ~~| | :false/rank 3 | ::false/rank | binding | value)
 3
 
 > "false/rank" | parse !| tag
@@ -137,7 +142,7 @@ last name.
 > 5 | apply ~(:bonus it | bonus 42) !| get [~(tag) ~(found)]
 [::call/ValueTakesNoModifiersError 5]
 
-> :Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| name
+> apply ~(:Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| name)
 :Box/side
 
 > :string/five ~(1) | 3 | apply ~(:five 5 | five 42 !| addresses)
@@ -329,7 +334,7 @@ with a path the root holds, `:vec/count ~(0)` refused as a second
 declaration; a bare name of the root it may declare over [QSNAM#reach].
 
 ```qlang
-> :Box |~~ Box. ~~| | :Box/side 3 | Box/side
+> apply ~(:Box |~~ Box. ~~| | :Box/side 3 | Box/side)
 3
 
 > :Box/side 3 !| tag
@@ -360,7 +365,8 @@ The root is a scope: the one the host's sources declare, each source a
 cell run over the root the sources before it left, the language's
 first, before the first step of a reader. A source, a cell and a query
 are written alike; a source declares no name the root holds, bare or
-with a path, and no value under a bare name, and fails whole as
+with a path, and no value, under a bare name or an address, and fails
+whole as
 `::builtin/RootSourceNotDeclaredError`, a defect of the host raised past
 the fail track, while a cell and a query declare a bare name of the root
 over it. The root holds no value under a bare name, so its bare names
@@ -405,7 +411,7 @@ holding the step of the one that wrote it; given an anchor, each reads
 the node its subject holds under it [QSSLF#axis].
 
 ```qlang
-> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | get [~(name) ~(docs | count) ~(value) ~(keys !| tag)]
+> apply ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | get [~(name) ~(docs | count) ~(value) ~(keys !| tag)])
 [:Box/side 1 3 ::map/keys/SubjectNotMapError]
 
 > get [~(::binding{:name :rate} !| tag) ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | eq (print | parse | answer))]
@@ -414,10 +420,10 @@ the node its subject holds under it [QSSLF#axis].
 > apply ~(:rate 2 | env | get [~(has :rate) ~(has :vec)])
 [true false]
 
-> :Box |~~ A box. ~~| | :Box/side 3 | apply ~(:rate 2 | env | keys)
+> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| | apply ~(:rate 2 | env | keys)
 #[:Box :Box/side :rate]
 
-> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | doc
+> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| | ::Box/side | doc
 |~~ The side. ~~|
 
 > ::vec/count/answer | source

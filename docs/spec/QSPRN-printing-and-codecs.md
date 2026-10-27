@@ -111,7 +111,7 @@ kind that wires nothing and one whose payload holds no key or index stand
 on one line beside their gloss, and a value its kind prints itself is laid
 out as its literal, its parts as their kinds print them. A key beneath a
 name the kind wires reads by three rules: its first segment the name, a
-slot where the kind is the verdict of a verb; the next a probe of the slot,
+slot where the kind is the verdict of a verb; the next a part of the slot,
 glossed beside it, `:addend/found`; and a name beneath a value a view of
 that value, glossed by the verb of the view its tags walk to, or the tag
 the alert shows first of a value past its room, `:addend/found/count`

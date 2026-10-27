@@ -2,7 +2,7 @@
 
 import { registerStateReader } from '../primitives.mjs';
 import { printValue, underTagLiteral, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf, kindsOfWalk, nodeOf, probesOfASlot, slotsOfAVerdict } from '../nouns.mjs';
+import { kindOfAValueOf, kindsOfWalk, nodeOf, partsOfASlot, slotsOfAVerdict } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe, PAYLOAD_NAME } from '../chain.mjs';
 import { isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, isCell, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG, LEGEND_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
@@ -81,8 +81,8 @@ function glossOfTheRest(rest, kindNames, scope, ownKind = null) {
   const kind = ownKind ?? kindNames.map(kindName => kindOfAValueOf(scope, kindName)).find(found => found !== null) ?? null;
   const field = kind === null ? undefined : chainOfKind(kind).fields.find(({ name }) => name.name === rest[0]);
   if (field !== undefined && rest.length === 2 && slotsOfAVerdict(kind)?.has(rest[0])) {
-    const probes = new Map(probesOfASlot(scope).map(({ name: probeName, page }) => [probeName.name, page]));
-    return joined(glossOf(field.page, scope), glossOf(probes.get(rest[1]), scope));
+    const parts = new Map(partsOfASlot(scope).map(({ name: partName, page }) => [partName.name, page]));
+    return joined(glossOf(field.page, scope), glossOf(parts.get(rest[1]), scope));
   }
   if (field !== undefined && rest.length === 1) return glossOf(field.page, scope);
   if (rest.length !== 1) return null;

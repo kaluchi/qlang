@@ -532,7 +532,7 @@
       `"~{" | parse !| location | legend`. A key beneath a name the kind
       wires reads by three rules, so a refusal and the excerpt its alert
       prints gloss each key: its first segment the name, a slot where the
-      kind is the verdict of a verb; the next a probe of the slot, glossed
+      kind is the verdict of a verb; the next a part of the slot, glossed
       beside it, `:addend/found`; and a name beneath a value a view of that
       value, glossed by the verb of the view its tags walk to, or the tag the
       alert shows first of a value past its room, `:addend/found/count`

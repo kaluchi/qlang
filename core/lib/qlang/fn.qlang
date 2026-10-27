@@ -4,7 +4,7 @@
    as their literal, the chain that builds a function folded into data,
    since none of them stands while the source runs; the chain builds every
    other verb.
-   The rules it holds: [QSBLD#fn]. ~|
+   The rules it holds: [QSBLD#fn], [QSERR#site]. ~|
 
 :fn
   |~~ A function: the subject it runs on, the inputs it takes, the answer
@@ -337,10 +337,10 @@
       `addend/found`, the value found whole or as the cell its host keeps
       it in, its own names beneath it, `addend/found/count`, and never a
       name of the verb. A slot is read from a refusal by its name and its
-      probes by theirs, `!| addend | found`.
+      parts by theirs, `!| addend | found`.
       ::link~(::fn) ::link~(::error)
   ~~|
-  ::kind[~(accepts |~~ The probes of the slot, a map. ~~| ::map
+  ::kind[~(accepts |~~ The parts of the slot, a map. ~~| ::map
     | wires :expected
         |~~ The kinds the rule takes: those of the value of the slot, as the
             chain of its verb writes them, of the part of it the path of the
@@ -588,7 +588,7 @@
       under a label it is a refusal of the verb. A refusal of a verb is the
       verdict of the verb, an `::error` whose kind wires each slot of the
       verb, the subject, each input, the args past the inputs as
-      `surplus` and the answer, each read by its name and its probes by
+      `surplus` and the answer, each read by its name and its parts by
       theirs, `!| addend | found`, then `repair`, then the facts the
       quote wires, each `wires` a fact read by the key of its name, and
       `trace` last, so the error at rest answers each by its name,
@@ -780,7 +780,9 @@
       reads from them, as its call reads it, a quote among them written
       as the data it is, and answers the code:
       `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
-      answers `~(:by |~~ How much. ~~| 3 | add by)`.
+      answers `~(:by |~~ How much. ~~| 3 | add by)`, as a quote takes
+      the values of the names it reads, `~(add by) | fill {:by 3}`.
+      ::link~(::quote/fill)
   ~~|
   ::fn[~(takes :args
         |~~ The args, as a call holds them. ~~|
@@ -816,7 +818,7 @@
         ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/ByKindNotTakenError)
     | proves :SubjectNotFnError/refusesANumber
         |~~ A number is no function. ~~|
-        ~(5 | fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
+        ~(5 | fn/fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
     | proves :RecipeKindNotTakenError/refusesAContract
         |~~ A function with no recipe is refused. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))

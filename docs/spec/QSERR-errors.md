@@ -21,7 +21,7 @@ The tag of a refusal closes its error at rest by the kind of the refusal
 each slot of the verb, the facts its `throws` writes and its `trace`, of a
 refusal a kind raises the verdict of the kind, and of any other the kind
 its `throws` writes [QSERR#site]. Its facts are read by their names, a
-slot by its name and its probes by theirs, `!| addend | found`, no path
+slot by its name and its parts by theirs, `!| addend | found`, no path
 reads beneath its tag [QSPTH#get], and
 `payload` answers the `::error` beneath it, which holds a fact past the
 wiring of the kind; the walk of its tags meets no `::error`, so it is a
@@ -363,11 +363,11 @@ lays, with a page of its own where no `throws` gives one, and any other no
 refused [QSSLF#axis].
 
 A refusal of a verb is its verdict [QSBLD#fn], the map of its slots in one
-flat list of keys, each a slot and a probe of it: its kind wires
+flat list of keys, each a slot and a part of it: its kind wires
 `subject`, each input, `surplus` for the args past the inputs and
-`answer`, each a value of `::fn/slot` read by its name and its probes by
+`answer`, each a value of `::fn/slot` read by its name and its parts by
 theirs, `!| addend | found`, then `repair`, the facts its `throws` writes
-and `trace` last. The probes of a slot are `expected`, the kinds the rule
+and `trace` last. The parts of a slot are `expected`, the kinds the rule
 takes, `found`, what the call put in the slot as the call gave it, its
 tags with it, `answer`, what the code of the slot answered, and `index`,
 the element refused; beneath `found` stand the literal's own names alone,
@@ -379,7 +379,7 @@ part of the subject lays it under `subject`, the path of its frame naming
 the part [QSERR#trace], and a refusal of an element of an input lays its
 `index` beside it. A refusal a kind raises at its door, in its
 constructor or by a `throws` of its chain is the verdict of the kind, the
-probes of a slot but `answer`, the part refused under `found` beside
+parts of a slot but `answer`, the value refused under `found` beside
 `expected` and `index`, the facts its `throws` writes beside them, and a
 refusal the chain of a function or of a kind lays holds the modifier or
 the chain refused under `found` beside its own facts. A refusal that

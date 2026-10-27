@@ -23,7 +23,7 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isVerbValue, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
@@ -229,12 +229,15 @@ async function evalBind(bind, state, at) {
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
-  if (at.atTheTop && nounName === null && bind.has('body') && !isKind(answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
+  if (at.atTheTop && bind.has('body') && !declaresAWord(nounName, answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
+
+// [QSNAM#declare]
+const declaresAWord = (nounName, value) => isKind(value) || (nounName !== null && (isVerbValue(value) || isLaw(value)));
 
 // [QSNAM#scope]
 function laidByTheChainOfItsNoun(scope, name, nounName, at) {
@@ -1039,9 +1042,9 @@ function fieldRead(tagName, field, payload, state, opened, ofFacts) {
 
 // [QSERR#site]
 async function slotOfTheFacts(address, name, facts, state) {
-  const probes = new Map();
-  for (const [key, fact] of facts) if (key.startsWith(`${name}/`)) probes.set(key.slice(name.length + 1), fact);
-  return probes.size === 0 ? null : await layTag(address, probes, state);
+  const parts = new Map();
+  for (const [key, fact] of facts) if (key.startsWith(`${name}/`)) parts.set(key.slice(name.length + 1), fact);
+  return parts.size === 0 ? null : await layTag(address, parts, state);
 }
 
 function fieldHeld(tagName, field, payload, read, state, ofFacts) {

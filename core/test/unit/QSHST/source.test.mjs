@@ -111,10 +111,10 @@ it('hands a word of a host the state of its call where it marks its primitive as
 it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
   const hosted = await createNotebook({ sources: [{
     uri: 'test/hosted-kind',
-    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/seen (::Hk#1 | payload)',
+    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/seen (~(seen) | fill (::Hk#1 | payload | get {:seen ~(it)}))',
     primitives: { 'Hk': payload => payload + 1 }
   }] });
-  expect(printValue((await hosted.evalCell('Hk/seen')).result)).toBe('1');
+  expect(printValue((await hosted.evalCell('::Hk#1 | Hk/seen')).result)).toBe('1');
   expect(printValue((await hosted.evalCell('::Hk#1 | payload')).result)).toBe('2');
 });
 
@@ -245,15 +245,15 @@ describe('the sources a host hands', () => {
 
   it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so', async () => {
     const refusal = (uri, name) => `qlang root: the source ${uri} is handed a primitive for :${name}, which it declares as no ::builtin{} under a label`;
-    for (const [uri, source, name] of [['tests/verb', ':any/v (::fn | impl ~(1))\n:any/v/shout ::builtin{}', 'any/v/shout'], ['tests/map', ':Box |~~ A box. ~~|\n:Box/x {}\n:Box/x/shout ::builtin{}', 'Box/x/shout'], ['tests/stray', ':Box |~~ A box. ~~|\n:Box/limit 10', 'Box/limit']]) {
+    for (const [uri, source, name] of [['tests/verb', ':any/v (::fn | impl ~(1))\n:any/v/shout ::builtin{}', 'any/v/shout'], ['tests/law', ':Box |~~ A box. ~~|\n:Box/fits |~~ A box fits. ~~| ::law~(true)\n:Box/fits/shout ::builtin{}', 'Box/fits/shout'], ['tests/stray', ':Box |~~ A box. ~~|\n:Box/limit |~~ The limit. ~~|', 'Box/limit']]) {
       const refused = await createNotebook({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
       expect(refused).toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', message: refusal(uri, name) });
       expect(refused.facts).toEqual({ origin: makeKeyword(uri), name: makeKeyword(name) });
     }
   });
 
-  it('refuses a source that declares a value under a bare name at its top, a quote, a function and a descriptor among them, by one refusal naming the source as its origin', async () => {
-    for (const source of [':limit 10', ':x {}', ':double ~(mul 2)', ':f (::fn | impl ~(1))', ':shout ::builtin{}']) {
+  it('refuses a source that declares a value at its top, a quote, a function and a descriptor under a bare name and data under an address among them, by one refusal naming the source as its origin', async () => {
+    for (const source of [':limit 10', ':x {}', ':double ~(mul 2)', ':f (::fn | impl ~(1))', ':shout ::builtin{}', ':Box |~~ A box. ~~|\n:Box/limit 10', ':Box |~~ A box. ~~|\n:Box/kind ::number']) {
       await expect(createNotebook({ sources: [{ uri: 'tests/value', source }] }))
         .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/value'), tagName: '::bind/ValueAtTheTopError' } });
     }

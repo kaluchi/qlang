@@ -104,7 +104,7 @@ the payload, the fields and the constructor of a kind, the refusals of
 its slots and of its fields, the invariants, each named by the refusal of
 a call or a value that breaks it, and the parts a kind wires, the facts a
 refusal carries among them, which lie under it by its wiring, the slots
-of its verb and their probes beneath each slot,
+of its verb and their parts beneath each slot,
 `::number/add/AddendKindNotTakenError | manifest` [QSERR#site]; the laws
 stand aside, which `laws` reads. A value
 answers those of the kind it shows, `5 | manifest` those of `::number`,

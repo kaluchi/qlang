@@ -49,3 +49,11 @@
 {"name":"code-written-in-code-reads-the-values-its-step-wrote-in-at-each-element","query":"apply ~(:k 1 | [1 2] | map ~(get [~(add k)]))","expect":"[[2] [3]]"}
 {"name":"a-template-a-verb-of-the-language-takes-reaches-it-with-the-values-it-reads-written-in","query":":any/run (::fn | takes :t |~~ The template. ~~| /0 | impl ~(get t)) | apply ~(:k 10 | 5 | run ::P{:a ~(add k)})","expect":"::P{:a 15}"}
 {"name":"the-words-of-the-host-in-code-read-what-the-code-holds","query":"apply ~(:vec 5 | get [~(env | has :vec) ~(vec)])","expect":"[false 5]"}
+{"name":"fill-writes-the-value-of-each-name-the-code-reads-at-its-head","query":"~(add bonus) | fill {:bonus 10}","expect":"~(:bonus 10 | add bonus)"}
+{"name":"fill-writes-the-names-in-the-order-the-code-reads-them","query":"~(mul qty | add fee) | fill {:fee 5 :qty 3}","expect":"~(:qty 3 | :fee 5 | mul qty | add fee)"}
+{"name":"code-held-as-data-runs-with-the-values-fill-wrote-at-its-head","query":"apply ~(:rule (~(add bonus) | fill {:bonus 10}) | 5 | apply rule)","expect":"15"}
+{"name":"fill-answers-the-code-under-the-tags-it-came-through","query":"::Rule~(mul rate) | fill {:rate 1.2}","expect":"::Rule~(:rate 1.2 | mul rate)"}
+{"name":"fill-refuses-a-name-the-code-does-not-read-beside-the-names-near-it","query":"~(add myaddend) | fill {:myadend 1} !| get [~(tag) ~(name) ~(nearest)]","expect":"[::quote/fill/NamesNameNotReadError :myadend [:myaddend]]"}
+{"name":"fill-refuses-a-name-the-code-declares-itself","query":"~(:bonus 1 | add bonus) | fill {:bonus 10} !| tag","expect":"::quote/fill/NamesNameNotReadError"}
+{"name":"fill-refuses-names-that-are-no-map","query":"~(add bonus) | fill [10] !| tag","expect":"::quote/fill/NamesKindNotTakenError"}
+{"name":"a-subject-neither-a-quote-nor-a-function-meets-the-two-verbs-of-fill","query":"5 | fill 3 !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::fn/fill ::quote/fill]]"}

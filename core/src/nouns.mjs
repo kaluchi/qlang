@@ -484,7 +484,7 @@ function factsOfARefusal(scope, declared, shared) {
 }
 
 // [QSERR#site]
-export const probesOfASlot = scope => chainOfKind(kindOfAValueOf(scope, SLOT_KIND_ADDRESS)).fields;
+export const partsOfASlot = scope => chainOfKind(kindOfAValueOf(scope, SLOT_KIND_ADDRESS)).fields;
 
 function verdictKindOfAVerb(scope, verbAddress, facts = null) {
   const value = bindingValueOf(nodeOf(scope, verbAddress));
@@ -511,8 +511,8 @@ function verdictKindBuilt(scope, verbAddress, chain, { commands, fields, slots: 
 
 function verdictKindOfAKind(scope, kindAddress, facts = null) {
   const { commands, fields, wired } = facts ?? NO_FACTS;
-  const probes = probesOfASlot(scope).filter(({ name }) => name.name !== ANSWER_NAME && !wired.has(name.name));
-  return verdictKindOf(facts?.key ?? chainOfKind(kindOfAValueOf(scope, kindAddress)), kindAddress, () => kindOfAVerdict([...fieldsAsWired(probes), ...fields], commands));
+  const parts = partsOfASlot(scope).filter(({ name }) => name.name !== ANSWER_NAME && !wired.has(name.name));
+  return verdictKindOf(facts?.key ?? chainOfKind(kindOfAValueOf(scope, kindAddress)), kindAddress, () => kindOfAVerdict([...fieldsAsWired(parts), ...fields], commands));
 }
 
 function namesUnderOf(scope, nounName) {

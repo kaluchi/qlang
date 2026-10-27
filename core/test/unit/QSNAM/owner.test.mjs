@@ -41,7 +41,7 @@ describe('what a verb reads and runs as data reads the tree of the query', () =>
 
   it('a verb of a source reads as data a node a later source declares', async () => {
     const reading = { uri: 'reading', source: ':reading |~~ Reading. ~~|\n:any/pageOf ~(doc | content)' };
-    const later = { uri: 'later', source: ':later |~~ Later. ~~|\n:later/k |~~ the later source\'s ~~| 3' };
+    const later = { uri: 'later', source: ':later |~~ Later. ~~|\n:later/k |~~ the later source\'s ~~|' };
     const notebook = await createNotebook({ sources: [reading, later] });
     expect((await notebook.evalCell('::later/k | pageOf')).result).toBe('the later source\'s');
   });

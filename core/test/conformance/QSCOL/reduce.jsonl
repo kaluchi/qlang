@@ -13,7 +13,7 @@
 {"name":"a-reducer-that-reads-the-pair-answers-what-it-reads","query":"[1 2 3] | reduce 0 /1","expect":"3"}
 {"name":"a-value-named-as-the-verb-of-a-fold-takes-the-element-as-no-modifier","query":"apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])","expect":"[::call/ValueTakesNoModifiersError #[::number/add]]"}
 {"name":"a-reducer-of-code-folds-a-field-of-each-element","query":"[{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x))","expect":"3"}
-{"name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":":Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side)","expect":"3"}
+{"decision":"D472","name":"a-reducer-that-names-the-address-of-a-value-runs-on-the-pair","query":"apply ~(:Box |~~ A box. ~~| | :Box/side 3 | [1 2] | reduce 0 ~(Box/side))","expect":"3"}
 {"name":"a-reducer-of-code-folds-a-set","query":"#[1 2 3] | reduce 0 ~(sumOf /0 /1)","expect":"6"}
 {"name":"a-reducer-of-code-folds-the-values-of-a-map","query":"{:a 1 :b 2} | reduce 0 ~(sumOf /0 /1)","expect":"3"}
 {"name":"a-reducer-of-code-that-fails-answers-the-failure","query":"[1 \"x\" 3] | reduce 0 ~(sumOf /0 /1) !| tag","expect":"::vec/sum/ElementKindNotTakenError"}

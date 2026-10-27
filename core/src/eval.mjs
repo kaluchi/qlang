@@ -23,7 +23,7 @@ import {
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isVerbValue, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
@@ -229,12 +229,15 @@ async function evalBind(bind, state, at) {
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
-  if (at.atTheTop && nounName === null && bind.has('body') && !isKind(answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
+  if (at.atTheTop && bind.has('body') && !declaresAWord(nounName, answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
+
+// [D472]
+const declaresAWord = (nounName, value) => isKind(value) || (nounName !== null && (isVerbValue(value) || isLaw(value)));
 
 // [QSNAM#scope]
 function laidByTheChainOfItsNoun(scope, name, nounName, at) {

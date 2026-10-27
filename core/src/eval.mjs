@@ -46,15 +46,21 @@ const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsCh
 // [QSDSP#refusal]
 const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
-// [QSQUO#step]
-export async function evalPipeline(steps, state, origin = originOf(steps)) {
+// [D469]
+const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
+
+// [QSQUO#step], [D469]
+export async function evalPipeline(steps, state, origin = originOf(steps), atTheTop = false) {
   let current = state;
   for (const [index, step] of steps.entries()) {
-    const at = { steps, index, origin };
+    const at = { steps, index, origin, atTheTop };
     current = isFailStep(step) ? await applyFailTrack(current, step.payload[0], at) : await applySuccessTrack(current, step, at);
   }
   return current;
 }
+
+// [D469]
+export const evalAtTheTop = (steps, state) => evalPipeline(steps, state, originOf(steps), true);
 
 // [QSERR#trace]
 async function evalStep(step, state, at) {
@@ -126,9 +132,9 @@ export async function errorAtRestOf(raised, state) {
   }
 }
 
-// [QSNAM#scope]
+// [QSNAM#scope], [D469]
 async function evalGroup(group, state, at) {
-  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload)));
+  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload), at?.atTheTop === true));
 }
 
 function evalItself(step, state) {
@@ -193,7 +199,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe], [D469]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -221,6 +227,7 @@ async function evalBind(bind, state, at) {
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
+  if (at.atTheTop && nounName === null && !declaresALabel(record)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
   if (WRITTEN_FROM_A_CHAIN.has(bind)) DECLARED_BY_A_CHAIN.add(record);
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);

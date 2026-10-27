@@ -105,7 +105,7 @@
       its payload; and a number equals itself whatever its digits, `1` and
       `1.0`, while a sum of doubles may miss, `0.1 | add 0.2`. The value
       is computed against the subject, so two fields of one record are
-      compared through a name, `:r it | get /a | eq (r | get /b)`, and in
+      compared by the names `with` gives them, `with [/a /b] ~(a | eq b)`, and in
       a condition the subject is the element,
       `filter ~(get /status | eq "open")`. `ne` answers the opposite.
       ::link~(::any/ne | doc) ::link~(::qlang/values | doc)
@@ -128,7 +128,7 @@
     | throws :ArgsBeyondInputsError
         |~~ `eq` compares the subject with one value and was given more:
             whether the subject is one of several is
-            `:x it | [5 6] | contains x`.
+            `with {:x ~it} ~([5 6] | contains x)`.
         ~~|
     | proves :comparesPartForPart
         |~~ Nested values compare part for part, a set without its order.
@@ -231,7 +231,7 @@
         /0
     | throws :ArgsBeyondInputsError
         |~~ `gt` compares the subject with one value: two fields of one
-            record compare through a name, `:r it | get /a | gt (r | get /b)`.
+            record compare by the names `with` gives them, `with [/a /b] ~(a | gt b)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value, `false`
@@ -992,9 +992,9 @@
   |~~ Answers what the reader declared before the step, whatever the
       subject, the cells of a session before it among them: a map from
       each name to the record of its binding, `::binding` with its name,
-      its docs, its value, its source and its origin. `:limit 10 | env`
-      answers the record of `:limit`, and `env | get /limit` hands it to the
-      next step. A name with a path is held by its address. Inside a
+      its docs, its value, its source and its origin.
+      `:Box |~~ A box. ~~| | env` answers the record of `:Box`, and
+      `env | get /Box` hands it to the next step. A name with a path is held by its address. Inside a
       fork it holds the names before the fork and the fork's own, and
       the fork's stay inside it, and so does code a step wrote; code held
       as data holds its own and the nodes and the labels of the step that
@@ -1010,7 +1010,7 @@
         ::map
     | throws :ArgsBeyondInputsError
         |~~ `env` answers every name the reader declared and takes none:
-            one record is read by its key, `env | get /limit`.
+            one record is read by its key, `env | get /Box`.
         ~~|
     | proves :holdsADeclaredName
         |~~ A name declared before the step is held. ~~|
@@ -1637,7 +1637,7 @@
       its kind as the literal does where it is written: `5 | tag ::Box`
       answers `::Box#5`, its tag the name and its payload the subject, so
       a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`. A tag the subject is already of, as
+      `with {:t ~tag} ~(payload | tag t)`. A tag the subject is already of, as
       `is` answers, changes nothing, `5 | tag ::number`, `5 | tag ::any`
       and `#[1] | tag ::vec` answering the subject and
       `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` answering `::Lab[1]`, a subject
@@ -1751,7 +1751,7 @@
 :any/payload
   |~~ Answers the value beneath the outermost tag of the subject, the other
       side of `tag`, so a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`: `::Box[42] | payload` answers `[42]`,
+      `with {:t ~tag} ~(payload | tag t)`: `::Box[42] | payload` answers `[42]`,
       and a value under two tags opens one, `::A::B[1] | payload`
       answering `::B[1]`. A value of a kind of the core answers what its
       literal writes after the tag of its kind: a number, a string, a
@@ -2691,18 +2691,19 @@
     | impl ::builtin{}
 
 :any/it
-  |~~ Answers the value in the pipe, the subject itself: `:r it` names
-      the record a later step reads back, `get [~(it) ~(count)]` holds it beside
-      what it counts, and `5 | mul it` squares it.
+  |~~ Answers the value in the pipe, the subject itself:
+      `get [~(it) ~(count)]` holds it beside what it counts,
+      `with {:all ~it} ~(first | div (all | sum))` names it for the code of
+      one step, and `5 | mul it` squares it.
       ::link~(::qlang/names | doc)
   ~~|
   ::fn
     | proves :answersTheSubject
         |~~ The subject itself multiplies the subject. ~~|
         ~(5 | mul it | eq 25)
-    | proves :namesTheRecord
-        |~~ A name keeps the record for a later step. ~~|
-        ~({:a 1} | :r it | get /a | add (r | get /a) | eq 2)
+    | proves :namesTheSubjectForTheCodeOfAStep
+        |~~ `with` names the subject itself for the code of one step. ~~|
+        ~([2 6] | with {:all ~it} ~(first | div (all | sum)) | eq 0.25)
     | impl ~()
 
 :any/ok

@@ -2,7 +2,7 @@
 {"name":"has-answers-true-where-a-map-holds-the-key","query":"{:name \"Alice\"} | has :name","expect":"true"}
 {"name":"has-answers-false-where-a-map-lacks-the-key","query":"{:name \"Alice\"} | has :age","expect":"false"}
 {"name":"has-takes-a-keyword-for-the-key-of-a-map","query":"{:a 1 :b 2} | has :a","expect":"true"}
-{"name":"has-answers-true-for-a-key-that-keys-answered","query":":src {:a 1 :b 2} | src | keys | first | :k it | src | has k","expect":"true"}
+{"decision":"D469","name":"has-answers-true-for-a-key-that-keys-answered","query":"{:a 1 :b 2} | with {:k ~(keys | first)} ~(has k)","expect":"true"}
 {"name":"has-reads-a-number-as-the-key-of-its-text","query":"{:\"1\" 5} | get [~(has 1) ~(has 2)]","expect":"[true false]"}
 {"name":"has-reads-a-path-in-a-vector","query":"[1 [2]] | has /1/0","expect":"true"}
 {"name":"has-of-a-map-takes-a-key-or-a-path","query":"{:a 1} | has [1] !| tag","expect":"::map/has/KeyKindNotTakenError"}

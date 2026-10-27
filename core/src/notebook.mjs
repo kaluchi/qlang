@@ -1,7 +1,7 @@
 // [QSNAM#root], [QSDSP#residence], [QSHST#notebook]
 
 import { parseSource, SourceParseError } from './parse.mjs';
-import { evalPipeline } from './eval.mjs';
+import { evalAtTheTop } from './eval.mjs';
 import { langRuntime } from './runtime/lang-runtime.mjs';
 import { rootState } from './state.mjs';
 import { refusalOfAParse } from './runtime/code.mjs';
@@ -21,7 +21,7 @@ function scopeTakenFromAHost(scope) {
   return scope;
 }
 
-// [QSDSP#residence]
+// [QSDSP#residence], [D469]
 export async function createNotebook(opts = {}) {
   let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();
   if (opts.sources) scope = await declareRoot(scope, opts.sources);
@@ -34,7 +34,7 @@ export async function createNotebook(opts = {}) {
       try {
         const quote = parseSource(source, { uri });
         const subject = 'initialPipeValue' in evalOpts ? takenFromAHost(evalOpts.initialPipeValue) : null;
-        const answered = await evalPipeline(quote, rootState(subject, scope));
+        const answered = await evalAtTheTop(quote, rootState(subject, scope));
         scope = answered.scope;
         return entry(answered.pipeValue, null);
       } catch (thrown) {

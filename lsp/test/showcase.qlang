@@ -12,11 +12,11 @@
      7. Typing — Diagnostics
 
    The file is one query: each example joins the one before it by
-   `|`, and its literal replaces the value in the pipe. Code a
-   query names is held under a bare name and run by `apply`; a
-   verb, called by its name on a value, is declared under the
-   label of the values it serves, and `::any` holds the verbs
-   that mean the same for every value.
+   `|`, and its literal replaces the value in the pipe. Its top
+   declares words: a verb, called by its name on a value, is
+   declared under the label of the values it serves, and `::any`
+   holds the verbs that mean the same for every value; a value is
+   named in code, by the names `with` gives the code of one step.
    The rules it holds: [QSSLF#catalog]. ~|
 
 
@@ -31,10 +31,10 @@
 |~| ── 2. Code ──────────────────────────────────────────────
 |~| A quote, `~(…)`, is code: `apply` runs it on the value in the
 |~| pipe, `map` on each element, `filter` to keep the elements it
-|~| holds of. A name holds code as it holds any value, a verb that
-|~| takes code takes the name bare, and the name alone reads the
-|~| quote itself. Ctrl+Click double to jump to its declaration;
-|~| Shift+F12 finds the declaration and its uses.
+|~| holds of. Code declared under the label of the values it serves
+|~| is a verb its name calls, and `~double` hands it on as code.
+|~| Ctrl+Click double to jump to its declaration; Shift+F12 finds
+|~| the declaration and its uses.
 
 | (5 | apply ~(add 1 | mul 2))
 
@@ -42,13 +42,11 @@
 
 | ([1 2 3] | filter ~(gt 1))
 
-:double |~~ Doubles a number. ~~| ~(mul 2)
-
-| (5 | apply double)
-
-| ([1 2 3] | map double)
+:number/double |~~ Doubles a number. ~~| ~(mul 2)
 
 | (5 | double)
+
+| ([1 2 3] | map ~double)
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
@@ -62,10 +60,10 @@
   | accepts |~~ The name and the age. ~~| ::map
   | wires :name |~~ The name. ~~| /name ::string
   | wires :age |~~ The age in years. ~~| /age ::number)
-:Person/adult |~~ Whether the person is of age. ~~| ~(get /age | gte 18)
+:Person/adult |~~ Whether the person is of age. ~~| ~(age | gte 18)
 :Person/greet |~~ The person's name after a greeting. ~~| (::fn
   | takes :greeting |~~ The words before the name. ~~| /0 ::string
-  | impl ~(get /name | prepend greeting))
+  | impl ~(name | prepend greeting))
 
 | (::Person{:name "Ann" :age 30} | adult)
 
@@ -80,12 +78,12 @@
 
 |~| ── 4. Two fields of one record ───────────────────────────
 |~| A modifier is computed against the subject of its own step,
-|~| so two fields meet in one step, or a name keeps the record
-|~| for a later one.
+|~| so two fields meet in one step, or `with` names them for the
+|~| code of one step.
 
 | ({:price 4 :qty 3} | mulOf /price /qty)
 
-| ({:price 4 :qty 3} | :r it | get /qty | mul (r | get /price))
+| ({:price 4 :qty 3} | with [/price /qty] ~(price | mul qty))
 
 
 |~| ── 5. A fold ─────────────────────────────────────────────
@@ -99,13 +97,15 @@
 
 
 |~| ── 6. Names and their scope ──────────────────────────────
-|~| A name is declared once in its scope, and one declared inside
+|~| The top declares words, and code names values of its own: a
+|~| name is declared once in its scope, and one declared inside
 |~| parentheses closes with them.
 
-:x 1
-:y (x | add 1)
-| (42 | :inner it | inner)
-| y
+| apply ~(
+    :x 1
+    :y (x | add 1)
+    | (42 | :inner it | inner)
+    | y)
 
 
 |~| ── 7. Signature Help and Completion ──────────────────────
@@ -135,4 +135,4 @@
 |~| a doc stands in the slot of the declaration it documents.
 
 |~ a block comment between two steps ~|
-:z |~~ The doc in the slot of z. ~~| 1
+:any/z |~~ The doc in the slot of z. ~~| ~(1)

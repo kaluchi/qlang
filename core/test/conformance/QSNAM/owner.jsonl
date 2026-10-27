@@ -4,7 +4,7 @@
 {"name":"a-kind-the-reader-declared-goes-with-its-value-into-a-verb-of-the-root","query":":Box |~~ A box. ~~| | ::Box{} | tutorial | first | content","expect":"\"A box.\""}
 {"name":"a-verb-of-a-kind-the-reader-declared-answers-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~| | :Box/doc ~(\"box page\") | ::Box{} | tutorial | first","expect":"\"box page\""}
 {"name":"a-verb-of-a-kind-the-reader-declared-keeps-its-inputs-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~| | :Box/doc (::fn | takes :n |~~ The n. ~~| ~(query /0 7) | impl ~(\"box \" | append (n | print))) | ::Box{} | tutorial | first","expect":"\"box 7\""}
-{"name":"a-bare-value-of-the-reader-stays-out-of-a-verb-of-the-root","query":":subject 99 | [1 2] | tutorial | first | tag","expect":"::doc"}
-{"name":"a-value-of-the-reader-reaches-no-name-a-verb-of-the-root-writes","query":":laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1]","expect":"[\"K.\" {}]"}
+{"decision":"D469","name":"a-bare-value-of-the-reader-stays-out-of-a-verb-of-the-root","query":"apply ~(:subject 99 | [1 2] | tutorial | first | tag)","expect":"::doc"}
+{"decision":"D469","name":"a-value-of-the-reader-reaches-no-name-a-verb-of-the-root-writes","query":"apply ~(:laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1])","expect":"[\"K.\" {}]"}
 {"name":"the-names-a-verb-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| tag","expect":"::any/doc/UnknownNameError"}
-{"name":"a-verb-reads-as-data-the-names-of-its-query-not-its-own","query":":x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names","expect":"[false true]"}
+{"decision":"D469","name":"a-verb-reads-as-data-the-names-of-its-query-not-its-own","query":"apply ~(:x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names)","expect":"[false true]"}

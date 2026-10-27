@@ -102,21 +102,19 @@
 
       7. Names. A step sees only the value handed to it: after
       `get /qty |` the subject is a number, and the record it came from
-      is gone unless a name keeps it. `:r it` names the value in the pipe
-      `r`, and `:n (…)` names what its group computes; the value in the
-      pipe goes on unchanged, and the bare word reads the name back, `:r`
-      staying a keyword:
-      `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)`
-      answers `6`. A name holds code as it holds any value, and a verb
-      that takes code takes the name bare:
-      `:double ~(mul 2) | 5 | apply double` answers `10`, and
-      `:double ~(mul 2) | [1 2 3] | map double` answers `[2 4 6]`.
-      Declared under the label of the values it serves, the code is a
-      verb the name calls, `:number/double ~(mul 2) | 5 | double`
-      answering `10`, which in the reader's own queries shadows a verb of
-      that name on a broader label, `::any` among them, and which no verb
-      of the root sees under a label of the root. A name is declared once
-      in a scope, and the names
+      is gone. `with` names the parts of its subject for the code of one
+      step, which reads each by its bare word:
+      `{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)`
+      answers `6`. A name the top of a query declares is a word: a kind,
+      a verb or a node under a noun. Code declared under the label of the
+      values it serves is a verb the name calls,
+      `:number/double ~(mul 2) | 5 | double` answering `10`, and `~double`
+      hands it on as code; in the reader's own queries the verb shadows a
+      verb of that name on a broader label, `::any` among them, and no
+      verb of the root sees it under a label of the root. A value named at the top,
+      `:k 1`, is refused as `::bind/ValueAtTheTopError`: a value goes on
+      in the subject, several in the record `get` builds, and code holds
+      names of its own. A name is declared once in a scope, and the names
       a group or a quote declares stay in it.
 
       8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
@@ -500,11 +498,10 @@
             is an error there; `query` reads it softly, and `put`,
             `update` and `delete` write it. A modifier is computed against
             the subject of its own step, the value the step before it
-            answered, so two fields of one record are read in one step,
-            and a name keeps the record for a later step. A name holds the
-            value in the pipe for the steps after it, and steps in
-            parentheses run on the value in the pipe and answer what their
-            last step answers. A line break is a space, so a step on the
+            answered, so two fields of one record are read in one step, by
+            the template of `get` or by the names `with` gives the code of
+            one step, and steps in parentheses run on the value in the
+            pipe and answer what their last step answers. A line break is a space, so a step on the
             next line joins by `|`, written at the end of a line or at the
             start of the next, and around a declaration it tells where the
             declaration ends: a keyword that begins a line with a doc or a
@@ -539,12 +536,12 @@
     | proves :pipeline/failsOnAMiss
         |~~ A miss is an error. ~~|
         ~({:a 1} | get /b !| tag | eq ::path/KeyNotInMapError)
-    | proves :pipeline/keepsTheRecordByAName
-        |~~ A name keeps the record for a later step. ~~|
-        ~({:qty 2 :price 3} | :r it | get /qty | mul (r | get /price) | eq 6)
-    | proves :pipeline/holdsTheValueByAName
-        |~~ A name holds the value in the pipe. ~~|
-        ~(5 | :n it | get [~(n) ~(n | add 1)] | eq [5 6])
+    | proves :pipeline/namesTwoPartsForTheCodeOfAStep
+        |~~ `with` names two parts of the record for the code of one step. ~~|
+        ~({:qty 2 :price 3} | with [/qty /price] ~(qty | mul price) | eq 6)
+    | proves :pipeline/holdsTheValueBesideWhatItComputes
+        |~~ A template holds the value beside what its quotes compute. ~~|
+        ~(5 | get [~(it) ~(add 1)] | eq [5 6])
     | proves :pipeline/joinsLinesByAPipe
         |~~ Steps on several lines join by `|`, a comment between them. ~~|
         ~("[3 1 2]\n|~| the order\n| sort\n| first" | parse | open | eq 1)
@@ -563,9 +560,13 @@
         |~~ One quote of a template sees nothing of another. ~~|
         ~(get [~(:a 1 | a) ~(a)] !| tag | eq ::call/UnknownNameError)
     | tells :names
-        |~~ Names. A name holds a value for the steps after it, the one
-            way a query remembers: `:n v` declares it in the scope where
-            it stands, and a verb and a kind are names alike. A name with
+        |~~ Names. A name holds what its declaration answered for the
+            steps after it: `:n v` declares it in the scope where it
+            stands. The top of a query, of a source and of a cell declares
+            the words its steps share, a kind, a verb and a node under a
+            noun, and a value under a bare name is refused there,
+            `::bind/ValueAtTheTopError`; code holds names of its own, the
+            names `with` gives its body among them. A name with
             a path declares a node under the noun its path names before
             its last name, `:Box/area` under `::Box`, a noun declared
             before it, and the tag of a name is its address, `::Box/area`.
@@ -868,8 +869,8 @@
             A quote written in a step, what a verb takes or a part of a
             template it takes, is code of that step: the step writes at its
             head the values of its scope the quote reads,
-            `:k 10 | [1 2] | map ~(add k)` handing `map` the code
-            `~(:k 10 | add k)`, so it runs as it reads by whatever road the
+            `{:k 10} | with [/k] ~([1 2] | map ~(add k))` handing `map` the
+            code `~(:k 10 | add k)`, so it runs as it reads by whatever road the
             call hands it on, a verb written in the language among them.
             All code runs in a lane of its own: the verbs, the nodes and
             the labels of the step that runs it and the names it declares

@@ -861,7 +861,7 @@
       call gives, as `has` asks of an element, under the name a string
       answers for its substrings, `["ops" "db"] | contains "ops"`
       answering `true`; whether a value is one of several reads
-      `:x it | [5 6] | contains x`. A set is searched by its one order,
+      `with {:x ~it} ~([5 6] | contains x)`. A set is searched by its one order,
       and a map answers no `contains` and asks `has` of its keys. A string
       answers `contains` for a piece of its text, where a vector and a set
       hold whole elements alone, so a query that may meet a string or a

@@ -25,7 +25,7 @@
 {"name":"every-runs-a-predicate-of-allOf-on-each-element","query":"[{:age 25 :ok true} {:age 30 :ok true}] | every ~(allOf (get /ok) (get /age | gte 18))","expect":"true"}
 {"name":"every-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | every ~(gt 0)","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :every\n  :addresses #[::map/every ::vec/every]\n  :trace ::trace[::frame[42 ~(every ~(gt 0))]]\n}"}
 {"name":"every-is-false-where-a-middle-element-does-not-meet-the-predicate","query":"[1 0 2] | every ~(gt 0)","expect":"false"}
-{"name":"every-answers-whether-filter-keeps-every-element","query":":xs [1 2 3 4 5] | xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0))","expect":"true"}
+{"decision":"D469","name":"every-answers-whether-filter-keeps-every-element","query":"[1 2 3 4 5] | with {:xs ~it} ~(xs | filter ~(gt 0) | count | eq (xs | count) | eq (xs | every ~(gt 0)))","expect":"true"}
 {"name":"every-over-a-map-answers-true-where-all-values-meet-the-predicate","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"name":"every-over-a-map-answers-false-where-one-value-does-not-meet-the-predicate","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"name":"every-answers-true-over-an-empty-map","query":"{} | every ~(gt 0)","expect":"true"}

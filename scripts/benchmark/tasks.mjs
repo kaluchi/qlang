@@ -66,7 +66,7 @@ export const TASKS = [
   {
     id: 'L3',
     question: 'hold the code "subtract 3, then multiply by 4" as a value, and answer a vector of the number of its steps and what it answers when run on 10.',
-    reference: "~(sub 3 | mul 4) | :q it | get [~(q | count) ~(10 | apply q)]",
+    reference: "~(sub 3 | mul 4) | with {:q ~it} [~(q | count) ~(10 | apply q)]",
     answer: "[2 28]"
   },
   {
@@ -96,7 +96,7 @@ export const TASKS = [
   {
     id: 'L8',
     question: 'declare a name of your own holding 2 with two laws under it, the claims "eq 2" and "gt 1" of 2, and answer how many laws the name has.',
-    reference: ':two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | ::two | laws | count',
+    reference: 'apply ~(:two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | ::two | laws | count)',
     answer: "2"
   },
   {

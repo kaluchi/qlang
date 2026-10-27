@@ -13,7 +13,7 @@
       and `apply` runs one on a subject, `5 | apply ~(add 1)` answering
       `6`. A quote written in the step that hands it to a verb reads the
       names of that step wherever the verb runs it,
-      `:k 10 | [1 2] | map ~(add k)` answering `[11 12]`; one held as
+      `{:k 10} | with [/k] ~([1 2] | map ~(add k))` answering `[11 12]`; one held as
       data, in a name, a field or a page, runs in a lane of its own and
       reads no value the reader named.
 
@@ -271,7 +271,7 @@
       shows. The query is code held as data and runs in a lane of its
       own: it reads the verbs of the tree and the names it binds, which
       stay inside it, and no value the reader named,
-      `:k 5 | ~(k) | open` refused under `k`. It runs from null, not from the
+      `with {:k ~(5)} ~(~(k) | open)` refused under `k`. It runs from null, not from the
       subject of `open`: a query that reads a subject, `~(add 1)`, is
       refused on null, and a quote meant for a subject runs against it
       by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by

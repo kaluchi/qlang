@@ -11,7 +11,7 @@ async function sessionOf(source) {
 }
 
 it('reads the laws a source declared under a name', async () => {
-  const notebook = await sessionOf(':demo 99\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
+  const notebook = await sessionOf(':demo |~~ A demo. ~~|\n:demo/fiveDoubled ::law~(5 | mul 2 | eq 10)');
   expect((await notebook.evalCell('::demo | laws | count')).result).toBe(1);
 });
 
@@ -66,7 +66,7 @@ describe('runLaws reads a name as laws does', () => {
 describe('the outcome of each law', () => {
   it('a name a source declares with no law under it runs none', async () => {
     const notebook = await createNotebook({
-      sources: [{ uri: 'tests/source', source: ':bare 42' }]
+      sources: [{ uri: 'tests/source', source: ':bare |~~ A name with no law under it. ~~|' }]
     });
     const cellEntry = await notebook.evalCell('::bare | runLaws | count');
     expect(cellEntry.result).toBe(0);
@@ -74,7 +74,7 @@ describe('the outcome of each law', () => {
 
   it('a law a source of the root declares runs from a cell', async () => {
     // [QSQUO#held]
-    const moduleSource = ':fortytwo 1\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
+    const moduleSource = ':fortytwo |~~ Forty-two. ~~|\n:fortytwo/addsUp |~~ Tracks the scope through runLaws. ~~| ::law~(40 | add 2 | eq 42)';
     const notebook = await createNotebook({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -84,7 +84,7 @@ describe('the outcome of each law', () => {
   });
 
   it('a law does not leak the writes of a declaration back into the calling notebook', async () => {
-    const moduleSource = ':writer 1\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
+    const moduleSource = ':writer |~~ A writer. ~~|\n:writer/declares |~~ Declares a name of its own. ~~| ::law~(:scratch 99 | scratch | eq 99)';
     const notebook = await createNotebook({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });
@@ -98,7 +98,7 @@ describe('the outcome of each law', () => {
   });
 
   it('a law that raises a map holds it at rest as its :error, its :message among its facts', async () => {
-    const moduleSource = ':demo 1\n:demo/raises |~~ A user-built error. ~~| ::law~({:message "hand-built failure" :kind :test} | raise)';
+    const moduleSource = ':demo |~~ A demo. ~~|\n:demo/raises |~~ A user-built error. ~~| ::law~({:message "hand-built failure" :kind :test} | raise)';
     const notebook = await createNotebook({
       sources: [{ uri: 'tests/source', source: moduleSource }]
     });

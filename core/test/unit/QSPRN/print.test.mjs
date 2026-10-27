@@ -113,7 +113,7 @@ function literalsOf(count, seed) {
 it('reads every value back from its print as itself', async () => {
   const failing = [];
   for (const source of literalsOf(300, 7)) {
-    const held = await evalQuery(`${source} | :v it | print | parse | open | eq v`);
+    const held = await evalQuery(`${source} | eq (print | parse | open)`);
     if (held !== true) failing.push(source);
   }
   expect(failing).toEqual([]);
@@ -169,7 +169,7 @@ describe('the print declared under a kind', () => {
 });
 
 it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-  expect(await evalQuery(':f ~(add 1) | :v 5 | :T |~~ A kind. ~~| | env | :e it | print | parse | open | eq e')).toBe(true);
+  expect(await evalQuery(':number/f ~(add 1) | :T |~~ A kind. ~~| | :T/v 5 | env | eq (print | parse | open)')).toBe(true);
 });
 
 describe('printing steps read from text', () => {

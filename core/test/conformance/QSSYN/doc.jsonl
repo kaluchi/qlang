@@ -1,36 +1,36 @@
-{"name":"a-line-doc-documents-a-declaration","query":":double |~~| Doubles the input.\n~(mul 2)\n| 5 | apply double","expect":"10"}
-{"name":"doc-reads-the-line-doc-of-a-declaration-as-its-page","query":":foo |~~| Doc text.\n42\n| ::foo | doc | content","expect":"\"Doc text.\""}
-{"name":"a-block-doc-documents-a-declaration","query":":foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| 5 | foo","expect":"42"}
-{"name":"doc-reads-the-block-doc-of-a-declaration-as-its-page","query":":foo |~~ Block doc here. ~~| 42\n| ::foo | doc | content","expect":"\"Block doc here.\""}
-{"name":"two-line-docs-of-a-slot-join-with-a-line-break-between-them","query":":foo |~~| Doc one.\n|~~| Doc two.\n42\n| ::foo | doc | content","expect":"\"Doc one.\\nDoc two.\""}
-{"name":"three-line-docs-of-a-slot-make-three-lines-of-the-page","query":":foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
-{"name":"each-line-doc-of-a-slot-is-an-entry-of-its-own","query":":foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | get /foo | docs | map ~content","expect":"[\"First.\" \"Second.\" \"Third.\"]"}
-{"name":"line-docs-and-a-block-doc-of-a-slot-join-with-a-line-break-between-them","query":":foo |~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n42\n| ::foo | doc | content | lines | count","expect":"3"}
-{"name":"doc-block-preserves-newlines","query":":foo |~~ line one\nline two ~~| 42\n| ::foo | doc | content","expect":"\"line one\\nline two\""}
-{"name":"a-block-doc-across-lines-is-one-entry-of-the-docs","query":":foo |~~ line one\nline two\nline three ~~| 42\n| env | get /foo | docs | map ~content","expect":"[\"line one\\nline two\\nline three\"]"}
-{"name":"doc-on-bind-succeeds","query":":foo |~~| doc\n42\n| foo","expect":"42"}
-{"name":"a-name-declared-over-the-one-around-holds-its-own-docs","query":":foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | get /foo | docs | map ~content)","expect":"[\"Brand new.\" \"With extra remark.\"]"}
-{"name":"the-closer-of-a-block-comment-closes-no-block-doc","query":":foo |~~ plain-close marker ~| mentioned here ~~| 42\n| ::foo | doc | content","expect":"\"plain-close marker ~| mentioned here\""}
-{"name":"doc-block-nests-doc-block-pair","query":":foo |~~ outer |~~ inner ~~| more ~~| 42\n| ::foo | doc | content","expect":"\"outer |~~ inner ~~| more\""}
-{"name":"a-block-doc-holds-adjacent-nested-doc-pairs-in-its-content","query":":foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | get /foo | docs | map ~content","expect":"[\"|~~ a ~~| middle |~~ b ~~|\"]"}
-{"name":"a-block-comment-inside-a-block-doc-is-prose","query":":foo |~~ holds |~ inner plain ~| inline ~~| 42\n| ::foo | doc | content","expect":"\"holds |~ inner plain ~| inline\""}
-{"name":"doc-block-preserves-nested-line-doc-mention","query":":foo |~~ holds |~~| line-doc mention\n more text ~~| 42\n| ::foo | doc | content","expect":"\"holds |~~| line-doc mention\\nmore text\""}
-{"name":"a-nesting-block-doc-documents-a-declaration-whose-body-is-on-the-next-line","query":":foo |~~ outer |~~ inner ~~| more ~~|\n42\n| ::foo | doc | content","expect":"\"outer |~~ inner ~~| more\""}
-{"name":"a-line-comment-opener-inside-a-block-doc-hides-no-closer","query":":foo |~~ pair holds |~| line marker inline ~~|\n42\n| ::foo | doc | content","expect":"\"pair holds |~| line marker inline\""}
-{"name":"a-line-doc-opener-inside-a-block-doc-hides-no-closer","query":":foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | get /foo | docs | map ~content","expect":"[\"pair holds |~~| line-doc marker inline\"]"}
+{"decision":"D469","name":"a-line-doc-documents-a-declaration","query":"apply ~(:double |~~| Doubles the input.\n~(mul 2)\n| 5 | apply double)","expect":"10"}
+{"decision":"D469","name":"doc-reads-the-line-doc-of-a-declaration-as-its-page","query":"apply ~(:foo |~~| Doc text.\n42\n| ::foo | doc | content)","expect":"\"Doc text.\""}
+{"decision":"D469","name":"a-block-doc-documents-a-declaration","query":"apply ~(:foo |~~ Multi-line doc\n    spanning many lines. ~~| 42\n| 5 | foo)","expect":"42"}
+{"decision":"D469","name":"doc-reads-the-block-doc-of-a-declaration-as-its-page","query":"apply ~(:foo |~~ Block doc here. ~~| 42\n| ::foo | doc | content)","expect":"\"Block doc here.\""}
+{"decision":"D469","name":"two-line-docs-of-a-slot-join-with-a-line-break-between-them","query":"apply ~(:foo |~~| Doc one.\n|~~| Doc two.\n42\n| ::foo | doc | content)","expect":"\"Doc one.\\nDoc two.\""}
+{"decision":"D469","name":"three-line-docs-of-a-slot-make-three-lines-of-the-page","query":"apply ~(:foo |~~| First.\n|~~| Second.\n|~~| Third.\n42\n| ::foo | doc | content | lines | count)","expect":"3"}
+{"decision":"D469","name":"each-line-doc-of-a-slot-is-an-entry-of-its-own","query":"apply ~(:foo |~~| First.\n|~~| Second.\n|~~| Third.\n42 | env | get /foo | docs | map ~content)","expect":"[\"First.\" \"Second.\" \"Third.\"]"}
+{"decision":"D469","name":"line-docs-and-a-block-doc-of-a-slot-join-with-a-line-break-between-them","query":"apply ~(:foo |~~| Line doc.\n|~~ Block doc. ~~|\n|~~| Another line.\n42\n| ::foo | doc | content | lines | count)","expect":"3"}
+{"decision":"D469","name":"doc-block-preserves-newlines","query":"apply ~(:foo |~~ line one\nline two ~~| 42\n| ::foo | doc | content)","expect":"\"line one\\nline two\""}
+{"decision":"D469","name":"a-block-doc-across-lines-is-one-entry-of-the-docs","query":"apply ~(:foo |~~ line one\nline two\nline three ~~| 42\n| env | get /foo | docs | map ~content)","expect":"[\"line one\\nline two\\nline three\"]"}
+{"decision":"D469","name":"doc-on-bind-succeeds","query":"apply ~(:foo |~~| doc\n42\n| foo)","expect":"42"}
+{"decision":"D469","name":"a-name-declared-over-the-one-around-holds-its-own-docs","query":"apply ~(:foo |~~| Old.\n1\n| (:foo |~~| Brand new.\n|~~| With extra remark.\n2\n| env | get /foo | docs | map ~content))","expect":"[\"Brand new.\" \"With extra remark.\"]"}
+{"decision":"D469","name":"the-closer-of-a-block-comment-closes-no-block-doc","query":"apply ~(:foo |~~ plain-close marker ~| mentioned here ~~| 42\n| ::foo | doc | content)","expect":"\"plain-close marker ~| mentioned here\""}
+{"decision":"D469","name":"doc-block-nests-doc-block-pair","query":"apply ~(:foo |~~ outer |~~ inner ~~| more ~~| 42\n| ::foo | doc | content)","expect":"\"outer |~~ inner ~~| more\""}
+{"decision":"D469","name":"a-block-doc-holds-adjacent-nested-doc-pairs-in-its-content","query":"apply ~(:foo |~~ |~~ a ~~| middle |~~ b ~~| ~~| 42\n| env | get /foo | docs | map ~content)","expect":"[\"|~~ a ~~| middle |~~ b ~~|\"]"}
+{"decision":"D469","name":"a-block-comment-inside-a-block-doc-is-prose","query":"apply ~(:foo |~~ holds |~ inner plain ~| inline ~~| 42\n| ::foo | doc | content)","expect":"\"holds |~ inner plain ~| inline\""}
+{"decision":"D469","name":"doc-block-preserves-nested-line-doc-mention","query":"apply ~(:foo |~~ holds |~~| line-doc mention\n more text ~~| 42\n| ::foo | doc | content)","expect":"\"holds |~~| line-doc mention\\nmore text\""}
+{"decision":"D469","name":"a-nesting-block-doc-documents-a-declaration-whose-body-is-on-the-next-line","query":"apply ~(:foo |~~ outer |~~ inner ~~| more ~~|\n42\n| ::foo | doc | content)","expect":"\"outer |~~ inner ~~| more\""}
+{"decision":"D469","name":"a-line-comment-opener-inside-a-block-doc-hides-no-closer","query":"apply ~(:foo |~~ pair holds |~| line marker inline ~~|\n42\n| ::foo | doc | content)","expect":"\"pair holds |~| line marker inline\""}
+{"decision":"D469","name":"a-line-doc-opener-inside-a-block-doc-hides-no-closer","query":"apply ~(:foo |~~ pair holds |~~| line-doc marker inline ~~|\n42\n| env | get /foo | docs | map ~content)","expect":"[\"pair holds |~~| line-doc marker inline\"]"}
 {"name":"a-doc-value-holds-a-nested-doc-pair-in-its-content","query":"|~~ mentions |~~ inner pair ~~| inside ~~| | content","expect":"\"mentions |~~ inner pair ~~| inside\""}
 {"name":"a-doc-reads-a-line-break-as-one","query":"|~~ a\r\nb ~~| | content | contains \"\\r\"","expect":"false"}
 {"name":"a-doc-before-a-declaration-is-refused","query":"\"|~~ note ~~| :x 42\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-doc-in-the-slot-documents-the-declaration","query":":x |~~ note ~~| 42 | ::x | doc | content","expect":"\"note\""}
+{"decision":"D469","name":"a-doc-in-the-slot-documents-the-declaration","query":"apply ~(:x |~~ note ~~| 42 | ::x | doc | content)","expect":"\"note\""}
 {"name":"a-doc-after-a-step-is-refused","query":"\"[5] |~~ why ~~|\" | parse !| message | contains \"|~ … ~|\"","expect":"true"}
 {"name":"a-doc-is-a-modifier-of-a-command","query":"[1] | append |~~ A note. ~~| | count","expect":"2"}
 {"name":"a-doc-that-names-keywords-at-the-head-of-a-query-answers-itself","query":"|~~ see :filter and :every ~~|","expect":"|~~ see :filter and :every ~~|"}
 {"name":"the-tag-of-a-line-doc-is-doc","query":"|~~| line content\n  | tag | eq ::doc","expect":"true"}
 {"name":"docs-alone-bind-one-doc-a-line-break-between-them","query":":note |~~| one\n|~~| two\n| note | content","expect":"\"one\\ntwo\""}
-{"name":"a-comment-between-two-docs-of-a-slot-is-whitespace","query":":foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content","expect":"\"doc one\\ndoc two\""}
-{"name":"the-docs-of-a-slot-join-in-order-across-the-comments-among-them","query":":foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content","expect":"\"a\\nb\\nc\""}
-{"name":"a-block-doc-and-a-line-doc-join-across-a-comment-between-them","query":":bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content","expect":"\"block doc\\nline doc\""}
-{"name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":":foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content","expect":"\"the doc\""}
+{"decision":"D469","name":"a-comment-between-two-docs-of-a-slot-is-whitespace","query":"apply ~(:foo |~~| doc one\n|~ separator ~|\n|~~| doc two\n42\n| ::foo | doc | content)","expect":"\"doc one\\ndoc two\""}
+{"decision":"D469","name":"the-docs-of-a-slot-join-in-order-across-the-comments-among-them","query":"apply ~(:foo |~~| a\n|~ p1 ~|\n|~~| b\n|~ p2 ~|\n|~~| c\n42\n| ::foo | doc | content)","expect":"\"a\\nb\\nc\""}
+{"decision":"D469","name":"a-block-doc-and-a-line-doc-join-across-a-comment-between-them","query":"apply ~(:bar |~~ block doc ~~|\n|~ plain ~|\n|~~| line doc\n99\n| ::bar | doc | content)","expect":"\"block doc\\nline doc\""}
+{"decision":"D469","name":"a-comment-between-a-name-and-its-doc-is-whitespace","query":"apply ~(:foo |~ why ~| |~~| the doc\n42\n| ::foo | doc | content)","expect":"\"the doc\""}
 {"name":"the-tag-of-a-block-doc-is-doc","query":"|~~ x ~~| | tag | eq ::doc","expect":"true"}
 {"name":"a-vector-holds-a-doc-as-its-first-element","query":"[|~~ doc ~~| 42] | first | tag | eq ::doc","expect":"true"}
 {"name":"a-vector-holds-a-doc-as-its-last-element","query":"[42 |~~ doc ~~|] | last | tag | eq ::doc","expect":"true"}

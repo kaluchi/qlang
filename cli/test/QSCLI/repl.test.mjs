@@ -106,9 +106,9 @@ it('prints a failure with the steps its trace holds, the steps it skipped among 
 
 it('runs the query given on the command line before the typed cells, in the same notebook', async () => {
   const replHarness = captureRepl('x | add 1\n.exit\n');
-  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':x 41', terminal: replHarness.stdinStream });
+  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':any/x ~(41)', terminal: replHarness.stdinStream });
   const printed = stripAnsi(replHarness.stdoutText());
-  expect(printed).toContain('qlang> :x 41');
+  expect(printed).toContain('qlang> :any/x ~(41)');
   expect(printed).toContain('42');
 });
 

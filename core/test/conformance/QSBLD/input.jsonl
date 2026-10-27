@@ -29,7 +29,7 @@
 {"name":"a-verb-refuses-an-input-left-out","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(add a b)) | 0 | f 1","raises":"::number/f/BNotGivenError!{:subject/found 0 :a/found 1 :trace ::trace[::frame[0 ~(f 1)]]}"}
 {"name":"a-verb-refuses-args-beyond-its-inputs","query":":number/f (::fn | takes :a |~~ The a. ~~| /0 | impl ~(add a)) | 5 | f 1 2 3","raises":"::number/f/ArgsBeyondInputsError!{:subject/found 5 :a/found 1 :surplus/found [2 3] :trace ::trace[::frame[5 ~(f 1 2 3)]]}"}
 {"name":"an-input-reads-its-arg-at-each-call","query":":map/pluck (::fn | takes :proj |~~ The proj. ~~| /0 | impl ~(proj)) | [{:a 1} {:a 2} {:a 3}] | map ~(pluck (get /a))","expect":"[1 2 3]"}
-{"name":"the-surplus-a-refusal-holds-reads-back-as-it-prints","query":"1 | add 1 2 !| surplus | found | :s it | print | parse | open | eq s","expect":"true"}
+{"decision":"D469","name":"the-surplus-a-refusal-holds-reads-back-as-it-prints","query":"1 | add 1 2 !| surplus | found | eq (print | parse | open)","expect":"true"}
 {"name":"an-invariant-of-an-input-that-reads-the-args-whole-refuses-them","query":"{} | coalesce !| get [~(tag) ~(alternatives | found)]","expect":"[::any/coalesce/AlternativesEmptyError ::any/coalesce[]]"}
 {"name":"the-args-of-a-call-are-a-value-under-its-verb","query":":any/argsOf (::fn | takes :xs |~~ The xs. ~~| ~(take 99) | impl ~(args)) | 5 | argsOf 1 2","expect":"::any/argsOf[1 2]"}
 {"name":"the-kinds-of-an-input-refuse-under-its-name","query":"1 | add \"x\" !| tag","expect":"::number/add/AddendKindNotTakenError"}

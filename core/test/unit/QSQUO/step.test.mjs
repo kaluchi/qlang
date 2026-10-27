@@ -181,7 +181,7 @@ describe('assembling steps by hand', () => {
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {
     for (const literal of ['[|~~ ::group~(x) ~~|]', '{:k |~~ ::fail~(x) ~~|}', '#[|~~ ::group~(x) ~~|]', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
-      expect(await evalQuery(`"${literal}" | parse | :q it | first | get [~(it)] | tag ::quote | eq q`), literal).toBe(true);
+      expect(await evalQuery(`"${literal}" | parse | eq (first | get [~(it)] | tag ::quote)`), literal).toBe(true);
     }
   });
 

@@ -3,13 +3,16 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :bind
-  |~~ A declaration, `:name body`, names a value for the steps after it;
-      it writes its `::binding` into the scope where it stands:
-      `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
-      record for a later step and answers `6`. The value in the pipe
-      passes on unchanged; a group and a quote a verb runs each close the
-      names declared inside, the quotes of a template `get` runs are forks
-      of their own, and a name is declared once in its scope.
+  |~~ A declaration, `:name body`, names what its body answers for the
+      steps after it; it writes its `::binding` into the scope where it
+      stands. At the top of a query, of a source and of a cell it declares
+      a word, a kind, a verb or a node under a noun,
+      `:number/double ~(mul 2) | 5 | double` answering `10`, and a value
+      under a bare name is refused there; code names values of its own,
+      `5 | apply ~(:r it | add 1 | mul r)` answering `30`. The value in the
+      pipe passes on unchanged; a group and a quote a verb runs each close
+      the names declared inside, the quotes of a template `get` runs are
+      forks of their own, and a name is declared once in its scope.
 
       In a quote the step is a record, `~(:x 1) | first` answering
       `::bind{:name :x :body 1}`: `:name` the keyword it binds,
@@ -116,6 +119,22 @@
             ::link~(::bind | doc)
         ~~|
         ~(wires :name |~~ The name declared again. ~~| ::keyword)
+    | throws :ValueAtTheTopError
+        |~~ The top of a query, of a source and of a cell, its steps and the
+            steps of a group among them, declares the words its steps share:
+            a kind, by its chain or by its page alone, a verb or a recipe
+            under the label of the values it serves,
+            `:number/double ~(mul 2)`, and a node under a noun. A value under
+            a bare name is refused there, `:name` naming it: a value goes on
+            in the subject, several as the record `get` builds,
+            `[1 2 3 4] | get {:a /1 :c ~(sumOf first last)}`, a name for the
+            code of one step is given by `with`,
+            `{:lim 4 :xs [1 5 10]} | with [/lim /xs] ~(xs | filter ~(gt lim))`,
+            and code run again is a verb.
+            ::link~(::any/with | doc) ::link~(::any/get | doc)
+            ::link~(::bind | doc)
+        ~~|
+        ~(wires :name |~~ The name of the value declared at the top. ~~| ::keyword)
     | proves :holdsTheNameAndTheBody
         |~~ A declaration holds its name and its body. ~~|
         ~(~(:inc add 1) | first | get [/name /body/name] | eq [:inc :add])

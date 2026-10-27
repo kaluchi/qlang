@@ -1,4 +1,4 @@
-{"name":"a-name-a-reader-stands-over-is-near-once","query":":vec 5 | vex !| nearest","expect":"[:vec]"}
+{"decision":"D469","name":"a-name-a-reader-stands-over-is-near-once","query":"apply ~(:vec 5 | vex !| nearest)","expect":"[:vec]"}
 {"name":"a-longer-guess-meets-the-name-it-begins-with","query":"5 | multiply 2 !| nearest | has :mul","expect":"true"}
 {"name":"a-slip-of-the-hand-meets-its-name","query":"5 | ad 2 !| nearest | has :add","expect":"true"}
 {"name":"an-axis-refusal-names-the-tags-near-its-name","query":"::str | binding !| nearest | has ::string","expect":"true"}

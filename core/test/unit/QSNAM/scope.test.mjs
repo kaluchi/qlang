@@ -6,20 +6,19 @@ import { forEachPart, visibleAt, repeatsDeclarationAt } from '../../../src/parse
 import { isBindStep } from '../../../src/steps.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
-it('a recipe declares none of the inputs its call binds whatever a reader or a later source names so, and shadows every other', async () => {
+it('a recipe declares none of the inputs its call binds whatever a reader names so, and shadows every other', async () => {
   const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3 | n))\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map ~(mul n)))\n:vec/padded ~(:n 3 | count | add n)' };
-  const later = { uri: 'stock', source: ':n 9' };
-  const notebook = await createNotebook({ sources: [shop, later] });
-  const answers = ':n 7 | get [~([1] | sized 2 !| get [~(tag) ~(name)]) ~([1 2] | scaled 2) ~([1 2] | padded)]';
+  const notebook = await createNotebook({ sources: [shop] });
+  const answers = 'apply ~(:n 7 | get [~([1] | sized 2 !| get [~(tag) ~(name)]) ~([1 2] | scaled 2) ~([1 2] | padded)])';
   expect((await notebook.evalCell(`${answers} | eq [[::bind/NameDeclaredTwiceError :n] [2 4] 5]`)).result).toBe(true);
-  const reader = ':n 7 | :vec/twice ~(:n 2 | map ~(mul n)) | :vec/sum2 (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 2 | sum | add n))';
-  expect((await notebook.evalCell(`${reader} | get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(tag) ~(name)])] | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
+  const reader = ':vec/twice ~(:n 2 | map ~(mul n)) | :vec/sum2 (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 2 | sum | add n))';
+  expect((await notebook.evalCell(`${reader} | apply ~(:n 7 | get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(tag) ~(name)])]) | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
 });
 
 it('a cell opens a scope of its own, where a later cell declares a name again', async () => {
   const sessionInstance = await createNotebook();
-  await sessionInstance.evalCell(':k 1');
-  const cellEntry = await sessionInstance.evalCell(':k 2 | k');
+  await sessionInstance.evalCell(':number/k ~(1)');
+  const cellEntry = await sessionInstance.evalCell(':number/k ~(2) | 5 | k');
   expect(cellEntry.result).toBe(2);
 });
 

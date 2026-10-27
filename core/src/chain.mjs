@@ -248,7 +248,7 @@ function placeOf(selector) {
   return rest.length === 0 && isPath(path) && (name === 'get' || name === 'query') ? { path, soft: name === 'query' } : null;
 }
 
-// [QSBLD#fn], [QSERR#rest], [D470]
+// [QSBLD#fn], [QSERR#rest], [QSSLF#doc]
 const KIND_TAG = makeTag(KIND_TAG_NAME);
 const pageLinkingTo = tag => makeDoc([makeTagged(makeTag('link'), makeQuote([tag]))]);
 const ACCEPTS_THE_ERROR = commandStep('accepts', [pageLinkingTo(ERROR_TAG), makeSet([ERROR_TAG, EXCERPT_TAG])]);

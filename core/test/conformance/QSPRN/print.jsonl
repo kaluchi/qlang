@@ -2,13 +2,13 @@
 {"name":"print-writes-a-string-as-its-literal","query":"\"hi\" | print","expect":"\"\\\"hi\\\"\""}
 {"name":"print-writes-a-control-character-as-its-escape","query":"\"\\u0007\" | print","expect":"\"\\\"\\\\u0007\\\"\""}
 {"name":"print-writes-a-lone-surrogate-as-its-escape","query":"\"\\uD800\" | print","expect":"\"\\\"\\\\ud800\\\"\""}
-{"decision":"D470","name":"print-reads-a-lone-surrogate-back-as-the-string","query":"\"\\uD800\" | print | parse | answer | eq \"\\uD800\"","expect":"true"}
+{"name":"print-reads-a-lone-surrogate-back-as-the-string","query":"\"\\uD800\" | print | parse | answer | eq \"\\uD800\"","expect":"true"}
 {"name":"print-writes-a-descriptor-under-its-tag","query":"::builtin{:a 1} | print","expect":"\"::builtin{:a 1}\""}
 {"name":"print-writes-a-doc-as-its-literal","query":"[\"a \" ~(add 1)] | tag ::doc | print","expect":"\"|~~ a ~(add 1) ~~|\""}
 {"name":"print-writes-a-set-as-its-literal","query":"#[2 1] | print","expect":"\"#[1 2]\""}
 {"name":"print-writes-a-quote-as-its-literal","query":"~(add 1) | print","expect":"\"~(add 1)\""}
 {"name":"print-writes-each-part-by-its-kind","query":"[|~~ x ~~| #[1]] | print","expect":"\"[|~~ x ~~| #[1]]\""}
-{"decision":"D469","name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | eq (print | parse | answer)","expect":"true"}
+{"name":"the-print-of-a-value-reads-back-as-the-value","query":"{:a [1 \"x\" :k]} | eq (print | parse | answer)","expect":"true"}
 {"name":"a-doc-holding-a-quote-prints-as-written","query":"|~~ see ~(mul 2) for ref ~~| | print","expect":"\"|~~ see ~(mul 2) for ref ~~|\""}
 {"name":"true-prints-as-its-word","query":"true | print","expect":"\"true\""}
 {"name":"false-prints-as-its-word","query":"false | print","expect":"\"false\""}
@@ -30,8 +30,8 @@
 {"name":"a-doc-prints-its-lines-two-spaces-past-the-line-it-opens-on","query":"[\"a\n  b\n\nc\"] | tag ::doc | print","expect":"\"|~~ a\\n    b\\n\\n  c ~~|\""}
 {"name":"a-command-past-the-width-of-a-line-lays-each-modifier-but-a-keyword-on-a-line-of-its-own","query":"~(f :k |~~ a page long enough to pass the width of a line beside its command ~~| ~(add 1) /a) | toString","expect":"\"f :k\\n    |~~ a page long enough to pass the width of a line beside its command ~~|\\n    ~(add 1)\\n    /a\""}
 {"name":"a-declaration-past-the-width-of-a-line-writes-its-page-under-its-name","query":"~(:vec/f |~~ a page long enough to pass the width of a line beside the name ~~| ~(get /1) | count) | toString","expect":"\":vec/f\\n  |~~ a page long enough to pass the width of a line beside the name ~~| ~(get /1) | count\""}
-{"decision":"D469","name":"a-declaration-laid-on-lines-reads-back-as-the-same-steps","query":"~(:vec/f |~~ a page long enough to pass the width of a line beside the name ~~| ~(get /1) | count) | eq (print | parse | first)","expect":"true"}
-{"decision":"D469","name":"the-source-of-a-verb-reads-back-from-its-print","query":"::number/round | source | eq (print | parse | first)","expect":"true"}
+{"name":"a-declaration-laid-on-lines-reads-back-as-the-same-steps","query":"~(:vec/f |~~ a page long enough to pass the width of a line beside the name ~~| ~(get /1) | count) | eq (print | parse | first)","expect":"true"}
+{"name":"the-source-of-a-verb-reads-back-from-its-print","query":"::number/round | source | eq (print | parse | first)","expect":"true"}
 {"name":"a-frame-lays-a-step-past-the-width-of-a-line-on-one-line-still","query":"\"x\" | add 1 | get [~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it) ~(it)] !| trace | first | print | lines | count","expect":"1"}
 {"name":"a-step-measures-the-width-of-its-line-with-the-pipe-before-it","query":"::number/round | source | toString | lines | filter ~(startsWith \"| takes\") | first","expect":"\"| takes :digits\""}
 {"name":"a-page-declared-alone-past-the-width-of-a-line-writes-its-page-under-its-name","query":"~(:x |~~ a page long enough to pass the width of a line beside the name of its declaration ~~|) | toString","expect":"\":x\\n  |~~ a page long enough to pass the width of a line beside the name of its declaration ~~|\""}

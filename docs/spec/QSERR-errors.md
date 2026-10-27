@@ -264,7 +264,7 @@ trace over at that raise.
 > {:a 1 :trace []} | raise | count !| get /trace
 ::trace[::frame[{:a 1 :trace []} ~(raise | count)]]
 
-> {:a 1 :trace []} | raise !| :e it | raise !| eq e
+> {:code 404 :trace []} | raise !| with {:caught ~it} ~(raise !| eq caught)
 true
 
 > !{:a 1} | raise | count !| raise | add 1 !| get /trace | last | skipped
@@ -315,7 +315,7 @@ error at rest it is, so reading it raises nothing.
 > get [1 ~("x" | add 1)] !| tag
 ::number/add/SubjectNotNumberError
 
-> :x (1 | div 0) !| env | has :x
+> apply ~(:rate (1 | div 0) !| env | has :rate)
 false
 
 > [1 "x" 3] | map ~(add 10 !| 0)
@@ -461,7 +461,7 @@ a segment a path read as an index numbers.
 ## print
 
 A failure prints as the error at rest a catch holds, the trace it left
-among its facts, and its print read back by `parse | open` and raised
+among its facts, and its print read back by `parse | answer` and raised
 resumes that trace; a query that does not parse flew no step and prints
 its facts alone. The answer of a host that is a failure prints as its
 alert under the line comment `|~| raised, and no !| caught it`, which a
@@ -475,10 +475,10 @@ within the room of a fact of an alert [QSSYN#refusal], so a host prints it as
 any failure and draws nothing below it.
 
 ```qlang
-> !{:a 1} | raise !| print | parse | open | raise !| keys
-#[:a :trace]
+> !{:code 404} | raise !| print | parse | answer | raise !| keys
+#[:code :trace]
 
-> "x" | add 1 !| print | parse | open | raise | count !| trace | map ~(get [~(subject) ~(failed) ~(skipped)])
+> "x" | add 1 !| print | parse | answer | raise | count !| trace | map ~(get [~(subject) ~(failed) ~(skipped)])
 [["x" ~(add 1) ~(count)]]
 
 > !{:a 1}

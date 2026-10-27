@@ -163,7 +163,7 @@ name's page and its laws, a name nothing declares refused as `doc`
 refuses it. Every law of the core passes.
 
 ```qlang
-> :three 3 | :three/isThree ::law~(3 | eq 3) | ::three | runLaws | map /ok
+> :Box |~~ A box. ~~| | :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1) | ::Box | runLaws | map /ok
 [true]
 
 > ::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]
@@ -172,7 +172,7 @@ refuses it. Every law of the core passes.
 > ::number/add | laws | count
 4
 
-> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | map ~(manifest) | flat | :n5 it | get [~(n5 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4) ~(n5)] | flat | every ~(runLaws | every /ok))]
+> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])
 [0 true]
 ```
 
@@ -229,9 +229,10 @@ dropping an empty one, as the parser does, a payload that is no vector
 refused as `::doc/PayloadKindNotTakenError` and an element of another
 kind as `::doc/ElementKindNotTakenError`. A tag gives a quote a
 role, the tags of a stack read from the outside in: `::link`, which
-`links` answers and `open` runs to what its query answers, a page where
-it reads one, and `::snippet`, which `snippets` answers and `open` runs
-to what it shows; each is a kind of the core with a page, which holds a
+`links` answers, whose code answers the name of a page and which `open`
+opens to that page, and `::snippet`, which `snippets` answers and which
+`answer` runs to what it shows, the code of either running by `answer`;
+each is a kind of the core with a page, which holds a
 quote by its own tag, or the other role, `::link::snippet~(…)`, so a tag a
 host or a reader lays over a link keeps it a link, a quote under another
 tag and `::link#5` refused as `::link/PayloadKindNotTakenError`, and a
@@ -240,7 +241,7 @@ once from the values the labels of the tags of its roles lay over its
 quotes, from the inside out, wherever it stands as a value, the docs of
 the slot of a declaration among them: a tag that takes no quote refuses
 the doc and the declaration that holds it as its page, and so does a
-quote that breaks an invariant of its role, and `::quote~(a)` in a doc
+quote that breaks an invariant of its role, and `::quote~(add 1)` in a doc
 is the quote itself; code holds a doc with the quotes of its roles as
 written.
 
@@ -254,11 +255,14 @@ written.
 > get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ see ::group~(add 1) ~~| | segments | count)]
 ["|~~ a ~(add 1) b ~~|" 2]
 
-> get [~(|~~ a ::link~(::qlang | doc) b ~~| | content) ~([" a\n     b "] | tag ::doc | content)]
-["a ::link~(::qlang | doc) b" "a\nb"]
+> get [~(|~~ a ::link~(::qlang) b ~~| | content) ~([" a\n     b "] | tag ::doc | content)]
+["a ::link~(::qlang) b" "a\nb"]
 
-> |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | open
+> |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | answer
 2
+
+> |~~ a ::link~(::vec/sort) b ~~| | links | first | get [~(answer) ~(open | tag)]
+[::vec/sort ::doc]
 
 > get [~(::link#5 !| tag) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
 [::link/PayloadKindNotTakenError 1]
@@ -303,7 +307,7 @@ true
 > ::qlang | doc | content | get [~(contains "its views and its parts") ~(contains "the ::cell that") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> kinds | toVec | :n1 it | map ~(manifest) | flat | :n2 it | map ~(manifest) | flat | :n3 it | map ~(manifest) | flat | :n4 it | map ~(manifest) | flat | :n5 it | get [~(n5 | map ~(manifest) | flat | count) ~(get [~(n1) ~(n2) ~(n3) ~(n4) ~(n5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))]
+> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])
 [0 true]
 
 > kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)

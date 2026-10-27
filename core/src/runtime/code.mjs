@@ -35,5 +35,5 @@ registerStateReader('any/apply', runsAsCode(['code'], async (subject, code, args
   return await code(subject);
 }));
 
-// [QSQUO#held], [D470]
+// [QSQUO#held], [QSQUO#apply]
 registerStateReader('quote/answer', async (query, state) => await codeOf(query, state)(null));

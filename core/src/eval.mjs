@@ -45,13 +45,13 @@ const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsCh
 // [QSDSP#refusal]
 const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
-// [D469]
+// [QSNAM#declare]
 const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
 
-// [D256]
+// [QSNAM#value]
 const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
 
-// [QSQUO#step], [D469]
+// [QSQUO#step], [QSNAM#declare]
 export async function evalPipeline(steps, state, origin = originOf(steps), atTheTop = false) {
   let current = state;
   for (const [index, step] of steps.entries()) {
@@ -61,7 +61,7 @@ export async function evalPipeline(steps, state, origin = originOf(steps), atThe
   return current;
 }
 
-// [D469]
+// [QSNAM#declare]
 export const evalAtTheTop = (steps, state) => evalPipeline(steps, state, originOf(steps), true);
 
 // [QSERR#trace]
@@ -134,7 +134,7 @@ export async function errorAtRestOf(raised, state) {
   }
 }
 
-// [QSNAM#scope], [D469]
+// [QSNAM#scope], [QSNAM#declare]
 async function evalGroup(group, state, at) {
   return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload), at?.atTheTop === true));
 }
@@ -201,7 +201,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe], [D469], [D256]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -312,7 +312,7 @@ function nodesOfFunction(fn, address, scope, origin) {
   return layRest(chain);
 }
 
-// [QSNAM#scope], [D256]
+// [QSNAM#scope], [QSNAM#reach]
 function declaresWhatTheCallBinds(steps, scope, name) {
   const recipe = scope.get(RECIPE_KEY);
   return recipe !== undefined && recipe.steps === steps && recipe.names.has(name);
@@ -362,7 +362,7 @@ const slotRefusedIn = facts => {
   return null;
 };
 
-// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [D256]
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value]
 async function callByName(lookupName, modifiers, state, call, at) {
   refuseWithheld(state.scope, lookupName);
   const reach = bareNameReach(state.scope, lookupName, state.pipeValue);
@@ -389,7 +389,7 @@ async function partCalled(address, modifiers, state) {
   return valueCalled(wiringOf(served).get(name), name, name, modifiers, state);
 }
 
-// [QSNAM#value], [D256]
+// [QSNAM#value]
 async function applyBinding(entry, name, lastName, modifiers, state, at) {
   const value = bindingValueOf(entry);
   if (modifiers.length === 0 && isALaterStep(at)) throw new CallValueAsALaterStepError({ name: makeKeyword(name), found: value, addresses: addressesOf(state.scope, lastName) });
@@ -404,7 +404,7 @@ function valueCalled(value, name, lastName, modifiers, state) {
   return withPipeValue(state, value);
 }
 
-// [QSNAM#address], [D256]
+// [QSNAM#address], [QSNAM#value]
 async function callByAddress(call, address, modifierSteps, state, at) {
   const record = nodeOf(state.scope, address);
   if (record === null) {
@@ -602,7 +602,7 @@ export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
-// [QSBLD#fn], [QSHST#source], [QSBLD#recipe], [D256]
+// [QSBLD#fn], [QSHST#source], [QSBLD#recipe], [QSNAM#reach]
 async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
@@ -713,7 +713,7 @@ function tagsTheOperandsShare(chain, labelName, subject, given) {
   return tagsOver(subject).length === 0 ? tally.tags.map(makeTag) : null;
 }
 
-// [QSHST#source], [D468], [D256]
+// [QSHST#source], [QSQUO#held], [QSNAM#reach]
 function handedTo(primitive, chain, { values, state: called }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;
@@ -766,7 +766,7 @@ function quotesClosedIn(value, closeOf) {
   return closed;
 }
 
-// [D468], [D256]
+// [QSQUO#held], [QSNAM#reach]
 function quotesWithin(value, into) {
   if (isQuote(value)) {
     into.add(value);
@@ -886,7 +886,7 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [QSBLD#recipe], [D256]
+// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts) {
   const values = [];
   const written = new Set();
@@ -932,7 +932,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   return { values: inputValues, given, recipeScope, state: called };
 }
 
-// [D468]
+// [QSQUO#held]
 function handedToTheRecipe(values, writtenAt, called) {
   const written = writtenBy(called);
   const named = valuesNamedIn(ownScopeOf(called));
@@ -1004,7 +1004,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest], [D256]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest], [QSBLD#kind]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
@@ -1072,14 +1072,14 @@ function closeQuote(quote, state) {
   return async subject => (await evalPipeline(quote, nestState(state, subject, state.scope))).pipeValue;
 }
 
-// [D468], [QSNAM#verb], [QSERR#trace]
+// [QSQUO#held], [QSNAM#verb], [QSERR#trace]
 function modifierOf(step, state) {
   if (isQuote(step)) return writtenInTheStep(() => step);
   if (isTemplate(step)) return writtenInTheStep(closeStep(step, state));
   return closeStep(step, state);
 }
 
-// [D468]
+// [QSQUO#held]
 const isTemplate = step => isConstructStep(step) || errorFieldsOf(step) !== null || isSet(step) || ((isVec(step) || isMap(step)) && step[TAG_HEADER_SYMBOL] === undefined);
 
 const writtenInTheStep = code => Object.assign(code, { written: true });
@@ -1096,12 +1096,12 @@ function codeOfPath(path, callState) {
   };
 }
 
-// [QSQUO#literal], [D468]
+// [QSQUO#literal], [QSQUO#held]
 export function codeOf(code, callState) {
   return closerOf(callState)(code);
 }
 
-// [QSPTH#template], [D468], [QSNAM#scope]
+// [QSPTH#template], [QSQUO#held], [QSNAM#scope]
 export function templateClosedIn(template, callState, names = new Map()) {
   return quotesClosedIn(template, closerOf(callState, names));
 }

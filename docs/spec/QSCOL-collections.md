@@ -146,8 +146,10 @@ steps of its code: a quote of one step that is a call with no modifiers,
 by the name of a verb or its address, `~(add)` or `~(number/add)`,
 written or assembled from data alike, is the short form, which calls the
 verb as the pipe calls it, the value so far its subject and the element
-its first arg, in the scope of the step that wrote the quote, a value
-that scope binds under the name of the verb meeting it as a step does.
+its first arg, and a value the step that wrote the quote names under the
+name of the verb stands over the verb, so the call that hands it the
+element is refused as a value given modifiers,
+`::call/ValueTakesNoModifiersError` [QSNAM#value].
 Any other code runs on the pair of the value so far and the element, a
 path, a call with modifiers, a quote of more steps and a name that
 reaches no verb among it. A failure the one word answers passes a frame
@@ -161,11 +163,11 @@ of `reduce` names the path of the element [QSERR#trace].
 > [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
-> [1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el)
+> [1 2 3] | reduce 0 ~(:sofar (get /0) | :digit (get /1) | sofar | mul 10 | add digit)
 123
 
-> :add 5 | [1 2 3] | reduce 0 ~(add) !| tag
-::call/ValueMeetsVerbError
+> apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
+[::call/ValueTakesNoModifiersError #[::number/add]]
 
 > [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
 [["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]

@@ -39,7 +39,7 @@
 {"name":"coalesce-answers-the-refusal-of-a-path-query-refuses","query":"get [~({:a 5} | coalesce /a/b 0 !| tag) ~([1] | coalesce /a 0 !| tag)]","expect":"[::path/SubjectHasNoPartsError ::path/IndexNotIntegerError]"}
 {"name":"coalesce-passes-over-null-on-the-way-and-an-index-past-the-end","query":"get [~({:a null} | coalesce /a/b 0) ~([1] | coalesce /5 0)]","expect":"[0 0]"}
 {"name":"coalesce-passes-over-a-part-its-code-misses","query":"{} | coalesce ~(get /a | add 1) 0","expect":"0"}
-{"decision":"D469","name":"coalesce-answers-the-refusal-of-a-withheld-name-as-apply-does","query":"apply ~(:k 1 | :q ~(add k) | 5 | get [~(coalesce q ~(\"none\") !| tag) ~(apply q !| tag)])","expect":"[::call/ValueWithheldError ::call/ValueWithheldError]"}
+{"name":"coalesce-answers-the-refusal-of-a-withheld-name-as-apply-does","query":"apply ~(:k 1 | :q ~(add k) | 5 | get [~(coalesce q ~(\"none\") !| tag) ~(apply q !| tag)])","expect":"[::call/ValueWithheldError ::call/ValueWithheldError]"}
 {"name":"coalesce-answers-a-miss-in-the-code-a-verb-ran-on-a-part","query":"{:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| tag) ~(coalesce ~(get /items | first | get /cost) 0)]","expect":"[::path/KeyNotInMapError 0]"}
-{"decision":"D469","name":"coalesce-reads-a-value-a-name-holds-by-a-quote","query":"apply ~(:e 7000 | 9000 | coalesce ~(e) 8080)","expect":"7000"}
+{"name":"coalesce-reads-a-value-a-name-holds-by-a-quote","query":"apply ~(:e 7000 | 9000 | coalesce ~(e) 8080)","expect":"7000"}
 {"name":"coalesce-passes-over-null-beneath-the-tags-an-alternative-answers","query":"{:a ::T#null} | coalesce /a 0","expect":"0"}

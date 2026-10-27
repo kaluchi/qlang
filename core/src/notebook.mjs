@@ -21,7 +21,7 @@ function scopeTakenFromAHost(scope) {
   return scope;
 }
 
-// [QSDSP#residence], [D469]
+// [QSDSP#residence], [QSNAM#declare]
 export async function createNotebook(opts = {}) {
   let scope = opts.scope ? scopeTakenFromAHost(opts.scope) : await langRuntime();
   if (opts.sources) scope = await declareRoot(scope, opts.sources);

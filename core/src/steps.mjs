@@ -294,7 +294,7 @@ export function declarationStep(name, docs, value) {
   return makeTagged(BIND_TAG, fields.set('body', body));
 }
 
-// [D468]
+// [QSQUO#held]
 const NAMES_READ = new WeakMap();
 
 export function namesAQuoteReads(quote) {

@@ -12,12 +12,12 @@
 {"name":"replace-runs-code-on-each-match-of-a-text","query":"\"a.b.c\" | replace \".\" ~(:m (get /0) | m | append m)","expect":"\"a..b..c\""}
 {"name":"replace-hands-on-the-failure-its-code-answers","query":"\"a1\" | replace #\"\\d\" ~(get /0 | add 1) !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| tag","expect":"::string/replace/WithKindNotTakenError"}
-{"decision":"D469","name":"toRegex-reads-a-regex-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | with {:p ~(get /rule | toRegex)} ~(get [\"123\" \"12a\"] | map ~(contains p))","expect":"[true false]"}
+{"name":"toRegex-reads-a-regex-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | with {:p ~(get /rule | toRegex)} ~(get [\"123\" \"12a\"] | map ~(contains p))","expect":"[true false]"}
 {"name":"toRegex-refuses-a-source-the-engine-cannot-read","query":"\"(a\" | toRegex !| get [~(tag) ~(message | contains \"Invalid regular expression\")]","expect":"[::string/toRegex/TextNotRegexError false]"}
-{"decision":"D469","name":"a-name-holds-a-regex-and-a-verb-takes-it","query":"\"a1b22\" | with {:digits ~(#\"\\d+\")} [~(scan digits) ~(contains digits)]","expect":"[[\"1\" \"22\"] true]"}
+{"name":"a-name-holds-a-regex-and-a-verb-takes-it","query":"\"a1b22\" | with {:digits ~(#\"\\d+\")} [~(scan digits) ~(contains digits)]","expect":"[[\"1\" \"22\"] true]"}
 {"name":"toRegex-takes-the-flags-of-the-call","query":"\"error\" | toRegex \"mi\" | eq #\"error\"im","expect":"true"}
 {"name":"toRegex-refuses-a-letter-of-no-flag","query":"\"a\" | toRegex \"g\" !| tag","expect":"::string/toRegex/FlagsNotFlagsError"}
-{"decision":"D470","name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [~(toRegex !| tag) ~(parse | answer | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
+{"name":"toRegex-refuses-a-literal-which-parse-reads","query":"{:p #\"\\d+\"i} | json | parseJson | get /p | get [~(toRegex !| tag) ~(parse | answer | eq #\"\\d+\"i)]","expect":"[::string/toRegex/LiteralNotSourceError true]"}
 {"name":"toRegex-names-its-input-for-flags-written-inside","query":"\"(?i)abc\" | toRegex !| message | contains \"toRegex \\\"i\\\"\"","expect":"true"}
 {"name":"replace-cuts-no-character-in-halves","query":"\"a😀\" | replace \"\" \"-\"","expect":"\"-a-😀-\""}
 {"name":"a-refusal-names-no-habit-the-source-does-not-show","query":"\"(\\\\d\" | toRegex !| message | contains \"backslash\"","expect":"false"}

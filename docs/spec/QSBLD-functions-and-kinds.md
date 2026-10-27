@@ -88,7 +88,7 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | print
 "::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]"
 
-> :f ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | 5 | apply f [3]
+> 5 | apply ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] [3]
 8
 
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | fill 3
@@ -97,8 +97,8 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(command) ~(index) ~(found)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
-[::fn[~() ~(add 1)] [~(takes 5 |~~ x ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
+> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ The amount. ~~| /0 !| get [~(command) ~(index) ~(found)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+[::fn[~() ~(add 1)] [~(takes 5 |~~ The amount. ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
 
 > get [~(::fn[[] ~(1)] !| tag) ~(::fn | returns |~~ A. ~~| #[] !| tag) ~(::fn | takes :null |~~ w ~~| /0 !| tag)]
 [::fn/PayloadNotPairError ::fn/CommandNotTakenError ::fn/CommandNotTakenError]
@@ -109,7 +109,7 @@ map of its name, its page, its selector and its kinds as written.
 > kinds | inter #[::accepts ::holds ::impl ::on ::proves ::returns ::takes ::tells ::throws ::wires]
 #[]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number) | impl ~(add by)) | get [~(::number/plus/TooBigError!{:bound 3} | bound) ~(::fn | throws :E |~~ e ~~| ~(accepts |~~ p ~~| ::map) !| tag) ~(::number/plus | binding | value | print | parse | open | eq (::number/plus | binding | value))]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number) | impl ~(add by)) | get [~(::number/plus/TooBigError!{:bound 3} | bound) ~(::fn | throws :TooBigError |~~ Too big. ~~| ~(accepts |~~ The facts. ~~| ::map) !| tag) ~(::number/plus | binding | value | print | parse | answer | eq (::number/plus | binding | value))]
 [3 ::kind/NameDeclaredTwiceError true]
 ```
 
@@ -158,8 +158,8 @@ and an element of none as `…/ElementKindNotTakenError` with the input's
 > :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)) | [5 1 4 2] | get [~(top) ~(top 1)]
 [[5 4 2] [5]]
 
-> :m (::fn | takes :xs |~~ X ~~| /0 [::number] | impl ~(xs)) | get [~(5 | apply m [5] !| tag) ~(5 | apply m [[1 "a"]] !| get [~(tag) /:xs/index])]
-[::fn/call/XsKindNotTakenError [::fn/call/XsElementKindNotTakenError 1]]
+> apply ~(:total (::fn | takes :prices |~~ The prices. ~~| /0 [::number] | impl ~(prices)) | get [~(5 | apply total [5] !| tag) ~(5 | apply total [[1 "two"]] !| get [~(tag) /:prices/index])])
+[::fn/call/PricesKindNotTakenError [::fn/call/PricesElementKindNotTakenError 1]]
 
 > 1 | add 1 2 !| surplus | found
 [2]
@@ -206,30 +206,30 @@ reads as data is read as [QSNAM#owner] states. The recipe of a word under
 a label whose kind wires its parts sees the names of the wiring of its
 subject beside its inputs, `:Card/minutes ~(took | div 60)`, as the body
 of `with` sees the names it is given, and an input named as one of them
-is refused where the word is declared, `::bind/NameDeclaredTwiceError`. A value the reader bound
-to a bare name stands outside that scope, a bare step of that name
-refused as `::call/UnknownNameError`, so a value a recipe needs is an
-input. A selector reads the args alone. The condition of an invariant is a
+is refused where the word is declared, `::bind/NameDeclaredTwiceError`. A value the code
+that calls the verb names stands outside that scope, a bare step of that
+name refused as `::call/UnknownNameError`, so a value a recipe needs is
+an input. A selector reads the args alone. The condition of an invariant is a
 small recipe of the same scope, the subject in the pipe and each input by
 its name, `holds :ByTooBigError |~~ … ~~| ~(by | lt 100)`, run once the
 inputs are held and before the recipe, or, written after `returns`, once
 the answer is held, which it reads as `answer`. A name the chain declares,
 an input in the recipe and the conditions of its verb and the answer after
-`returns`, reads its value past a verb of the subject of its name, which
-is called there by its address, `vec/count` [QSNAM#reach]. A verb calls
+`returns`, stands over a verb of its name, which is called there by its
+address, `vec/count` [QSNAM#reach]. A verb calls
 itself by its name. A
 recipe written alone under a label takes no args, those given to it
 refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
 
 ```qlang
-> :n 3 | :number/times ~(mul n) | 5 | times !| tag
+> 5 | apply ~(:factor 3 | :number/times ~(mul factor) | times !| tag)
 ::call/UnknownNameError
 
-> :number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact
+> :number/fact ~(if (lte 1) ~(1) ~(:factor it | sub 1 | fact | mul factor)) | 5 | fact
 120
 
-> :any/n ~(args | count) | 5 | get [~(n) ~(n 1 !| tag)]
-[0 ::any/n/ArgsBeyondInputsError]
+> :any/given ~(args | count) | 5 | get [~(given) ~(given 1 !| tag)]
+[0 ::any/given/ArgsBeyondInputsError]
 ```
 
 ## kind
@@ -275,8 +275,10 @@ refusal and an invariant are named one level under the kind by a name of
 one segment, `:WNegativeError`, a path in it refused as a command not
 taken, and a law under a name declared before it, `LawUnderNoNameError`
 refusing one under none. A part written with no selector reads the key of its name in the
-payload, `wires :w |~~ The width. ~~| ::number`, as a fact of a refusal
-does. A kind prints as its literal, the chain folded
+payload, `wires :width |~~ The width. ~~| ::number`, as a fact of a refusal
+does, and a name the code declares, one `with` gives among them, stands
+over a part a kind wires under that name, which its address then reads,
+`Card/took` [QSNAM#reach]. A kind prints as its literal, the chain folded
 into a quote and its constructor or null after it, which the constructor
 of `::kind` reads back, a payload that is no pair of the quote of a
 chain and a constructor refused as `::kind/PayloadNotPairError`.
@@ -296,6 +298,9 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 
 > :Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size) | :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count)) | ::Bag | legend | print | lines | last
 "|~ size ::number · How many things ~|"
+
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | with {:took ~(5)} ~(get [~(took) ~(Card/took)])
+[5 312]
 ```
 
 ## value

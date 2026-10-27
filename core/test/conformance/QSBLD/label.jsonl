@@ -1,5 +1,5 @@
-{"decision":"D469","name":"the-tag-of-a-name-that-holds-a-value-builds-nothing","query":"apply ~(:limit 5 | ::limit[1] !| tag)","expect":"::construct/TagNamesAValueError"}
-{"decision":"D469","name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":"apply ~(:limit 5 | [1] | tag ::limit !| tag)","expect":"::construct/TagNamesAValueError"}
+{"name":"the-tag-of-a-name-that-holds-a-value-builds-nothing","query":"apply ~(:limit 5 | ::limit[1] !| tag)","expect":"::construct/TagNamesAValueError"}
+{"name":"tag-refuses-the-tag-of-a-value-as-its-literal-does","query":"apply ~(:limit 5 | [1] | tag ::limit !| tag)","expect":"::construct/TagNamesAValueError"}
 {"name":"a-kind-lays-its-nodes-under-its-address","query":":Box |~~ A box. ~~| (::kind | accepts |~~ The sizes. ~~| ::map | wires :w |~~ The width. ~~| /w ::number | impl ::builtin{}) | ::Box | manifest","expect":"#[::Box/PayloadKindNotTakenError ::Box/WKindNotTakenError ::Box/payload ::Box/w]"}
 {"name":"a-tag-used-before-its-kind-is-checked-by-the-kind-after","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)) | get [~(::AutoLater#7 | payload) ~(::AutoLater#5 !| tag)]","expect":"[7 ::AutoLater/TooSmallError]"}
 {"name":"a-kind-holds-a-value-again-after-reverse","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))) | ::Sorted[1 2 3] | reverse !| tag","expect":"::Sorted/NotSortedError"}
@@ -15,5 +15,5 @@
 {"name":"a-word-of-a-literal-is-declared-by-the-chain-of-a-kind","query":"::null | binding | value | tag","expect":"::kind"}
 {"name":"a-kind-of-the-core-that-builds-its-payload-holds-a-constructor-and-one-that-reads-it-as-it-is-none","query":"get [~(::set | binding | value | get /1 | tag) ~(::keyword | binding | value | get /1) ~(::keyword | binding | value | tag)]","expect":"[::builtin null ::kind]"}
 {"name":"a-value-laid-under-a-tag-before-its-kind-keeps-the-tag","query":"::AutoLater[5] | :AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)) | tag","expect":"::AutoLater"}
-{"decision":"D469","name":"the-tag-of-a-name-that-holds-null-builds-nothing","query":"apply ~(:n null | ::n[1] !| tag)","expect":"::construct/TagNamesAValueError"}
+{"name":"the-tag-of-a-name-that-holds-null-builds-nothing","query":"apply ~(:n null | ::n[1] !| tag)","expect":"::construct/TagNamesAValueError"}
 {"name":"the-node-of-an-invariant-holds-a-quote-under-invariant","query":"::vec/take/CountNotIntegerError | binding | value | tag","expect":"::invariant"}

@@ -1,19 +1,19 @@
-{"decision":"D469","name":"a-named-quote-is-a-value-apply-runs","query":"apply ~(:q ~(add 1) | 5 | apply q)","expect":"6"}
-{"decision":"D469","name":"code-under-a-bare-name-runs-by-apply","query":"apply ~(:double ~(mul 2) | 5 | apply double)","expect":"10"}
-{"decision":"D469","name":"code-under-a-bare-name-goes-bare-into-a-verb-that-takes-code","query":"apply ~(:double ~(mul 2) | [1 2 3] | map double)","expect":"[2 4 6]"}
-{"decision":"D469","name":"a-bare-name-alone-reads-its-quote","query":"apply ~(:double ~(mul 2) | double)","expect":"~(mul 2)"}
-{"decision":"D469","name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | with {:note ~it} ~(note | content)","expect":"\"note\""}
+{"name":"a-named-quote-is-a-value-apply-runs","query":"apply ~(:q ~(add 1) | 5 | apply q)","expect":"6"}
+{"name":"code-under-a-bare-name-runs-by-apply","query":"apply ~(:double ~(mul 2) | 5 | apply double)","expect":"10"}
+{"name":"code-under-a-bare-name-goes-bare-into-a-verb-that-takes-code","query":"apply ~(:double ~(mul 2) | [1 2 3] | map double)","expect":"[2 4 6]"}
+{"name":"a-bare-name-alone-reads-its-quote","query":"apply ~(:double ~(mul 2) | double)","expect":"~(mul 2)"}
+{"name":"a-reader-reads-a-doc-it-named","query":"|~~ note ~~| | with {:note ~it} ~(note | content)","expect":"\"note\""}
 {"name":"an-input-holding-a-value-takes-no-modifiers","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| tag","expect":"::call/ValueTakesNoModifiersError"}
-{"decision":"D469","name":"a-name-that-holds-a-value-refuses-modifiers-holding-the-value","query":"5 | apply ~(:five it | five 42)","raises":"::call/ValueTakesNoModifiersError!{:found 5 :name :five :addresses #[] :trace ::trace[::frame[5 ~(five 42)] ::frame[5 ~(apply ~(:five it | five 42))]]}"}
-{"decision":"D469","name":"a-bound-quote-stays-data","query":"apply ~(:q ~(add 1) | 5 | (q))","expect":"~(add 1)"}
-{"decision":"D469","name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)","expect":"6"}
+{"name":"a-name-that-holds-a-value-refuses-modifiers-holding-the-value","query":"5 | apply ~(:five it | five 42)","raises":"::call/ValueTakesNoModifiersError!{:found 5 :name :five :addresses #[] :trace ::trace[::frame[5 ~(five 42)] ::frame[5 ~(apply ~(:five it | five 42))]]}"}
+{"name":"a-bound-quote-stays-data","query":"apply ~(:q ~(add 1) | 5 | (q))","expect":"~(add 1)"}
+{"name":"a-name-is-read-back-by-its-bare-word","query":"{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)","expect":"6"}
 {"name":"a-value-at-an-address-refuses-modifiers-under-the-name-declared","query":":Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| get [~(tag) ~(name)]","expect":"[::call/ValueTakesNoModifiersError :Box/side]"}
-{"decision":"D469","name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | apply ~(:c it | get [1 2 3] | (c | tag))","expect":"::builtin"}
-{"decision":"D469","name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | apply ~(:u it | get {:x 1} | (u | tag))","expect":"::builtin"}
+{"name":"a-descriptor-a-name-holds-runs-nothing","query":"::builtin{} | apply ~(:c it | get [1 2 3] | (c | tag))","expect":"::builtin"}
+{"name":"a-descriptor-a-query-assembles-is-a-value","query":"::builtin{:note :draft} | apply ~(:u it | get {:x 1} | (u | tag))","expect":"::builtin"}
 {"name":"an-input-holding-a-value-refuses-modifiers-under-the-name-of-the-input","query":":number/f (::fn | takes :n |~~ The n. ~~| /0 | impl ~(n 42)) | 0 | f 5 !| get [~(tag) ~(name)]","expect":"[::call/ValueTakesNoModifiersError :n]"}
-{"decision":"D256","name":"a-value-written-as-a-later-step-is-refused-with-the-value-and-the-verbs-of-its-name","query":"7 | apply ~(:rest 5 | add 1 | rest) !| get [~(tag) ~(name) ~(found) ~(addresses)]","expect":"[::call/ValueAsALaterStepError :rest 5 #[]]"}
-{"decision":"D256","name":"a-node-of-data-written-as-a-later-step-is-refused-as-a-value-is","query":":Box |~~ A box. ~~| | :Box/side 3 | 5 | Box/side !| get [~(tag) ~(name)]","expect":"[::call/ValueAsALaterStepError :Box/side]"}
-{"decision":"D256","name":"a-name-read-after-a-declaration-of-the-fail-track-stands-where-a-value-stands","query":"apply ~({} | raise !| :fallback 1 | fallback)","expect":"1"}
-{"decision":"D256","name":"a-name-read-after-the-fail-track-is-the-recovery","query":"{:default 0 :v \"x\"} | with [/default /v] ~(v | toNumber !| default)","expect":"0"}
-{"decision":"D256","name":"a-name-given-modifiers-as-a-later-step-takes-no-modifiers","query":"apply ~(:limit 1 | 5 | limit 3) !| tag","expect":"::call/ValueTakesNoModifiersError"}
-{"decision":"D256","name":"a-name-read-at-the-head-of-a-group-after-a-step-answers-its-value","query":"apply ~(:rest 5 | 7 | (rest))","expect":"5"}
+{"name":"a-value-written-as-a-later-step-is-refused-with-the-value-and-the-verbs-of-its-name","query":"7 | apply ~(:rest 5 | add 1 | rest) !| get [~(tag) ~(name) ~(found) ~(addresses)]","expect":"[::call/ValueAsALaterStepError :rest 5 #[]]"}
+{"name":"a-node-of-data-written-as-a-later-step-is-refused-as-a-value-is","query":":Box |~~ A box. ~~| | :Box/side 3 | 5 | Box/side !| get [~(tag) ~(name)]","expect":"[::call/ValueAsALaterStepError :Box/side]"}
+{"name":"a-name-read-after-a-declaration-of-the-fail-track-stands-where-a-value-stands","query":"apply ~({} | raise !| :fallback 1 | fallback)","expect":"1"}
+{"name":"a-name-read-after-the-fail-track-is-the-recovery","query":"{:default 0 :v \"x\"} | with [/default /v] ~(v | toNumber !| default)","expect":"0"}
+{"name":"a-name-given-modifiers-as-a-later-step-takes-no-modifiers","query":"apply ~(:limit 1 | 5 | limit 3) !| tag","expect":"::call/ValueTakesNoModifiersError"}
+{"name":"a-name-read-at-the-head-of-a-group-after-a-step-answers-its-value","query":"apply ~(:rest 5 | 7 | (rest))","expect":"5"}

@@ -1,21 +1,21 @@
-{"decision":"D469","name":"a-name-holds-the-value-in-the-pipe","query":"apply ~(42 | :answer it | answer)","expect":"42"}
-{"decision":"D469","name":"a-name-holds-the-value-for-the-steps-after","query":"apply ~([1 2 3] | :nums it | nums | count)","expect":"3"}
-{"decision":"D469","name":"names-hold-the-values-of-several-stages","query":"apply ~([85 92 47 78 68 95 52] | :allScores it | filter ~(gte 70) | :passingScores it | get [~(allScores | count), ~(passingScores | count)])","expect":"[7 4]"}
-{"decision":"D469","name":"a-binding-holds-what-the-verb-its-body-calls-answers","query":":any/two ~(2) | apply ~(:n two | n)","expect":"2"}
-{"decision":"D469","name":"a-vector-after-a-name-is-its-body","query":"apply ~(:xs [1 2] | xs)","expect":"[1 2]"}
-{"decision":"D469","name":"a-binding-names-the-value-at-its-declaration","query":"apply ~(42 | :x it | add 1 | (x))","expect":"42"}
-{"decision":"D469","name":"a-declaration-names-a-kind","query":"apply ~(:s ::vec | env | get /s | value)","expect":"::vec"}
-{"decision":"D469","name":"a-declaration-names-a-keyword","query":"apply ~(:status :active | env | get /status | value)","expect":":active"}
+{"name":"a-name-holds-the-value-in-the-pipe","query":"apply ~(42 | :answer it | answer)","expect":"42"}
+{"name":"a-name-holds-the-value-for-the-steps-after","query":"apply ~([1 2 3] | :nums it | nums | count)","expect":"3"}
+{"name":"names-hold-the-values-of-several-stages","query":"apply ~([85 92 47 78 68 95 52] | :allScores it | filter ~(gte 70) | :passingScores it | get [~(allScores | count), ~(passingScores | count)])","expect":"[7 4]"}
+{"name":"a-binding-holds-what-the-verb-its-body-calls-answers","query":":any/two ~(2) | apply ~(:n two | n)","expect":"2"}
+{"name":"a-vector-after-a-name-is-its-body","query":"apply ~(:xs [1 2] | xs)","expect":"[1 2]"}
+{"name":"a-binding-names-the-value-at-its-declaration","query":"apply ~(42 | :x it | add 1 | (x))","expect":"42"}
+{"name":"a-declaration-names-a-kind","query":"apply ~(:s ::vec | env | get /s | value)","expect":"::vec"}
+{"name":"a-declaration-names-a-keyword","query":"apply ~(:status :active | env | get /status | value)","expect":":active"}
 {"name":"a-declaration-that-computes-begins-the-body","query":":vec/total ~(:n (count) | sum | add n) | [1 2 3] | total","expect":"9"}
 {"name":"a-template-of-get-begins-the-body","query":":vec/m ~(:opts get {:n ~(count)} | opts) | [1 2] | m","expect":"{:n 2}"}
-{"decision":"D469","name":"doc-on-a-declaration-of-it-hands-the-value-on","query":"apply ~(42\n:x |~~| captured\nit\n| x)","expect":"42"}
+{"name":"doc-on-a-declaration-of-it-hands-the-value-on","query":"apply ~(42\n:x |~~| captured\nit\n| x)","expect":"42"}
 {"name":"a-verb-names-its-subject-by-a-declaration-of-it","query":":any/pair ~(:self it | get [~(self) ~(self)]) | 5 | pair","expect":"[5 5]"}
 {"name":"a-word-after-a-tag-name-in-a-body-is-a-step-of-its-own","query":"\":s ::vec it\" | parse !| message","expect":"\"steps are joined by `|`: write `a | b`\""}
-{"decision":"D469","name":"a-value-under-a-bare-name-at-the-top-is-refused","query":":k 1 | k !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :k]"}
-{"decision":"D469","name":"code-under-a-bare-name-at-the-top-is-refused-as-a-value","query":":double ~(mul 2) | 5 | apply double !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :double]"}
-{"decision":"D469","name":"a-function-under-a-bare-name-at-the-top-is-refused-as-a-value","query":":f (::fn | impl ~(add 1)) | 5 | apply f !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :f]"}
-{"decision":"D469","name":"a-group-among-the-steps-of-the-top-declares-no-value","query":"5 | (:r it | add 1 | mul r) !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :r]"}
-{"decision":"D469","name":"a-declaration-after-the-catch-at-the-top-declares-no-value","query":"{} | raise !| :x 1 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :x]"}
-{"decision":"D469","name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~| | :number/double ~(mul 2) | :Box/side 3 | 5 | double | add Box/side","expect":"13"}
-{"decision":"D469","name":"code-declares-a-value-for-the-steps-after-it","query":"5 | apply ~(:r it | add 1 | mul r)","expect":"30"}
-{"decision":"D469","name":"a-modifier-declares-a-value-in-its-own-group","query":"5 | add (:k 2 | k)","expect":"7"}
+{"name":"a-value-under-a-bare-name-at-the-top-is-refused","query":":k 1 | k !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :k]"}
+{"name":"code-under-a-bare-name-at-the-top-is-refused-as-a-value","query":":double ~(mul 2) | 5 | apply double !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :double]"}
+{"name":"a-function-under-a-bare-name-at-the-top-is-refused-as-a-value","query":":f (::fn | impl ~(add 1)) | 5 | apply f !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :f]"}
+{"name":"a-group-among-the-steps-of-the-top-declares-no-value","query":"5 | (:r it | add 1 | mul r) !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :r]"}
+{"name":"a-declaration-after-the-catch-at-the-top-declares-no-value","query":"{} | raise !| :x 1 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :x]"}
+{"name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~| | :number/double ~(mul 2) | :Box/side 3 | 5 | double | add Box/side","expect":"13"}
+{"name":"code-declares-a-value-for-the-steps-after-it","query":"5 | apply ~(:r it | add 1 | mul r)","expect":"30"}
+{"name":"a-modifier-declares-a-value-in-its-own-group","query":"5 | add (:k 2 | k)","expect":"7"}

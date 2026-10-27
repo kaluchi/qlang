@@ -25,7 +25,7 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
 
-// [QSHST#source], [D469]
+// [QSHST#source], [QSNAM#root]
 export async function declareRoot(scope, sources) {
   let root = rootOf(scope);
   for (const { uri, source, primitives = {} } of sources) {

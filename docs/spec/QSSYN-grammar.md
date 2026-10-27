@@ -203,8 +203,8 @@ and no indentation its lines after the first share [QSSLF#doc], so
 `|~~A box.~~|` and `|~~ A box. ~~|` are one doc.
 
 ```qlang
-> :foo |~~ one ~~| |~ why ~| |~~ two ~~| 42 | ::foo | doc | content
-"one\ntwo"
+> :Box |~~ A box. ~~| |~ a note ~| |~~ It holds parcels. ~~| | ::Box | doc | content
+"A box.\nIt holds parcels."
 
 > get [~(|~~A box.~~| | content) ~(|~~   A box.   ~~| | content) ~("|~~ a\n      b\n    ~~|" | parse | first | content)]
 ["A box." "A box." "a\nb"]

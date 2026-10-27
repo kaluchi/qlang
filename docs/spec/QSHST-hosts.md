@@ -30,8 +30,9 @@ refuses the payload. The root
 refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
-and a source whose run answers an error or declares again a name the
-root holds, `::builtin/RootSourceNotDeclaredError`. The root writes into
+and a source whose run answers an error, declares again a name the root
+holds or declares a value under a bare name,
+`::builtin/RootSourceNotDeclaredError`. The root writes into
 the descriptor of each primitive it takes the address it takes it under,
 `:of`, the tag of the verb or of the kind, `::builtin{:of ::number/add}`,
 while the source writes `::builtin{}` and the axis `source` reads it so;
@@ -135,7 +136,7 @@ the failure.
 > ::vec | binding | origin
 :qlang/vec
 
-> get [~(~((:x 1 | env | get /x | origin)) | first)] | tag ::quote | apply it
+> get [~(~((:rate 1 | env | get /rate | origin)) | first)] | tag ::quote | apply it
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
@@ -144,13 +145,13 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | :f it | print | parse | open | :g it | get [~(eq f) ~([1 2] | apply g) ~({:a 1} | apply (::fn | impl (f | get /1)) [] !| get [~(tag) ~(of)])]
+> ::vec/count | binding | value | apply ~(:counting it | print | parse | answer | :back it | get [~(eq counting) ~([1 2] | apply back) ~({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [~(tag) ~(of)])])
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
 ::B[1]
 
-> get [~({:a 1} | apply (::vec/first | binding | value) [] !| tag) ~(:any/v (::fn | impl ::builtin{}) | 5 | v !| tag)]
+> get [~({:id 7} | apply (::vec/first | binding | value) [] !| tag) ~(:any/greet (::fn | impl ::builtin{}) | 5 | greet !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [~("add (" | parse !| origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
@@ -158,7 +159,7 @@ true
 ```
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('x')) } }] }); console.log((await s.evalCell(':x 1 | named')).result)"
+$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply ~(:rate 1 | named)')).result)"
 true
 ```
 
@@ -211,7 +212,7 @@ origin as every cell's does, `:cell-1`, and raises a defect to its
 caller; and `langRuntime` answers the scope of the root. A host puts its
 names into the scope by its sources alone, and a reader by a declaration.
 
-The REPL of the site keeps one notebook across its cells, a name one cell
+The REPL of the site keeps one notebook across its cells, a word one cell
 declares staying for the cells after it, and its playground runs the cells
 of one run in one notebook, each printing its answer within the budget of
 every answer [QSPRN#budget], a failure as its alert under the line that
@@ -219,7 +220,7 @@ says it was raised [QSERR#print], and showing a defect as `qlang:` and its
 message.
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':x 1 | env | get /x | origin')).name)"
+$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':Box |~~ A box. ~~| | env | get /Box | origin')).name)"
 source uri result defect scopeAfterCell quote/ParseError null cell-1
 ```
 
@@ -280,23 +281,24 @@ answer and a subject at a `tap` past the budget of every answer
 [QSPRN#budget] and a fact of a failure past the room of a fact
 [QSERR#alert], which the alert names instead of the value, under the
 identity of what it keeps, twelve digits of hexadecimal of the hash of the
-query, the values it declared and the print of the value, so one value of
+query, the words it declared and the print of the value, so one value of
 one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
 `<root>` the identity of the sources and the code it booted, the query,
-`source.qlang`, the values the query declared, each as the core prints it,
-`names.qlang`, and the answer as the core prints it, `answer.qlang`, the
-`print` of every kind left out; a cell older than a day leaves when it
-keeps another, and one kept again stays a day more. `answer` reads the answer back over the root and those
-values, a value under a kind the query declared answering its names where
-the reading query declares that kind again and `payload` in any, and
-refuses a cell it does not hold as `::cell/answer/NotHeldError`. A host
-that keeps no cell names none.
+`source.qlang`, the words the query declared, each with its value as the
+core prints it, `names.qlang`, and the answer as the core prints it,
+`answer.qlang`, the `print` of every kind left out; a cell older than a
+day leaves when it keeps another, and one kept again stays a day more.
+`answer` reads the answer back over the root and those words, a value
+under a kind the query declared answering its names where the reading
+query declares that kind again and `payload` in any, and refuses a cell
+it does not hold as `::cell/answer/NotHeldError`. A host that keeps no
+cell names none.
 
 ```qlang
-> ::cell"a3f9c2d1e04b" | :c it | get [~(tag) ~(payload) ~(print | parse | open | eq c)]
+> ::cell"a3f9c2d1e04b" | get [~(tag) ~(payload) ~(eq (print | parse | answer))]
 [::cell "a3f9c2d1e04b" true]
 
-> ::cell"../x" !| tag
+> ::cell"../notes" !| tag
 ::cell/PayloadNotIdentityError
 ```
 

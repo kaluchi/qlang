@@ -34,6 +34,6 @@
 {"name":"a-quoted-segment-of-digits-reads-the-json-key-they-spell","query":"{\"42\": \"answer\"} | get /\"42\"","expect":"\"answer\""}
 {"name":"a-quoted-segment-reads-the-json-key-its-text-spells","query":"{\"foo-bar\": 99} | get /\"foo-bar\"","expect":"99"}
 {"name":"parse-reads-a-path-whose-segments-are-keys-and-an-index","query":"\"/a/b/0\" | parse | first | segments","expect":"[:a :b 0]"}
-{"decision":"D469","name":"a-path-with-a-slashed-key-prints-so-it-reads-back","query":"[\"a/b\" \"c\"] | toPath | get [~(print) ~(eq (print | parse | answer))]","expect":"[\"/:a/b/:c\" true]"}
+{"name":"a-path-with-a-slashed-key-prints-so-it-reads-back","query":"[\"a/b\" \"c\"] | toPath | get [~(print) ~(eq (print | parse | answer))]","expect":"[\"/:a/b/:c\" true]"}
 {"name":"the-slash-alone-names-no-path","query":"\"[1] | get /\" | parse !| message","expect":"\"the slash alone names no path: the value itself is `it`\""}
 {"name":"a-quoted-digit-is-the-segment-an-index-is","query":"/\"0\" | eq /0","expect":"true"}

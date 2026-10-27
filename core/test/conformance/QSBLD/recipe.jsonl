@@ -1,12 +1,12 @@
 {"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(add 1 | :y 5 | add y) | 1 | m | env | has :y","expect":"false"}
-{"decision":"D469","name":"a-recipe-reads-no-value-of-a-sentence","query":"apply ~(:n 3 | :number/times ~(mul n) | 5 | times !| tag)","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-reads-no-value-of-a-sentence","query":"apply ~(:n 3 | :number/times ~(mul n) | 5 | times !| tag)","expect":"::call/UnknownNameError"}
 {"name":"a-verb-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(:n it | sub 1 | fact | mul n)) | 5 | fact","expect":"120"}
-{"decision":"D469","name":"a-value-the-sentence-names-reaches-no-selector-of-a-verb","query":"apply ~(:it 5 | 3 | is ::number)","expect":"true"}
-{"decision":"D469","name":"a-value-the-sentence-names-reaches-no-invariant-of-a-verb","query":"apply ~(:floor 3 | [1 2 3] | drop 1)","expect":"[2 3]"}
-{"decision":"D469","name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":"apply ~(:k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| tag)","expect":"::call/UnknownNameError"}
-{"decision":"D469","name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":"apply ~(:by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3)","expect":"8"}
-{"decision":"D469","name":"a-value-of-the-sentence-shadows-no-verb-the-recipe-of-a-function-calls","query":"apply ~(:twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1)","expect":"12"}
-{"decision":"D469","name":"a-recipe-reads-no-quote-its-query-names","query":"apply ~(:x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| code | found | name)","expect":":q"}
+{"name":"a-value-the-sentence-names-reaches-no-selector-of-a-verb","query":"apply ~(:it 5 | 3 | is ::number)","expect":"true"}
+{"name":"a-value-the-sentence-names-reaches-no-invariant-of-a-verb","query":"apply ~(:floor 3 | [1 2 3] | drop 1)","expect":"[2 3]"}
+{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":"apply ~(:k 1 | :number/f ~(add k) | :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)) | g 100 !| tag)","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-sentence","query":"apply ~(:by 99 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | 5 | plus 3)","expect":"8"}
+{"name":"a-value-of-the-sentence-shadows-no-verb-the-recipe-of-a-function-calls","query":"apply ~(:twice 7 | :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1)","expect":"12"}
+{"name":"a-recipe-reads-no-quote-its-query-names","query":"apply ~(:x 10 | :q ~(add x) | :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)) | 2 | t 99 !| code | found | name)","expect":":q"}
 {"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))) | [1 2] | addAll 10","expect":"[11 12]"}
 {"name":"a-recipe-of-a-function-reads-a-verb-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)) | :number/twice ~(mul 2) | 5 | plus 1","expect":"12"}
 {"name":"a-verb-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)) | 2 | m it","expect":"22"}

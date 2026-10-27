@@ -7,7 +7,7 @@
 {"name":"a-keyword-or-a-string-that-names-no-tag-is-refused-by-the-kind-it-does-not-become","query":"get [~(:\"a b\" | toTag !| tag) ~(\"a b\" | toTag !| tag)]","expect":"[::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError]"}
 {"name":"a-container-turns-into-another","query":"get [~(#[2 1] | toVec) ~([2 1 2] | toSet) ~([[:a 1]] | toMap)]","expect":"[[1 2] #[1 2] {:a 1}]"}
 {"name":"a-value-turned-wider-and-back-is-itself","query":"get [~(42 | toString | toNumber) ~(:a | toString | toKeyword) ~(1 | toKeyword | toNumber) ~(#[1 2] | toVec | toSet)]","expect":"[42 :a 1 #[1 2]]"}
-{"decision":"D469","name":"two-records-join-by-a-number-turned-into-its-key","query":"{:users [{:id 1 :name \"Ann\"}] :orders [{:uid 1 :sum 5}]} | with {:byId ~(get /users | indexBy /id)} ~(get /orders | map ~(with {:key ~(get /uid | toKeyword)} {:sum /sum :name ~(byId | query key | get /name)}))","expect":"[{:sum 5 :name \"Ann\"}]"}
+{"name":"two-records-join-by-a-number-turned-into-its-key","query":"{:users [{:id 1 :name \"Ann\"}] :orders [{:uid 1 :sum 5}]} | with {:byId ~(get /users | indexBy /id)} ~(get /orders | map ~(with {:key ~(get /uid | toKeyword)} {:sum /sum :name ~(byId | query key | get /name)}))","expect":"[{:sum 5 :name \"Ann\"}]"}
 {"name":"a-container-has-no-string-and-a-map-no-vector","query":"get [~([1 2] | toString !| tag) ~({:a 1} | toVec !| tag)]","expect":"[::call/KindAnswersNoVerbError ::call/KindAnswersNoVerbError]"}
 {"name":"distinct-stays-beside-toSet","query":"[2 1 2] | get [~(distinct) ~(toSet)]","expect":"[#[1 2] #[1 2]]"}
 {"name":"a-string-of-two-characters-is-no-pair","query":"[\"ab\"] | toMap !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/toMap/ElementNotPairError /0]"}

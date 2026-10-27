@@ -42,7 +42,7 @@ export async function linksOf(answerOf, addresses) {
   return links;
 }
 
-// [D470]
+// [QSSLF#doc]
 export async function wrongLinksOf(answerOf, links, declaredPages) {
   const wrong = [];
   for (const link of links) {

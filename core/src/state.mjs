@@ -6,7 +6,7 @@ import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 // [QSNAM#verb]
 export const EVAL_DEPTH_LIMIT = 1000;
 
-// [D468], [QSNAM#owner], [QSERR#trace]
+// [QSQUO#held], [QSNAM#owner], [QSERR#trace]
 function makeState(pipeValue, scope, depth, written = null, own = null, flight = null) {
   return Object.freeze({ pipeValue, scope, depth, written, own, flight });
 }
@@ -38,7 +38,7 @@ export function nestState(state, pipeValue, scope) {
   return makeState(pipeValue, scope, depthBelow(state));
 }
 
-// [D468]
+// [QSQUO#held]
 export function withWritten(state, written) {
   return makeState(state.pipeValue, state.scope, state.depth, written, state.own);
 }

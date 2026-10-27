@@ -1,12 +1,13 @@
 // [QSPTH#get], [QSPTH#query], [QSPTH#template], [QSPTH#write], [QSPTH#verbs]
 
 import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } from '../primitives.mjs';
-import { declareRefusal, refusingAPart } from '../errors.mjs';
-import { kindsExpected } from '../ordering.mjs';
+import { declareRefusal, refusingAPart, QlangError, QlangDefect } from '../errors.mjs';
+import { kindsExpected, makeSet } from '../ordering.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
-import { layTag } from '../eval.mjs';
+import { layTag, errorAtRestOf } from '../eval.mjs';
+import { errorFromQlang } from '../error-convert.mjs';
 import { atPath } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
 
 const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
@@ -53,6 +54,30 @@ async function readParts(subject, templates, soft, fallback, state) {
 
 registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
 registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
+
+// [D333]
+async function outcomeOf(subject, question, state) {
+  let answer;
+  try {
+    answer = await readTemplate(subject, question, false, null, state);
+  } catch (refusal) {
+    if (!(refusal instanceof QlangError) || refusal instanceof QlangDefect) throw refusal;
+    answer = errorFromQlang(refusal, state.scope);
+  }
+  if (!isErrorValue(answer)) return new Map([['ok', true], ['value', answer]]);
+  return new Map([['ok', false], ['error', await errorAtRestOf(answer, state)]]);
+}
+
+const AnySettleQuestionsKindNotTakenError = declareRefusal('any/settle/QuestionsKindNotTakenError');
+
+registerStateReader('any/settle', runsWithinAsCode(['questions'], async (subject, questions, state) => {
+  const parts = partsOfTemplate(questions);
+  if (parts === null) throw new AnySettleQuestionsKindNotTakenError({ 'questions/expected': kindsExpected('map', 'vec') });
+  const outcomes = [];
+  for (const question of parts) outcomes.push(await outcomeOf(subject, question, state));
+  if (isMap(questions)) return new Map([...questions.keys()].map((key, at) => [key, outcomes[at]]));
+  return isSet(questions) ? makeSet(outcomes) : Object.freeze(outcomes);
+}));
 
 // [QSPTH#write], [QSERR#trace]
 async function written(value, path, at, write, state) {

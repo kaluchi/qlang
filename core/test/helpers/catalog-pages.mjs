@@ -3,9 +3,6 @@
 import { printQuoteSource, printValue } from '../../src/print-value.mjs';
 import { beneathTags, isDoc, isErrorValue } from '../../src/types.mjs';
 
-// [QSSLF#doc]
-export const quoteInProse = prose => prose.replace(/`[^`]*`/g, '').includes('~(');
-
 function printed(value) {
   try { return printValue(value); }
   catch { return JSON.stringify(value); }
@@ -50,15 +47,6 @@ export async function wrongLinksOf(answerOf, links, declaredPages) {
     if (target !== null) wrong.push(`${link.address}: ::link~(${link.query}) ${target}`);
   }
   return wrong;
-}
-
-export async function proseQuotesOf(answerOf, addresses) {
-  const holding = [];
-  for (const address of addresses) {
-    const prose = await answerOf(`${address} | doc !| |~~ ~~| | segments | filter ~(tag | eq ::string) | join ""`);
-    if (quoteInProse(prose)) holding.push(address);
-  }
-  return holding;
 }
 
 export async function failingLawsOf(answerOf, addresses) {

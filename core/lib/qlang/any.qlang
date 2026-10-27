@@ -1,6 +1,6 @@
 |~ `::any`, the kind beneath every kind, and what is declared under it:
    the verbs every value answers.
-   The rules it holds: [QSDSP#residence], [QSPRN#print]. ~|
+   The rules it holds: [QSDSP#residence], [QSPRN#print], [QSPTH#template]. ~|
 
 :any
   |~~ Any is the kind beneath every kind, where the verbs every value
@@ -2554,6 +2554,53 @@
     | proves :BodyKindNotTakenError/refusesABoolean
         |~~ A boolean is no template. ~~|
         ~({:qty 1} | with [/qty] true !| tag | eq ::any/with/BodyKindNotTakenError)
+    | impl ::builtin{}
+
+:any/settle
+  |~~ Answers each question asked of the subject with its outcome, in the
+      shape of the questions: `{:ok true :value …}` where it answered and
+      `{:ok false :error …}` where it failed, the error at rest of its
+      failure as `!|` hands it, so one round trip brings every answer it
+      can, the failure of one beside the answers of the others:
+      `{:users [{:age 30} {:age null}]} | settle [~(get /users/0/age | add 1) ~(get /users/1/age | add 1)] | map /ok`
+      answers `[true false]`. A question is a quote, a path or any part of
+      a template, read as `get` reads that part, and the questions a
+      vector or a map, `settle {:count ~(get /users | count) :first /users/0}`
+      answering a map of outcomes; `map /value` and `map /error` take a
+      layer off. `get` and `query` answer the first failure of a template,
+      and `settle` asks where every answer is wanted.
+      ::link~(::any/get) ::link~(::any/runLaws) ::link~(::qlang/errors)
+  ~~|
+  ::fn
+    | takes :questions
+        |~~ The questions, a vector or a map of quotes, paths and parts of a
+            template, each asked of the subject.
+        ~~|
+        /0 #[::map ::vec]
+    | throws :QuestionsKindNotTakenError
+        |~~ The questions are a vector, a set or a map, each part a question
+            asked of the subject, so one question stands in brackets,
+            `settle [~(count)]`.
+        ~~|
+    | returns
+        |~~ The outcome of each question, in the shape of the questions. ~~|
+        #[::map ::vec]
+    | proves :answersEachQuestionItsOutcome
+        |~~ The ages of two users, one of them unknown, answer one outcome
+            each.
+        ~~|
+        ~({:users [{:name "Ann" :age 30} {:name "Bo" :age null}]} | settle [~(get /users/0/age | add 1) ~(get /users/1/age | add 1)] | map /ok | eq [true false])
+    | proves :keepsTheAnswersBesideAFailure
+        |~~ A user missing beside the count of users leaves the count. ~~|
+        ~({:users [{:name "Ann"}]} | settle {:count ~(get /users | count) :missing /users/5/name} | get /count/value | eq 1)
+    | proves :holdsTheErrorAtRestOfAFailure
+        |~~ The failure of a question is its error at rest, read as `!|`
+            hands it.
+        ~~|
+        ~({:users [{:name "Ann"}]} | settle [/users/5/name] | get /0/error | get [~(tag) ~(index)] | eq [::path/IndexOutOfBoundsError 5])
+    | proves :QuestionsKindNotTakenError/refusesAQuestionAlone
+        |~~ A question alone stands in brackets. ~~|
+        ~(5 | settle ~(add 1) !| tag | eq ::any/settle/QuestionsKindNotTakenError)
     | impl ::builtin{}
 
 :any/put

@@ -212,10 +212,9 @@ guess for itself.
 
 A doc is the markdown of the language, the vector of its segments, prose
 strings and quotes, under `::doc`. The parser reads the segments: a
-`~(…)` whose text reads as code is a quote, under the tags written
-before it, a span between backquotes and a `~(` that reads as no code
-are prose [QSSYN#doc], and each run of prose is one string, an empty one
-dropped. The prose holds no whitespace at its edges and no indentation
+`~(…)` is a quote, under the tags written before it, and one whose text
+reads as no code is refused, a span between backquotes is prose
+[QSSYN#doc], and each run of prose is one string, an empty one dropped. The prose holds no whitespace at its edges and no indentation
 its lines after the first share, a line of whitespace alone empty,
 whatever built the doc, the parser, `tag ::doc` or the docs of a slot
 joined into a page, so a doc holds one prose wherever its source indents

@@ -25,3 +25,4 @@
 {"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | tag) ~({:a 1} | raise !| payload | tag)]","expect":"[::map ::map]"}
 {"name":"a-caught-error-of-a-refusal-answers-its-facts-by-their-names","query":"1 | add \"x\" !| get [~(addend | expected) ~(addend | found | tag) ~(addend | found) ~(trace | count)]","expect":"[#[::number] ::string \"x\" 1]"}
 {"name":"a-path-beneath-the-tag-of-a-caught-refusal-is-refused-with-the-read-by-its-names","query":"\"x\" | add 1 !| get /subject !| get [~(tag) ~(repair)]","expect":"[::path/TagClosedError ~(subject)]"}
+{"name":"settle-holds-the-failure-of-a-question-as-its-error-at-rest","query":"{:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]","expect":"[::number/add/SubjectNotNumberError null]"}

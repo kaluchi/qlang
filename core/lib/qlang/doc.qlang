@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
    segments, and the verbs that read a doc.
-   The rules it holds: [QSDSP#residence], [QSSLF#doc]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#doc], [QSSYN#doc]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:
@@ -98,7 +98,7 @@
 
 :doc/segments
   |~~ Answers the parts of the doc in their order, a vector: each run of
-      prose a string, and each span that reads as code a quote, bare or
+      prose a string, and each `~(…)` a quote, bare or
       under the tags of its role, a link under `::link` and a snippet
       under `::snippet`, `|~~ a ~(add 1) b ~~| | segments` answering
       `["a " ~(add 1) " b"]`, each tag laid over the quote through its
@@ -106,8 +106,8 @@
       its payload refuses the doc, `::number~(…)` answering
       `::number/PayloadKindNotTakenError`. A doc of prose alone answers a
       vector of one string.
-      A span that does not read as code stays prose, so a quote left
-      broken in a page is no link and no snippet. The segments are the
+      A quote that reads as no code is refused where the doc is written,
+      and code a prose shows stands between backquotes. The segments are the
       payload the doc was built from, so `segments | tag ::doc` answers
       the doc again, and `content` writes them as one text. The subject
       is a doc, the page of a name read by `doc` first.
@@ -131,9 +131,11 @@
     | proves :answersOneStringForProseAlone
         |~~ A doc of prose alone is one segment of prose. ~~|
         ~(|~~ only prose ~~| | segments | eq ["only prose"])
-    | proves :keepsABrokenQuoteInProse
-        |~~ A span that does not read as code stays prose. ~~|
-        ~(|~~ a ~(1 | ) b ~~| | segments | count | eq 1)
+    | proves :refusesAQuoteThatReadsAsNoCode
+        |~~ A quote of a doc that reads as no code is refused, and code a
+            prose shows stands between backquotes.
+        ~~|
+        ~(get [~("|~~ Add one, ~(add 1 | ), then double. ~~|" | parse !| tag) ~(|~~ Write `~(add 1 | )` whole. ~~| | segments | count)] | eq [::quote/ParseError 1])
     | proves :buildsTheDocAgainUnderItsTag
         |~~ The segments under `::doc` are the doc again. ~~|
         ~(|~~ Add one, ~(add 1), then double. ~~| | eq (segments | tag ::doc))

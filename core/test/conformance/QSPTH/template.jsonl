@@ -41,3 +41,8 @@
 {"name":"with-refuses-a-body-get-takes-not","query":"{:a 1} | with [/a] true !| tag","expect":"::any/with/BodyKindNotTakenError"}
 {"name":"a-failure-of-a-selector-of-with-is-its-answer","query":"{:a 1} | with {:b /b} ~(1) !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"with-reads-no-path-beneath-a-closed-tag","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card[\"a\" 312] | with [/took] ~(took | add 1) !| tag","expect":"::path/TagClosedError"}
+{"name":"settle-answers-each-question-of-a-template-its-outcome","query":"{:users [{:name \"Ann\" :age 30} {:name \"Bo\" :age null}]} | settle [~(get /users | count) ~(get /users/1/age | add 1) /users/5/name] | map ~(get [/ok ~(query /value) ~(query /error | tag)])","expect":"[[true 2 ::null] [false null ::number/add/SubjectNotNumberError] [false null ::path/IndexOutOfBoundsError]]"}
+{"name":"settle-answers-a-map-of-questions-a-map-of-outcomes","query":"{:users [{:name \"Ann\" :age 30}]} | settle {:count ~(get /users | count) :first /users/0/name} | map /value","expect":"{:count 1 :first \"Ann\"}"}
+{"name":"settle-answers-a-set-of-questions-a-set-of-outcomes","query":"5 | settle #[~(add 1)] | tag","expect":"::set"}
+{"name":"settle-reads-in-its-questions-the-values-its-step-names","query":"apply ~(:k 10 | 5 | settle [~(add k)] | map /value)","expect":"[15]"}
+{"name":"settle-refuses-a-question-alone-that-no-brackets-hold","query":"5 | settle ~(add 1) !| get [~(tag) ~(questions | found)]","expect":"[::any/settle/QuestionsKindNotTakenError ~(add 1)]"}

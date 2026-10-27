@@ -11,9 +11,7 @@
 // Every rule answers a part, the record of a step its constructor builds or
 // a literal, its span, which names the source the caller gives, and the parts
 // it holds; a rule a constructor holds is refused at the part its refusal
-// names, but in a `~(…)` of a doc tried as code, whose try a rule of a step
-// and a refusal the grammar does not pass over there fail, a refusal it
-// passes over letting the quote read as code [QSQUO#step], [QSSYN#doc].
+// names [QSQUO#step], a quote of a doc among it [QSSYN#doc].
 //
 // A comment, `|~| …` to the end of its line or `|~ … ~|`, is
 // whitespace wherever whitespace stands [QSSYN#comment]; the parser
@@ -95,6 +93,12 @@
     return { source, start: pointOf(end), end: pointOf(end + 1) };
   }
 
+  // The opener of a doc read, where a refusal of the doc points.
+  function openerOf(doc) {
+    const { source, start } = doc.span;
+    return { source, start, end: pointOf(start.offset + (input.startsWith('|~~|', start.offset) ? 4 : 3)) };
+  }
+
   // The last characters of what the rule read, where a refusal of the
   // sign written last points.
   function lastOf(length) {
@@ -161,8 +165,7 @@
   }
 
   // The records a rule builds, kept for its action where they keep the rules
-  // of a step; a broken rule is refused at the part it names, but in the
-  // quote of a doc, where it fails the try of its rule, and a throw of a
+  // of a step; a broken rule is refused at the part it names, and a throw of a
   // constructor that is no refusal passes as it is [QSQUO#step].
   let built = null;
 
@@ -172,7 +175,6 @@
       return true;
     } catch (thrown) {
       if (!(thrown instanceof Refused)) throw thrown;
-      if (docQuoteDepth > 0) return false;
       error(thrown.message, thrown.at);
     }
   }
@@ -301,44 +303,26 @@
     error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
   }
 
-  // How deep the parser is in a `~(…)` of a doc it tries as code, whose try a
-  // rule of a step and a refusal the grammar does not pass over there fail, a
-  // refusal it passes over letting the quote read as code [QSSYN#doc].
-  let docQuoteDepth = 0;
-
-  // How deep the parser is in a look ahead for a declaration that opens on
-  // a later line, which ends the modifiers of a command before it [QSSYN#line].
-  let lookingAhead = 0;
-
-  // Whether the parser reads the span of a `~(` of a line doc, which reads no
-  // line break [QSSYN#doc].
-  let spanOfALine = false;
-
   // The docs a span between backquotes opened and did not close [QSSYN#doc].
   let docsInASpan = 0;
 
-  // Whether the parser reads the last line of the source, where the quote of a
-  // line doc names its continuations [QSSYN#doc].
-  const onTheLastLine = () => offset() >= lineStarts[lineStarts.length - 1];
-
-  // The offsets where a rule failed under the counters of the parse: a read
-  // there fails at once, a read aloud where the failure was read aloud [D404].
+  // The offsets where a rule failed: a read there fails at once, a read aloud
+  // where the failure was read aloud [D404].
   const FAILED_SILENTLY = 1;
   const FAILED_ALOUD = 2;
-  const keyOf = () => offset() * 8 + (docQuoteDepth > 0 ? 4 : 0) + (lookingAhead > 0 ? 2 : 0) + (spanOfALine ? 1 : 0);
 
   function knownToFail(failures) {
-    const known = failures[keyOf()];
+    const known = failures[offset()];
     return known === FAILED_ALOUD || (known === FAILED_SILENTLY && peg$silentFails > 0);
   }
 
   function failedHere(failures) {
-    const key = keyOf();
+    const key = offset();
     if (failures[key] !== FAILED_ALOUD) failures[key] = peg$silentFails > 0 ? FAILED_SILENTLY : FAILED_ALOUD;
     return false;
   }
 
-  const failuresOf = () => new Uint8Array(input.length * 8 + 8);
+  const failuresOf = () => new Uint8Array(input.length + 1);
   const groupFailures = failuresOf();
   const quoteFailures = failuresOf();
   const taggedFailures = failuresOf();
@@ -348,12 +332,6 @@
   // The path a quote holds alone, a leading pipe before it among it, or null.
   function pathAlone(pipeline) {
     return pipeline !== null && pipeline.value.length === 1 && isPath(pipeline.value[0]) ? pipeline.parts[0] : null;
-  }
-
-  // Whether the engine reads a regex a literal writes with its flags [QSTXT#regex].
-  function regexRead(source, written) {
-    const flags = canonicalFlags(written);
-    return flags !== null && regexProblem(source, flags) === null;
   }
 
   function refuseUnreadRegex(source, written) {
@@ -380,7 +358,7 @@ Pipeline
   = leadingComb:(LeadingCombinator __)? head:PipelineHead tail:ContinuationUnit*
     &{ return accepted(() => pipelineOf(leadingComb === null ? '|' : leadingComb[0], head, tail)); }
     { return taken(); }
-  / &{ return docQuoteDepth === 0; } &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
+  / &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
     { refuseCombinatorAfterCombinator(first, second); }
 
 // The `!"~"` lookahead keeps the openers of a comment `|~`, `|~|`, `|~~`,
@@ -395,13 +373,13 @@ Combinator
 
 PipelineHead
   = PipelineStep
-  / &{ return docQuoteDepth === 0; } &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
+  / &(LeadingCombinator NonSpace) c:LeadingCombinator { refuseCombinatorSpacing(c); }
 
 // A tag name where a declaration's name stands declares nothing: a
 // name is declared by its keyword, and a value under a tag touches its
 // payload [QSNAM#address], [QSSYN#step].
 TagDeclarationRefusal
-  = &{ return docQuoteDepth === 0; } &(TagLit _h1 !Combinator (DocOpen / Word)) TagLit _h1 !Combinator (DocOpen / Word)
+  = &(TagLit _h1 !Combinator (DocOpen / Word)) TagLit _h1 !Combinator (DocOpen / Word)
     { error('a name is declared by its keyword, `:Box |~~ A parcel. ~~|`, and a value under a tag touches its payload, `::Box[…]`'); }
 
 ContinuationUnit
@@ -425,8 +403,7 @@ PipedCombinator
 // with no combinator between them; a slash written against a word is the
 // dangling segment of a path, which the parser names by the key it expected.
 SpacingRefusal
-  = &{ return docQuoteDepth === 0; }
-    ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`'); }
+  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`'); }
     / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
     / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
@@ -440,23 +417,35 @@ SpacingRefusal
     )
 
 PipelineStep
-  = DocBeforeDeclaration
+  = DocStep
   / BindStep
   / TagDeclarationRefusal
   / Step
+
+// A doc where a step stands, read once whatever follows it: before a
+// declaration it is refused, since a doc documents the declaration whose slot
+// it stands in, and a doc after it with no combinator is refused as a note in
+// a pipeline [QSSYN#doc].
+DocStep
+  = head:DocLit tail:(&(_ DocOpen) _ @DocLit)* declared:(_ &BindStep)?
+    {
+      if (declared !== null) error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`');
+      if (tail.length > 0) error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`', openerOf(tail[0]));
+      return head;
+    }
 
 // A doc documents the declaration whose slot it stands in, between the
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [QSSYN#doc].
 DocBeforeDeclaration
-  = &{ return docQuoteDepth === 0; } &(DocLit (_ DocLit)* _ BindStep) DocLit (_ DocLit)* _
+  = &(DocLit (_ DocLit)* _ BindStep) DocLit (_ DocLit)* _
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
 // pipeline is a comment, which is whitespace, and a doc as a value stands
 // at the head or where a verb takes it [QSSYN#doc].
 DocAfterStep
-  = &{ return docQuoteDepth === 0; } &DocOpen DocOpen
+  = &DocOpen DocOpen
     { error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`'); }
 
 DocOpen
@@ -545,12 +534,12 @@ Step
 // The path of jq refused naming the path, read by `get` where a step stands
 // and written bare where a modifier does, and a dot alone naming `it` [QSSYN#step].
 DotStepRefusal
-  = &{ return docQuoteDepth === 0; } &DottedPath path:DottedPath
+  = &DottedPath path:DottedPath
     { error(`\`${text()}\` is no path: a part is read by \`get\` and a path, which opens with a slash, \`get ${path}\``); }
   / DotAlone
 
 DotModifierRefusal
-  = &{ return docQuoteDepth === 0; } &DottedPath path:DottedPath
+  = &DottedPath path:DottedPath
     { error(`\`${text()}\` is no path: a path opens with a slash, \`${path}\``); }
   / DotAlone
 
@@ -566,14 +555,14 @@ DotIndex
   = "[" @$("-"? [0-9]+) "]"
 
 DotAlone
-  = &{ return docQuoteDepth === 0; } &("." ([ \t\n\r|)\]}] / !.)) "."
+  = &("." ([ \t\n\r|)\]}] / !.)) "."
     { error('`.` is no value: the value itself is `it`'); }
 
 // A path written before a word, the method call of other languages,
 // `/ne ""`, or the read of a part before a word, `/tags count`: a part is
 // read by `get`, and a verb is called by its name alone.
 PathBeforeWord
-  = &{ return docQuoteDepth === 0; } "/" name:KeywordName &(_h1 !Combinator !"!|" Word) _h1 next:$Word
+  = "/" name:KeywordName &(_h1 !Combinator !"!|" Word) _h1 next:$Word
     { error(`\`/${name}\` is a path, a value: a part is read by \`get\`, \`get /${name} | ${next}\`, and a verb is called by its name alone, \`${name} ${next}\``); }
 
 // A command's modifiers are words; the first may touch the name when
@@ -594,15 +583,9 @@ ModifierGap
   / __ !DeclarationOpens
 
 // Whether a declaration opens here [QSSYN#line]: a keyword with its doc or with
-// the step its body opens with, read no further than that opening; inside
-// a quote of a doc a declaration is read whole, within which a keyword
-// alone opens one, and the depth `lookingAhead` counts is given back
-// whether the declaration is read or not.
+// the step its body opens with, read no further than that opening.
 DeclarationOpens
-  = &{ return docQuoteDepth === 0; } BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
-  / &{ return lookingAhead > 0; } BindName
-  / &{ return docQuoteDepth > 0; } &{ lookingAhead++; return true; } BindStep &{ lookingAhead--; return true; }
-  / &{ return docQuoteDepth > 0; } &{ lookingAhead--; return false; } "~("
+  = BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
 
 // A step opens here: no combinator, no closing bracket and no end.
 StepOpens
@@ -719,11 +702,11 @@ TaggedLit
   = &"::" &{ return !knownToFail(taggedFailures); } @(
       head:TagLit "#" payload:PayloadAfterHash
       { return taggedRead(head, payload); }
-    / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ PayloadAfterHash _ ")") "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
+    / &("::" TagName "(" _ PayloadAfterHash _ ")") "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
       { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${sourceOf(payload)}\``); }
-    / &{ return docQuoteDepth === 0; } &("::" TagName "(" _ TaggedPayload _ ")") "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
+    / &("::" TagName "(" _ TaggedPayload _ ")") "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
       { error(`a literal touches its tag by its own sign: write \`::${tag}${sourceOf(payload)}\``); }
-    / &{ return docQuoteDepth === 0; } &("::" TagName ParenGroup) "::" tag:TagName group:ParenGroup
+    / &("::" TagName ParenGroup) "::" tag:TagName group:ParenGroup
       { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${input.slice(group.content.start.offset, group.content.end.offset)} | tag ::${tag}\``); }
     / head:TagLit payload:TaggedPayload
       { return taggedRead(head, payload); }
@@ -777,7 +760,6 @@ ParenGroup
 // a quote that failed at an offset fails there again at once [D404].
 QuoteLit
   = "~(" &{ return !knownToFail(quoteFailures); } _ pipeline:Pipeline? _ ")"
-    &{ return docQuoteDepth === 0 || pathAlone(pipeline) === null; }
     {
       const path = pathAlone(pipeline);
       if (path !== null) error(`the quote of a path answers the path, which no verb wants: give the path bare, \`${sourceOf(path)}\``);
@@ -794,13 +776,13 @@ ShortQuoteLit
       read.content = pipeline.span;
       return read;
     }
-  / &{ return docQuoteDepth === 0; } &("~" Path) "~" path:Path
+  / &("~" Path) "~" path:Path
     { error(`the quote of a path answers the path, which no verb wants: give the path bare, \`${sourceOf(path)}\``); }
-  / &{ return docQuoteDepth === 0; } "~" &[{[]
+  / "~" &[{[]
     { error('a quote is written `~(…)`, its code in parentheses; `{…}` is a map and `[…]` a vector'); }
 
-// The balance reading of a `~(…)` span inside a comment or a doc, where
-// the span is prose: parentheses nest, and a string or a comment token
+// The balance reading of a `~(…)` span inside a comment or a doc nested in
+// one, where the span is prose: parentheses nest, and a string or a comment token
 // ends on its own closer, so the outer `)` is reached only when nothing
 // nests at the cursor.
 QuoteContent
@@ -847,17 +829,17 @@ QuoteLinePlainSpan
 QuoteChar
   = ![()] @QuoteSpanChar
 
-// A character of a `~(…)` span, which in a line doc is no line break [QSSYN#doc].
+// A character of a `~(…)` span.
 QuoteSpanChar
-  = c:. &{ return c !== '\n' || !spanOfALine; } { return c; }
+  = .
 
 // A doc value, in a line form and a block form, read as its segments: a
-// `~(…)` that reads as code is a quote, a span between backquotes is
-// prose whole, and the rest is prose [QSQUO#literal], [QSSYN#doc]; a line doc's quote
-// stays on its line. The printer writes the block form. A parse error
-// names its opening `doc` and its prose among the continuations [QSSYN#refusal].
+// `~(…)` outside a span between backquotes is a quote, a span between
+// backquotes is prose whole, and the rest is prose [QSQUO#literal], [QSSYN#doc].
+// The printer writes the block form. A parse error names its opening `doc` and
+// its prose among the continuations [QSSYN#refusal].
 DocLit
-  = LineDocOpen text:LineDocText
+  = LineDocOpen text:LineDocText &LineDocEnd
     { return docRead(text); }
   / BlockDocOpen text:BlockDocText "~~|"
     { return docRead(text); }
@@ -871,6 +853,11 @@ BlockDocOpen "doc"
 LineDocText
   = parts:LineDocPart* { return textRead(parts); }
 
+// The end of the line a line doc reads its prose to, past the lines a quote of
+// it runs on across.
+LineDocEnd
+  = "\r\n" / "\n" / !.
+
 BlockDocText
   = parts:BlockDocPart* { return textRead(parts); }
 
@@ -878,30 +865,26 @@ BlockDocText
 // one part: a quote begins at `~` or at the `::` of its tags, a span
 // between backquotes at a backquote, as markdown reads it, a run of them
 // closing at a run of as many and a run with no such closer prose, and in
-// a block a nested comment or doc at `|`; a `~(` that reads as no code
-// reads to the `)` that pairs it as prose, and a line doc, whose line ends
-// at `\n` or `\r\n`, tries its quote as code within the line [QSSYN#doc].
+// a block a nested comment or doc at `|`; a `~(` outside a span is a quote,
+// and a line doc's line ends at `\n` or `\r\n` [QSSYN#doc].
 LineDocPart
   = ProseRunOfALine { return text(); }
-  / &{ return onTheLastLine(); } quote:DocQuote { return quote; }
-  / &(quote:DocQuote &{ return quote.span.start.line === quote.span.end.line; }) quote:DocQuote { return quote; }
-  / LineQuoteSpan
+  / DocQuote
   / open:$("`"+) (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / ProseOfALine))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
-  / ProseOfALine
+  / !DocQuoteOpens @ProseOfALine
 
 BlockDocPart
   = ProseRunOfABlock { return text(); }
   / DocQuote
   / open:$("`"+) &{ docsInASpan = 0; return true; } (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / DocInASpan / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
-  / QuoteSpan
   / NestedLineDocSpan
   / NestedLinePlainSpan
   / NestedBlockDocSpan
   / NestedBlockPlainSpan
   / "~|"
-  / !"~~|" c:. { return c; }
+  / !"~~|" !DocQuoteOpens c:. { return c; }
 
 // The characters of the prose of a doc, a span of prose inside it among it,
 // which a refusal names beside the literals that close what it opened [QSSYN#refusal].
@@ -927,19 +910,16 @@ DocInASpan "character of prose"
 ProseOfAString "character of prose"
   = !["\\] @QuoteSpanChar
 
-// A `~(` of a line doc that reads as no code, read as prose to the `)` that
-// pairs it on its line, `spanOfALine` holding while the span is read [QSSYN#doc].
-LineQuoteSpan "character of prose"
-  = &{ spanOfALine = true; return true; } prose:QuoteSpan &{ spanOfALine = false; return true; } { return prose; }
-  / &{ spanOfALine = false; return false; } "~("
-
 // A quote of a doc, under the stack of tags written before it, which gives it
-// its role [QSSLF#doc] and is its head [QSHST#tokens], the depth `docQuoteDepth` counts given
-// back whether a quote is read or not.
+// its role [QSSLF#doc] and is its head [QSHST#tokens].
 DocQuote
-  = &{ docQuoteDepth++; return true; } tags:DocQuoteTag* quote:QuoteLit &{ docQuoteDepth--; return true; }
+  = tags:DocQuoteTag* quote:QuoteLit
     { return tags.length === 0 ? quote : Object.assign(part(tags.reduceRight((inner, tagName) => makeTagged(makeTag(tagName), inner), quote.value), [quote]), { head: { ...span(), end: quote.span.start } }); }
-  / &{ docQuoteDepth--; return false; } "~("
+
+// Where a quote of a doc opens, a `~(` under the tags written before it,
+// which no prose reads [QSSYN#doc].
+DocQuoteOpens
+  = DocQuoteTag* "~("
 
 DocQuoteTag
   = "::" @TagName
@@ -959,9 +939,9 @@ ErrorLit
 // read as the keywords of their strings; where its entries end, the other
 // spelling is refused, and so is an entry of two values [QSLIT#json], [QSLIT#closed].
 MapLit
-  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &{ return docQuoteDepth === 0; } &("," _ Keyword) { refuseMixedSpellings(); })
+  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &("," _ Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
-  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &{ return docQuoteDepth === 0; } &(StringLit _ ":") { refuseMixedSpellings(); } / &{ return docQuoteDepth === 0; } &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
     { return entriesRead(map => map, [head, ...tail]); }
   / "{" _ "}"
     { return part(new Map()); }
@@ -980,7 +960,6 @@ QlangMapEntry
 // [QSTXT#regex].
 RegexLit
   = "#\"" chars:RegexChar* "\"" written:$RegexFlag*
-    &{ return docQuoteDepth === 0 || regexRead(chars.join(''), written); }
     {
       const source = chars.join('');
       refuseUnreadRegex(source, written);
@@ -1003,7 +982,7 @@ RegexFlag "flag of a regex"
 SetLit
   = "#[" _ "]"
     { return part(makeSet([])); }
-  / &{ return docQuoteDepth === 0; } &"#{" "#{"
+  / &"#{" "#{"
     { error('a set is written `#[…]`, the vector in the one order without duplicates; `{…}` is a map'); }
   / "#[" _ elements:ElementList _ "]"
     { return part(makeSet(elements.map(element => element.value)), elements); }
@@ -1025,7 +1004,7 @@ ElementList
 // as two elements.
 LiteralGap
   = __
-  / &{ return docQuoteDepth === 0; } &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
+  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
 
 // A path, a value of its own [QSPTH#value]: a segment is a bare key, a quoted
 // key, a keyword of names joined by `/` after `:`, or an index; the slash alone, with no
@@ -1033,11 +1012,11 @@ LiteralGap
 // question mark after a segment, the habit of a read that may miss, leads to
 // `query` [QSSYN#step].
 Path
-  = &{ return docQuoteDepth === 0; } &("/" KeySegment ("/" KeySegment)* "?") segments:("/" @$KeySegment "?"?)+
+  = &("/" KeySegment ("/" KeySegment)* "?") segments:("/" @$KeySegment "?"?)+
     { error(`a part that may be missing is read by \`query\`, which answers null where it misses: write \`query /${segments.join('/')}\``); }
   / "/" first:KeySegment rest:("/" @KeySegment)*
     { return part(makePath([first, ...rest])); }
-  / &{ return docQuoteDepth === 0; } "/" !KeySegment !('"' / ":")
+  / "/" !KeySegment !('"' / ":")
     { error('the slash alone names no path: the value itself is `it`'); }
 
 KeySegment
@@ -1081,15 +1060,15 @@ HexDigit "hexadecimal digit"
   = [0-9a-fA-F]
 
 // A number is a finite double, so digits naming a magnitude outside that
-// domain match no production, and a leading zero is refused [QSLIT#number]
-// but in a quote of a doc, where it fails the try [QSSYN#doc]. `text()` reads
-// empty inside a semantic predicate, so the predicate reads its labels.
+// domain match no production, and a leading zero is refused [QSLIT#number].
+// `text()` reads empty inside a semantic predicate, so the predicate reads
+// its labels.
 NumberLit "number within the finite double range"
   = sign:"-"? whole:[0-9]+ frac:("." [0-9]+)? exp:([eE] [+\-]? [0-9]+)?
     &{ const matched = (sign || '') + whole.join('')
                      + (frac ? '.' + frac[1].join('') : '')
                      + (exp  ? exp[0] + (exp[1] || '') + exp[2].join('') : '');
-       return Number.isFinite(Number(matched)) && (docQuoteDepth === 0 || !leadsWithAZero(whole)); }
+       return Number.isFinite(Number(matched)); }
     { if (leadsWithAZero(whole)) {
         const digits = whole.join('').replace(/^0+/, '') || '0';
         const written = (sign || '') + digits + (frac ? '.' + frac[1].join('') : '') + (exp ? exp[0] + (exp[1] || '') + exp[2].join('') : '');

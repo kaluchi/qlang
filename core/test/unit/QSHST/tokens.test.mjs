@@ -277,10 +277,10 @@ describe('a source that does not parse', () => {
     expect(tokenize('[[[[[1 )', await rootVerbNames())).toEqual([{ start: 0, end: 8, kind: 'unparsed' }]);
   });
 
-  it('paints a source refused after a line doc whose `~(` reads as no code up to where its reading stopped', async () => {
-    const src = '[|~~| x ~(a\n 1 2 , 3]';
+  it('paints a source refused after a line doc that holds a quote up to where its reading stopped', async () => {
+    const src = '[|~~| x ~(a)\n 1 2 , 3]';
     expect(tokenize(src, await rootVerbNames()).map(token => [src.slice(token.start, token.end), token.kind])).toEqual([
-      ['[', 'vec'], ['|~~| x ~(a', 'doc'], ['\n ', 'whitespace'], ['1', 'number'], [' ', 'whitespace'], ['2', 'number'], [' ', 'whitespace'], [', 3]', 'unparsed']
+      ['[', 'vec'], ['|~~| x ', 'doc'], ['~(', 'quote'], ['a', 'name'], [')', 'quote'], ['\n ', 'whitespace'], ['1', 'number'], [' ', 'whitespace'], ['2', 'number'], [' ', 'whitespace'], [', 3]', 'unparsed']
     ]);
   });
 });

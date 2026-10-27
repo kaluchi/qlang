@@ -1042,9 +1042,9 @@ function fieldRead(tagName, field, payload, state, opened, ofFacts) {
 
 // [QSERR#site]
 async function slotOfTheFacts(address, name, facts, state) {
-  const probes = new Map();
-  for (const [key, fact] of facts) if (key.startsWith(`${name}/`)) probes.set(key.slice(name.length + 1), fact);
-  return probes.size === 0 ? null : await layTag(address, probes, state);
+  const parts = new Map();
+  for (const [key, fact] of facts) if (key.startsWith(`${name}/`)) parts.set(key.slice(name.length + 1), fact);
+  return parts.size === 0 ? null : await layTag(address, parts, state);
 }
 
 function fieldHeld(tagName, field, payload, read, state, ofFacts) {

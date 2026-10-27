@@ -4,7 +4,7 @@
    as their literal, the chain that builds a function folded into data,
    since none of them stands while the source runs; the chain builds every
    other verb.
-   The rules it holds: [QSBLD#fn]. ~|
+   The rules it holds: [QSBLD#fn], [D473]. ~|
 
 :fn
   |~~ A function: the subject it runs on, the inputs it takes, the answer
@@ -337,10 +337,10 @@
       `addend/found`, the value found whole or as the cell its host keeps
       it in, its own names beneath it, `addend/found/count`, and never a
       name of the verb. A slot is read from a refusal by its name and its
-      probes by theirs, `!| addend | found`.
+      parts by theirs, `!| addend | found`.
       ::link~(::fn) ::link~(::error)
   ~~|
-  ::kind[~(accepts |~~ The probes of the slot, a map. ~~| ::map
+  ::kind[~(accepts |~~ The parts of the slot, a map. ~~| ::map
     | wires :expected
         |~~ The kinds the rule takes: those of the value of the slot, as the
             chain of its verb writes them, of the part of it the path of the
@@ -588,7 +588,7 @@
       under a label it is a refusal of the verb. A refusal of a verb is the
       verdict of the verb, an `::error` whose kind wires each slot of the
       verb, the subject, each input, the args past the inputs as
-      `surplus` and the answer, each read by its name and its probes by
+      `surplus` and the answer, each read by its name and its parts by
       theirs, `!| addend | found`, then `repair`, then the facts the
       quote wires, each `wires` a fact read by the key of its name, and
       `trace` last, so the error at rest answers each by its name,

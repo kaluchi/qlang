@@ -24,7 +24,7 @@ describe('the parts of a text', () => {
   it('holds the code between the backquotes of a doc, a run of them closing at a run of as many, across the lines of a block doc', () => {
     const codeOf = source => rootOf(source).parts[0].backquoted.map(({ start, end }) => source.slice(start.offset, end.offset));
     expect(codeOf('|~~ a `count` b ``x`y`` c `` d ~~|')).toEqual(['count', 'x`y']);
-    expect(codeOf('|~~ a `[1\n2]` ~(`x`) ~~|')).toEqual(['[1\n2]']);
+    expect(codeOf('|~~ a `[1\n2]` ~(x) ~~|')).toEqual(['[1\n2]']);
     expect(codeOf('|~~| a `add 1`')).toEqual(['add 1']);
   });
 });

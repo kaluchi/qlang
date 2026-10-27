@@ -12,5 +12,5 @@ it('writes the template of a literal that computes, each part that computes as i
 it('refuses a literal whose part computes under a key a later entry writes again, as the text writes it', () => {
   for (const source of ['{:a x :a 1}', '!{:k x :k 1}', '{"a": x, "a": 1}', '::Box{:a x :a 1}']) expect(refusalOf(source)?.message, source).toMatch(/computes nothing/);
   expect(refusalOf('{:a x :a 1}').message).toContain('write `get {:a ~(x) :a 1}`');
-  expect([...stepOf('|~~ a ~({:a x :a 1}) b ~~|')]).toEqual(['a ~({:a x :a 1}) b']);
+  expect(refusalOf('|~~ a ~({:a x :a 1}) b ~~|')?.message).toContain('write `get {:a ~(x) :a 1}`');
 });

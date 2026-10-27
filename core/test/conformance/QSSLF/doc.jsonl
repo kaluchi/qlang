@@ -5,19 +5,19 @@
 {"name":"a-doc-counts-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | count","expect":"3"}
 {"name":"a-doc-addresses-a-quote-among-its-segments","query":"|~~ a ~(add 1) b ~~| | segments | get /1","expect":"~(add 1)"}
 {"name":"the-text-of-a-doc-is-its-content","query":"|~~ a ~(add 1) b ~~| | content","expect":"\"a ~(add 1) b\""}
-{"name":"a-span-that-reads-as-no-code-is-prose","query":"|~~ x ~(a |) y ~~| | segments | count","expect":"1"}
+{"decision":"D474","name":"a-quote-of-a-doc-that-reads-as-no-code-is-refused","query":"\"|~~ x ~(a |) y ~~|\" | parse !| message","expect":"\"`|` joins two steps, and the step after it is missing\""}
 {"name":"a-quote-between-backquotes-is-prose","query":"|~~ write `~(add 1)` here ~~| | segments | count","expect":"1"}
 {"name":"a-tag-in-prose-is-prose","query":"|~~ see ::set[1 2] here ~~| | segments | count","expect":"1"}
 {"name":"a-doc-comes-back-from-its-segments-by-tag","query":"[\"a\" ~(add 1)] | tag ::doc | content","expect":"\"a~(add 1)\""}
 {"name":"a-doc-refuses-a-segment-of-another-kind","query":"[1] | tag ::doc !| get [~(tag) ~(expected)]","expect":"[::doc/ElementKindNotTakenError #[::quote ::string]]"}
 {"name":"a-doc-that-opens-on-a-quote-holds-no-prose-before-it","query":"|~~~(add 1) b~~| | segments | first | tag","expect":"::quote"}
-{"name":"an-unclosed-quote-in-a-doc-is-prose","query":"|~~ a ~(add 1 b ~~| | segments | count","expect":"1"}
+{"decision":"D474","name":"a-quote-of-a-doc-left-open-is-refused-where-its-reading-stopped","query":"\"|~~ a ~(add 1 b ~~|\" | parse !| location","expect":"::span[17 1 18 18 1 19]"}
 {"name":"a-doc-holds-each-run-of-its-prose-as-one-string","query":"[\"a\" \"\" \"b\" ~(add 1)] | tag ::doc | segments | count","expect":"2"}
 {"name":"the-parts-of-a-doc-are-its-segments","query":"|~~ a ~(add 1) b ~~| | segments","expect":"[\"a \" ~(add 1) \" b\"]"}
 {"name":"a-link-under-a-host-tag-is-a-link","query":"|~~ ::Host::link~(1) ~~| | links | first | tag","expect":"::Host"}
 {"name":"the-content-of-a-doc-writes-the-stack-before-its-quote","query":"|~~ a ::link~(add 1) b ~~| | content","expect":"\"a ::link~(add 1) b\""}
 {"name":"a-doc-with-a-link-prints-back-as-itself","query":"|~~ a ::link~(add 1) b ~~| | eq (print | parse | first)","expect":"true"}
-{"name":"a-quote-in-prose-that-does-not-parse-is-no-snippet","query":"|~~ see ::snippet~(1 | ) here ~~| | snippets | count","expect":"0"}
+{"decision":"D474","name":"a-snippet-whose-code-reads-as-no-code-is-refused","query":"\"|~~ see ::snippet~(1 | ) here ~~|\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-snippet-may-answer-an-error","query":"|~~ ::snippet~(\"x\" | add 1) ~~| | snippets | first | answer !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"a-snippet-answers-what-it-shows","query":"|~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | answer","expect":"2"}
 {"name":"a-link-opens-to-another-page","query":"|~~ ::link~(::vec) ~~| | links | first | open | tag","expect":"::doc"}
@@ -48,8 +48,8 @@
 {"name":"a-doc-held-in-a-name-is-equal-to-itself","query":"|~~ same ~~| | with {:page ~it} ~(eq page)","expect":"true"}
 {"name":"a-payload-of-a-doc-is-a-vector","query":"5 | tag ::doc !| tag","expect":"::doc/PayloadKindNotTakenError"}
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
-{"name":"a-doc-prints-its-quote-as-print-writes-it-and-reads-a-broken-one-as-prose","query":"get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ a ~(count | 1) b ~~| | segments | count)]","expect":"[\"|~~ a ~(add 1) b ~~|\" 1]"}
+{"decision":"D474","name":"a-doc-prints-its-quote-as-print-writes-it-and-refuses-a-broken-one","query":"get [~(|~~ a ~(add   1) b ~~| | print) ~(\"|~~ a ~(count | 1) b ~~|\" | parse !| tag)]","expect":"[\"|~~ a ~(add 1) b ~~|\" ::quote/ParseError]"}
 {"name":"two-equal-docs-print-alike-whatever-their-spacing","query":"get [~(|~~ a ~(add   1) ~~| | print) ~(|~~ a ~(add 1) ~~| | print)] | toSet | count","expect":"1"}
 {"name":"a-doc-s-quote-under-the-tag-of-a-group-is-a-segment-that-computes-nothing","query":"get [~(|~~ see ::group~(add 1) ~~| | segments | count) ~([|~~ ::group~(add 1) ~~|] | count) ~(\"f |~~ ::group~(x) ~~|\" | parse | first | get /modifiers | first | segments | count) ~([\"a\" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d)]","expect":"[2 1 1 true]"}
-{"name":"a-doc-s-quote-whose-text-the-grammar-refuses-reads-as-prose","query":"get [~(\"|~~ a ~(f 01) ~~|\" | parse | first | segments | count) ~(\"|~~ a ~(f [x] 01) ~~|\" | parse | first | segments | count) ~(\"[01]\" | parse !| tag)]","expect":"[1 1 ::quote/ParseError]"}
+{"decision":"D474","name":"a-doc-s-quote-whose-text-the-grammar-refuses-is-refused-with-its-rule","query":"get [~(\"|~~ a ~(f 01) ~~|\" | parse !| message) ~(\"|~~ a ~(f [x] 01) ~~|\" | parse !| message) ~(\"[01]\" | parse !| tag)]","expect":"[\"a number is written without a leading zero: write `1`\" \"a number is written without a leading zero: write `1`\" ::quote/ParseError]"}
 {"name":"a-link-and-a-snippet-hold-a-quote-or-each-other","query":"get [~(::link#5 !| tag) ~(::snippet\"x\" !| tag) ~(|~~ a ::link::snippet~(1) b ~~| | get [~(links | count) ~(snippets | count)])]","expect":"[::link/PayloadKindNotTakenError ::snippet/PayloadKindNotTakenError [1 1]]"}

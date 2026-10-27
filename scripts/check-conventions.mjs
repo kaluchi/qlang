@@ -728,6 +728,15 @@ function filesThatSpeak() {
   return speaking;
 }
 
+function partsReadThen(voice, text, path) {
+  try {
+    return partsOfLines(voice, text, path);
+  } catch (refusal) {
+    if (refusal?.name !== 'SourceParseError' || voice !== 'catalog') throw refusal;
+    return [];
+  }
+}
+
 function namesOfTakenOut() {
   const baseline = baselineOf(repoRoot);
   if (baseline === undefined) return [];
@@ -750,7 +759,10 @@ function namesOfTakenOut() {
   const removed = new Set();
   const textsThen = treeAt(repoRoot, baseline).textsOf([...removedLines.keys()]);
   for (const [file, numbers] of removedLines) {
-    const parts = partsOfLines(voiceOfFile(file), textsThen.get(file), file);
+    // A source of the catalog the baseline held in a form the grammar of the
+    // branch refuses has no comments and docs that grammar reads, so its
+    // removed lines name nothing.
+    const parts = partsReadThen(voiceOfFile(file), textsThen.get(file), file);
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the

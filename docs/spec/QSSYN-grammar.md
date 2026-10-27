@@ -188,17 +188,14 @@ In a block doc a span holds a doc nested in it: a `|~~` in the span
 opens a doc of the span and a `~~|` closes the last it opened, `|~~|`
 opening none; a `~~|` that closes none of the docs of the span ends the
 span and the doc, and the run that closes the span closes it whatever
-docs it left open. A `~(…)` outside a span, under the tags written before it, is a segment
-of code where it reads as code, and prose where it does not, its steps
-breaking a rule of a step or its text a rule the grammar holds there, a
-number written with a leading zero among them; a `~(` that reads as no
-code reads to the `)` that pairs it, in a line doc on its line as in a
-block doc, as in a comment. The quote of a line doc is tried as code
-within its line, so a source that fails after a line doc fails where its
-reading stopped, and a source cut short in the quote of a line doc on
-its last line names the continuations of the quote beside those of the
-prose. The prose of a line doc ends at its line break, a carriage return
-alone staying in it. A doc holds its prose with no whitespace at its edges
+docs it left open. A `~(…)` outside a span, under the tags written before
+it, is a segment of code, and a text there that reads as no code, steps
+that break a rule of a step, a literal that computes or a number written
+with a leading zero among it, is refused as `::quote/ParseError` where its
+reading stopped, as the same code is anywhere; a prose shows code between
+backquotes. The quote of a line doc runs on across lines as any code, and
+the prose of a line doc ends at the line break of the line its last part
+ends on, a carriage return alone staying in it. A doc holds its prose with no whitespace at its edges
 and no indentation its lines after the first share [QSSLF#doc], so
 `|~~A box.~~|` and `|~~ A box. ~~|` are one doc.
 
@@ -221,14 +218,14 @@ and no indentation its lines after the first share [QSSLF#doc], so
 > [|~~ a `~~| |~~ b` c ~~|] | count
 2
 
-> get [~("|~~| a ~(b, ~(add 1)) c" | parse | first | segments | count) ~("|~~ a ~(f 01) ~~|" | parse | first | segments | count) ~(|~~ a ~(count | 1) b ~~| | segments | count)]
-[1 1 1]
+> get [~("|~~| a ~(b, ~(add 1)) c" | parse !| message) ~("|~~ a ~(f 01) ~~|" | parse !| message) ~("|~~ a ~(count | 1) b ~~|" | parse !| tag)]
+["modifiers are separated by spaces, not by commas: `f a b`" "a number is written without a leading zero: write `1`" ::quote/ParseError]
 
 > "|~~ note ~~| :x 42" | parse !| message | contains "the slot of the declaration"
 true
 
-> "[|~~| x ~(a\n 1 2 | f" | parse !| location
-::span[17 2 6 18 2 7]
+> "|~~| see ~(5\n  | add 1) and more" | parse | first | segments
+["see " ~(5 | add 1) " and more"]
 
 > "[|~~| x ~(a" | parse !| expected | filter ~(eq ")") | count
 1

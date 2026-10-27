@@ -225,8 +225,8 @@ made an error by `raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it
-stands, naming the template of `get`. In the code of a doc, a literal
-that computes reads as prose.
+stands, naming the template of `get`. The code of a doc holds to these
+rules as any code does [QSSYN#doc].
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| message

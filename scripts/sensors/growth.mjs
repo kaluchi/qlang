@@ -62,7 +62,7 @@ const EVAL = {
   'a failure in map at the last element': n => `${n} | range | map ~(if (eq ${n - 1}) ~(raise) ~(it)) !| tag`,
   'reduce over many elements': n => `${n} | range | reduce 0 ~(add)`,
   'sort of many elements': n => `${n} | range | map ~(mul -1) | sort | first`,
-  'a run of declarations read at its end': n => Array.from({ length: n }, (_, i) => `:a${i} ${i}`).join(' | ') + ` | a${n - 1}`,
+  'a run of declarations read at its end': n => 'apply ~(' + Array.from({ length: n }, (_, i) => `:a${i} ${i}`).join(' | ') + ` | a${n - 1})`,
   'a value nested, printed': n => repeat('[', n) + '1' + repeat(']', n) + ' | print | count',
   'a template of many parts': n => 'get [' + repeat('~(add 1) ', n) + '] | count',
   'a failure caught at each of many steps': n => '"x"' + repeat(' | add 1 !| "x"', n) + ' | count',

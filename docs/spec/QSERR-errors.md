@@ -132,7 +132,10 @@ names `#[::map ::error]` holds it. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
 taken on the way by the payload, `!| payload | union {…} | raise`, which
 raises an error of `::error`, and a failure is recovered by its tag in
-lines of `!| … | raise`.
+lines of `!| … | raise`. A verb that runs code holds the failure that
+code answers as data where its page says so: `settle` the outcome of each
+question it asks, `{:ok false :error …}` beside the answers of the others
+[QSPTH#template], and `runLaws` the outcome of each law [QSSLF#laws].
 
 ```qlang
 > get [~("x" | add 1 !| 0) ~("x" | add 1 !| (~(get /message)))]
@@ -161,6 +164,9 @@ true
 
 > :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
 [::Late 3]
+
+> {:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]
+[::number/add/SubjectNotNumberError null]
 ```
 
 ## trace

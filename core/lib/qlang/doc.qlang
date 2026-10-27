@@ -1,7 +1,7 @@
 |~ `::doc`, the kind of a page, and what is declared under it: its
    constructor and the refusals of a payload that is no vector of
    segments, and the verbs that read a doc.
-   The rules it holds: [QSDSP#residence], [QSSLF#doc], [D474]. ~|
+   The rules it holds: [QSDSP#residence], [QSSLF#doc], [QSSYN#doc]. ~|
 
 :doc
   |~~ A doc is prose held as a value, text that carries quotes of qlang:

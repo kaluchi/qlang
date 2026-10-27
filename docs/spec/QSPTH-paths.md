@@ -221,6 +221,15 @@ subject no name names is read by its path. A path of `with` beneath a
 closed tag is refused as `get` refuses it, the names of a closed value
 being its own.
 
+`settle` asks each question of a vector, a set or a map of them, a quote,
+a path or any part of a template, of the subject as `get` reads that part,
+and answers in the shape of the questions the outcome of each,
+`{:ok true :value …}` where it answered and `{:ok false :error …}` where it
+failed, the error at rest of its failure as `!|` hands it, so one call
+brings every answer it can, the failure of one beside the answers of the
+others; a question alone, which no brackets hold, is refused as
+`::any/settle/QuestionsKindNotTakenError`.
+
 ```qlang
 > {:price 4 :qty 3} | get [/price /qty]
 [4 3]
@@ -245,6 +254,12 @@ being its own.
 
 > get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
 ["Ann7" :t ::any/with/NamesSelectorKindNotTakenError]
+
+> {:users [{:name "Ann" :age 30} {:name "Bo" :age null}]} | settle [~(get /users | count) ~(get /users/1/age | add 1) /users/5/name] | map ~(get [/ok ~(query /value) ~(query /error | tag)])
+[[true 2 ::null] [false null ::number/add/SubjectNotNumberError] [false null ::path/IndexOutOfBoundsError]]
+
+> get [~({:users [{:name "Ann"}]} | settle {:count ~(get /users | count) :first /users/0/name} | map /value) ~(5 | settle ~(add 1) !| tag)]
+[{:count 1 :first "Ann"} ::any/settle/QuestionsKindNotTakenError]
 ```
 
 ## code

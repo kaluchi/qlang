@@ -55,7 +55,7 @@ async function readParts(subject, templates, soft, fallback, state) {
 registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
 registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
 
-// [D333]
+// [QSPTH#template], [QSERR#catch]
 async function outcomeOf(subject, question, state) {
   let answer;
   try {

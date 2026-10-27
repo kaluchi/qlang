@@ -866,18 +866,19 @@
             ::link~(::call/ValueWithheldError | doc)
 
             A quote written in a step, what a verb takes or a part of a
-            template it takes, is code of that step: the verb runs it in
-            the scope of the step that wrote it, and so does a verb written
-            in the language, by whatever road its recipe hands the quote
-            on, since a call keeps where each of its args came from.
-            Any other code is held as data, a quote in a name, a field or
-            a page, a law and a snippet among them, and runs in a lane of
-            its own: the verbs, the nodes and the labels of the scope of
-            its step and the names it declares itself, a value that scope
-            names withheld from it and refused under its name,
-            `::call/ValueWithheldError`. A value held code needs is an
-            input of a function, `apply f [4]`, or is written into it by
-            `fill`.
+            template it takes, is code of that step: the step writes at its
+            head the values of its scope the quote reads,
+            `:k 10 | [1 2] | map ~(add k)` handing `map` the code
+            `~(:k 10 | add k)`, so it runs as it reads by whatever road the
+            call hands it on, a verb written in the language among them.
+            All code runs in a lane of its own: the verbs, the nodes and
+            the labels of the step that runs it and the names it declares
+            itself, a value that step names withheld from it and refused
+            under its name, `::call/ValueWithheldError`. Code held as
+            data, a quote in a name, a field or a page, a law and a snippet
+            among them, is handed on as it is written, so a value it needs
+            is an input of a function, `apply f [4]`, a name `with` gives
+            its body, or is written into it by `fill`.
         ~~|
         #[::quote]
     | proves :code/runsByApply
@@ -889,6 +890,9 @@
     | proves :code/readsTheStepThatWroteIt
         |~~ A quote written in a step reads the names of that step. ~~|
         ~(:k 10 | 5 | apply ~(add k) | eq 15)
+    | proves :code/carriesTheValuesItReads
+        |~~ The step writes at the head of its code the values it reads. ~~|
+        ~(:k 10 | :vec/show (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(q)) | [1] | show ~(add k) | eq ~(:k 10 | add k))
     | proves :code/withholdsAValueOfTheReader
         |~~ Held code reads no value the reader named. ~~|
         ~(:k 10 | :q ~(add k) | 5 | apply q !| get [~(tag) ~(name)] | eq [::call/ValueWithheldError :k])

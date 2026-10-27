@@ -289,5 +289,47 @@ function stepOfValue(value) {
 
 export function declarationStep(name, docs, value) {
   const body = isDoc(value) ? groupStep([value]) : stepOfValue(value);
-  return makeTagged(BIND_TAG, new Map([['name', makeKeyword(name)], ['docs', Object.freeze([...docs])], ['body', body]]));
+  const fields = new Map([['name', makeKeyword(name)]]);
+  if (docs.length > 0) fields.set('docs', Object.freeze([...docs]));
+  return makeTagged(BIND_TAG, fields.set('body', body));
+}
+
+// [D468]
+const NAMES_READ = new WeakMap();
+
+export function namesAQuoteReads(quote) {
+  let names = NAMES_READ.get(quote);
+  if (names === undefined) {
+    const read = new Set();
+    namesOfAPipeline(quote, new Set(), read);
+    names = Object.freeze([...read]);
+    NAMES_READ.set(quote, names);
+  }
+  return names;
+}
+
+function namesOfAPipeline(steps, around, read) {
+  const declared = new Set(around);
+  for (const written of steps) {
+    const step = isFailStep(written) ? written.payload[0] : written;
+    namesOfAPart(step, declared, read);
+    if (isBindStep(step)) declared.add(step.get('name').name);
+  }
+}
+
+function namesOfAPart(part, declared, read) {
+  if (isCallStep(part)) {
+    const name = part.get('name').name;
+    if (!name.includes('/') && !declared.has(name)) read.add(name);
+    for (const modifier of part.get('modifiers') ?? []) namesOfAPart(modifier, declared, read);
+  } else if (isBindStep(part)) {
+    if (part.has('body') && !isQuote(part.get('body'))) namesOfAPart(part.get('body'), declared, read);
+  } else if (isGroupStep(part)) namesOfAPipeline(part.payload, declared, read);
+  else if (isQuote(part)) namesOfAPipeline(part, declared, read);
+  else if (isTag(part)) {
+    if (!part.name.includes('/') && !declared.has(part.name)) read.add(part.name);
+  } else if (isConstructStep(part)) {
+    namesOfAPart(part.get('tag'), declared, read);
+    namesOfAPart(part.get('payload'), declared, read);
+  } else if (!isDoc(part)) for (const held of partsOfALiteral(part)) namesOfAPart(held, declared, read);
 }

@@ -3,7 +3,7 @@
 {"name":"a-step-around-the-call-of-a-held-quote-shadows-nothing-it-reads","query":":f ~(add k) | :k 100 | [5] | map ~(apply f) !| tag","expect":"::call/ValueWithheldError"}
 {"name":"a-quote-handed-to-a-verb-reads-the-step-that-wrote-it-by-every-road","query":":k 10 | :any/w (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(:c q | get [~(map c) ~(map (args | first))])) | [1 2] | w ~(add k)","expect":"[[11 12] [11 12]]"}
 {"name":"a-quote-handed-to-a-verb-shadows-no-input-of-the-verb","query":":any/inner (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(apply q)) | :any/outer (::fn | takes :by |~~ By. ~~| /0 | impl ~(inner ~(add by))) | :by 100 | 1 | outer 5","expect":"6"}
-{"name":"a-quote-a-call-answers-is-held-again","query":":any/keep (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q)) | :k 1 | :h (keep ~(add k)) | 5 | apply h !| tag","expect":"::call/ValueWithheldError"}
+{"decision":"D468","name":"a-quote-a-call-answers-carries-what-its-step-wrote-into-it","query":":any/keep (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q)) | :k 1 | :h (keep ~(add k)) | get [~(h) ~(5 | apply h)]","expect":"[~(:k 1 | add k) 6]"}
 {"name":"the-args-apply-hands-a-function-read-the-step-that-wrote-them","query":":k 10 | :g (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(map q)) | [1] | apply g [~(add k)]","expect":"[11]"}
 {"name":"held-code-reads-its-own-declarations","query":":f ~(:Box |~~ A box. ~~| | ::Box | doc | content) | 1 | apply f","expect":"\"A box.\""}
 {"name":"held-code-reads-a-name-it-declares-itself","query":":k 1 | :f ~(:k 2 | add k) | 5 | apply f","expect":"7"}
@@ -41,3 +41,10 @@
 {"name":"map-runs-in-the-scope-of-the-call","query":":k 10 | [1 2] | map ~(add k)","expect":"[11 12]"}
 {"name":"a-quote-an-error-literal-of-a-step-holds-is-code-of-that-step","query":":k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)}) ~(get ::error!{:q ~(add k)})]","expect":"[::E!{:q 15} !{:q 15} !{:q 15}]"}
 {"name":"a-quote-an-error-literal-of-a-step-holds-reads-the-verbs-of-the-reader","query":":vec/twice ~(count | mul 2) | :k 10 | [1 2] | get !{:n ~(twice) :m ~(get /0 | add k)}","expect":"!{:n 4 :m 11}"}
+{"decision":"D468","name":"a-quote-written-in-a-step-reaches-its-verb-with-the-values-it-reads-written-at-its-head","query":":k 10 | :vec/show (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(q)) | [1] | get [~(show ~(add k)) ~(show ~(add 1))]","expect":"[~(:k 10 | add k) ~(add 1)]"}
+{"decision":"D468","name":"a-value-a-quote-reads-by-its-tag-is-written-in-with-its-page","query":":k |~~ The k. ~~| 5 | :vec/show (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(q)) | [1] | show ~(::k | doc | content)","expect":"~(:k |~~ The k. ~~| 5 | ::k | doc | content)"}
+{"decision":"D468","name":"a-name-with-gives-is-written-into-the-code-of-its-body","query":":vec/show (::fn | takes :q |~~ The code. ~~| /0 ::quote | impl ~(q)) | {:k 10} | with [/k] ~([1] | show ~(add k))","expect":"~(:k 10 | add k)"}
+{"decision":"D468","name":"a-quote-an-input-of-data-takes-stays-as-it-is-written","query":":k 10 | ~(add k) | eq ~(add k)","expect":"true"}
+{"decision":"D468","name":"the-trace-holds-the-steps-of-written-code-as-the-text-wrote-them","query":":k \"x\" | [1 2] | map ~(add k) !| trace | map ~failed","expect":"[~(add k) ~(map ~(add k))]"}
+{"decision":"D468","name":"code-written-in-code-reads-the-values-its-step-wrote-in-at-each-element","query":":k 1 | [1 2] | map ~(get [~(add k)])","expect":"[[2] [3]]"}
+{"decision":"D468","name":"a-template-a-verb-of-the-language-takes-reaches-it-with-the-values-it-reads-written-in","query":":k 10 | :any/run (::fn | takes :t |~~ The template. ~~| /0 | impl ~(get t)) | 5 | run ::P{:a ~(add k)}","expect":"::P{:a 15}"}

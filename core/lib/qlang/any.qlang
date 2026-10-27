@@ -996,9 +996,9 @@
       answers the record of `:limit`, and `env | get /limit` hands it to the
       next step. A name with a path is held by its address. Inside a
       fork it holds the names before the fork and the fork's own, and
-      the fork's stay inside it; code held as data holds its own and the
-      nodes and the labels of the step it came from, a value the reader
-      named withheld from it. What the language and the host declared
+      the fork's stay inside it, and so does code a step wrote; code held
+      as data holds its own and the nodes and the labels of the step that
+      runs it, a value the reader named withheld from it. What the language and the host declared
       stands apart, so at the start of a query it answers `{}`: `kinds`
       lists their kinds, and `manifest` what lies under a noun. The call
       takes no name.

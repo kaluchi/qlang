@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withCall, originIn, ownScopeOf
+  withWritten, writtenIn, ownScopeOf, markTreeGrowing, growsItsTree
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -19,7 +19,7 @@ import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
   isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
-  commandStep, groupStep
+  commandStep, groupStep, declarationStep, namesAQuoteReads
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
@@ -193,7 +193,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [D468], [QSBLD#chain], [QSBLD#recipe]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -212,7 +212,7 @@ async function evalBind(bind, state, at) {
     if (isErrorValue(doc)) return withPipeValue(state, doc);
     docs.push(doc);
   }
-  const body = bind.has('body') ? await evalStep(bind.get('body'), state) : null;
+  const body = !bind.has('body') ? null : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (nounName !== null && isFn(answered)) refuseAnInputOfTheWiring(state.scope, nounName, answered);
@@ -220,10 +220,20 @@ async function evalBind(bind, state, at) {
     throw new BindWrittenOutsideItsChainError({ name: makeKeyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
   const origin = makeKeyword(at.origin);
-  const declared = scopeSet(state.scope, name, makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin }));
-  if (!bind.has('body')) return withScope(state, declared);
-  if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
-  return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
+  const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
+  if (WRITTEN_FROM_A_CHAIN.has(bind)) DECLARED_BY_A_CHAIN.add(record);
+  const declared = scopeSet(state.scope, name, record);
+  if (!bind.has('body')) return withScope(state, withTheTreeGrown(state.scope, declared));
+  if (isKind(answered)) return withScope(state, withTheTreeGrown(state.scope, nodesOfKind(answered, name, declared, origin)));
+  return withScope(state, withTheTreeGrown(state.scope, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared));
+}
+
+// [D468]
+function withTheTreeGrown(before, after) {
+  if (!growsItsTree(before)) return after;
+  const grown = [];
+  for (const [name, entry] of after) if (typeof name === 'string' && before.get(name) !== entry) grown.push([name, entry]);
+  return after.set(QUERY_KEY, scopeWith(queryTreeOf(before), grown));
 }
 
 // [QSNAM#scope]
@@ -621,7 +631,8 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 
 export async function applyFunction(fn, subject, args, state) {
   const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
-  return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject), state.flight);
+  const written = writtenBy(state);
+  return await callFunction(fn, at, args.map(value => () => quotesFilledWithin(value, written)), withPipeValue(state, subject), state.flight);
 }
 
 export async function inputsOfFunction(fn, args, state) {
@@ -720,42 +731,135 @@ function tagsTheOperandsShare(chain, labelName, subject, given) {
   return tagsOver(subject).length === 0 ? tally.tags.map(makeTag) : null;
 }
 
-// [QSHST#source]
-function handedTo(primitive, chain, { values, origins }, state, flight) {
+// [QSHST#source], [D468]
+function handedTo(primitive, chain, { values, state: called }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;
-  const originOfQuote = quote => origins.get(quote);
+  const close = closerOf(called);
   const ofTheCall = code => (typeof code === 'function' ? Object.assign(code, { flight }) : code);
   return values.map((value, at) => {
     const { name, reading } = chain.inputs[at];
-    if (asCode.within?.has(name.name)) return quotesClosedIn(value, quote => stateOfOrigin(originOfQuote(quote)));
-    if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, originOfQuote, state));
+    if (asCode.within?.has(name.name)) return quotesClosedIn(value, close);
+    if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, close, called));
     if (!asCode.run?.has(name.name)) return value;
-    return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : ofTheCall(codeOfArg(value, originOfQuote, state));
+    return reading.readsArgs ? value.map(element => codeOfArg(element, close, state)) : ofTheCall(codeOfArg(value, close, state));
   });
 }
 
-function quotesClosedIn(value, stateOfQuote) {
-  if (isQuote(value)) return closeQuote(value, stateOfQuote(value));
+function closerOf(state, names) {
+  const written = writtenBy(state, names);
+  let ofTheStep;
+  let held;
+  return quote => {
+    const code = written(quote);
+    const lane = writtenIn(state, quote) ? ofTheStep ??= laneStateOf(state, true) : held ??= laneStateOf(state);
+    return code === quote ? closeQuote(quote, lane) : closeWritten(code, lane);
+  };
+}
+
+const WRITTEN_HEADS = new WeakMap();
+
+function closeWritten(code, lane) {
+  let byLane = WRITTEN_HEADS.get(code);
+  if (byLane === undefined) WRITTEN_HEADS.set(code, byLane = new WeakMap());
+  let opened = byLane.get(lane.scope);
+  if (opened === undefined) {
+    const declared = code.slice(0, code.findIndex(step => !VALUES_WRITTEN.has(step))).map(step => {
+      const record = makeBinding({ name: step.get('name'), docs: step.get('docs') ?? [], value: VALUES_WRITTEN.get(step), source: makeQuote([step]) });
+      if (WRITTEN_FROM_A_CHAIN.has(step)) DECLARED_BY_A_CHAIN.add(record);
+      return [step.get('name').name, record];
+    });
+    const scope = scopeWith(lane.scope, declared);
+    if (growsItsTree(scope)) scope.set(QUERY_KEY, scopeWith(queryTreeOf(lane.scope), declared.filter(([name]) => !queryTreeOf(lane.scope).has(name))));
+    opened = { steps: makeQuote(code.slice(declared.length)), scope };
+    byLane.set(lane.scope, opened);
+  }
+  return closeQuote(opened.steps, withScope(lane, opened.scope));
+}
+
+function quotesClosedIn(value, closeOf) {
+  if (isQuote(value)) return closeOf(value);
   if (!holdsAQuote(value)) return value;
-  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, stateOfQuote));
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, closeOf));
   const header = value[TAG_HEADER_SYMBOL];
   const closed = isMap(value)
-    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, stateOfQuote)]))
-    : value.map(part => quotesClosedIn(part, stateOfQuote));
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, closeOf)]))
+    : value.map(part => quotesClosedIn(part, closeOf));
   if (header !== undefined) stampTagHeader(closed, header);
   return closed;
 }
 
-// [QSQUO#held]
-function keepOrigins(origins, value, origin, state) {
+// [D468]
+function quotesWithin(value, into) {
   if (isQuote(value)) {
-    origins.set(value, origin.written ? origin : originIn(state, value) ?? origin);
+    into.add(value);
     return;
   }
-  if (isValueClass(value, 'underTag')) return keepOrigins(origins, value.payload, origin, state);
+  if (isValueClass(value, 'underTag')) return quotesWithin(value.payload, into);
   if (!holdsAQuote(value)) return;
-  for (const part of partsOfTemplate(value)) keepOrigins(origins, part, origin, state);
+  for (const part of partsOfTemplate(value)) quotesWithin(part, into);
+}
+
+function quotesFilledWithin(value, fill) {
+  if (isQuote(value)) return fill(value);
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesFilledWithin(value.payload, fill));
+  if (!holdsAQuote(value)) return value;
+  const header = value[TAG_HEADER_SYMBOL];
+  const filledParts = isMap(value)
+    ? new Map([...value].map(([key, part]) => [key, quotesFilledWithin(part, fill)]))
+    : value.map(part => quotesFilledWithin(part, fill));
+  if (header !== undefined) stampTagHeader(filledParts, header);
+  return isMap(filledParts) ? filledParts : Object.freeze(filledParts);
+}
+
+const VALUES_NAMED = new WeakMap();
+
+function valuesNamedIn(scope) {
+  let named = VALUES_NAMED.get(scope);
+  if (named === undefined) {
+    named = new Map(nodesAndLabelsOf(scope).values.map(name => [name, scope.get(name)]));
+    VALUES_NAMED.set(scope, named);
+  }
+  return named;
+}
+
+const WRITTEN_FROM_A_CHAIN = new WeakSet();
+const VALUES_WRITTEN = new WeakMap();
+
+function declarationWritten(name, record) {
+  const value = bindingValueOf(record);
+  const step = declarationStep(name, record.get('docs'), value);
+  VALUES_WRITTEN.set(step, value);
+  if (DECLARED_BY_A_CHAIN.has(record)) WRITTEN_FROM_A_CHAIN.add(step);
+  return step;
+}
+
+const FILLED = new WeakMap();
+
+function filled(quote, records) {
+  let byRecords = FILLED.get(quote);
+  if (byRecords === undefined) FILLED.set(quote, byRecords = new WeakMap());
+  let code = byRecords.get(records);
+  if (code === undefined) {
+    const read = namesAQuoteReads(quote).filter(name => records.has(name));
+    code = read.length === 0 ? quote : makeQuote([...read.map(name => declarationWritten(name, records.get(name))), ...quote]);
+    byRecords.set(records, code);
+  }
+  return code;
+}
+
+function writtenBy(state, names) {
+  let named;
+  const given = names === undefined ? undefined : new Map([...names].map(([name, value]) => [name, makeBinding({ name: makeKeyword(name), value })]));
+  const ofTheStep = () => named ??= given === undefined ? valuesNamedIn(ownScopeOf(state)) : new Map([...valuesNamedIn(ownScopeOf(state)), ...given]);
+  return quote => {
+    if (writtenIn(state, quote)) return filled(quote, ofTheStep());
+    return given === undefined ? quote : filled(quote, given);
+  };
+}
+
+function laneStateOf(state, ofTheStep = false) {
+  return withScope(state, laneOf(ownScopeOf(state), ofTheStep));
 }
 
 const HOLDERS_OF_QUOTES = new WeakMap();
@@ -773,19 +877,22 @@ function holdsAQuote(value) {
   return holds;
 }
 
-function codeOfArg(value, originOfQuote, state) {
-  if (isQuote(value)) return codeFrom(value, originOfQuote(value));
-  return isPath(value) ? codeOfPath(value, state) : value;
+function codeOfArg(value, close, callState) {
+  if (isQuote(value)) return close(value);
+  return isPath(value) ? codeOfPath(value, callState) : value;
 }
 
 // [QSCOL#reduce]
-function foldingCodeOf(value, originOfQuote, state) {
-  const code = codeOfArg(value, originOfQuote, state);
+function foldingCodeOf(value, close, called) {
+  const code = codeOfArg(value, close, called);
   const onThePair = async (acc, element) => await code([acc, element]);
-  if (value.length !== 1 || !isCallStep(value[0]) || value[0].has('modifiers')) return onThePair;
+  if (!isQuote(value) || value.length !== 1 || !isCallStep(value[0]) || value[0].has('modifiers')) return onThePair;
   const call = value[0];
   const name = call.get('name').name;
-  const callerState = stateOfOrigin(originOfQuote(value));
+  const lane = laneStateOf(called, writtenIn(called, value));
+  const records = writtenIn(called, value) ? valuesNamedIn(ownScopeOf(called)) : new Map();
+  const read = namesAQuoteReads(value).filter(readName => records.has(readName));
+  const callerState = read.length === 0 ? lane : withScope(lane, scopeWith(lane.scope, read.map(readName => [readName, records.get(readName)])));
   const calledOn = invoke => async (acc, element) => {
     let answered;
     try {
@@ -807,15 +914,18 @@ function foldingCodeOf(value, originOfQuote, state) {
 // [D417], [QSBLD#input], [QSBLD#recipe]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts) {
   const values = [];
-  const origins = new Map();
+  const written = new Set();
+  const writtenAt = [];
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values);
     values.push(value);
-    keepOrigins(origins, value, modifier.origin ?? heldIn(state), state);
+    writtenAt.push(modifier.written === true);
+    if (modifier.written === true) quotesWithin(value, written);
   }
-  const called = withCall(state, origins);
+  const called = withWritten(state, written);
+  if (recipeSteps !== null) handedToTheRecipe(values, writtenAt, called);
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
   if (chain.arity !== null && values.length > chain.arity) {
@@ -844,7 +954,25 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     inputValues.push(held);
     if (named) recipeScope.set(name.name, declaredBinding(name, held));
   }
-  return { values: inputValues, given, origins, recipeScope, state: called };
+  return { values: inputValues, given, recipeScope, state: called };
+}
+
+// [D468]
+function handedToTheRecipe(values, writtenAt, called) {
+  const written = writtenBy(called);
+  const named = valuesNamedIn(ownScopeOf(called));
+  for (const [at, value] of values.entries()) {
+    if (writtenAt[at]) {
+      values[at] = quotesFilledWithin(value, written);
+      continue;
+    }
+    const held = new Set();
+    quotesWithin(value, held);
+    for (const quote of held) {
+      const read = namesAQuoteReads(quote).find(name => named.has(name));
+      if (read !== undefined) throw new CallValueWithheldError({ name: makeKeyword(read) });
+    }
+  }
 }
 
 // [QSERR#site]
@@ -969,24 +1097,17 @@ function closeQuote(quote, state) {
   return async subject => (await evalPipeline(quote, nestState(state, subject, state.scope))).pipeValue;
 }
 
-// [QSQUO#held], [QSNAM#verb], [QSERR#trace]
+// [D468], [QSNAM#verb], [QSERR#trace]
 function modifierOf(step, state) {
-  if (isQuote(step)) return withOrigin(() => step, { state, written: true });
-  if (isTemplate(step)) return withOrigin(closeStep(step, state), { state, written: true });
+  if (isQuote(step)) return writtenInTheStep(() => step);
+  if (isTemplate(step)) return writtenInTheStep(closeStep(step, state));
   return closeStep(step, state);
 }
 
-// [QSQUO#held]
+// [D468]
 const isTemplate = step => isConstructStep(step) || errorFieldsOf(step) !== null || isSet(step) || ((isVec(step) || isMap(step)) && step[TAG_HEADER_SYMBOL] === undefined);
 
-function withOrigin(code, origin) {
-  code.origin = origin;
-  return code;
-}
-
-function heldIn(state) {
-  return { state, written: false };
-}
+const writtenInTheStep = code => Object.assign(code, { written: true });
 
 // [QSPTH#code]
 function codeOfPath(path, callState) {
@@ -1000,41 +1121,29 @@ function codeOfPath(path, callState) {
   };
 }
 
-// [QSQUO#literal], [QSQUO#held]
+// [QSQUO#literal], [D468]
 export function codeOf(code, callState) {
-  return codeFrom(code, originIn(callState, code) ?? heldIn(callState));
+  return closerOf(callState)(code);
 }
 
-// [QSPTH#template], [QSQUO#held], [QSNAM#scope]
+// [QSPTH#template], [D468], [QSNAM#scope]
 export function templateClosedIn(template, callState, names = new Map()) {
-  return quotesClosedIn(template, quote => {
-    const state = stateOfOrigin(originIn(callState, quote));
-    return withScope(state, scopeNaming(state.scope, names));
-  });
+  return quotesClosedIn(template, closerOf(callState, names));
 }
 
-function scopeNaming(scope, names) {
-  let named = scope;
-  for (const [name, value] of names) named = scopeSet(named, name, makeBinding({ name: makeKeyword(name), value }));
-  return named;
-}
+const LANES = [new WeakMap(), new WeakMap()];
 
-// [QSQUO#held]
-function codeFrom(code, origin) {
-  return closeQuote(code, stateOfOrigin(origin));
-}
-
-function stateOfOrigin({ state, written }) {
-  return written ? state : withScope(state, laneOf(ownScopeOf(state)));
-}
-
-const LANES = new WeakMap();
-
-function laneOf(scope) {
-  let lane = LANES.get(scope);
+function laneOf(scope, ofTheStep) {
+  const lanes = LANES[ofTheStep ? 1 : 0];
+  let lane = lanes.get(scope);
   if (lane !== undefined) return lane;
   const { scope: kept, values } = nodesAndLabelsOf(scope);
   lane = kept.set(WITHHELD_KEY, new Set([...(scope.get(WITHHELD_KEY) ?? []), ...values]));
-  LANES.set(scope, lane);
+  if (ofTheStep) {
+    lane.set(QUERY_KEY, queryTreeOf(scope));
+    if (!scope.has(QUERY_KEY) || growsItsTree(scope)) markTreeGrowing(lane);
+  }
+  if (isRootVerbScope(scope)) markRootVerbScope(lane);
+  lanes.set(scope, lane);
   return lane;
 }

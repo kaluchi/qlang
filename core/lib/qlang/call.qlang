@@ -125,9 +125,10 @@
             in a lane of its own, the verbs of the tree and the names it
             declares itself, and reads no value the reader named: `:name`
             holds the name it read. The quote is written in the step that
-            hands it to a verb, `filter ~(gt lim)`, which reads the names
-            of that step, the value goes to a function as an input,
-            `apply f [4]`, or `fill` writes it into the code.
+            hands it to a verb, `filter ~(gt lim)`, which writes into it the
+            values of that step it reads, `with` names them for its body,
+            the value goes to a function as an input, `apply f [4]`, or
+            `fill` writes it into the code.
             ::link~(::call | doc) ::link~(::fn/fill | doc)
         ~~|
         ~(wires :name |~~ The name of the reader's value the held code read. ~~| ::keyword)

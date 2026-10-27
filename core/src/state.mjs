@@ -7,8 +7,8 @@ import { ROOT_KEY, QUERY_KEY } from './scope-keys.mjs';
 export const EVAL_DEPTH_LIMIT = 1000;
 
 // [QSQUO#held], [QSNAM#owner], [QSERR#trace]
-function makeState(pipeValue, scope, depth, calls = null, own = null, flight = null) {
-  return Object.freeze({ pipeValue, scope, depth, calls, own, flight });
+function makeState(pipeValue, scope, depth, written = null, own = null, flight = null) {
+  return Object.freeze({ pipeValue, scope, depth, written, own, flight });
 }
 
 export function rootState(pipeValue, scope) {
@@ -16,15 +16,15 @@ export function rootState(pipeValue, scope) {
 }
 
 export function withPipeValue(state, nextPipeValue) {
-  return makeState(nextPipeValue, state.scope, state.depth, state.calls);
+  return makeState(nextPipeValue, state.scope, state.depth, state.written);
 }
 
 export function withScope(state, nextScope) {
-  return makeState(state.pipeValue, nextScope, state.depth, state.calls);
+  return makeState(state.pipeValue, nextScope, state.depth, state.written);
 }
 
 export function withFlight(state, flight) {
-  return makeState(state.pipeValue, state.scope, state.depth, state.calls, state.own, flight);
+  return makeState(state.pipeValue, state.scope, state.depth, state.written, state.own, flight);
 }
 
 // [QSNAM#verb]
@@ -35,21 +35,15 @@ export function depthBelow(state) {
 }
 
 export function nestState(state, pipeValue, scope) {
-  return makeState(pipeValue, scope, depthBelow(state), state.calls);
+  return makeState(pipeValue, scope, depthBelow(state));
 }
 
 // [QSQUO#held]
-export function withCall(state, origins) {
-  return makeState(state.pipeValue, state.scope, state.depth, { origins, around: state.calls }, state.own);
+export function withWritten(state, written) {
+  return makeState(state.pipeValue, state.scope, state.depth, written, state.own);
 }
 
-export function originIn(state, quote) {
-  for (let call = state.calls; call !== null; call = call.around) {
-    const origin = call.origins.get(quote);
-    if (origin !== undefined) return origin;
-  }
-  return undefined;
-}
+export const writtenIn = (state, quote) => state.written?.has(quote) === true;
 
 // [QSNAM#owner]
 export function ownScopeOf(state) {
@@ -72,17 +66,20 @@ export function queryTreeOf(scope) {
 
 export function queryStateOf(state) {
   const tree = queryTreeOf(state.scope);
-  return tree === state.scope ? state : makeState(state.pipeValue, tree, state.depth, state.calls, state.scope, state.flight);
+  return tree === state.scope ? state : makeState(state.pipeValue, tree, state.depth, state.written, state.scope, state.flight);
 }
 
 export function scopeSet(scope, name, value) {
-  const made = new Map(scope).set(name, value);
-  return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
+  return marksKept(scope, new Map(scope).set(name, value));
 }
 
 export function scopeWith(scope, entries) {
   const made = new Map(scope);
   for (const [name, value] of entries) made.set(name, value);
+  return marksKept(scope, made);
+}
+
+function marksKept(scope, made) {
   return isRootVerbScope(scope) ? markRootVerbScope(made) : made;
 }
 

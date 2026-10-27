@@ -3,15 +3,15 @@
    The rules it holds: [QSDSP#residence], [QSPTH#value]. ~|
 
 :path
-  |~~ A path, `/a/0/b`, is a value that names a part of another: a key
-      of a map or an index of a vector at each segment, a negative index
-      counted from the end. It does nothing by itself; the verb that
-      takes it reads it. `get /a/b` answers the part and refuses one
-      that is not there, so a misspelled field is found where it is
-      read; `query /a/b` answers null there; `has /a/b` answers whether
-      it is there; `put /a/b 2`, `update /a/b ~(add 1)` and `delete /a/b`
-      write it, followed as `get` follows it; and a verb that runs code
-      takes a path as the code
+  |~~ A path, `/users/0/name`, is a value that names a part of another: a
+      key of a map or an index of a vector at each segment, a negative
+      index counted from the end. It does nothing by itself; the verb that
+      takes it reads it. `get /user/name` answers the part and refuses one
+      that is not there, so a misspelled field is found where it is read;
+      `query /user/name` answers null there; `has /user/name` answers
+      whether it is there; `put /user/age 30`, `update /user/age ~(add 1)`
+      and `delete /user/age` write it, followed as `get` follows it; and a
+      verb that runs code takes a path as the code
       that reads it from each element, `map /name`, `sort /age`,
       `filter /active`. A path prints in one spelling that reads back
       as itself, `/"0"` printing `/0`, and stands as any value does,
@@ -22,9 +22,9 @@
       `/:qlang/error`, one key where `/qlang/error` is two. A segment is
       text, as in JSON Pointer, so `/0` reads the index of a vector and
       the key `"0"` of a map. The value itself is `it`, never a path.
-      ::snippet~({:a {:b [5 6]}} | get /a/b/-1) answers `6`.
-      ::link~(::any/get | doc) ::link~(::any/query | doc)
-      ::link~(::qlang/pipeline | doc)
+      ::snippet~({:user {:scores [5 6]}} | get /user/scores/-1) answers `6`.
+      ::link~(::any/get) ::link~(::any/query)
+      ::link~(::qlang/pipeline)
   ~~|
   ::kind
     | accepts
@@ -36,7 +36,7 @@
         |~~ `::path` reads its payload as the path it is; a payload of
             another kind is refused, and a vector of keys and indices is
             read as a path by `toPath`.
-            ::link~(::vec/toPath | doc)
+            ::link~(::vec/toPath)
         ~~|
     | throws :IndexOutOfBoundsError
         |~~ An index reads within a vector or a set, from `/0` to the last,
@@ -46,7 +46,7 @@
             lie past the end is read by `query`, which answers null there,
             and `take` and `drop` answer the part there is without
             refusing.
-            ::link~(::path | doc) ::link~(::any/query | doc)
+            ::link~(::path) ::link~(::any/query)
         ~~|
         ~(wires :index |~~ The index the path read, counted from the end when negative. ~~| ::number
           | wires :length |~~ How many elements the value holds. ~~| ::number
@@ -56,14 +56,14 @@
             found where `get` reads it; `:key` holds the key read, and
             `:nearest` the keys of the map it was likely meant to be, near
             it in spelling as a name is near the names of the scope.
-            `keys` lists the keys there are, `{:a 1} | keys`, and a key
+            `keys` lists the keys there are, `{:name "Ann"} | keys`, and a key
             that may be absent is read by `query`, which answers null for
-            it or the default it is given, `query /b 0`. A path read from
+            it or the default it is given, `query /age 0`. A path read from
             the subject of a later step reads what that step was handed:
             after `get /dependencies |` the subject is the dependencies,
             so two fields of one record are read in one step,
             `get [/dependencies /devDependencies]`.
-            ::link~(::path | doc) ::link~(::any/query | doc)
+            ::link~(::path) ::link~(::any/query)
         ~~|
         ~(wires :key |~~ The key the path read, which the map does not hold. ~~| ::keyword
           | wires :nearest
@@ -79,7 +79,7 @@
             A value of the kind is built anew at its door, by `tag` over a
             new payload or by a word of the kind, and `payload` answers the
             payload bare, which a path reads as any value.
-            ::link~(::kind/wires | doc) ::link~(::any/payload | doc)
+            ::link~(::kind/wires) ::link~(::any/payload)
         ~~|
         ~(wires :names |~~ The names the kind of the value wires. ~~| ::set
           | wires :repair
@@ -96,7 +96,7 @@
             or combined by a verb that reads each from its args,
             `mulOf /qty /price`. A value that may be null is read by
             `query`, which answers null.
-            ::link~(::path | doc) ::link~(::any/mulOf | doc)
+            ::link~(::path) ::link~(::any/mulOf)
         ~~|
         ~(wires :segment
               |~~ The segment the path read, a key or an index. ~~|
@@ -107,8 +107,8 @@
             an element in its one order; `:segment` holds the segment read,
             which names no index. A field of each element is read by `map`,
             `map /name`, and the elements a field picks are found by
-            `filter`, `filter ~(get /n | gt 1)`.
-            ::link~(::path | doc) ::link~(::vec/filter | doc)
+            `filter`, `filter ~(get /age | gte 18)`.
+            ::link~(::path) ::link~(::vec/filter)
         ~~|
         ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
           | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
@@ -132,7 +132,7 @@
         ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:a 0] | tag ::path !| get [~(tag) ~(found | tag)] | eq [::path/PayloadKindNotTakenError ::vec])
+        ~([:items 0] | tag ::path !| get [~(tag) ~(found | tag)] | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
         |~~ An index past the end is refused with the length. ~~|
         ~([10 20 30] | get /99 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError 99 3])
@@ -145,16 +145,16 @@
         ~([10 20 30] | get /-1 | eq 30)
     | proves :KeyNotInMapError/refusesAKeyTheMapLacks
         |~~ A key the map lacks is refused. ~~|
-        ~({:a 1} | get /b !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :b])
+        ~({:name "Ann"} | get /nmae !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :nmae])
     | proves :KeyNotInMapError/namesThePathItFollowed
         |~~ The refusal holds the path the read followed. ~~|
-        ~({:a {:b 1}} | get /a/c !| path | eq /a/c)
+        ~({:user {:name "Ann"}} | get /user/age !| path | eq /user/age)
     | proves :KeyNotInMapError/suggestsTheNearestKey
         |~~ The keys of the map nearest in spelling are suggested. ~~|
         ~({:emails [] :age 3} | get /email !| nearest | eq [:emails])
     | proves :KeyNotInMapError/readsTwoFieldsInOneStep
         |~~ Two fields of one record are read in one step. ~~|
-        ~({:a 1 :b 2} | get [/a /b] | eq [1 2])
+        ~({:name "Ann" :age 30} | get [/name /age] | eq ["Ann" 30])
     | proves :SubjectHasNoPartsError/readsTwoFieldsInOneStep
         |~~ Two fields of one record combine in one step by `mulOf`. ~~|
         ~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
@@ -164,13 +164,13 @@
           !| get [~(tag) ~(segment) ~(found | tag)] | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /k !| get [~(tag) ~(found)] | eq [::path/SubjectHasNoPartsError null])
+        ~(null | get /name !| get [~(tag) ~(found)] | eq [::path/SubjectHasNoPartsError null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by an index, not a field. ~~|
         ~([10 20 30] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
         |~~ A set is read by an index, not a field. ~~|
-        ~(#[:a :b :c] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
+        ~(#[:tea :cake :jam] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])
@@ -179,7 +179,7 @@
   |~~ Answers the keys and indices of the path, an index as its number
       and a key as its keyword, `/items/0 | segments` answering `[:items 0]`;
       `toPath` builds the path back from them.
-      ::link~(::vec/toPath | doc)
+      ::link~(::vec/toPath)
   ~~|
   ::fn
     | returns |~~ The keys and indices of the path. ~~| ::vec
@@ -188,22 +188,23 @@
         ~(/items/0 | segments | eq [:items 0])
     | proves :readsBackByToPath
         |~~ The segments build the path back. ~~|
-        ~(/a/0 | segments | toPath | print | eq "/a/0")
+        ~(/items/0 | segments | toPath | print | eq "/items/0")
     | impl ::builtin{}
 
 :path/toPath
   |~~ Answers the path itself, so `map ~toPath` turns paths, the vectors of
       their keys and the strings of JSON Pointer that write them into
-      paths, `[/a ["a" 0] "/b"] | map ~toPath` answering `[/a /a/0 /b]`.
-      ::link~(::vec/toPath | doc) ::link~(::string/toPath | doc)
+      paths, `[/name ["items" 0] "/age"] | map ~toPath` answering
+      `[/name /items/0 /age]`.
+      ::link~(::vec/toPath) ::link~(::string/toPath)
   ~~|
   ::fn
     | returns |~~ The path itself. ~~| ::path
     | proves :answersItself
         |~~ A path, its keys and its pointer turn into the path. ~~|
-        ~([/a ["a" 0] "/b"] | map ~toPath | eq [/a /a/0 /b])
+        ~([/name ["items" 0] "/age"] | map ~toPath | eq [/name /items/0 /age])
     | proves :answersUnderItsTags
         |~~ A path under a tag answers under the tag. ~~|
-        ~(::T#/a | toPath | eq ::T#/a)
+        ~(::Field#/age | toPath | eq ::Field#/age)
     | impl ::builtin{}
 

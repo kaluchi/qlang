@@ -5,9 +5,9 @@
 {"name":"the-map-kind-keeps-a-map-under-a-tag-whose-map-payload-reads","query":"get [~(::map::Box{:a 1} | tag) ~(::Box{:a 1} | payload | tag)]","expect":"[::Box ::map]"}
 {"name":"no-kind-reads-text","query":"::number\"5\" !| tag","expect":"::number/PayloadKindNotTakenError"}
 {"name":"a-tag-taken-as-a-value-is-the-kind-as-a-subject","query":"::vec | manifest | has ::vec/count","expect":"true"}
-{"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | open","expect":"5"}
-{"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | open | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
-{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(tag) ~(payload)]\" | parse | open","expect":"[::Width 8]"}
+{"name":"a-number-under-a-tag-touches-it-by-a-hash","query":"\"::Width#5 | payload\" | parse | answer","expect":"5"}
+{"name":"a-number-a-boolean-null-and-a-path-under-a-tag-print-by-a-hash","query":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\" | parse | answer | print","expect":"\"[::Pos#-3 ::T#true ::T#null ::T#/a]\""}
+{"name":"a-number-under-a-tag-answers-under-it","query":"\"::Width#5 | add 3 | get [~(tag) ~(payload)]\" | parse | answer","expect":"[::Width 8]"}
 {"name":"the-constructors-of-a-vector-and-a-map-convert-nothing","query":"get [~([[:a 1]] | tag ::map !| tag) ~(#[2 1] | tag ::vec | tag)]","expect":"[::map/PayloadKindNotTakenError ::set]"}
 {"name":"a-finite-number-goes-under-its-kind-as-it-is","query":"::number#5","expect":"5"}
 {"name":"tag-alone-reads-the-outermost-tag-of-its-subject","query":"get [~(1 | tag) ~(::A::B{} | tag) ~([::Box 5] | tag) ~(::Box | tag) ~(\"x\" | add 1 !| tag)]","expect":"[::number ::A ::vec ::tag ::number/add/SubjectNotNumberError]"}

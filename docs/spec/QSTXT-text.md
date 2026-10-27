@@ -162,7 +162,7 @@ are refused as `::string/toRegex/FlagsKindNotTakenError` and letters of
 no flag as `::string/toRegex/FlagsNotFlagsError`; and a string that
 writes a whole literal is refused as
 `::string/toRegex/LiteralNotSourceError`, the literal read by
-`parse | open`.
+`parse | answer`.
 
 ```qlang
 > "v1.20 and v3.4" | match #"v(\d+)\.(\d+)"

@@ -10,27 +10,27 @@
 
       In a quote the step is a record that holds the quote of the step it
       stands for, `~(!| get /kind) | first` answering `::fail~(get /kind)`.
-      ::link~(::error | doc) ::link~(::qlang/errors | doc)
+      ::link~(::error) ::link~(::qlang/errors)
   ~~|
   ::kind
     | accepts |~~ The quote of a step, built into the step `!| step`. ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::fail` is the quote of the step it stands for, so
             `~(get /kind) | tag ::fail` is the step `!| get /kind`.
-            ::link~(::fail | doc)
+            ::link~(::fail)
         ~~|
     | throws :PayloadNotOneStepError
         |~~ The quote `::fail` holds is one step, the step `!|` runs, and
             no step of the fail track: a pipeline under `!|` is written as
             a group, `~((get /kind | print)) | tag ::fail` the step
             `!| (get /kind | print)`.
-            ::link~(::fail | doc)
+            ::link~(::fail)
         ~~|
     | throws :StepNotCommandError
         |~~ A value after `!|` is the recovery the catch answers, but for a
             path, which the verb that takes it reads: `:message` names that
             verb, `get`.
-            ::link~(::fail | doc) ::link~(::qlang/pipeline | doc)
+            ::link~(::fail) ::link~(::qlang/pipeline)
         ~~|
         ~(wires :message |~~ What the rule says of the path, the verb that takes it. ~~| ::string
           | wires :found |~~ The value written after the bang. ~~|)

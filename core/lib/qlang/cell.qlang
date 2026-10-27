@@ -15,7 +15,7 @@
       so one value of one query is one cell, and `::cell"a3f9c2d1e04b" | answer | take 3` reads the
       first three elements of the whole. A host that keeps no cell names
       none, and its `answer` refuses a cell it does not hold.
-      ::link~(::qlang/AnswerBeyondBudgetError | doc) ::link~(::qlang/hosts | doc)
+      ::link~(::qlang/AnswerBeyondBudgetError) ::link~(::qlang/hosts)
   ~~|
   ::kind
     | accepts |~~ The identity of the cell, letters, digits and hyphens. ~~| ::string
@@ -30,10 +30,10 @@
         ~(contains #"^[A-Za-z0-9-]+$")
     | proves :readsBackAsItself
         |~~ A cell reads back as itself. ~~|
-        ~(::cell"a3f9c2d1e04b" | :c it | print | parse | open | eq c)
+        ~(::cell"a3f9c2d1e04b" | eq (print | parse | answer))
     | proves :PayloadNotIdentityError/refusesASlash
         |~~ An identity that holds a slash is refused. ~~|
-        ~(::cell"../x" !| tag | eq ::cell/PayloadNotIdentityError)
+        ~(::cell"../notes" !| tag | eq ::cell/PayloadNotIdentityError)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number names no cell. ~~|
         ~(::cell#12 !| tag | eq ::cell/PayloadKindNotTakenError)

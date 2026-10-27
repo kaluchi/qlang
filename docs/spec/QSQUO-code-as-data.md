@@ -10,7 +10,7 @@ A quote is written `~(…)`, its code a pipeline read with the text
 around it, so a quote whose content reads as no pipeline is refused by
 the parser. `~()` is the empty quote, which runs as the identity. A
 quote of a single name or tag name may drop its parentheses, `~add`,
-`~::T`; the full form is the one the printer writes, and `toString`
+`~::Box`; the full form is the one the printer writes, and `toString`
 writes the text of its code, wherever the quote stands, in a vector or a
 map among them. Two quotes are equal when their steps are, spacing and
 comments aside. A quote is a value like any other: a container holds it,
@@ -37,15 +37,15 @@ apply to it as to any vector under a tag, a path reading a step by its
 index. Code is one model, the records of its steps, which the evaluator
 runs by their tags, a quote read from text and a quote assembled from
 data alike: a call is held as `::call`, its `:name` and its
-`:modifiers`, each modifier the step it is, so `add ~(x)` holds
-`[~(x)]` and `add x` holds `[::call{:name :x}]`; a declaration, which
+`:modifiers`, each modifier the step it is, so `add ~(bonus)` holds
+`[~(bonus)]` and `add bonus` holds `[::call{:name :bonus}]`; a declaration, which
 writes a `::binding` into its scope, as `::bind`, its `:name`, the doc
 values of its slot as `:docs` and its body, the step after its name and
 its page, as `:body`, each where the declaration writes one; a tagged
 literal as `::construct`, its `:tag` and the `:payload` the literal
-writes, a tag written before an error literal among them, `::E!{:k 1}`
-the construction of `::E` over `!{:k 1}` and `::E::error!{:k 1}` the
-same step; a step of the fail track under `::fail`; a group as its quote
+writes, a tag written before an error literal among them, `::Late!{:by 3}`
+the construction of `::Late` over `!{:by 3}` and `::Late::error!{:by 3}`
+the same step; a step of the fail track under `::fail`; a group as its quote
 under `::group`; and any other value as itself, a literal, the step that
 stands as the value it writes, a regex, the error at rest `!{…}` writes
 and a doc, the quotes of its roles under the tags written before them,
@@ -94,10 +94,10 @@ parser, which gives the path bare.
 > ~(add 1 !| 0) | query /1
 ::fail~(0)
 
-> ~(:x |~~ note ~~| it) | first | get /docs
-[|~~ note ~~|]
+> ~(:rate |~~ The rate. ~~| it) | first | get /docs
+[|~~ The rate. ~~|]
 
-> [~(:x 1) ~(:x |~~ X. ~~| 1) ~(:Box |~~ A box. ~~|)] | map ~(first | keys)
+> [~(:rate 1) ~(:rate |~~ The rate. ~~| 1) ~(:Box |~~ A box. ~~|)] | map ~(first | keys)
 [#[:body :name] #[:body :docs :name] #[:docs :name]]
 
 > ~(::Box[1 2]) | first | get [~(tag) /tag /payload]
@@ -118,14 +118,14 @@ parser, which gives the path bare.
 > get [~(::call[1] !| get [~(tag) ~(expected)]) ~(::fail[1] !| get [~(tag) ~(expected)]) ~(::call{:name 1} !| field)]
 [[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
 
-> get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| :e it | get [~(tag) ~(found | tag) ~(print | parse | open | eq e)]
+> get {:tag ::Box :payload ~(~(width) | first)} | tag ::construct !| get [~(tag) ~(found | tag) ~(eq (print | parse | answer))]
 [::construct/LiteralComputesError ::map true]
 
-> "::E::error!{:k 1}" | parse | eq ("::E!{:k 1}" | parse)
+> "::Late::error!{:by 3}" | parse | eq ("::Late!{:by 3}" | parse)
 true
 
-> get [~(~(::Foo!{:k 1}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) ~(field)])]
-[[::construct ::Foo !{:k 1}] [::construct/PayloadNotSchemaError :tag]]
+> get [~(~(::Late!{:by 3}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:by 3}} !| get [~(tag) ~(field)])]
+[[::construct ::Late !{:by 3}] [::construct/PayloadNotSchemaError :tag]]
 ```
 
 ## parse
@@ -160,8 +160,8 @@ the same quote.
 > ~(add 1 | mul 2) | get [~(toString) ~(print) ~(toString | parse | eq ~(add 1 | mul 2))]
 ["add 1 | mul 2" "~(add 1 | mul 2)" true]
 
-> ~(:a 1 | :b 2) | toString
-":a 1\n| :b 2"
+> ~(:rate 2 | :fee 5) | toString
+":rate 2\n| :fee 5"
 
 > ~(add 1 | mul 2) | parse !| get [~(tag) ~(subject | found | tag)]
 [::string/parse/SubjectNotStringError ::quote]
@@ -178,10 +178,11 @@ args, `apply f [4]`, where a quote and a path take none,
 `::any/apply/ArgsNotTakenError`, and args that are no vector are
 refused as `::any/apply/ArgsKindNotTakenError`. Code a quote declares
 stays inside its run. A value of another kind is refused as
-`::any/apply/CodeKindNotTakenError`. `open`, a verb of `::quote`, runs a
-quote from null, beneath whatever tags stand over it, so a print reads
-back as the value it writes by `parse | open`, and it runs a link and a
-snippet alike.
+`::any/apply/CodeKindNotTakenError`. `answer`, a verb of `::quote`, runs
+a quote from null, beneath whatever tags stand over it, and answers what
+its code answers, so a print reads back as the value it writes by
+`parse | answer`; it runs the code of a link and of a snippet alike, and
+`open` opens the page a link names [QSSLF#doc].
 
 ```qlang
 > 5 | apply ~(add 1 | mul 2)
@@ -190,14 +191,14 @@ snippet alike.
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
 8
 
-> {:a 1} | apply ~(:x 2) | x !| tag
+> {:id 7} | apply ~(:rate 2) | rate !| tag
 ::call/UnknownNameError
 
 > 42 | apply 1 !| tag
 ::any/apply/CodeKindNotTakenError
 
-> get [~({:a 1} | print | parse | open) ~("10 | add 5" | parse | open)]
-[{:a 1} 15]
+> get [~({:id 7} | print | parse | answer) ~("10 | add 5" | parse | answer)]
+[{:id 7} 15]
 ```
 
 ## modifier
@@ -229,55 +230,89 @@ its modifier on as the answer of the call.
 > [1 2 3] | take count
 [1 2 3]
 
-> [{:a true}] | filter (get /a) !| tag
+> [{:active true}] | filter (get /active) !| tag
 ::vec/filter/PredicateKindNotTakenError
 
-> [1 2] | take (get /x) !| tag
+> [1 2] | take (get /count) !| tag
 ::path/IndexNotIntegerError
 
-> :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | [1 2] | map f !| tag
+> [1 2] | apply ~(:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | map plus !| tag)
 ::vec/map/CodeKindNotTakenError
 ```
 
 ## held
 
-Code a verb runs is code of a step or code held as data. A quote written
-in a step, a modifier of a call or a part of a template it writes, a
-quote, an error literal or a template under a tag among them, is code of
-that step: the
-call runs it in the scope of the step that wrote it, by whatever road it
-takes inside the call. A quote stays the value its print shows, and the
-meaning of held code is its text and the vocabulary.
+Code a verb runs is a quote, which is its literal. A quote written in a
+step, a modifier of its call or a part of a template the modifier writes,
+a quote, an error literal or a template under a tag among them, is code
+of that step. Where the step hands it to a verb that runs it, the step
+writes at its head a declaration of each value of its scope the quote
+reads and does not declare itself, read by its bare name or by its tag,
+with the page of its record, so the verb takes the literal of what it
+runs, the values it reads in it. A verb runs code by an input a
+primitive runs, the code of `map`, `filter`, `sort` or `if` and the
+templates of `get` and `query`, by any input of a verb written in the
+language, whose recipe may hand it on, by the args `apply` hands a
+function, and by the body and the selectors of `with`, whose names stand
+over the values of the step [QSPTH#template]; an input that takes a quote
+as data takes it as it is written. The code holds what it reads, so it
+runs alike by whatever road the call hands it on, and a quote a call
+answers carries what its step wrote into it. The declarations of the
+head are declared once, where the step hands the code on, its steps after
+them running at each run of the code, and the value of a declaration the
+step wrote is answered as itself, built once, and printed as its literal.
 
-Any other code runs in a lane of its own: a quote held in a name, a
-field or a page, a law and a snippet among them, a quote a call answered
-or a group computed, and the steps a trace skipped. The lane is the one
-of the step a call keeps as the code's origin, or else of the step that
-runs it: its past is the subject it runs on, the verbs, the nodes and
-the labels of that step's scope, and the names the code declares itself,
-which `doc` and `binding` read there. A value that scope names is
-withheld: read by a step, by a tag or as the noun of a declaration, it
-is refused under its name as `::call/ValueWithheldError`, while a tag
-reads a label of the root before any name of the reader. The scope of a
-verb's recipe is its own, so code a verb holds is refused under a value
-its recipe names; a law the root declares runs in a lane over the root
-alone. A value held code needs is an input of a function, `apply f [4]`,
-or written into its code by `fill`, and code that calls itself is a
-verb.
+All code runs in a lane: the subject the verb that runs it hands it, the
+verbs, the nodes and the labels of the step that runs it, and the names
+the code declares itself, those its step wrote into it among them, which
+`env`, `doc` and `binding` read there. A value of that step is withheld:
+read by a step, by a tag or as the noun of a declaration, it is refused
+under its name as `::call/ValueWithheldError`, while a tag reads a label
+of the root before any name of the reader. A quote its step did not
+write, read from a name, a field or a page, a law and a snippet among
+them, computed by a group or answered by a call, is held as it is
+written: a verb of the root runs it in the lane of its step, which
+withholds the value it reads, and a verb written in the language refuses
+it at the step that hands it on, under the name it reads that the step
+names as a value. The scope of a verb's recipe is its own, so code a verb
+holds is refused under a value its recipe names; a law the root declares
+runs in a lane over the root alone. The trace holds the steps as the text
+wrote them, the declarations of the head run before the step that
+failed. A value code needs is an input of a function, `apply f [4]`, or
+a name of the step that hands the code on, and code that calls itself is
+a verb.
 
 ```qlang
-> :k 10 | [1 2] | map ~(add k)
+> [1 2] | apply ~(:bonus 10 | map ~(add bonus))
 [11 12]
 
-> :k 10 | 5 | get [~(get ::E!{:q ~(add k)}) ~(get !{:q ~(add k)})]
-[::E!{:q 15} !{:q 15}]
+> :vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)) | [1] | apply ~(:bonus 10 | get [~(show ~(add bonus)) ~(show ~(add 1))])
+[~(:bonus 10 | add bonus) ~(add 1)]
 
-> :big ~(gt lim) | :lim 4 | [1 5 10] | filter big !| get [~(tag) ~(name)]
-[::call/ValueWithheldError :lim]
+> :vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)) | [1 2] | apply ~(:bonus 10 | twice ~(add bonus))
+[21 22]
 
-> :k 1 | :f ~(:k 2 | add k) | 5 | apply f
+> 5 | apply ~(:bonus 10 | get [~(get ::Late!{:by ~(add bonus)}) ~(get !{:by ~(add bonus)})])
+[::Late!{:by 15} !{:by 15}]
+
+> ~(add bonus) | eq ~(add bonus)
+true
+
+> apply ~(:vec 5 | get [~(env | has :vec) ~(vec)])
+[false 5]
+
+> [1 5 10] | apply ~(:big ~(gt limit) | :limit 4 | filter big !| get [~(tag) ~(name)])
+[::call/ValueWithheldError :limit]
+
+> [1 2] | apply ~(:bonus 10 | get [~(map (~(add bonus)) !| tag) ~(:rule ~(add bonus) | map rule !| tag)])
+[::call/ValueWithheldError ::call/ValueWithheldError]
+
+> 5 | apply ~(:rate 1 | :rule ~(:rate 2 | add rate) | apply rule)
 7
 
-> :vec/w ~(:count 7 | :q ~(count) | apply q) | [1 2 3] | w !| query [~(tag) ~(name)]
+> :vec/tally ~(:count 7 | :rule ~(count) | apply rule) | [1 2 3] | tally !| query [~(tag) ~(name)]
 [::call/ValueWithheldError :count]
+
+> [1 2] | apply ~(:bonus "x" | map ~(add bonus) !| trace | map ~failed)
+[~(add bonus) ~(map ~(add bonus))]
 ```

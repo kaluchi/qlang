@@ -5,11 +5,11 @@
 
 :tagged
   |~~ A value under a tag is a payload read by the kind its tag names:
-      `::Box[1 2]`, `::Box{:a 1}`, `::Box#5`, `::Box"s"`; the tag says
+      `::Box[1 2]`, `::Box{:width 2}`, `::Box#5`, `::Box"tea"`; the tag says
       how to read the data beneath, and the data keeps its shape, so the
       verbs of the payload's kind still serve it, `::Box[1 2] | count`
       answering `2`. Tags stack and read from the outside in,
-      `::Box::Crate{:a 1} | tag` answering `::Box`.
+      `::Box::Crate{:width 2} | tag` answering `::Box`.
 
       It is written as the tag touching its payload, whatever brackets
       hold the payload, or made by `tag`, `[1 2] | tag ::Box` answering
@@ -25,8 +25,8 @@
       under a tag reaches the verbs of this kind, a reader's kind adds
       verbs over the core's, and a vector under a tag stays a vector.
       ::snippet~(::tagged | manifest) lists its verbs.
-      ::link~(::tag | doc) ::link~(::construct | doc)
-      ::link~(::qlang/values | doc)
+      ::link~(::tag) ::link~(::construct)
+      ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ No value: `::tagged` names verbs. ~~| #[]
@@ -59,10 +59,10 @@
       code binds stay inside it. Under two tags the code runs beneath the
       outer one, and the value beneath both is reached by nesting
       `within`, `within ~(within ~(reverse))`. The code is a quote or a
-      path, `within /a`: a value computed at the call,
+      path, `within /items`: a value computed at the call,
       `within (reverse)`, is refused under the input. A value under no
       tag runs its code by `apply`, and is refused here.
-      ::link~(::any/apply | doc) ::link~(::any/payload | doc)
+      ::link~(::any/apply) ::link~(::any/payload)
   ~~|
   ::fn
     | takes :code
@@ -100,8 +100,10 @@
         ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5) !| tag | eq ::Pos/NotPositiveError)
     | proves :keepsItsNamesInside
-        |~~ A name the code binds stays inside it. ~~|
-        ~(:n 7 | ::Box[1] | within ~(:n 5 | get [~(n)]) | n | eq 7)
+        |~~ A name the code binds stays inside it: the prices shift down by
+            the lowest one, which names nothing after the call.
+        ~~|
+        ~(::Prices[30 10 20] | within ~(:low (min) | map ~(sub low)) | get [~(it) ~(env | has :low)] | eq [::Prices[20 0 10] false])
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])

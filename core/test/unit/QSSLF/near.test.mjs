@@ -9,8 +9,8 @@ it('names at the same distance come all, in the order of their spelling', async 
 });
 
 it('a nearer name leaves the farther ones out, a name the typed one begins with standing beside them', async () => {
-  expect(await nearestOf(':mapper 1 | :mapped 2 | mappe')).toEqual([makeKeyword('map'), makeKeyword('mapped'), makeKeyword('mapper')]);
-  expect(await nearestOf(':mapper 1 | :mapperXY 2 | mapper2')).toEqual([makeKeyword('map'), makeKeyword('mapper')]);
+  expect(await nearestOf('apply ~(:mapper 1 | :mapped 2 | mappe)')).toEqual([makeKeyword('map'), makeKeyword('mapped'), makeKeyword('mapper')]);
+  expect(await nearestOf('apply ~(:mapper 1 | :mapperXY 2 | mapper2)')).toEqual([makeKeyword('map'), makeKeyword('mapper')]);
 });
 
 it('the names of the notebook count, a label of the root among them by its tag, and an address does not', async () => {

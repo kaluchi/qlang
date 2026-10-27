@@ -1,7 +1,7 @@
 // [QSHST#source], [QSDSP#walk], [QSDSP#residence], [QSQUO#modifier], [QSERR#site]
 
 import { parseSource } from '../parse.mjs';
-import { evalPipeline } from '../eval.mjs';
+import { evalAtTheTop } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, takeWiring, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
@@ -25,13 +25,13 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
 
-// [QSHST#source]
+// [QSHST#source], [QSNAM#root]
 export async function declareRoot(scope, sources) {
   let root = rootOf(scope);
   for (const { uri, source, primitives = {} } of sources) {
     const origin = makeKeyword(uri);
     const sourceScope = new Map([[ROOT_KEY, root]]);
-    const answered = await evalPipeline(parseSource(source, { uri }), rootState(null, sourceScope));
+    const answered = await evalAtTheTop(parseSource(source, { uri }), rootState(null, sourceScope));
     if (isErrorValue(answered.pipeValue)) {
       throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: answered.pipeValue.tag.literal });
     }

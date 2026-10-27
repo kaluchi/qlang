@@ -64,10 +64,10 @@
       an answer prints; a query that writes to stdout by `out` holds the
       channel, and its answer is left unwritten. A value one query hands
       another over a pipe keeps its kinds as its literal, `print | out`
-      writing it and `in | parse | open` reading it back.
-      ::link~(::any/json | doc) ::link~(::vec/table | doc)
-      ::link~(::qlang/errors | doc) ::link~(::cell | doc)
-      ::link~(::any/tap | doc) ::link~(::qlang/hosts | doc)
+      writing it and `in | parse | answer` reading it back.
+      ::link~(::any/json) ::link~(::vec/table)
+      ::link~(::qlang/errors) ::link~(::cell)
+      ::link~(::any/tap) ::link~(::qlang/hosts)
   ~~|
   ::kind
     | accepts |~~ No value: `::cli` names the command line. ~~| #[]
@@ -123,7 +123,7 @@
     | throws :SubjectKindNotTakenError
         |~~ `out` alone writes its subject, a string, as a line; another
             value is written as the text the call computes from it,
-            `42 | out json` or `{:x 1} | out print`.
+            `42 | out json` or `{:id 7} | out print`.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `out` writes its subject, or the one text its call gives,
@@ -202,14 +202,14 @@
     | returns |~~ The subject as it came. ~~| ::any
     | throws :ArgsBeyondInputsError
         |~~ `tap` writes its subject under one label its call gives,
-            `5 | tap :n`; a call with more labels is refused.
+            `5 | tap :before`; a call with more labels is refused.
         ~~|
     | proves :LabelKindNotTakenError/refusesAString
         |~~ A string is no label. ~~|
-        ~(1 | tap "x" !| tag | eq ::any/tap/LabelKindNotTakenError)
+        ~(1 | tap "before" !| tag | eq ::any/tap/LabelKindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
-        ~(5 | tap :a :b !| tag | eq ::any/tap/ArgsBeyondInputsError)
+        ~(5 | tap :before :after !| tag | eq ::any/tap/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :cell/answer
@@ -229,7 +229,7 @@
       value under a kind the keeping query declared answers its names where
       the reading query declares that kind again, and `payload` in any
       query.
-      ::link~(::cell | doc) ::link~(::qlang/AnswerBeyondBudgetError | doc)
+      ::link~(::cell) ::link~(::qlang/AnswerBeyondBudgetError)
   ~~|
   ::fn
     | returns |~~ The value the cell keeps. ~~| ::any
@@ -243,7 +243,7 @@
             sources or by another host, or none drew it. The answer is read again by the query
             that made it, narrowed by `get`, `take` or `count` so it prints
             within the budget.
-            ::link~(::qlang/AnswerBeyondBudgetError | doc)
+            ::link~(::qlang/AnswerBeyondBudgetError)
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `answer` reads the whole a cell keeps and takes no value: a part

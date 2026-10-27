@@ -42,11 +42,12 @@ export async function linksOf(answerOf, addresses) {
   return links;
 }
 
+// [QSSLF#doc]
 export async function wrongLinksOf(answerOf, links, declaredPages) {
   const wrong = [];
   for (const link of links) {
-    const target = wrongTarget(await answerOf(link.query), declaredPages, link.page);
-    if (target !== null) wrong.push(`${link.address}: ~(${link.query}) ${target}`);
+    const target = wrongTarget(await answerOf(`::link~(${link.query}) | open`), declaredPages, link.page);
+    if (target !== null) wrong.push(`${link.address}: ::link~(${link.query}) ${target}`);
   }
   return wrong;
 }

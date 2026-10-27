@@ -20,10 +20,10 @@ it('names the cell in the refusal it prints, and answer reads the whole back in 
   expect(await answerOf(`${cell} | answer | get [~(count) ~(last | get /id)]`)).toEqual([3000, 2999]);
 });
 
-it('keeps the query, the values it declared and the answer under the identity of its root', async () => {
-  const [, identity] = await keptBy(':k 7 | 5000 | range');
+it('keeps the query, the words it declared and the answer under the identity of its root', async () => {
+  const [, identity] = await keptBy(':number/k ~(7) | 5000 | range');
   const folder = folderOf(identity);
-  expect(['source.qlang', 'names.qlang', 'answer.qlang'].map(name => readFileSync(join(folder, name), 'utf8').slice(0, 10))).toEqual([':k 7 | 500', ':k 7', '[0 1 2 3 4']);
+  expect(['source.qlang', 'names.qlang', 'answer.qlang'].map(name => readFileSync(join(folder, name), 'utf8').slice(0, 10))).toEqual([':number/k ', ':number/k ', '[0 1 2 3 4']);
 });
 
 it('reads a value of a kind the query declared by its names where the reading query declares the kind again, and by payload in any', async () => {

@@ -5,18 +5,19 @@
 :null
   |~~ Null is the absence of a value, the one value of its kind. It
       stands where a part is missing: `query` reads a part softly and
-      answers null where there is none, `{:a 1} | query /b` answering
-      `null`, a JSON `null` reads as it, and `coalesce` answers a fallback
-      for it, `{:a 1} | query /b | coalesce 0` answering `0`.
+      answers null where there is none, `{:name "Ann"} | query /age`
+      answering `null`, a JSON `null` reads as it, and `coalesce` answers
+      a fallback for it, `{:name "Ann"} | query /age | coalesce 0`
+      answering `0`.
 
       It is written `null`, and `::null#null` is the same value. It
       ranks first in the one order, before every boolean, and JSON
-      writes it as `null`. `get /b` reads strictly: a missing part is a
+      writes it as `null`. `get /age` reads strictly: a missing part is a
       failure there, never null, so a misspelled field is
       found where it is read.
       ::snippet~(::null | manifest) lists its verbs.
-      ::link~(::any/coalesce | doc) ::link~(::path | doc)
-      ::link~(::qlang/values | doc)
+      ::link~(::any/coalesce) ::link~(::path)
+      ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ Null, read as itself. ~~| ::null
@@ -36,7 +37,7 @@
   |~~ Answers `"null"`, the text `print` and `json` write for null, as
       every atom answers the text of its literal; a field that may be
       absent is given a text of its own by `coalesce`.
-      ::link~(::null/toKeyword | doc) ::link~(::any/coalesce | doc)
+      ::link~(::null/toKeyword) ::link~(::any/coalesce)
   ~~|
   ::fn
     | returns |~~ `"null"`. ~~| ::string
@@ -48,13 +49,13 @@
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
       `groupBy ~(query /country)`.
-      ::link~(::vec/groupBy | doc) ::link~(::any/coalesce | doc)
+      ::link~(::vec/groupBy) ::link~(::any/coalesce)
   ~~|
   ::fn
     | returns |~~ `:null`. ~~| ::keyword
     | proves :readsTheKeyGroupByFiledItUnder
         |~~ Null turns into the key `groupBy` files an absent field under.
         ~~|
-        ~([{:c "a"} {}] | groupBy ~(query /c) | query (null | toKeyword) | eq [{}])
+        ~([{:country "US"} {}] | groupBy ~(query /country) | query (null | toKeyword) | eq [{}])
     | impl ::builtin{}
 

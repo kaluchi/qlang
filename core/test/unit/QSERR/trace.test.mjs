@@ -143,6 +143,6 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 });
 
 it('the steps skipped past a comment run again by apply as the call after it', async () => {
-  const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trace | last | skipped | :t it | 42 | apply t !| tag');
+  const evalResult = await evalQuery('!{:kind :oops} | raise |~| comment\n| count !| get /trace | last | skipped | with {:t ~it} ~(42 | apply t) !| tag');
   expect(evalResult).toEqual(makeTag('call/KindAnswersNoVerbError'));
 });

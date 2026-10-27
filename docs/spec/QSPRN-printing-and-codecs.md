@@ -10,10 +10,10 @@ section are the cases of its file under `core/test/conformance/QSPRN/`.
 `print`, a verb of `::any`, answers the text of its subject: an atom as
 its literal, a vector and a map by their brackets around the print of
 each element, the set, the quote, the doc and the error by their own
-brackets, a quote of a path alone as `::quote[/a]`, and any other value
+brackets, a quote of a path alone as `::quote[/age]`, and any other value
 under a tag as its tag before the print of its payload, every tag but
 the kind the brackets imply, so `::vec[1 2]` prints `[1 2]`; the text of
-a value of the language reads back as it by `parse | open`. A string
+a value of the language reads back as it by `parse | answer`. A string
 prints as JSON writes it: `"` and `\` escaped, a line break, a tab, a
 carriage return, a backspace and a form feed as `\n`, `\t`, `\r`, `\b` and
 `\f`, and any other character below U+0020 and a lone surrogate as `\u`
@@ -60,7 +60,7 @@ the command line a string as its text and the REPL and the site as its
 literal.
 
 ```qlang
-> {:a [1 "x" :k]} | :v it | print | parse | open | eq v
+> {:tags [1 "new" :vip]} | eq (print | parse | answer)
 true
 
 > #[2 1] | print
@@ -69,7 +69,7 @@ true
 > ["\uD800" "\u0007"] | map ~print
 ["\"\\ud800\"" "\"\\u0007\""]
 
-> ["a\n  b\n\nc"] | tag ::doc | :d it | get [~(print | lines | map ~count) ~(print | parse | first | eq d)]
+> ["a\n  b\n\nc"] | tag ::doc | get [~(print | lines | map ~count) ~(eq (print | parse | first))]
 [[5 5 0 7] true]
 
 > ::number/round | source | toString | lines | filter ~(startsWith "| takes") | first
@@ -81,13 +81,13 @@ true
 > :number/print ~("n") | get [~([::Box#5 7] | print) ~(7 | print)]
 ["[::Box#5 7]" "n"]
 
-> {:a {:b [1 2]}} | get /c !| trace
-::trace[::frame[{:a {:b [1 2]}} ~(get /c)]]
+> {:user {:tags [1 2]}} | get /group !| trace
+::trace[::frame[{:user {:tags [1 2]}} ~(get /group)]]
 
 > [1 "x" 3] | map ~(mul 2) !| trace | print | lines | count
 4
 
-> "[1] | map ~(:a (\"x\" | add 1)\n| :b 2)" | parse | open !| trace | map ~(print | lines | count)
+> "[1] | map ~(:rate (\"x\" | add 1)\n| :fee 2)" | parse | answer !| trace | map ~(print | lines | count)
 [1 1 1 1]
 ```
 
@@ -144,21 +144,21 @@ answer, printed within the budget of every answer as any answer is
 [QSPRN#budget], every part of it whole.
 
 ```sh
-$ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :w |~~ The width: in centimetres. ~~| /w ::number) | ::Box{:w 3 :note "x"} | legend' < /dev/null
+$ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :width |~~ The width: in centimetres. ~~| /width ::number) | ::Box{:width 3 :note "x"} | legend' < /dev/null
 ::legend::Box{  |~ A parcel ~|
-  :w 3          |~ The width ~|
+  :width 3      |~ The width ~|
   :note "x"
 }
 ```
 
 ```qlang
-> [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | open) ~(first | tag)]
+> [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | answer) ~(first | tag)]
 [4 [::legend#1 ::legend#2] ::legend]
 
 > ::point | legend | print | lines | get /2
 "|~ line /1 ::number · The line of the point, counted from one ~|"
 
-> ::span | legend | print | parse | open | payload
+> ::span | legend | print | parse | answer | payload
 ::span
 
 > ::trace | legend | print | lines | drop 1 | first
@@ -245,7 +245,7 @@ failure by `!|` and a cell by `answer`.
 > [1 "x" 3] | map ~(mul 2) !| trace | get [~(failed) ~(subject) ~(paths)]
 [[~(mul 2) ~(map ~(mul 2))] "x" [/1]]
 
-> ::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | :e it | print | parse | open | eq e
+> ::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer)
 true
 
 > ::number/add/AddendKindNotTakenError::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [~(addend | found | tag) ~(payload | get /:addend/found/count)]

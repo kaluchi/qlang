@@ -7,9 +7,9 @@ import { BOX } from '../../helpers/box.mjs';
 
 describe('::name | source answers the quote of the declarations under the name', () => {
   it('the axes read a declaration of the query', async () => {
-    const result = await evalQuery(':myLocal 42 | ::myLocal | source');
+    const result = await evalQuery(':any/myLocal ~(42) | ::any/myLocal | source');
     expect(isQuote(result)).toBe(true);
-    expect(printQuoteSource(result)).toBe(':myLocal 42');
+    expect(printQuoteSource(result)).toBe(':any/myLocal ~(42)');
   });
 
   it('the axes of a later cell read a declaration of an earlier one', async () => {
@@ -26,7 +26,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const { createNotebook } = await import('../../../src/notebook.mjs');
     const sessionInstance = await createNotebook();
     const cellEntry = await sessionInstance.evalCell(
-      ':landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content');
+      'apply ~(:landing {} | :landing/chapter01 |~~ Глава из лендинг пейджа ~~| | ::landing/chapter01 | doc | content)');
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('Глава из лендинг пейджа');
   });
@@ -77,13 +77,13 @@ describe('the axes read what a source of the root declared', () => {
   }
 
   it('reads the page a source declared', async () => {
-    const notebook = await sessionOf(':demo |~~ A short note. ~~|\n1');
+    const notebook = await sessionOf(':demo |~~ A short note. ~~|');
     expect((await notebook.evalCell('::demo | doc | content')).result).toBe('A short note.');
   });
 
   it('answers null for the page of a declaration without one', async () => {
-    const notebook = await sessionOf(':bare 42');
-    expect((await notebook.evalCell('::bare | doc')).result).toBeNull();
+    const notebook = await sessionOf(':any/bare ~(42)');
+    expect((await notebook.evalCell('::any/bare | doc')).result).toBeNull();
   });
 });
 
@@ -101,16 +101,16 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
   });
 
   // [QSDSP#walk], [QSDSP#residence]
-  it('a cell declaration of a name the root holds is the one the axes read', async () => {
+  it('a cell that declares a label the root holds leaves the tag of the label the root\'s, which the axes read', async () => {
     const { createNotebook } = await import('../../../src/notebook.mjs');
     const sessionInstance = await createNotebook({
-      sources: [{ uri: 'probe/shadow', source: ':contested |~~ from the source ~~| 111' }]
+      sources: [{ uri: 'probe/shadow', source: ':contested |~~ from the source ~~|' }]
     });
     const cellEntry = await sessionInstance.evalCell(
-      ':contested |~~ from the cell ~~| 222 | ' +
-      'get [~(contested), ~(::contested | source | toString), ~(::contested | doc | content)]');
+      ':contested |~~ from the cell ~~| | ' +
+      'get [~(::contested | source | toString), ~(::contested | doc | content)]');
     expect(cellEntry.defect).toBeNull();
-    expect(cellEntry.result).toEqual([222, ':contested |~~ from the cell ~~| 222', 'from the cell']);
+    expect(cellEntry.result).toEqual([':contested |~~ from the source ~~|', 'from the source']);
   });
 
   it('a node a chain lays reads the page the chain wrote', async () => {
@@ -119,27 +119,27 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 });
 
 it('source on a declaration of it answers the declaration', async () => {
-  const source = await evalQuery('42 | :snap it | ::snap | source | toString');
+  const source = await evalQuery('42 | apply ~(:snap it | ::snap | source | toString)');
   expect(source).toBe(':snap it');
 });
 
 describe('source axis prints the declaration for rare forms of a body', () => {
   it('renders a call that gives no modifiers as the body of a declaration', async () => {
-    expect(await evalQuery('[1 2] | :x count | ::x | source | toString')).toBe(':x count');
+    expect(await evalQuery('[1 2] | apply ~(:x count | ::x | source | toString)')).toBe(':x count');
   });
 
   it('a line comment inside the body of a declaration leaves no step', async () => {
-    const evalResult = await evalQuery(':x (42 |~| note\n) | ::x | source | toString');
+    const evalResult = await evalQuery('apply ~(:x (42 |~| note\n) | ::x | source | toString)');
     expect(evalResult).toBe(':x (42)');
   });
 
   it('renders an error literal as the body of a declaration', async () => {
-    expect(await evalQuery(':x !{:a 1} | ::x | source | toString')).toBe(':x !{:a 1}');
+    expect(await evalQuery('apply ~(:x !{:a 1} | ::x | source | toString)')).toBe(':x !{:a 1}');
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // [QSNAM#declare]
-    expect(await evalQuery(':handler (!| kind) | ::handler | source | toString')).toBe(':handler (!| kind)');
+    expect(await evalQuery('apply ~(:handler (!| kind) | ::handler | source | toString)')).toBe(':handler (!| kind)');
   });
 });
 

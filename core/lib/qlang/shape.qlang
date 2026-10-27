@@ -22,8 +22,8 @@
       of the data is the shape of that part, `get /items | map /assignee | shape`,
       and its size, a sample and the share of its kinds are asked of the
       data, by `count`, `get /0` and `groupBy ~(tag) | map ~count`.
-      ::link~(::any/shape | doc) ::link~(::absent | doc)
-      ::link~(::nullable | doc) ::link~(::each | doc)
+      ::link~(::any/shape) ::link~(::absent)
+      ::link~(::nullable) ::link~(::each)
   ~~|
   ::kind
     | accepts
@@ -32,12 +32,12 @@
         ~~|
     | proves :isWhatShapeAnswers
         |~~ A shape is what `shape` answers, under its tag. ~~|
-        ~({:a 1} | shape | eq ::shape{:a ::number})
+        ~({:id 7} | shape | eq ::shape{:id ::number})
     | proves :readsAPartBeneathItsTag
         |~~ A path reads a part of a shape beneath its tag, as it reads
             every value.
         ~~|
-        ~({:a {:b 1}} | shape | get /a/b | eq ::number)
+        ~({:user {:age 30}} | shape | get /user/age | eq ::number)
     | proves :opensASetAsItOpensAVector
         |~~ A set opens as a vector does, one element for all of them. ~~|
-        ~({:s #[1 2]} | shape | eq ::shape{:s #[::number]})
+        ~({:sizes #[1 2]} | shape | eq ::shape{:sizes #[::number]})

@@ -26,7 +26,7 @@
 {"name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| payload | keys","expect":"#[:subject/expected :subject/found :trace]"}
 {"name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
 {"name":"a-map-raised-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
-{"name":"an-error-at-rest-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| :e it | raise !| eq e","expect":"true"}
+{"name":"an-error-at-rest-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| with {:e ~it} ~(e | raise !| eq e)","expect":"true"}
 {"name":"a-failure-a-verb-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)] !| get /trace | map ~failed","expect":"[~(pre) ~(get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)])]"}
 {"name":"a-failure-raised-on-an-empty-written-trace-inside-a-verb-arises-at-its-raise","query":"get [~(!{:a 1 :trace []} | raise)] !| get /trace | map ~failed","expect":"[~(raise) ~(get [~(!{:a 1 :trace []} | raise)])]"}
 {"name":"a-tagged-literal-whose-payload-raises-itself-answers-within-the-frame-of-its-step","query":"[::Foo::number\"x\"] !| trace | map ~failed","expect":"[~([::Foo::number\"x\"])]"}
@@ -35,7 +35,7 @@
 {"name":"the-trace-starts-where-the-error-arose","query":"\"x\" | add 1 !| trace | first | failed","expect":"~(add 1)"}
 {"name":"a-nested-error-keeps-the-frame-of-its-level","query":"5 | (!{:k 1} | raise | add 1) !| get /trace | map ~failed","expect":"[~(raise) ~((!{:k 1} | raise | add 1))]"}
 {"name":"a-trace-names-the-frame-where-the-error-arose","query":"\"x\" | add 1 | mul 2 !| trace","expect":"::trace[::frame[\"x\" ~(add 1 | mul 2)]]"}
-{"name":"a-frame-at-every-step-that-handed-the-error-on","query":":g ~(add 2 | mul 2) | \"x\" | apply g | sub 3 !| trace","expect":"::trace[::frame[\"x\" ~(add 2 | mul 2)] ::frame[\"x\" ~(apply g | sub 3)]]"}
+{"name":"a-frame-at-every-step-that-handed-the-error-on","query":"\"x\" | apply ~(add 2 | mul 2) | sub 3 !| trace","expect":"::trace[::frame[\"x\" ~(add 2 | mul 2)] ::frame[\"x\" ~(apply ~(add 2 | mul 2) | sub 3)]]"}
 {"name":"the-last-frame-replays-where-it-is-read","query":"(:x 1 | !{:k 1} | add x) | mul 2 !| trace | last | skipped","expect":"~(mul 2)"}
 {"name":"a-frame-of-a-verb-follows-the-frame-inside-its-quote","query":"[1 \"x\" 3] | filter ~(gt 2 | not) | count !| trace | map ~failed","expect":"[~(gt 2) ~(filter ~(gt 2 | not))]"}
 {"name":"a-tagged-error-literal-whose-trace-is-a-number-raises-the-refusal-of-its-kind","query":"::Foo!{:trace 5} | raise !| tag","expect":"::trace/PayloadKindNotTakenError"}
@@ -64,7 +64,7 @@
 {"name":"the-frame-of-reduce-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | reduce 0 ~(add) !| trace | last | path","expect":"/b"}
 {"name":"the-frame-of-update-names-the-path-it-wrote","query":"{:a {:n \"x\"}} | update /a/n ~(add 1) !| trace | last | path","expect":"/a/n"}
 {"name":"each-level-names-the-path-of-its-own-part","query":"[[1 \"x\"]] | map ~(map ~(mul 2)) !| trace | map ~path","expect":"[null /1 /0]"}
-{"name":"the-subject-of-a-frame-reads-the-part-by-its-path","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | :f it | subject | get (f | path)","expect":"\"x\""}
+{"name":"the-subject-of-a-frame-reads-the-part-by-its-path","query":"[1 \"x\" 3] | map ~(mul 2) !| trace | last | with {:part ~path} ~(subject | get part)","expect":"\"x\""}
 {"name":"a-plain-vector-of-frames-written-under-trace-is-laid-under-its-kind","query":"{:a 1 :trace [::frame[1 ~(pre)]]} | raise !| get /trace","expect":"::trace[::frame[1 ~(pre)]]"}
 {"name":"a-vector-of-maps-written-under-trace-is-refused-as-no-frames","query":"{:trace [{:failed ~(pre) :subject 1 :skipped ~()}]} | raise !| tag","expect":"::trace/ElementKindNotTakenError"}
 {"name":"a-frame-of-a-subject-alone-is-refused","query":"::frame[\"x\"] !| tag","expect":"::frame/UnfinishedNotGivenError"}

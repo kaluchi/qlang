@@ -23,8 +23,8 @@
       text by `toString`, `5 | toString` answering `"5"`, while `print`
       writes any value as its literal and `json` as JSON.
       ::snippet~(::string | manifest) lists its verbs and refusals.
-      ::link~(::regex | doc) ::link~(::keyword | doc)
-      ::link~(::any/print | doc) ::link~(::qlang/values | doc)
+      ::link~(::regex) ::link~(::keyword)
+      ::link~(::any/print) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A string, read as itself. ~~| ::string
@@ -41,12 +41,12 @@
         |~~ A number, a keyword, a tag name and a boolean become text by
             `toString`.
         ~~|
-        ~([5 :a ::vec true] | map ~toString | eq ["5" "a" "vec" "true"])
+        ~([5 :active ::vec true] | map ~toString | eq ["5" "active" "vec" "true"])
     | proves :printsTheLiteral
         |~~ `print` writes a value as its literal, a keyword with its
             colon.
         ~~|
-        ~([5 :a] | map ~print | eq ["5" ":a"])
+        ~([5 :active] | map ~print | eq ["5" ":active"])
     | proves :readsTextByARegex
         |~~ A regex reads text, its match and its groups. ~~|
         ~("took 12ms" | match #"(\d+)ms" | eq ["12ms" "12"])
@@ -75,7 +75,7 @@
       or a set and the entries of a map, and a number or null answers no
       `count`, which the refusal of the call names with the kinds that
       do.
-      ::link~(::string/take | doc) ::link~(::vec/count | doc)
+      ::link~(::string/take) ::link~(::vec/count)
   ~~|
   ::fn
     | returns |~~ How many characters the string holds. ~~| ::number
@@ -116,7 +116,7 @@
   |~~ The name other languages give `count`: answers how many characters
       the string holds, a code point each, as `count` does,
       `"abc" | size` answering `3`.
-      ::link~(::string/count | doc)
+      ::link~(::string/count)
   ~~|
   ::fn
     | returns |~~ How many characters the string holds. ~~| ::number
@@ -129,7 +129,7 @@
   |~~ The name other languages give `count`: answers how many characters
       the string holds, a code point each, as `count` does,
       `"abc" | length` answering `3`.
-      ::link~(::string/count | doc)
+      ::link~(::string/count)
   ~~|
   ::fn
     | returns |~~ How many characters the string holds. ~~| ::number
@@ -147,8 +147,8 @@
       a fraction and a string are refused. A string under a tag answers
       under the tag. The name `take` also takes the first elements of a
       vector, a set or a map.
-      ::link~(::string/drop | doc) ::link~(::string/count | doc)
-      ::link~(::vec/take | doc)
+      ::link~(::string/drop) ::link~(::string/count)
+      ::link~(::vec/take)
   ~~|
   ::fn
     | takes :count
@@ -200,7 +200,7 @@
       emoji is dropped whole. The count is a whole number. A string under
       a tag answers under the tag. The name `drop` also drops the first
       elements of a vector, a set or a map.
-      ::link~(::string/take | doc) ::link~(::vec/drop | doc)
+      ::link~(::string/take) ::link~(::vec/drop)
   ~~|
   ::fn
     | takes :count
@@ -258,7 +258,7 @@
       emoji of one code point stays whole. `join` writes the pieces back,
       and `lines` breaks a text at its line breaks. A vector of strings
       splits by `map`, each element into a vector of its own.
-      ::link~(::string/lines | doc) ::link~(::vec/join | doc)
+      ::link~(::string/lines) ::link~(::vec/join)
   ~~|
   ::fn
     | takes :separator
@@ -329,7 +329,7 @@
         ~(42 | split "," !| get [~(tag) ~(subject | found | tag)] | eq [::string/split/SubjectNotStringError ::number])
     | proves :SeparatorKindNotTakenError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
-        ~("abc" | split :b !| tag | eq ::string/split/SeparatorKindNotTakenError)
+        ~("tea,cake" | split :comma !| tag | eq ::string/split/SeparatorKindNotTakenError)
     | proves :SeparatorNotGivenError/refusesACallWithNoSeparator
         |~~ A call with no separator is refused under the input. ~~|
         ~("abc" | split !| tag | eq ::string/split/SeparatorNotGivenError)
@@ -347,7 +347,7 @@
 
       `lines` breaks a string and takes no value; a vector of texts
       breaks element by element by `map`, `map ~lines`.
-      ::link~(::string/split | doc) ::link~(::vec/join | doc)
+      ::link~(::string/split) ::link~(::vec/join)
   ~~|
   ::fn
     | returns
@@ -405,7 +405,7 @@
       grow. A string under a tag answers under the tag. A keyword has no
       case to lower: `toString` gives its name first. A vector of strings
       lowers by `map`.
-      ::link~(::string/upper | doc)
+      ::link~(::string/upper)
   ~~|
   ::fn
     | returns
@@ -444,7 +444,7 @@
       into `SS`, so the count may grow. A string under a tag answers
       under the tag. A keyword has no case to raise: `toString` gives its
       name first. A vector of strings raises by `map`.
-      ::link~(::string/lower | doc)
+      ::link~(::string/lower)
   ~~|
   ::fn
     | returns
@@ -469,7 +469,7 @@
         ~(["a" "b"] | map ~upper | eq ["A" "B"])
     | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to raise. ~~|
-        ~(:ab | upper !| tag | eq ::string/upper/SubjectNotStringError)
+        ~(:active | upper !| tag | eq ::string/upper/SubjectNotStringError)
     | proves :SubjectNotStringError/namesTheRepairOfAPath
         |~~ A path names the repair that reads its field, the step the call
             was likely meant as.
@@ -483,7 +483,7 @@
       line compares as the text it holds; the whitespace inside stays. A
       string under a tag answers under the tag. A vector of strings trims
       by `map`, `split "," | map ~trim`.
-      ::link~(::string/split | doc)
+      ::link~(::string/split)
   ~~|
   ::fn
     | returns
@@ -532,8 +532,8 @@
       whole, so `["ab"] | contains "a"` answers `false`, and a number or a
       map answers no `contains`, which the refusal of the call names with
       the kinds that do.
-      ::link~(::string/startsWith | doc) ::link~(::string/endsWith | doc)
-      ::link~(::vec/contains | doc)
+      ::link~(::string/startsWith) ::link~(::string/endsWith)
+      ::link~(::vec/contains)
   ~~|
   ::fn
     | takes :needle
@@ -576,12 +576,12 @@
         ~(["ab"] | contains "a" | not)
     | proves :NeedleKindNotTakenError/refusesAKeyword
         |~~ A keyword is no needle. ~~|
-        ~("hi" | contains :h !| tag | eq ::string/contains/NeedleKindNotTakenError)
+        ~("tea time" | contains :tea !| tag | eq ::string/contains/NeedleKindNotTakenError)
     | proves :namesTheKindsThatAnswerIt
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
         ~~|
-        ~({:a 1} | contains "a" !| addresses | eq #[::string/contains ::vec/contains])
+        ~({:tea 4} | contains "tea" !| addresses | eq #[::string/contains ::vec/contains])
     | impl ::builtin{}
 
 :string/startsWith
@@ -592,7 +592,7 @@
       string answers `startsWith`, and another value is refused: a field
       is read first, `get /name | startsWith "a"`, and a vector of strings
       asks by `map`, each element apart.
-      ::link~(::string/endsWith | doc) ::link~(::string/contains | doc)
+      ::link~(::string/endsWith) ::link~(::string/contains)
   ~~|
   ::fn
     | takes :prefix
@@ -638,7 +638,7 @@
         ~(["a"] | startsWith "a" !| tag | eq ::string/startsWith/SubjectNotStringError)
     | proves :PrefixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no prefix. ~~|
-        ~("hi" | startsWith :h !| tag | eq ::string/startsWith/PrefixKindNotTakenError)
+        ~("tea time" | startsWith :tea !| tag | eq ::string/startsWith/PrefixKindNotTakenError)
     | impl ::builtin{}
 
 :string/endsWith
@@ -649,7 +649,7 @@
       `endsWith`, and another value is refused: a field is read first,
       `get /file | endsWith ".json"`, and a vector of strings asks by `map`,
       each element apart.
-      ::link~(::string/startsWith | doc) ::link~(::string/contains | doc)
+      ::link~(::string/startsWith) ::link~(::string/contains)
   ~~|
   ::fn
     | takes :suffix
@@ -693,7 +693,7 @@
         ~(["a"] | endsWith "a" !| tag | eq ::string/endsWith/SubjectNotStringError)
     | proves :SuffixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no suffix. ~~|
-        ~("hi" | endsWith :i !| tag | eq ::string/endsWith/SuffixKindNotTakenError)
+        ~("tea time" | endsWith :time !| tag | eq ::string/endsWith/SuffixKindNotTakenError)
     | impl ::builtin{}
 
 :string/prepend
@@ -701,11 +701,12 @@
       `"world" | prepend "hello "` answering `"hello world"`. Two strings
       join beneath the tags they share, a bare one sharing any. The
       prefix is a string, or a
-      keyword written as its name, `"x" | prepend :a` answering `"ax"`;
-      a number becomes text by `toString` first, `prepend (n | toString)`.
+      keyword written as its name, `"time" | prepend :tea` answering
+      `"teatime"`; a number becomes text by `toString` first,
+      `prepend (count | toString)`.
       The name `prepend` also puts an element in front of a vector,
       `[1] | prepend 0`.
-      ::link~(::string/append | doc) ::link~(::vec/prepend | doc)
+      ::link~(::string/append) ::link~(::vec/prepend)
   ~~|
   ::fn
     | takes :prefix
@@ -731,7 +732,7 @@
         ~("x" | prepend (42 | toString) | eq "42x")
     | proves :writesAKeywordAsItsName
         |~~ A keyword goes in front as its name. ~~|
-        ~("x" | prepend :a | eq "ax")
+        ~("time" | prepend :tea | eq "teatime")
     | proves :PrefixKindNotTakenError/refusesANumber
         |~~ A number prefix is refused; `toString` makes it text. ~~|
         ~("x" | prepend 42 !| tag | eq ::string/prepend/PrefixKindNotTakenError)
@@ -741,11 +742,12 @@
   |~~ Answers the string with the suffix the call gives after it,
       `"hello" | append " world"` answering `"hello world"`. A string
       under a tag answers under the tag. The suffix is a string, or a
-      keyword written as its name, `"x" | append :a` answering `"xa"`; a
-      number becomes text by `toString` first, `append (n | toString)`.
+      keyword written as its name, `"tea" | append :time` answering
+      `"teatime"`; a number becomes text by `toString` first,
+      `append (count | toString)`.
       The name `append` also puts an element after the last of a vector,
       `[1] | append 2`.
-      ::link~(::string/prepend | doc) ::link~(::vec/append | doc)
+      ::link~(::string/prepend) ::link~(::vec/append)
   ~~|
   ::fn
     | takes :suffix
@@ -771,7 +773,7 @@
         ~("x" | append (42 | toString) | eq "x42")
     | proves :writesAKeywordAsItsName
         |~~ A keyword goes after as its name. ~~|
-        ~("x" | append :a | eq "xa")
+        ~("tea" | append :time | eq "teatime")
     | proves :SuffixKindNotTakenError/refusesANumber
         |~~ A number suffix is refused; `toString` makes it text. ~~|
         ~("x" | append 42 !| tag | eq ::string/append/SuffixKindNotTakenError)
@@ -791,7 +793,7 @@
       that is no JSON is refused with the message of the reader of JSON,
       and a number past the doubles is refused with the path to it in the
       text as its `:path`, none where the number is the whole text.
-      ::link~(::any/json | doc) ::link~(::string/parse | doc)
+      ::link~(::any/json) ::link~(::string/parse)
   ~~|
   ::fn
     | returns
@@ -839,16 +841,16 @@
         ~(" 42 " | parseJson | eq 42)
     | proves :keepsTheLastOfAKeyWrittenTwice
         |~~ A key written twice keeps its last value. ~~|
-        ~("{\"a\":1,\"a\":2}" | parseJson | eq {:a 2})
+        ~("{\"status\":\"new\",\"status\":\"paid\"}" | parseJson | eq {:status "paid"})
     | proves :readsBackWhatJsonWrote
         |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
-        ~({:a [1 "x"]} | json | parseJson | eq {:a [1 "x"]})
+        ~({:tags [1 "new"]} | json | parseJson | eq {:tags [1 "new"]})
     | proves :readsASetBackAsAVector
         |~~ What `json` wrote of a set reads back as a vector. ~~|
         ~(#[1 2] | json | parseJson | eq [1 2])
     | proves :readsAKeywordBackAsAString
         |~~ What `json` wrote of a keyword reads back as a string. ~~|
-        ~(:a | json | parseJson | eq "a")
+        ~(:active | json | parseJson | eq "active")
     | proves :readsATagBackAsAMap
         |~~ What `json` wrote of a value under a tag reads back as a map.
         ~~|
@@ -877,13 +879,13 @@
       on a quote, which answers the text of its code; the empty text
       spells the empty quote. `apply` runs the quote on a subject,
       `5 | apply ("add 1" | parse)`, and a source that starts from a value
-      of its own runs by `open`, so source text is evaluated without
+      of its own answers by `answer`, so source text is evaluated without
       leaving the language. A source the parser cannot read is refused
       with a `::quote/ParseError`, whose `:expected` and `:location` tell
       what the parser wanted and where, with `:found` when a token stood
       there, and `!|` reads it as every other error.
-      ::link~(::quote/toString | doc) ::link~(::any/apply | doc)
-      ::link~(::quote/open | doc)
+      ::link~(::quote/toString) ::link~(::any/apply)
+      ::link~(::quote/answer)
   ~~|
   ::fn
     | returns |~~ The quote of the steps the text spells. ~~| ::quote
@@ -902,9 +904,10 @@
     | proves :runsByApply
         |~~ `apply` runs the quote on a subject. ~~|
         ~(5 | apply ("add 1" | parse) | eq 6)
-    | proves :runsASourceWithItsOwnValueByOpen
-        |~~ A source that starts from a value of its own runs by `open`. ~~|
-        ~("1 | add 1" | parse | open | eq 2)
+    | proves :answersASourceWithItsOwnValue
+        |~~ A source that starts from a value of its own answers by `answer`.
+        ~~|
+        ~("1 | add 1" | parse | answer | eq 2)
     | proves :refusesASourceTheParserRefuses
         |~~ A source the parser cannot read is refused. ~~|
         ~("add (" | parse !| tag | eq ::quote/ParseError)
@@ -924,8 +927,8 @@
       among it, so a space is cut first by `trim`; JSON text of any value
       is read by `parseJson`. `toString` turns the number back into its
       text.
-      ::link~(::number/toString | doc) ::link~(::string/trim | doc)
-      ::link~(::string/parseJson | doc)
+      ::link~(::number/toString) ::link~(::string/trim)
+      ::link~(::string/parseJson)
   ~~|
   ::fn
     | returns |~~ The number the text writes. ~~| ::number
@@ -955,7 +958,7 @@
       a keyword: a slash makes a path, `:qlang/error`, and a space or the
       empty text makes a quoted one, `:"a b"`. `toString` turns the
       keyword back into the string.
-      ::link~(::keyword/toString | doc) ::link~(::keyword | doc)
+      ::link~(::keyword/toString) ::link~(::keyword)
   ~~|
   ::fn
     | returns |~~ The keyword the text names. ~~| ::keyword
@@ -978,7 +981,7 @@
       `"vec" | toTag | manifest`. The text is a name, or names joined by
       `/`; text that names no tag is refused. `toString` turns the tag
       back into its name.
-      ::link~(::tag/toString | doc) ::link~(::tag | doc)
+      ::link~(::tag/toString) ::link~(::tag)
   ~~|
   ::fn
     | returns |~~ The tag the text names. ~~| ::tag
@@ -1002,13 +1005,14 @@
 :string/toString
   |~~ Answers the string itself, so `map ~toString` turns the atoms of
       a vector into strings whatever their kinds,
-      `[42 :a "s"] | map ~toString` answering `["42" "a" "s"]`, null
-      `"null"`, and a quote the text of its code. A vector, a set, a map
-      and a regex have no `toString`: `print` writes the literal of any
-      value and `json` its JSON, while a doc gives its prose by `content`.
-      ::link~(::number/toString | doc) ::link~(::keyword/toString | doc)
-      ::link~(::quote/toString | doc) ::link~(::any/print | doc)
-      ::link~(::any/json | doc) ::link~(::doc/content | doc)
+      `[42 :active "Ann"] | map ~toString` answering
+      `["42" "active" "Ann"]`, null `"null"`, and a quote the text of its
+      code. A vector, a set, a map and a regex have no `toString`: `print`
+      writes the literal of any value and `json` its JSON, while a doc
+      gives its prose by `content`.
+      ::link~(::number/toString) ::link~(::keyword/toString)
+      ::link~(::quote/toString) ::link~(::any/print)
+      ::link~(::any/json) ::link~(::doc/content)
   ~~|
   ::fn
     | returns |~~ The string itself. ~~| ::string
@@ -1016,7 +1020,7 @@
         |~~ A string answers itself, so atoms of several kinds turn into
             strings.
         ~~|
-        ~([42 :a "s"] | map ~toString | eq ["42" "a" "s"])
+        ~([42 :active "Ann"] | map ~toString | eq ["42" "active" "Ann"])
     | proves :leadsAValueOfNoStringToItsText
         |~~ A vector is led to `print` and `json`, and a doc to `content`
             beside them.
@@ -1033,8 +1037,8 @@
       part in the match is `null`. The groups a regex names come as a map
       from `capture`, every match from `scan`, and whether one stands at all
       from `contains`.
-      ::link~(::string/capture | doc) ::link~(::string/scan | doc)
-      ::link~(::regex | doc)
+      ::link~(::string/capture) ::link~(::string/scan)
+      ::link~(::regex)
   ~~|
   ::fn
     | takes :regex
@@ -1070,7 +1074,7 @@
       becomes a record, `lines | map ~(capture #"…")`. A named group that
       took no part is `null`. A regex that names no group is refused;
       `match` answers the groups by their indices.
-      ::link~(::string/match | doc) ::link~(::string/lines | doc)
+      ::link~(::string/match) ::link~(::string/lines)
   ~~|
   ::fn
     | takes :regex
@@ -1109,7 +1113,7 @@
       `["12" "7"]`, which `map ~toNumber` turns into numbers. The groups
       of each match come from `match` and `capture` on its text,
       `scan #"…" | map ~(capture #"…")`.
-      ::link~(::string/match | doc) ::link~(::string/toNumber | doc)
+      ::link~(::string/match) ::link~(::string/toNumber)
   ~~|
   ::fn
     | takes :regex
@@ -1143,7 +1147,7 @@
       `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)` doubling
       every number, a path among it, `replace #"(\d)x" /1` keeping the
       digit of each match.
-      ::link~(::string/match | doc) ::link~(::regex | doc)
+      ::link~(::string/match) ::link~(::regex)
   ~~|
   ::fn
     | takes :needle
@@ -1223,8 +1227,8 @@
       reads, so its backslashes are doubled where a literal `#"…"` writes
       one. A source that is no regex is refused with the reason, and so is
       a text that writes the literal of a regex whole, as `json` writes
-      one, which `parse | open` reads.
-      ::link~(::regex | doc) ::link~(::string/parse | doc)
+      one, which `parse | answer` reads.
+      ::link~(::regex) ::link~(::string/parse)
   ~~|
   ::fn
     | takes :flags
@@ -1256,7 +1260,7 @@
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
-            regex: the literal reads back by `parse | open`, its flags
+            regex: the literal reads back by `parse | answer`, its flags
             among it.
         ~~|
     | proves :readsTheSource
@@ -1281,29 +1285,31 @@
         ~~|
         ~("(?i)abc" | toRegex !| message | contains "toRegex \"i\"")
     | proves :LiteralNotSourceError/refusesALiteral
-        |~~ The literal of a regex is refused, and `parse | open` reads
+        |~~ The literal of a regex is refused, and `parse | answer` reads
             it.
         ~~|
-        ~(#"\d+"i | json | parseJson | get [~(toRegex !| tag) ~(parse | open)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
+        ~(#"\d+"i | json | parseJson | get [~(toRegex !| tag) ~(parse | answer)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{}
 
 :string/toPath
   |~~ Answers the path the text writes in JSON Pointer's form, a slash
       before each segment, `~1` a slash and `~0` a tilde within one, a
-      fragment's `#` before it read too: `"/a~1b/0" | toPath | segments`
-      answers `[:"a/b" 0]`, so the `$ref` of a document is followed by
-      its path, `get (get /"$ref" | toPath)`.
-      ::link~(::path | doc) ::link~(::vec/toPath | doc)
+      fragment's `#` before it read too:
+      `"/paths/~1users/get" | toPath | segments` answers
+      `[:paths :"/users" :get]`, so the `$ref` of a document is followed
+      by its path, `get (get /"$ref" | toPath)`.
+      ::link~(::path) ::link~(::vec/toPath)
   ~~|
   ::fn
     | returns |~~ The path the text writes. ~~| ::path
     | throws :NotPointerError
         |~~ The text writes a path in JSON Pointer's form, a slash before
-            each segment, `"/a/b"`, or a fragment of one, `"#/a/b"`.
+            each segment, `"/user/name"`, or a fragment of one,
+            `"#/user/name"`.
         ~~|
     | proves :readsTheEscapes
         |~~ `~1` is a slash and `~0` a tilde within a segment. ~~|
-        ~("/a~1b/0" | toPath | segments | eq [:"a/b" 0])
+        ~("/paths/~1users/get" | toPath | segments | eq [:paths :"/users" :get])
     | proves :readsAFragment
         |~~ The `#` of a fragment before the path is read too. ~~|
         ~("#/components/schemas" | toPath | print | eq "/components/schemas")

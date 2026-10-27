@@ -16,6 +16,6 @@ const evalInCli = async (query) => {
 };
 
 it('declares the topic of the command line beside the names a reader declares', async () => {
-  expect(await evalInCli(':x 1 | env | get [~(has :x) ~(has :cli) ~(has :table)]')).toEqual([true, false, false]);
+  expect(await evalInCli(':Box |~~ A box. ~~| | env | get [~(has :Box) ~(has :cli) ~(has :table)]')).toEqual([true, false, false]);
   expect(await evalInCli('::cli | doc | tag')).toEqual(await evalInCli('::doc'));
 });

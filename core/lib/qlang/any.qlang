@@ -12,7 +12,7 @@
       No value is of this kind alone, since `tag` answers the kind
       above it, and every value answers the verbs listed here.
       ::snippet~(::any | manifest) lists the verbs of every value.
-      ::link~(::qlang/verbs | doc)
+      ::link~(::qlang/verbs)
   ~~|
   ::kind
     | throws :UnknownNameError
@@ -21,7 +21,7 @@
             `::any/doc/UnknownNameError` for `doc`, and so for `binding`,
             `source`, `manifest`, `laws` and `runLaws`: every such refusal
             is closed by the kind of this one.
-            ::link~(::qlang/hypertext | doc)
+            ::link~(::qlang/hypertext)
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :addresses
@@ -38,7 +38,7 @@
         ~(5 | tag | eq ::any | not)
     | proves :isTheKindOfEveryValue
         |~~ Every value is of `::any`, so laying it changes nothing. ~~|
-        ~([5 ::Box#5 #[1]] | map ~(:v it | get [~(is ::any) ~(tag ::any | eq v)]) | eq [[true true] [true true] [true true]])
+        ~([5 ::Box#5 #[1]] | map ~(get [~(is ::any) ~(eq (tag ::any))]) | eq [[true true] [true true] [true true]])
 
 :any/desc
   |~~ Turns the subject: a value under `::desc` back to its payload, and
@@ -47,14 +47,15 @@
       turned ranks the greater first: a key of `sort`, `min` or `max`
       that answers it descends,
       `[1 3 2] | sort ~(desc)` answering `[3 2 1]`, and in a vector key it
-      turns its own index alone, `sort ~(get [~(get /n | desc) /s])`. A
-      value of every kind turns, a map among them, and `payload` reads it
-      back. The key is code, a
-      quote: `sort desc` turns the vector itself, which `sort` refuses
-      as no key. A key turned in `max` finds the least. The call takes no
-      value; a field turns by reading it first, `~(get /n | desc)`.
-      ::link~(::desc | doc) ::link~(::any/tag | doc)
-      ::link~(::vec/sort | doc)
+      turns its own index alone,
+      `sort ~(get [~(get /score | desc) /name])`. A value of every kind
+      turns, a map among them, and `payload` reads it back. The key is
+      code, a quote: `sort desc` turns the vector itself, which `sort`
+      refuses as no key. A key turned in `max` finds the least. The call
+      takes no value; a field turns by reading it first,
+      `~(get /score | desc)`.
+      ::link~(::desc) ::link~(::any/tag)
+      ::link~(::vec/sort)
   ~~|
   ::fn
     | returns
@@ -64,7 +65,7 @@
         ::any
     | throws :ArgsBeyondInputsError
         |~~ `desc` turns its subject and takes no value: a key turns a
-            field by reading it first, `sort ~(get /n | desc)`.
+            field by reading it first, `sort ~(get /score | desc)`.
         ~~|
     | proves :answersADesc
         |~~ `desc` answers the subject under `::desc`. ~~|
@@ -74,11 +75,11 @@
         ~([1 3 2] | sort ~(desc) | eq [3 2 1])
     | proves :turnsOneIndexOfAVectorKey
         |~~ In a vector key `desc` turns its own index alone. ~~|
-        ~([{:n 1 :s "b"} {:n 1 :s "a"} {:n 2 :s "c"}]
-          | sort ~(get [~(get /n | desc) /s]) | map /s | eq ["c" "a" "b"])
+        ~([{:score 7 :name "Bob"} {:score 7 :name "Ann"} {:score 9 :name "Eve"}]
+          | sort ~(get [~(get /score | desc) /name]) | map /name | eq ["Eve" "Ann" "Bob"])
     | proves :readsBackByPayload
         |~~ A map turns, and `payload` reads it back. ~~|
-        ~({:n 1} | desc | payload | eq {:n 1})
+        ~({:score 7} | desc | payload | eq {:score 7})
     | proves :turnsTheWholeVectorWithoutAQuote
         |~~ `sort desc` turns the vector, which `sort` refuses as no key.
         ~~|
@@ -87,28 +88,29 @@
           |  eq [::vec/sort/KeyKindNotTakenError ::desc])
     | proves :turnsBackToTheValue
         |~~ A value turned twice is the value. ~~|
-        ~([5 {:n 1} ::Box[2]] | map ~(:v it | desc | desc | eq v) | every ~(it))
+        ~([5 {:score 7} ::Box[2]] | map ~(eq (desc | desc)) | every ~(it))
     | proves :turnsAMaximum
         |~~ A key turned in `max` finds the least. ~~|
-        ~([{:n 1} {:n 2}] | max ~(get /n | desc) | eq {:n 1})
+        ~([{:score 7} {:score 9}] | max ~(get /score | desc) | eq {:score 7})
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `desc` is refused under the verb. ~~|
-        ~([{:n 1} {:n 2}] | sort ~(desc (get /n)) !| tag | eq ::any/desc/ArgsBeyondInputsError)
+        ~([{:score 7} {:score 9}] | sort ~(desc (get /score)) !| tag | eq ::any/desc/ArgsBeyondInputsError)
     | impl ~(if (tag | eq ::desc) ~(payload) ~(tag ::desc))
 
 :any/eq
   |~~ Answers whether the subject and the value the call gives are one
       value: of one kind, under the same tags, and equal part for part,
       the order of a map's keys and of a set's elements aside. So a
-      keyword is not its string, `:a` and `"a"`; a vector is not the set
-      of its elements, `[1 2]` and `#[1 2]`; a value under a tag is not
-      its payload; and a number equals itself whatever its digits, `1` and
-      `1.0`, while a sum of doubles may miss, `0.1 | add 0.2`. The value
-      is computed against the subject, so two fields of one record are
-      compared through a name, `:r it | get /a | eq (r | get /b)`, and in
-      a condition the subject is the element,
+      keyword is not its string, `:active` and `"active"`; a vector is not
+      the set of its elements, `[1 2]` and `#[1 2]`; a value under a tag is
+      not its payload; and a number equals itself whatever its digits, `1`
+      and `1.0`, while a sum of doubles may miss, `0.1 | add 0.2`. The
+      value is computed against the subject, so two fields of one record
+      are compared by the names `with` gives them,
+      `with [/ordered /shipped] ~(ordered | eq shipped)`, and in a
+      condition the subject is the element,
       `filter ~(get /status | eq "open")`. `ne` answers the opposite.
-      ::link~(::any/ne | doc) ::link~(::qlang/values | doc)
+      ::link~(::any/ne) ::link~(::qlang/values)
   ~~|
   ::fn
     | takes :value
@@ -128,15 +130,15 @@
     | throws :ArgsBeyondInputsError
         |~~ `eq` compares the subject with one value and was given more:
             whether the subject is one of several is
-            `:x it | [5 6] | contains x`.
+            `with {:fruit ~it} ~(["apple" "pear"] | contains fruit)`.
         ~~|
     | proves :comparesPartForPart
         |~~ Nested values compare part for part, a set without its order.
         ~~|
-        ~({:a [1 #[2 3]]} | eq {:a [1 #[3 2]]})
+        ~({:order [7 #[:tea :cake]]} | eq {:order [7 #[:cake :tea]]})
     | proves :keepsAKeywordApartFromItsString
         |~~ A keyword is not its string. ~~|
-        ~(:a | eq "a" | not)
+        ~(:active | eq "active" | not)
     | proves :keepsAVectorApartFromItsSet
         |~~ A vector is not the set of its elements. ~~|
         ~([1 2] | eq #[1 2] | not)
@@ -150,8 +152,8 @@
         |~~ A sum of doubles may miss the number it is written as. ~~|
         ~(0.1 | add 0.2 | eq 0.3 | not)
     | proves :comparesTwoFieldsThroughAName
-        |~~ Two fields of one record compare through a name. ~~|
-        ~({:a 1 :b 1} | :r it | get /a | eq (r | get /b))
+        |~~ Two fields of one record compare by the names `with` gives them. ~~|
+        ~({:ordered 3 :shipped 3} | with [/ordered /shipped] ~(ordered | eq shipped))
     | proves :ValueNotGivenError/refusesACallWithNoValue
         |~~ A call with no value is refused under the input. ~~|
         ~(5 | eq !| tag | eq ::any/eq/ValueNotGivenError)
@@ -162,7 +164,7 @@
         |~~ Two maps of the same entries are one value, whatever the order
             of their keys.
         ~~|
-        ~({:a 1 :b 2} | eq {:b 2 :a 1})
+        ~({:name "Ann" :age 30} | eq {:age 30 :name "Ann"})
     | impl ::builtin{}
 
 :any/ne
@@ -170,7 +172,7 @@
       the equality of `eq`, whose opposite it is: a keyword differs from
       its string, a vector from the set of its elements, a value under a
       tag from its payload.
-      ::link~(::any/eq | doc)
+      ::link~(::any/eq)
   ~~|
   ::fn
     | takes :value
@@ -193,7 +195,7 @@
         ~~|
     | proves :answersTheOppositeOfEq
         |~~ Two values differ exactly when they are not one value. ~~|
-        ~([[1 2] [1 1] [:a "a"]] | map ~(:p it | get /0 | ne (p | get /1)) | eq [true false true])
+        ~([[1 2] [1 1] [:active "active"]] | map ~(with {:left /0 :right /1} ~(left | ne right)) | eq [true false true])
     | proves :ValueNotGivenError/refusesACallWithNoValue
         |~~ A call with no value is refused under the input. ~~|
         ~(5 | ne !| tag | eq ::any/ne/ValueNotGivenError)
@@ -219,9 +221,9 @@
       against the subject, and in a condition the subject is the element,
       `filter ~(gt 1)`. `gte` answers whether the subject comes after the
       value or ranks with it, `lt` and `lte` the reverse.
-      ::link~(::any/gte | doc) ::link~(::any/lt | doc)
-      ::link~(::any/lte | doc) ::link~(::vec/sort | doc)
-      ::link~(::desc | doc)
+      ::link~(::any/gte) ::link~(::any/lt)
+      ::link~(::any/lte) ::link~(::vec/sort)
+      ::link~(::desc)
   ~~|
   ::fn
     | takes :value
@@ -231,7 +233,7 @@
         /0
     | throws :ArgsBeyondInputsError
         |~~ `gt` compares the subject with one value: two fields of one
-            record compare through a name, `:r it | get /a | gt (r | get /b)`.
+            record compare by the names `with` gives them, `with [/paid /due] ~(paid | gt due)`.
         ~~|
     | returns
         |~~ `true` when the subject comes after the value, `false`
@@ -252,7 +254,7 @@
         ~(get [~("b" | gt "a") ~("B" | gt "a") ~("10" | gt "9")] | eq [true false false])
     | proves :comparesKeywordsAndTagNamesByName
         |~~ Keywords and tag names compare by their names. ~~|
-        ~(get [~(:b | gt :a) ~(::B | gt ::A)] | eq [true true])
+        ~(get [~(:beta | gt :alpha) ~(::Beta | gt ::Alpha)] | eq [true true])
     | proves :comparesTurnedValuesTheOtherWay
         |~~ Values under `::desc` compare the other way. ~~|
         ~(1 | desc | gt (2 | desc))
@@ -289,7 +291,7 @@
       ranks with it in the one order, `10 | gte 10`, the two of one kind as
       `gt` compares them, so a whole number ranks with its decimal,
       `5 | gte 5.0`.
-      ::link~(::any/gt | doc) ::link~(::any/lte | doc)
+      ::link~(::any/gt) ::link~(::any/lte)
   ~~|
   ::fn
     | takes :value
@@ -323,7 +325,7 @@
       the one order, `5 | lt 10`, the two of one kind as `gt` compares
       them, the empty string before every other; `lte` answers whether it
       comes before the value or ranks with it.
-      ::link~(::any/gt | doc) ::link~(::any/lte | doc)
+      ::link~(::any/gt) ::link~(::any/lte)
   ~~|
   ::fn
     | takes :value
@@ -356,7 +358,7 @@
   |~~ Answers whether the subject comes before the value the call gives or
       ranks with it in the one order, `10 | lte 10`, the two of one kind as
       `gt` compares them.
-      ::link~(::any/lt | doc) ::link~(::any/gte | doc)
+      ::link~(::any/lt) ::link~(::any/gte)
   ~~|
   ::fn
     | takes :value
@@ -389,7 +391,7 @@
       The answer is a tag name, a value that reads the kind's page,
       `type | doc`, and compares, `filter ~(type | eq ::string)`. The call
       takes no value: whether the subject is of a kind is `is`.
-      ::link~(::any/tag | doc) ::link~(::any/is | doc)
+      ::link~(::any/tag) ::link~(::any/is)
   ~~|
   ::fn
     | returns |~~ The kind of the subject, its outermost tag. ~~| ::tag
@@ -418,33 +420,33 @@
 
 :any/json
   |~~ Answers the subject written as JSON text, for a reader that does
-      not read qlang: `{:a 1 :b 2} | json` answers `{"a":1,"b":2}`.
-      Every value answers, and the kinds of qlang alone give way at
-      this boundary: a keyword writes as its bare name, a key and a
-      value alike; a set as an array; a value under a tag as an object
-      of its `$tag` and its `payload`, an error at rest among them; a
-      quote, a doc and a tag name as
-      the string of their print. So `parseJson` reads a keyword back as
-      its string and a set as a vector: the text that reads back as the
-      value is `print`. The call takes no value, an indent among them.
-      ::link~(::any/print | doc) ::link~(::string/parseJson | doc)
+      not read qlang: `{:id 7 :paid true} | json` answers
+      `{"id":7,"paid":true}`. Every value answers, and the kinds of qlang
+      alone give way at this boundary: a keyword writes as its bare name,
+      a key and a value alike; a set as an array; a value under a tag as
+      an object of its `$tag` and its `payload`, an error at rest among
+      them; a quote, a doc and a tag name as the string of their print. So
+      `parseJson` reads a keyword back as its string and a set as a
+      vector: the text that reads back as the value is `print`. The call
+      takes no value, an indent among them.
+      ::link~(::any/print) ::link~(::string/parseJson)
   ~~|
   ::fn
     | returns |~~ The JSON text of the subject. ~~| ::string
     | throws :ArgsBeyondInputsError
         |~~ `json` writes the whole subject on one line and takes no
             value, an indent among them: a field is written by reading it
-            first, `get /a | json`.
+            first, `get /user | json`.
         ~~|
     | proves :writesAMapAsAnObject
         |~~ A map is written as an object. ~~|
-        ~({:a 1 :b 2} | json | eq "{\"a\":1,\"b\":2}")
+        ~({:id 7 :paid true} | json | eq "{\"id\":7,\"paid\":true}")
     | proves :writesKeywordsAsNames
         |~~ A keyword is written as its bare name. ~~|
-        ~([:foo :bar] | json | eq "[\"foo\",\"bar\"]")
+        ~([:tea :cake] | json | eq "[\"tea\",\"cake\"]")
     | proves :writesAnErrorAtRestUnderItsTag
         |~~ An error at rest is written as a value under its tag. ~~|
-        ~(::error{:k 1} | json | parseJson | keys | eq #[:"$tag" :payload])
+        ~(::error{:reason "late"} | json | parseJson | keys | eq #[:"$tag" :payload])
     | proves :writesASetAsAnArray
         |~~ A set is written as an array. ~~|
         ~(#[1 2 3] | json | eq "[1,2,3]")
@@ -452,7 +454,7 @@
         |~~ A value under a tag is written as an object of its tag and its
             payload.
         ~~|
-        ~(::Box{:a 1} | json | eq "{\"$tag\":\"Box\",\"payload\":{\"a\":1}}")
+        ~(::Box{:width 2} | json | eq "{\"$tag\":\"Box\",\"payload\":{\"width\":2}}")
     | proves :writesAQuoteAsItsPrint
         |~~ A quote is written as the string of its print. ~~|
         ~(~(add 1) | json | eq "\"~(add 1)\"")
@@ -460,10 +462,10 @@
         |~~ `parseJson` reads a keyword back as its string and a set as a
             vector.
         ~~|
-        ~({:k :foo :s #[1 2]} | json | parseJson | eq {:k "foo" :s [1 2]})
+        ~({:status :paid :sizes #[1 2]} | json | parseJson | eq {:status "paid" :sizes [1 2]})
     | proves :ArgsBeyondInputsError/refusesAnIndent
         |~~ An indent given to `json` is refused under the verb. ~~|
-        ~({:a 1} | json 2 !| tag | eq ::any/json/ArgsBeyondInputsError)
+        ~({:id 7} | json 2 !| tag | eq ::any/json/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/print
@@ -474,35 +476,35 @@
       a set, a quote, a doc and an error by brackets of their own; any
       other value under a tag as its tag before the print of its payload.
       A set prints in its one order, and the text reads back as the value
-      by `parse` and `open`. A kind may answer a `print` of its own
+      by `parse` and `answer`. A kind may answer a `print` of its own
       declared under it, `:Box/print`, and the print of a value takes it
       for each part of that kind; a print the reader declares under a kind
       of the language, `:number/print`, answers the reader's own calls
       alone. The call takes no value: a part is printed by reading it
-      first, `get /a | print`.
-      ::link~(::any/json | doc) ::link~(::any/legend | doc)
+      first, `get /user | print`.
+      ::link~(::any/json) ::link~(::any/legend)
   ~~|
   ::fn
     | returns |~~ The literal the subject prints as. ~~| ::string
     | throws :ArgsBeyondInputsError
         |~~ `print` writes the whole subject and takes no value: a part is
-            printed by reading it first, `get /a | print`.
+            printed by reading it first, `get /user | print`.
         ~~|
     | proves :printsANumber
         |~~ A number prints as its literal. ~~|
         ~(42 | print | eq "42")
     | proves :printsAStringInsideItsQuotes
         |~~ A string prints inside its quotes. ~~|
-        ~("x" | print | eq "\"x\"")
+        ~("Ann" | print | eq "\"Ann\"")
     | proves :printsATaggedValue
         |~~ A tagged value prints with its tag. ~~|
-        ~(::builtin{:a 1} | print | eq "::builtin{:a 1}")
+        ~(::Box{:width 2} | print | eq "::Box{:width 2}")
     | proves :printsASetInItsOrder
         |~~ A set prints in its one order. ~~|
-        ~("#[2 1]" | parse | open | print | eq "#[1 2]")
+        ~("#[2 1]" | parse | answer | print | eq "#[1 2]")
     | proves :readsBack
         |~~ The text reads back as the value. ~~|
-        ~({:a [1 "x"]} | :v it | print | parse | open | eq v)
+        ~({:name "Ann" :tags ["admin" "ops"]} | eq (print | parse | answer))
     | proves :takesThePrintOfAKind
         |~~ The print of a value takes the `print` of a kind for each part
             of it.
@@ -550,7 +552,7 @@
       by `#`, `::legend#5`, and every comment is closed, `|~ … ~|`, and
       whitespace, so the text read back is the legend, `print` answering
       the text and `payload` the subject.
-      ::link~(::legend | doc) ::link~(::kind/wires | doc)
+      ::link~(::legend) ::link~(::kind/wires)
   ~~|
   ::fn
     | returns |~~ The legend of the subject. ~~| ::legend
@@ -572,18 +574,18 @@
         |~~ The print of the legend reads back as the legend, its payload the
             value it tells.
         ~~|
-        ~("~{" | parse !| :e it | legend | :l it | print | parse | open | get [~(eq l) ~(payload | eq e)] | eq [true true])
+        ~("~{" | parse !| with {:failure ~it :told ~legend} ~(told | print | parse | answer | get [~(eq told) ~(payload | eq failure)]) | eq [true true])
     | proves :standsOnOneLineForAKindThatWiresNothing
         |~~ A value of a kind that wires nothing stands on one line beside the
             gloss of its kind.
         ~~|
-        ~({:a 1} | legend | print | lines | count | eq 1)
+        ~({:id 7} | legend | print | lines | count | eq 1)
     | proves :laysOutTheKindATagNames
         |~~ A tag name lays out the names its kind wires, a comment each. ~~|
         ~(::point | legend | print | lines | get /2 | eq "|~ line /1 ::number · The line of the point, counted from one ~|")
     | proves :readsATagNameBackAsItsLegend
         |~~ The legend of a tag name reads back as the legend of the tag. ~~|
-        ~(::span | legend | print | parse | open | payload | eq ::span)
+        ~(::span | legend | print | parse | answer | payload | eq ::span)
     | proves :laysOutTheViewsATagNameReveals
         |~~ A tag name lays out beneath its parts the views its kind reveals.
         ~~|
@@ -606,7 +608,7 @@
       `query /flag | eq true` asks around. Under `map` the subject is
       each element, `map ~(if (gt 0) ~(it) ~(0))`. The call takes the
       condition and both branches, and a chain of conditions is `cond`.
-      ::link~(::any/cond | doc) ::link~(::any/coalesce | doc)
+      ::link~(::any/cond) ::link~(::any/coalesce)
   ~~|
   ::fn
     | takes :condition
@@ -721,13 +723,14 @@
       passes the call answers null. A value alone stands after the subject,
       `coalesce 30` reading "the subject, else 30", and several values
       alone are refused, the subject first written by a quote,
-      `coalesce ~(it) e 8080`, and a field by a path, `coalesce /t 30`. An
+      `coalesce ~(it) port 8080`, and a field by a path,
+      `coalesce /timeout 30`. An
       error the steps before answered passes over the call, as over every
       step, so a field that may be missing is read inside an alternative,
       `coalesce /key 0`, not before it. The call takes one alternative at
       least.
-      ::link~(::any/if | doc) ::link~(::any/cond | doc)
-      ::link~(::any/query | doc)
+      ::link~(::any/if) ::link~(::any/cond)
+      ::link~(::any/query)
   ~~|
   ::fn
     | takes :alternatives
@@ -743,10 +746,11 @@
         ~(alternatives | count | gt 0)
     | holds :AlternativesValuesAloneError
         |~~ `coalesce` reads the subject before one value,
-            `query /t | coalesce 30`, and several values alone read no
-            subject: the subject first is written by a quote,
-            `coalesce ~(it) e 8080`, a value a name holds by a quote,
-            `coalesce ~(e) 8080`, and a field by a path, `coalesce /t 30`.
+            `query /timeout | coalesce 30`, and several values alone read
+            no subject: the subject first is written by a quote,
+            `coalesce ~(it) port 8080`, a value a name holds by a quote,
+            `coalesce ~(port) 8080`, and a field by a path,
+            `coalesce /timeout 30`.
         ~~|
         ~(alternatives | map ~tag | anyOf ~(count | lt 2) ~(has ::quote) ~(has ::path))
     | returns
@@ -767,10 +771,10 @@
         |~~ When every alternative answers null or misses its part, the
             call answers null.
         ~~|
-        ~({} | coalesce /a /b | eq null)
+        ~({} | coalesce /nickname /name | eq null)
     | proves :passesOverAMissedPart
         |~~ A key the map lacks passes to the next alternative. ~~|
-        ~({:a 2 :b 3} | coalesce /missing ~("fallback") | eq "fallback")
+        ~({:name "alice"} | coalesce /nickname ~("anonymous") | eq "anonymous")
     | proves :passesOverNullOnTheWay
         |~~ A null on the way of a path passes, as `query` reads it. ~~|
         ~({:user null} | coalesce /user/name ~("anonymous") | eq "anonymous")
@@ -794,16 +798,16 @@
           | coalesce /nickname /name ~("anonymous") | eq "anonymous")
     | proves :takesAValueForAnAlternative
         |~~ A value stands for an alternative as its own answer. ~~|
-        ~({:a 2} | coalesce /missing "fallback" | eq "fallback")
+        ~({:name "alice"} | coalesce /nickname "anonymous" | eq "anonymous")
     | proves :defaultsAMissingField
         |~~ A field missing or null takes the default. ~~|
-        ~([{:t 45} {:t null} {}] | map ~(query /t | coalesce 30) | eq [45 30 30])
+        ~([{:timeout 45} {:timeout null} {}] | map ~(query /timeout | coalesce 30) | eq [45 30 30])
     | proves :keepsAValue
         |~~ A value present stays. ~~|
-        ~({:tags ["a"]} | get /tags | coalesce [] | eq ["a"])
+        ~({:tags ["new"]} | get /tags | coalesce [] | eq ["new"])
     | proves :passesAnErrorBeforeIt
         |~~ An error the steps before answered passes over the call. ~~|
-        ~({:a 1} | get /missing | coalesce 0 !| tag | eq ::path/KeyNotInMapError)
+        ~({:name "alice"} | get /nickname | coalesce "anonymous" !| tag | eq ::path/KeyNotInMapError)
     | proves :AlternativesEmptyError/refusesNoAlternative
         |~~ A coalesce of no alternative is refused. ~~|
         ~({} | coalesce
@@ -811,7 +815,7 @@
           |  eq [::any/coalesce/AlternativesEmptyError ::any/coalesce[]])
     | proves :AlternativesValuesAloneError/refusesSeveralValues
         |~~ Several values alone are refused. ~~|
-        ~({:t null} | coalesce (get /t) 30 !| tag | eq ::any/coalesce/AlternativesValuesAloneError)
+        ~({:timeout null} | coalesce (get /timeout) 30 !| tag | eq ::any/coalesce/AlternativesValuesAloneError)
     | proves :keepsZeroAndTheEmptyString
         |~~ Zero and the empty string end the walk. ~~|
         ~([0 ""] | map ~(coalesce 1) | eq [0 ""])
@@ -829,7 +833,7 @@
       condition of `if`, a predicate is code, a quote, and one computed at
       the call, `(gte 90)`, is refused at its index. The call takes one
       pair at least.
-      ::link~(::any/if | doc) ::link~(::any/coalesce | doc)
+      ::link~(::any/if) ::link~(::any/coalesce)
   ~~|
   ::fn
     | takes :clauses
@@ -904,8 +908,8 @@
       call, so `apply (add 1)` is refused, as is the error a step
       answered there. The call takes one code; code of several steps is
       one quote.
-      ::link~(::quote | doc) ::link~(::fn | doc) ::link~(::string/parse | doc)
-      ::link~(::qlang/code | doc)
+      ::link~(::quote) ::link~(::fn) ::link~(::string/parse)
+      ::link~(::qlang/code)
   ~~|
   ::fn
     | takes :code
@@ -914,7 +918,7 @@
         ~~|
         /0 #[::fn ::path ::quote]
     | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `apply ~(add 1)`, a path, `apply /a`, or
+        |~~ The code is a quote, `apply ~(add 1)`, a path, `apply /price`, or
             a function: a step written without its quote runs at the call,
             and its answer, an error among them, is no code.
         ~~|
@@ -945,7 +949,7 @@
         ~(5 | apply ~(add 1) | eq 6)
     | proves :runsANameThatHoldsCode
         |~~ A name that holds a quote runs as the quote. ~~|
-        ~(:double ~(mul 2) | 5 | apply double | eq 10)
+        ~({:discount ~(mul 0.75)} | with [/discount] ~(100 | apply discount) | eq 75)
     | proves :runsStepsInOrder
         |~~ Several steps run in order. ~~|
         ~([[1 2] [3 4]] | apply ~(flat | sort) | eq [1 2 3 4])
@@ -954,7 +958,7 @@
         ~(5 | apply ("add 3" | parse) | eq 8)
     | proves :keepsTheDeclarationsInside
         |~~ The declarations of the code stay inside it. ~~|
-        ~(5 | apply ~(:x 1 | x) | :y it | env | has :x | not)
+        ~(5 | apply ~(:bonus 1 | add bonus) | get [~(it) ~(env | has :bonus)] | eq [6 false])
     | proves :CodeKindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~(42 | apply 1 !| get [~(tag) ~(code | found | tag)] | eq [::any/apply/CodeKindNotTakenError ::number])
@@ -985,24 +989,24 @@
         ~(5 | apply ~(!| 0) | eq 5)
     | proves :runsARecordedSuffixAgain
         |~~ The steps a trace skipped run again on a value. ~~|
-        ~(1 | add "x" | mul 2 | add 3 !| (:rest (trace | first | skipped) | 5 | apply rest) | eq 13)
+        ~(1 | add "x" | mul 2 | add 3 !| with {:rest ~(trace | first | skipped)} ~(5 | apply rest) | eq 13)
     | impl ::builtin{}
 
 :any/env
   |~~ Answers what the reader declared before the step, whatever the
       subject, the cells of a session before it among them: a map from
       each name to the record of its binding, `::binding` with its name,
-      its docs, its value, its source and its origin. `:limit 10 | env`
-      answers the record of `:limit`, and `env | get /limit` hands it to the
-      next step. A name with a path is held by its address. Inside a
+      its docs, its value, its source and its origin.
+      `:Box |~~ A box. ~~| | env` answers the record of `:Box`, and
+      `env | get /Box` hands it to the next step. A name with a path is held by its address. Inside a
       fork it holds the names before the fork and the fork's own, and
-      the fork's stay inside it; code held as data holds its own and the
-      nodes and the labels of the step it came from, a value the reader
-      named withheld from it. What the language and the host declared
+      the fork's stay inside it, and so does code a step wrote; code held
+      as data holds its own and the nodes and the labels of the step that
+      runs it, a value the reader named withheld from it. What the language and the host declared
       stands apart, so at the start of a query it answers `{}`: `kinds`
       lists their kinds, and `manifest` what lies under a noun. The call
       takes no name.
-      ::link~(::any/binding | doc) ::link~(::any/kinds | doc)
+      ::link~(::any/binding) ::link~(::any/kinds)
   ~~|
   ::fn
     | returns
@@ -1010,32 +1014,32 @@
         ::map
     | throws :ArgsBeyondInputsError
         |~~ `env` answers every name the reader declared and takes none:
-            one record is read by its key, `env | get /limit`.
+            one record is read by its key, `env | get /Box`.
         ~~|
     | proves :holdsADeclaredName
         |~~ A name declared before the step is held. ~~|
-        ~(:limit 10 | env | has :limit)
+        ~(:number/double ~(mul 2) | env | has :number/double)
     | proves :answersWhateverTheSubject
         |~~ The subject leaves the answer as it is. ~~|
-        ~(:limit 10 | [1 2] | env | has :limit)
+        ~(:number/double ~(mul 2) | [1 2] | env | has :number/double)
     | proves :holdsTheRecord
         |~~ Each name holds the record its declaration wrote. ~~|
-        ~(:limit 10 | env | get /limit | value | eq 10)
+        ~(:number/double ~(mul 2) | env | get /:number/double | value | eq ~(mul 2))
     | proves :holdsANameWithAPath
         |~~ A name with a path is held by its address. ~~|
         ~(:Box |~~ A box. ~~| | :Box/area ~(1) | env | keys | eq #[:Box :Box/area])
     | proves :holdsTheNamesOfAFork
         |~~ Inside a fork the names before it and its own are held. ~~|
-        ~(:a 1 | (:b 2 | env | keys) | eq #[:a :b])
+        ~(:Box |~~ A box. ~~| | (:Crate |~~ A crate. ~~| | env | keys) | eq #[:Box :Crate])
     | proves :keepsTheNamesOfAForkInside
         |~~ The names of a fork stay inside it. ~~|
-        ~(:a 1 | (:b 2) | env | keys | eq #[:a])
+        ~(:Box |~~ A box. ~~| | (:Crate |~~ A crate. ~~|) | env | keys | eq #[:Box])
     | proves :isEmptyAtTheStart
         |~~ Nothing is declared at the start. ~~|
         ~(env | eq {})
     | proves :ArgsBeyondInputsError/refusesAName
         |~~ A name given to `env` is refused under the verb. ~~|
-        ~(:limit 10 | env :limit !| tag | eq ::any/env/ArgsBeyondInputsError)
+        ~(:Box |~~ A box. ~~| | env :Box !| tag | eq ::any/env/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 :any/kinds
@@ -1047,7 +1051,7 @@
       what lies under it, `::set | manifest`. A chapter a topic tells is no
       kind: `::qlang/values` is a page `doc` reads, which `manifest` of its
       topic lists. The call takes no kind.
-      ::link~(::any/env | doc) ::link~(::qlang | doc)
+      ::link~(::any/env) ::link~(::qlang)
   ~~|
   ::fn
     | returns |~~ The tag names of the kinds the scope reads. ~~| ::set
@@ -1090,7 +1094,7 @@
       record's `:source` holding the step of the declaration that wrote
       it. A name nothing declares is refused, with
       the addresses where a verb of that name lives.
-      ::link~(::any/doc | doc) ::link~(::any/source | doc)
+      ::link~(::any/doc) ::link~(::any/source)
   ~~|
   ::fn
     | takes :anchor
@@ -1127,7 +1131,7 @@
         ~(::vec/filter | binding | origin | eq :qlang/vec)
     | proves :readsTheValueOfAName
         |~~ A name's record holds its value. ~~|
-        ~(:x 1 | ::x | binding | value | eq 1)
+        ~(:number/double ~(mul 2) | ::number/double | binding | value | eq ~(mul 2))
     | proves :readsTheKindOfAValue
         |~~ A number reads the record of `::number`. ~~|
         ~(5 | binding | name | eq :number)
@@ -1139,7 +1143,7 @@
         ~([1] | binding :count | name | eq :vec/count)
     | proves :holdsThePageDocReads
         |~~ The record holds the page `doc` reads. ~~|
-        ~(:x |~~ The x. ~~| 1 | ::x | binding | docs | first | eq (::x | doc))
+        ~(:number/double |~~ Twice the number. ~~| ~(mul 2) | ::number/double | binding | docs | first | eq (::number/double | doc))
     | proves :AnchorKindNotTakenError/refusesANumber
         |~~ An anchor that is a number is refused under the input. ~~|
         ~(::vec/take | binding 1 !| tag | eq ::any/binding/AnchorKindNotTakenError)
@@ -1169,7 +1173,7 @@
       subject holds under it, an input of a verb or the verb a value
       calls. A name nothing declares is refused, with the addresses where
       a verb of that name lives.
-      ::link~(::any/doc | doc) ::link~(::any/binding | doc)
+      ::link~(::any/doc) ::link~(::any/binding)
   ~~|
   ::fn
     | takes :anchor
@@ -1189,7 +1193,7 @@
     | throws :UnknownNameError
         |~~ `source` found no declaration of the name it read, as
             `binding` finds none.
-            ::link~(::any/binding/UnknownNameError | doc)
+            ::link~(::any/binding/UnknownNameError)
         ~~|
         ::any/UnknownNameError
     | proves :readsEveryDeclarationUnderAName
@@ -1201,9 +1205,9 @@
         |~~ The declarations under a name read in the order they were
             written.
         ~~|
-        ~(:Box |~~ A box. ~~| | :Box/a ~(get /0) | :Box/b ~(get /1) | :Box/note |~~ A note. ~~|
+        ~(:Box |~~ A box. ~~| | :Box/width ~(get /0) | :Box/height ~(get /1) | :Box/note |~~ A note. ~~|
           | ::Box | source | map /name
-          | eq [:Box :Box/a :Box/b :Box/note])
+          | eq [:Box :Box/width :Box/height :Box/note])
     | proves :printsTheDeclaration
         |~~ The source of a verb prints as its declaration. ~~|
         ~(::vec/filter | source | toString | contains ":vec/filter")
@@ -1262,7 +1266,7 @@
       the one before reached, and a set of anchors reads a page at each.
       A name nothing declares is refused, with the addresses where a verb
       of that name lives, as is an anchor no node answers.
-      ::link~(::any/laws | doc) ::link~(::doc | doc)
+      ::link~(::any/laws) ::link~(::doc)
   ~~|
   ::fn
     | takes :anchor
@@ -1293,7 +1297,7 @@
         |~~ `doc` found no declaration of the name it read, as `binding`
             finds none, or no node under the one before it at an anchor it
             read in turn.
-            ::link~(::any/binding/UnknownNameError | doc)
+            ::link~(::any/binding/UnknownNameError)
         ~~|
         ::any/UnknownNameError
     | throws :ArgsBeyondInputsError
@@ -1306,7 +1310,7 @@
         ~(::vec/filter | doc | content | contains "predicate")
     | proves :answersNullForADeclarationWithoutAPage
         |~~ A declaration without a page answers null. ~~|
-        ~(:x 1 | ::x | doc | eq null)
+        ~(:number/double ~(mul 2) | ::number/double | doc | eq null)
     | proves :readsThePageOfARefusal
         |~~ A refusal's page is a doc. ~~|
         ~(::number/add/SubjectNotNumberError | doc | tag | eq ::doc)
@@ -1317,9 +1321,7 @@
         |~~ A keyword is a value and names nothing: it reads the page of
             `::keyword`, and the declaration it spells is read by its tag.
         ~~|
-        ~(:limit |~~ The cap. ~~| 5
-          | get [~(:limit | doc) ~(::limit | doc | content)]
-          | eq (get [~(::keyword | doc) "The cap."]))
+        ~(:Limit |~~ The cap. ~~| | get [~(:Limit | doc) ~(::Limit | doc | content)] | eq (get [~(::keyword | doc) "The cap."]))
     | proves :readsANodeByAnAnchor
         |~~ An anchor reads the page of a node. ~~|
         ~(::map | doc :minus | eq (::map/minus | doc))
@@ -1388,9 +1390,9 @@
       anchor, a keyword after it, reads the node the name holds under it,
       as `doc` reads one, `::vec | manifest :take`; the noun itself is the
       subject, so `manifest ::vec` is refused.
-      ::snippet~(::number | manifest) ::link~(::any/laws | doc)
-      ::link~(::any/kinds | doc) ::link~(::any/env | doc)
-      ::link~(::any/source | doc)
+      ::snippet~(::number | manifest) ::link~(::any/laws)
+      ::link~(::any/kinds) ::link~(::any/env)
+      ::link~(::any/source)
   ~~|
   ::fn
     | takes :anchor
@@ -1409,7 +1411,7 @@
     | throws :UnknownNameError
         |~~ `manifest` found no declaration of the name it read, as
             `binding` finds none.
-            ::link~(::any/binding/UnknownNameError | doc)
+            ::link~(::any/binding/UnknownNameError)
         ~~|
         ::any/UnknownNameError
     | proves :holdsAVerbOfTheNoun
@@ -1434,7 +1436,7 @@
         ~(get [5 :number] | map ~manifest | eq (get [~(::number | manifest) ~(::keyword | manifest)]))
     | proves :readsPastATagOfIdentity
         |~~ A value under a tag nothing declares reads the kind beneath it. ~~|
-        ~(::Box{:a 1} | manifest | eq (::map | manifest))
+        ~(::Box{:width 2} | manifest | eq (::map | manifest))
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::Nothing | manifest
@@ -1461,7 +1463,7 @@
       `::any/laws/UnknownNameError`. An anchor, a keyword after it, reads
       the laws of the node the name holds under it, as `doc` reads one,
       `::qlang | laws :errors`.
-      ::link~(::any/runLaws | doc) ::link~(::any/tutorial | doc)
+      ::link~(::any/runLaws) ::link~(::any/tutorial)
   ~~|
   ::fn
     | takes :anchor
@@ -1479,24 +1481,21 @@
     | throws :UnknownNameError
         |~~ `laws` found no declaration of the name it read, as `binding`
             finds none.
-            ::link~(::any/binding/UnknownNameError | doc)
+            ::link~(::any/binding/UnknownNameError)
         ~~|
         ::any/UnknownNameError
     | proves :answersEachLawByItsName
         |~~ A law declared under a name is answered under its own name. ~~|
-        ~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5)
-          | ::k | laws | keys | eq #[:answersFive])
+        ~(:Price |~~ A price. ~~| | :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0) | ::Price | laws | keys | eq #[:isPositive])
     | proves :pairsThePageWithTheQuery
         |~~ Each law is the pair of its page and its query. ~~|
-        ~(:k 5 | :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5)
-          | ::k | laws | get /answersFive | get [~(get /0 | content) /1]
-          | eq ["k answers five." ~(k | eq 5)])
+        ~(:Price |~~ A price. ~~| | :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0) | ::Price | laws | get /isPositive | get [~(get /0 | content) /1] | eq ["A price is above zero." ~(::Price#5 | payload | gt 0)])
     | proves :readsTheLawsOfTheKindOfAValue
         |~~ A value reads the laws of its kind. ~~|
         ~(5 | laws | eq (::number | laws))
     | proves :answersNoLawsAsAnEmptyMap
         |~~ A name with no laws answers an empty map. ~~|
-        ~(:k 5 | ::k | laws | eq {})
+        ~(:Price |~~ A price. ~~| | ::Price | laws | eq {})
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused. ~~|
         ~(::nonexistent-binding | laws
@@ -1524,7 +1523,7 @@
       name holds under it, a chapter of the language among them. A name
       nothing declares is refused under the verb,
       `::any/runLaws/UnknownNameError`.
-      ::link~(::any/laws | doc) ::link~(::any/tutorial | doc)
+      ::link~(::any/laws) ::link~(::any/tutorial)
   ~~|
   ::fn
     | takes :anchor
@@ -1544,7 +1543,7 @@
     | throws :UnknownNameError
         |~~ `runLaws` found no declaration of the name it read, as
             `binding` finds none.
-            ::link~(::any/binding/UnknownNameError | doc)
+            ::link~(::any/binding/UnknownNameError)
         ~~|
         ::any/UnknownNameError
     | proves :runsTheLawsOfAVerb
@@ -1555,15 +1554,13 @@
         ~(::number/add | runLaws | map /ok | toSet | eq #[true])
     | proves :failsALawThatAnswersFalse
         |~~ A law that answers false fails. ~~|
-        ~(:k 5 | :k/wrong |~~ One is two. ~~| ::law~(1 | eq 2)
-          | ::k | runLaws | first | get /ok | not)
+        ~(:Price |~~ A price. ~~| | :Price/isFree |~~ A price is zero. ~~| ::law~(::Price#5 | payload | eq 0) | ::Price | runLaws | first | get /ok | not)
     | proves :runsTheLawsOfTheKindOfAValue
         |~~ A value runs the laws of its kind, as `doc` reads its page. ~~|
         ~(5 | runLaws | count | eq (::number | runLaws | count))
     | proves :runsTheLawsUnderTheName
-        |~~ The laws under the name a keyword reads run. ~~|
-        ~(:limit |~~ A limit. ~~| 10 | :limit/holds |~~ It holds. ~~| ::law~(true)
-          | ::limit | runLaws | map /ok | eq [true])
+        |~~ The laws under the name its tag reads run. ~~|
+        ~(:Price |~~ A price. ~~| | :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0) | ::Price | runLaws | map /ok | eq [true])
     | proves :runsTheLawsUnderAnAnchor
         |~~ An anchor runs the laws of the name under the one read. ~~|
         ~(::qlang | runLaws :values | every /ok)
@@ -1586,11 +1583,8 @@
         ~~|
         ~(::filter | runLaws !| addresses | has ::vec/filter)
     | proves :failsALawThatAnswersAFailure
-        |~~ A law that answers an error fails, and `:error` holds it at
-            rest.
-        ~~|
-        ~(:k 5 | :k/bad |~~ b ~~| ::law~(add "x") | ::k | runLaws | first
-          | get [/ok /actual ~(get /error | tag)] | eq [false null ::number/add/SubjectNotNumberError])
+        |~~ A law that answers an error fails, and `:error` holds it at rest. ~~|
+        ~(:Price |~~ A price. ~~| | :Price/addsAWord |~~ A price adds a word. ~~| ::law~(::Price#5 | add "x") | ::Price | runLaws | first | get [/ok /actual ~(get /error | tag)] | eq [false null ::number/add/AddendKindNotTakenError])
     | impl ::builtin{}
 
 :any/tutorial
@@ -1601,7 +1595,7 @@
       the laws of its kind. A name nothing declares is refused as `doc`
       refuses it, under the tag of `doc`. The call takes no anchor: a
       node is read by its address, `::vec/take | tutorial`.
-      ::link~(::any/doc | doc) ::link~(::any/laws | doc)
+      ::link~(::any/doc) ::link~(::any/laws)
   ~~|
   ::fn
     | returns |~~ The page and the laws. ~~| ::vec
@@ -1628,8 +1622,8 @@
       of the value, whose other side `payload` answers, and lays the tag the
       call names over the subject where it gives one. Given no name it
       answers the kind of the subject, its outermost tag: `5 | tag`
-      answers `::number` and `::Box::Crate{:a 1} | tag` `::Box`; a literal
-      its kind, `"hi"`, `:foo`, `[1 2]` and `#[1 2]` answering `::string`,
+      answers `::number` and `::Box::Crate{:width 2} | tag` `::Box`; a
+      literal its kind, `"hi"`, `:active`, `[1 2]` and `#[1 2]` answering `::string`,
       `::keyword`, `::vec` and `::set`; null `::null`; a quote, a doc and a
       tag name `::quote`, `::doc` and `::tag`; and an error at rest the tag
       of the refusal it carries, while `is` walks the tags to the kind
@@ -1637,7 +1631,7 @@
       its kind as the literal does where it is written: `5 | tag ::Box`
       answers `::Box#5`, its tag the name and its payload the subject, so
       a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`. A tag the subject is already of, as
+      `with {:kind ~tag} ~(payload | tag kind)`. A tag the subject is already of, as
       `is` answers, changes nothing, `5 | tag ::number`, `5 | tag ::any`
       and `#[1] | tag ::vec` answering the subject and
       `:Lab |~~ A lab. ~~| | ::Lab::Lab[1]` answering `::Lab[1]`, a subject
@@ -1652,7 +1646,7 @@
       error at rest names its site, `!{:by 3} | tag ::Late` answering
       `::Late!{:by 3}`, and `raise` raises it under that tag. The call
       takes one name; a keyword, `:box`, names a field and no kind.
-      ::link~(::any/payload | doc) ::link~(::any/type | doc) ::link~(::any/is | doc)
+      ::link~(::any/payload) ::link~(::any/type) ::link~(::any/is)
   ~~|
   ::fn
     | takes :name
@@ -1677,11 +1671,11 @@
         |~~ Given no name, `tag` answers the kind of a literal, of null, of
             a quote, of a doc and of a tag name.
         ~~|
-        ~([42 "hi" :foo [1 2] #[1 2] null ~(42) |~~ A page. ~~| ::vec] | map ~tag
+        ~([42 "hi" :active [1 2] #[1 2] null ~(42) |~~ A page. ~~| ::vec] | map ~tag
           | eq [::number ::string ::keyword ::vec ::set ::null ::quote ::doc ::tag])
     | proves :readsTheOutermostTag
         |~~ A value under tags answers the outermost. ~~|
-        ~(::Box::Crate{:a 1} | tag | eq ::Box)
+        ~(::Box::Crate{:width 2} | tag | eq ::Box)
     | proves :readsAnErrorAtRest
         |~~ The error at rest answers the tag of its refusal. ~~|
         ~("x" | add 1 !| tag | eq ::number/add/SubjectNotNumberError)
@@ -1695,8 +1689,8 @@
         |~~ A value split into its tag and its payload joins back into
             itself, whatever its kind.
         ~~|
-        ~([42 "hi" :foo true null /a #"a" ::Box [1 2] {:a 1} #[2 1] ~(add 1) |~~ A page. ~~| ::Box#5 ::A::B{} !{:k 1}]
-          | map ~(:value it | :t (tag) | payload | tag t | eq value) | every ~(it))
+        ~([42 "hi" :active true null /price #"[0-9]+" ::Box [1 2] {:id 7} #[2 1] ~(add 1) |~~ A page. ~~| ::Box#5 ::Gift::Box{} !{:reason "late"}]
+          | map ~(with {:kind ~tag} ~(eq (payload | tag kind))) | every ~(it))
     | proves :laysThroughTheKind
         |~~ A tag of a kind of the core reads the payload as the kind. ~~|
         ~(5 | tag ::number | eq 5)
@@ -1722,9 +1716,9 @@
           |  eq ::Pos/NotPositiveError)
     | proves :refusesAPayloadUnderAnotherTag
         |~~ A kind takes its payload by the payload's own tag. ~~|
-        ~(:Nums |~~ Numbers. ~~| (::kind | accepts |~~ The numbers. ~~| ::vec) | ::T[1 2] | tag ::Nums
+        ~(:Scores |~~ The scores of a game. ~~| (::kind | accepts |~~ The scores. ~~| ::vec) | ::Pair[3 1] | tag ::Scores
           !| get [~(tag) ~(found | tag)]
-          |  eq [::Nums/PayloadKindNotTakenError ::T])
+          |  eq [::Scores/PayloadKindNotTakenError ::Pair])
     | proves :nestsATaggedValue
         |~~ A tag over a tagged value nests it. ~~|
         ~(:Inner |~~ An inner kind. ~~| | :Outer |~~ An outer kind. ~~|
@@ -1737,9 +1731,7 @@
         ~(!{:by 3} | tag ::Late | eq ::Late!{:by 3})
     | proves :raisesAnErrorAtRestAsItself
         |~~ An error at rest split and joined back raises as itself. ~~|
-        ~(1 | add "1" !| :t (tag) | payload | tag t | raise
-          !| tag
-          |  eq ::number/add/AddendKindNotTakenError)
+        ~(1 | add "1" !| with {:kind ~tag} ~(payload | tag kind | raise) !| tag | eq ::number/add/AddendKindNotTakenError)
     | proves :NameKindNotTakenError/refusesAKeyword
         |~~ A keyword given as the name is refused under the input. ~~|
         ~(5 | tag :box !| get [~(tag) ~(name | found | tag)] | eq [::any/tag/NameKindNotTakenError ::keyword])
@@ -1751,16 +1743,17 @@
 :any/payload
   |~~ Answers the value beneath the outermost tag of the subject, the other
       side of `tag`, so a value splits and joins back into itself,
-      `:t (tag) | payload | tag t`: `::Box[42] | payload` answers `[42]`,
-      and a value under two tags opens one, `::A::B[1] | payload`
-      answering `::B[1]`. A value of a kind of the core answers what its
-      literal writes after the tag of its kind: a number, a string, a
-      vector and a map are their own, `1 | payload` answering `1`, and a
-      set, a quote and a doc answer the vector of their elements, of their
-      steps and of their segments, `#[2 1] | payload` answering `[1 2]`. A
-      value turned by `desc` opens to the value it turned, and an error at
-      rest to its facts. `within` edits the payload and puts the tag back.
-      ::link~(::any/tag | doc) ::link~(::tagged/within | doc)
+      `with {:kind ~tag} ~(payload | tag kind)`: `::Box[42] | payload`
+      answers `[42]`, and a value under two tags opens one,
+      `::Gift::Box[1] | payload` answering `::Box[1]`. A value of a kind of
+      the core answers what its literal writes after the tag of its kind:
+      a number, a string, a vector and a map are their own, `1 | payload`
+      answering `1`, and a set, a quote and a doc answer the vector of
+      their elements, of their steps and of their segments,
+      `#[2 1] | payload` answering `[1 2]`. A value turned by `desc` opens
+      to the value it turned, and an error at rest to its facts. `within`
+      edits the payload and puts the tag back.
+      ::link~(::any/tag) ::link~(::tagged/within)
   ~~|
   ::fn
     | returns |~~ The value beneath the outermost tag, of any kind. ~~| ::any
@@ -1772,33 +1765,33 @@
         ~(:Note |~~ A note. ~~| | ::Note"hello" | payload | eq "hello")
     | proves :undoesTag
         |~~ A value laid under a tag is its payload. ~~|
-        ~({:a 1} | tag ::Foo | payload | eq {:a 1})
+        ~({:id 7} | tag ::Order | payload | eq {:id 7})
     | proves :opensOneTagOfTwo
         |~~ A value under two tags opens one. ~~|
-        ~(::A::B[1] | payload | eq ::B[1])
+        ~(::Gift::Box[1] | payload | eq ::Box[1])
     | proves :answersTheVectorOfASet
         |~~ A set's payload is its vector in its one order. ~~|
         ~(#[2 1] | payload | eq [1 2])
     | proves :answersAValueOfItsOwn
         |~~ A number, a string, a vector and a map are their own payload.
         ~~|
-        ~([1 "s" [1] {:a 1}] | map ~payload | eq [1 "s" [1] {:a 1}])
+        ~([1 "Ann" [1] {:id 7}] | map ~payload | eq [1 "Ann" [1] {:id 7}])
     | proves :opensAnErrorAtRestToItsFacts
         |~~ An error at rest opens to its facts. ~~|
-        ~(!{:k 1} | payload | eq {:k 1})
+        ~(!{:reason "late"} | payload | eq {:reason "late"})
     | impl ::builtin{}
 
 :any/sumOf
   |~~ Answers the sum of the numbers the call computes against the
       subject, as many as it gives, the subject only what they are read
-      from: two fields of one record add by `sumOf /x /y`,
-      `{:x 10 :y 3} | sumOf /x /y` answering `13`. A field the record
-      lacks answers the refusal of its read, `::path/KeyNotInMapError`,
-      and one that may be missing is read with its default,
-      `(query /y | coalesce 0)`. Text that holds a
+      from: two fields of one record add by `sumOf /price /tax`,
+      `{:price 10 :tax 3} | sumOf /price /tax` answering `13`. A field the
+      record lacks answers the refusal of its read,
+      `::path/KeyNotInMapError`, and one that may be missing is read with
+      its default, `(query /tax | coalesce 0)`. Text that holds a
       number is read first by `toNumber`, and the numbers of a vector
       sum by `sum`. The call gives one number at least.
-      ::link~(::number/add | doc) ::link~(::vec/sum | doc)
+      ::link~(::number/add) ::link~(::vec/sum)
   ~~|
   ::fn
     | takes :numbers
@@ -1808,29 +1801,29 @@
         ~(it) [#[::number ::path]]
     | holds :NumbersEmptyError
         |~~ `sumOf` adds the numbers the call gives, one at least,
-            `sumOf /x /y`.
+            `sumOf /price /tax`.
         ~~|
         ~(numbers | count | gt 0)
     | throws :NumbersElementKindNotTakenError
         |~~ Each of the numbers is a number or a path; text that holds one
-            is read by `toNumber`, `sumOf (get /x | toNumber) /y`.
+            is read by `toNumber`, `sumOf (get /price | toNumber) /tax`.
         ~~|
     | returns |~~ The sum of the numbers, under the tags they share. ~~| ::number
     | proves :addsTwoFields
         |~~ Two fields of one map add. ~~|
-        ~({:x 10 :y 3} | sumOf /x /y | eq 13)
+        ~({:price 10 :tax 3} | sumOf /price /tax | eq 13)
     | proves :addsAsManyAsGiven
         |~~ As many fields as the call gives add. ~~|
-        ~({:a 1 :b 2 :c 3} | sumOf /a /b /c | eq 6)
+        ~({:rent 900 :food 300 :fares 60} | sumOf /rent /food /fares | eq 1260)
     | proves :answersTheErrorOfAMissingField
         |~~ A field the record lacks answers the refusal of its read. ~~|
-        ~({:x 1} | sumOf /x /y !| tag | eq ::path/KeyNotInMapError)
+        ~({:price 10} | sumOf /price /tax !| tag | eq ::path/KeyNotInMapError)
     | proves :readsAMissingFieldByItsDefault
         |~~ A field that may be missing is read with its default. ~~|
-        ~({:x 1} | sumOf /x (query /y | coalesce 0) | eq 1)
+        ~({:price 10} | sumOf /price (query /tax | coalesce 0) | eq 10)
     | proves :readsTextByToNumber
         |~~ Text that holds a number is read first by `toNumber`. ~~|
-        ~({:x "1" :y 2} | sumOf (get /x | toNumber) /y | eq 3)
+        ~({:price "10" :tax 3} | sumOf (get /price | toNumber) /tax | eq 13)
     | proves :NumbersEmptyError/refusesNoNumber
         |~~ A call with no number is refused under the input. ~~|
         ~({} | sumOf !| tag | eq ::any/sumOf/NumbersEmptyError)
@@ -1848,7 +1841,7 @@
       `{:price 4 :qty 3} | mulOf /price /qty` answering `12`. One factor
       answers itself, and the call gives one at least. Text that holds a
       number is read first by `toNumber`.
-      ::link~(::number/mul | doc) ::link~(::any/sumOf | doc)
+      ::link~(::number/mul) ::link~(::any/sumOf)
   ~~|
   ::fn
     | takes :factors
@@ -1868,16 +1861,16 @@
     | returns |~~ The factors multiplied, under the tags they share. ~~| ::number
     | proves :multipliesAsManyAsGiven
         |~~ As many factors as the call gives multiply. ~~|
-        ~({:a 2 :b 3 :c 4} | mulOf /a /b /c | eq 24)
+        ~({:width 2 :height 3 :depth 4} | mulOf /width /height /depth | eq 24)
     | proves :answersOneFactor
         |~~ One factor answers itself. ~~|
-        ~({:a 7} | mulOf /a | eq 7)
+        ~({:qty 7} | mulOf /qty | eq 7)
     | proves :FactorsEmptyError/refusesNoFactor
         |~~ A call with no factor is refused under the input. ~~|
-        ~({:a 2} | mulOf !| tag | eq ::any/mulOf/FactorsEmptyError)
+        ~({:qty 2} | mulOf !| tag | eq ::any/mulOf/FactorsEmptyError)
     | proves :FactorsElementKindNotTakenError/refusesAString
         |~~ A string is no factor, and is refused at its index. ~~|
-        ~({:a 2} | mulOf /a "x"
+        ~({:price 4} | mulOf /price "three"
           !| get [~(tag) ~(factors | index)]
           |  eq [::any/mulOf/FactorsElementKindNotTakenError 1])
     | proves :multipliesTwoFields
@@ -1890,8 +1883,8 @@
       subtrahend: what is left to pay is `subOf /total /paid`,
       `{:total 10 :paid 3} | subOf /total /paid` answering `7`. The call
       gives the two, the minuend first; a sum subtracted is computed as
-      the subtrahend, `subOf /total (sumOf /a /b)`.
-      ::link~(::number/sub | doc) ::link~(::any/sumOf | doc)
+      the subtrahend, `subOf /total (sumOf /paid /discount)`.
+      ::link~(::number/sub) ::link~(::any/sumOf)
   ~~|
   ::fn
     | takes :minuend
@@ -1899,14 +1892,14 @@
         /0 #[::number ::path]
     | throws :MinuendKindNotTakenError
         |~~ The minuend is a number or a path,
-            `{:a 5 :b 3} | subOf /a /b`; text that holds one is read by
-            `toNumber` first, `subOf (get /a | toNumber) /b`.
+            `{:total 10 :paid 3} | subOf /total /paid`; text that holds one is
+            read by `toNumber` first, `subOf (get /total | toNumber) /paid`.
         ~~|
     | takes :subtrahend |~~ The number subtracted. ~~| /1 #[::number ::path]
     | throws :SubtrahendKindNotTakenError
         |~~ The subtrahend is a number or a path,
-            `{:a 5 :b 3} | subOf /a /b`; text that holds one is read by
-            `toNumber` first, `subOf /a (get /b | toNumber)`.
+            `{:total 10 :paid 3} | subOf /total /paid`; text that holds one is
+            read by `toNumber` first, `subOf /total (get /paid | toNumber)`.
         ~~|
     | throws :SubtrahendNotGivenError
         |~~ `subOf` subtracts the subtrahend from the minuend and was
@@ -1915,26 +1908,26 @@
     | returns |~~ The minuend less the subtrahend, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `subOf` subtracts one number from another: a sum subtracted is
-            computed as the subtrahend, `subOf /total (sumOf /a /b)`.
+            computed as the subtrahend, `subOf /total (sumOf /paid /discount)`.
         ~~|
     | proves :subtractsASumComputedAsTheSubtrahend
         |~~ A sum subtracted is computed as the subtrahend. ~~|
-        ~({:total 10 :a 3 :b 2} | subOf /total (sumOf /a /b) | eq 5)
+        ~({:total 10 :paid 3 :discount 2} | subOf /total (sumOf /paid /discount) | eq 5)
     | proves :MinuendKindNotTakenError/refusesAString
         |~~ A minuend that is a string is refused under the input. ~~|
-        ~({:p 1} | subOf "a" /p
+        ~({:paid 3} | subOf "10" /paid
           !| get [~(tag) ~(minuend | found | tag)]
           |  eq [::any/subOf/MinuendKindNotTakenError ::string])
     | proves :SubtrahendNotGivenError/refusesOneNumber
         |~~ A call with the minuend alone is refused under the subtrahend.
         ~~|
-        ~({:t 10} | subOf /t !| tag | eq ::any/subOf/SubtrahendNotGivenError)
+        ~({:total 10} | subOf /total !| tag | eq ::any/subOf/SubtrahendNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
         |~~ A third number is refused under the verb. ~~|
-        ~({:t 10 :p 3 :q 1} | subOf /t /p /q !| tag | eq ::any/subOf/ArgsBeyondInputsError)
+        ~({:total 10 :paid 3 :discount 2} | subOf /total /paid /discount !| tag | eq ::any/subOf/ArgsBeyondInputsError)
     | proves :SubtrahendKindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~({:a 5} | subOf /a "3" !| tag | eq ::any/subOf/SubtrahendKindNotTakenError)
+        ~({:total 10} | subOf /total "3" !| tag | eq ::any/subOf/SubtrahendKindNotTakenError)
     | proves :subtractsTwoFields
         |~~ What is left to pay is the total less what was paid. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
@@ -1951,21 +1944,21 @@
       that falls between whole numbers is a decimal, and a divisor of
       zero is refused as `div` refuses it. The call gives the two, the
       dividend first; a product to divide by is computed as the divisor,
-      `divOf /total (mulOf /a /b)`.
-      ::link~(::number/div | doc) ::link~(::any/mulOf | doc)
+      `divOf /total (mulOf /people /days)`.
+      ::link~(::number/div) ::link~(::any/mulOf)
   ~~|
   ::fn
     | takes :dividend |~~ The number divided. ~~| /0 #[::number ::path]
     | throws :DividendKindNotTakenError
         |~~ The dividend is a number or a path,
-            `{:a 6 :b 3} | divOf /a /b`; text that holds one is read by
-            `toNumber` first, `divOf (get /a | toNumber) /b`.
+            `{:sum 20 :count 4} | divOf /sum /count`; text that holds one is
+            read by `toNumber` first, `divOf (get /sum | toNumber) /count`.
         ~~|
     | takes :divisor |~~ The number divided by. ~~| /1 #[::number ::path]
     | throws :DivisorKindNotTakenError
         |~~ The divisor is a number or a path,
-            `{:a 6 :b 3} | divOf /a /b`; text that holds one is read by
-            `toNumber` first, `divOf /a (get /b | toNumber)`.
+            `{:sum 20 :count 4} | divOf /sum /count`; text that holds one is
+            read by `toNumber` first, `divOf /sum (get /count | toNumber)`.
         ~~|
     | throws :DivisorNotGivenError
         |~~ `divOf` divides the dividend by the divisor and was given the
@@ -1974,7 +1967,7 @@
     | returns |~~ The dividend divided by the divisor, under the tags they share. ~~| ::number
     | throws :ArgsBeyondInputsError
         |~~ `divOf` divides one number by another: a product to divide by is
-            computed as the divisor, `divOf /total (mulOf /a /b)`.
+            computed as the divisor, `divOf /total (mulOf /people /days)`.
         ~~|
     | proves :dividesByTheSecond
         |~~ A mean is the sum over the count. ~~|
@@ -1987,16 +1980,16 @@
         ~({:sum 20 :count 0} | divOf /sum /count !| tag | eq ::number/div/DivisorZeroError)
     | proves :DivisorNotGivenError/refusesOneNumber
         |~~ A call with the dividend alone is refused under the divisor. ~~|
-        ~({:s 20} | divOf /s !| tag | eq ::any/divOf/DivisorNotGivenError)
+        ~({:sum 20} | divOf /sum !| tag | eq ::any/divOf/DivisorNotGivenError)
     | proves :ArgsBeyondInputsError/refusesAThirdNumber
         |~~ A third number is refused under the verb. ~~|
-        ~({:s 20 :c 4 :x 1} | divOf /s /c /x !| tag | eq ::any/divOf/ArgsBeyondInputsError)
+        ~({:total 120 :people 4 :days 3} | divOf /total /people /days !| tag | eq ::any/divOf/ArgsBeyondInputsError)
     | proves :DividendKindNotTakenError/refusesAString
         |~~ A dividend that is no number is refused under the input. ~~|
-        ~({:b 3} | divOf "6" /b !| tag | eq ::any/divOf/DividendKindNotTakenError)
+        ~({:count 4} | divOf "20" /count !| tag | eq ::any/divOf/DividendKindNotTakenError)
     | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~({:a 6} | divOf /a "3" !| tag | eq ::any/divOf/DivisorKindNotTakenError)
+        ~({:sum 20} | divOf /sum "4" !| tag | eq ::any/divOf/DivisorKindNotTakenError)
     | impl
         ~(get (get [~(dividend) ~(divisor)])
           | :pair it
@@ -2015,7 +2008,7 @@
       the first condition that does not hold answers `false` with the
       quotes after it unrun; a quote that fails answers its error. The
       call gives one condition at least.
-      ::link~(::any/anyOf | doc) ::link~(::vec/every | doc)
+      ::link~(::any/anyOf) ::link~(::vec/every)
   ~~|
   ::fn
     | takes :conditions
@@ -2036,7 +2029,7 @@
             call is computed at every index, the first among them, and one
             that answered an error is refused here, the error its value: a
             field a record may lack is read softly,
-            `allOf (query /b | eq 1)`, and a condition that fails where an
+            `allOf (query /verified | eq true)`, and a condition that fails where an
             earlier one does not hold is written as a quote that answers
             it in its turn, which runs only once every condition before it
             held.
@@ -2062,17 +2055,17 @@
           | eq [false true])
     | proves :answersTheFailureOfAQuote
         |~~ A quote that fails answers its error. ~~|
-        ~({:a 1} | allOf ~(get /b | eq 1) !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :b])
+        ~({:active true} | allOf ~(get /verified | eq true) !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :verified])
     | proves :ConditionsElementKindNotTakenError/refusesAFieldMissingAtTheFirstIndex
         |~~ A field the record lacks is refused at its index, the first
             among them.
         ~~|
-        ~({:a 1} | allOf (get /b | eq 1)
+        ~({:active true} | allOf (get /verified | eq true)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/allOf/ConditionsElementKindNotTakenError 0 ::path/KeyNotInMapError])
     | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
-        ~({:a 1} | allOf (query /b | eq 1) | not)
+        ~({:active true} | allOf (query /verified | eq true) | not)
     | proves :ConditionsElementKindNotTakenError/refusesAConditionThatFailedAtTheCall
         |~~ A condition computed at the call is computed even where an
             earlier one does not hold, and its error is refused at its
@@ -2110,7 +2103,7 @@
       flagged record passes without the field its quote reads,
       `anyOf /vip ~(get /score | gt 95)`, and a quote that fails answers
       its error. The call gives one condition at least.
-      ::link~(::any/allOf | doc) ::link~(::vec/any | doc)
+      ::link~(::any/allOf) ::link~(::vec/any)
   ~~|
   ::fn
     | takes :conditions
@@ -2177,7 +2170,7 @@
           |  eq [::any/anyOf/ConditionsElementKindNotTakenError 1 ::path/KeyNotInMapError])
     | proves :ConditionsElementKindNotTakenError/refusesANumber
         |~~ A number is no condition, and is refused at its index. ~~|
-        ~({:a 1} | anyOf (get /a)
+        ~({:score 99} | anyOf (get /score)
           !| get [~(tag) ~(conditions | index) ~(conditions | found | get /0 | tag)]
           |  eq [::any/anyOf/ConditionsElementKindNotTakenError 0 ::number])
     | proves :ConditionKindNotTakenError/refusesAQuoteThatAnswersANumber
@@ -2197,41 +2190,41 @@
   |~~ Answers the union of the parts the call computes against the
       subject, maps or sets, in their order, a later key holding over an
       earlier: the value of a pair with its name beside it is
-      `unionOf /1 (get {:name ~(get /0 | toString)})`. Maps unite with maps and sets
-      with sets, a map with a set being refused by `union`, and the
-      union stands under the tags the parts share. One part answers itself,
-      and the call gives one at least.
-      ::link~(::map/union | doc) ::link~(::set/union | doc)
+      `unionOf /1 (get {:name ~(get /0 | toString)})`. Maps unite with
+      maps and sets with sets, a map with a set being refused by `union`,
+      and the union stands under the tags the parts share. One part
+      answers itself, and the call gives one at least.
+      ::link~(::map/union) ::link~(::set/union)
   ~~|
   ::fn
     | takes :parts |~~ The maps or the sets, one at least. ~~| ~(it)
     | holds :PartsEmptyError
         |~~ `unionOf` unites the parts the call gives, one at least,
-            `unionOf /a /b`.
+            `unionOf /defaults /overrides`.
         ~~|
         ~(parts | count | gt 0)
     | returns |~~ The parts united, under the tags they share. ~~| ::any
     | proves :mergesTwoFields
         |~~ Two maps one value holds merge. ~~|
-        ~({:a {:x 1} :b {:y 2}} | unionOf /a /b | eq {:x 1 :y 2})
+        ~({:defaults {:theme :dark} :overrides {:lang :en}} | unionOf /defaults /overrides | eq {:theme :dark :lang :en})
     | proves :holdsTheLaterKey
         |~~ A later key holds over an earlier. ~~|
-        ~({:a {:x 1} :b {:x 2}} | unionOf /a /b | eq {:x 2})
+        ~({:defaults {:font 12} :overrides {:font 14}} | unionOf /defaults /overrides | eq {:font 14})
     | proves :foldsTheKeyIntoTheValue
         |~~ The key of a pair joins its value as a field. ~~|
         ~([:auth {:port 3000}] | unionOf /1 (get {:name ~(get /0 | toString)}) | eq {:port 3000 :name "auth"})
     | proves :unitesSets
         |~~ Two sets unite. ~~|
-        ~({:a #[1] :b #[2]} | unionOf /a /b | eq #[1 2])
+        ~({:mine #[:tea] :yours #[:cake]} | unionOf /mine /yours | eq #[:cake :tea])
     | proves :refusesAMapWithASet
         |~~ A map with a set is refused by `union`. ~~|
-        ~({:a {:x 1} :b #[2]} | unionOf /a /b !| tag | eq ::map/union/OtherKindNotTakenError)
+        ~({:defaults {:font 12} :tags #[:new]} | unionOf /defaults /tags !| tag | eq ::map/union/OtherKindNotTakenError)
     | proves :answersUnderTheTagsThePartsShare
         |~~ The union stands under the tags the parts share. ~~|
-        ~({:a {:x 1} :b ::Box{:y 2}} | unionOf /a /b | eq ::Box{:x 1 :y 2})
+        ~({:defaults {:font 12} :overrides ::Settings{:lang :en}} | unionOf /defaults /overrides | eq ::Settings{:font 12 :lang :en})
     | proves :answersOnePart
         |~~ One part answers itself. ~~|
-        ~({:a {:x 1}} | unionOf /a | eq {:x 1})
+        ~({:defaults {:font 12}} | unionOf /defaults | eq {:font 12})
     | proves :PartsEmptyError/refusesNoPart
         |~~ A call with no part to unite is refused under `parts`. ~~|
         ~({} | unionOf !| tag | eq ::any/unionOf/PartsEmptyError)
@@ -2252,7 +2245,7 @@
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
       not refused. An input of a verb is held to its kinds by the `takes`
       that declares it.
-      ::link~(::any/tag | doc) ::link~(::fn/takes | doc)
+      ::link~(::any/tag) ::link~(::fn/takes)
   ~~|
   ::fn
     | takes :kinds
@@ -2280,7 +2273,7 @@
         ~(::Width#5 | is ::number)
     | proves :walksUnderATagToAMap
         |~~ A map under a tag is a map. ~~|
-        ~(::Box{:a 1} | is ::map)
+        ~(::Box{:width 2} | is ::map)
     | proves :takesASetForAVector
         |~~ A set is a vector. ~~|
         ~(#[1 2] | is ::vec)
@@ -2320,24 +2313,25 @@
   |~~ Answers the part of the subject a path names, read strictly: a key
       or an index that is not there is refused, `::path/KeyNotInMapError`
       with the keys near it, so a misspelled field is found where it is
-      read, `{:a {:b 1}} | get /a/b` answering `1`. A key the query
-      computes is read as the path of one segment, a keyword, a string or
-      a number, its text the segment, `get (get /k)`, a key under a tag
-      read beneath it, and any other value that is no template is
-      refused, so a key the data leaves null is found where it is read;
-      a boolean, null and a tag name a map files under the keyword
-      `toKeyword` answers, which reads that key, `get :true`. Over a template, a literal of paths
-      and quotes, it answers the template with each path read and each
-      quote run against the subject where it stands, the answer written in
-      the shape the template takes:
-      `{:price 4 :qty 3} | get [/price /qty]` answers `[4 3]`, and
-      `get {:who /first :n ~(get /tags | count)}` builds a map. A vector, a
-      map or a set under a tag in a template is read and laid back under
-      its tag through its kind, and any other value of it is
-      answered as it is, a quote under a tag, a doc, a function and a kind among them. A literal computes nothing, so a shape computed
+      read, `{:user {:name "Ann"}} | get /user/name` answering `"Ann"`. A
+      key the query computes is read as the path of one segment, a
+      keyword, a string or a number, its text the segment,
+      `get (get /field)`, a key under a tag read beneath it, and any other
+      value that is no template is refused, so a key the data leaves null
+      is found where it is read; a boolean, null and a tag name a map
+      files under the keyword `toKeyword` answers, which reads that key,
+      `get :true`. Over a template, a literal of paths and quotes, it
+      answers the template with each path read and each quote run against
+      the subject where it stands, the answer written in the shape the
+      template takes: `{:price 4 :qty 3} | get [/price /qty]` answers
+      `[4 3]`, and `get {:who /first :count ~(get /tags | count)}` builds
+      a map. A vector, a map or a set under a tag in a template is read
+      and laid back under its tag through its kind, and any other value of
+      it is answered as it is, a quote under a tag, a doc, a function and
+      a kind among them. A literal computes nothing, so a shape computed
       is written as a template. A part that may be missing is read by
       `query`.
-      ::link~(::any/query | doc) ::link~(::path | doc)
+      ::link~(::any/query) ::link~(::path)
   ~~|
   ::fn
     | takes :path
@@ -2346,7 +2340,7 @@
         ~~|
         /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `get /a/b`, a key of one segment, a keyword,
+        |~~ The path is a path, `get /user/name`, a key of one segment, a keyword,
             a number or a string, or a template, a vector, a map or a set of
             paths and quotes, or a value under a tag, a quote among them. A
             boolean, null and a tag name are no key: a map files them under
@@ -2356,48 +2350,49 @@
         ~~|
     | proves :PathKindNotTakenError/refusesNull
         |~~ A key the data leaves null is refused. ~~|
-        ~({:k null} | get (get /k) !| get [~(tag) ~(path | found | tag)] | eq [::any/get/PathKindNotTakenError ::null])
+        ~({:field null} | get (get /field) !| get [~(tag) ~(path | found | tag)] | eq [::any/get/PathKindNotTakenError ::null])
     | proves :PathKindNotTakenError/readsTheKeyOfABooleanByItsKeyword
         |~~ The group of `true` is read by its keyword. ~~|
         ~([1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)] | eq [::any/get/PathKindNotTakenError [2 3]])
     | proves :readsANestedPart
         |~~ A path reads a part at any depth. ~~|
-        ~({:a {:b [10 20]}} | get /a/b/-1 | eq 20)
+        ~({:user {:scores [10 20]}} | get /user/scores/-1 | eq 20)
     | proves :refusesAMissedKey
         |~~ A key that is not there is refused. ~~|
-        ~({:a 1} | get /b !| tag | eq ::path/KeyNotInMapError)
+        ~({:name "Ann"} | get /nmae !| tag | eq ::path/KeyNotInMapError)
     | proves :readsAKeyTheQueryComputes
         |~~ A key the query computes reads as the path of one segment. ~~|
-        ~({:k "b" :b 7} | get (get /k) | eq 7)
+        ~({:field "age" :age 30} | get (get /field) | eq 30)
     | proves :readsTwoFieldsByATemplate
         |~~ Two fields of one record are read in one step. ~~|
         ~({:price 4 :qty 3} | get [/price /qty] | eq [4 3])
     | proves :buildsTheShapeOfItsTemplate
         |~~ A template of paths and quotes builds the answer in its shape. ~~|
-        ~({:first "Ann" :tags [:a :b]} | get {:who /first :n ~(get /tags | count)} | eq {:who "Ann" :n 2})
+        ~({:first "Ann" :tags [:new :vip]} | get {:who /first :count ~(get /tags | count)} | eq {:who "Ann" :count 2})
     | proves :readsUnderATagOfTheTemplate
         |~~ A vector under a tag in a template is read and laid back under
             its tag.
         ~~|
-        ~({:a 1} | get [::Box[/a]] | eq [::Box[1]])
+        ~({:width 2} | get [::Box[/width]] | eq [::Box[2]])
     | proves :answersAFunctionOfTheTemplateAsItIs
         |~~ A function in a template is answered as it is. ~~|
         ~(get [::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)]] | first | tag | eq ::fn)
     | proves :readsBeneathTheTags
         |~~ A path reads beneath the tags over the subject. ~~|
-        ~(::Box{:w 3} | get /w | eq 3)
+        ~(::Box{:width 3} | get /width | eq 3)
     | impl ::builtin{}
 
 :any/query
   |~~ Answers the part of the subject a path names, read softly: where a
       key or an index is missing, or null stands on the way, it answers
-      null, or the default the call gives, `{:a 1} | query /b 0`
+      null, or the default the call gives, `{:name "Ann"} | query /age 0`
       answering `0`, while a null that stands at the path is answered as
       it stands. A value on the path that has no parts is refused as
       `get` refuses it, so a path read from the wrong subject is found.
       Over a template it answers the template with each path read softly
-      and each quote run, `{:a 1} | query [/a /b]` answering `[1 null]`.
-      ::link~(::any/get | doc) ::link~(::any/coalesce | doc)
+      and each quote run, `{:name "Ann"} | query [/name /age]` answering
+      `["Ann" null]`.
+      ::link~(::any/get) ::link~(::any/coalesce)
   ~~|
   ::fn
     | takes :path
@@ -2406,7 +2401,7 @@
         ~~|
         /0 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `query /a/b`, a key of one segment, a
+        |~~ The path is a path, `query /user/name`, a key of one segment, a
             keyword, a number or a string, or a template, a vector, a map or
             a set of paths and quotes, or a value under a tag, a quote among
             them, and `query` reads any other no more softly than `get`. A
@@ -2416,7 +2411,7 @@
         ~~|
     | proves :PathKindNotTakenError/refusesABoolean
         |~~ A boolean is no key. ~~|
-        ~({:a 1} | query true 7 !| tag | eq ::any/query/PathKindNotTakenError)
+        ~({:name "Ann"} | query true 7 !| tag | eq ::any/query/PathKindNotTakenError)
     | takes :default
         |~~ What a missed path answers, held and never run, null when the
             call gives none.
@@ -2424,7 +2419,7 @@
         ~(query /1 null)
     | proves :answersNullForAMissingKey
         |~~ A key that is not there answers null. ~~|
-        ~({:a 1} | query /b | eq null)
+        ~({:name "Ann"} | query /age | eq null)
     | proves :answersTheDefault
         |~~ A missed path answers the default the call gives. ~~|
         ~([] | query /0 7 | eq 7)
@@ -2433,13 +2428,13 @@
         ~([null] | query /0 7 | eq null)
     | proves :readsThroughNull
         |~~ A null on the way answers null. ~~|
-        ~({:a null} | query /a/b | eq null)
+        ~({:user null} | query /user/name | eq null)
     | proves :refusesAnotherKind
         |~~ A value on the path that has no parts is refused. ~~|
-        ~({:a 5} | query /a/b !| tag | eq ::path/SubjectHasNoPartsError)
+        ~({:age 30} | query /age/years !| tag | eq ::path/SubjectHasNoPartsError)
     | proves :readsATemplateSoftly
         |~~ Each path of a template is read softly. ~~|
-        ~({:a 1} | query [/a /b] | eq [1 null])
+        ~({:name "Ann"} | query [/name /age] | eq ["Ann" null])
     | impl ::builtin{}
 
 :any/with
@@ -2449,18 +2444,19 @@
       answers `"Ann7"`. The names are a vector of paths, each part named by
       the last key of its path, or a map of names and their selectors,
       each a path or a quote,
-      `[::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]`
+      `[::Box 5] | with {:kind ~first :weight ~last} [~(kind) ~(weight) ~(weight | tag kind)]`
       answering `[::Box 5 ::Box#5]`, and a map among the paths names the
-      parts it maps, `with [/id {:un /user/name :gn /group/name}] …`. Each
+      parts it maps, `with [/id {:user /user/name :group /group/name}] …`. Each
       selector is read against the subject apart from the others, a path as
       `get` reads it and a quote run on the subject, so no selector sees the
       name of another, and each quote of the body runs on the subject as
       the quotes of a template of `get` run, the names beside the names of
       its step; no name leaves the call. A key of the subject no name names
-      is read by its path, and a name that meets a verb the subject of its
-      step answers is refused, as every name of a value is, `type` among
-      them, which a map names otherwise, `with [/id {:t /type}] …`.
-      ::link~(::any/get | doc) ::link~(::path | doc)
+      is read by its path, and a name stands over a verb of its name in the
+      body, the verb called by its address there,
+      `::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])`
+      answering `[2 3]`.
+      ::link~(::any/get) ::link~(::path)
   ~~|
   ::fn
     | takes :names
@@ -2471,17 +2467,18 @@
     | throws :NamesKindNotTakenError
         |~~ The names are a vector of paths and maps,
             `with [/id /user/name] …`, or a map of names and the paths and
-            quotes they read, `with {:t /0 :n ~count} …`.
+            quotes they read, `with {:kind /0 :size ~count} …`.
         ~~|
     | throws :NamesElementKindNotTakenError
         |~~ Each element of the names is a path, which names its part by its
             last key, or a map of names and their selectors; a quote alone
-            names no part, and a map gives it a name, `[{:t ~first}]`.
+            names no part, and a map gives it a name, `[{:kind ~first}]`.
         ~~|
     | throws :NamesSelectorKindNotTakenError
-        |~~ A name reads its part by a path or a quote, `{:t /0 :n ~count}`;
-            a value of the data reads no part, so a map of the data names no
-            parts, and its keys are named by their paths, `[/a /b]`.
+        |~~ A name reads its part by a path or a quote,
+            `{:kind /0 :size ~count}`; a value of the data reads no part, so
+            a map of the data names no parts, and its keys are named by
+            their paths, `[/price /qty]`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag]
           | wires :selector |~~ The selector written for the name, of none of the kinds a selector takes. ~~|)
@@ -2494,8 +2491,8 @@
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
     | throws :NamesNameWrittenTwiceError
         |~~ A name names one part: two paths that end in one key,
-            `[/a/name /b/name]`, name their parts by a map,
-            `[{:an /a/name :bn /b/name}]`.
+            `[/user/name /group/name]`, name their parts by a map,
+            `[{:user /user/name :group /group/name}]`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
     | takes :body
@@ -2505,7 +2502,7 @@
         /1 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
     | throws :BodyKindNotTakenError
         |~~ The body is a template as `get` takes it, a quote, a path or a
-            shape of them, `with [/a] ~(a | add 1)`.
+            shape of them, `with [/qty] ~(qty | add 1)`.
         ~~|
     | proves :namesAPartByTheLastKeyOfItsPath
         |~~ A path names its part by its last key. ~~|
@@ -2514,7 +2511,7 @@
         |~~ A map names the parts its paths and quotes read, in every
             branch of the body.
         ~~|
-        ~([::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)] | eq [::Box 5 ::Box#5])
+        ~([::Box 5] | with {:kind ~first :weight ~last} [~(kind) ~(weight) ~(weight | tag kind)] | eq [::Box 5 ::Box#5])
     | proves :namesByAMapAmongThePaths
         |~~ A map among the paths names the parts it maps. ~~|
         ~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString)) | eq "Ann7")
@@ -2522,164 +2519,164 @@
         |~~ A path reads its part as `get` reads it, and a quote as it is
             written.
         ~~|
-        ~({:id 7} | get [~(with {:t /type} ~(t) !| tag) ~(with {:t ~(query /type "none")} ~(t))] | eq [::path/KeyNotInMapError "none"])
+        ~({:id 7} | get [~(with {:kind /type} ~(kind) !| tag) ~(with {:kind ~(query /type "none")} ~(kind))] | eq [::path/KeyNotInMapError "none"])
     | proves :readsEachSelectorApart
         |~~ A selector sees no name of another selector. ~~|
-        ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| name | eq :t)
+        ~([::Box 5] | with [{:kind ~first} {:weight ~(kind)}] ~(weight) !| name | eq :kind)
     | proves :runsTheBodyOnTheSubject
         |~~ The body runs on the subject, its other parts read by their
             paths.
         ~~|
-        ~({:id 7 :n 2} | with [/id] ~(get /n | add id) | eq 9)
+        ~({:price 4 :qty 3} | with [/price] ~(get /qty | mul price) | eq 12)
     | proves :leavesNoNameAfterTheCall
         |~~ No name leaves the call. ~~|
-        ~({:a 1} | with [/a] ~(a) | a !| name | eq :a)
-    | proves :meetsAVerbOfTheSubjectAloud
-        |~~ A name that meets a verb of the subject is refused, and a map
-            names its part otherwise.
+        ~({:qty 1} | with [/qty] ~(qty) | qty !| name | eq :qty)
+    | proves :standsOverAVerbOfItsName
+        |~~ A name stands over a verb of its name in the body, the verb
+            called by its address.
         ~~|
-        ~({:type "user" :id 7} | get [~(with [/id /type] ~(id | toString | append type) !| tag) ~(with [/id {:t /type}] ~(id | toString | append t))] | eq [::call/ValueMeetsVerbError "7user"])
+        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)]) | eq [2 3])
     | proves :NamesKindNotTakenError/refusesAPath
         |~~ A path alone is no names. ~~|
-        ~({:a 1} | with /a ~(a) !| tag | eq ::any/with/NamesKindNotTakenError)
+        ~({:qty 1} | with /qty ~(qty) !| tag | eq ::any/with/NamesKindNotTakenError)
     | proves :NamesElementKindNotTakenError/refusesAQuoteAlone
         |~~ A quote alone among the names is refused at its index. ~~|
-        ~([::Box 5] | with [{:t /0} ~first] ~(t) !| get [~(tag) ~(names | index)] | eq [::any/with/NamesElementKindNotTakenError 1])
+        ~([::Box 5] | with [{:kind /0} ~last] ~(kind) !| get [~(tag) ~(names | index)] | eq [::any/with/NamesElementKindNotTakenError 1])
     | proves :NamesSelectorKindNotTakenError/refusesAMapOfTheData
         |~~ A map of the data names no parts. ~~|
-        ~({:a 1 :b 2} | with it ~(a | mul b) !| tag | eq ::any/with/NamesSelectorKindNotTakenError)
+        ~({:price 4 :qty 3} | with it ~(price | mul qty) !| tag | eq ::any/with/NamesSelectorKindNotTakenError)
     | proves :NamesKeyNotNameError/refusesAnIndex
         |~~ A path that ends in an index names no part. ~~|
         ~({:items [5 6]} | with [/items/0] ~(it) !| get [~(tag) ~(name)] | eq [::any/with/NamesKeyNotNameError :"0"])
     | proves :NamesNameWrittenTwiceError/refusesTwoPathsOfOneKey
         |~~ Two paths that end in one key name one part twice. ~~|
-        ~({:a {:name 1} :b {:name 2}} | with [/a/name /b/name] ~(name) !| get [~(tag) ~(name)] | eq [::any/with/NamesNameWrittenTwiceError :name])
+        ~({:user {:name "Ann"} :group {:name "Admins"}} | with [/user/name /group/name] ~(name) !| get [~(tag) ~(name)] | eq [::any/with/NamesNameWrittenTwiceError :name])
     | proves :BodyKindNotTakenError/refusesABoolean
         |~~ A boolean is no template. ~~|
-        ~({:a 1} | with [/a] true !| tag | eq ::any/with/BodyKindNotTakenError)
+        ~({:qty 1} | with [/qty] true !| tag | eq ::any/with/BodyKindNotTakenError)
     | impl ::builtin{}
 
 :any/put
   |~~ Answers the subject with a value laid at the path the call gives:
       a key the last map on the path lacks is added, and a key it holds or
-      an index a vector holds is replaced, `{:a {:b 1}} | put /a/c 2`
-      answering `{:a {:b 1 :c 2}}`. The path is followed as `get` follows
-      it, so a key or an index missing on the way is refused where the
-      path writes it, and a value under a tag on the way is laid under it
-      again through its kind. A key the query
-      computes is the path of one segment, `put :a 1`, and a vector grows
-      by `append`.
-      ::link~(::any/update | doc) ::link~(::any/delete | doc)
-      ::link~(::any/get | doc)
+      an index a vector holds is replaced,
+      `{:user {:name "Ann"}} | put /user/age 30` answering
+      `{:user {:name "Ann" :age 30}}`. The path is followed as `get`
+      follows it, so a key or an index missing on the way is refused where
+      the path writes it, and a value under a tag on the way is laid under
+      it again through its kind. A key the query computes is the path of
+      one segment, `put :age 30`, and a vector grows by `append`.
+      ::link~(::any/update) ::link~(::any/delete)
+      ::link~(::any/get)
   ~~|
   ::fn
     | takes :path
         |~~ The path written, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `put /a/b 2`, or a key of one segment, a
-            keyword, a string or a number, `put :a 2`.
+        |~~ The path is a path, `put /user/age 30`, or a key of one segment,
+            a keyword, a string or a number, `put :age 30`.
         ~~|
     | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | put true 2 !| tag | eq ::any/put/PathKindNotTakenError)
+        ~({:age 30} | put true 31 !| tag | eq ::any/put/PathKindNotTakenError)
     | takes :value |~~ The value laid at the path. ~~| /1
     | proves :addsAKey
         |~~ A key the last map lacks is added. ~~|
-        ~({:a {:b 1}} | put /a/c 2 | eq {:a {:b 1 :c 2}})
+        ~({:user {:name "Ann"}} | put /user/age 30 | eq {:user {:name "Ann" :age 30}})
     | proves :replacesTheElementAtAnIndex
         |~~ The element at an index a vector holds is replaced. ~~|
         ~([1 2 3] | put /-1 9 | eq [1 2 9])
     | proves :refusesAKeyMissedOnTheWay
         |~~ A key missing on the way is refused where the path writes it.
         ~~|
-        ~({:a 1} | put /b/c 2 !| get [~(tag) ~(path)] | eq [::path/KeyNotInMapError /b/c])
+        ~({:name "Ann"} | put /address/city "Oslo" !| get [~(tag) ~(path)] | eq [::path/KeyNotInMapError /address/city])
     | proves :refusesAnIndexPastTheEnd
         |~~ A vector grows by `append`, not by an index past its end. ~~|
         ~([1 2] | put /2 3 !| tag | eq ::path/IndexOutOfBoundsError)
     | proves :laysTheTagsAgain
         |~~ A value under a tag is laid under it again. ~~|
-        ~(::Box{:w 2} | put /w 3 | eq ::Box{:w 3})
+        ~(::Box{:width 2} | put /width 3 | eq ::Box{:width 3})
     | proves :laysEveryTagAgain
         |~~ A value under two tags is laid under both again. ~~|
-        ~(::A::B{:w 2} | put /w 3 | eq ::A::B{:w 3})
+        ~(::Gift::Box{:width 2} | put /width 3 | eq ::Gift::Box{:width 3})
     | proves :refusesAValueWithoutParts
         |~~ A value on the path that has no parts is refused, as `get`
             refuses it.
         ~~|
-        ~({:a 1} | put /a/b 2 !| tag | eq ::path/SubjectHasNoPartsError)
+        ~({:age 30} | put /age/years 31 !| tag | eq ::path/SubjectHasNoPartsError)
     | impl ::builtin{}
 
 :any/update
   |~~ Answers the subject with the part at the path the call gives laid
       anew by what the code the call gives answers for it,
-      `{:n 1} | update /n ~(add 1)` answering `{:n 2}`. The part must be
-      there, as for `get`, an error the code answers is the answer, and
-      the tags on the way are laid again as `put` lays them.
-      ::link~(::any/put | doc) ::link~(::tagged/within | doc)
+      `{:visits 1} | update /visits ~(add 1)` answering `{:visits 2}`. The
+      part must be there, as for `get`, an error the code answers is the
+      answer, and the tags on the way are laid again as `put` lays them.
+      ::link~(::any/put) ::link~(::tagged/within)
   ~~|
   ::fn
     | takes :path
         |~~ The path written, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `update /n ~(add 1)`, or a key of one
-            segment, `update :n ~(add 1)`.
+        |~~ The path is a path, `update /visits ~(add 1)`, or a key of one
+            segment, `update :visits ~(add 1)`.
         ~~|
     | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | update true ~(it) !| tag | eq ::any/update/PathKindNotTakenError)
+        ~({:visits 1} | update true ~(add 1) !| tag | eq ::any/update/PathKindNotTakenError)
     | takes :code
         |~~ The code run on the part, a quote or a path. ~~|
         /1 #[::path ::quote]
     | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `update /n ~(add 1)`, or a path,
-            `update /n /value`; written without the tilde,
-            `update /n (add 1)`, it is computed once at the call and
+        |~~ The code is a quote, `update /visits ~(add 1)`, or a path,
+            `update /visits /value`; written without the tilde,
+            `update /visits (add 1)`, it is computed once at the call and
             refused.
         ~~|
     | proves :CodeKindNotTakenError/refusesANumber
         |~~ Code that is no quote and no path is refused. ~~|
-        ~({:a 1} | update /a 5 !| tag | eq ::any/update/CodeKindNotTakenError)
+        ~({:visits 1} | update /visits 5 !| tag | eq ::any/update/CodeKindNotTakenError)
     | proves :runsTheCodeOnThePart
         |~~ The part at the path is laid anew by what the code answers. ~~|
-        ~({:a {:n 1}} | update /a/n ~(add 1) | eq {:a {:n 2}})
+        ~({:page {:visits 1}} | update /page/visits ~(add 1) | eq {:page {:visits 2}})
     | proves :refusesAMissedPart
         |~~ A part that is not there is refused. ~~|
-        ~({:a 1} | update /b ~(add 1) !| tag | eq ::path/KeyNotInMapError)
+        ~({:visits 1} | update /views ~(add 1) !| tag | eq ::path/KeyNotInMapError)
     | proves :answersTheErrorOfItsCode
         |~~ An error the code answers is the answer. ~~|
-        ~({:n "x"} | update /n ~(add 1) !| tag | eq ::number/add/SubjectNotNumberError)
+        ~({:visits "one"} | update /visits ~(add 1) !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :answersTheErrorBeneathTheTags
         |~~ An error the code answers beneath a tag is the answer, laid
             under none.
         ~~|
-        ~(::A::B{:n "x"} | update /n ~(add 1) !| tag | eq ::number/add/SubjectNotNumberError)
+        ~(::Site::Page{:visits "one"} | update /visits ~(add 1) !| tag | eq ::number/add/SubjectNotNumberError)
     | impl ::builtin{}
 
 :any/delete
   |~~ Answers the subject without the part at the path the call gives: a
       key taken out of a map, or an element out of a vector by its index,
-      the elements after it moving up, `{:a 1 :b 2} | delete /b` answering `{:a 1}`.
-      The part must be there, as for `get`, so a misspelled key is found;
-      keys that may be absent leave a map by `minus`. The tags on the way
-      are laid again as `put` lays them.
-      ::link~(::any/put | doc) ::link~(::map/minus | doc)
+      the elements after it moving up, `{:name "Ann" :tmp 3} | delete /tmp`
+      answering `{:name "Ann"}`. The part must be there, as for `get`, so a
+      misspelled key is found; keys that may be absent leave a map by
+      `minus`. The tags on the way are laid again as `put` lays them.
+      ::link~(::any/put) ::link~(::map/minus)
   ~~|
   ::fn
     | takes :path
         |~~ The path of the part taken out, or a key of one segment. ~~|
         /0 #[::keyword ::number ::path ::string]
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `delete /a/b`, or a key of one segment,
-            `delete :a`.
+        |~~ The path is a path, `delete /user/tmp`, or a key of one segment,
+            `delete :tmp`.
         ~~|
     | proves :PathKindNotTakenError/refusesABoolean
         |~~ A path that is no path and no key is refused. ~~|
-        ~({:a 1} | delete true !| tag | eq ::any/delete/PathKindNotTakenError)
+        ~({:tmp 3} | delete true !| tag | eq ::any/delete/PathKindNotTakenError)
     | proves :takesAKeyOut
         |~~ A key is taken out of the map at the path. ~~|
-        ~({:a {:b 1 :c 2}} | delete /a/b | eq {:a {:c 2}})
+        ~({:user {:name "Ann" :tmp 3}} | delete /user/tmp | eq {:user {:name "Ann"}})
     | proves :takesAnElementOut
         |~~ An element is taken out of a vector by its index, the elements
             after it moving up.
@@ -2687,34 +2684,35 @@
         ~([1 2 3] | delete /0 | eq [2 3])
     | proves :refusesAMissedKey
         |~~ A key that is not there is refused. ~~|
-        ~({:a 1} | delete /b !| tag | eq ::path/KeyNotInMapError)
+        ~({:name "Ann"} | delete /nmae !| tag | eq ::path/KeyNotInMapError)
     | impl ::builtin{}
 
 :any/it
-  |~~ Answers the value in the pipe, the subject itself: `:r it` names
-      the record a later step reads back, `get [~(it) ~(count)]` holds it beside
-      what it counts, and `5 | mul it` squares it.
-      ::link~(::qlang/names | doc)
+  |~~ Answers the value in the pipe, the subject itself:
+      `get [~(it) ~(count)]` holds it beside what it counts,
+      `with {:all ~it} ~(first | div (all | sum))` names it for the code of
+      one step, and `5 | mul it` squares it.
+      ::link~(::qlang/names)
   ~~|
   ::fn
     | proves :answersTheSubject
         |~~ The subject itself multiplies the subject. ~~|
         ~(5 | mul it | eq 25)
-    | proves :namesTheRecord
-        |~~ A name keeps the record for a later step. ~~|
-        ~({:a 1} | :r it | get /a | add (r | get /a) | eq 2)
+    | proves :namesTheSubjectForTheCodeOfAStep
+        |~~ `with` names the subject itself for the code of one step. ~~|
+        ~([2 6] | with {:all ~it} ~(first | div (all | sum)) | eq 0.25)
     | impl ~()
 
 :any/ok
   |~~ Answers `true`. A step after a failure is skipped, so `ok !| false`
       answers whether the step before it stood: `5 | ok !| false`
       answers `true`, and a failure before it `false`.
-      ::link~(::qlang/errors | doc)
+      ::link~(::qlang/errors)
   ~~|
   ::fn
     | proves :asksWhetherTheStepBeforeStood
         |~~ `ok !| false` tells a value from a failure. ~~|
-        ~(get [~(5 | ok !| false) ~(!{:k 1} | raise | ok !| false)] | eq [true false])
+        ~(get [~(5 | ok !| false) ~(!{:reason "late"} | raise | ok !| false)] | eq [true false])
     | impl ~(true)
 
 :any/raise
@@ -2733,7 +2731,7 @@
       the error at rest. It takes no value: what the error says is a fact
       of the map. A value of another kind is put in a map first,
       `get {:value ~(it)} | raise`.
-      ::link~(::error | doc) ::link~(::fail | doc) ::link~(::trace | doc)
+      ::link~(::error) ::link~(::fail) ::link~(::trace)
   ~~|
   ::fn
     | returns
@@ -2766,7 +2764,7 @@
         ~(::Oops{:message "boom"} | raise !| tag | eq ::Oops)
     | proves :keepsEveryEntryAsAFact
         |~~ Every entry of the map is a fact of the error. ~~|
-        ~({:a 1} | raise !| get [~(tag) /a] | eq [::error 1])
+        ~({:code 404} | raise !| get [~(tag) /code] | eq [::error 404])
     | proves :raisesAnErrorAtRestAsItself
         |~~ An error at rest raised again is the error it was. ~~|
         ~("x" | add 1 !| raise !| tag | eq ::number/add/SubjectNotNumberError)
@@ -2774,11 +2772,11 @@
         |~~ An empty `:trace` is no trace: the raise starts one, and the
             steps the failure skips join its frame.
         ~~|
-        ~({:a 1 :trace []} | raise | count !| get /trace | map ~(get [~(failed) ~(skipped)]) | eq [[~(raise) ~(count)]])
+        ~({:code 404 :trace []} | raise | count !| get /trace | map ~(get [~(failed) ~(skipped)]) | eq [[~(raise) ~(count)]])
     | proves :startsATraceAtTheRaise
         |~~ An error raised without a trace starts its trace at the raise.
         ~~|
-        ~(!{:a 1} | raise | count !| minus #[:trace] | raise | add 1
+        ~(!{:code 404} | raise | count !| minus #[:trace] | raise | add 1
           !| get /trace | map ~failed | eq [~(raise)])
     | proves :resumesTheTraceItWrites
         |~~ A map that writes a vector of frames resumes it, laid under
@@ -2805,61 +2803,61 @@
         ~(42 | raise !| get [~(tag) ~(subject | expected) ~(subject | found | tag)] | eq [::any/raise/SubjectKindNotTakenError #[::map] ::number])
     | proves :ArgsBeyondInputsError/refusesAMessage
         |~~ A message given to `raise` is refused; the map holds it. ~~|
-        ~({:a 1} | raise "boom" !| tag | eq ::any/raise/ArgsBeyondInputsError)
+        ~({:code 404} | raise "Not found" !| tag | eq ::any/raise/ArgsBeyondInputsError)
     | impl ::builtin{}
 
 
 :any/paths
   |~~ Answers the leaves of a value, a set of pairs, each the path `get`
       reads a leaf by and its kind:
-      `{:a {:b 1 :c [2 "x"]}} | paths` answers
-      `#[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string]]`. A part
-      under a tag is a leaf of its kind, which tells of itself on its
-      page, a quote and a doc among them; a set opens as a vector does,
-      its elements read by their indices; an empty vector or map is a part
-      that holds none, and the subject is read beneath the tags over it.
-      `shape` folds the leaves of every element into one shape.
-      ::link~(::any/shape | doc) ::link~(::any/get | doc)
-      ::link~(::path | doc)
+      `{:user {:age 30 :tags [7 "new"]}} | paths` answers
+      `#[[/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string]]`.
+      A part under a tag is a leaf of its kind, which tells of itself on
+      its page, a quote and a doc among them; a set opens as a vector
+      does, its elements read by their indices; an empty vector or map is
+      a part that holds none, and the subject is read beneath the tags
+      over it. `shape` folds the leaves of every element into one shape.
+      ::link~(::any/shape) ::link~(::any/get)
+      ::link~(::path)
   ~~|
   ::fn
     | returns |~~ The pairs of the path and the kind of each leaf. ~~| ::set
     | proves :answersTheLeaves
         |~~ The pairs hold the path and the kind of every leaf. ~~|
-        ~({:a {:b 1 :c [2 "x"]} :d []} | paths | eq #[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]])
+        ~({:user {:age 30 :tags [7 "new"]} :notes []} | paths | eq #[[/notes ::vec] [/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string]])
     | proves :answersNoPathOfAValueWithoutParts
         |~~ A value that has no parts has no path in it. ~~|
         ~(5 | paths | eq #[])
     | proves :readsBeneathTheTags
         |~~ The leaves are read beneath the tags stacked over the subject.
         ~~|
-        ~(::A::B{:w 2} | paths | eq #[[/w ::number]])
+        ~(::Gift::Box{:width 2} | paths | eq #[[/width ::number]])
     | proves :standsAtATag
         |~~ A part under a tag is a leaf of its kind. ~~|
-        ~({:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths | eq #[[/d ::doc] [/q ::quote] [/t ::Box]])
+        ~({:rule ~(add 1) :note |~~ A note. ~~| :box ::Box{:width 1}} | paths | eq #[[/box ::Box] [/note ::doc] [/rule ::quote]])
     | proves :readsASetAsItsVector
         |~~ A set is read as its vector, its elements by their indices. ~~|
-        ~({:s #[1 2]} | paths | eq #[[/s/0 ::number] [/s/1 ::number]])
+        ~({:sizes #[1 2]} | paths | eq #[[/sizes/0 ::number] [/sizes/1 ::number]])
     | proves :eachReadsByGet
-        |~~ Each path `paths` answers reads its leaf. ~~|
-        ~({:a {:b 1}} | :v it | paths | map ~(:p (get /0) | (v | get p)) | eq [1])
+        |~~ The paths `paths` answers read their leaves back by `get`. ~~|
+        ~({:user {:name "Ann" :age 30}} | with {:found ~(paths | map ~(get /0))} ~(get found) | eq [30 "Ann"])
     | impl ::builtin{}
 
 :any/shape
   |~~ Answers the shape of a value, its structure beneath its tags as a
       value of `::shape`, whose page tells how a shape reads:
-      `{:users [{:name "a" :age 1} {:name "b" :age "2"}]} | shape` answers
-      `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
-      ::link~(::shape | doc) ::link~(::any/paths | doc)
+      `{:users [{:name "Ann" :age 30} {:name "Bob" :age "41"}]} | shape`
+      answers `::shape{:users [{:name ::string :age #[::number ::string]}]}`.
+      ::link~(::shape) ::link~(::any/paths)
   ~~|
   ::fn
     | returns |~~ The shape of the value. ~~| ::shape
     | proves :answersTheKindOfAnAtom
         |~~ An atom answers its kind. ~~|
-        ~([5 "a" null :k /a] | map ~shape | eq [::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path])
+        ~([5 "Ann" null :active /price] | map ~shape | eq [::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path])
     | proves :keepsTheKeysOfAMap
         |~~ A map keeps its keys, each with its shape. ~~|
-        ~({:a 1 :b {:c "x"}} | shape | eq ::shape{:a ::number :b {:c ::string}})
+        ~({:id 7 :user {:name "Ann"}} | shape | eq ::shape{:id ::number :user {:name ::string}})
     | proves :foldsTheElementsOfAVector
         |~~ A vector holds one element whose shape holds of all, an empty
             one marking the element of the rest absent.
@@ -2867,10 +2865,10 @@
         ~([[1 2] [] [3]] | shape | eq ::shape[[::absent::number]])
     | proves :readsTuplesIndexByIndex
         |~~ Vectors of one length that part index by index are tuples. ~~|
-        ~([["a" 1] ["b" null]] | shape | eq ::shape[[::string ::nullable::number]])
+        ~([["Ann" 30] ["Bob" null]] | shape | eq ::shape[[::string ::nullable::number]])
     | proves :mergesRecordsWhateverTheirOrder
         |~~ Records that share keys merge whatever their order. ~~|
-        ~([{:a 1} {:b 2} {:a "x" :b 3}] | shape | eq ([{:a "x" :b 3} {:a 1} {:b 2}] | shape))
+        ~([{:id 1} {:age 30} {:id "A7" :age 41}] | shape | eq ([{:id "A7" :age 41} {:id 1} {:age 30}] | shape))
     | proves :setsTheKindsWhereElementsPart
         |~~ Where the elements part, the shape is the set of their kinds.
         ~~|
@@ -2879,24 +2877,24 @@
         |~~ Records that share a key merge, a key some lack absent and a
             part null in some nullable.
         ~~|
-        ~([{:a 1} {:a null :b "x"}] | shape | eq ::shape[{:a ::nullable::number :b ::absent::string}])
+        ~([{:age 30} {:age null :name "Ann"}] | shape | eq ::shape[{:age ::nullable::number :name ::absent::string}])
     | proves :keepsRecordsOfNoCommonKeyApart
         |~~ Records that share no key stand apart. ~~|
-        ~([{:a 1} {:b "x"}] | shape | eq ::shape[#[{:a ::number} {:b ::string}]])
+        ~([{:age 30} {:name "Ann"}] | shape | eq ::shape[#[{:age ::number} {:name ::string}]])
     | proves :standsAtATag
         |~~ A part under a tag stands as its tag. ~~|
-        ~({:t ::Box{:w 1} :q ~(add 1)} | shape | eq ::shape{:t ::Box :q ::quote})
+        ~({:box ::Box{:width 1} :rule ~(add 1)} | shape | eq ::shape{:box ::Box :rule ::quote})
     | proves :shapesASetByOneElement
         |~~ A set holds one element whose shape holds of all of them. ~~|
         ~(#[1 2] | shape | eq ::shape#[::number])
     | proves :readsBeneathTheTagsOfItsSubject
         |~~ The subject is read beneath its tags. ~~|
-        ~(::Box{:w 1} | shape | eq ::shape{:w ::number})
+        ~(::Box{:width 1} | shape | eq ::shape{:width ::number})
     | proves :showsNoElementOfAnEmptyVector
         |~~ An empty vector shows no element. ~~|
         ~([] | shape | eq ::shape[])
     | proves :readsAListByItsOneElement
         |~~ A list of a shape reads by its one element. ~~|
-        ~({:users [{:age 1} {:age "2"}]} | shape | get /users/0/age | eq #[::number ::string])
+        ~({:users [{:age 30} {:age "41"}]} | shape | get /users/0/age | eq #[::number ::string])
     | impl ::builtin{}
 

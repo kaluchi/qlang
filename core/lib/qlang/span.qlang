@@ -13,8 +13,8 @@
       three of the numbers, so the line where a parse stopped is read by its
       names, `"[1" | parse !| location | startLine`.
       ::snippet~("~{" | parse !| location | legend)
-      ::link~(::point | doc) ::link~(::quote/ParseError | doc)
-      ::link~(::qlang/errors | doc)
+      ::link~(::point) ::link~(::quote/ParseError)
+      ::link~(::qlang/errors)
   ~~|
   ::kind
     | accepts |~~ The six numbers, the start and the end. ~~| [::number]
@@ -52,7 +52,7 @@
         |~~ A span holds six numbers, the point of its start and the point
             after its end, three numbers each: `:found` holds the
             refusal of the point its last numbers make.
-            ::link~(::point | doc)
+            ::link~(::point)
         ~~|
     | proves :readsItsEndsAsPoints
         |~~ The ends of a span are the points of its first three numbers

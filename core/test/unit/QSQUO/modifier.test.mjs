@@ -56,8 +56,8 @@ it('`tag` hands on an error its modifier answers', async () => {
   expect(err.tag).toEqual(makeTag('number/add/SubjectNotNumberError'));
 });
 
-it('a tag a vector holds beside a value is read through a name of the vector', async () => {
+it('a tag a vector holds beside a value is read through the name `with` gives it', async () => {
   // [QSNUM#combine]
-  const r = await evalQuery('[42 ::Box] | :pair it | get /0 | tag (pair | get /1) | tag');
+  const r = await evalQuery('[42 ::Box] | with {:t ~(get /1)} ~(get /0 | tag t) | tag');
   expect(r).toEqual(makeTag('Box'));
 });

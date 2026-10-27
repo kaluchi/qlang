@@ -1,22 +1,22 @@
 |~ `::construct`, the step that puts a value under a tag through the
-   tag's kind, `::T[…]`, and what is declared under it: its
+   tag's kind, `::Box[…]`, and what is declared under it: its
    constructor and the refusals of that step.
    The rules it holds: [QSDSP#residence]. ~|
 
 :construct
-  |~~ The step that puts a payload under a tag: `::T[…]`, `::T{…}`,
-      `::T"…"`, or a number, a boolean, null or a path by `#`, `::T#5`,
+  |~~ The step that puts a payload under a tag: `::Box[…]`, `::Box{…}`,
+      `::Box"…"`, or a number, a boolean, null or a path by `#`, `::Box#5`,
       through the tag's kind, which attaches the tag or refuses the
       payload.
 
       In a quote the step is a record, `~(::Box[1 2]) | first` answering
       `::construct{:tag ::Box :payload [1 2]}`, a tag written before an
-      error literal among them, `~(::Late!{:k 1}) | first` answering
-      `::construct{:tag ::Late :payload !{:k 1}}`: `:tag` the tag and
+      error literal among them, `~(::Late!{:by 3}) | first` answering
+      `::construct{:tag ::Late :payload !{:by 3}}`: `:tag` the tag and
       `:payload` the step of the payload the literal writes, the record
       built into its step by the constructor of this kind, the second part
       of its literal, `::construct | binding | value | get /1`.
-      ::link~(::tagged | doc) ::link~(::qlang/pipeline | doc)
+      ::link~(::tagged) ::link~(::qlang/pipeline)
   ~~|
   ::kind
     | accepts
@@ -27,7 +27,7 @@
         |~~ `::construct` builds the step of a tagged literal from its
             record, a map; a payload of another kind is refused, a map
             under another tag among them.
-            ::link~(::construct | doc)
+            ::link~(::construct)
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::construct` is a map of `:tag`, a tag name, and
@@ -35,10 +35,11 @@
             that does not fit: the tag is written with its two colons, so
             the step `::Box[1]` is
             `{:tag ::Box :payload [1]} | tag ::construct`, and the step
-            `::Box!{:k 1}` is `{:tag ::Box :payload !{:k 1}} | tag ::construct`,
-            while the kind of errors over an error literal is the literal
-            itself, `!{:k 1}`.
-            ::link~(::construct | doc)
+            `::Late!{:by 3}` is
+            `{:tag ::Late :payload !{:by 3}} | tag ::construct`, while the
+            kind of errors over an error literal is the literal itself,
+            `!{:by 3}`.
+            ::link~(::construct)
         ~~|
         ::call/PayloadNotSchemaError
     | throws :LiteralComputesError
@@ -47,7 +48,7 @@
             `get` builds the value from, its parts computed written as
             quotes, `get ::Box[~(x)]`, while a value computed goes under a
             tag by `tag`, `x | tag ::Box`.
-            ::link~(::construct | doc) ::link~(::any/get | doc)
+            ::link~(::construct) ::link~(::any/get)
         ~~|
         ~(wires :message
               |~~ What the rule says of the literal, the template `get` builds it
@@ -62,7 +63,7 @@
             a name holding a value of its own names nothing to build by, and
             `:address` is that tag. The value is read by its name, `limit`, and
             is put under a tag of its own by `tag`, `limit | tag ::Limit`.
-            ::link~(::construct | doc)
+            ::link~(::construct)
         ~~|
         ~(wires :address
               |~~ The tag, whose node is neither a label, a verb nor an
@@ -87,12 +88,12 @@
         |~~ A tag name and an error literal build the step of the error
             literal written with the tag before its bang.
         ~~|
-        ~(~(!{:k 1}) | get {:tag ::Foo :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Foo!{:k 1}))
+        ~(~(!{:by 3}) | get {:tag ::Late :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Late!{:by 3}))
     | proves :PayloadNotSchemaError/refusesTheKindOfErrorsOverAnErrorLiteral
         |~~ The kind of errors over an error literal is the literal itself,
             and `:field` names the tag.
         ~~|
-        ~(::construct{:tag ::error :payload !{:k 1}} !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
+        ~(::construct{:tag ::error :payload !{:by 3}} !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a tagged literal. ~~|
         ~(::construct[1] !| get [~(tag) ~(expected)] | eq [::construct/PayloadKindNotTakenError #[::map]])
@@ -105,8 +106,7 @@
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
     | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
-        ~(:limit 5 | ::limit[1]
-          !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::limit ::number])
+        ~(:Box |~~ A box. ~~| | :Box/limit 5 | ::Box/limit[1] !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::Box/limit ::number])
     | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | tag | eq ::vec/take)
@@ -117,6 +117,6 @@
         ~(::vec/take/CountNotIntegerError#5 !| tag | eq ::vec/take/CountNotIntegerError/PayloadKindNotTakenError)
     | proves :TagNamesAValueError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
-        ~(:limit 5 | limit | tag ::Limit | payload | eq 5)
+        ~(:Box |~~ A box. ~~| | :Box/limit 5 | Box/limit | tag ::Limit | payload | eq 5)
     | impl ::builtin{}
 

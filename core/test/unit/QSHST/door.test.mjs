@@ -195,7 +195,7 @@ describe('the second door: what a host hands where the core takes it', () => {
 
   it('reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
     expect((await notebook.evalCell('get [~(tag) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
-    expect((await notebook.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | open | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
+    expect((await notebook.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | answer | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
 
   it('leaves the keys of the runtime\'s own out of the walk of a scope', async () => {

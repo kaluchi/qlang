@@ -20,7 +20,7 @@
       primitive its host handed, whose answer is a value of the language,
       as a call of a function or a kind read back from its print does
       where the root holds one equal to it at the address its `:of` names.
-      ::link~(::qlang/hosts | doc)
+      ::link~(::qlang/hosts)
   ~~|
   ::kind[~(accepts
         |~~ A map, the descriptor, its fields flat under the tag, `:of` the
@@ -137,18 +137,18 @@
             reads each where it keeps them.
         ~~|
     | proves :isAValueOfItsOwn
-        |~~ An empty descriptor is a value like any other. ~~|
-        ~(::builtin{} | :c it | get [1 2] | c | tag | eq ::builtin)
+        |~~ An empty descriptor is a value like any other, which prints and
+            reads back as itself.
+        ~~|
+        ~(::builtin{} | eq (print | parse | answer))
     | proves :endsAPrimitive
         |~~ The recipe of a verb a host answers by a primitive is the
             descriptor of its address.
         ~~|
         ~(::number/add | binding | value | get /1 | eq ::builtin{:of ::number/add})
     | proves :readsBackAsItsPrimitive
-        |~~ A function of a host read back from its print runs its
-            primitive.
-        ~~|
-        ~(::number/add | binding | value | print | parse | open | :g it | 5 | apply g [1] | eq 6)
+        |~~ A function of a host read back from its print runs its primitive. ~~|
+        ~(5 | apply (::number/add | binding | value | print | parse | answer) [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
         ~(::builtin"hello" !| get [~(tag) ~(found | tag)] | eq [::builtin/PayloadKindNotTakenError ::string])

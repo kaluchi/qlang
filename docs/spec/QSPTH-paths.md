@@ -16,7 +16,7 @@ name in quotes, `/"first name"`; a path holds one segment at least, the
 slash alone refused naming `it`, the value itself. Each segment is text:
 a map reads it as the key that spells it and a vector, quoted or not, as
 the index its digits write, so `/"0"` equals `/0`. A path prints in one
-spelling that reads back as itself by `parse | open`, `/"0"` printing
+spelling that reads back as itself by `parse | answer`, `/"0"` printing
 `/0`, JSON writes its literal as a string, two paths are equal when their
 segments are, and the one order ranks paths by their segments
 [QSORD#order].
@@ -34,7 +34,7 @@ segments are, and the one order ranks paths by their segments
 > {:"first name" 1} | get /"first name"
 1
 
-> ["a/b" "c"] | toPath | :p it | get [~(print) ~(print | parse | open | eq p)]
+> ["a/b" "c"] | toPath | get [~(print) ~(eq (print | parse | answer))]
 ["/:a/b/:c" true]
 ```
 
@@ -215,8 +215,8 @@ that is an index, a quoted key or a word of the literals refused as
 `::any/with/NamesKeyNotNameError` and a name written twice as
 `::any/with/NamesNameWrittenTwiceError`. Each quote of the template runs
 on the subject, seeing nothing of the others but the names, and no name
-leaves the call; a name that meets a verb its step's subject answers is
-refused as every name of a value is [QSNAM#reach], and a key of the
+leaves the call; a name stands over a verb of its name in the template,
+the verb called by its address there [QSNAM#reach], and a key of the
 subject no name names is read by its path. A path of `with` beneath a
 closed tag is refused as `get` refuses it, the names of a closed value
 being its own.
@@ -228,8 +228,11 @@ being its own.
 > {:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}
 {:who "Ann" :next 31}
 
-> {:a 1} | query [~(get /a) /b]
-[1 null]
+> {:name "Ann"} | query [~(get /name) /age]
+["Ann" null]
+
+> {:type "user" :id 7} | with [/id /type] ~(id | toString | append type)
+"7user"
 
 > {:a 1} | get [::Box::Crate[/a] ::Box#[/a]]
 [::Box::Crate[1] ::Box#[1]]

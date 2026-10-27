@@ -10,12 +10,12 @@
       `::vec/count | binding | origin` answering `:qlang/vec`.
 
       It prints as a map under its tag, its fields read under the kind;
-      the record of `:x 5` read from the cell `cell-1` is
-      `::binding{:name :x :docs [] :value 5 :source ~(:x 5) :origin :cell-1}`.
+      the record of `:Box/side 3` read from the cell `cell-1` is
+      `::binding{:name :Box/side :docs [] :value 3 :source ~(:Box/side 3) :origin :cell-1}`.
       A binding no declaration wrote, a node a chain lays among them, holds
       no source.
-      ::link~(::bind | doc) ::link~(::any/binding | doc)
-      ::link~(::qlang/names | doc)
+      ::link~(::bind) ::link~(::any/binding)
+      ::link~(::qlang/names)
   ~~|
   ::kind
     | accepts |~~ The fields of the record, a map. ~~| ::map
@@ -60,13 +60,13 @@
         ~~|
     | proves :holdsTheValue
         |~~ The record of a name holds its value. ~~|
-        ~(:x |~~ One. ~~| 1 | env | get /x | value | eq 1)
+        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | value | eq 3)
     | proves :holdsThePage
         |~~ The record of a name holds its page. ~~|
-        ~(:x |~~ One. ~~| 1 | env | get /x | doc | content | eq "One.")
+        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | doc | content | eq "The side.")
     | proves :holdsTheName
         |~~ The record of a name holds the name. ~~|
-        ~(:x 1 | env | get /x | name | eq :x)
+        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | name | eq :Box/side)
     | proves :holdsNoSourceForANodeAChainLays
         |~~ A binding no declaration wrote, a node a chain lays, holds no
             source.
@@ -74,10 +74,10 @@
         ~(::number/add/addend | binding | source | eq null)
     | proves :readsBackFromItsPrint
         |~~ The record of a name reads back from its print. ~~|
-        ~(:x |~~ One. ~~| 5 | ::x | binding | :b it | print | parse | open | eq b)
+        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | eq (print | parse | answer))
     | proves :DocsNotGivenError/refusesARecordWithNoDocs
         |~~ A binding a reader writes holds every field of the record. ~~|
-        ~(::binding{:name :x} !| tag | eq ::binding/DocsNotGivenError)
+        ~(::binding{:name :rate} !| tag | eq ::binding/DocsNotGivenError)
     | proves :NameKindNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of a binding is a keyword. ~~|
         ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/NameKindNotTakenError)

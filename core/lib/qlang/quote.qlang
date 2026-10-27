@@ -13,7 +13,7 @@
       and `apply` runs one on a subject, `5 | apply ~(add 1)` answering
       `6`. A quote written in the step that hands it to a verb reads the
       names of that step wherever the verb runs it,
-      `:k 10 | [1 2] | map ~(add k)` answering `[11 12]`; one held as
+      `{:bonus 10} | with [/bonus] ~([1 2] | map ~(add bonus))` answering `[11 12]`; one held as
       data, in a name, a field or a page, runs in a lane of its own and
       reads no value the reader named.
 
@@ -34,8 +34,8 @@
       the laws of a name are quotes that answer true, and the trace of a
       failure holds the steps it skipped, a quote that runs again as held
       code runs.
-      ::link~(::call | doc) ::link~(::any/apply | doc)
-      ::link~(::call/ValueWithheldError | doc) ::link~(::qlang/code | doc)
+      ::link~(::call) ::link~(::any/apply)
+      ::link~(::call/ValueWithheldError) ::link~(::qlang/code)
   ~~|
   ::kind
     | accepts
@@ -46,7 +46,7 @@
         |~~ `::quote` builds code from the vector of its steps; a payload
             of another kind is refused, a vector under another tag among
             them, which `payload` opens.
-            ::link~(::quote | doc)
+            ::link~(::quote)
         ~~|
     | throws :ElementNotStepError
         |~~ Every element of a quote is a step: a literal, a path, a
@@ -55,7 +55,7 @@
             code, a value under a tag of another kind among them and the
             quote of a path alone, which a step writes bare, is refused at
             the index it stands at.
-            ::link~(::quote | doc)
+            ::link~(::quote)
         ~~|
     | throws :StepNotCommandError
         |~~ A step after the first is a command, a call, a declaration or
@@ -65,7 +65,7 @@
             the verb that takes it, `get` for a path and a literal, `tag`
             for a tag and `apply` for a quote. A value a step answers is
             built by a verb, `get [1 2]`, and a value under a tag by `tag`.
-            ::link~(::quote | doc) ::link~(::qlang/pipeline | doc)
+            ::link~(::quote) ::link~(::qlang/pipeline)
         ~~|
         ~(wires :message
               |~~ What the rule says of the value, the verb that takes it. ~~|
@@ -75,7 +75,7 @@
             that holds a name or a group, which the shape `get` builds
             computes, and `:message` writes that template, its parts
             computed written as quotes, `get [~(count)]`.
-            ::link~(::quote | doc) ::link~(::any/get | doc)
+            ::link~(::quote) ::link~(::any/get)
         ~~|
         ~(wires :message
               |~~ What the rule says of the literal, the template `get` builds it
@@ -90,7 +90,7 @@
             another language wrote, and where none does `:expected` lists
             what could stand there and a source cut short names the bracket
             it left open.
-            ::link~(::quote | doc) ::link~(::span | doc)
+            ::link~(::quote) ::link~(::span)
         ~~|
         ~(wires :source
               |~~ The line of the text where the reading stopped, cut around
@@ -138,7 +138,7 @@
         ~(~(1 | add 1 | mul 2) | count | eq 3)
     | proves :printsADeclarationALine
         |~~ A quote of declarations alone prints a declaration a line. ~~|
-        ~(~(:a 1 | :b 2) | toString | eq ":a 1\n| :b 2")
+        ~(~(:rate 2 | :fee 5) | toString | eq ":rate 2\n| :fee 5")
     | proves :equalsItsCopy
         |~~ Two quotes of one code are equal. ~~|
         ~(~(add 1) | eq ~(add 1))
@@ -170,7 +170,7 @@
         ~([[1] [2]] | tag ::quote !| get [~(tag) ~(index)] | eq [::quote/StepNotCommandError 1])
     | proves :StepNotCommandError/namesTheVerbThatTakesThePath
         |~~ A path after the first step names the verb that reads it. ~~|
-        ~([1 /a] | tag ::quote !| message | contains "write `get /a`")
+        ~([1 /price] | tag ::quote !| message | contains "write `get /price`")
     | proves :StepNotCommandError/keepsAValueAtTheHead
         |~~ A value at the head is the subject the steps after it run on.
         ~~|
@@ -179,7 +179,7 @@
         |~~ A value after a declaration is the subject the steps after it
             run on.
         ~~|
-        ~(get [~(~(:x 1) | first) 5] | tag ::quote | apply it | eq 5)
+        ~(get [~(~(:rate 2) | first) 5] | tag ::quote | apply it | eq 5)
     | proves :LiteralComputesError/refusesANameInAVector
         |~~ A vector that holds a name is refused, naming the template
             `get` builds.
@@ -223,8 +223,8 @@
       answering `"5 | mul 2"`. A link or a snippet out of a page answers
       the query it holds, without its tags, and the empty quote the empty
       string; `print` writes the quote with its brackets.
-      ::link~(::string/parse | doc) ::link~(::any/print | doc)
-      ::link~(::quote/open | doc)
+      ::link~(::string/parse) ::link~(::any/print)
+      ::link~(::quote/answer)
   ~~|
   ::fn
     | returns |~~ The text the quote reads back from. ~~| ::string
@@ -233,7 +233,7 @@
         ~(~(add 1) | toString | eq "add 1")
     | proves :readsBackAsTheQuote
         |~~ The text parsed again is the quote. ~~|
-        ~(~(add 1 | mul 2) | :q it | q | toString | parse | eq q)
+        ~(~(add 1 | mul 2) | eq (toString | parse))
     | proves :writesOneSpelling
         |~~ The spaces the quote was written with are not kept. ~~|
         ~("5 |  mul   2" | parse | toString | eq "5 | mul 2")
@@ -252,7 +252,7 @@
   |~~ Answers the vector of the quote's steps, the payload beneath its
       tag, `~(add 1 | mul 2) | toVec | count` answering `2`, as `toVec`
       of a set answers its elements.
-      ::link~(::set/toVec | doc) ::link~(::any/payload | doc)
+      ::link~(::set/toVec) ::link~(::any/payload)
   ~~|
   ::fn
     | returns |~~ The vector of the steps. ~~| ::vec
@@ -263,53 +263,66 @@
         ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
     | impl ::builtin{}
 
-:quote/open
-  |~~ Answers what the query the quote holds answers, run beneath
-      whatever tags stand over it, `~(1 | add 1) | open` answering `2`:
-      a link opens to the page it names, so `links | map ~open` reads every
-      page a page names in one query, and a snippet to the answer it
-      shows. The query is code held as data and runs in a lane of its
-      own: it reads the verbs of the tree and the names it binds, which
-      stay inside it, and no value the reader named,
-      `:k 5 | ~(k) | open` refused under `k`. It runs from null, not from the
-      subject of `open`: a query that reads a subject, `~(add 1)`, is
-      refused on null, and a quote meant for a subject runs against it
-      by `apply`, `5 | apply ~(add 1)`. Text is read as a quote first by
-      `parse`, `"1 | add 1" | parse | open`.
-      ::link~(::any/apply | doc) ::link~(::doc/links | doc)
-      ::link~(::doc/snippets | doc) ::link~(::qlang/code | doc)
+:quote/answer
+  |~~ Answers what the code the quote holds answers, run as a query
+      beneath whatever tags stand over it, `~(1 | add 1) | answer`
+      answering `2`, as the `answer` of a cell a host keeps reads what the
+      cell answered: a print reads back as its value by `parse | answer`,
+      and a snippet answers what it shows. The code is held as data and runs in a lane
+      of its own: it reads the verbs of the tree and the names it binds,
+      which stay inside it, and no value the reader named,
+      `{:rate 0.2} | with [/rate] ~(~(100 | mul rate) | answer)` refused
+      under `rate`. It runs from null, not from the subject of `answer`:
+      code that reads a subject, `~(add 1)`, is refused on null, and a
+      quote meant for a subject runs against it by `apply`,
+      `5 | apply ~(add 1)`. Text is read as a quote first by `parse`,
+      `"1 | add 1" | parse | answer`, and a link opens the page it names
+      by `open`.
+      ::link~(::any/apply) ::link~(::link/open) ::link~(::cell)
+      ::link~(::doc/snippets) ::link~(::qlang/code)
   ~~|
   ::fn
-    | returns |~~ What the query answers, a value of any kind. ~~| ::any
+    | returns |~~ What the code answers, a value of any kind. ~~| ::any
     | throws :SubjectNotQuoteError
-        |~~ `open` runs a quote, `~(1 | add 1) | open`: text is read as a
-            quote first by `parse`, `"1 | add 1" | parse | open`, and the
-            links of a page are read by `links`,
-            `::vec | doc | links | map ~open`.
+        |~~ `answer` runs a quote, `~(1 | add 1) | answer`: text is read
+            as a quote first by `parse`, `"1 | add 1" | parse | answer`.
         ~~|
-    | proves :runsALink
-        |~~ A link opens to the answer of its query. ~~|
-        ~(|~~ ::link~(1 | add 1) ~~| | links | first | open | eq 2)
-    | proves :runsASnippet
-        |~~ A snippet opens to what it shows. ~~|
-        ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | open | eq [1 2 3])
+    | proves :answersTheNameALinkHolds
+        |~~ The code of a link answers the name of the page it holds,
+            which `open` opens.
+        ~~|
+        ~(|~~ ::link~(::vec/sort) ~~| | links | first | answer | eq ::vec/sort)
+    | proves :answersWhatASnippetShows
+        |~~ A snippet answers what it shows. ~~|
+        ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | answer | eq [1 2 3])
     | proves :withholdsAValueOfTheReader
-        |~~ A value the reader named is withheld from the query. ~~|
-        ~(:k 5 | ~(k) | open !| tag | eq ::call/ValueWithheldError)
+        |~~ A value the reader named is withheld from the code: a stored
+            query of a tax reads no rate `with` gives the code around it.
+        ~~|
+        ~({:rate 0.2} | with [/rate] ~(~(100 | mul rate) | answer !| get [~(tag) ~(name)]) | eq [::call/ValueWithheldError :rate])
     | proves :keepsItsNamesInside
-        |~~ A name the query binds stays inside it. ~~|
-        ~(:k 5 | ~(:k 1) | open | k | eq 5)
+        |~~ A name the code binds stays inside it: the stored query of a
+            tax names its rate for its own steps alone.
+        ~~|
+        ~(~(:rate 0.2 | 100 | mul rate) | answer | get [~(it) ~(env | has :rate)] | eq [20 false])
     | proves :runsFromNull
-        |~~ The query runs from null. ~~|
-        ~(~(tag) | open | eq ::null)
+        |~~ The code runs from null. ~~|
+        ~(~(tag) | answer | eq ::null)
     | proves :runsTextReadByParse
-        |~~ Text read as a quote by `parse` opens. ~~|
-        ~("1 | add 1" | parse | open | eq 2)
+        |~~ Text read as a quote by `parse` answers what it spells. ~~|
+        ~("1 | add 1" | parse | answer | eq 2)
     | proves :SubjectNotQuoteError/refusesAString
-        |~~ Text is no quote until `parse` reads it. ~~|
-        ~("1 | add 1" | open !| get [~(tag) ~(subject | found | tag)] | eq [::quote/open/SubjectNotQuoteError ::string])
+        |~~ Text is no quote until `parse` reads it, and `answer` called by
+            its address refuses it under itself.
+        ~~|
+        ~("1 | add 1" | quote/answer !| get [~(tag) ~(subject | found | tag)] | eq [::quote/answer/SubjectNotQuoteError ::string])
+    | proves :meetsNoTextUnderItsName
+        |~~ Text meets no verb of the name `answer`, which a quote answers
+            among the kinds that answer what their code answered.
+        ~~|
+        ~("1 | add 1" | answer !| get [~(tag) ~(addresses | has ::quote/answer)] | eq [::call/KindAnswersNoVerbError true])
     | proves :refusesAQueryThatReadsASubject
-        |~~ A query that reads a subject is refused on null. ~~|
-        ~(~(add 1) | open !| tag | eq ::number/add/SubjectNotNumberError)
+        |~~ Code that reads a subject is refused on null. ~~|
+        ~(~(add 1) | answer !| tag | eq ::number/add/SubjectNotNumberError)
     | impl ::builtin{}
 

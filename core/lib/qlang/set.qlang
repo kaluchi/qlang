@@ -10,7 +10,7 @@
 :set
   |~~ A set is a vector in the one order without duplicates, `#[1 2 3]`:
       the answer of `toSet` and of `keys`, and the value to ask whether it
-      holds an element, `#[:a :b] | has :a` answering `true`. Its order is
+      holds an element, `#[:tea :cake] | has :tea` answering `true`. Its order is
       the one order of values, never the order written, `#[3 1 3]`
       answering `#[1 3]`.
 
@@ -31,7 +31,7 @@
       and `union`, `inter` and `minus` combine sets.
       ::snippet~(::set | manifest) lists its own verbs and refusals, and
       ::snippet~(::vec | manifest) the verbs of vectors it answers.
-      ::link~(::vec | doc) ::link~(::qlang/values | doc)
+      ::link~(::vec) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts
@@ -42,11 +42,11 @@
     | throws :PayloadKindNotTakenError
         |~~ `::set` builds a set from a vector, `::set[3 1 3]`; a payload
             of another kind is refused, a vector under another tag among
-            them, which `payload` opens, `::T[3 1] | payload | tag ::set`.
+            them, which `payload` opens, `::Scores[3 1] | payload | tag ::set`.
         ~~|
     | proves :dropsDuplicates
         |~~ A set literal drops duplicates. ~~|
-        ~("#[3 1 3]" | parse | open | eq #[1 3])
+        ~("#[3 1 3]" | parse | answer | eq #[1 3])
     | proves :buildsFromAVector
         |~~ A vector under `::set` is its distinct elements. ~~|
         ~([3 1 3] | tag ::set | eq ([3 1 3] | toSet))
@@ -58,21 +58,21 @@
         ~("#{1}" | parse !| message | contains "#[")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::set{:not :a-vec} !| get [~(tag) ~(found | tag)] | eq [::set/PayloadKindNotTakenError ::map])
+        ~(::set{:tea 4} !| get [~(tag) ~(found | tag)] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{}
 
 :set/sort
   |~~ Answers the vector of the elements in the order the key ranks them,
-      the one order without a key: `#[{:n 2} {:n 1}] | sort /n`
-      answers `[{:n 1} {:n 2}]`, and a key under `desc` ranks from the
+      the one order without a key: `#[{:age 41} {:age 30}] | sort /age`
+      answers `[{:age 30} {:age 41}]`, and a key under `desc` ranks from the
       greatest down, `#[1 2 3] | sort ~(desc)` answering `[3 2 1]`. A set
       keeps no order but the one order, so the answer is a vector, and
       `toSet` after it brings the set back in the one order. The key is
       code, a quote run on each element with the element as its subject;
       a value computed at the call instead is refused under the
       input.
-      ::link~(::vec/sort | doc) ::link~(::set/reverse | doc)
-      ::link~(::desc | doc)
+      ::link~(::vec/sort) ::link~(::set/reverse)
+      ::link~(::desc)
   ~~|
   ::fn
     | takes :key
@@ -81,8 +81,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /n)`, it runs
-            on each element, while `(get /n)` is computed once at the call,
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it runs
+            on each element, while `(get /age)` is computed once at the call,
             against the set, and refused with what it answered.
         ~~|
     | returns
@@ -90,10 +90,10 @@
         ::vec
     | proves :answersAVector
         |~~ The sorted elements are a vector. ~~|
-        ~(#[:y :x :z] | sort | eq [:x :y :z])
+        ~(#[:tea :cake :jam] | sort | eq [:cake :jam :tea])
     | proves :ranksByTheKey
         |~~ A key ranks the elements by what it answers. ~~|
-        ~(#[{:n 2} {:n 1}] | sort /n | eq [{:n 1} {:n 2}])
+        ~(#[{:age 41} {:age 30}] | sort /age | eq [{:age 30} {:age 41}])
     | proves :descendsByADescendingKey
         |~~ A key under `desc` ranks from the greatest down. ~~|
         ~(#[1 2 3] | sort ~(desc) | eq [3 2 1])
@@ -107,17 +107,17 @@
 
 :set/reverse
   |~~ Answers the vector of the elements from the greatest down,
-      `#[:a :b :c] | reverse` answering `[:c :b :a]`, where a vector
-      reverses the order it was written in, `[3 1 2] | reverse` answering
-      `[2 1 3]`. A set keeps no order but the one order, so the answer is
-      a vector, and `toSet` after it gives the set back.
-      ::link~(::set/sort | doc) ::link~(::vec/reverse | doc)
+      `#[:tea :cake :jam] | reverse` answering `[:tea :jam :cake]`, where
+      a vector reverses the order it was written in, `[3 1 2] | reverse`
+      answering `[2 1 3]`. A set keeps no order but the one order, so the
+      answer is a vector, and `toSet` after it gives the set back.
+      ::link~(::set/sort) ::link~(::vec/reverse)
   ~~|
   ::fn
     | returns |~~ The elements from the greatest down, a vector. ~~| ::vec
     | proves :answersAVector
         |~~ The reversed elements are a vector. ~~|
-        ~(#[:a :b :c] | reverse | eq [:c :b :a])
+        ~(#[:tea :cake :jam] | reverse | eq [:tea :jam :cake])
     | proves :reversesTheOneOrderNotTheVector
         |~~ A vector reverses its order as written, its set the one order.
         ~~|
@@ -133,14 +133,14 @@
       shortest: `#[[1 1] [2 2]] | zip` answers `[[1 2] [1 2]]`, a vector,
       since two columns may be equal, as `sort` and `reverse` answer one.
       It takes no value.
-      ::link~(::vec/zip | doc) ::link~(::set/reverse | doc)
+      ::link~(::vec/zip) ::link~(::set/reverse)
   ~~|
   ::fn
     | returns |~~ The elements at each index, a vector each. ~~| ::vec
     | throws :ElementKindNotTakenError
         |~~ `zip` reads the vectors a set holds side by side; the path of
             its frame names the first element that is no vector, the
-            vectors its elements hold read first, `map /a | zip`.
+            vectors its elements hold read first, `map /scores | zip`.
         ~~|
     | proves :keepsEqualColumns
         |~~ The columns stand in a vector, two equal ones kept. ~~|
@@ -150,7 +150,7 @@
         ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
-        ~(#[{:a [1 2]} {:a [3 4]}] | map /a | zip | eq [[1 3] [2 4]])
+        ~(#[{:scores [1 2]} {:scores [3 4]}] | map /scores | zip | eq [[1 3] [2 4]])
     | impl ::builtin{}
 
 :set/groupBy
@@ -165,9 +165,9 @@
       literal and a tag name under that of its name, and two values whose
       text is one meet and are refused; a key of another kind is refused
       at its element. The key is code, a quote run on each element, or
-      null: `groupBy /k`, where `groupBy (get /k)` is refused under the
+      null: `groupBy /dept`, where `groupBy (get /dept)` is refused under the
       input.
-      ::link~(::vec/groupBy | doc) ::link~(::vec/indexBy | doc)
+      ::link~(::vec/groupBy) ::link~(::vec/indexBy)
   ~~|
   ::fn
     | takes :key
@@ -176,8 +176,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /k)`, it runs
-            on each element, while `(get /k)` is computed once at the call,
+        |~~ The key is a path, a quote or null: written `~(get /dept)`, it
+            runs on each element, while `(get /dept)` is computed once at the call,
             against the set, and refused with what it answered.
         ~~|
     | returns
@@ -214,7 +214,7 @@
         ~([1 1] | get [~(groupBy) ~(toSet | groupBy)] | eq [{:"1" [1 1]} {:"1" #[1]}])
     | proves :filesUnderItselfWithoutAKey
         |~~ Without a key an element files under itself. ~~|
-        ~(#[:a :b] | groupBy | eq {:a #[:a] :b #[:b]})
+        ~(#[:tea :cake] | groupBy | eq {:cake #[:cake] :tea #[:tea]})
     | proves :filesANumberUnderItsText
         |~~ A number files under the keyword of its text. ~~|
         ~(#[1 2] | groupBy | keys | eq #[:"1" :"2"])
@@ -234,7 +234,7 @@
         |~~ A key written without its quote mark is refused under the
             input.
         ~~|
-        ~(#[{:k 1}] | groupBy (get /k) !| tag | eq ::set/groupBy/KeyKindNotTakenError)
+        ~(#[{:dept :ops}] | groupBy (get /dept) !| tag | eq ::set/groupBy/KeyKindNotTakenError)
     | proves :KeyAnswerKindNotTakenError/refusesAVectorKey
         |~~ An element that is a vector files under no key, and is refused
             with the kinds a key files under.
@@ -249,9 +249,9 @@
       takes the set `#[1 2]`. `toSet` turns the vector back into the set.
       A map has no `toVec`: its pairs are `entries`, its keys `keys` and
       its values `vals`; and the characters of a string are `split ""`.
-      ::link~(::vec/toSet | doc) ::link~(::map/entries | doc)
-      ::link~(::map/keys | doc) ::link~(::map/vals | doc)
-      ::link~(::string/split | doc)
+      ::link~(::vec/toSet) ::link~(::map/entries)
+      ::link~(::map/keys) ::link~(::map/vals)
+      ::link~(::string/split)
   ~~|
   ::fn
     | returns |~~ The vector of the elements. ~~| ::vec
@@ -259,7 +259,7 @@
         |~~ A map is led to its pairs and its values, the verbs that
             answer a vector, and a string to `split`.
         ~~|
-        ~(get [~({:a 1} | toVec !| nearest) ~("ab" | toVec !| nearest)] | eq [[:entries :vals] [:split]])
+        ~(get [~({:id 7} | toVec !| nearest) ~("tea" | toVec !| nearest)] | eq [[:entries :vals] [:split]])
     | proves :keepsTheVerbsOfVectorsOnAVector
         |~~ The vector of a set takes as a vector, the set as a set. ~~|
         ~(#[3 1 2] | get [~(toVec | take 2) ~(take 2)] | eq [[1 2] #[1 2]])
@@ -272,7 +272,7 @@
   |~~ Answers the set itself under the tags it came with,
       `::Box#[2 1] | toSet` answering `::Box#[1 2]`, so `map ~toSet`
       turns vectors and sets into sets; `distinct` answers as it does.
-      ::link~(::vec/toSet | doc) ::link~(::set/distinct | doc)
+      ::link~(::vec/toSet) ::link~(::set/distinct)
   ~~|
   ::fn
     | returns |~~ The set itself. ~~| ::set
@@ -288,7 +288,7 @@
   |~~ The name other languages give `toSet`: answers the set itself under
       the tags it came with, as `toSet` does,
       `::Box#[2 1] | distinct` answering `::Box#[1 2]`.
-      ::link~(::set/toSet | doc) ::link~(::vec/distinct | doc)
+      ::link~(::set/toSet) ::link~(::vec/distinct)
   ~~|
   ::fn
     | returns |~~ The set itself. ~~| ::set
@@ -299,14 +299,14 @@
 
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and
-      under the tags the two share: `#[:a :b] | union #[:b :c]` answers
-      `#[:a :b :c]`. The other value is a set the call gives; a vector or
-      a map beside a set is refused under the input, and so is a call
-      that gives none, and the parts a call computes against one subject
-      unite by `unionOf`. `minus` and `inter` answer the difference and
-      the common part.
-      ::link~(::set/minus | doc) ::link~(::set/inter | doc)
-      ::link~(::vec/union | doc) ::link~(::any/unionOf | doc)
+      under the tags the two share: `#[:tea :cake] | union #[:cake :jam]`
+      answers `#[:cake :jam :tea]`. The other value is a set the call
+      gives; a vector or a map beside a set is refused under the input,
+      and so is a call that gives none, and the parts a call computes
+      against one subject unite by `unionOf`. `minus` and `inter` answer
+      the difference and the common part.
+      ::link~(::set/minus) ::link~(::set/inter)
+      ::link~(::vec/union) ::link~(::any/unionOf)
   ~~|
   ::fn
     | takes :other |~~ The other set, which the call gives. ~~| /0 ::set
@@ -330,13 +330,13 @@
         ~~|
     | proves :mergesTwoSets
         |~~ The union holds the elements of either. ~~|
-        ~(#[:a :b] | union #[:b :c] | eq #[:a :b :c])
+        ~(#[:tea :cake] | union #[:cake :jam] | eq #[:cake :jam :tea])
     | proves :unitesSeveralOneAfterAnother
         |~~ Several sets unite one after another. ~~|
         ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
     | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | union [:b] !| tag | eq ::set/union/OtherKindNotTakenError)
+        ~(#[:tea] | union [:cake] !| tag | eq ::set/union/OtherKindNotTakenError)
     | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1] #[2]] | union !| tag | eq ::set/union/OtherNotGivenError)
@@ -347,13 +347,13 @@
 
 :set/minus
   |~~ Answers the set of the elements of the subject the other set does
-      not hold, under the tags the two share: `#[:a :b :c] | minus #[:b]`
-      answers `#[:a :c]`. The other value is a set the call gives; a
+      not hold, under the tags the two share:
+      `#[:tea :cake :jam] | minus #[:cake]` answers `#[:jam :tea]`. The other value is a set the call gives; a
       vector or a map beside a set is refused under the input, and so is
       a call that gives none. `union` and `inter` answer the whole and the
       common part.
-      ::link~(::set/union | doc) ::link~(::set/inter | doc)
-      ::link~(::vec/minus | doc)
+      ::link~(::set/union) ::link~(::set/inter)
+      ::link~(::vec/minus)
   ~~|
   ::fn
     | takes :other |~~ The set whose elements go, which the call gives. ~~| /0 ::set
@@ -377,13 +377,13 @@
         ~~|
     | proves :removesTheOtherElements
         |~~ The elements of the other set go. ~~|
-        ~(#[:a :b :c] | minus #[:b] | eq #[:a :c])
+        ~(#[:tea :cake :jam] | minus #[:cake] | eq #[:jam :tea])
     | proves :takesSeveralOneAfterAnother
         |~~ Several sets go one after another. ~~|
         ~(#[1 2 3] | minus #[2] | minus #[3] | eq #[1])
     | proves :OtherKindNotTakenError/refusesAMap
         |~~ A map beside a set is refused under the input. ~~|
-        ~(#[:a] | minus {:a 1} !| tag | eq ::set/minus/OtherKindNotTakenError)
+        ~(#[:tea] | minus {:tea 4} !| tag | eq ::set/minus/OtherKindNotTakenError)
     | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1] #[2]] | minus !| tag | eq ::set/minus/OtherNotGivenError)
@@ -394,13 +394,14 @@
 
 :set/inter
   |~~ Answers the set of the elements both sets hold, under the tags the
-      two share: `#[:a :b :c] | inter #[:b :d]` answers `#[:b]`, and
+      two share: `#[:tea :cake :jam] | inter #[:cake :pie]` answers
+      `#[:cake]`, and
       whether the set holds each of several elements is
       `inter #[1 2] | eq #[1 2]`. The other value is a set the call
       gives; a vector or a map beside a set is refused under the input,
       and so is a call that gives none.
-      ::link~(::set/union | doc) ::link~(::set/minus | doc)
-      ::link~(::vec/inter | doc) ::link~(::vec/has | doc)
+      ::link~(::set/union) ::link~(::set/minus)
+      ::link~(::vec/inter) ::link~(::vec/has)
   ~~|
   ::fn
     | takes :other |~~ The set whose elements stay, which the call gives. ~~| /0 ::set
@@ -423,7 +424,7 @@
         ~~|
     | proves :keepsTheCommonElements
         |~~ The elements both hold stay. ~~|
-        ~(#[:a :b :c] | inter #[:b :d] | eq #[:b])
+        ~(#[:tea :cake :jam] | inter #[:cake :pie] | eq #[:cake])
     | proves :asksForSeveralElements
         |~~ A set holds each of several when crossing with them keeps them
             all.
@@ -431,7 +432,7 @@
         ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
     | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:a] | inter [:a] !| tag | eq ::set/inter/OtherKindNotTakenError)
+        ~(#[:tea] | inter [:tea] !| tag | eq ::set/inter/OtherKindNotTakenError)
     | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
         ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/OtherNotGivenError)

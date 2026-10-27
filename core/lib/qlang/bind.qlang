@@ -3,19 +3,23 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :bind
-  |~~ A declaration, `:name body`, names a value for the steps after it;
-      it writes its `::binding` into the scope where it stands:
-      `{:qty 2 :price 3} | :r it | get /qty | mul (r | get /price)` keeps the
-      record for a later step and answers `6`. The value in the pipe
-      passes on unchanged; a group and a quote a verb runs each close the
-      names declared inside, the quotes of a template `get` runs are forks
-      of their own, and a name is declared once in its scope.
+  |~~ A declaration, `:name body`, names what its body answers for the
+      steps after it; it writes its `::binding` into the scope where it
+      stands. At the top of a query, of a source and of a cell it declares
+      a word, a kind, a verb or a node under a noun,
+      `:number/double ~(mul 2) | 5 | double` answering `10`, and a value
+      under a bare name is refused there; code names values of its own,
+      `{:price 4 :qty 3} | apply ~(:order it | get /price | mul (order | get /qty))`
+      answering `12`. The value in the
+      pipe passes on unchanged; a group and a quote a verb runs each close
+      the names declared inside, the quotes of a template `get` runs are
+      forks of their own, and a name is declared once in its scope.
 
-      In a quote the step is a record, `~(:x 1) | first` answering
-      `::bind{:name :x :body 1}`: `:name` the keyword it binds,
+      In a quote the step is a record, `~(:rate 2) | first` answering
+      `::bind{:name :rate :body 2}`: `:name` the keyword it binds,
       `:docs` its pages and `:body` its body, the step after its name and
       its pages, which runs once where the declaration stands.
-      ::link~(::binding | doc) ::link~(::qlang/names | doc)
+      ::link~(::binding) ::link~(::qlang/names)
   ~~|
   ::kind
     | accepts
@@ -26,7 +30,7 @@
         |~~ `::bind` builds the step of a declaration from its record, a
             map; a payload of another kind is refused, a map under another
             tag among them.
-            ::link~(::bind | doc)
+            ::link~(::bind)
         ~~|
     | throws :PayloadNotSchemaError
         |~~ A `::bind` is a map of `:name`, a keyword, `:docs`, a vector
@@ -37,7 +41,7 @@
             group; the body is the step a quote holds, so the declaration
             `:inc add 1` is
             `get {:name :inc :body ~(~(add 1) | first)} | tag ::bind`.
-            ::link~(::bind | doc)
+            ::link~(::bind)
         ~~|
         ::call/PayloadNotSchemaError
     | throws :NameNotCallableError
@@ -46,7 +50,7 @@
             it, and no word of a literal, which a step reads as the value,
             but for a label: `:"a b"` names nothing a step calls. `:name`
             holds the name, and `:message` what the rule says of it.
-            ::link~(::bind | doc) ::link~(::qlang/names | doc)
+            ::link~(::bind) ::link~(::qlang/names)
         ~~|
         ~(wires :message |~~ What the rule of a name says of the name. ~~| ::string
           | wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
@@ -54,8 +58,8 @@
         |~~ A body that is a literal computes nothing: a name or a group
             inside it is refused, and `:message` writes the template `get`
             builds the shape from, its parts computed written as quotes,
-            `:x (get [~(y)])`.
-            ::link~(::bind | doc) ::link~(::any/get | doc)
+            `:ends (get [~(first) ~(last)])`.
+            ::link~(::bind) ::link~(::any/get)
         ~~|
         ~(wires :message
               |~~ What the rule says of the literal, the template `get` builds it
@@ -70,7 +74,7 @@
             `:noun` the noun no declaration made. The noun is declared
             first, a kind by its chain or by its page alone, and the names
             under it after.
-            ::link~(::bind | doc)
+            ::link~(::bind)
         ~~|
         ~(wires :name |~~ The name declared. ~~| ::keyword
           | wires :noun |~~ The noun its path names, which no declaration names. ~~| ::tag)
@@ -86,8 +90,8 @@
             declaration is refused, `:name` naming it and `:noun` the
             label or the verb it is under. A page and a law are declared
             by a name under any of them.
-            ::link~(::kind | doc) ::link~(::fn | doc)
-            ::link~(::bind | doc)
+            ::link~(::kind) ::link~(::fn)
+            ::link~(::bind)
         ~~|
         ~(wires :name
               |~~ The name declared outside the chain that holds what it
@@ -104,7 +108,7 @@
             where it stands, `:name` the name. A group and a quote open
             scopes of their own, where a name of the scope around them is
             shadowed, so a second value takes another name or a group of
-            its own, `(:k 2 | k)`. The recipe
+            its own, `(:rate 3 | rate)`. The recipe
             of a verb runs in a scope its call opens with `args` and each
             input, so a step of the recipe declares none of them again: the
             recipe reads an input by its name, and a value of its own takes
@@ -113,9 +117,25 @@
             `:vec/second ~(get /1)`, and replaces none of its names, and a
             source of the root that declares a name the root holds is
             refused.
-            ::link~(::bind | doc)
+            ::link~(::bind)
         ~~|
         ~(wires :name |~~ The name declared again. ~~| ::keyword)
+    | throws :ValueAtTheTopError
+        |~~ The top of a query, of a source and of a cell, its steps and the
+            steps of a group among them, declares the words its steps share:
+            a kind, by its chain or by its page alone, a verb or a recipe
+            under the label of the values it serves,
+            `:number/double ~(mul 2)`, and a node under a noun. A value under
+            a bare name is refused there, `:name` naming it: a value goes on
+            in the subject, several as the record `get` builds,
+            `{:price 4 :qty 3} | get {:price /price :total ~(mulOf /price /qty)}`,
+            a name for the code of one step is given by `with`,
+            `{:cap 4 :bids [1 5 10]} | with [/cap /bids] ~(bids | filter ~(gt cap))`,
+            and code run again is a verb.
+            ::link~(::any/with) ::link~(::any/get)
+            ::link~(::bind)
+        ~~|
+        ~(wires :name |~~ The name of the value declared at the top. ~~| ::keyword)
     | proves :holdsTheNameAndTheBody
         |~~ A declaration holds its name and its body. ~~|
         ~(~(:inc add 1) | first | get [/name /body/name] | eq [:inc :add])
@@ -140,11 +160,11 @@
         |~~ A doc as the body is refused; it reads as the page of the
             declaration.
         ~~|
-        ~(get {:name :k :body ~(~(|~~ x ~~|) | first)} | tag ::bind
+        ~(get {:name :note :body ~(~(|~~ Call back on Monday. ~~|) | first)} | tag ::bind
           !| get [~(tag) ~(field)] | eq [::bind/PayloadNotSchemaError :body])
     | proves :PayloadNotSchemaError/bindsADocInAGroup
         |~~ A doc in a group is the value a declaration binds. ~~|
-        ~(:k (|~~ x ~~|) | k | content | eq "x")
+        ~(apply ~(:note (|~~ Call back on Monday. ~~|) | note | content) | eq "Call back on Monday.")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a declaration. ~~|
         ~(::bind[1] !| get [~(tag) ~(expected)] | eq [::bind/PayloadKindNotTakenError #[::map]])
@@ -156,7 +176,7 @@
         ~({:name :true :body 1} | tag ::bind !| tag | eq ::bind/NameNotCallableError)
     | proves :LiteralComputesError/refusesANameInsideTheBody
         |~~ A body that is a vector of a name computes, and is refused. ~~|
-        ~({:name :x :body [::call{:name :y}]} | tag ::bind !| tag | eq ::bind/LiteralComputesError)
+        ~({:name :point :body [::call{:name :width}]} | tag ::bind !| tag | eq ::bind/LiteralComputesError)
     | proves :NounNotDeclaredError/refusesANameUnderNoNoun
         |~~ A name under a noun no declaration made is refused, naming the
             noun.
@@ -196,24 +216,24 @@
           | eq [true])
     | proves :NameDeclaredTwiceError/refusesASecondDeclaration
         |~~ A name declared again in its scope is refused. ~~|
-        ~(:k 1 | :k 2 !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :k])
+        ~(:Box |~~ A box. ~~| | :Box |~~ A crate. ~~| !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :Box])
     | proves :NameDeclaredTwiceError/letsAGroupDeclareAgain
         |~~ A group declares in a scope of its own, so it may name a name
             again.
         ~~|
-        ~(:k 1 | (:k 2 | k) | eq 2)
+        ~(:Box |~~ A box. ~~| | (:Box |~~ A crate. ~~| | ::Box | doc | content) | eq "A crate.")
     | proves :NameDeclaredTwiceError/letsAnElementDeclareAgain
         |~~ A declaration inside an element stays in it. ~~|
-        ~(:k 1 | get [~(:k 2 | k) ~(k)] | eq [2 1])
+        ~(:Box |~~ A box. ~~| | get [~(:Box |~~ A crate. ~~| | ::Box | doc | content) ~(::Box | doc | content)] | eq ["A crate." "A box."])
     | proves :NameDeclaredTwiceError/letsAModifierDeclareAgain
         |~~ A declaration inside a modifier stays in it. ~~|
-        ~(:k 1 | 5 | add (:k 2 | k) | eq 7)
+        ~({:rate 2} | with [/rate] ~(5 | mul (:rate 3 | rate) | mul rate) | eq 30)
     | proves :NameDeclaredTwiceError/letsAQuoteDeclareAgain
         |~~ A quote declares in a scope of its own. ~~|
-        ~(:k 1 | apply ~(:k 2 | k) | eq 2)
+        ~({:rate 2} | with [/rate] ~(apply ~(:rate 3 | rate) | add rate) | eq 5)
     | proves :NameDeclaredTwiceError/refusesAnInputDeclaredInTheRecipe
         |~~ The recipe of a verb declares none of its inputs again. ~~|
-        ~(:number/m (::fn | takes :x |~~ How much. ~~| /0 | impl ~(:x 3 | add x)) | 1 | m 2 !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :x])
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(:by 3 | add by)) | 1 | plus 2 !| get [~(tag) ~(name)] | eq [::bind/NameDeclaredTwiceError :by])
     | proves :NameDeclaredTwiceError/refusesANameTheRootHolds
         |~~ A reader declares no name the root holds. ~~|
         ~(:vec/count ~(0) !| tag | eq ::bind/NameDeclaredTwiceError)

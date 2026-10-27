@@ -7,10 +7,10 @@
   |~~ A desc turns a value to descend: among values of this kind the one
       order runs in reverse, so a key of `sort`, `min` or `max` under
       `desc` ranks the greater first, whatever the kind it ranks,
-      `[{:n 1} {:n 2}] | sort ~(get /n | desc)` answering `[{:n 2} {:n 1}]`.
-      One index of a vector key descends alone,
-      `sort ~(get [~(get /n | desc) /name])` ranking by n descending, then by
-      name.
+      `[{:score 7} {:score 9}] | sort ~(get /score | desc)` answering
+      `[{:score 9} {:score 7}]`. One index of a vector key descends alone,
+      `sort ~(get [~(get /score | desc) /name])` ranking by score
+      descending, then by name.
 
       It is a value under its tag, `::desc#5`, which `desc` lays over
       a value and takes off a value turned, `5 | desc | desc` answering
@@ -18,8 +18,8 @@
       ranks them, `1 | desc | gt (2 | desc)` answering `true`, and a value
       turned beside one that is not is refused as a pair of two kinds,
       `gt (2 | desc)` turning the other first.
-      ::link~(::vec/sort | doc) ::link~(::any/gt | doc)
-      ::link~(::qlang/values | doc)
+      ::link~(::vec/sort) ::link~(::any/gt)
+      ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ Any value, its rank in the one order turned around. ~~|

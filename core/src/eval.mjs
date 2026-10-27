@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withCall, originIn, ownScopeOf
+  withWritten, writtenIn, ownScopeOf
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -18,12 +18,12 @@ import {
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
-  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
-  commandStep, groupStep
+  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf, declaresAName,
+  commandStep, groupStep, declarationStep, namesAQuoteReads
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld, residenceOnSubject,
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
@@ -32,12 +32,11 @@ import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
   notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
 } from './address.mjs';
-import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall, servesTheSubject } from './dispatch.mjs';
+import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall } from './dispatch.mjs';
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
 
 // [QSBLD#label]
 const ConstructTagNamesAValueError = declareRefusal('construct/TagNamesAValueError');
-const CallValueMeetsVerbError = declareRefusal('call/ValueMeetsVerbError');
 const BindNounNotDeclaredError = declareRefusal('bind/NounNotDeclaredError');
 const CallValueTakesNoModifiersError = declareRefusal('call/ValueTakesNoModifiersError');
 const FnRecipeMissingError = declareRefusal('fn/RecipeMissingError');
@@ -46,15 +45,24 @@ const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsCh
 // [QSDSP#refusal]
 const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
-// [QSQUO#step]
-export async function evalPipeline(steps, state, origin = originOf(steps)) {
+// [QSNAM#declare]
+const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
+
+// [QSNAM#value]
+const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
+
+// [QSQUO#step], [QSNAM#declare]
+export async function evalPipeline(steps, state, origin = originOf(steps), atTheTop = false) {
   let current = state;
   for (const [index, step] of steps.entries()) {
-    const at = { steps, index, origin };
+    const at = { steps, index, origin, atTheTop };
     current = isFailStep(step) ? await applyFailTrack(current, step.payload[0], at) : await applySuccessTrack(current, step, at);
   }
   return current;
 }
+
+// [QSNAM#declare]
+export const evalAtTheTop = (steps, state) => evalPipeline(steps, state, originOf(steps), true);
 
 // [QSERR#trace]
 async function evalStep(step, state, at) {
@@ -126,9 +134,9 @@ export async function errorAtRestOf(raised, state) {
   }
 }
 
-// [QSNAM#scope]
+// [QSNAM#scope], [QSNAM#declare]
 async function evalGroup(group, state, at) {
-  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload)));
+  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload), at?.atTheTop === true));
 }
 
 function evalItself(step, state) {
@@ -193,7 +201,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -212,7 +220,7 @@ async function evalBind(bind, state, at) {
     if (isErrorValue(doc)) return withPipeValue(state, doc);
     docs.push(doc);
   }
-  const body = bind.has('body') ? await evalStep(bind.get('body'), state) : null;
+  const body = !bind.has('body') ? null : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (nounName !== null && isFn(answered)) refuseAnInputOfTheWiring(state.scope, nounName, answered);
@@ -220,7 +228,9 @@ async function evalBind(bind, state, at) {
     throw new BindWrittenOutsideItsChainError({ name: makeKeyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
   const origin = makeKeyword(at.origin);
-  const declared = scopeSet(state.scope, name, makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin }));
+  const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
+  if (at.atTheTop && nounName === null && bind.has('body') && !isKind(answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
+  const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
@@ -302,17 +312,17 @@ function nodesOfFunction(fn, address, scope, origin) {
   return layRest(chain);
 }
 
-// [QSNAM#scope]
+// [QSNAM#scope], [QSNAM#reach]
 function declaresWhatTheCallBinds(steps, scope, name) {
   const recipe = scope.get(RECIPE_KEY);
   return recipe !== undefined && recipe.steps === steps && recipe.names.has(name);
 }
 
-async function evalCall(call, state) {
+async function evalCall(call, state, at) {
   const name = call.get('name').name;
   const modifierSteps = call.get('modifiers') ?? [];
-  if (name.includes('/')) return await callByAddress(call, name, modifierSteps, state);
-  return withRepairOfPath(await callByName(name, modifierSteps.map(step => modifierOf(step, state)), state, call), call, state.pipeValue, state.scope);
+  if (name.includes('/')) return await callByAddress(call, name, modifierSteps, state, at);
+  return withRepairOfPath(await callByName(name, modifierSteps.map(step => modifierOf(step, state)), state, call, at), call, state.pipeValue, state.scope);
 }
 
 // [QSPTH#code], [QSPTH#verbs]
@@ -352,8 +362,8 @@ const slotRefusedIn = facts => {
   return null;
 };
 
-// [QSNAM#reach], [QSQUO#held], [QSDSP#residence]
-async function callByName(lookupName, modifiers, state, call) {
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value]
+async function callByName(lookupName, modifiers, state, call, at) {
   refuseWithheld(state.scope, lookupName);
   const reach = bareNameReach(state.scope, lookupName, state.pipeValue);
   if (reach === null) {
@@ -366,29 +376,7 @@ async function callByName(lookupName, modifiers, state, call) {
     throw new CallUnknownNameError({ name: makeKeyword(lookupName), nearest: nearestNames(state.scope, lookupName), addresses });
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
-  const verb = residenceOnSubject(state.scope, lookupName, state.pipeValue);
-  if (verb !== null && !DECLARED_BY_A_CHAIN.has(reach.record) && servesTheSubject(verb, state.pipeValue) && !readsTheValueItHolds(verb, reach.record, state)) {
-    throw new CallValueMeetsVerbError({ name: makeKeyword(lookupName), addresses: makeSet([makeTag(verb.get('name').name)]) });
-  }
-  return await applyBinding(reach.record, lookupName, lookupName, modifiers, state);
-}
-
-// [QSDSP#residence]
-// [QSNAM#scope], [QSBLD#recipe]
-const DECLARED_BY_A_CHAIN = new WeakSet();
-
-function declaredBinding(name, value) {
-  const binding = makeBinding({ name, value });
-  DECLARED_BY_A_CHAIN.add(binding);
-  return binding;
-}
-
-function readsTheValueItHolds(verb, record, state) {
-  const address = verb.get('name').name;
-  if (!isNodeOfAPart(verb, state.scope)) return false;
-  const [labelName, name] = splitAddress(address);
-  const parts = wiringOf(walkToKinds(state.pipeValue, [labelName])?.served);
-  return parts !== undefined && parts.get(name) === bindingValueOf(record);
+  return await applyBinding(reach.record, lookupName, lookupName, modifiers, state, at);
 }
 
 // [QSBLD#value]
@@ -402,9 +390,13 @@ async function partCalled(address, modifiers, state) {
 }
 
 // [QSNAM#value]
-async function applyBinding(entry, name, lastName, modifiers, state) {
-  return valueCalled(bindingValueOf(entry), name, lastName, modifiers, state);
+async function applyBinding(entry, name, lastName, modifiers, state, at) {
+  const value = bindingValueOf(entry);
+  if (modifiers.length === 0 && isALaterStep(at)) throw new CallValueAsALaterStepError({ name: makeKeyword(name), found: value, addresses: addressesOf(state.scope, lastName) });
+  return valueCalled(value, name, lastName, modifiers, state);
 }
+
+const isALaterStep = at => at !== undefined && at.index > 0 && !isFailStep(at.steps[at.index]) && !declaresAName(at.steps[at.index - 1]);
 
 // [QSNAM#value], [QSDSP#residence]
 function valueCalled(value, name, lastName, modifiers, state) {
@@ -412,15 +404,15 @@ function valueCalled(value, name, lastName, modifiers, state) {
   return withPipeValue(state, value);
 }
 
-// [QSNAM#address]
-async function callByAddress(call, address, modifierSteps, state) {
+// [QSNAM#address], [QSNAM#value]
+async function callByAddress(call, address, modifierSteps, state, at) {
   const record = nodeOf(state.scope, address);
   if (record === null) {
     throw new CallUnknownAddressError({ address: makeTag(address), nearest: nearestTagNames(state.scope, address) });
   }
   const modifiers = modifierSteps.map(step => modifierOf(step, state));
   if (isVerb(state.scope, address)) return await applyVerb(record, modifiers, state);
-  return await applyBinding(record, address, splitAddress(address)[1], modifiers, state);
+  return await applyBinding(record, address, splitAddress(address)[1], modifiers, state, at);
 }
 
 // [QSBLD#fn], [QSERR#site]
@@ -610,7 +602,7 @@ export async function callVerbOn(record, subject, state) {
   return (await applyVerb(record, [], withPipeValue(state, subject))).pipeValue;
 }
 
-// [QSBLD#fn], [QSHST#source], [QSBLD#recipe]
+// [QSBLD#fn], [QSHST#source], [QSBLD#recipe], [QSNAM#reach]
 async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
@@ -621,7 +613,8 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
 
 export async function applyFunction(fn, subject, args, state) {
   const at = { address: FN_CALL_ADDRESS, labelName: null, ofTheRoot: !isQuote(recipeOf(fn)) && isRootVerbScope(state.scope) };
-  return await callFunction(fn, at, args.map(value => () => value), withPipeValue(state, subject), state.flight);
+  const written = writtenBy(state);
+  return await callFunction(fn, at, args.map(value => () => quotesFilledWithin(value, written)), withPipeValue(state, subject), state.flight);
 }
 
 export async function inputsOfFunction(fn, args, state) {
@@ -667,7 +660,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
   if (isErrorValue(brought)) return brought;
   const ofTheAnswer = chain.invariants.filter(invariant => invariant.ofTheAnswer);
   if (ofTheAnswer.length === 0) return brought;
-  const answered = scopeSet(called.recipeScope, ANSWER_NAME, declaredBinding(makeKeyword(ANSWER_NAME), brought));
+  const answered = scopeSet(called.recipeScope, ANSWER_NAME, makeBinding({ name: makeKeyword(ANSWER_NAME), value: brought }));
   return await invariantRefusal(ofTheAnswer, address, state.pipeValue, called.state, answered, () => pour({ [`${ANSWER_NAME}/found`]: brought })) ?? brought;
 }
 
@@ -720,42 +713,128 @@ function tagsTheOperandsShare(chain, labelName, subject, given) {
   return tagsOver(subject).length === 0 ? tally.tags.map(makeTag) : null;
 }
 
-// [QSHST#source]
-function handedTo(primitive, chain, { values, origins }, state, flight) {
+// [QSHST#source], [QSQUO#held], [QSNAM#reach]
+function handedTo(primitive, chain, { values, state: called }, state, flight) {
   const asCode = inputsAsCode(primitive);
   if (asCode === undefined) return values;
-  const originOfQuote = quote => origins.get(quote);
+  const close = closerOf(called);
   const ofTheCall = code => (typeof code === 'function' ? Object.assign(code, { flight }) : code);
   return values.map((value, at) => {
     const { name, reading } = chain.inputs[at];
-    if (asCode.within?.has(name.name)) return quotesClosedIn(value, quote => stateOfOrigin(originOfQuote(quote)));
-    if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, originOfQuote, state));
+    if (asCode.within?.has(name.name)) return quotesClosedIn(value, close);
+    if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, close, called));
     if (!asCode.run?.has(name.name)) return value;
-    return reading.readsArgs ? value.map(element => codeOfArg(element, originOfQuote, state)) : ofTheCall(codeOfArg(value, originOfQuote, state));
+    return reading.readsArgs ? value.map(element => codeOfArg(element, close, state)) : ofTheCall(codeOfArg(value, close, state));
   });
 }
 
-function quotesClosedIn(value, stateOfQuote) {
-  if (isQuote(value)) return closeQuote(value, stateOfQuote(value));
+function closerOf(state, names) {
+  const written = writtenBy(state, names);
+  let lane;
+  return quote => {
+    const code = written(quote);
+    lane ??= laneStateOf(state);
+    return code === quote ? closeQuote(quote, lane) : closeWritten(code, lane);
+  };
+}
+
+const WRITTEN_HEADS = new WeakMap();
+
+function closeWritten(code, lane) {
+  let byLane = WRITTEN_HEADS.get(code);
+  if (byLane === undefined) WRITTEN_HEADS.set(code, byLane = new WeakMap());
+  let opened = byLane.get(lane.scope);
+  if (opened === undefined) {
+    const declared = code.slice(0, code.findIndex(step => !VALUES_WRITTEN.has(step))).map(step => {
+      return [step.get('name').name, makeBinding({ name: step.get('name'), docs: step.get('docs') ?? [], value: VALUES_WRITTEN.get(step), source: makeQuote([step]) })];
+    });
+    opened = { steps: makeQuote(code.slice(declared.length)), scope: scopeWith(lane.scope, declared) };
+    byLane.set(lane.scope, opened);
+  }
+  return closeQuote(opened.steps, withScope(lane, opened.scope));
+}
+
+function quotesClosedIn(value, closeOf) {
+  if (isQuote(value)) return closeOf(value);
   if (!holdsAQuote(value)) return value;
-  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, stateOfQuote));
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, closeOf));
   const header = value[TAG_HEADER_SYMBOL];
   const closed = isMap(value)
-    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, stateOfQuote)]))
-    : value.map(part => quotesClosedIn(part, stateOfQuote));
+    ? new Map([...value].map(([key, part]) => [key, quotesClosedIn(part, closeOf)]))
+    : value.map(part => quotesClosedIn(part, closeOf));
   if (header !== undefined) stampTagHeader(closed, header);
   return closed;
 }
 
-// [QSQUO#held]
-function keepOrigins(origins, value, origin, state) {
+// [QSQUO#held], [QSNAM#reach]
+function quotesWithin(value, into) {
   if (isQuote(value)) {
-    origins.set(value, origin.written ? origin : originIn(state, value) ?? origin);
+    into.add(value);
     return;
   }
-  if (isValueClass(value, 'underTag')) return keepOrigins(origins, value.payload, origin, state);
+  if (isValueClass(value, 'underTag')) return quotesWithin(value.payload, into);
   if (!holdsAQuote(value)) return;
-  for (const part of partsOfTemplate(value)) keepOrigins(origins, part, origin, state);
+  for (const part of partsOfTemplate(value)) quotesWithin(part, into);
+}
+
+function quotesFilledWithin(value, fill) {
+  if (isQuote(value)) return fill(value);
+  if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesFilledWithin(value.payload, fill));
+  if (!holdsAQuote(value)) return value;
+  const header = value[TAG_HEADER_SYMBOL];
+  const filledParts = isMap(value)
+    ? new Map([...value].map(([key, part]) => [key, quotesFilledWithin(part, fill)]))
+    : value.map(part => quotesFilledWithin(part, fill));
+  if (header !== undefined) stampTagHeader(filledParts, header);
+  return isMap(filledParts) ? filledParts : Object.freeze(filledParts);
+}
+
+const VALUES_NAMED = new WeakMap();
+
+function valuesNamedIn(scope) {
+  let named = VALUES_NAMED.get(scope);
+  if (named === undefined) {
+    named = new Map(nodesAndLabelsOf(scope).values.map(name => [name, scope.get(name)]));
+    VALUES_NAMED.set(scope, named);
+  }
+  return named;
+}
+
+const VALUES_WRITTEN = new WeakMap();
+
+function declarationWritten(name, record) {
+  const value = bindingValueOf(record);
+  const step = declarationStep(name, record.get('docs'), value);
+  VALUES_WRITTEN.set(step, value);
+  return step;
+}
+
+const FILLED = new WeakMap();
+
+function filled(quote, records) {
+  let byRecords = FILLED.get(quote);
+  if (byRecords === undefined) FILLED.set(quote, byRecords = new WeakMap());
+  let code = byRecords.get(records);
+  if (code === undefined) {
+    const read = namesAQuoteReads(quote).filter(name => records.has(name));
+    code = read.length === 0 ? quote : makeQuote([...read.map(name => declarationWritten(name, records.get(name))), ...quote]);
+    byRecords.set(records, code);
+  }
+  return code;
+}
+
+function writtenBy(state, names) {
+  let named;
+  const given = names === undefined ? undefined : new Map([...names].map(([name, value]) => [name, makeBinding({ name: makeKeyword(name), value })]));
+  const ofTheStep = () => named ??= given === undefined ? valuesNamedIn(ownScopeOf(state)) : new Map([...valuesNamedIn(ownScopeOf(state)), ...given]);
+  return quote => {
+    if (writtenIn(state, quote)) return filled(quote, ofTheStep());
+    return given === undefined ? quote : filled(quote, given);
+  };
+}
+
+function laneStateOf(state) {
+  return withScope(state, laneOf(ownScopeOf(state)));
 }
 
 const HOLDERS_OF_QUOTES = new WeakMap();
@@ -773,19 +852,22 @@ function holdsAQuote(value) {
   return holds;
 }
 
-function codeOfArg(value, originOfQuote, state) {
-  if (isQuote(value)) return codeFrom(value, originOfQuote(value));
-  return isPath(value) ? codeOfPath(value, state) : value;
+function codeOfArg(value, close, callState) {
+  if (isQuote(value)) return close(value);
+  return isPath(value) ? codeOfPath(value, callState) : value;
 }
 
 // [QSCOL#reduce]
-function foldingCodeOf(value, originOfQuote, state) {
-  const code = codeOfArg(value, originOfQuote, state);
+function foldingCodeOf(value, close, called) {
+  const code = codeOfArg(value, close, called);
   const onThePair = async (acc, element) => await code([acc, element]);
-  if (value.length !== 1 || !isCallStep(value[0]) || value[0].has('modifiers')) return onThePair;
+  if (!isQuote(value) || value.length !== 1 || !isCallStep(value[0]) || value[0].has('modifiers')) return onThePair;
   const call = value[0];
   const name = call.get('name').name;
-  const callerState = stateOfOrigin(originOfQuote(value));
+  const lane = laneStateOf(called);
+  const records = writtenIn(called, value) ? valuesNamedIn(ownScopeOf(called)) : new Map();
+  const read = namesAQuoteReads(value).filter(readName => records.has(readName));
+  const callerState = read.length === 0 ? lane : withScope(lane, scopeWith(lane.scope, read.map(readName => [readName, records.get(readName)])));
   const calledOn = invoke => async (acc, element) => {
     let answered;
     try {
@@ -804,18 +886,21 @@ function foldingCodeOf(value, originOfQuote, state) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [QSBLD#recipe]
+// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts) {
   const values = [];
-  const origins = new Map();
+  const written = new Set();
+  const writtenAt = [];
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
     if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values);
     values.push(value);
-    keepOrigins(origins, value, modifier.origin ?? heldIn(state), state);
+    writtenAt.push(modifier.written === true);
+    if (modifier.written === true) quotesWithin(value, written);
   }
-  const called = withCall(state, origins);
+  const called = withWritten(state, written);
+  if (recipeSteps !== null) handedToTheRecipe(values, writtenAt, called);
   let args = null;
   const argsValue = () => args ??= makeTagged(makeTag(address), values);
   if (chain.arity !== null && values.length > chain.arity) {
@@ -842,9 +927,27 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     if (isErrorValue(held)) return held;
     poured.push([name.name, read]);
     inputValues.push(held);
-    if (named) recipeScope.set(name.name, declaredBinding(name, held));
+    if (named) recipeScope.set(name.name, makeBinding({ name, value: held }));
   }
-  return { values: inputValues, given, origins, recipeScope, state: called };
+  return { values: inputValues, given, recipeScope, state: called };
+}
+
+// [QSQUO#held]
+function handedToTheRecipe(values, writtenAt, called) {
+  const written = writtenBy(called);
+  const named = valuesNamedIn(ownScopeOf(called));
+  for (const [at, value] of values.entries()) {
+    if (writtenAt[at]) {
+      values[at] = quotesFilledWithin(value, written);
+      continue;
+    }
+    const held = new Set();
+    quotesWithin(value, held);
+    for (const quote of held) {
+      const read = namesAQuoteReads(quote).find(name => named.has(name));
+      if (read !== undefined) throw new CallValueWithheldError({ name: makeKeyword(read) });
+    }
+  }
 }
 
 // [QSERR#site]
@@ -901,7 +1004,7 @@ function payloadHeldByItsKinds({ kinds, each }, tagName, payload, scope) {
   return Object.freeze(Array.from(payload, element => walkToKinds(element, kinds).served));
 }
 
-// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest]
+// [QSBLD#value], [QSLIT#tag], [QSHST#source], [QSERR#rest], [QSBLD#kind]
 async function underKind(tagName, kind, payload, state) {
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, tagName, payload, state.scope);
@@ -919,7 +1022,7 @@ async function underKind(tagName, kind, payload, state) {
   const constructs = handedWithin(constructorOf(kind), kind, state.scope)?.primitive;
   const constructed = constructs === undefined ? held : await heldAtTheDoor(constructs, () => constructs(held), tagName, [held]);
   const labelled = constructs !== undefined && tagOf(constructed).name === tagName ? constructed : makeTagged(makeTag(tagName), constructs === undefined ? payload : constructed, fields.length === 0 ? undefined : parts);
-  const refused = invariants.length === 0 ? null : await invariantRefusal(invariants, tagName, constructed, state, scopeWith(opened(), [...parts].map(([name, part]) => [name, declaredBinding(makeKeyword(name), part)])), () => ({ found: payload }));
+  const refused = invariants.length === 0 ? null : await invariantRefusal(invariants, tagName, constructed, state, scopeWith(opened(), [...parts].map(([name, part]) => [name, makeBinding({ name: makeKeyword(name), value: part })])), () => ({ found: payload }));
   return refused ?? labelled;
 }
 
@@ -971,22 +1074,15 @@ function closeQuote(quote, state) {
 
 // [QSQUO#held], [QSNAM#verb], [QSERR#trace]
 function modifierOf(step, state) {
-  if (isQuote(step)) return withOrigin(() => step, { state, written: true });
-  if (isTemplate(step)) return withOrigin(closeStep(step, state), { state, written: true });
+  if (isQuote(step)) return writtenInTheStep(() => step);
+  if (isTemplate(step)) return writtenInTheStep(closeStep(step, state));
   return closeStep(step, state);
 }
 
 // [QSQUO#held]
 const isTemplate = step => isConstructStep(step) || errorFieldsOf(step) !== null || isSet(step) || ((isVec(step) || isMap(step)) && step[TAG_HEADER_SYMBOL] === undefined);
 
-function withOrigin(code, origin) {
-  code.origin = origin;
-  return code;
-}
-
-function heldIn(state) {
-  return { state, written: false };
-}
+const writtenInTheStep = code => Object.assign(code, { written: true });
 
 // [QSPTH#code]
 function codeOfPath(path, callState) {
@@ -1002,30 +1098,12 @@ function codeOfPath(path, callState) {
 
 // [QSQUO#literal], [QSQUO#held]
 export function codeOf(code, callState) {
-  return codeFrom(code, originIn(callState, code) ?? heldIn(callState));
+  return closerOf(callState)(code);
 }
 
 // [QSPTH#template], [QSQUO#held], [QSNAM#scope]
 export function templateClosedIn(template, callState, names = new Map()) {
-  return quotesClosedIn(template, quote => {
-    const state = stateOfOrigin(originIn(callState, quote));
-    return withScope(state, scopeNaming(state.scope, names));
-  });
-}
-
-function scopeNaming(scope, names) {
-  let named = scope;
-  for (const [name, value] of names) named = scopeSet(named, name, makeBinding({ name: makeKeyword(name), value }));
-  return named;
-}
-
-// [QSQUO#held]
-function codeFrom(code, origin) {
-  return closeQuote(code, stateOfOrigin(origin));
-}
-
-function stateOfOrigin({ state, written }) {
-  return written ? state : withScope(state, laneOf(ownScopeOf(state)));
+  return quotesClosedIn(template, closerOf(callState, names));
 }
 
 const LANES = new WeakMap();
@@ -1035,6 +1113,8 @@ function laneOf(scope) {
   if (lane !== undefined) return lane;
   const { scope: kept, values } = nodesAndLabelsOf(scope);
   lane = kept.set(WITHHELD_KEY, new Set([...(scope.get(WITHHELD_KEY) ?? []), ...values]));
+  if (scope.has(QUERY_KEY)) lane.set(QUERY_KEY, scope.get(QUERY_KEY));
+  if (isRootVerbScope(scope)) markRootVerbScope(lane);
   LANES.set(scope, lane);
   return lane;
 }

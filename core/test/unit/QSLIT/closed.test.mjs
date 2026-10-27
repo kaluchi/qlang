@@ -1,5 +1,5 @@
 import { it, expect } from 'vitest';
-import { stepOf, refusalOf } from '../../helpers/read-text.mjs';
+import { refusalOf } from '../../helpers/read-text.mjs';
 
 it('writes the template of a literal that computes, each part that computes as its quote', () => {
   expect(refusalOf('[~(count) x]').message).toContain('write `get [~(count) ~(x)]`');

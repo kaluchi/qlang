@@ -57,4 +57,4 @@
 {"name":"fill-refuses-a-name-the-code-declares-itself","query":"~(:bonus 1 | add bonus) | fill {:bonus 10} !| tag","expect":"::quote/fill/NamesNameNotReadError"}
 {"name":"fill-refuses-names-that-are-no-map","query":"~(add bonus) | fill [10] !| tag","expect":"::quote/fill/NamesKindNotTakenError"}
 {"name":"a-subject-neither-a-quote-nor-a-function-meets-the-two-verbs-of-fill","query":"5 | fill 3 !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::fn/fill ::quote/fill]]"}
-{"decision":"D421","name":"held-code-reads-a-constant-as-it-reads-a-word","query":":k 10; :q ~(add k); 5 | apply q","expect":"15","target":true,"now":"::quote/ParseError"}
+{"decision":"D421","name":"held-code-withholds-a-constant-under-a-bare-name","query":":k 10; :q ~(add k); 5 | apply q !| get [~(tag) ~(name)]","expect":"[::call/ValueWithheldError :k]","target":true,"now":"::quote/ParseError"}

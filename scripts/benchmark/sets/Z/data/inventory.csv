@@ -1,0 +1,10 @@
+sku,name,category,qty,price
+T1,Hammer,Tools,10,12.5
+T2,Saw,tools,,20
+T3,Drill,TOOLS,3,89.99
+G1,Rake,Garden,7,15
+G2,Hose,Garden,4,22.4
+T4,Wrench,Tools,6,8.75
+K1,Pan,Kitchen,12,19.9
+K2,Knife,Kitchen,,35
+T5,Level,Tools,2,14

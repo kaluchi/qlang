@@ -91,8 +91,8 @@ const SURFACE = [
   ['conformance cases', '^\\{', 'core/test/conformance'],
 ];
 
-// The ratio of comment lines to code lines over the core, the command line
-// and the language server, which falls on every branch [QSLEX#code].
+// The ratio of comment lines to code lines over the core, the streams, the
+// playground and the language server, which falls on every branch [QSLEX#code].
 const COMMENTED_SOURCES = ['core/src', 'stdio/src', 'playground/src', 'lsp/src'];
 function commentRatio(ref) {
   const lines = regex => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, regex, root), 0);

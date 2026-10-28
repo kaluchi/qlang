@@ -1,7 +1,7 @@
 |~ `::legend`, the kind of the legend of a value: the print of the value it
    tells laid out by the kind of that value, which the printer of the core
    writes.
-   The rules it holds: [QSPRN#legend], [D478]. ~|
+   The rules it holds: [QSPRN#legend], [QSPRN#print]. ~|
 
 :legend
   |~~ A legend tells a value: it prints under its tag as the print of the

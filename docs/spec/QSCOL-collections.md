@@ -163,10 +163,10 @@ of `reduce` names the path of the element [QSERR#trace].
 > [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
-> [1 2 3] | reduce 0 ~(:sofar (get /0) | :digit (get /1) | sofar | mul 10 | add digit)
+> [1 2 3] | reduce 0 ~(with {:sofar /0 :digit /1} ~(sofar | mul 10 | add digit))
 123
 
-> apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
+> apply ~(:add 5; [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
 [::call/ValueTakesNoModifiersError #[::number/add]]
 
 > [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])

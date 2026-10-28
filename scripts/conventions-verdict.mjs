@@ -60,7 +60,7 @@ const SECTIONS = {
     'a test file stands in the section whose rule its tests hold, as a file of the cases does, `playground/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSREQ#marks].'),
   // A comment of the code is a mark [QSLEX#code].
   commentsNoMarks: found => section('Comments that are no marks', found, ({ file, line, snippet }) => `  ${file}:${line}  ${snippet}\n`,
-    'a comment of the sources and the tests of the core, the command line and the language server is a mark alone, one line of the citations of the sections and the records its block holds, or a directive of a tool: the code says what it does by its names, a section its rule and a record its reason [QSLEX#code].'),
+    'a comment of the sources and the tests of the core, the streams, the playground and the language server is a mark alone, one line of the citations of the sections and the records its block holds, or a directive of a tool: the code says what it does by its names, a section its rule and a record its reason [QSLEX#code].'),
   // No two modules bear one name [QSLEX#grep].
   sharedNames: found => section('Names two modules bear', found, ({ name, paths }) => `  ${name}  ${paths.join('  ')}\n`,
     'no two modules of the project bear one name, so a search of a name finds one file, a test file, which its section names, and a configuration of a tool aside by their form [QSLEX#grep].')

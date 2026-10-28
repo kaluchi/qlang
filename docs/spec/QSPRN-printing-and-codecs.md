@@ -29,35 +29,41 @@ so it reads back as itself [QSSLF#doc]. A step of a quote whose line, its
 pipe among it, passes eighty characters is laid on lines as a source of
 the catalog writes it, but where a value stands on one line: a command
 writes its name on its line and each modifier on a line of its own,
-indented by four, a keyword on the line before it, since a keyword that
-begins a line opens a declaration; a declaration with a page writes its
-name on its line and each doc of its slot on a line of its own, indented
-by two, its body on the line of its last doc, since a body begun on a
-later line runs on through the steps after it [QSSYN#line]. A value of
+indented by four, a keyword on the line before it, as the catalog writes
+the name a command of a chain gives, `| takes :digits`; a declaration
+with a page writes its name on its line and each doc of its slot on a
+line of its own, indented by two, its body on the line of its last doc,
+each of which reads back as written, a line break being whitespace
+[QSSYN#line]. A value of
 `::frame` stands on one line whatever it holds, a value of `::trace` of
 two frames or more putting each frame on a line of its own. On one line every part stands on one line, every part of
 a quote among it, the modifiers of its calls, the docs and the body of
 its declarations and the parts of its literals, which read back as the
 same steps, so a frame lays the quote it holds on one line; a host that
-writes a value on one line, a cell of the command line's `table` among
+writes a value on one line, a cell of the `table` of the streams among
 them, whose view writes the prose of a doc with each line break as a
 space, asks the printer for that form and lays no print on one line by a
-regex over its text. A kind answers `print` under
-its own label, and the print of a value finds the `print` of each part,
-a bare value among them, by the walk of that part as a verb of the root
-reads it [QSNAM#owner], an answer that is no string printed instead:
-a print a reader declares under a label of the root answers the reader's
-own calls alone, and a print a label declares serves its values and no
-tag name of it. A kind's own `print` gives the text it chooses, which
-reads back where it writes the kind's literal. A failure a host tells past
-its rooms is a value of `::excerpt` under the tag of its refusal
-[QSPRN#excerpt], which prints as any value under its tag, and a fact past
-the room of a fact the cell its host keeps it in, so the print holds all it
-is given and cuts nothing. The print of a failure finds the print of each
-part of its facts as the print of every value does. Every host prints an answer through the one print of the
-core, `boundAnswer`, within the budget of every answer [QSPRN#budget],
-the command line a string as its text and the REPL and the site as its
-literal.
+regex over its text.
+
+The literal of a value is the language's, whatever its kind: a `print`
+declared under a label, a kind of a reader, of a host or of the root, is
+refused, `::bind/PrintDeclaredError`, `:name` naming it, and a view of a
+value for reading is a verb of its own name, `legend` among them. What a
+host prints of an answer is drawn over that literal by one layer of the
+core, `printAnswer` and `boundAnswer`: the line
+`|~| raised, and no !| caught it` over a failure [QSERR#print]; past the
+budget of every answer the alert that keeps the answer in a cell
+[QSPRN#budget], and a failure past its rooms told as a value of
+`::excerpt` under the tag of its refusal, a fact past the room of a fact
+the cell its host keeps it in [QSPRN#excerpt], each of which reads back
+as itself, so the print holds all it is given and cuts nothing; and the
+glosses of a legend laid over the parts of the value it tells as
+comments, which read back as whitespace [QSPRN#legend]. `print` answers
+that drawing whole and its painting is the medium's; the printer of the
+literal knows no legend, a part drawn ahead of it standing on lines of
+its own. Every host prints an answer through that layer, within the
+budget of every answer, the playground a string as its text and its REPL
+and the site an answer as its literal.
 
 ```qlang
 > {:tags [1 "new" :vip]} | eq (print | parse | answer)
@@ -75,11 +81,11 @@ true
 > ::number/round | source | toString | lines | filter ~(startsWith "| takes") | first
 "| takes :digits"
 
-> :Box |~~ B ~~| | :Box/print ~("box") | [::Box#1 ::Box] | print
-"[box ::Box]"
+> [~(:Box |~~ B ~~|; :Box/print ~("box");) ~(:number/print ~("n");)] | map ~(answer !| get [~(tag) ~(name)])
+[[::bind/PrintDeclaredError :Box/print] [::bind/PrintDeclaredError :number/print]]
 
-> :number/print ~("n") | get [~([::Box#5 7] | print) ~(7 | print)]
-["[::Box#5 7]" "n"]
+> [::Box#1 ::Box] | print
+"[::Box#1 ::Box]"
 
 > {:user {:tags [1 2]}} | get /group !| trace
 ::trace[::frame[{:user {:tags [1 2]}} ~(get /group)]]
@@ -87,19 +93,20 @@ true
 > [1 "x" 3] | map ~(mul 2) !| trace | print | lines | count
 4
 
-> "[1] | map ~(:rate (\"x\" | add 1)\n| :fee 2)" | parse | answer !| trace | map ~(print | lines | count)
+> "[1] | map ~(:rate (\"x\" | add 1);\n:fee 2;\nrate)" | parse | answer !| trace | map ~(print | lines | count)
 [1 1 1 1]
 ```
 
 ## legend
 
 `legend`, a verb of `::any`, answers the legend of its subject, a value
-under `::legend`, a kind of the core whose `print` writes its tag,
-`::legend::point[`, a number, a boolean, null and a path touching it by
-`#`, `::legend#5`, and lays the print of the value it tells out by that
-value's kind [QSBLD#value], so a host prints a legend as it prints any
-answer, painted by the tokens of the language, and `payload` answers the
-value told. A part the kind reads by a path of one
+under `::legend`, its literal the tag before the literal of the value it
+tells, `::legend::point[…]`, a number, a boolean, null and a path
+touching it by `#`, `::legend#5`, over which the layer that draws an
+answer lays the glosses, the value told laid out by its kind
+[QSBLD#value], so a host prints a legend as it prints any answer, painted
+by the tokens of the language, and `payload` answers the value told
+[QSPRN#print]. A part the kind reads by a path of one
 segment, a key of the map or an index of the vector it is laid over,
 stands on a line of its own beside its gloss, a part at an index beside
 its name too, which its print does not write; the head, the tag and the
@@ -108,8 +115,7 @@ reads of the subject [QSSLF#axis]; a part no name wires stands with no
 comment, and a part the kind computes, by code or a longer path, stands in
 no legend, `manifest` naming it and `doc` reading its page. A value of a
 kind that wires nothing and one whose payload holds no key or index stand
-on one line beside their gloss, and a value its kind prints itself is laid
-out as its literal, its parts as their kinds print them. A key beneath a
+on one line beside their gloss. A key beneath a
 name the kind wires reads by three rules: its first segment the name, a
 slot where the kind is the verdict of a verb; the next a part of the slot,
 glossed beside it, `:addend/found`; and a name beneath a value a view of
@@ -126,8 +132,8 @@ read whole, on one line; the page of a link alone is glossed by the page
 leaves a part at a key with no comment and a part at an index named alone.
 Each gloss is a closed comment, `|~ … ~|`, which ends where it closes, and
 whitespace [QSSYN#comment], so the text reads back as the legend in any
-layout it stands in, `payload` the subject; each part prints as `print` prints it, the print of
-its kind among them, on one line, and the glosses of the lines within half
+layout it stands in, `payload` the subject; each part prints as its
+literal, on one line, and the glosses of the lines within half
 the width of a line stand aligned at a column of sixteen at least. A
 vector, a set or a map that holds a legend lays each of its parts on a
 line of its own. A tag name lays out the kind it names: the tag beside the
@@ -135,7 +141,7 @@ gloss of its page and beneath it a closed comment for each name the kind
 wires, in the order it wires them, the name, the path it reads where it
 reads no key of its own name, the kind of the part and the gloss of its
 page, so the print reads back as the legend of the tag and
-`kinds | map ~legend` tells
+`::host | kinds | map ~legend` tells
 the parts of every kind before a value of it is held; beneath them stands a
 closed comment for each view the kind reveals [QSPRN#excerpt], its name,
 the kind its verb answers and the gloss of the page of that answer, a view
@@ -144,7 +150,7 @@ answer, printed within the budget of every answer as any answer is
 [QSPRN#budget], every part of it whole.
 
 ```sh
-$ qlang ':Box |~~ A parcel: of a width. ~~| (::kind | wires :width |~~ The width: in centimetres. ~~| /width ::number) | ::Box{:width 3 :note "x"} | legend' < /dev/null
+$ qplay ':Box |~~ A parcel: of a width. ~~| (::kind | wires :width |~~ The width: in centimetres. ~~| /width ::number); ::Box{:width 3 :note "x"} | legend' < /dev/null
 ::legend::Box{  |~ A parcel ~|
   :width 3      |~ The width ~|
   :note "x"
@@ -262,7 +268,7 @@ true
 ```
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
+$ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
 3
 ```
 
@@ -271,7 +277,7 @@ $ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::ce
 Every host but the REPL prints an answer within one budget,
 `ANSWER_BUDGET` of the core, the characters of the print counted as
 `count` counts a string, which is never smaller than the first screen,
-`[::qlang ::cli] | map ~(get [~(it) ~(doc)])`: an answer that fits
+`[::qlang ::host] | map ~(get [~(it) ~(doc)])`: an answer that fits
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` instead, under the line of the raise,
 whose facts are `:characters`, the characters of the print, `:budget`,
@@ -283,13 +289,13 @@ of the refusal it tells. The command line writes no flag that sets or
 cuts the budget [QSCLI#answer].
 
 ```sh
-$ qlang '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
+$ qplay '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
 :characters 70891
 :budget 16000
 :answer ::cell"…"
 :answer/count 3000
 
-$ qlang '1 | add (3410 | range) !| legend' < /dev/null | grep -o -E '^  :answer/(payload/tag|subject/found|addend/found/count) .*'
+$ qplay '1 | add (3410 | range) !| legend' < /dev/null | grep -o -E '^  :answer/(payload/tag|subject/found|addend/found/count) .*'
   :answer/payload/tag ::number/add/AddendKindNotTakenError
   :answer/subject/found 1
   :answer/addend/found/count 3410

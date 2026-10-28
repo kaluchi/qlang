@@ -76,7 +76,7 @@ reads as any value.
 > {:b ::T#5} | get /b/c !| get [~(tag) ~(found)]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box[1 2] !| found | found)]
+> get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box[1 2] !| found | found)]
 [[#[:found :path :segment :trace] 5] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]

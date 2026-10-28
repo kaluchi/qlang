@@ -2,7 +2,7 @@
    page, which the host writes, its screen, the kinds that lie on it and
    what the reader declared.
    The rules it holds: [QSDSP#residence], [QSNAM#binding], [QSSLF#page],
-   [D476]. ~|
+   [QSHST#source]. ~|
 
 :host
   |~~ The host a session is in, the program that embeds the language: one

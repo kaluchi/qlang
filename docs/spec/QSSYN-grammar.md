@@ -7,6 +7,18 @@ of each section are the cases of its file under
 
 ## step
 
+A text, a query of the command line, a line of the REPL, a source of the
+root and the code of a quote or of a group, is its declarations, each
+ended by `;`, the parser's token, and at most one query after them. A
+declaration is told by its first word, a keyword followed by a page or by
+a word, and stands alone before its `;`, `:name |~~ page ~~| body;`: its
+body is one step, a literal, a quote, a name, a tagged literal, a tag
+name, a doc or a group, or a chain, a tag name and the commands joined to
+it up to the `;`. The parser refuses, each naming the `;`, a `|` after a
+declaration, a declaration after the first step of the query, a `!|`
+among the declarations, and a keyword followed by a page after the first
+modifier of a command, where a declaration follows a chain no `;` ended.
+
 A query is a pipeline of steps. A step is a command: a name and its
 modifiers, each one word, separated by whitespace, `take 2`,
 `if (gt 0) ~("pos") ~("neg")`. Parentheses hold a pipeline taken as one
@@ -21,9 +33,10 @@ before a word is refused naming both its readings, the read of a part,
 
 A step sees one value, the one the step before handed it, and
 everything inside the step, its modifiers among them, is computed from
-that value; what an earlier step saw a name keeps. A value stands at the
-head of a query, of a group and of a quote, after a declaration, and as
-a modifier. A value written as a later step on the success track is
+that value; what an earlier step saw `with` names. A value stands at the
+head of a query, of a group and of a quote, the declarations of its text
+before it, and as a modifier. A value written as a later step on the
+success track is
 refused by the parser: a path, a container literal and a tagged literal
 naming `get`, a tag name `tag` and a quote `apply`, and an atom, a
 regex, an error literal and a doc refused as a value standing where a
@@ -70,6 +83,12 @@ declaration's name stands is refused.
 
 > get [~({:"?a" 1} | get /"?a") ~("{:\"a?\" 1} | get /\"a?\"?" | parse !| message | contains "`query /\"a?\"`")]
 [1 true]
+
+> :Box |~~ A box. ~~|; :Box/area ~(mulOf /0 /1); ::Box[3 4] | area
+12
+
+> get [~(":rate 2 | [1 2]" | parse !| message) ~("[1 2] | :x 1; x" | parse !| message | contains "at the head of its text")]
+["a declaration ends with `;`, which joins it to the query after it: write `:name body; query`" true]
 ```
 
 ## combinator
@@ -87,9 +106,10 @@ as after `!|`, one written against its neighbour with a message that
 names the space; a combinator at the end of a pipeline, a group or a
 quote is refused naming the step it misses. An unclosed `|~` after a
 step is refused naming the verb that runs code on the value in the
-pipe, `| apply ~(…)`, and a semicolon after a step where it stands,
-naming the template that asks several things in one query,
-`get [~(…) ~(…)]`. A pipeline, a group and a quote may open with a
+pipe, `| apply ~(…)`, and a `;` after a step of the query where it
+stands, naming the one query a text holds after its declarations and the
+template that asks several things in one query, `get [~(…) ~(…)]`. A
+pipeline, a group and a quote may open with a
 combinator: a leading `|` is the head's combinator, and a leading `!|`
 opens a step of the fail track.
 
@@ -100,7 +120,7 @@ opens a step of the fail track.
 > "[1 2] |~(add)" | parse !| message | contains "| apply ~("
 true
 
-> "::vec | doc; ::map | doc" | parse !| message | contains "one query asks several by a template"
+> "::vec | doc; ::map | doc" | parse !| message | contains "one query asks several things by a template"
 true
 
 > "[1 2] | count ; count" | parse !| location
@@ -109,46 +129,38 @@ true
 
 ## line
 
-A line break is whitespace wherever whitespace stands, at the top level
-as inside brackets. A combinator joins steps, written at the end of a
-line or at the start of the next; the modifiers of a command and the
-elements of a literal run on across lines. A keyword that begins a line
-with a doc or a step after it, on its line or a later one, opens a
-declaration of its own, so the body before it ends there, and a keyword
-alone on its line before a combinator, a line a keyword opens or the end
-of the source is the modifier above. The body of a name with a path
-begun on a later line, and the body of a bare name with its page begun
-on a later line with a tag name, is a sentence: its steps run on, joined
-by a combinator, to the next declaration or a value written after `|`;
-any other body is one step, and a tag name on a later line is the body
-of the declaration above. A value after the commands that follow a
-declaration whose body is a tag name, a chain written on the line of its
-name, is refused naming the body of one step it read and the
-parentheses that hold a chain. A declaration joins a value or a group before
-it on its own line with no combinator, `[1 2] :y 2 | y` answering `2`,
-but for a tag name and a path, refused by the habits they meet
-[QSSYN#step], while a keyword on the line of a command is a modifier of
-it, and any other step is joined by a combinator.
+A line break and an empty line are whitespace wherever whitespace
+stands, at the top level as inside brackets, so a text folds into one
+line and back, its line comments and line docs, which end at their line,
+written as blocks. A combinator joins steps, written at the end of a line
+or at the start of the next; the modifiers of a command and the elements
+of a literal run on across lines, a keyword on a later line among them,
+the modifier of the command above. A declaration ends at its `;`
+wherever its line ends: a chain on the line of its name runs on to the
+`;` that ends it, and a body begun on a later line is the body of the
+declaration above; a declaration after a chain no `;` ended is refused
+naming the `;` before it.
 
 ```qlang
 > "[3 1 2] sort" | parse !| message
 "steps are joined by `|`: write `a | b`"
 
-> "[1] | append\n:y\n:z 2\n| z" | parse
-~([1] | append :y | :z 2 | z)
+> "{:mode :slow} | put /mode\n  :fast 1" | parse
+~({:mode :slow} | put /mode :fast 1)
 
-> "[1] | :vec/f\n  ~(first) !| 0\n:y 2 | y" | parse
-~([1] | :vec/f (~(first) !| 0) | :y 2 | y)
+> ":number/plus ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by);\n5 | plus 3" | parse | answer
+8
 
-> ":x ::Box | count | 5" | parse !| message | contains "is one step, `::Box`, and the commands after it are steps of the query: a chain stands in parentheses"
+> ":Box |~~ B ~~| ::kind | accepts |~~ x ~~|\n:Box/w |~~ W ~~| ~(1)" | parse !| message | contains "after the `;` that ends the chain"
 true
 ```
 
 ## comment
 
 A comment, `|~| …` to the end of its line or `|~ … ~|`, which nests, is
-whitespace wherever whitespace stands: between steps, between the
-modifiers of a command, inside a literal and inside a quote. A `~(`
+whitespace wherever whitespace stands: between declarations, between
+steps, between the modifiers of a command, inside a literal and inside a
+quote, and a `;` inside a comment, a doc, a string or a regex is theirs. A `~(`
 inside a block comment reads to the `)` that pairs it, where the source
 holds one, so a closer inside the pair closes nothing. A pipe is
 written beside a comment. A source of whitespace and comments alone is
@@ -200,7 +212,7 @@ and no indentation its lines after the first share [QSSLF#doc], so
 `|~~A box.~~|` and `|~~ A box. ~~|` are one doc.
 
 ```qlang
-> :Box |~~ A box. ~~| |~ a note ~| |~~ It holds parcels. ~~| | ::Box | doc | content
+> :Box |~~ A box. ~~| |~ a note ~| |~~ It holds parcels. ~~|; ::Box | doc | content
 "A box.\nIt holds parcels."
 
 > get [~(|~~A box.~~| | content) ~(|~~   A box.   ~~| | content) ~("|~~ a\n      b\n    ~~|" | parse | first | content)]
@@ -274,7 +286,7 @@ form left open is refused where its reading stopped. A form another
 language writes is refused by the grammar with the form of this one: a
 set written with braces names `#[`, a quote written with braces names
 its parentheses, a comma between modifiers names the space, the path of
-jq names a slash, and a semicolon between two queries names a template.
+jq names a slash, and a `;` after a query names a template.
 
 ```qlang
 > "[1 2 3] | filter ~(gt 1" | parse !| get [~(expected) ~(message)]
@@ -296,7 +308,7 @@ true
 [:"letters of a name" "/" :whitespace "]"]
 
 > "(::Box ]" | parse !| expected
-[:whitespace ":" "!|" "|" ")"]
+[:whitespace "!|" "|" ")"]
 
 > "::Box(1 ]" | parse !| location
 ::span[5 1 6 6 1 7]

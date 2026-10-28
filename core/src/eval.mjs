@@ -45,18 +45,18 @@ const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsCh
 // [QSDSP#refusal]
 const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
-// [D421]
+// [QSNAM#declare]
 const BindSubjectNotGivenError = declareRefusal('bind/SubjectNotGivenError');
 const BindChainAnswersNoWordError = declareRefusal('bind/ChainAnswersNoWordError');
 
-// [D478]
+// [QSPRN#print]
 const BindPrintDeclaredError = declareRefusal('bind/PrintDeclaredError');
 const PRINT_NAME = 'print';
 
 // [QSNAM#value]
 const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
 
-// [QSQUO#step], [QSNAM#declare], [QSERR#trace], [D421]
+// [QSQUO#step], [QSNAM#declare], [QSERR#flow], [QSERR#trace]
 export async function evalPipeline(steps, state, origin = originOf(steps)) {
   let current = state;
   const declared = [];
@@ -213,7 +213,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach], [D478]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach], [QSPRN#print]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -249,7 +249,7 @@ async function evalBind(bind, state, at) {
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// [D421]
+// [QSNAM#declare]
 const isChain = body => isGroupStep(body) && body.payload.length > 1 && isTag(body.payload[0]);
 const buildsAWord = (value, nounName) => isKind(value) || isFn(value) || isDoc(value) || isLaw(value) || isInvariant(value)
   || (nounName !== null && (isQuote(value) || isBuiltinDescriptor(value)));
@@ -380,7 +380,7 @@ const slotRefusedIn = facts => {
   return null;
 };
 
-// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value], [D421]
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value], [QSNAM#declare]
 async function callByName(lookupName, modifiers, state, call, at) {
   refuseWithheld(state.scope, lookupName);
   if (state.pipeValue === NO_SUBJECT) return await nameWithNoSubject(lookupName, modifiers, state, at);
@@ -398,7 +398,7 @@ async function callByName(lookupName, modifiers, state, call, at) {
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state, at);
 }
 
-// [D421]
+// [QSNAM#declare]
 async function nameWithNoSubject(lookupName, modifiers, state, at) {
   const entry = state.scope.get(lookupName);
   if (isBinding(entry)) return await applyBinding(entry, lookupName, lookupName, modifiers, state, at);

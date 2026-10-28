@@ -1,4 +1,4 @@
-// [QSDSP#residence], [QSHST#source], [QSHST#cell], [D477]
+// [QSDSP#residence], [QSHST#source], [QSHST#effect], [QSHST#cell]
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

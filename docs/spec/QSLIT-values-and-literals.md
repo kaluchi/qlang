@@ -33,7 +33,7 @@ through the tag.
 > [1 2] | tag
 ::vec
 
-> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | :t (tag) | payload | tag t)]
+> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | with {:t ~tag} ~(payload | tag t))]
 [::number 1 [1 2] ::Box#5]
 
 > null | tag
@@ -196,7 +196,7 @@ value, a vector of a tag and a value the vector it is.
 > ::number"5" !| tag
 ::number/PayloadKindNotTakenError
 
-> :Lab |~~ L ~~| | get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
+> :Lab |~~ L ~~|; get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
 [::Lab[1] ::set/PayloadKindNotTakenError]
 
 > get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[2 1] | tag ::vec) ~(::Box#5 | tag ::number) ~(5 | tag ::tagged !| tag)]
@@ -205,7 +205,7 @@ value, a vector of a tag and a value the vector it is.
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5 | ::limit#1 !| tag)]
+> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5; ::limit#1 !| tag)]
 [::vec/sort ::vec/take/CountNotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
 ```
 
@@ -241,7 +241,7 @@ true
 > "{:a 1 2}" | parse !| get [~(message) ~(location)]
 ["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
-> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| tag
+> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)); ::Pos#-1 !| tag
 ::Pos/NegError
 ```
 

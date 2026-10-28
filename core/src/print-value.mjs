@@ -73,7 +73,7 @@ export function printValue(v, indent = 0, printedOf = nothingPrintedAhead, oneLi
   return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
-// [QSPRN#print], [D478]
+// [QSPRN#print]
 const printedAhead = (printedOf, part) => printedOf(part) !== undefined;
 
 // [QSPRN#print]
@@ -135,7 +135,7 @@ export const asPrinted = { of: value => printValue(value), quoting: literal => p
 // [QSQUO#parse], [QSPRN#print]
 const AS_WRITTEN = { oneLine: false, printedOf: nothingPrintedAhead };
 
-// [QSQUO#parse], [D421]
+// [QSQUO#parse]
 export function printQuoteSource(steps, view = AS_WRITTEN) {
   const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view), source: step }));
   const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));

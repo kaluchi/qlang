@@ -14,7 +14,7 @@ import { functionOfRecipe, wiringAtPlaces } from '../chain.mjs';
 export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
   ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
 
-// [D421]
+// [QSHST#source]
 export const BuiltinRootValueNotWordError = declareDefect('builtin/RootValueNotWordError',
   ({ origin, name }) => `qlang root: the source ${origin.name} declares ${name.literal}, a value under a bare name, which serves the query of its own text and reaches no reader: a source of the root declares words, a kind, a verb under a label and a node under a noun`);
 
@@ -29,7 +29,7 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
-// [D476]
+// [QSHST#source], [QSSLF#page]
 const HOST_NAME = 'host';
 const HOST_ORIGIN = 'qlang/host';
 

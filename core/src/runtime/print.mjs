@@ -15,7 +15,7 @@ import { printOfALegend } from './legend-primitives.mjs';
 
 const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
 
-// [QSPRN#print], [QSPRN#legend], [D478]
+// [QSPRN#print], [QSPRN#legend]
 export async function printsOfLegends(value, scope, state = rootState(value, scope)) {
   const printedOf = new Map();
   await collectLegends(value, queryStateOf(state), printedOf);
@@ -60,7 +60,7 @@ export async function boundAnswer(answer, scope, written = null, keep = null) {
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
 
-// [QSPRN#legend], [D478]
+// [QSPRN#legend]
 const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
 
 async function collectLegends(value, state, printedOf) {

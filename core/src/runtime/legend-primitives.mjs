@@ -142,7 +142,7 @@ function pageLinkedFrom(page, scope) {
   return isQuote(linked) && isTag(linked[0]) ? pageOf(scope, linked[0]) : null;
 }
 
-// [QSPRN#legend], [D478]
+// [QSPRN#legend], [QSPRN#print]
 export async function printOfALegend(legend, state, printsOf) {
   const told = payloadBeneath(legend);
   return legendOf(told, state.scope, await printsOf(told, state.scope, state), underTagLiteral(LEGEND_TAG.literal, told, ''));

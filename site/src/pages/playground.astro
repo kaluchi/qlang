@@ -229,7 +229,7 @@ import Base from "../layouts/Base.astro"
       if (!source) return;
 
       // The text runs as one cell: its declarations, each ended by `;`, and
-      // the query after them, an empty line a space among it [D421].
+      // the query after them, an empty line a space among it [QSSYN#line].
       const notebook = await createNotebook({ scope });
       const { text: printed, failed } = await cellShown(await notebook.evalCell(source));
       const entry = document.createElement('div');

@@ -10,7 +10,7 @@
 // run, `<codes>.md`, beneath a line that says how it was made, and the
 // session writes its reading beside them, `reading.md`, the fate of each
 // finding in it. With `--records`, each record named, an open one or a
-// decision before its code [D475], has a clean reader of its own, who
+// decision before its code [QSRVW#audits], has a clean reader of its own, who
 // bootstraps alike and
 // critiques the record against the tree, answering
 // `scripts/design-check-prompt.txt`, the report landing as the next critique

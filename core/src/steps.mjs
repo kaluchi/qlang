@@ -240,7 +240,7 @@ export function quoteOf(payload, written) {
       throw new QuoteStepNotCommandError({ index, message: laterStepMessage(step, written), found: step });
     }
   });
-  // [D421]
+  // [QSQUO#step]
   const query = payload.findIndex(step => !isBindStep(step));
   const later = payload.findIndex((step, index) => (query !== -1 && index > query && isBindStep(step)) || (isFailStep(step) && isBindStep(step.payload[0])));
   if (later !== -1) throw new QuoteStepNotCommandError({ index: later, message: 'a declaration stands at the head of its text, before the query, each ended by `;`', found: payload[later] });

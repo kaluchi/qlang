@@ -105,7 +105,7 @@ export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, de
 // [QSNAM#verb]
 const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
-// [QSCLI#stdin], [D476]
+// [QSCLI#stdin]
 export function readsItsSubject(steps) {
   const head = steps.find(step => !isFailStep(step) && !isBindStep(step));
   if (head === undefined) return steps.length === 0 || !steps.every(isBindStep);

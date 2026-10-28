@@ -7,10 +7,11 @@ is pushed, and the release.
 ## workspaces
 
 The language and its tooling are npm workspaces of one repository, each
-folder the suffix of its package: `core` the language and `cli` the command
-line and its REPL, published under the `@kaluchi/` scope, `lsp` the language
-server, `site` the site, private, and `vscode` the editor's extension,
-`qlang-vscode`; `npm install` at the root links them. The core is pure
+folder the suffix of its package: `core` the language, `stdio` the streams a
+host on the command line installs and `playground` the playground of the
+command line and its REPL, published under the `@kaluchi/` scope, `lsp` the
+language server, `site` the site, private, and `vscode` the editor's
+extension, `qlang-vscode`; `npm install` at the root links them. The core is pure
 JavaScript with no dependency at runtime and no `node:*` import under
 `core/src/`, and it runs in a browser, in Deno and in Bun. Its catalog under
 `core/lib/qlang/` is read at runtime as `#qlang/<name>`, and the topic of the
@@ -52,14 +53,17 @@ bears [QSLEX#grep], and the comment at its head marks the rules it holds
 
 ## hosts
 
-`cli/src/bin.mjs` is the one file of the command line that touches
+`playground/src/bin.mjs` is the one file of the playground that touches
 `process`, handing the arguments, the streams and the environment to
 `main.mjs` and exiting with the code `main` resolves, every branch of the
-command line living where a test reaches it; the REPL paints what it prints
-by a layer of colour over the core's `tokenize`. The test file of the
-refusals of the command line, `cli/test/QSERR/site.test.mjs`, holds the page
-of every refusal the core and the command line declare and of every one a
-rule raises. The language server runs over stdio and answers `initialize`
+playground living where a test reaches it; the REPL paints what it prints
+by a layer of colour over the core's `tokenize`. The streams, `stdio/src/`,
+write and read through what the host that installs them hands,
+`stdioSources(io)`, the playground and the sister project among them, and
+touch no `process` of their own. The test file of the refusals of the
+playground, `playground/test/QSERR/site.test.mjs`, holds the page of every
+refusal the core and the streams declare, each paged in the source of its
+noun, and of every one a rule raises. The language server runs over stdio and answers `initialize`
 with its capabilities; the editor's extension, `vscode/src/extension.js`,
 unpublished, launches the server of the checkout. The site is built by
 Astro, `site/astro.config.mjs`, its examples painted from what the core's
@@ -70,15 +74,15 @@ to GitHub Pages on every push to master.
 
 `npm run ci` is the gate of what is pushed, judged by its exit code, each
 suite run once: the build, eslint, `check:conventions`, `check:probes`,
-`check:fuzz`, `check:benchmark`, the suites of the core and of the command
-line under the thresholds of coverage, a run of which fails a test that
-fails as a run without it does, the suites of the language server, the site
-and the extension, the integration of the command line and the build of the
-site, in that order, the one run that boots the language while it runs. The
-checks of GitHub, `.github/workflows/ci.yml`, run its steps but `check:fuzz`
-and `check:benchmark` on every push to master and every pull request, the
-job of the suites of the core and of the command line the job of their
-coverage.
+`check:fuzz`, `check:benchmark`, the suites of the core and of the
+playground under the thresholds of coverage, a run of which fails a test
+that fails as a run without it does, the suites of the language server, the
+site and the extension, the integration of the playground and the build of
+the site, in that order, the one run that boots the language while it runs.
+The checks of GitHub, `.github/workflows/ci.yml`, run its steps but
+`check:fuzz` and `check:benchmark` on every push to master and every pull
+request, the job of the suites of the core and of the playground the job of
+their coverage.
 
 ```sh
 $ node -e "console.log(require('./package.json').scripts.ci.split(' && ').filter(step => /^npm (test|run test)/.test(step)).join('\n'))"
@@ -88,13 +92,16 @@ npm run test:integration
 ```
 
 The thresholds of coverage, pinned in the `vitest.config.mjs` of `core` and
-`cli`, hold the sources under the `src/` of both at a hundred on every axis,
-the browser's loader and `cli/src/bin.mjs` aside. The setup of vitest in the
-core, the command line and the language server registers an equality that
+`playground`, hold the sources under the `src/` of the core, of the
+playground and of the streams at a hundred on every axis, the suite of the
+playground holding the streams it installs, the host their tests run them
+in, the browser's loader and `playground/src/bin.mjs` aside. The setup of
+vitest in the core, the playground and the language server registers an
+equality that
 compares a value of the language by the tie of the one order, which reads
 the tag a vector or a map holds on itself, leaving any other value to the
 equality of vitest. Every suite of vitest fails a test that makes no
-assertion, and in the core and the command line a test and a hook wait
+assertion, and in the core and the playground a test and a hook wait
 twenty seconds, the boot of the root under the coverage among them.
 `scripts/fuzz-laws.mjs` runs every law of the root again with its literals
 changed to edge values, failing on a host's failure, a throw past the fail
@@ -110,7 +117,8 @@ preflight, the bump of the workspaces the matrix of
 `.github/workflows/deploy.yml` publishes, the ranges, the parser, the
 coverage of the core and the tests, the commit, the push, the wait for the
 checks, the tag and its push. The tag runs that workflow, which publishes the
-core and the command line through the trusted publishing of npm, whose
-publisher names that file; the commit of a release lands on master directly.
+core, the streams and the playground, in that order, through the trusted
+publishing of npm, whose publisher names that file; the commit of a release
+lands on master directly.
 A release happens at the maintainer's word, and between releases the sister
 project consumes the copy of the workspace.

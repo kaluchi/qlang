@@ -895,8 +895,8 @@ function testsOffTheirSection() {
 
 // ── (22) A comment of the code is a mark ───────────────────────
 //
-// A comment of the sources and the tests of the core, the command line and
-// the language server, read by acorn, is a mark alone, one line of the
+// A comment of the sources and the tests of the core, the streams, the
+// playground and the language server, read by acorn, is a mark alone, one line of the
 // citations its block holds, or a directive of a tool [QSLEX#code].
 
 const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'stdio/src', 'playground/src', 'playground/test', 'lsp/src', 'lsp/test'];

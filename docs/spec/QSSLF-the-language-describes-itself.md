@@ -124,7 +124,7 @@ true
 > ::qlang | manifest | get [~(has ::qlang/values) ~(has ::qlang/AnswerBeyondBudgetError)]
 [true true]
 
-> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box | manifest
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box | manifest
 #[::Box/WKindNotTakenError ::Box/w]
 
 > ::vec/take/count | manifest
@@ -163,7 +163,7 @@ name's page and its laws, a name nothing declares refused as `doc`
 refuses it. Every law of the core passes.
 
 ```qlang
-> :Box |~~ A box. ~~| | :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1) | ::Box | runLaws | map /ok
+> :Box |~~ A box. ~~|; :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1); ::Box | runLaws | map /ok
 [true]
 
 > ::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]
@@ -172,7 +172,7 @@ refuses it. Every law of the core passes.
 > ::number/add | laws | count
 4
 
-> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])
+> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])))))
 [0 true]
 ```
 
@@ -269,17 +269,19 @@ written.
 > get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(found | tag)])]
 [1 [::link/PayloadKindNotTakenError ::Foo]]
 
-> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag
+> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)); |~~ see ::Role~(x) ~~| !| tag
 ::Role/k
 
-> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(:x |~~ see ::map~(x) ~~| 1 !| tag)]
+> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(~(:x |~~ see ::map~(x) ~~| 1) | answer !| tag)]
 [true ::map/PayloadKindNotTakenError]
 ```
 
 ## page
 
 `::qlang` is the topic of the language, a label whose page is the first
-page, and `::cli` the topic of the command line. What `tells` declares
+page, `::host` the host a session is in, whose page the host writes
+[QSHST#source], and `::stdio` the topic of the streams a host on the
+command line installs [QSHST#effect]. What `tells` declares
 under a topic is a chapter, the page of a concept the first page names,
 a node under the topic, `::qlang/pipeline`, read at its address or by
 its anchor, `::qlang | doc :pipeline`, and listed by `manifest` of the
@@ -300,16 +302,16 @@ true
 > ::qlang | doc :pipeline | tag
 ::doc
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
+> get [~(::host | kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
 > ::qlang | doc | content | get [~(contains "its views and its parts") ~(contains "the ::cell that") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])
+> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])))))
 [0 true]
 
-> kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
+> ::host | kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
 true
 
 > ::qlang | doc | print | count | lte 13664

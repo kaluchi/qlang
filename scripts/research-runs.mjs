@@ -45,7 +45,7 @@ export const minuteOf = at => at.toISOString().slice(11, 16);
 
 // A run is called for by a record in force, which holds the run and carries
 // the fates of its findings, and a critique by an open record or a decision
-// before its code [D475].
+// before its code [QSRVW#audits].
 export function refuseNoRecordInForce(repoRoot, record, what) {
   if (record !== null && /^D\d+$/.test(record) && existsSync(join(repoRoot, JOURNAL, `${record}.md`))) return;
   console.error(`${what} is called for by a record in force, which carries its fates: write the record, then run \`--for Dnn\``);
@@ -53,7 +53,7 @@ export function refuseNoRecordInForce(repoRoot, record, what) {
 }
 
 // A critique reads an open record, or a record of the language decided
-// before its code, every case it names a target and none met [D475].
+// before its code, every case it names a target and none met [QSRVW#audits].
 export function refuseNoRecordToCritique(repoRoot, record) {
   const read = readDecisionRecords(repoRoot).get(record);
   const beforeItsCode = read?.domain === 'language' && read.met.length === 0 && read.targets.length > 0;

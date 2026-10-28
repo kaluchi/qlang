@@ -9,9 +9,9 @@ stint read against what it delivered.
 The mission's measure is the first attempt of a fresh model, which the
 benchmark takes by its sets, `scripts/benchmark.mjs`. A child of the
 benchmark is a clean model with no settings, memory or server, at one effort
-no run changes; it runs the command line on the tasks of a set, handed one
-first screen, the pages of the language and of the command line as
-`[::qlang ::cli] | map ~(get [~(it) ~(doc)])` prints them. A set is written
+no run changes; it runs the playground on the tasks of a set, handed one
+first screen, the pages of the language and of the playground as
+`[::qlang ::host] | map ~(get [~(it) ~(doc)])` prints them. A set is written
 by a clean author who never sees the language: the data, the tasks and a
 script that computes the answers. A set measures once: reading what its
 children missed marks it seen, a set seen runs no more, and the next
@@ -26,7 +26,7 @@ it [QSWRK#closeout]. The numbers measured grow, and a second measurement
 under a number states its reason. A run fixes its circumstances when it
 runs: the screen the tree printed, the commit of a tree with no change
 outside it, the model, the environment its child was started with, the date,
-the set, every call of the command line and what the language answered, and
+the set, every call of the playground and what the language answered, and
 its score, each final query run by that tree against the author's answer. A
 verdict sets the runs of a measurement beside the measurement before it, as
 they fixed them.

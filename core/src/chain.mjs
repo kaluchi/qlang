@@ -81,7 +81,7 @@ function kindsOf(value) {
   return names.includes(ANY_KIND_NAME) ? null : names;
 }
 
-// [D476]
+// [QSDSP#residence]
 const subjectKindsOf = value => (value === undefined ? null : isTag(value) ? [value.name] : value.map(tag => tag.name));
 
 function kindsWritten(written) {

@@ -60,13 +60,13 @@ true
 > !{:trace 5} | get [~(tag) /trace]
 [::error 5]
 
-> :error/twice ~(get /a | mul 2) | ::Oops!{:a 3} | twice
+> :error/twice ~(get /a | mul 2); ::Oops!{:a 3} | twice
 6
 
 > !{:by 3} | tag ::error | eq !{:by 3}
 true
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]
 [!{:a 1} [::Late/PayloadKindNotTakenError ::error]]
 
 > "x" | add 1 !| get [~(subject | found) ~(get /subject !| tag) ~(payload | tag) ~(is ::error)]
@@ -156,13 +156,13 @@ true
 > !{:a 1} | raise !| payload | tag
 ::map
 
-> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)) | {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(found | tag)]
+> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(found | tag)]
 [::Box/k ::error]
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map) | ::Late{:by 3} | raise !| it !| get [~(tag) ~(found | tag)]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); ::Late{:by 3} | raise !| it !| get [~(tag) ~(found | tag)]
 [::Late/PayloadKindNotTakenError ::error]
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]) | ::Late{:by 3} | raise !| get [~(tag) /by]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [~(tag) /by]
 [::Late 3]
 
 > {:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]
@@ -308,8 +308,12 @@ every element. A literal whose part fails answers that failure, and so
 does a template of `get` whose quote answers one, the first in the order
 the literal holds its parts, a set in its one order and a map with the
 last value of each key, a value a later entry of its key replaces
-running nowhere; the body of a declaration that fails leaves the scope as it
-was and answers the failure; a tag over a payload that fails answers the
+running nowhere; the body of a declaration that fails fails its text,
+which declares nothing and runs no query, the failure passing every `!|`
+of the text to whoever reads it, the host, `parse | answer`, `answer` or
+`apply`, which hands it to the `!|` after it, its frame the steps from the
+declaration to the end of the text and no subject [QSERR#trace]; a tag
+over a payload that fails answers the
 failure, and so does a verb whose answer the kind of its subject refuses,
 under the tags its walk passed as under none, since no tag is laid over a
 failure; a modifier that answers a failure answers the call where its
@@ -321,13 +325,13 @@ error at rest it is, so reading it raises nothing.
 > get [1 ~("x" | add 1)] !| tag
 ::number/add/SubjectNotNumberError
 
-> apply ~(:rate (1 | div 0) !| env | has :rate)
-false
+> get [~(~(:rate (1 | div 0); rate) | answer !| trace | map ~failed) ~(::host | env | has :rate)]
+[[~(div 0) ~(:rate (1 | div 0);) ~(answer)] false]
 
 > [1 "x" 3] | map ~(add 10 !| 0)
 [11 0 13]
 
-> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)) | ::Box::Pair[1 2] | take 1 !| tag
+> :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)); ::Box::Pair[1 2] | take 1 !| tag
 ::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| tag
@@ -451,11 +455,11 @@ a segment a path read as an index numbers.
 > ::number/add/AddendKindNotTakenError | manifest
 #[::number/add/AddendKindNotTakenError/addend ::number/add/AddendKindNotTakenError/answer ::number/add/AddendKindNotTakenError/repair ::number/add/AddendKindNotTakenError/subject ::number/add/AddendKindNotTakenError/surplus ::number/add/AddendKindNotTakenError/trace]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) | get [~(::number/plus/ByKindNotTakenError | binding | name) ~(::number/plus/ByNotGivenError | binding | name)]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [~(::number/plus/ByKindNotTakenError | binding | name) ~(::number/plus/ByNotGivenError | binding | name)]
 [:number/plus/ByKindNotTakenError :number/plus]
 
 > ::builtin | manifest | filter ~(binding | name | toString | endsWith "Error") | count
-12
+13
 
 > ::qlang/AnswerBeyondBudgetError | manifest
 #[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/expected ::qlang/AnswerBeyondBudgetError/found ::qlang/AnswerBeyondBudgetError/index ::qlang/AnswerBeyondBudgetError/trace]
@@ -473,8 +477,8 @@ its facts alone. The answer of a host that is a failure prints as its
 alert under the line comment `|~| raised, and no !| caught it`, which a
 reading of the literal passes over, and so does the refusal a host
 prints instead of an answer past its budget, which was no failure
-[QSPRN#budget]; the command line writes the content of the refusal's page
-below, and the REPL prints without it. An error at rest an answer gives
+[QSPRN#budget]; the playground writes the content of the refusal's page
+below, and its REPL prints without it. An error at rest an answer gives
 prints as the value it is. A refusal of a text holds its caret beneath
 its line, `:marker` under `:source`, the two printing in one column
 within the room of a fact of an alert [QSSYN#refusal], so a host prints it as
@@ -492,7 +496,7 @@ any failure and draws nothing below it.
 ```
 
 ```sh
-$ qlang '[01' < /dev/null | sed -n '1,7p'
+$ qplay '[01' < /dev/null | sed -n '1,7p'
 |~| raised, and no !| caught it
 ::quote/ParseError!{
   :source "[01"
@@ -501,11 +505,11 @@ $ qlang '[01' < /dev/null | sed -n '1,7p'
   :location ::span[1 1 2 3 1 4]
 }
 
-$ qlang '{"a": 1 "b": 2}' < /dev/null | sed -n '3,4p'
+$ qplay '{"a": 1 "b": 2}' < /dev/null | sed -n '3,4p'
   :source "{\"a\": 1 \"b\": 2}"
   :marker "          ^~       "
 
-$ qlang "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^  :source "…x' -e '^  :marker " *\^"'
+$ qplay "[1 2 $(printf 'x%.0s' $(seq 1 330))" < /dev/null | grep -c -e '^  :source "…x' -e '^  :marker " *\^"'
 2
 ```
 
@@ -535,17 +539,17 @@ reading each fact as the failure met it. The caret of a refused text is a
 fact within the room of a fact [QSSYN#refusal].
 
 ```sh
-$ qlang '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
+$ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
 4
 
-$ qlang ':number/inf ~(add 1 | inf) | 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
+$ qplay ':number/inf ~(add 1 | inf); 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
 :trace ::cell
 :trace/subject 999
 
-$ qlang 'kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
+$ qplay '::host | kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
 2
 
-$ qlang 'get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
+$ qplay 'get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
   :record/a 1
   :record/rows/count 5000
 ```

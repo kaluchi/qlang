@@ -7,69 +7,77 @@ file under `core/test/conformance/QSNAM/`, `scope.jsonl` for
 
 ## declare
 
-One form declares every name: `:name body`. The body, the step after
-the name and its page, `:body` of the `::bind` a quote holds of the
-declaration [QSQUO#step], runs once, where the declaration stands,
-against the value in the pipe, and the name holds what it answered. The
-declaration hands its subject on unchanged, so the binding is a branch
-to the side; a body that answers a failure declares nothing, the failure
-goes on in the pipe and the steps after it are skipped.
+One form declares every name: `:name body;`, which stands at the head of
+its text, before the query [QSSYN#step], and adds a word with its page to
+the scope of the text. The body, the step after the name and its page,
+`:body` of the `::bind` a quote holds of the declaration [QSQUO#step],
+runs once, where the declaration stands, with no subject: a verb called
+there is refused as `::bind/SubjectNotGivenError` with its `:name`, and a
+value of the subject is named for the steps after it by `with`
+[QSPTH#template]. A failure of a declaration is the failure of its text,
+which declares nothing and runs no query, the failure passing every `!|`
+of the text to whoever reads it, the host, `parse | answer`, `answer` or
+`apply` [QSERR#flow].
 
-The top of a query, of a source and of a cell, its steps and the steps of
-a group that stands among them, declares the words its steps share: a
-verb or a recipe under the label of the values it serves,
-`:number/double ~(mul 2)`, a kind by its chain or by its page alone,
-`:Box |~~ A box. ~~|`, a page under a noun among them, and a law under a
-noun, `:Box/fits |~~ A box fits. ~~| ::law~(true)`. A body declared there
-that builds none of them, a number, a record, a tag, a doc, and under a
-bare name a quote or a function, is refused where it stands as
-`::bind/ValueAtTheTopError` with its `:name`, under a bare name and under
-an address alike: a value goes on in the subject, several as the record
-`get` builds, a name for the code of one step is given by `with`
-[QSPTH#template], and code run again is a verb. Inside a command a name
-holds a value, under a bare name or an address: in a modifier, in a quote,
-which declares names of its own, and in the recipe of a verb, whose inputs
-its call declares [QSBLD#recipe].
+A text declares the words its query reads: a verb or a recipe under the
+label of the values it serves, `:number/double ~(mul 2);`, a kind by its
+chain or by its page alone, `:Box |~~ A box. ~~|;`, a page under a noun
+among them, a law under a noun,
+`:Box/fits |~~ A box fits. ~~| ::law~(true);`, a node of data under an
+address, a word every code reads, and a value under a bare name, a
+constant the query reads where a value stands and the code its steps write
+carries, while code held as data withholds it and the body of a word does
+not see it [QSQUO#held]. A chain, a tag name and the commands joined to it
+up to the `;`, builds a word, a kind, a function, a page or a law, under a
+noun the recipe of a verb among them, and one that answers any other
+value is refused as `::bind/ChainAnswersNoWordError` with its `:name` and
+what it answered as `:found`. A text of declarations alone answers the set
+of the addresses it declared, `:Box |~~ A box. ~~|` answering `#[::Box]`.
+Inside a command a name holds a value: in a modifier, in a quote, which
+declares names of its own, and in the recipe of a verb, whose inputs its
+call declares [QSBLD#recipe].
 
-The body is a step: a literal, `it` for the value in the pipe, a group
-for what the group computes, a call of a verb, a quote, which is held as
-the value it is, a keyword or a tag name, and a word after a keyword or
-a tag name is a step of its own, joined by a combinator. A page written
-between the name and the body is the name's page. A quote in a
-declaration is held as its literal and runs in the lane of the step that
-runs it [QSQUO#held]; a verb declared under a label reads the tree as it
-stands where it is called [QSNAM#verb]; and a value is computed once,
-against the subject at the declaration.
+The body is a step: a literal, a group for what the group computes, a
+name for the value it holds, a quote, which is held as the value it is, a
+keyword, a tag name, a doc, or a chain, and a word after the body is
+refused naming the `;`. A page written between the name and the body is
+the name's page. A quote in a declaration is held as its literal and runs
+in the lane of the step that runs it [QSQUO#held]; a verb declared under a
+label reads the tree as it stands where it is called [QSNAM#verb]; and a
+value is computed once, at the declaration.
 
 ```qlang
-> :number/double ~(mul 2) | :Box |~~ A box. ~~| | 5 | double
+> :number/double ~(mul 2); :Box |~~ A box. ~~|; 5 | double
 10
 
-> :rate 2 !| get [~(tag) ~(name)]
-[::bind/ValueAtTheTopError :rate]
+> :rate 2; [1 2] | map ~(mul rate)
+[2 4]
 
-> :Box |~~ A box. ~~| | :Box/side 3 !| get [~(tag) ~(name)]
-[::bind/ValueAtTheTopError :Box/side]
+> :Box |~~ A box. ~~|; :Box/k 3; :number/f ~(Box/k); 5 | f
+3
 
-> {:price 4 :qty 3} | apply ~(:order it | get /price | mul (order | get /qty))
+> {:price 4 :qty 3} | with {:order ~it} ~(get /price | mul (order | get /qty))
 12
 
-> 5 | apply ~(:rate |~~ The rate. ~~| 2 | mul rate)
+> 5 | apply ~(:rate |~~ The rate. ~~| 2; mul rate)
 10
 
-> [1 2 3] | apply ~(:size (count) | map ~(mul size))
-[3 6 9]
+> get [~(~(:size (count); 1) | answer !| get [~(tag) ~(name)]) ~([1 2 3] | with {:size ~count} ~(map ~(mul size)))]
+[[::bind/SubjectNotGivenError :count] [3 6 9]]
 
-> apply ~(:noun ::vec | noun)
+> get [~(:Box |~~ A box. ~~|;) ~(~(:Box |~~ A box. ~~| ::vec | manifest;) | answer !| get [~(tag) ~(found | tag)])]
+[#[::Box] [::bind/ChainAnswersNoWordError ::set]]
+
+> apply ~(:noun ::vec; noun)
 ::vec
 
-> ~(:rate 2) | first
+> ~(:rate 2;) | first
 ::bind{:name :rate :body 2}
 
-> ":noun ::vec it" | parse !| message
-"steps are joined by `|`: write `a | b`"
+> ":noun ::vec it" | parse !| message | contains "a declaration ends with `;` before what follows it"
+true
 
-> 5 | apply ~(:bonus 10 | :rule ~(add bonus) | apply rule !| tag)
+> 5 | apply ~(:bonus 10; :rule ~(add bonus); apply rule !| tag)
 ::call/ValueWithheldError
 ```
 
@@ -89,16 +97,16 @@ tags, `::false/rank`, the parser refusing a step `false/rank`; or a last
 name under a noun, which its address calls.
 
 ```qlang
-> apply ~(:имя 5 | имя)
+> apply ~(:имя 5; имя)
 5
 
-> apply ~(:"foo" 5 | foo)
+> apply ~(:"foo" 5; foo)
 5
 
 > ":true 5 | 7" | parse !| message
 "`:true` is the word of a literal, which a step reads as the value: declare another name"
 
-> apply ~(:false |~~ F. ~~| | :false/rank 3 | ::false/rank | binding | value)
+> apply ~(:false |~~ F. ~~|; :false/rank 3; ::false/rank | binding | value)
 3
 
 > "false/rank" | parse !| tag
@@ -111,7 +119,8 @@ name under a noun, which its address calls.
 ## value
 
 A bare name that holds a value answers the value where a value stands:
-at the head of a pipeline, after a declaration and after `!|`, and as
+at the head of a query, the declarations of its text before it, after
+`!|`, and as
 what a verb takes, a modifier and a part of a template among them, a
 quote among values, the name alone reading its quote. Code under a bare
 name runs by `apply`, and a quote or a path under it goes bare into an
@@ -127,25 +136,25 @@ declared, its value as `:found` and the `:addresses` of the verbs of its
 last name.
 
 ```qlang
-> apply ~(:double ~(mul 2) | double)
+> apply ~(:double ~(mul 2); double)
 ~(mul 2)
 
-> 5 | apply ~(:double ~(mul 2) | apply double)
+> 5 | apply ~(:double ~(mul 2); apply double)
 10
 
-> [1 2 3] | apply ~(:double ~(mul 2) | map double)
+> [1 2 3] | apply ~(:double ~(mul 2); map double)
 [2 4 6]
 
-> 7 | apply ~(:rest 5 | add 1 | rest) !| get [~(tag) ~(name) ~(found)]
+> 7 | apply ~(:rest 5; add 1 | rest) !| get [~(tag) ~(name) ~(found)]
 [::call/ValueAsALaterStepError :rest 5]
 
-> 5 | apply ~(:bonus it | bonus 42) !| get [~(tag) ~(found)]
+> apply ~(:bonus 5; bonus 42) !| get [~(tag) ~(found)]
 [::call/ValueTakesNoModifiersError 5]
 
-> apply ~(:Box |~~ Box. ~~| | :Box/side 3 | Box/side 1 !| name)
+> apply ~(:Box |~~ Box. ~~|; :Box/side 3; Box/side 1 !| name)
 :Box/side
 
-> :string/five ~(1) | 3 | apply ~(:five 5 | five 42 !| addresses)
+> :string/five ~(1); 3 | apply ~(:five 5; five 42 !| addresses)
 #[::string/five]
 ```
 
@@ -169,16 +178,16 @@ call that recurses without end among them, is refused as
 `::call/EvaluationDepthExceededError` with its `:depth` and `:limit`.
 
 ```qlang
-> :number/double ~(mul 2) | 5 | double
+> :number/double ~(mul 2); 5 | double
 10
 
-> :number/inc ~(add 1) | 5 | inc | inc
+> :number/inc ~(add 1); 5 | inc | inc
 7
 
-> :number/plus10 ~(add 10) | [1 2 3] | map ~plus10
+> :number/plus10 ~(add 10); [1 2 3] | map ~plus10
 [11 12 13]
 
-> :number/inf ~(add 1 | inf) | 0 | inf !| get [~(tag) ~(payload | keys | has :depth) ~(payload | keys | has :limit)]
+> :number/inf ~(add 1 | inf); 0 | inf !| get [~(tag) ~(payload | keys | has :depth) ~(payload | keys | has :limit)]
 [::call/EvaluationDepthExceededError true true]
 ```
 
@@ -186,19 +195,16 @@ call that recurses without end among them, is refused as
 
 A step runs on a state of two parts, the value in the pipe and its
 scope, the names in force where it stands over the root, a recipe's those
-its call opens [QSBLD#recipe]. A scope is shared by the steps of one
-pipeline, its first step and every step `|` or `!|` joins to it. A name
-is declared once in a scope,
-counted in its steps as they are written, run or skipped: a declaration
-the fail track passed by counts, and so does one whose body failed, so a
-recovery after `!|` declares another name. The second declaration is
-refused where it stands, `::bind/NameDeclaredTwiceError` with `:name`,
-its step the one that failed. The nodes the chain of a noun lays under its
-address, the page of the payload of a kind, its fields, the inputs of a
-function and their refusals, invariants, laws and pages, count as declared
-by the step that declares the noun, so a later step of its pipeline that
-declares one of their addresses is refused as well, while a name beside
-them stands.
+its call opens [QSBLD#recipe]. A scope is shared by the declarations of
+one text and its query. A name is declared once in a scope, counted in
+the declarations as they are written: the second declaration is refused,
+`::bind/NameDeclaredTwiceError` with `:name`, the failure of the text,
+its frame the declaration and the steps after it [QSERR#trace]. The nodes
+the chain of a noun lays under its address, the page of the payload of a
+kind, its fields, the inputs of a function and their refusals,
+invariants, laws and pages, count as declared by the declaration of the
+noun, so a later declaration of its text that declares one of their
+addresses is refused as well, while a name beside them stands.
 
 A group and each run of a quote are scopes of their own: a modifier, a
 part of a template of `get`, the code `map` runs on each element. A
@@ -212,36 +218,34 @@ the recipe and a quote it runs are scopes of their own, where an input
 may be shadowed, and a verb the recipe calls runs in a scope its own
 call opens anew. What the recipe declares stays in it. A source is the
 scope of its text, and a cell of a notebook is a scope of its own, so a
-cell after another reads the words a cell before it declared and declares
-again any name or node a reader declared, under the reader's noun or under
-one of the root.
+cell after another reads the words and the values a cell before it
+declared and declares again any name or node a reader declared, under the
+reader's noun or under one of the root, while a cell whose declaration
+failed declared nothing.
 
 ```qlang
-> apply ~(:rate 1 | :rate 2 | rate) !| get [~(tag) ~(name)]
+> apply ~(:rate 1; :rate 2; rate) !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :rate]
 
-> :Box |~~ A box. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number) | :Box/width ~(2) !| get [~(tag) ~(name)]
+> ~(:Box |~~ A box. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number); :Box/width ~(2)) | answer !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :Box/width]
 
-> :Box |~~ A box. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number) | :Box/area ~(width | mul 2) | get [~(::Box{:width 3} | area) ~(:Box/width ~(2) | ::Box{:width 3} | width)]
+> :Box |~~ A box. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number); :Box/area ~(width | mul 2); get [~(::Box{:width 3} | area) ~(:Box/width ~(2); ::Box{:width 3} | width)]
 [6 2]
 
-> apply ~({} | raise | :rate 1 !| :rate 2 | rate) !| tag
-::bind/NameDeclaredTwiceError
-
-> apply ~(:rate 1 | (:rate 2 | rate))
+> apply ~(:rate 1; (:rate 2; rate))
 2
 
-> apply ~(:rate 1 | [2 3] | map ~(:rate it) | get [~(it) ~(rate)])
-[[2 3] 1]
+> apply ~(:rate 1; [2 3] | map ~(:rate 5; rate) | get [~(it) ~(rate)])
+[[5 5] 1]
 
-> apply ~(:rate 1 | get [~(:rate 2 | rate) ~(rate)])
+> apply ~(:rate 1; get [~(:rate 2; rate) ~(rate)])
 [2 1]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(:by 3 | add by)) | 1 | plus 2 !| get [~(tag) ~(name)]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(:by 3; add by)); 1 | plus 2 !| get [~(tag) ~(name)]
 [::bind/NameDeclaredTwiceError :by]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~((:by 3 | by) | add by)) | 1 | plus 2
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~((:by 3; by) | add by)); 1 | plus 2
 5
 ```
 
@@ -252,8 +256,10 @@ quote declares, a name `with` gives its body, an input its call declares
 in a recipe and a value the step wrote at the head of the code among
 them, which stands over a verb of its name for the steps after it, the
 verb called by its address; a verb residing on a label the walk of the
-subject's tags reaches; and the one verb of that name, which refuses a
-subject the walk does not bring to its label. A node of data under a
+subject's tags reaches; and the one verb of that name whose `on` names no
+kind, which refuses a subject the walk does not bring to its label, a
+verb whose `on` names kinds reached by the walk or by its address alone
+[QSDSP#residence]. A node of data under a
 noun, a chapter of a topic among them, is read by its address alone. A
 name that reaches nothing is refused as `::call/UnknownNameError`, with
 the names near it, and a name whose verbs reside on several kinds, none
@@ -277,19 +283,19 @@ names it writes past a label the reader named so.
 > 5 | pipeline !| tag
 ::call/UnknownNameError
 
-> apply ~(:count 5 | count)
+> apply ~(:count 5; count)
 5
 
-> apply ~(:count 5 | [1 2] | count) !| get [~(tag) ~(addresses)]
+> apply ~(:count 5; [1 2] | count) !| get [~(tag) ~(addresses)]
 [::call/ValueAsALaterStepError #[::map/count ::string/count ::vec/count]]
 
-> apply ~(:count 5 | [1 2] | vec/count)
+> apply ~(:count 5; [1 2] | vec/count)
 2
 
 > ::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])
 [2 3]
 
-> :sum |~~ A sum of a bill. ~~| | {:price 4 :tax 1} | sumOf /price /tax
+> :sum |~~ A sum of a bill. ~~|; {:price 4 :tax 1} | sumOf /price /tax
 5
 ```
 
@@ -306,7 +312,7 @@ last name, a label, a verb or a name of data, as the value of its
 binding says. A label is a kind declared under a name, by the chain that
 builds it from `::kind` or by its page alone, which declares a kind of
 no commands: its verbs reside on it, its nodes lie under its address,
-`kinds` answers it where its name is of one segment [QSNAM#root], and a
+`::host | kinds` answers it where its name is of one segment [QSNAM#root], and a
 value goes under its tag through the kind [QSBLD#label]. A verb is a
 function named under a label, whatever recipe it holds, or a recipe
 written alone there, the value its declaration wrote, what runs on the
@@ -334,25 +340,25 @@ with a path the root holds, `:vec/count ~(0)` refused as a second
 declaration; a bare name of the root it may declare over [QSNAM#reach].
 
 ```qlang
-> apply ~(:Box |~~ Box. ~~| | :Box/side 3 | Box/side)
+> apply ~(:Box |~~ Box. ~~|; :Box/side 3; Box/side)
 3
 
-> :Box/side 3 !| tag
+> ~(:Box/side 3;) | answer !| tag
 ::bind/NounNotDeclaredError
 
-> :vec/second ~(get /1) | [7 8 9] | second
+> :vec/second ~(get /1); [7 8 9] | second
 8
 
 > ::vec | manifest | has ::vec/sort
 true
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :TooBigError |~~ Too big. ~~| | returns |~~ The sum. ~~| ::number | impl ~(add by)) | ::number/plus | manifest
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | throws :TooBigError |~~ Too big. ~~| | returns |~~ The sum. ~~| ::number | impl ~(add by)); ::number/plus | manifest
 #[::number/plus/ByKindNotTakenError ::number/plus/TooBigError ::number/plus/answer ::number/plus/by]
 
 > ::Nobody[1 2] | tag
 ::Nobody
 
-> :number/inc (::fn | impl ~(add 1)) | :number/next ~(add 1) | get [~(::number/inc | binding | value | tag) ~(::number/next | binding | value | tag) ~(5 | inc) ~(5 | next)]
+> :number/inc (::fn | impl ~(add 1)); :number/next ~(add 1); get [~(::number/inc | binding | value | tag) ~(::number/next | binding | value | tag) ~(5 | inc) ~(5 | next)]
 [::fn ::quote 6 6]
 
 > get [~(5 | number/add 1) ~("x" | number/add 1 !| tag) ~(::vec/take/CountNotIntegerError#5 !| tag)]
@@ -362,19 +368,24 @@ true
 ## root
 
 The root is a scope: the one the host's sources declare, each source a
-cell run over the root the sources before it left, the language's
+text run over the root the sources before it left, the language's
 first, before the first step of a reader. A source, a cell and a query
 are written alike; a source declares no name the root holds, bare or
-with a path, and no value, under a bare name or an address, and fails
-whole as
+with a path, and fails whole as
 `::builtin/RootSourceNotDeclaredError`, a defect of the host raised past
-the fail track, while a cell and a query declare a bare name of the root
-over it. The root holds no value under a bare name, so its bare names
-are its labels alone. A binding records its `:origin`, the source or the
-cell it was read from. `kinds` answers the set of the labels of one
-segment the scope reads, the language's, the hosts' and the reader's,
-the topics among them: the topic of the language is the label `::qlang`,
-whose page is the first page, and the topic of the command line `::cli`.
+the fail track, and no value under a bare name, which serves the query of
+its own text and reaches no reader, as `::builtin/RootValueNotWordError`,
+while data under an address is a node of the root and a cell and a query
+declare a bare name of the root over it. The root holds no value under a
+bare name, so its bare names are its labels alone, `::host` among them,
+the host a session is in, whose page a source of the host writes by a
+declaration of its page alone, `:host |~~ … ~~|;`, which the root lays
+over the noun of the core once [QSHST#source]. A binding records its
+`:origin`, the source or the cell it was read from. `::host | kinds`
+answers the set of the labels of one segment the scope reads, the
+language's, the hosts' and the reader's, the topics among them: the topic
+of the language is the label `::qlang`, whose page is the first page, and
+the noun of the streams a host on the command line installs `::stdio`.
 What `tells` declares under a topic is a chapter, the page of a concept,
 read by `manifest` of its noun; a chapter of `::qlang` holds the set of
 the kinds it tells of, data, so its tag lays nothing,
@@ -385,10 +396,10 @@ refusal the topic throws holds the kind of the facts it carries.
 > ::vec/filter | binding | origin
 :qlang/vec
 
-> :Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box)]
+> :Box |~~ Box. ~~|; ::host | kinds | get [~(has ::vec) ~(has ::Box)]
 [true true]
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang | manifest | map ~(binding | value | tag) | toSet) ~(::qlang/values[1] !| tag)]
+> get [~(::host | kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang | manifest | map ~(binding | value | tag) | toSet) ~(::qlang/values[1] !| tag)]
 [true ::kind #[::doc ::kind ::set] ::construct/TagNamesAValueError]
 ```
 
@@ -400,7 +411,7 @@ their names, bare [QSBLD#value]: `name`, a keyword, `docs`, the docs of
 its page, `value`, `source`, the declaration, null for a node a chain
 lays, and `origin`, a keyword or null, `::Box/side | binding | value`; a
 record a reader writes is refused where it leaves one out,
-`::binding{:name :rate}` as `::binding/DocsNotGivenError`. `env` answers
+`::binding{:name :rate}` as `::binding/DocsNotGivenError`. `::host | env` answers
 the declarations of the reader where the step stands, in the recipe of a
 verb those of the query that called it [QSNAM#owner], in code its own
 names and the nodes and the labels of the step it runs in [QSQUO#held],
@@ -411,19 +422,19 @@ holding the step of the one that wrote it; given an anchor, each reads
 the node its subject holds under it [QSSLF#axis].
 
 ```qlang
-> apply ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | get [~(name) ~(docs | count) ~(value) ~(keys !| tag)])
+> apply ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | get [~(name) ~(docs | count) ~(value) ~(keys !| tag)])
 [:Box/side 1 3 ::map/keys/SubjectNotMapError]
 
-> get [~(::binding{:name :rate} !| tag) ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | eq (print | parse | answer))]
+> get [~(::binding{:name :rate} !| tag) ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | eq (print | parse | answer))]
 [::binding/DocsNotGivenError true]
 
-> apply ~(:rate 2 | env | get [~(has :rate) ~(has :vec)])
+> apply ~(:rate 2; ::host | env | get [~(has :rate) ~(has :vec)])
 [true false]
 
-> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| | apply ~(:rate 2 | env | keys)
+> :Box |~~ A box. ~~|; :Box/side |~~ The side. ~~|; apply ~(:rate 2; ::host | env | keys)
 #[:Box :Box/side :rate]
 
-> :Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| | ::Box/side | doc
+> :Box |~~ A box. ~~|; :Box/side |~~ The side. ~~|; ::Box/side | doc
 |~~ The side. ~~|
 
 > ::vec/count/answer | source
@@ -446,7 +457,7 @@ extension of a kind of another owner stays where it was written.
 A verb written in the language and a verb of the host answer alike.
 Inside the recipe of a verb, the names the recipe writes resolve in the
 verb's own scope [QSBLD#recipe], and what the recipe reads as data,
-`env`, a page, a binding, reads the tree of names of the query that
+`::host | env`, a page, a binding, reads the tree of names of the query that
 called the verb, as a verb of the host that reads the state of its call
 reads that tree wherever it is called; the tree carries down through
 every verb the recipe calls. The recipe's own names, its inputs and the
@@ -454,12 +465,12 @@ names its steps declare, stay in its scope, and a value of the reader
 reaches the recipe as data alone.
 
 ```qlang
-> :vec/doc ~("a reader page") | [1 2] | doc
+> :vec/doc ~("a reader page"); [1 2] | doc
 "a reader page"
 
-> :vec/doc ~("a reader page") | [1 2] | tutorial | first | tag
+> :vec/doc ~("a reader page"); [1 2] | tutorial | first | tag
 ::doc
 
-> :Box |~~ A box. ~~| | :any/names ~(:rate 2 | env | get [~(has :rate) ~(has :Box)]) | names
+> :Box |~~ A box. ~~|; :any/names ~(:rate 2; ::host | env | get [~(has :rate) ~(has :Box)]); names
 [false true]
 ```

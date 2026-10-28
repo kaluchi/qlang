@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 
 const _playgroundPackage = createRequire(import.meta.url)('../package.json');
 
-// [QSCLI#answer], [D477]
+// [QSCLI#answer]
 const HELP_QUERY = '::host | doc';
 
 export const VERSION_LINE = `@kaluchi/qlang-playground ${_playgroundPackage.version}\n`;

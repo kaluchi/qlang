@@ -15,7 +15,7 @@ export function rootState(pipeValue, scope) {
   return makeState(pipeValue, scope, 0);
 }
 
-// [D421]
+// [QSNAM#declare]
 export const NO_SUBJECT = Object.freeze({});
 
 export function withPipeValue(state, nextPipeValue) {

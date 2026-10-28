@@ -228,11 +228,11 @@ function describedIn(root) {
 // touchedRecords(root) → the records in force whose scope the
 // tree changed since it was read against them, each `{ name, commit,
 // files, hunks }`, the hunks of its blocks each `{ path, text }`, the
-// changes the working tree holds among them: what a move of
-// the baseline reads again against the new root [QSREQ#marks]. A record is read
+// changes the working tree holds among them: what the closeout of a
+// stint reads again against the new root [QSREQ#marks]. A record is read
 // against the later of the commit that last described it and the
-// baseline, where the history holds one, whose move read again every record
-// its diff touched.
+// baseline, where the history holds one, whose closeout read again every
+// record its diff touched.
 export function touchedRecords(root = repoRoot, { baseline = baselineOf(root) } = {}) {
   const { blocks } = marksOfTree(root);
   const blocksOfRecord = new Map();

@@ -1,11 +1,11 @@
 // PEG grammar for the qlang pipeline query language.
 //
 // A text is its declarations, each ended by `;`, and at most one query after
-// them [D421]: a declaration a keyword with its page or its body, the body one
+// them: a declaration a keyword with its page or its body, the body one
 // step or a chain, a tag name and the commands joined to it up to the `;`,
 // and the query the steps a combinator joins, each a command, a name followed
 // by its modifiers, each one word [QSSYN#step]. A line break is whitespace
-// wherever whitespace stands. Every combinator is set off by whitespace on
+// wherever whitespace stands [QSSYN#line]. Every combinator is set off by whitespace on
 // both sides.
 //
 // Every rule answers a part, the record of a step its constructor builds or
@@ -229,13 +229,13 @@
   }
 
   // The chain a declaration's body is, a tag name and the commands joined to
-  // it, in the group of its steps [D421].
+  // it, in the group of its steps [QSNAM#declare].
   function chainOf(head, tail) {
     const { value, parts } = pipelineOf('|', head, tail);
     return { value: groupOf(value), parts };
   }
 
-  // A text, its declarations at the head of the steps of its query [D421].
+  // A text, its declarations at the head of the steps of its query [QSSYN#step].
   function textOf(declarations, query) {
     const parts = [...declarations, ...(query === null ? [] : query.parts)];
     return { value: quoteRead(parts), parts };
@@ -361,7 +361,7 @@ Query
 
 // A text, a query of the command line, a source, the code of a quote or of a
 // group: its declarations, each ended by `;`, the last one by the end of the
-// text where no query follows, and at most one query after them [D421].
+// text where no query follows, and at most one query after them [QSSYN#step].
 Text
   = head:Declaration tail:(_ ";" _ @Declaration)* query:QueryAfterTheDeclarations
     &{ return accepted(() => textOf([head, ...tail], query)); }
@@ -370,7 +370,7 @@ Text
 
 // What follows the declarations of a text: `;` and the query, `;` at its end,
 // or its end; a `|` or a `!|` after a declaration is refused, and so is any
-// other word, each naming the `;` [D421].
+// other word, each naming the `;` [QSSYN#refusal].
 QueryAfterTheDeclarations
   = _ ";" _ query:Pipeline { return query; }
   / _ ";" { return null; }
@@ -380,7 +380,7 @@ QueryAfterTheDeclarations
   / _ &. { error('a declaration ends with `;` before what follows it: write `:name body; …`'); }
 
 // A declaration where a step of the query stands is refused: the
-// declarations of a text stand at its head, before its query [D421].
+// declarations of a text stand at its head, before its query [QSSYN#step].
 DeclarationInTheQuery
   = &Declaration Declaration
     { error('a declaration stands at the head of its text, before the query, each ended by `;`: write `:x 1; [1 2] | x`'); }
@@ -601,7 +601,7 @@ PathBeforeWord
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
 // the group `(gt(1))`. A keyword with its page after the first modifier is
-// the declaration after a chain no `;` ended, refused naming the `;` [D421].
+// the declaration after a chain no `;` ended, refused naming the `;` [QSSYN#line].
 Command
   = callName:CallName touching:(&"(" @ModifierWord)? rest:(__ @ModifierWord)*
     &{
@@ -614,7 +614,7 @@ Command
 
 // A declaration: a keyword, then the doc literals of its slot and an
 // optional body, each after whitespace, a line break among it
-// [QSNAM#address], [D421]; a lone `:foo` is a keyword, its name and its slot
+// [QSNAM#address], [QSSYN#line]; a lone `:foo` is a keyword, its name and its slot
 // read once [D404].
 Declaration
   = key:BindName docs:(__ @DocSlot)? body:(__ @DeclarationBody)?
@@ -630,7 +630,7 @@ DocSlot
     { return [first, ...rest]; }
 
 // The body of a declaration: the chain that builds from a tag name, the tag
-// name and the commands joined to it up to the `;`, or one step [D421].
+// name and the commands joined to it up to the `;`, or one step [QSNAM#declare].
 DeclarationBody
   = Chain
   / Step
@@ -1109,7 +1109,7 @@ IdentTail  "letters of a name"
 // ── Whitespace ─────────────────────────────────────────────────────
 //
 // `_` is optional whitespace, `__` required whitespace, a line break among
-// it [D421], and `_h1` whitespace within a line, which a refusal reads to
+// it [QSSYN#line], and `_h1` whitespace within a line, which a refusal reads to
 // name a word written beside another on its line; a comment is whitespace
 // [QSSYN#comment].
 

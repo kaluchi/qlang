@@ -11,7 +11,7 @@ A name a step calls finds its verb by walking the subject's stack of
 tags from the outside in, down to the kind of the core at the bottom,
 and beneath every kind lies `::any`, where every walk ends and the verbs
 of any value live: `tag` and `payload`, the two sides of a value,
-`eq`, `apply`, `with`, `if`, `cond`, `coalesce`, `json`, `env`, and the
+`eq`, `apply`, `with`, `if`, `cond`, `coalesce`, `json`, `raise`, and the
 axes. A tagged value reaches `::tagged` after its own tag and before its
 payload, where `within` lives, so a tag over a value passes to the verbs
 of its payload, and a vector or a
@@ -55,10 +55,10 @@ part its kind names so.
   :rightTag ::number
 …
 
-> :number/tag ~("mine") | 5 | tag
+> :number/tag ~("mine"); 5 | tag
 "mine"
 
-> :tagged/count ~(99) | #[1 2] | count
+> :tagged/count ~(99); #[1 2] | count
 99
 
 > get [~(5 | is ::number) ~(::vec | is ::vec) ~(::vec | is ::tag) ~(#[1] | is ::vec)]
@@ -70,7 +70,7 @@ part its kind names so.
 > get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
 [::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
 
-> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number) | ::Card["a" 312] | get [~(took) ~(count !| tag) ~(vec/count !| tag) ~(tag)]
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | get [~(took) ~(count !| tag) ~(vec/count !| tag) ~(tag)]
 [312 ::call/KindAnswersNoVerbError ::vec/count/SubjectNotVecError ::Card]
 ```
 
@@ -83,12 +83,15 @@ kind of a label wires, its call answering that part of the subject,
 [QSBLD#value], whether a node lies at its address or the wiring alone names
 it, the facts of a refusal among them, `!| found` [QSERR#rest]; a name several kinds answer is declared on each, `::vec/count`, `::map/count`,
 `::string/count`, one primitive serving several where they share it. A
-verb serves the values the walk of their tags brings to its label and,
-beside them, a value of the kinds its `on` names, of tag names the
-noun's own alone [QSDSP#tagname]; a subject no verb of a name serves is
-refused, where one verb holds the name, by that verb under its own
-address, with its page and its repair, `42 | keys` as
-`::map/keys/SubjectNotMapError`, and where several hold it by the call
+bare name reaches the verbs the walk of its subject's tags brings to their
+labels alone; a verb called by its address serves those values and,
+beside them, a value of the kinds its `on` names, `::any` among them, of
+tag names the noun's own alone [QSDSP#tagname], so a verb whose `on`
+names kinds beside its label is called by its address, `5 | Shop/double`,
+`[1 2] | stdio/out json`. A subject no verb of a name serves is refused,
+where one verb holds the name and its `on` names no kind, by that verb
+under its own address, with its page and its repair, `42 | keys` as
+`::map/keys/SubjectNotMapError`, and otherwise by the call
 [QSDSP#refusal]. A refinement a verb checks of its subject is an
 invariant under its subject, `holds :SubjectNotIntegerError`, and one
 that names a concept a kind of its own, written where the value is made,
@@ -110,8 +113,11 @@ comparisons reside on `::any`, two values of one kind compared and a pair
 of two kinds refused [QSCND#compare].
 
 ```qlang
-> :Pos |~~ Pos. ~~| | :Pos/f ~(1) | -1 | f !| tag
+> :Pos |~~ Pos. ~~|; :Pos/f ~(1); -1 | f !| tag
 ::Pos/f/SubjectNotPosError
+
+> :Shop |~~ A shop. ~~|; :Shop/double (::fn | on |~~ A number. ~~| ::number | impl ~(mul 2)); get [~(5 | Shop/double) ~(5 | double !| get [~(tag) ~(addresses)])]
+[10 [::call/KindAnswersNoVerbError #[::Shop/double]]]
 
 > 42 | keys !| tag
 ::map/keys/SubjectNotMapError
@@ -151,7 +157,9 @@ as `:addresses`, where the pages of those verbs lead to one, `:nearest`,
 the verbs they link that the subject answers and whose answer is a kind
 those verbs answer, and, where the subject is a path, `:repair`, the
 step the call was likely meant as [QSPTH#verbs]. A name one verb holds
-refuses such a subject by that verb [QSDSP#residence], and the verbs of
+whose `on` names no kind refuses such a subject by that verb, and one
+whose verb's `on` names kinds is refused by the call [QSDSP#residence];
+the verbs of
 a name are those the scope of the step holds, so a verb the reader
 declares under a second noun makes the refusal of a name one verb of the
 root holds the call's, its address beside the root's.
@@ -160,7 +168,7 @@ root holds the call's, its address beside the root's.
 > 5 | count !| get [~(tag) ~(found) ~(addresses)]
 [::call/KindAnswersNoVerbError 5 #[::map/count ::string/count ::vec/count]]
 
-> :Box |~~ A box. ~~| | :Box/keys ~(1) | 42 | keys !| get [~(tag) ~(addresses)]
+> :Box |~~ A box. ~~|; :Box/keys ~(1); 42 | keys !| get [~(tag) ~(addresses)]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]
 
 > [1 2] | toString !| nearest
@@ -208,7 +216,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 > ::Box[1 2] | map ~(add 1)
 [2 3]
 
-> :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)) | [1] | n !| tag
+> :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)); [1] | n !| tag
 ::vec/n/AnswerKindNotTakenError
 
 > get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
@@ -228,16 +236,18 @@ noun the tag names, then `::any`, so a bare name after it finds the
 tag's own verbs first, then the noun's, each step resolving by its own
 subject; a fan-out over the noun is a template of `get` whose quotes run
 against the tag name. A verb of the noun itself, whose function names
-`::tag` by `on`, serves the noun's values and the noun's own tag name,
-and refuses every other tag name, one under the noun among them; a verb
-of the noun's values passes a tag name to the verb of its name on `::any`
-where one lives, `::Box | print` printing `::Box` where `:Box/print`
-prints the values of `::Box`, and refuses it under the verb where none
-does; and a function
-`apply` runs, which has no label, serves any tag name where its `on`
-names `::tag`. The commands of a chain, `on`, `takes`, `accepts`, `wires`
-and the rest, are verbs of `::fn` and of `::kind`, so a tag of another
-noun is refused by them as by every verb.
+`::tag` by `on`, serves the noun's values and the noun's own tag name; a
+bare name after another tag name reaches it not, and called by its address
+it refuses every other tag name, one under the noun among them. A verb
+or a field of the noun's values passes a tag name to the verb of its name
+on `::any` where one lives, `::Box | label` reading `:any/label` where
+`:Box/label` reads the values of `::Box`, and refuses it under the verb
+where none does; and a function `apply` runs, which has no label, serves
+any tag name where its `on` names `::tag`. The commands of a chain, `on`,
+`takes`, `accepts`, `wires` and the rest, are verbs of `::fn` and of
+`::kind` themselves, so a tag of another noun reaches none of them by
+the bare name, `::call/KindAnswersNoVerbError`, and is refused by the
+command called by its address as by every verb.
 
 ```qlang
 > ::number | gt ::A
@@ -246,9 +256,12 @@ true
 > ::vec | count !| tag
 ::vec/count/SubjectNotVecError
 
-> :Shop |~~ A shop. ~~| | :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")) | get [~(::Shop | hours) ~(::Other | hours !| tag)]
-["9 to 5" ::Shop/hours/SubjectNotShopError]
+> :Shop |~~ A shop. ~~|; :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")); get [~(::Shop | hours) ~(::Other | hours !| tag) ~(::Other | Shop/hours !| tag)]
+["9 to 5" ::call/KindAnswersNoVerbError ::Shop/hours/SubjectNotShopError]
 
-> ::number | takes :by |~~ b ~~| /0 !| tag
-::fn/takes/SubjectNotFnError
+> get [~(::number | takes :by |~~ b ~~| /0 !| tag) ~(::number | fn/takes :by |~~ b ~~| /0 !| tag)]
+[::call/KindAnswersNoVerbError ::fn/takes/SubjectNotFnError]
+
+> :any/label ~("any"); :Box |~~ A box. ~~|; :Box/label ~("box"); get [~(::Box | label) ~(::Box[1] | label)]
+["any" "box"]
 ```

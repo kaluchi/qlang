@@ -13,11 +13,11 @@
 {"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
-{"decision":"D421","name":"a-catch-whose-label-refuses-the-error-at-rest-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
-{"decision":"D421","name":"an-error-raised-under-a-label-whose-invariant-refuses-it-at-rest-is-caught-by-that-refusal","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(found | tag)]","expect":"[::Box/k ::error]"}
-{"decision":"D421","name":"a-catch-whose-label-takes-no-facts-refuses-the-error-at-rest","query":"{:a 1} | tag ::P | apply ~(:P |~~ P. ~~| (::kind | accepts |~~ A number. ~~| ::number); raise !| it !| get [~(tag) ~(found | tag)])","expect":"[::P/PayloadKindNotTakenError ::error]"}
-{"decision":"D421","name":"a-catch-whose-label-takes-maps-alone-refuses-the-error-at-rest","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); ::Late{:by 3} | raise !| it !| get [~(tag) ~(found | tag)]","expect":"[::Late/PayloadKindNotTakenError ::error]"}
-{"decision":"D421","name":"a-catch-whose-label-takes-errors-holds-the-error-at-rest-under-it","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [~(tag) /by]","expect":"[::Late 3]"}
+{"name":"a-catch-whose-label-refuses-the-error-at-rest-passes-a-frame-at-its-step","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| it | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(it) ~(count)]]"}
+{"name":"an-error-raised-under-a-label-whose-invariant-refuses-it-at-rest-is-caught-by-that-refusal","query":":Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| it !| get [~(tag) ~(found | tag)]","expect":"[::Box/k ::error]"}
+{"name":"a-catch-whose-label-takes-no-facts-refuses-the-error-at-rest","query":"{:a 1} | tag ::P | apply ~(:P |~~ P. ~~| (::kind | accepts |~~ A number. ~~| ::number); raise !| it !| get [~(tag) ~(found | tag)])","expect":"[::P/PayloadKindNotTakenError ::error]"}
+{"name":"a-catch-whose-label-takes-maps-alone-refuses-the-error-at-rest","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); ::Late{:by 3} | raise !| it !| get [~(tag) ~(found | tag)]","expect":"[::Late/PayloadKindNotTakenError ::error]"}
+{"name":"a-catch-whose-label-takes-errors-holds-the-error-at-rest-under-it","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [~(tag) /by]","expect":"[::Late 3]"}
 {"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| tag) ~(::fail~({:k ~(get /k)}) !| tag)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
 {"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
@@ -26,4 +26,4 @@
 {"name":"a-caught-error-of-a-refusal-answers-its-facts-by-their-names","query":"1 | add \"x\" !| get [~(addend | expected) ~(addend | found | tag) ~(addend | found) ~(trace | count)]","expect":"[#[::number] ::string \"x\" 1]"}
 {"name":"a-path-beneath-the-tag-of-a-caught-refusal-is-refused-with-the-read-by-its-names","query":"\"x\" | add 1 !| get /subject !| get [~(tag) ~(repair)]","expect":"[::path/TagClosedError ~(subject)]"}
 {"name":"settle-holds-the-failure-of-a-question-as-its-error-at-rest","query":"{:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]","expect":"[::number/add/SubjectNotNumberError null]"}
-{"decision":"D421","name":"a-catch-among-the-declarations-of-a-text-is-refused","query":"\":a 1 !| :b 2\" | parse !| tag","expect":"::quote/ParseError"}
+{"name":"a-catch-among-the-declarations-of-a-text-is-refused","query":"\":a 1 !| :b 2\" | parse !| tag","expect":"::quote/ParseError"}

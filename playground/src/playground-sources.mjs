@@ -1,4 +1,4 @@
-// [QSHST#source], [D477]
+// [QSHST#source]
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

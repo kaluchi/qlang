@@ -4,8 +4,7 @@
    under `::cell`. Their primitives take the values alone, the served
    subject and the values of their inputs, but that of `tap`, which reads
    the state of its call.
-   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#cell],
-   [D476], [D477]. ~|
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#cell]. ~|
 
 :stdio
   |~~ The streams of the process of the host that installs them, each

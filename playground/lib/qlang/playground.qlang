@@ -1,6 +1,7 @@
 |~ The playground of the command line: the page of `::host` there, which
    `qplay -h` prints, and the sections of its screen, `::host | status`.
-   The rules it holds: [QSCLI#answer], [QSCLI#stdin], [D476], [D477]. ~|
+   The rules it holds: [QSCLI#answer], [QSCLI#stdin], [QSHST#source],
+   [QSSLF#page]. ~|
 
 :host
   |~~ qplay — a demo command-line app for playing with qlang and checking

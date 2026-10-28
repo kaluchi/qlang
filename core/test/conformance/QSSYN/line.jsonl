@@ -6,11 +6,11 @@
 {"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| tag","expect":"::quote/ParseError"}
 {"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | answer !| tag","expect":"\"pos\""}
 {"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
-{"decision":"D421","name":"a-tag-name-on-a-later-line-is-the-body","query":"apply ~(:s\n::vec;\ns)","expect":"::vec"}
-{"decision":"D421","name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":"apply ~(:Box |~~ A box. ~~|; :Box/w\n  ::number; ::Box/w | binding | value)","expect":"::number"}
-{"decision":"D421","name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by);\n5 | plus 3","expect":"8"}
-{"decision":"D421","name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | accepts |~~ The sizes. ~~| ::map;\n::Box\"x\" !| tag","expect":"::Box/PayloadKindNotTakenError"}
+{"name":"a-tag-name-on-a-later-line-is-the-body","query":"apply ~(:s\n::vec;\ns)","expect":"::vec"}
+{"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":"apply ~(:Box |~~ A box. ~~|; :Box/w\n  ::number; ::Box/w | binding | value)","expect":"::number"}
+{"name":"a-body-begun-on-a-later-line-is-a-sentence","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by);\n5 | plus 3","expect":"8"}
+{"name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | accepts |~~ The sizes. ~~| ::map;\n::Box\"x\" !| tag","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-keyword-on-the-line-of-a-command-is-its-modifier","query":"5 | add 1 :y 2 | y !| tag","expect":"::number/add/ArgsBeyondInputsError"}
 {"name":"a-word-after-a-literal-step-is-refused-naming-the-pipe","query":"1 2","raises":"::quote/ParseError!{\n  :source \"1 2\"\n  :marker \"  ^\"\n  :message \"steps are joined by `|`: write `a | b`\"\n  :location ::span[2 1 3 3 1 4]\n}"}
-{"decision":"D421","name":"a-keyword-on-a-later-line-is-a-modifier-of-the-command-above","query":"\"{:mode :slow} | put /mode\n  :fast 1\" | parse","expect":"~({:mode :slow} | put /mode :fast 1)"}
-{"decision":"D421","name":"a-chain-on-the-line-of-its-name-runs-to-the-semicolon-that-ends-it","query":":number/plus ::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by); 5 | plus 2","expect":"7"}
+{"name":"a-keyword-on-a-later-line-is-a-modifier-of-the-command-above","query":"\"{:mode :slow} | put /mode\n  :fast 1\" | parse","expect":"~({:mode :slow} | put /mode :fast 1)"}
+{"name":"a-chain-on-the-line-of-its-name-runs-to-the-semicolon-that-ends-it","query":":number/plus ::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by); 5 | plus 2","expect":"7"}

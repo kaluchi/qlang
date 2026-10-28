@@ -471,17 +471,18 @@
 :any/print
   |~~ Answers the text that reads back as the subject, `42 | print`
       answering `"42"`, the text a host shows for an answer other than a
-      string. An atom prints as its literal, a string inside its quotes;
-      a vector and a map by their brackets around the print of each part;
-      a set, a quote, a doc and an error by brackets of their own; any
-      other value under a tag as its tag before the print of its payload.
-      A set prints in its one order, and the text reads back as the value
-      by `parse` and `answer`. A kind may answer a `print` of its own
-      declared under it, `:Box/print`, and the print of a value takes it
-      for each part of that kind; a print the reader declares under a kind
-      of the language, `:number/print`, answers the reader's own calls
-      alone. The call takes no value: a part is printed by reading it
-      first, `get /user | print`.
+      string, whole or, past the budget of every answer, as the alert that
+      keeps it in a cell. An atom prints as its literal, a string inside
+      its quotes; a vector and a map by their brackets around the print of
+      each part; a set, a quote, a doc and an error by brackets of their
+      own; a legend laid out with the gloss of each part; any other value
+      under a tag as its tag before the print of its payload. A set prints
+      in its one order, and the text reads back as the value by `parse` and
+      `answer`. The print is the language's, whatever the kind: a `print`
+      declared under a label is refused, `::bind/PrintDeclaredError`, and a
+      view of a value for reading is a verb of its own name, `legend` among
+      them. The call takes no value: a part is printed by reading it first,
+      `get /user | print`.
       ::link~(::any/json) ::link~(::any/legend)
   ~~|
   ::fn
@@ -505,11 +506,6 @@
     | proves :readsBack
         |~~ The text reads back as the value. ~~|
         ~({:name "Ann" :tags ["admin" "ops"]} | eq (print | parse | answer))
-    | proves :takesThePrintOfAKind
-        |~~ The print of a value takes the `print` of a kind for each part
-            of it.
-        ~~|
-        ~(:Box |~~ A box. ~~| | :Box/print ~("box") | [::Box[1] 2] | print | eq "[box 2]")
     | proves :ArgsBeyondInputsError/refusesABudget
         |~~ A budget given to `print` is refused under the verb. ~~|
         ~([1 2] | print 80 !| tag | eq ::any/print/ArgsBeyondInputsError)

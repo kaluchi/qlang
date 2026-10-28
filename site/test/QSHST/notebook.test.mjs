@@ -12,10 +12,6 @@ it('shows an answer as the language prints it', async () => {
   expect(await cellShown(await notebook.evalCell('[1 2] | count'))).toEqual({ text: '2', failed: false });
 });
 
-it('shows a value of a kind with a print of its own by that print', async () => {
-  expect((await cellShown(await notebook.evalCell(':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1]'))).text).toBe('[box]');
-});
-
 it('shows a failure as its alert under the line that says it was raised', async () => {
   const shown = await cellShown(await notebook.evalCell('"x" | add 1'));
   expect(shown.failed).toBe(true);

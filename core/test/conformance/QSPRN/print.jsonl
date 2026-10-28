@@ -23,8 +23,7 @@
 {"name":"a-frame-prints-on-one-line-whatever-its-subject-holds","query":"{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} | get /none !| trace | print","expect":"\"::trace[::frame[{:v [{:e {:f 1}}] :s #[{:c {:d 1}}] :t ::A::B{:g {:h 1}} :r !{:i {:j 1}}} ~(get /none)]]\""}
 {"name":"a-frame-prints-the-trace-of-an-error-it-holds-on-its-one-line","query":"[1 \"x\" 3] | map ~(mul 2) !| get /nope !| trace | print","expect":"\"::trace[::frame[::number/mul/SubjectNotNumberError!{:subject/expected #[::number] :subject/found \\\"x\\\" :trace ::trace[::frame[\\\"x\\\" ~(mul 2)] ::frame[[1 \\\"x\\\" 3] ~(map ~(mul 2)) /1]]} ~(get /nope)]]\""}
 {"name":"a-frame-lays-the-quote-it-holds-on-one-line","query":"[1] | map ~(:a (\"x\" | add 1)\n| :b 2) !| trace | print | lines | count","expect":"5"}
-{"name":"a-print-the-reader-declares-under-a-label-of-the-root-answers-its-own-calls-and-prints-no-part","query":":number/print ~(\"n\") | get [~([::Box#5 7] | print) ~(7 | print)]","expect":"[\"[::Box#5 7]\" \"n\"]"}
-{"name":"the-print-of-a-label-serves-its-values-and-no-tag-name-of-it","query":":Box |~~ B ~~| | :Box/print ~(\"box\") | [::Box#1 ::Box] | print","expect":"\"[box ::Box]\""}
+{"decision":"D478","name":"a-print-declared-under-a-label-of-the-root-is-refused","query":":number/print ~(\"n\") !| tag","expect":"::bind/PrintDeclaredError"}
 {"name":"a-string-prints-each-character-that-needs-an-escape-by-its-escape","query":"\"a\\\"b\\\\c\\nd\\te\\rf\\bg\\fh\" | print","expect":"\"\\\"a\\\\\\\"b\\\\\\\\c\\\\nd\\\\te\\\\rf\\\\bg\\\\fh\\\"\""}
 {"name":"a-map-of-two-entries-prints-on-one-line-and-of-three-an-entry-a-line","query":"get [~({:a 1 :b 2} | print) ~({:a 1 :b 2 :c 3} | print)]","expect":"[\"{:a 1 :b 2}\" \"{\\n  :a 1\\n  :b 2\\n  :c 3\\n}\"]"}
 {"name":"a-doc-prints-its-lines-two-spaces-past-the-line-it-opens-on","query":"[\"a\n  b\n\nc\"] | tag ::doc | print","expect":"\"|~~ a\\n    b\\n\\n  c ~~|\""}

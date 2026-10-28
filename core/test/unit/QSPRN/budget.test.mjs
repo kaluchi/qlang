@@ -1,14 +1,6 @@
 import { it, expect } from 'vitest';
 import * as core from '../../../src/index.mjs';
 
-it('answers an answer whose print fits the budget as it is, a part a kind prints its own way counted as it prints', async () => {
-  const notebook = await core.createNotebook();
-  const cell = await notebook.evalCell(`:Box |~~ B ~~| | :Box/print ~("b") | ${core.ANSWER_BUDGET} | range | map ~(tag ::Box) | take ${core.ANSWER_BUDGET / 2 - 1}`);
-  const shown = await core.boundAnswer(cell.result, cell.scopeAfterCell);
-  expect(shown).toBe(cell.result);
-  expect((await core.printAnswer(shown, cell.scopeAfterCell)).length).toBeLessThanOrEqual(core.ANSWER_BUDGET);
-});
-
 it('answers the refusal instead of an answer past the budget, the answer told by its tag and the views of its kind where its host keeps no cell', async () => {
   const scope = await core.langRuntime();
   const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);

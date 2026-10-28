@@ -30,7 +30,7 @@ import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, fun
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS
+  notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS, ANY_KIND_NAME
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall } from './dispatch.mjs';
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
@@ -47,6 +47,10 @@ const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError')
 
 // [QSNAM#declare]
 const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
+
+// [D478]
+const BindPrintDeclaredError = declareRefusal('bind/PrintDeclaredError');
+const PRINT_NAME = 'print';
 
 // [QSNAM#value]
 const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
@@ -201,7 +205,7 @@ async function evalConstruct(construct, state) {
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
-// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach]
+// [QSBLD#fn], [QSSLF#doc], [QSERR#flow], [QSNAM#scope], [QSNAM#address], [QSQUO#held], [QSBLD#chain], [QSBLD#recipe], [QSNAM#declare], [QSNAM#reach], [D478]
 async function evalBind(bind, state, at) {
   const name = bind.get('name').name;
   const [nounName] = splitAddress(name);
@@ -213,6 +217,7 @@ async function evalBind(bind, state, at) {
   if (nounName !== null && !scopeHas(state.scope, nounName)) {
     throw new BindNounNotDeclaredError({ name: makeKeyword(name), noun: makeTag(nounName) });
   }
+  if (nounName !== null && nounName !== ANY_KIND_NAME && splitAddress(name)[1] === PRINT_NAME) throw new BindPrintDeclaredError({ name: makeKeyword(name) });
 
   const docs = [];
   for (const written of bind.get('docs') ?? []) {

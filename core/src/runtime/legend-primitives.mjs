@@ -1,12 +1,10 @@
 // [QSPRN#legend]
 
-import { registerStateReader } from '../primitives.mjs';
 import { printValue, underTagLiteral, LINE_WIDTH } from '../print-value.mjs';
-import { kindOfAValueOf, kindsOfWalk, nodeOf, partsOfASlot, slotsOfAVerdict } from '../nouns.mjs';
+import { kindOfAValueOf, kindsOfWalk, nodeOf, partsOfASlot, slotsOfAVerdict, verbOfAView } from '../nouns.mjs';
 import { chainOfKind, chainOfFn, functionOfRecipe, PAYLOAD_NAME } from '../chain.mjs';
 import { isMap, isVec, isDoc, isQuote, isTag, isFn, isExcerpt, isCell, wiringOf, tagOf, beneathTags, payloadBeneath, bindingValueOf, canonicalKeywordLiteral, TAG_HEADER_SYMBOL, ERROR_TAG, EXCERPT_TAG, LEGEND_TAG } from '../types.mjs';
 import { declaringRecordOf, pageOfRecord } from './axis.mjs';
-import { printsOfKinds, verbOfAView } from './print.mjs';
 import { FIRST_VIEW } from '../rooms.mjs';
 import { ANY_KIND_NAME } from '../address.mjs';
 
@@ -144,7 +142,8 @@ function pageLinkedFrom(page, scope) {
   return isQuote(linked) && isTag(linked[0]) ? pageOf(scope, linked[0]) : null;
 }
 
-registerStateReader('legend/print', async (subject, state) => {
-  const told = payloadBeneath(subject);
-  return legendOf(told, state.scope, await printsOfKinds(told, state.scope, state), underTagLiteral(LEGEND_TAG.literal, told, ''));
-});
+// [QSPRN#legend], [D478]
+export async function printOfALegend(legend, state, printsOf) {
+  const told = payloadBeneath(legend);
+  return legendOf(told, state.scope, await printsOf(told, state.scope, state), underTagLiteral(LEGEND_TAG.literal, told, ''));
+}

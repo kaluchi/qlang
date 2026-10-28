@@ -1,35 +1,32 @@
 // [QSPRN#print], [QSPRN#excerpt], [QSPRN#budget]
 
 import { registerStateReader } from '../primitives.mjs';
-import { isErrorValue } from '../types.mjs';
+import { isErrorValue, LEGEND_TAG, TAG_HEADER_SYMBOL } from '../types.mjs';
 import { alertOf, lengthOf, ANSWER_BUDGET, FIRST_VIEW } from '../rooms.mjs';
-import { rootState, markRootVerbScope } from '../state.mjs';
+import { rootState, queryStateOf } from '../state.mjs';
 import { printValue } from '../print-value.mjs';
-import { nodeOf, residenceOnSubject, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
+import { verbOfAView, kindsOfWalk, kindOfAValueOf } from '../nouns.mjs';
 import { chainOfKind } from '../chain.mjs';
 import { ANY_KIND_NAME } from '../address.mjs';
 import { callVerbOn } from '../eval.mjs';
-import { servesTheSubject } from '../dispatch.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
+import { printOfALegend } from './legend-primitives.mjs';
 
 const QlangAnswerBeyondBudgetError = declareRefusal('qlang/AnswerBeyondBudgetError');
 
-// [QSPRN#print]
-export async function printsOfKinds(value, scope, state = rootState(value, scope)) {
-  const printedByKind = new Map();
-  await collectPrintsOfKinds(value, markRootVerbScope(new Map(scope)), state, nodeOf(scope, 'any/print'), printedByKind);
-  return part => printedByKind.get(part);
+// [QSPRN#print], [QSPRN#legend], [D478]
+export async function printsOfLegends(value, scope, state = rootState(value, scope)) {
+  const printedOf = new Map();
+  await collectLegends(value, queryStateOf(state), printedOf);
+  return part => printedOf.get(part);
 }
 
 // [QSERR#print]
 export async function printAnswer(value, scope, state = rootState(value, scope)) {
-  const printed = printValue(value, 0, await printsOfKinds(value, scope, state));
+  const printed = printValue(value, 0, await printsOfLegends(value, scope, state));
   return isErrorValue(value) ? `${RAISED_LINE}\n${printed}` : printed;
 }
-
-// [QSPRN#excerpt]
-export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
 
 function viewsRevealedOf(value, scope) {
   for (const kindName of kindsOfWalk(value)) {
@@ -53,7 +50,7 @@ export function viewsOfKinds(scope, state = rootState(null, scope)) {
 
 // [QSPRN#budget], [QSERR#alert], [QSHST#cell]
 export async function boundAnswer(answer, scope, written = null, keep = null) {
-  const printedOf = await printsOfKinds(answer, scope);
+  const printedOf = await printsOfLegends(answer, scope);
   const room = { keep, viewsOf: viewsOfKinds(scope) };
   if (isErrorValue(answer)) return alertOf(answer, room, printedOf);
   const characters = lengthOf(written ?? printValue(answer, 0, printedOf));
@@ -63,21 +60,20 @@ export async function boundAnswer(answer, scope, written = null, keep = null) {
 
 const RAISED_LINE = '|~| raised, and no !| caught it';
 
-async function collectPrintsOfKinds(part, scope, state, printOfAny, printedByKind) {
-  if (!isErrorValue(part)) {
-    const printOfKind = residenceOnSubject(scope, 'print', part);
-    if (printOfKind !== printOfAny && servesTheSubject(printOfKind, part)) {
-      const printed = await callVerbOn(printOfKind, part, state);
-      printedByKind.set(part, typeof printed === 'string' ? printed : printValue(printed));
-      return;
-    }
+// [QSPRN#legend], [D478]
+const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
+
+async function collectLegends(part, state, printedOf) {
+  if (isLegend(part)) {
+    printedOf.set(part, await printOfALegend(part, state, printsOfLegends));
+    return;
   }
   if (part === null || typeof part !== 'object') return;
   const parts = part instanceof Map ? part.values()
     : Array.isArray(part) ? part
     : isErrorValue(part) ? part.facts.values()
     : 'payload' in part ? [part.payload] : [];
-  for (const inner of parts) await collectPrintsOfKinds(inner, scope, state, printOfAny, printedByKind);
+  for (const inner of parts) await collectLegends(inner, state, printedOf);
 }
 
 registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));

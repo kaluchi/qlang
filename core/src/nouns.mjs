@@ -28,6 +28,9 @@ export function nodeOf(scope, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
+// [QSPRN#excerpt]
+export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
+
 // [QSQUO#held]
 export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 

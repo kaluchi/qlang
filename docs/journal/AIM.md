@@ -10,11 +10,11 @@ holds is the specification's to say [QSVOX#order].
 ## mission
 
 qlang is the pipeline language for a model working under the pressure of
-a task in a session that remembers nothing. Such a session meets
-JSON-shaped data from sources it has never seen, has to collect and shape
-it correctly, and cannot afford to learn a language first, so the
-language teaches its user from inside itself [QSSLF]: a model needs no
-manual delivered in advance, but a way of asking at the point of need.
+a task in a session that remembers nothing. Such a session meets a world
+it has never seen, data to read and things to drive, has to handle them
+correctly, and cannot afford to learn a language first, so the language
+teaches its user from inside itself [QSSLF]: a model needs no manual
+delivered in advance, but a way of asking at the point of need.
 
 The reason is the economy of such a session. Its context only grows:
 whatever an answer adds is read again on every later round trip, so the
@@ -24,32 +24,38 @@ longest. A question about relations, who calls this, what implements
 that, what breaks if it changes, answered by text search rebuilds the
 graph inside the context, the most expensive place there is.
 
-The language lives inside a tool that already holds such a graph or such
-data. The tool embeds it and exposes its domain as words [QSHST#source],
-and a session asks one question where it would make many calls: the
-query names the shape of the answer, so nothing arrives that was not
-asked for and nothing needed is missing, and the intermediate data stays
-out of the context. Three requirements hold for every host. Onboarding
-lives inside the tool and is obtained from it by a command, since
-knowledge copied out of a tool goes stale with its next release. Nothing
-is delivered as a sheet: the caller controls the shape and the detail of
-what it receives. And the shape of an answer is known before the answer
-is fetched, from the word about to be called. An answer is as exact and
-as short as the query asks, and a default answer, the print of a value
-and of a failure and the shape of a value among them, carries signal
-enough to pay for the round trip that brings it into the context; where a
-literal is hard to read on, or one round trip cannot ask several
-questions at once, the round trips grow with the inconvenience of the
-tool and not with the task.
+The language lives inside a host, a tool that already holds such a
+graph, such data or such things. The host embeds the language and
+exposes its world through it [QSHST#source], `::codebase`,
+`::deployment`, `::dashboard`, `::inbox`, `::thermostat`: a session asks
+each what it is, what it offers and what state it is in, and tells it
+what to do, by the one protocol the language sets. Every answer and
+every part of it is annotated by a prefix that names its kind, and the
+prefix is asked by the same protocol, so an answer leads on to its own
+explanation inside the language. A session asks one question where it
+would make many calls: the query names the shape of the answer, so
+nothing arrives that was not asked for and nothing needed is missing,
+and the intermediate data stays out of the context. Three requirements
+hold for every host. Onboarding lives inside the tool and is obtained
+from it by a command, since knowledge copied out of a tool goes stale
+with its next release. Nothing is delivered as a sheet: the caller
+controls the shape and the detail of what it receives. And the shape of
+an answer is known before the answer is fetched, from the word about to
+be called. An answer is as exact and as short as the query asks, and a
+default answer, the print of a value and of a failure and the shape of a
+value among them, carries signal enough to pay for the round trip that
+brings it into the context; where a literal is hard to read on, or one
+round trip cannot ask several questions at once, the round trips grow
+with the inconvenience of the tool and not with the task.
 
 The measure of quality is one: a fresh session, having read only what
 the language says about itself, writes a correct query on the first
 attempt. Every construct is judged by whether it makes that first
 attempt likelier, every text by whether it is something the language
 could say about itself, and the round trips and the token bill of a whole
-task count it [QSMSR#benchmark]. Need is measured by tasks and by the pain
-a session meets, and the code of a host is no measure of what the
-language needs.
+task are counted in it [QSMSR#benchmark]. Need is measured by tasks and
+by the pain a session meets, and the code of a host is no measure of
+what the language needs.
 
 ## state
 
@@ -65,8 +71,8 @@ the seventh yields only to a branch that introduces a model.
    kind of a value, and a catalog that describes itself.
 2. Self-description is complete: a session that reads only the first
    screen of the language and asks the language for what it needs solves
-   a benchmark of realistic JSON tasks at the first attempt, within a
-   token budget.
+   a benchmark of realistic tasks, reading the data and driving the
+   things of a host, at the first attempt, within a token budget.
 3. Every fact has one spelling, written where it is used and derived
    everywhere else, so no test keeps two spellings in agreement.
 4. The consumers run: the sister project, the site and its playground,
@@ -96,7 +102,7 @@ mechanism to be explained does not enter.
 Everything is a value. Code, a page, an error, the scope a query
 declared and the description of a word are values, each with a literal
 that prints and reads back and that stands at the head of a pipeline,
-where the ordinary protocol asks it, `doc`, `tag`, `manifest`; only
+where the protocol asks it, `doc`, `tag`, `manifest`; only
 what has a literal reaches the pipeline.
 
 The language describes itself. The one description of a word is its
@@ -109,13 +115,12 @@ literal does not print within its bound, the language compresses it so
 as to carry the most valuable information it holds, and says what it
 left out and how to read it. A failure follows the same rule, an alert
 and a refusal giving the most useful signal in the least room, and every
-literal comes with the help and the words it needs, its page, its
-shape and its words.
+literal comes with the help it needs, its page, its shape and its words.
 
-The language carries its tools. The language carries the tools a reader
-needs for any further reading of its literals, processing, transforming
-and filtering them, and a reader extends and completes that toolset with
-words and kinds of its own.
+The language carries its tools. A reader finds in it what any further
+reading of its literals needs, processing, transforming and filtering
+them, and extends and completes that toolset with words and kinds of its
+own.
 
 One fact, one spelling. A fact is recorded where it is used and derived
 everywhere else; a test that guards the agreement of two spellings is a

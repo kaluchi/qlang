@@ -138,6 +138,21 @@
             ::link~(::bind)
         ~~|
         ~(wires :name |~~ The name of the value declared at the top. ~~| ::keyword)
+    | throws :PrintDeclaredError
+        |~~ The print of a value is the language's literal, whatever its
+            kind, the text that reads back as the value, which a host shows
+            for an answer and `print` answers, so a `print` declared under
+            a label is refused, `:name` naming it. A view of a value for
+            reading is a verb of its own name under the label,
+            `:Box/label ~(get /name)`, which a reader asks for, `legend`
+            the view of the language that glosses each part.
+            ::link~(::any/print) ::link~(::any/legend)
+            ::link~(::bind)
+        ~~|
+        ~(wires :name |~~ The name of the print declared under a label. ~~| ::keyword)
+    | proves :PrintDeclaredError/refusesAPrintOfALabel
+        |~~ A print declared under a label is refused. ~~|
+        ~(:Box |~~ A box. ~~| | :Box/print ~("box") !| get [~(tag) ~(name)] | eq [::bind/PrintDeclaredError :Box/print])
     | proves :holdsTheNameAndTheBody
         |~~ A declaration holds its name and its body. ~~|
         ~(~(:inc add 1) | first | get [/name /body/name] | eq [:inc :add])

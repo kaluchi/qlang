@@ -724,8 +724,8 @@
             name as its subject, so a noun that stands for a thing outside
             the language is addressed bare, `::Jenkins | builds`, while a
             verb of the noun's values passes the tag name to the verb of
-            its name on `::any`, `::Box | print` printing `::Box` where
-            `:Box/print` prints the values of `::Box`, and refuses it
+            its name on `::any`, `::Box | label` reading `:any/label` where
+            `:Box/label` reads the values of `::Box`, and refuses it
             where none lives there. A verb is told
             as a story, in one order: the verb and its page, its inputs,
             its answer, its refusals, its laws and its recipe, one chain; a
@@ -793,7 +793,7 @@
         |~~ A verb of the noun's values passes the tag name to the verb of
             its name on `::any`.
         ~~|
-        ~(:Box |~~ A box. ~~| | :Box/print ~("box") | get [~(::Box | print) ~(::Box[1] | print)] | eq ["::Box" "box"])
+        ~(:any/label ~("any") | :Box |~~ A box. ~~| | :Box/label ~("box") | get [~(::Box | label) ~(::Box[1] | label)] | eq ["any" "box"])
     | proves :verbs/keepsTheInvariantsOfItsKind
         |~~ A value put under a kind keeps the kind's invariants. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#-3 !| tag | eq ::Pos/NotPositiveError)

@@ -1,14 +1,16 @@
-|~ `::legend`, the kind of the legend of a value, and what is declared
-   under it: its print, the print of the value it tells laid out by the
-   kind of that value.
-   The rules it holds: [QSPRN#legend]. ~|
+|~ `::legend`, the kind of the legend of a value: the print of the value it
+   tells laid out by the kind of that value, which the printer of the core
+   writes.
+   The rules it holds: [QSPRN#legend], [D478]. ~|
 
 :legend
   |~~ A legend tells a value: it prints under its tag as the print of the
-      value laid out by its kind, `::legend::point[`, each part the kind
-      reads by a key or an index on a line of its own beside the gloss of
-      its page, so a host prints it as it prints any answer, its comments
-      painted as comments, and the text read back is the legend.
+      value laid out by its kind, `::legend::point[`, the head beside the
+      gloss of the page `doc` reads of the value, each part the kind reads
+      by a key or an index on a line of its own beside the gloss of its
+      page, a part at an index named beside it, and every comment closed
+      and whitespace, so a host prints it as it prints any answer, its
+      comments painted as comments, and the text read back is the legend.
       `"~{" | parse !| legend` tells the error at rest of a parse, and
       `payload` answers the value told; a tag name tells the kind it names,
       a comment for each name the kind wires, `::span | legend`.
@@ -21,24 +23,11 @@
             back as the legend.
         ~~|
         ~(::point[0 1 2] | legend | get [~(print | startsWith "::legend::point[") ~(eq (print | parse | answer))] | eq [true true])
-    | proves :answersTheValueItTellsByPayload
-        |~~ `payload` answers the value a legend tells. ~~|
-        ~([1 2] | legend | payload | eq [1 2])
-
-:legend/print
-  |~~ Answers the print of the value the legend tells laid out by its kind,
-      under the tag of the legend: the head beside the gloss of the page
-      `doc` reads of the value, each part its kind reads by a key or an
-      index on a line of its own beside the gloss of its page, a part at an
-      index named beside it, and every comment closed and whitespace, so
-      the text reads back as the legend.
-      ::link~(::any/legend)
-  ~~|
-  ::fn
-    | returns |~~ The print of the value told, laid out. ~~| ::string
     | proves :glossesEachPartItsKindWires
         |~~ A part its kind wires stands beside the gloss of its page and the
             name that reads it.
         ~~|
         ~(::point[0 1 2] | legend | print | lines | get /2 | contains "|~ The line of the point, counted from one · line ~|")
-    | impl ::builtin{}
+    | proves :answersTheValueItTellsByPayload
+        |~~ `payload` answers the value a legend tells. ~~|
+        ~([1 2] | legend | payload | eq [1 2])

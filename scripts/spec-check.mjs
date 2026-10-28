@@ -126,7 +126,7 @@ mkdirSync(run, { recursive: true });
 for (const [at, { name, answer, started, ended }] of answers.entries()) {
   if (answer === null) continue;
   const report = join(run, records === null ? `${name}.md` : reportOf.get(name));
-  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`', effort });
+  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qplay`, `grep` and `git ls-files`', effort });
   writeFileSync(report, `${head}\n\n${linkedFromTheRun(answer)}\n`);
   if (records !== null) held(name, report, started, ended);
   console.log(`${name}: ${shown(report)}${records === null ? '' : `, its reading to stand beside it as ${shown(report).replace(/\.md$/, '~reading.md')}`}`);

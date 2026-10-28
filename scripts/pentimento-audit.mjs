@@ -146,7 +146,7 @@ for (const { name, answer, started, ended } of answers) {
   const report = join(run, `${name.replaceAll('/', '-')}.md`);
   mkdirSync(dirname(report), { recursive: true });
   const what = `A pentimento audit of ${name} for ${calledFor} by a clean Opus answering \`${shown(promptPath)}\`.`;
-  writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`', effort })}\n\n${answer}\n`);
+  writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qplay`, `grep` and `git ls-files`', effort })}\n\n${answer}\n`);
   console.log(`${name}: ${shown(report)}`);
 }
 if (answers.some(({ answer }) => answer !== null)) {

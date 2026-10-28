@@ -1,6 +1,6 @@
 // The outside audit [QSRVW#audits]: a clean Opus reads the tree at HEAD from a
 // directory of its own, with no CLAUDE.md, no memory and no MCP server,
-// runs `qlang`, and answers `scripts/outside-audit-prompt.txt`. An audit is
+// runs `qplay`, and answers `scripts/outside-audit-prompt.txt`. An audit is
 // called for by a record in force, `--for D395`, and named after it,
 // numbered in the order the audits of that record ran,
 // `outside-audit/D395~1.md`; the report opens with its head, what it is and
@@ -53,7 +53,7 @@ if (answer === null || !stillTheTree(repoRoot, tree)) process.exit(1);
 
 mkdirSync(auditsDir, { recursive: true });
 const what = `An outside audit of qlang for ${calledFor} by a clean Opus answering \`${shown(promptPath)}\`.`;
-writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qlang`', effort })}\n\n${answer}\n`);
+writeFileSync(report, `${headOf({ what, tree, onTheBaseline, date, started, ended, allowed: '`qplay`', effort })}\n\n${answer}\n`);
 holdTheRun(repoRoot, calledFor, runLine({
   report: shown(report), kind: 'an outside audit of the tree by a clean reader with no instructions',
   tree, baseline, date, from: minuteOf(started), to: minuteOf(ended), why

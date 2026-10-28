@@ -12,8 +12,10 @@ its text, before the query [QSSYN#step], and adds a word with its page to
 the scope of the text. The body, the step after the name and its page,
 `:body` of the `::bind` a quote holds of the declaration [QSQUO#step],
 runs once, where the declaration stands, with no subject: a verb called
-there is refused as `::bind/SubjectNotGivenError` with its `:name`, and a
-value of the subject is named for the steps after it by `with`
+there is refused as `::bind/SubjectNotGivenError` with its `:name`, and so
+is a body that hands on the value it is not given, the fail track alone,
+with the name of its declaration, and a value of the subject is named for
+the steps after it by `with`
 [QSPTH#template]. A failure of a declaration is the failure of its text,
 which declares nothing and runs no query, the failure passing every `!|`
 of the text to whoever reads it, the host, `parse | answer`, `answer` or

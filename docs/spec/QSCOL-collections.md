@@ -26,8 +26,9 @@ path of the step's frame naming it [QSERR#trace], a total past the
 doubles refused as no number, and `min` and `max`, which relate the
 elements as `gt` relates two values [QSORD#sort]; `first`, `last`,
 `min`, `max` and `avg` answer null over an empty container. `avg`
-answers the mean, null over nothing, kept as a running mean, under the
-tags its numbers share, read as `sum` reads them, an element that is no
+answers the mean, the sum of its numbers over their count where the sum
+stays among the doubles and the running mean where it passes them, null
+over nothing, under the tags its numbers share, read as `sum` reads them, an element that is no
 number refused at its index, at its key over a map. `has` asks whether the vector or the set holds an element
 equal to one [QSPTH#has]. `append` and `prepend` put one element at an
 end, a vector given among them, and a set takes it into its order. `zip`
@@ -59,6 +60,9 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 
 > [1 2 3 4] | avg
 2.5
+
+> get [~([0 1 6 1] | avg) ~([1e308 1e308] | avg | eq 1e308) ~([1e308 -1e308] | avg)]
+[2 true 0]
 
 > [1 "x"] | avg !| get [~(tag) ~(trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]

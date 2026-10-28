@@ -139,7 +139,7 @@ describe('source axis prints the declaration for rare forms of a body', () => {
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {
     // [QSNAM#declare]
-    expect(await evalQuery('apply ~(:handler (!| kind); ::handler | source | toString)')).toBe(':handler (!| kind);');
+    expect(await evalQuery('~(:handler (!| kind);) | toString')).toBe(':handler (!| kind);');
   });
 });
 

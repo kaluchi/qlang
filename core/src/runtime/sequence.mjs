@@ -73,14 +73,17 @@ const MapSumElementKindNotTakenError = declareRefusal('map/sum/ElementKindNotTak
 registerStateReader('vec/sum', (vector, state) => totalOf(entriesOf(vector), VecSumElementKindNotTakenError, state));
 registerStateReader('map/sum', (map, state) => totalOf(entriesOf(map), MapSumElementKindNotTakenError, state));
 
+// [D480]
 function meanOf(elements, ElementKindNotTakenError, state) {
   if (elements.length === 0) return NULL;
+  let total = 0;
   let mean = 0;
   const tags = eachNumber(elements, ElementKindNotTakenError, (number, count) => {
+    total += number;
     const gap = number - mean;
     mean += Number.isFinite(gap) ? gap / (count + 1) : number / (count + 1) - mean / (count + 1);
   });
-  return underSharedTags(mean, tags, state);
+  return underSharedTags(Number.isFinite(total) ? total / elements.length : mean, tags, state);
 }
 
 const VecAvgElementKindNotTakenError = declareRefusal('vec/avg/ElementKindNotTakenError');

@@ -13,3 +13,4 @@
 {"name":"a-body-that-reads-the-subject-is-refused-naming-with","query":"~(:n (count); 5) | answer !| tag","expect":"::bind/SubjectNotGivenError"}
 {"name":"a-chain-that-answers-no-word-is-refused-naming-the-semicolon","query":"~(:Box |~~ A box. ~~| ::vec | tag) | answer !| tag","expect":"::bind/ChainAnswersNoWordError"}
 {"name":"a-body-reads-a-label-by-its-bare-name","query":":K |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag)]","expect":"[::Box ::Box/PayloadKindNotTakenError]"}
+{"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :x]"}

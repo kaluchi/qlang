@@ -280,10 +280,12 @@
 
 :vec/avg
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
-      answering `2.5`, or null for the empty vector, which has no mean;
-      the mean of numbers stays among the finite doubles,
-      `[1e308 -1e308] | avg` answering `0`, and its last digit is the
-      running mean's, `[0 1 6 1] | avg` answering `1.9999999999999998`.
+      answering `2.5`, or null for the empty vector, which has no mean:
+      the sum of the numbers over their count where the sum stays among the
+      finite doubles, `[0 1 6 1] | avg` answering `2` and
+      `[1e308 -1e308] | avg` answering `0`, and the running mean where it
+      passes them, which stays among them, `[1e308 1e308] | avg` answering
+      `1e+308`.
       An element that is no number is refused at its index, as `sum`
       refuses it, so a field of each record is read first,
       `map /age | avg`, and the mean of each group of a `groupBy` comes
@@ -308,11 +310,11 @@
     | proves :averagesZeroOneAndFour
         |~~ The mean of zero, one and four is their sum over three. ~~|
         ~([0 1 4] | avg | eq ([0 1 4] | sum | div 3))
-    | proves :keepsTheLastDigitOfTheRunningMean
-        |~~ The running mean of zero, one, six and one ends a digit below
+    | proves :answersTheSumOverTheCount
+        |~~ The mean of zero, one, six and one is their sum over their count,
             two.
         ~~|
-        ~([0 1 6 1] | avg | eq 1.9999999999999998)
+        ~([0 1 6 1] | avg | eq 2)
     | proves :answersNullOfNothing
         |~~ The empty vector has no mean. ~~|
         ~([] | avg | eq null)

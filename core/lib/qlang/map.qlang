@@ -253,8 +253,9 @@
 :map/avg
   |~~ Answers the mean of the values, each a number,
       `{:mon 12 :tue 15} | avg` answering `13.5`, or null for the empty
-      map, which has no mean, the mean of numbers staying among the finite
-      doubles, `{:high 1e308 :low -1e308} | avg` answering `0`; it takes
+      map, which has no mean, the sum of the values over their count as
+      `avg` of vectors reads it, staying among the finite doubles,
+      `{:high 1e308 :low -1e308} | avg` answering `0`; it takes
       no value. A value that is no number is refused, the path of its frame
       naming its key, and a field of each value is read first by `map`,
       `map /amount | avg`. A vector and a set answer by the `avg` of

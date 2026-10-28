@@ -236,6 +236,7 @@ async function evalBind(bind, state, at) {
   const body = !bind.has('body') ? null : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
+  if (answered === NO_SUBJECT) throw new BindSubjectNotGivenError({ name: makeKeyword(name) });
   if (bind.has('body') && isChain(bind.get('body')) && !buildsAWord(answered, nounName)) throw new BindChainAnswersNoWordError({ name: makeKeyword(name), found: answered });
   if (nounName !== null && isFn(answered)) refuseAnInputOfTheWiring(state.scope, nounName, answered);
   if (writesOutsideItsChain(state.scope, nounName, splitAddress(name)[1], answered)) {

@@ -216,9 +216,9 @@ caller; and `langRuntime` answers the scope of the root. A host puts its
 names into the scope by its sources alone, and a reader by a declaration.
 
 The REPL of the site keeps one notebook across its cells, a word one cell
-declares staying for the cells after it, and its playground runs the cells
-of one run in one notebook, each printing its answer within the budget of
-every answer [QSPRN#budget], a failure as its alert under the line that
+declares staying for the cells after it, and its playground runs the text
+of one run as one cell, its declarations and the query after them,
+printing its answer within the budget of every answer [QSPRN#budget], a failure as its alert under the line that
 says it was raised [QSERR#print], and showing a defect as `qlang:` and its
 message.
 

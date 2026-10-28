@@ -86,7 +86,7 @@ function probesOf(source) {
   let open = null;
   let section = '';
   const close = () => {
-    if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
+    if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')), written: open.answer.join('\n') });
     open = null;
   };
   source.split('\n').forEach((rawLine, index) => {
@@ -188,8 +188,9 @@ const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-
 // compares as the text the command line prints. An answer with … holds
 // only where the print is an error exactly when the answer is one, so
 // the words of a page do not match inside the error that carries the
-// page as its subject [QSREQ#probe].
-async function answersAsRecorded({ query, answer }) {
+// page as its subject [QSREQ#probe]. A literal answer compares as the value
+// its lines write, the whitespace inside a string among it.
+async function answersAsRecorded({ query, answer, written }) {
   if (answer === '') return !isErrorValue(await answerOf(query));
   if (answer.includes('…')) {
     const printed = squash(await onCommandLine(query));
@@ -206,7 +207,7 @@ async function answersAsRecorded({ query, answer }) {
   if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
   try { parseSource(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return compareValues(await answerOf(query), await evalQuery(answer)) === 0 || 'lossy'; } catch { return 'lossy'; }
+  try { return compareValues(await answerOf(query), await evalQuery(written)) === 0 || 'lossy'; } catch { return 'lossy'; }
 }
 
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');

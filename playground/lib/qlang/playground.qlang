@@ -1,0 +1,70 @@
+|~ The playground of the command line: the page of `::host` there, which
+   `qplay -h` prints.
+   The rules it holds: [QSCLI#answer], [QSCLI#stdin], [D477]. ~|
+
+:host
+  |~~ qplay — a demo command-line app for playing with qlang and checking
+      that its core answers: vanilla qlang-core + qlang-stdio, queried from
+      the shell or in its REPL; the smallest host that embeds the language.
+
+      Usage: `qplay [--color=MODE] [--fail] '<query>'` runs a query,
+      `qplay -i ['<query>']` opens a session of cells, the query its first,
+      `qplay -h` prints this page and `qplay -V` the version. The flags
+      stand before the query, one argument the shell quotes whole.
+      `--color=auto`, the default, paints where stdout is a terminal,
+      `always` and `never` whatever it is, and `NO_COLOR=1` and
+      `FORCE_COLOR=1` turn `auto` to never and to always.
+
+      A query runs on what stdin holds. JSON is read as values, an object
+      a map whose keys are keywords, `{"name": "Ann"}` arriving as
+      `{:name "Ann"}`; any other text is one string. A query headed by
+      `in` reads the text as it came, JSON text among it, and
+      `in | parseJson` reads it as JSON alone. A query that reads no
+      subject, `qplay '::vec | doc'` or `qplay '[1 2] | sum'`, runs at once
+      and reads no stdin. One that reads it with nothing piped, a terminal
+      or `< /dev/null`, runs on the noun of the language, `::qlang`, so
+      `qplay 'doc'` reads the first page; where a shell leaves stdin open,
+      it waits for the end, as every reader of a pipe does.
+
+      The answer is printed as the language prints it, whatever the data
+      was: a map as `{:name "Ann" :tags #["a"]}`, a kind as `::map`. A
+      string goes out as its text, so a query that ends in a conversion
+      writes what the conversion made: `| json` the JSON text of the
+      answer, `| table` a vector of maps drawn as a table, `| print` the
+      literal of the answer, a string in its quotes. A failure prints as
+      its alert, the error at rest `::Tag!{…}`, each fact whole within
+      three hundred characters and past them as the cell the playground
+      keeps it in, beside its tag, its views and its parts,
+      `::Tag::excerpt{…}`, under the line
+      `|~| raised, and no !| caught it` and above the prose of its
+      refusal's page as line comments `|~| …`, which tells how to repair
+      the call, a refused text holding a caret beneath its line, `:marker`
+      under `:source`; `!| json` writes a failure as JSON. Every answer
+      goes to stdout with the exit code 0, a failure among them, a query
+      that does not parse answering `::quote/ParseError`, so calls run side
+      by side never stop each other. A script that tests the code writes
+      `--fail` before the query, `qplay --fail 'get /id' < a.json && next`:
+      a failure exits with 1, written as without it. A defect raised past
+      the fail track goes to stderr as `qplay:` and its message with the
+      code 1, and a call that names no query or a flag the playground takes
+      not goes there with its usage and the code 2.
+
+      Every answer prints within one budget of characters, but in the
+      REPL, which prints it whole, and one past it prints as
+      `::qlang/AnswerBeyondBudgetError`, whose `:budget` names the budget
+      and `:answer` the cell whose `answer` reads the whole later;
+      `print | out` or `json | out` writes the whole, through the streams
+      of `::stdio`.
+      ::link~(::stdio) ::link~(::any/json) ::link~(::vec/table)
+      ::link~(::qlang/errors) ::link~(::cell) ::link~(::qlang/hosts)
+  ~~|
+  ::kind
+    | accepts |~~ No value: `::host` names the host a session is in. ~~| #[]
+    | throws :PayloadKindNotTakenError
+        |~~ `::host` names the host a session is in, its page and its
+            words, and takes no payload: it is asked by itself,
+            `::host | doc`.
+        ~~|
+    | proves :PayloadKindNotTakenError/refusesAValue
+        |~~ No value is put under `::host`. ~~|
+        ~(5 | tag ::host !| tag | eq ::host/PayloadKindNotTakenError)

@@ -32,7 +32,7 @@ const dataDir = join(benchDir, 'data');
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue } = await core('index.mjs');
 const { compareValues } = await core('ordering.mjs');
-const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
+const { main } = await import(pathToFileURL(join(repoRoot, 'playground', 'src', 'main.mjs')).href);
 
 // What the command line answers for a query over the data of its task,
 // as JSON text, which `| json | out` writes whole, past the budget of every

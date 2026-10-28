@@ -28,9 +28,11 @@ function fineAreaOf(path) {
   if (path.startsWith('core/lib/')) return 'core catalog';
   if (path.startsWith('core/test/conformance/')) return 'core conformance';
   if (path.startsWith('core/test/')) return 'core unit tests';
-  if (path.startsWith('cli/') && path.endsWith('.qlang')) return 'cli catalog';
-  if (path.startsWith('cli/src/')) return 'cli sources';
-  if (path.startsWith('cli/test/')) return 'cli tests';
+  if (path.startsWith('stdio/') && path.endsWith('.qlang')) return 'stdio catalog';
+  if (path.startsWith('playground/') && path.endsWith('.qlang')) return 'playground catalog';
+  if (path.startsWith('stdio/src/')) return 'stdio sources';
+  if (path.startsWith('playground/src/')) return 'playground sources';
+  if (path.startsWith('playground/test/')) return 'playground tests';
   if (path.startsWith('docs/spec/')) return 'spec';
   if (path.startsWith('docs/journal/')) return 'journal';
   if (path.startsWith('docs/')) return 'other docs';
@@ -88,7 +90,7 @@ const SURFACE = [
 
 // The ratio of comment lines to code lines over the core, the command line
 // and the language server, which falls on every branch [QSLEX#code].
-const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
+const COMMENTED_SOURCES = ['core/src', 'stdio/src', 'playground/src', 'lsp/src'];
 function commentRatio(ref) {
   const lines = regex => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, regex, root), 0);
   const comments = lines('^[[:space:]]*//');

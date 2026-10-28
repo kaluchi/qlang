@@ -11,7 +11,7 @@ describe('the names of the modules', () => {
 
   it('leaves a test file and a configuration aside by their form, and the generated code, the vendored and the sets of the benchmark', () => {
     expect(namesSharedByModules([
-      'core/test/unit/QSHST/notebook.test.mjs', 'cli/test/QSHST/notebook.test.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs',
+      'core/test/unit/QSHST/notebook.test.mjs', 'playground/test/QSHST/notebook.test.mjs', 'core/vitest.config.mjs', 'playground/vitest.config.mjs',
       'core/gen/grammar.mjs', 'core/src/grammar.peggy', 'node_modules/a/index.js', 'scripts/benchmark/sets/W/index.mjs', 'core/src/index.mjs',
       'README.md', 'core/README.md',
     ])).toEqual([]);

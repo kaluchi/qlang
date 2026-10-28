@@ -30,7 +30,7 @@ const catalogFiles = dir => readdirSync(join(root, dir), { withFileTypes: true }
 
 const texts = [
   ['chapters', readdirSync(join(root, 'docs/spec')).filter(name => /^QS.*\.md$/.test(name)).map(name => proseOfChapter(readFileSync(join(root, 'docs/spec', name), 'utf8')))],
-  ['pages', ['core/lib', 'cli/lib'].flatMap(catalogFiles).map(file => proseOfSource(readFileSync(join(root, file), 'utf8')))]
+  ['pages', ['core/lib', 'stdio/lib', 'playground/lib'].flatMap(catalogFiles).map(file => proseOfSource(readFileSync(join(root, file), 'utf8')))]
 ];
 for (const [name, proses] of texts) {
   const lengths = proses.flatMap(sentencesOf).map(wordsOf).sort((a, b) => a - b);

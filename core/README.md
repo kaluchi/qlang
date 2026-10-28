@@ -20,7 +20,7 @@ names a query declared, `kinds` the labels the scope reads,
 `::vec | manifest` the nodes under one, `::vec/sort | manifest` the
 nodes under the `sort` of vectors, its inputs, its answer and its
 refusals, and `::vec/sort | doc` the page of a name. The command line,
-`@kaluchi/qlang-cli`, runs a query from the shell.
+`@kaluchi/qlang-playground`, `qplay`, runs a query from the shell.
 
 ## Embedding
 

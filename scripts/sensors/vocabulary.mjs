@@ -20,7 +20,7 @@ import { join, resolve } from 'node:path';
 import { falseMatchesInTree } from '../grep-ergonomics.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..', '..');
-const TEXTS = ['docs/spec', 'core/lib', 'cli/lib', 'core/src', 'cli/src', 'lsp/src', 'site/src', 'core/test', 'cli/test', 'lsp/test', 'CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
+const TEXTS = ['docs/spec', 'core/lib', 'stdio/lib', 'playground/lib', 'core/src', 'stdio/src', 'playground/src', 'lsp/src', 'site/src', 'core/test', 'playground/test', 'lsp/test', 'CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'];
 const CORPUS = join(repoRoot, 'node_modules');
 
 const args = process.argv.slice(2);

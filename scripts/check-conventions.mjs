@@ -17,7 +17,7 @@
 //       refusal and every recording of a site takes the address as a
 //       literal, `'noun/LastNameError'`, and the constant that holds
 //       the class is the address without its slash, across `core/src`,
-//       `cli/src`, `lsp/src` [QSERR#site].
+//       `stdio/src`, `playground/src`, `lsp/src` [QSERR#site].
 //
 //   (3) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
@@ -168,7 +168,7 @@ const IGNORE_DIRS = new Set([
   'node_modules', '.git',
   'core/gen',
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
-  'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
+  'stdio/coverage', 'playground/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSMSR#benchmark]
   'vscode'
@@ -279,7 +279,8 @@ function constantOfAddress(address) {
 // same scan, the root of its sources named here.
 const REFUSAL_SCAN_ROOTS = [
   ['core', 'src'],
-  ['cli',  'src'],
+  ['stdio', 'src'],
+  ['playground', 'src'],
   ['lsp',  'src']
 ];
 
@@ -452,7 +453,7 @@ function rangesOffTheirSibling() {
 // no page of the language, so a reference to one is a link that leads
 // nowhere, and the reason of a sentence lives with its decision [QSREQ#marks].
 
-const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
+const CATALOG_ROOTS = ['core/lib', 'stdio/lib', 'playground/lib'];
 
 function catalogFiles(dir) {
   return readdirSync(join(repoRoot, dir), { withFileTypes: true }).flatMap(entry =>
@@ -629,7 +630,7 @@ function specIntrusions() {
     const match = HISTORY_DATE.exec(line);
     if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
   });
-  ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'].forEach(datedLines);
+  ['CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'].forEach(datedLines);
   for (const [root, ending] of TEXTS_THAT_STATE) {
     readdirSync(join(repoRoot, root), { recursive: true }).map(String).filter(name => ending.test(name))
       .forEach(name => datedLines(`${root}/${name.split(sep).join('/')}`));
@@ -639,8 +640,8 @@ function specIntrusions() {
 
 // Beside the chapters and the seeds, the catalog, the cases and the code
 // state what holds [QSVOX#voices].
-const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
-  ['core/src', /\.(mjs|peggy)$/], ['cli/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
+const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['stdio/lib', /\.qlang$/], ['playground/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
+  ['core/src', /\.(mjs|peggy)$/], ['stdio/src', /\.mjs$/], ['playground/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
 
 // ── (13) The marks of the artifacts ────────────────────────────
 //
@@ -898,7 +899,7 @@ function testsOffTheirSection() {
 // the language server, read by acorn, is a mark alone, one line of the
 // citations its block holds, or a directive of a tool [QSLEX#code].
 
-const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test'];
+const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'stdio/src', 'playground/src', 'playground/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;
 const MARKS_ALONE = new RegExp(String.raw`^\s*${CITED}(?:,\s*${CITED})*\s*$`);
 const TOOL_DIRECTIVE = /^\s*(?:eslint|global\s|@ts-|istanbul|c8\s|v8 ignore)/;

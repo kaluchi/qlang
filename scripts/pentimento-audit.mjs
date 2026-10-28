@@ -95,13 +95,13 @@ const catalog = sources.map(source => {
 });
 const cases = readdirSync(join(repoRoot, 'core/test/conformance'), { recursive: true }).map(String)
   .filter(name => name.endsWith('.jsonl')).map(name => `core/test/conformance/${name.replaceAll('\\', '/')}`);
-const tests = under('core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/test', 'lsp/test', 'site/test');
+const tests = under('core/test/unit', 'core/test/helpers', 'core/test/qlang', 'playground/test', 'lsp/test', 'site/test');
 const units = [
   unitOf('qlang', ['core/lib/qlang.qlang']),
   ...catalog,
   unitOf('cases', [...cases, ...tests], true),
   unitOf('core', coreModules.filter(path => !placed.has(path))),
-  ...['core/host', 'cli/src', 'cli/lib', 'lsp/src', 'vscode/src', 'site/src', 'site/scripts'].map(root => unitOf(root.replace('/', '-'), under(root))),
+  ...['core/host', 'stdio/src', 'stdio/lib', 'playground/src', 'playground/lib', 'lsp/src', 'vscode/src', 'site/src', 'site/scripts'].map(root => unitOf(root.replace('/', '-'), under(root))),
   unitOf('scripts', under('scripts', 'core/scripts')),
   unitOf('configurations', [...under('.github/workflows'), ...CITING_CODE_FILES.filter(path => existsSync(join(repoRoot, path)))]),
   unitOf('seeds', CITING_DOCUMENTS.filter(path => existsSync(join(repoRoot, path)))),

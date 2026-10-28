@@ -55,8 +55,8 @@ const documents = process.argv.length > 2 ? process.argv.slice(2)
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue, parseSource, isErrorValue, makeTag, createNotebook } = await core('index.mjs');
 const { compareValues } = await core('ordering.mjs');
-const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
-const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
+const { playgroundSources } = await import(pathToFileURL(join(repoRoot, 'playground', 'src', 'playground-sources.mjs')).href);
+const { main } = await import(pathToFileURL(join(repoRoot, 'playground', 'src', 'main.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
 // notebook of its own over the scope the command line's sources declare once,
@@ -64,7 +64,7 @@ const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.m
 // answered once in a run [QSREQ#probe], [QSCLI#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
-const { scope: withTheCommandLine } = await createNotebook({ sources: cliSources(SILENT_STREAMS) });
+const { scope: withTheCommandLine } = await createNotebook({ sources: playgroundSources(SILENT_STREAMS) });
 const answers = new Map();
 function answerOf(query) {
   if (!answers.has(query)) {
@@ -151,11 +151,11 @@ const SHELLS_AT_ONCE = 4;
 const shellsWaiting = [];
 let shellsRunning = 0;
 function printedByShell(command) {
-  const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
+  const commandLine = join(repoRoot, 'playground', 'src', 'bin.mjs').split('\\').join('/');
   return new Promise(resolve => {
     const start = () => {
       shellsRunning += 1;
-      const shell = execFile(SHELL, ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
+      const shell = execFile(SHELL, ['-c', `set -o pipefail\nqplay() { node "${commandLine}" "$@"; }\n${command}`],
         { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28, env: shellEnv }, (failed, stdout, stderr) => {
           shellsRunning -= 1;
           shellsWaiting.shift()?.();

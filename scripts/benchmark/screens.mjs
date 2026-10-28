@@ -10,12 +10,12 @@ import { pipeEnv } from '../pipe-env.mjs';
 
 const benchDir = import.meta.dirname;
 const screensDir = join(benchDir, 'screens');
-const commandLine = join(benchDir, '..', '..', 'cli', 'src', 'bin.mjs');
+const commandLine = join(benchDir, '..', '..', 'playground', 'src', 'bin.mjs');
 
-// The first screen, the pages of the language and the command line as the
+// The first screen, the pages of the language and of the playground as the
 // tree prints them, trimmed [QSMSR#benchmark].
 export function firstScreen() {
-  return execFileSync(process.execPath, [commandLine, '[::qlang ::cli] | map ~(get [~(it) ~(doc)])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
+  return execFileSync(process.execPath, [commandLine, '[::qlang ::host] | map ~(get [~(it) ~(doc)])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
 }
 
 // A saved screen as the tree printed it, its line breaks those of the print

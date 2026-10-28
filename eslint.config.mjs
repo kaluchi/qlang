@@ -80,7 +80,7 @@ export default [
           group: ['node:*'],
           message:
             'core/src/** must stay browser-ready — no `node:*` imports. ' +
-            'Move the Node-dependent code to core/host/, cli/src/, or ' +
+            'Move the Node-dependent code to core/host/, stdio/src/, playground/src/, or ' +
             'lsp/src/, where the import is allowed.'
         }]
       }]
@@ -94,12 +94,12 @@ export default [
   // control char in unrelated code still surfaces.
   {
     files: [
-      'cli/src/line-editor.mjs',
-      'cli/src/highlight-ansi.mjs',
-      'cli/test/QSCLI/colour.test.mjs',
-      'cli/test/QSCLI/line-editor.test.mjs',
-      'cli/test/QSCLI/repl.test.mjs',
-      'cli/test/helpers/scripted-repl.mjs'
+      'playground/src/line-editor.mjs',
+      'playground/src/highlight-ansi.mjs',
+      'playground/test/QSCLI/colour.test.mjs',
+      'playground/test/QSCLI/line-editor.test.mjs',
+      'playground/test/QSCLI/repl.test.mjs',
+      'playground/test/helpers/scripted-repl.mjs'
     ],
     rules: {
       'no-control-regex': 'off'

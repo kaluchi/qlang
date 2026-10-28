@@ -1,0 +1,258 @@
+|~ The streams a host on the command line installs: their topic,
+   `::stdio`, and the names it declares under the kinds of their subjects,
+   `table` under `::vec`, the names of the streams under `::any` and
+   `answer` under `::cell`. Their primitives take the values alone, the
+   served subject and the values of their inputs, but that of `tap`, which
+   reads the state of its call.
+   The rules it holds: [QSHST#effect], [QSDSP#residence], [QSHST#cell],
+   [D477]. ~|
+
+:stdio
+  |~~ The streams of the process of the host that installs them: `in`
+      reads standard input, `out` writes a line of standard output and
+      `err` one of standard error, each answering its subject as it came,
+      and `tap` shows a value halfway through a query on stderr as an
+      answer prints. A query that writes to stdout by `out` holds the
+      channel, and its answer is left unwritten. A value one query hands
+      another over a pipe keeps its kinds as its literal, `print | out`
+      writing it and `in | parse | answer` reading it back. `table` draws a
+      vector of maps as a text for a terminal, and a cell keeps an answer
+      past the budget of every answer and a fact past the room of a fact,
+      which `answer` reads back whole in a later query. The command that
+      runs the host is the host's own, which its page tells, `::host | doc`.
+      ::link~(::any/in) ::link~(::any/out) ::link~(::any/tap)
+      ::link~(::vec/table) ::link~(::cell) ::link~(::qlang/hosts)
+  ~~|
+  ::kind
+    | accepts |~~ No value: `::stdio` names the streams of the process. ~~| #[]
+    | throws :PayloadKindNotTakenError
+        |~~ `::stdio` names the streams of the process, its page and its
+            words, and takes no payload: it is asked by itself,
+            `::stdio | doc`.
+        ~~|
+    | proves :declaresTable
+        |~~ The streams declare `table` under vectors. ~~|
+        ~(::vec | manifest | has ::vec/table)
+    | proves :declaresTheStreams
+        |~~ The streams declare their verbs under any value. ~~|
+        ~(::any | manifest | has ::any/out)
+    | proves :PayloadKindNotTakenError/refusesAValue
+        |~~ No value is put under `::stdio`. ~~|
+        ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError)
+
+:any/in
+  |~~ Answers the text stdin holds, read to its end whatever the subject,
+      the text the host also lifts into the subject of a query that reads
+      one; a terminal with nothing piped answers the empty string. It
+      heads a query that reads the text as it came, for which the host
+      lifts nothing, `in | lines | count` counting the
+      lines piped in and `in | parseJson` reading the text as JSON alone.
+      It takes no value.
+  ~~|
+  ::fn
+    | returns
+        |~~ The text stdin held, the empty string when nothing was piped.
+        ~~|
+        ::string
+    | impl ::builtin{}
+
+:any/out
+  |~~ Writes a line to stdout and answers its subject as it came: it
+      writes the subject when it is a string, `"hi" | out`, or the text
+      the call gives, computed against the subject, `42 | out json`, the
+      steps after still reading `42`. A query that writes by `out`
+      leaves its answer unwritten.
+      ::snippet~([1 2] | out json | count) writes `[1,2]`.
+  ~~|
+  ::fn
+    | takes :text
+        |~~ The text written, computed against the subject, null when the
+            call gives none.
+        ~~|
+        ~(query /0) #[::null ::string]
+    | throws :TextKindNotTakenError
+        |~~ The text `out` writes is a string: a value of another kind is
+            made text first, `out json` or `out print`.
+        ~~|
+    | returns |~~ The subject as it came. ~~| ::any
+    | throws :SubjectKindNotTakenError
+        |~~ `out` alone writes its subject, a string, as a line; another
+            value is written as the text the call computes from it,
+            `42 | out json` or `{:id 7} | out print`.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `out` writes its subject, or the one text its call gives,
+            `"hi" | out`; texts are joined first,
+            `out (["a" "b"] | join "")`.
+        ~~|
+    | proves :SubjectKindNotTakenError/refusesANumber
+        |~~ A number is no line `out` writes alone. ~~|
+        ~(42 | out !| get [~(tag) ~(subject | expected)] | eq [::any/out/SubjectKindNotTakenError #[::string]])
+    | proves :TextKindNotTakenError/refusesANumber
+        |~~ A number is no text to write. ~~|
+        ~("hi" | out 5 !| tag | eq ::any/out/TextKindNotTakenError)
+    | proves :ArgsBeyondInputsError/refusesTwoTexts
+        |~~ A call with two texts is refused under the verb. ~~|
+        ~("hi" | out "a" "b" !| tag | eq ::any/out/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
+:any/err
+  |~~ Writes a line to stderr, the channel of diagnostics, as `out`
+      writes to stdout, and answers its subject as it came; the answer of
+      the query is written as ever.
+      ::snippet~([1 2 3] | err "counting" | count) writes `counting` to
+      stderr and answers 3.
+  ~~|
+  ::fn
+    | takes :text
+        |~~ The text written, computed against the subject, null when the
+            call gives none.
+        ~~|
+        ~(query /0) #[::null ::string]
+    | throws :TextKindNotTakenError
+        |~~ The text `err` writes is a string: a value of another kind is
+            made text first, `err json` or `err print`.
+        ~~|
+    | proves :TextKindNotTakenError/refusesANumber
+        |~~ A text that is no string is refused. ~~|
+        ~(5 | err 7 !| tag | eq ::any/err/TextKindNotTakenError)
+    | returns |~~ The subject as it came. ~~| ::any
+    | throws :SubjectKindNotTakenError
+        |~~ `err` alone writes its subject, a string, as a line on stderr;
+            another value is written as the text the call computes from
+            it, `err json` or `err print`.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `err` writes its subject, or the one text its call gives,
+            `"hi" | err`; texts are joined first,
+            `err (["a" "b"] | join "")`.
+        ~~|
+    | proves :SubjectKindNotTakenError/refusesANumber
+        |~~ A number is no line `err` writes alone. ~~|
+        ~(42 | err !| get [~(tag) ~(subject | expected)] | eq [::any/err/SubjectKindNotTakenError #[::string]])
+    | proves :ArgsBeyondInputsError/refusesTwoTexts
+        |~~ A call with two texts is refused under the verb. ~~|
+        ~("hi" | err "a" "b" !| tag | eq ::any/err/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
+:any/tap
+  |~~ Writes `[tap <label>]` and its subject to stderr as an answer prints,
+      the print of its kind among it, within the budget of every answer,
+      and answers the subject as it came, a look at a value halfway
+      through a query:
+      ::snippet~([{:on true} {:on false}] | tap :before | filter /on | tap :after | count)
+      shows both vectors and answers 1. A subject past the budget is
+      written as `::qlang/AnswerBeyondBudgetError` with its head, each
+      `:read` in it continuing the query from the subject at the `tap`,
+      and `err print` writes a look whole.
+  ~~|
+  ::fn
+    | takes :label
+        |~~ The label written before the value, a keyword. ~~|
+        /0 ::keyword
+    | throws :LabelKindNotTakenError
+        |~~ The label of `tap` is a keyword, `tap :before`, written before
+            the value as `[tap before]`.
+        ~~|
+    | returns |~~ The subject as it came. ~~| ::any
+    | throws :ArgsBeyondInputsError
+        |~~ `tap` writes its subject under one label its call gives,
+            `5 | tap :before`; a call with more labels is refused.
+        ~~|
+    | proves :LabelKindNotTakenError/refusesAString
+        |~~ A string is no label. ~~|
+        ~(1 | tap "before" !| tag | eq ::any/tap/LabelKindNotTakenError)
+    | proves :ArgsBeyondInputsError/refusesTwoLabels
+        |~~ A call with two labels is refused under the verb. ~~|
+        ~(5 | tap :before :after !| tag | eq ::any/tap/ArgsBeyondInputsError)
+    | impl ::builtin{}
+
+:cell/answer
+  |~~ Answers the value the host keeps under the cell, read back
+      over the root and the names the query that kept it declared:
+      `::cell"a3f9c2d1e04b" | answer | take 3` reads the first three
+      elements of an answer that passed the budget of every answer, its
+      refusal naming the cell as its `:answer`, and a fact of a failure past
+      the room of a fact so. A host of the streams keeps it under
+      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of the query and what
+      it keeps,
+      the query, `source.qlang`, the values
+      it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
+      core prints it, `<root>` the identity of the sources and the code it
+      booted, so a cell kept over other sources is held by none, and a
+      cell older than a day leaves when the host keeps another. A
+      value under a kind the keeping query declared answers its names where
+      the reading query declares that kind again, and `payload` in any
+      query.
+      ::link~(::cell) ::link~(::qlang/AnswerBeyondBudgetError)
+  ~~|
+  ::fn
+    | returns |~~ The value the cell keeps. ~~| ::any
+    | throws :SubjectNotCellError
+        |~~ `answer` reads a cell, `::cell"a3f9c2d1e04b" | answer`, the one
+            the refusal of an answer past the budget names.
+        ~~|
+    | throws :NotHeldError
+        |~~ The host holds no such cell: it aged past a day, the
+            temporary folder was emptied, the cell was kept over other
+            sources or by another host, or none drew it. The answer is read again by the query
+            that made it, narrowed by `get`, `take` or `count` so it prints
+            within the budget.
+            ::link~(::qlang/AnswerBeyondBudgetError)
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `answer` reads the whole a cell keeps and takes no value: a part
+            of it is read after it, `answer | take 3`.
+        ~~|
+    | proves :NotHeldError/refusesACellNoneKept
+        |~~ A cell no query kept is refused. ~~|
+        ~(::cell"000000000000" | answer !| tag | eq ::cell/answer/NotHeldError)
+    | proves :SubjectNotCellError/refusesANumber
+        |~~ A number names no cell. ~~|
+        ~(5 | cell/answer !| tag | eq ::cell/answer/SubjectNotCellError)
+    | impl ::builtin{}
+
+:vec/table
+  |~~ Answers a vector of maps drawn as a table of fixed-width columns, a
+      text for a terminal. The columns are the keys in the order they
+      first occur across the rows, and a key a row lacks draws an empty
+      cell; a string cell prints bare, null as an empty cell, and every
+      other value as its literal on one line, a doc with each line break
+      of its prose written as a space. The empty vector draws as
+      `(empty)`. A single map goes in a vector first, `get [~(it)] | table`, and
+      the call takes no value.
+  ~~|
+  ::fn
+    | returns |~~ The rows drawn as text, a line each. ~~| ::string
+    | throws :SubjectNotVecError
+        |~~ `table` draws a vector of maps; a single map goes in a vector
+            first, `{:name "alice"} | get [~(it)] | table`.
+        ~~|
+    | throws :RowKindNotTakenError
+        |~~ Every row of `table` is a map, its keys the columns; the path
+            of its frame names the first that is not.
+        ~~|
+    | proves :drawsEachRow
+        |~~ Each row is drawn. ~~|
+        ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+    | proves :drawsANestedValueAsItsLiteral
+        |~~ A nested value is drawn as its literal. ~~|
+        ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
+    | proves :drawsNothingAsEmpty
+        |~~ An empty vector draws as `(empty)`. ~~|
+        ~([] | table | eq "(empty)")
+    | proves :drawsAMapInAVector
+        |~~ A single map is drawn in a vector. ~~|
+        ~({:name "alice"} | get [~(it)] | table | contains "alice")
+    | proves :SubjectNotVecError/refusesAMap
+        |~~ A single map is refused under the verb. ~~|
+        ~({:name "alice"} | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
+    | proves :SubjectNotVecError/refusesANumber
+        |~~ A number is no vector of rows. ~~|
+        ~(42 | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
+    | proves :RowKindNotTakenError/refusesARowThatIsNoMap
+        |~~ A row that is no map is refused at its index. ~~|
+        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(subject | found | get /0 | tag) ~(subject | expected)]
+          | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
+    | impl ::builtin{}
+

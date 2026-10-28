@@ -952,10 +952,10 @@
     | tells :hosts
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is
-            `::builtin{}`; the command line is one. A value is whole in
+            `::builtin{}`; the playground of the command line, `qplay`, is one. A value is whole in
             the language, and a host prints every answer within one
-            budget of characters of its print, but the REPL of the command
-            line, which prints it whole: an answer that fits prints
+            budget of characters of its print, but the REPL of the
+            playground, which prints it whole: an answer that fits prints
             whole, and one past it prints as the failure
             `::qlang/AnswerBeyondBudgetError` instead, the answer the
             `::cell` the host keeps it in, whose `answer` reads it back
@@ -966,16 +966,16 @@
             views its kind reveals that fit and its parts, `:addend/found/count`, the last facts
             dropped where the alert passes its room, a failure any fact of
             which gave way told as an `::excerpt` under the tag of its
-            refusal; the command line writes below it
+            refusal; the playground writes below it
             the prose of its refusal's page, as `!| doc` reads it, so the
             reader repairs the call where it failed. A cell is the interface
-            a host gives for the work with state: the command line keeps an
+            a host gives for the work with state: the playground keeps an
             answer past the budget and a fact past the room of a fact under
             the identity of what it keeps, and `answer` reads it in a later
-            query. The command line reads JSON
+            query. The playground reads JSON
             from stdin as values and other text as a string, and prints its
             answer as the language prints it, a string as its text, so
-            `| json` writes JSON; its page, `::cli | doc`, tells the rest.
+            `| json` writes JSON; its page, `::host | doc`, tells the rest.
             Rests on values and the hypertext.
             ::link~(::qlang/AnswerBeyondBudgetError)
             ::link~(::excerpt) ::link~(::cell)

@@ -13,9 +13,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'acorn';
 
-// The folders of the tests of the workspaces, the tests that run the command
-// line in a process of its own apart.
-const HOME = /^(?:core\/test\/unit|cli\/test(?:\/integration)?|lsp\/test|site\/test|vscode\/test)\/(?:(QS[A-Z]{3})\/([a-z][a-z-]*)|([DE]\d+))(?:\.([a-z][a-z0-9-]*))?\.test\.m?js$/;
+// The folders of the tests of the workspaces, the tests that run the
+// playground in a process of its own apart.
+const HOME = /^(?:core\/test\/unit|playground\/test(?:\/integration)?|lsp\/test|site\/test|vscode\/test)\/(?:(QS[A-Z]{3})\/([a-z][a-z-]*)|([DE]\d+))(?:\.([a-z][a-z0-9-]*))?\.test\.m?js$/;
 
 // homeOfPath(path) → `{ section }`, `{ record }` or null, the rule the path
 // of a test file names.

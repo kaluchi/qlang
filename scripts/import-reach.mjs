@@ -20,7 +20,7 @@ const OUTSIDE = /^(docs|scripts\/benchmark\/sets)\//;
 // a package by `#`, a module for Node chosen where the condition names one.
 function doorsOf(root) {
   const doors = new Map();
-  for (const workspace of ['core', 'cli', 'lsp', 'site', 'vscode']) {
+  for (const workspace of ['core', 'stdio', 'playground', 'lsp', 'site', 'vscode']) {
     const path = join(root, workspace, 'package.json');
     if (!existsSync(path)) continue;
     const { name, exports, imports } = JSON.parse(readText(path));

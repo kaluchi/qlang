@@ -22,3 +22,5 @@
 {"name":"the-top-refuses-a-value-under-an-address-as-under-a-bare-name","query":":Box |~~ A box. ~~| | :Box/side 3 !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/side]"}
 {"name":"the-top-refuses-a-tag-under-an-address","query":":Box |~~ A box. ~~| | :Box/kind ::number !| get [~(tag) ~(name)]","expect":"[::bind/ValueAtTheTopError :Box/kind]"}
 {"name":"the-top-refuses-a-doc-a-group-lays-under-an-address","query":":Box |~~ A box. ~~| | :Box/note (|~~ A note. ~~|) !| tag","expect":"::bind/ValueAtTheTopError"}
+{"decision":"D421","name":"a-statement-of-declarations-answers-the-address-it-declared","query":":Box |~~ A box. ~~|","expect":"::Box","target":true,"now":"null"}
+{"decision":"D421","name":"a-constant-stands-in-the-scope-of-the-statements-after-it","query":":rate 2; 5 | mul rate","expect":"10","target":true,"now":"::quote/ParseError"}

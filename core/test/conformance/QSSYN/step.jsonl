@@ -27,3 +27,4 @@
 {"name":"a-dot-that-opens-no-path-of-jq-is-refused-where-the-dot-stands","query":"[\"..\" \"get .5\"] | map ~(parse !| location | start | column)","expect":"[1 5]"}
 {"name":"a-question-mark-inside-a-quoted-key-is-a-letter-of-the-key","query":"{:\"?a\" 1} | get /\"?a\"","expect":"1"}
 {"name":"a-question-mark-after-a-quoted-key-names-query-with-the-letters-of-the-key","query":"\"{:\\\"a?\\\" 1} | get /\\\"a?\\\"?\" | parse !| message","expect":"\"a part that may be missing is read by `query`, which answers null where it misses: write `query /\\\"a?\\\"`\""}
+{"decision":"D421","name":"a-semicolon-ends-a-statement-and-the-names-it-declared-pass-it","query":":Box |~~ A box. ~~|; :Box/area ~(mulOf /0 /1); ::Box[3 4] | area","expect":"12","target":true,"now":"::quote/ParseError"}

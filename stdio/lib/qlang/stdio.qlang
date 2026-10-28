@@ -141,8 +141,8 @@
 
 :stdio/tap
   |~~ Writes `[tap <label>]` and its subject to stderr as an answer prints,
-      the print of its kind among it, within the budget of every answer,
-      and answers the subject as it came, a look at a value halfway
+      within the budget of every answer, and answers the subject as it
+      came, a look at a value halfway
       through a query:
       ::snippet~([{:on true} {:on false}] | stdio/tap :before | filter /on | stdio/tap :after | count)
       shows both vectors and answers 1. A subject past the budget is

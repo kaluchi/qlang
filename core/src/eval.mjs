@@ -401,7 +401,7 @@ async function callByName(lookupName, modifiers, state, call, at) {
 // [D421]
 async function nameWithNoSubject(lookupName, modifiers, state, at) {
   const entry = state.scope.get(lookupName);
-  if (isBinding(entry) && !declaresALabel(entry)) return await applyBinding(entry, lookupName, lookupName, modifiers, state, at);
+  if (isBinding(entry)) return await applyBinding(entry, lookupName, lookupName, modifiers, state, at);
   throw new BindSubjectNotGivenError({ name: makeKeyword(lookupName) });
 }
 

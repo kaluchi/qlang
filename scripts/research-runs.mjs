@@ -108,12 +108,12 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 }
 
 // The start of a clean reader: a clean Opus from an empty directory of its
-// own, with no instruction file, memory or server, the tree's `qlang` first
+// own, with no instruction file, memory or server, the tree's `qplay` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
 // allows and the commands that only read, which the harness passes unasked,
 // and no git command but the listing of the files a caller gives it [QSRVW#readers].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
-export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
+export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qplay:*)', 'Bash(MSYS_NO_PATHCONV=1 qplay:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
 // The effort a clean reader runs at, `max` unless its run names another of
 // the efforts by `--effort`, which `CLAUDE_CODE_EFFORT_LEVEL` sets in the

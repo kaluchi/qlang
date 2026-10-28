@@ -25,14 +25,14 @@ string as its text, so a query that ends in `| json` writes JSON. Every
 answer prints within one budget of characters, and one past it as
 `::qlang/AnswerBeyondBudgetError` with its excerpt and the cell that
 keeps it, which `::cell"…" | answer` reads back in a later query;
-`| print | out` and `| json | out` write the whole. A query that reads no subject,
-`[1 2 3] | sum`, reads no stdin, and one headed by `in` reads the text
-as it came.
+`| print | stdio/out` and `| json | stdio/out` write the whole. A query that reads no
+subject, `[1 2 3] | sum`, reads no stdin, and one headed by `::stdio | in`
+reads the text as it came.
 
 ```
 curl -s api/users | qplay 'get /data | map /name'
 qplay 'get /users | filter /active | json' < data.json
-printf hi         | qplay 'in | append " world"'
+printf hi         | qplay '::stdio | in | append " world"'
 qplay '[1 2 3] | filter ~(gt 1) | count'
 qplay -i '::qlang | doc :pipeline'
 ```
@@ -46,7 +46,7 @@ A value one query hands another over a pipe keeps its kinds as its
 literal:
 
 ```
-qplay '#[:admin :user] | print | out' | qplay 'in | parse | answer | count'
+qplay '#[:admin :user] | print | stdio/out' | qplay '::stdio | in | parse | answer | count'
 2
 ```
 
@@ -54,5 +54,5 @@ qplay '#[:admin :user] | print | out' | qplay 'in | parse | answer | count'
 
 `qplay -i` opens a notebook whose cells share the names they declare;
 a query after `-i` runs as its first cell. `.help` lists the meta
-commands and the keys of the editor. `in` answers the empty string
-inside the REPL, since the prompt reads stdin.
+commands and the keys of the editor. `::stdio | in` answers the empty
+string inside the REPL, since the prompt reads stdin.

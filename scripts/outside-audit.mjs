@@ -45,7 +45,7 @@ const report = join(auditsDir, `${nextRunOf(auditsDir, calledFor, 'report')}.md`
 console.log(`a clean Opus reads ${tree}`);
 const [{ answer, started, ended }] = await startReaders(repoRoot, {
   prompts: [{ name: 'the audit', text: readFileSync(promptPath, 'utf8').replaceAll('{{repo}}', repoPath) }],
-  allowed: ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)'],
+  allowed: ['Read', 'Grep', 'Glob', 'Bash(qplay:*)', 'Bash(MSYS_NO_PATHCONV=1 qplay:*)'],
   workPrefix: 'qlang-outside-audit-',
   effort
 });

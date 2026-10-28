@@ -76,7 +76,7 @@ jobs:
       matrix:
         workspace:
           - "@kaluchi/qlang-core"
-          - "@kaluchi/qlang-cli"
+          - "@kaluchi/qlang-playground"
     steps:
       - uses: actions/checkout@v7
 
@@ -96,7 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         workspace:
-          - "@kaluchi/qlang-cli"
+          - "@kaluchi/qlang-playground"
     steps:
       - uses: actions/checkout@v7
 

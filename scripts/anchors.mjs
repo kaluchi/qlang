@@ -12,7 +12,7 @@ import { recordsInTransit, sectionsOfChapter, waitsForTheCloseout } from './reco
 
 const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md'];
 const SPEC_DIR = 'docs/spec';
-const ANCHOR_PATH_RE = /`((?:core|cli|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
+const ANCHOR_PATH_RE = /`((?:core|cli|stdio|playground|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 
 // anchorTexts(repoRoot) → each `{ documentPath, text }`: the seed and the aim

@@ -20,7 +20,10 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],
-      include: ['src/**/*.mjs'],
+      // The sources of the streams the playground installs are held by
+      // its suite, the host their tests run them in [QSGAT#gate].
+      include: ['src/**/*.mjs', '**/stdio/src/**/*.mjs'],
+      allowExternal: true,
       // bin.mjs, the one file that touches the process, runs in a
       // process of its own, which the coverage of the tests does not
       // reach; main.mjs holds every branch [QSGAT#gate].

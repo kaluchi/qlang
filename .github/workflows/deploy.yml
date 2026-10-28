@@ -26,8 +26,10 @@ jobs:
         include:
           - workspace: "@kaluchi/qlang-core"
             dir: core
-          - workspace: "@kaluchi/qlang-cli"
-            dir: cli
+          - workspace: "@kaluchi/qlang-stdio"
+            dir: stdio
+          - workspace: "@kaluchi/qlang-playground"
+            dir: playground
     steps:
       - uses: actions/checkout@v7
 

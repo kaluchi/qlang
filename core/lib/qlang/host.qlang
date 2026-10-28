@@ -1,7 +1,8 @@
 |~ `::host`, the host a session is in, and what is declared under it: its
    page, which the host writes, its screen, the kinds that lie on it and
    what the reader declared.
-   The rules it holds: [QSNAM#binding], [QSSLF#page], [D476]. ~|
+   The rules it holds: [QSDSP#residence], [QSNAM#binding], [QSSLF#page],
+   [D476]. ~|
 
 :host
   |~~ The host a session is in, the program that embeds the language: one
@@ -47,9 +48,13 @@
         |~~ `status` answers every section and takes none: one is read by
             its address, `::host | status | filter ~(get /section | eq ::host/budget)`.
         ~~|
-    | proves :answersNoSectionOfTheLanguageAlone
-        |~~ The language alone declares no section. ~~|
-        ~(::host | status | eq [])
+    | proves :answersASectionDeclaredUnderTheHost
+        |~~ A snippet declared under `::host` is a section, its page, its
+            query and what the query answers now.
+        ~~|
+        ~(:host/rate |~~ The rate. ~~| ::snippet~(1 | add 1);
+          ::host | status | filter ~(get /section | eq ::host/rate)
+          | eq [{:section ::host/rate :page "The rate." :query ~(1 | add 1) :answer 2}])
     | proves :ArgsBeyondInputsError/refusesASection
         |~~ A section given to `status` is refused under the verb. ~~|
         ~(::host | status :budget !| tag | eq ::host/status/ArgsBeyondInputsError)

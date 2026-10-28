@@ -24,7 +24,7 @@ const shared = new Set(holders.flatMap(address => kindsSharedBy(notebook.scope, 
 const isPaged = address => nodeOf(notebook.scope, address)?.get('docs').length > 0 && ['doc', 'kind'].includes(kindAt(address));
 const refusalPages = addresses.filter(address => splitAddress(address)[0] !== null && /Error$/.test(address) && isPaged(address));
 
-describe('every refusal a site of the core or of the command line declares has its page under its noun', () => {
+describe('every refusal a site of the core or of the streams declares has its page under its noun', () => {
   for (const address of declared) {
     it(`${address} is paged under the noun it guards`, () => {
       expect(isPaged(address), `${address} is declared by a site and no source pages it under its noun`).toBe(true);

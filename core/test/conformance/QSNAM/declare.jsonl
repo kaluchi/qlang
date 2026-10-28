@@ -12,3 +12,4 @@
 {"decision":"D421","name":"a-constant-at-the-top-is-read-by-the-query-after-it","query":":rate 2; 5 | mul rate","expect":"10"}
 {"decision":"D421","name":"a-body-that-reads-the-subject-is-refused-naming-with","query":"~(:n (count); 5) | answer !| tag","expect":"::bind/SubjectNotGivenError"}
 {"decision":"D421","name":"a-chain-that-answers-no-word-is-refused-naming-the-semicolon","query":"~(:Box |~~ A box. ~~| ::vec | tag) | answer !| tag","expect":"::bind/ChainAnswersNoWordError"}
+{"decision":"D421","name":"a-body-reads-a-label-by-its-bare-name","query":":K |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag)]","expect":"[::Box ::Box/PayloadKindNotTakenError]"}

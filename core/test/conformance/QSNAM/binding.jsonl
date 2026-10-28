@@ -1,21 +1,20 @@
-{"name":"env-holds-no-name-the-reader-did-not-declare","query":"env | has :thisNameDoesNotExist","expect":"false"}
-{"decision":"D421","name":"env-holds-a-value-the-code-declared","query":"apply ~(:answer 42; env | has :answer)","expect":"true"}
-{"decision":"D421","name":"env-holds-a-name-that-holds-a-quote","query":"apply ~(:double ~(mul 2); env | has :double)","expect":"true"}
-{"decision":"D421","name":"env-answers-whatever-the-subject","query":"apply ~(:x 1; [1 2 3] | env | has :x)","expect":"true"}
-{"decision":"D421","name":"env-answers-the-names-of-the-scope","query":"apply ~(:x 1; env | get [~(has :x) ~(has :vec) ~(has :count)])","expect":"[true false false]"}
-{"decision":"D421","name":"a-declaration-produces-a-binding-record","query":"apply ~(:x |~~ One. ~~| 1; env | get /x | value)","expect":"1"}
-{"decision":"D421","name":"a-binding-record-answers-its-doc","query":"apply ~(:x |~~ One. ~~| 1; env | get /x | doc | content)","expect":"\"One.\""}
-{"decision":"D421","name":"a-group-exposes-the-record-of-a-name-it-declares","query":"apply ~((:h 1; :x (h | add 1); env | inter #[:x]) | get /x | tag)","expect":"::binding"}
-{"decision":"D421","name":"a-group-exposes-the-value-its-declaration-computed","query":"apply ~((:h 1; :x (h | add 1); env | inter #[:x]) | get /x | value)","expect":"2"}
-{"decision":"D421","name":"a-value-is-held-in-its-record","query":"apply ~(:taxRate 0.07; env | get /taxRate | value)","expect":"0.07"}
-{"decision":"D421","name":"a-binding-record-holds-its-name","query":"apply ~(:foo 2; env | get /foo | name)","expect":":foo"}
-{"decision":"D421","name":"env-answers-what-the-reader-declared","query":":Box |~~ A box. ~~|; :Box/y |~~ The y of a box. ~~|; env | get [~(has :Box) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
-{"name":"env-answers-a-map","query":"env | tag","expect":"::map"}
-{"name":"a-node-under-a-noun-stays-out-of-the-scope","query":"env | has :pipeline","expect":"false"}
-{"decision":"D421","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":"apply ~(:limit 10; env | get /limit | value)","expect":"10"}
+{"decision":"D476","name":"env-holds-no-name-the-reader-did-not-declare","query":"::host | env | has :thisNameDoesNotExist","expect":"false"}
+{"decision":"D421","name":"env-holds-a-value-the-code-declared","query":"apply ~(:answer 42; ::host | env | has :answer)","expect":"true"}
+{"decision":"D421","name":"env-holds-a-name-that-holds-a-quote","query":"apply ~(:double ~(mul 2); ::host | env | has :double)","expect":"true"}
+{"decision":"D421","name":"env-answers-the-names-of-the-scope","query":"apply ~(:x 1; ::host | env | get [~(has :x) ~(has :vec) ~(has :count)])","expect":"[true false false]"}
+{"decision":"D421","name":"a-declaration-produces-a-binding-record","query":"apply ~(:x |~~ One. ~~| 1; ::host | env | get /x | value)","expect":"1"}
+{"decision":"D421","name":"a-binding-record-answers-its-doc","query":"apply ~(:x |~~ One. ~~| 1; ::host | env | get /x | doc | content)","expect":"\"One.\""}
+{"decision":"D421","name":"a-group-exposes-the-record-of-a-name-it-declares","query":"apply ~((:h 1; :x (h | add 1); ::host | env | inter #[:x]) | get /x | tag)","expect":"::binding"}
+{"decision":"D421","name":"a-group-exposes-the-value-its-declaration-computed","query":"apply ~((:h 1; :x (h | add 1); ::host | env | inter #[:x]) | get /x | value)","expect":"2"}
+{"decision":"D421","name":"a-value-is-held-in-its-record","query":"apply ~(:taxRate 0.07; ::host | env | get /taxRate | value)","expect":"0.07"}
+{"decision":"D421","name":"a-binding-record-holds-its-name","query":"apply ~(:foo 2; ::host | env | get /foo | name)","expect":":foo"}
+{"decision":"D421","name":"env-answers-what-the-reader-declared","query":":Box |~~ A box. ~~|; :Box/y |~~ The y of a box. ~~|; ::host | env | get [~(has :Box) ~(has :Box/y) ~(has :vec) ~(has :count)]","expect":"[true true false false]"}
+{"decision":"D476","name":"env-answers-a-map","query":"::host | env | tag","expect":"::map"}
+{"decision":"D476","name":"a-node-under-a-noun-stays-out-of-the-scope","query":"::host | env | has :pipeline","expect":"false"}
+{"decision":"D421","name":"a-reader-of-the-scope-reads-the-scope-of-its-call","query":"apply ~(:limit 10; ::host | env | get /limit | value)","expect":"10"}
 {"decision":"D421","name":"doc-reads-the-page-of-a-declaration-that-stands-over-the-name-around","query":"apply ~(:foo |~~| Old doc.\n1;\n(:foo |~~| New doc.\n|~~| With second remark.\n2;\n::foo | doc | content))","expect":"\"New doc.\\nWith second remark.\""}
 {"decision":"D421","name":"doc-reads-the-page-written-between-a-name-and-its-body","query":"apply ~(:snapshot |~~| Captured value.\n  42; ::snapshot | doc | content)","expect":"\"Captured value.\""}
 {"name":"a-binding-a-reader-writes-holds-the-fields-of-its-kind","query":"get [~(::binding{:name :x} !| tag) ~(::binding{:name \"x\" :docs [] :value 1 :source null :origin null} !| tag) ~(::binding | manifest | has ::binding/docs)]","expect":"[::binding/DocsNotGivenError ::binding/NameKindNotTakenError true]"}
 {"decision":"D421","name":"the-record-of-a-name-reads-back-from-its-print","query":"apply ~(:x |~~ One. ~~| 5; ::x | binding | eq (print | parse | answer))","expect":"true"}
-{"decision":"D476","name":"env-is-asked-of-the-host-and-no-other-subject","query":"[1 2] | env !| tag","expect":"::call/KindAnswersNoVerbError","target":true,"now":"{}"}
-{"decision":"D476","name":"the-host-a-session-is-in-answers-its-kinds-its-env-and-its-status","query":"::host | manifest | get [~(has ::host/kinds) ~(has ::host/env) ~(has ::host/status)]","expect":"[true true true]","target":true,"now":"::any/manifest/UnknownNameError"}
+{"decision":"D476","name":"env-is-asked-of-the-host-and-no-other-subject","query":"[1 2] | env !| tag","expect":"::call/KindAnswersNoVerbError"}
+{"decision":"D476","name":"the-host-a-session-is-in-answers-its-kinds-its-env-and-its-status","query":"::host | manifest | get [~(has ::host/kinds) ~(has ::host/env) ~(has ::host/status)]","expect":"[true true true]"}

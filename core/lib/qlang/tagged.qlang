@@ -103,7 +103,7 @@
         |~~ A name `with` gives the code stays inside it: the prices shift
             down by the lowest one, which names nothing after the call.
         ~~|
-        ~(::Prices[30 10 20] | within ~(with {:low ~min} ~(map ~(sub low))) | get [~(it) ~(env | has :low)] | eq [::Prices[20 0 10] false])
+        ~(::Prices[30 10 20] | within ~(with {:low ~min} ~(map ~(sub low))) | get [~(it) ~(::host | env | has :low)] | eq [::Prices[20 0 10] false])
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~|; ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])

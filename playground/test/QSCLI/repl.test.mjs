@@ -75,7 +75,7 @@ it('translates `\\n` into `\\r\\n` for the writes of a terminal, a failed cell o
   const replPromise = runRepl(ttyStdin, stdoutWrite, stderrWrite, { terminal: ttyStdin });
   ttyStdin.write(Buffer.from('[1 2\r'));
   await new Promise((resolveTick) => setImmediate(resolveTick));
-  ttyStdin.write(Buffer.from('"one\\ntwo" | err\r'));
+  ttyStdin.write(Buffer.from('"one\\ntwo" | stdio/err\r'));
   await new Promise((resolveTick) => setImmediate(resolveTick));
   ttyStdin.write(Buffer.from([0x04]));
   await replPromise;
@@ -122,7 +122,7 @@ describe('an answer printed whole and a failure as its alert', () => {
   });
 
   it('prints no value of the answer of a cell that wrote by out, which holds the channel, and a failure after it as its alert', async () => {
-    const replHarness = captureRepl('5000 | range | print | out\n"x" | out | add 1\n.exit\n');
+    const replHarness = captureRepl('5000 | range | print | stdio/out\n"x" | stdio/out | add 1\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain('4998 4999]\n');
@@ -131,11 +131,11 @@ describe('an answer printed whole and a failure as its alert', () => {
   });
 
   it('keeps the line it runs as the source of the cell a tap past the budget keeps', async () => {
-    const replHarness = captureRepl('5000 | range | tap :big | count\n.exit\n');
+    const replHarness = captureRepl('5000 | range | stdio/tap :big | count\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const [, identity] = stripAnsi(replHarness.stderrText()).match(/::cell"([0-9a-f]{12})"/);
     const folder = readdirSync(join(tmpdir(), 'qlang')).map(root => join(tmpdir(), 'qlang', root, 'cells', identity)).find(existsSync);
-    expect(readFileSync(join(folder, 'source.qlang'), 'utf8')).toBe('5000 | range | tap :big | count');
+    expect(readFileSync(join(folder, 'source.qlang'), 'utf8')).toBe('5000 | range | stdio/tap :big | count');
   });
 
   it('prints a failure as its alert, a fact past the room of a fact the cell it keeps beside its tag and the views of its kind', async () => {

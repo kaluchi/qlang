@@ -19,14 +19,14 @@ describe('standard input read for a query that reads its subject', () => {
     expect(s.stdoutText()).toBe('2\n');
   });
 
-  it('reads stdin when `in` is called by a query that reads no subject', async () => {
+  it('reads stdin by `::stdio | in`, a query whose head reads no subject', async () => {
     const s = captureStreams('piped text');
-    await main(['"x" | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['::stdio | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('piped text\n');
   });
 
-  it('lifts nothing for a query headed by `in`, called by its name or its address, which reads the text as it came', async () => {
-    for (const query of ['in | count', 'any/in | count']) {
+  it('lifts nothing for a query headed by `::stdio | in`, which reads the text as it came', async () => {
+    for (const query of ['::stdio | in | count']) {
       const s = captureStreams('[1e400]');
       await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
       expect(s.stdoutText(), query).toBe('7\n');
@@ -34,23 +34,23 @@ describe('standard input read for a query that reads its subject', () => {
   });
 
   it('lifts the subject for a query headed by a step of the fail track, which runs on a failure alone', async () => {
-    for (const query of ['!| in | count', '!| 5 | count']) {
+    for (const query of ['!| "x" | count', '!| 5 | count']) {
       const s = captureStreams('[1,2,3]');
       await main([query], s.stdinStream, s.stdoutStream, s.stderrStream, {});
       expect(s.stdoutText(), query).toBe('3\n');
     }
   });
 
-  it('lifts the subject for `in` called by its name where the query declared a verb of that name before it', async () => {
+  it('lifts the subject for a query headed by a verb the reader named `in`', async () => {
     const s = captureStreams('[1,2,3]');
     await main([':vec/in ~(count); in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('3\n');
   });
 
-  it('reads stdin once for the subject and for `in`', async () => {
+  it('reads stdin once for the subject and for `::stdio | in`', async () => {
     const s = captureStreams('hello world');
-    await main(['count | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
-    expect(s.stdoutText()).toBe('hello world\n');
+    await main(['get [~(count) ~(::stdio | in)]'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    expect(s.stdoutText()).toBe('[11 "hello world"]\n');
   });
 
   it('refuses a query that does not parse without reading stdin', async () => {
@@ -82,7 +82,7 @@ describe('the subject standard input lifts to', () => {
   it('reads a JSON text as the string it is for a query headed by `in`', async () => {
     const s = captureStreams('{"a":1}');
     const exitCode = await main(
-      ['in | append " done"'],
+      ['::stdio | in | append " done"'],
       s.stdinStream, s.stdoutStream, s.stderrStream, {}
     );
     expect(exitCode).toBe(0);
@@ -167,7 +167,7 @@ describe('a byte order mark at the head of standard input', () => {
 
   it('drops from the text `in` answers, a mark inside the text kept as its character', async () => {
     const s = captureStreams(MARK + 'a' + MARK + 'b');
-    await main(['in | count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['::stdio | in | count'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('3\n');
   });
 

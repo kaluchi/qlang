@@ -6,7 +6,7 @@ describe('the names `with` gives the parts of a value', () => {
   it('leave nothing in the scope of the cell after it', async () => {
     const notebook = await createNotebook();
     expect((await notebook.evalCell('{:id 7 :user {:name "Ann"}} | with [/id /user/name] ~(name | append (id | toString))')).result).toBe('Ann7');
-    expect((await notebook.evalCell('env | keys | count')).result).toBe(0);
+    expect((await notebook.evalCell('::host | env | keys | count')).result).toBe(0);
   });
 
   it('reach a body held as data, which reads no value of the reader', async () => {

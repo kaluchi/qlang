@@ -213,8 +213,8 @@
             `:answer/addend/found`, each key the chain that reads it.
             Narrow the answer by `get`, `take`, `keys`, `count` or
             `shape`, or, where the host has streams, write it whole through
-            the door the query opens itself: `out` a text, `print | out` the
-            literal of a value and `json | out` its JSON. No step raises it
+            the door the query opens itself: `stdio/out` a text, `print | stdio/out` the
+            literal of a value and `json | stdio/out` its JSON. No step raises it
             and no `!|` reaches it.
             ::link~(::qlang/hosts) ::link~(::cell)
         ~~|
@@ -403,7 +403,7 @@
             `::Box`, is the kind itself, which a query asks for its page
             and its verbs. Rests on nothing; the pipeline, the verbs and
             the hypertext rest on it.
-            ::snippet~(kinds) lists the kinds the scope reads.
+            ::snippet~(::host | kinds) lists the kinds the scope reads.
             ::link~(::tag)
             ::link~(::qlang/pipeline)
 
@@ -591,8 +591,9 @@
             names that run. ::link~(::binding) ::link~(::bind)
             ::link~(::qlang/verbs)
 
-            `env` lists what the reader declared, `kinds` the kinds the
-            scope reads, and what lies under a noun `manifest` lists. A
+            `::host | env` lists what the reader declared, `::host | kinds`
+            the kinds the scope reads, and what lies under a noun
+            `manifest` lists. A
             name reads its record by `binding`. A name declared inside a
             group closes with it, and which names a quote reads the
             chapter of code tells. A name declared under a label resides
@@ -628,7 +629,7 @@
         ~(::vec | manifest | has ::vec/count)
     | proves :names/closesWithItsGroup
         |~~ A name declared in a group closes with it. ~~|
-        ~((:Crate |~~ A crate. ~~|; ::Crate | doc | content) | get [~(it) ~(env | has :Crate)] | eq ["A crate." false])
+        ~((:Crate |~~ A crate. ~~|; ::Crate | doc | content) | get [~(it) ~(::host | env | has :Crate)] | eq ["A crate." false])
     | proves :names/servesTheValuesOfItsLabel
         |~~ A name under a label serves its values. ~~|
         ~(:Box |~~ A box. ~~|; :Box/area ~(mulOf /width /height); ::Box{:width 3 :height 2} | area | eq 6)
@@ -957,14 +958,20 @@
     | tells :hosts
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is
-            `::builtin{}`; the playground of the command line, `qplay`, is one. A value is whole in
+            `::builtin{}`; the playground of the command line, `qplay`, is
+            one. `::host` names the host a session is in, in every host:
+            its page is the page of the program, which a source of the
+            host writes, `::host | status` answers its screen, the sections
+            of its state the host declares under it as snippets, each with
+            the query that takes it again, `::host | kinds` the kinds that
+            lie on it and `::host | env` what the reader declared. A value is whole in
             the language, and a host prints every answer within one
             budget of characters of its print, but the REPL of the
             playground, which prints it whole: an answer that fits prints
             whole, and one past it prints as the failure
             `::qlang/AnswerBeyondBudgetError` instead, the answer the
             `::cell` the host keeps it in, whose `answer` reads it back
-            whole; `print | out` writes an answer whole. A failure the host
+            whole; `print | stdio/out` writes an answer whole. A failure the host
             prints is an alert, the concentrate of its facts within two
             thousand characters, each fact whole within three hundred and
             past them as the cell the host keeps it in, beside its tag, the
@@ -982,9 +989,9 @@
             answer as the language prints it, a string as its text, so
             `| json` writes JSON; its page, `::host | doc`, tells the rest.
             Rests on values and the hypertext.
-            ::link~(::qlang/AnswerBeyondBudgetError)
+            ::link~(::host) ::link~(::qlang/AnswerBeyondBudgetError)
             ::link~(::excerpt) ::link~(::cell)
             ::link~(::builtin)
         ~~|
-        #[::excerpt ::cell ::builtin];
+        #[::host ::excerpt ::cell ::builtin];
 

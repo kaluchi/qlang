@@ -540,7 +540,7 @@
       in its order: the name, the path it reads where it reads no key of its
       own name, its kind and the gloss of its page, so `::point | legend`
       tells the parts of a point before a point is held and
-      `kinds | map ~legend` the parts of every kind, and beneath them a
+      `::host | kinds | map ~legend` the parts of every kind, and beneath them a
       comment for each view the kind reveals, its kind and the gloss of what
       its verb answers. A legend is an answer, printed within the budget of
       every answer as any answer is. It prints under its tag,
@@ -954,7 +954,7 @@
         ~(5 | apply ("add 3" | parse) | eq 8)
     | proves :keepsTheDeclarationsInside
         |~~ The declarations of the code stay inside it. ~~|
-        ~(5 | apply ~(:bonus 1; add bonus) | get [~(it) ~(env | has :bonus)] | eq [6 false])
+        ~(5 | apply ~(:bonus 1; add bonus) | get [~(it) ~(::host | env | has :bonus)] | eq [6 false])
     | proves :CodeKindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~(42 | apply 1 !| get [~(tag) ~(code | found | tag)] | eq [::any/apply/CodeKindNotTakenError ::number])
@@ -986,93 +986,6 @@
     | proves :runsARecordedSuffixAgain
         |~~ The steps a trace skipped run again on a value. ~~|
         ~(1 | add "x" | mul 2 | add 3 !| with {:rest ~(trace | first | skipped)} ~(5 | apply rest) | eq 13)
-    | impl ::builtin{};
-
-:any/env
-  |~~ Answers what the reader declared before the step, whatever the
-      subject, the cells of a session before it among them: a map from
-      each name to the record of its binding, `::binding` with its name,
-      its docs, its value, its source and its origin.
-      `:Box |~~ A box. ~~|; env` answers the record of `:Box`, and
-      `env | get /Box` hands it to the next step. A name with a path is held by its address. Inside a
-      fork it holds the names before the fork and the fork's own, and
-      the fork's stay inside it, and so does code a step wrote; code held
-      as data holds its own and the nodes and the labels of the step that
-      runs it, a value the reader named withheld from it. What the language and the host declared
-      stands apart, so at the start of a query it answers `{}`: `kinds`
-      lists their kinds, and `manifest` what lies under a noun. The call
-      takes no name.
-      ::link~(::any/binding) ::link~(::any/kinds)
-  ~~|
-  ::fn
-    | returns
-        |~~ The records of what the reader declared, by name. ~~|
-        ::map
-    | throws :ArgsBeyondInputsError
-        |~~ `env` answers every name the reader declared and takes none:
-            one record is read by its key, `env | get /Box`.
-        ~~|
-    | proves :holdsADeclaredName
-        |~~ A name declared before the step is held. ~~|
-        ~(:number/double ~(mul 2); env | has :number/double)
-    | proves :answersWhateverTheSubject
-        |~~ The subject leaves the answer as it is. ~~|
-        ~(:number/double ~(mul 2); [1 2] | env | has :number/double)
-    | proves :holdsTheRecord
-        |~~ Each name holds the record its declaration wrote. ~~|
-        ~(:number/double ~(mul 2); env | get /:number/double | value | eq ~(mul 2))
-    | proves :holdsANameWithAPath
-        |~~ A name with a path is held by its address. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/area ~(1); env | keys | eq #[:Box :Box/area])
-    | proves :holdsTheNamesOfAFork
-        |~~ Inside a fork the names before it and its own are held. ~~|
-        ~(:Box |~~ A box. ~~|; (:Crate |~~ A crate. ~~|; env | keys) | eq #[:Box :Crate])
-    | proves :keepsTheNamesOfAForkInside
-        |~~ The names of a fork stay inside it. ~~|
-        ~(:Box |~~ A box. ~~|; (:Crate |~~ A crate. ~~|;) | env | keys | eq #[:Box])
-    | proves :isEmptyAtTheStart
-        |~~ Nothing is declared at the start. ~~|
-        ~(env | eq {})
-    | proves :ArgsBeyondInputsError/refusesAName
-        |~~ A name given to `env` is refused under the verb. ~~|
-        ~(:Box |~~ A box. ~~|; env :Box !| tag | eq ::any/env/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:any/kinds
-  |~~ Answers the set of the labels the scope reads, the kinds declared
-      under a name, each by its tag name, whatever the subject: those the
-      language and the host declared, the topic of the language among
-      them, and those the reader declares. A query asks which kinds there
-      are before it asks one of them for its page, `::set | doc`, or for
-      what lies under it, `::set | manifest`. A chapter a topic tells is no
-      kind: `::qlang/values` is a page `doc` reads, which `manifest` of its
-      topic lists. The call takes no kind.
-      ::link~(::any/env) ::link~(::qlang)
-  ~~|
-  ::fn
-    | returns |~~ The tag names of the kinds the scope reads. ~~| ::set
-    | throws :ArgsBeyondInputsError
-        |~~ `kinds` answers every kind and takes none: whether a kind is
-            there is `kinds | has ::set`.
-        ~~|
-    | proves :holdsTheKindsOfTheLanguage
-        |~~ The kinds of the language are read. ~~|
-        ~(kinds | has ::vec)
-    | proves :answersWhateverTheSubject
-        |~~ The subject leaves the answer as it is. ~~|
-        ~("text" | kinds | has ::vec)
-    | proves :holdsTheTopic
-        |~~ The topic of the language is a label too. ~~|
-        ~(kinds | has ::qlang)
-    | proves :holdsAReadersKind
-        |~~ A kind the reader declares is read. ~~|
-        ~(:Box |~~ A box. ~~|; kinds | has ::Box)
-    | proves :holdsNoChapter
-        |~~ A chapter of the topic is no kind. ~~|
-        ~(kinds | has ::qlang/values | not)
-    | proves :ArgsBeyondInputsError/refusesAKind
-        |~~ A kind given to `kinds` is refused under the verb. ~~|
-        ~(kinds ::set !| tag | eq ::any/kinds/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :any/binding
@@ -1381,13 +1294,13 @@
       name nothing declares is refused under the verb,
       `::any/manifest/UnknownNameError`. The laws of a
       name are no part of the answer, `laws` reads them; the kinds of the
-      scope `kinds` lists, and what the reader declared `env`; and what
+      scope `::host | kinds` lists, and what the reader declared `::host | env`; and what
       one name holds the axes read, `::vec/count | source`, `| doc`. An
       anchor, a keyword after it, reads the node the name holds under it,
       as `doc` reads one, `::vec | manifest :take`; the noun itself is the
       subject, so `manifest ::vec` is refused.
       ::snippet~(::number | manifest) ::link~(::any/laws)
-      ::link~(::any/kinds) ::link~(::any/env)
+      ::link~(::host/kinds) ::link~(::host/env)
       ::link~(::any/source)
   ~~|
   ::fn

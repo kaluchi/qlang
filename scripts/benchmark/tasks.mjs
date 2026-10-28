@@ -116,8 +116,8 @@ export const TASKS = [
   {
     id: 'N1',
     question: 'in one query, the text of the page of every kind the language lists.',
-    reference: 'kinds | map ~(doc | content)',
-    answer: 'kinds | map ~doc | map ~content'
+    reference: '::host | kinds | map ~(doc | content)',
+    answer: '::host | kinds | map ~doc | map ~content'
   },
   {
     id: 'N2',
@@ -128,7 +128,7 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'kinds | filter ~(doc | links | map ~answer | has ::error)',
+    reference: '::host | kinds | filter ~(doc | links | map ~answer | has ::error)',
     answer: '#[::fail]'
   },
   {

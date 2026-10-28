@@ -8,7 +8,7 @@ export const LANGUAGE_SOURCES = Object.freeze([
   'qlang/binding', 'qlang/error', 'qlang/trace', 'qlang/frame', 'qlang/each', 'qlang/absent', 'qlang/nullable', 'qlang/shape', 'qlang/excerpt', 'qlang/cell', 'qlang/desc',
   'qlang/link', 'qlang/snippet', 'qlang/law', 'qlang/invariant',
   'qlang/tagged', 'qlang/construct', 'qlang/call', 'qlang/path', 'qlang/span', 'qlang/point', 'qlang/bind',
-  'qlang/fail', 'qlang/group', 'qlang/legend', 'qlang/any'
+  'qlang/fail', 'qlang/group', 'qlang/legend', 'qlang/any', 'qlang/host'
 ]);
 
 // [QSHST#source]

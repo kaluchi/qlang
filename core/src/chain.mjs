@@ -81,6 +81,9 @@ function kindsOf(value) {
   return names.includes(ANY_KIND_NAME) ? null : names;
 }
 
+// [D476]
+const subjectKindsOf = value => (value === undefined ? null : isTag(value) ? [value.name] : value.map(tag => tag.name));
+
 function kindsWritten(written) {
   const each = isPlainVec(written);
   return { each, kinds: kindsOf(each ? written[0] : written), written: written ?? null };
@@ -110,7 +113,7 @@ function readChainOfFn(quote) {
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
-        chain.subject = { page: first, kinds: kindsOf(second), written: second ?? null };
+        chain.subject = { page: first, kinds: subjectKindsOf(second), written: second ?? null };
         break;
       case 'takes': {
         names.declare(first.name);

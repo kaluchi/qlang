@@ -7,4 +7,4 @@
 {"name":"the-language-is-a-noun-with-a-page","query":"::qlang | doc | tag","expect":"::doc"}
 {"name":"the-first-screen-holds-its-weight","query":"::qlang | doc | print | count | lte 13664","expect":"true"}
 {"name":"a-concept-page-has-an-address","query":"::qlang/pipeline | doc | tag","expect":"::doc"}
-{"name":"every-verb-of-the-core-has-a-doc","query":"kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true"}
+{"decision":"D476","name":"every-verb-of-the-core-has-a-doc","query":"::host | kinds | map ~(manifest) | flat | every ~(doc | content | eq \"\" | not)","expect":"true"}

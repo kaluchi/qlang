@@ -10,7 +10,7 @@ it('reads piped JSON as values, which `get /name` reads', async () => {
 });
 
 it('reads piped JSON as the text it is under a query headed by `in`', async () => {
-  const { stdout, exitCode } = await runCli(['in | append " world"'], {
+  const { stdout, exitCode } = await runCli(['::stdio | in | append " world"'], {
     stdin: '{"name": "alice"}'
   });
   expect(exitCode).toBe(0);

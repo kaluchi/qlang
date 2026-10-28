@@ -4,8 +4,8 @@ import { kindsExpected, readingState, boundAnswer, printAnswer } from '@kaluchi/
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
 import { keepCell } from './cells.mjs';
 
-const AnyOutSubjectKindNotTakenError = declareRefusal('any/out/SubjectKindNotTakenError');
-const AnyErrSubjectKindNotTakenError = declareRefusal('any/err/SubjectKindNotTakenError');
+const StdioOutSubjectKindNotTakenError = declareRefusal('stdio/out/SubjectKindNotTakenError');
+const StdioErrSubjectKindNotTakenError = declareRefusal('stdio/err/SubjectKindNotTakenError');
 
 // [QSERR#site]
 function makeWriter(writer, recordEffect, SubjectError) {
@@ -18,17 +18,14 @@ function makeWriter(writer, recordEffect, SubjectError) {
   };
 }
 
-// [QSCLI#stdin]
-export const IN_ADDRESS = 'any/in';
-
 export function streamPrimitives(ioContext) {
   const recordStdoutEffect = ioContext.recordStdoutEffect ?? (() => {});
   return {
-    [IN_ADDRESS]: async () => ioContext.stdinReader(),
-    'any/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, AnyOutSubjectKindNotTakenError),
-    'any/err': makeWriter(ioContext.stderrWrite, () => {}, AnyErrSubjectKindNotTakenError),
+    'stdio/in': async () => ioContext.stdinReader(),
+    'stdio/out': makeWriter(ioContext.stdoutWrite, recordStdoutEffect, StdioOutSubjectKindNotTakenError),
+    'stdio/err': makeWriter(ioContext.stderrWrite, () => {}, StdioErrSubjectKindNotTakenError),
     // [QSHST#effect], [QSHST#cell]
-    'any/tap': readingState(async (subject, label, state) => {
+    'stdio/tap': readingState(async (subject, label, state) => {
       const kept = value => keepCell({ query: ioContext.query, scope: state.scope, value });
       const shown = await printAnswer(await boundAnswer(subject, state.scope, null, kept), state.scope);
       ioContext.stderrWrite(`[tap ${label.name}] ${shown}\n`);

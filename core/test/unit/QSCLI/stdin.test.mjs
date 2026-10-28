@@ -18,22 +18,13 @@ it('a literal of parts reads none, its parts literals, and a group reads it wher
   for (const query of ['get [/a 1]', 'get {:a /b}', '(get /a)', '((get /a) | count)']) expect(readsOf(query), query).toBe(true);
 });
 
-it('a query reads none where its first step that declares nothing calls a verb of the host that reads none, by its name or its address', () => {
-  const verbs = new Set(['in', 'any/in']);
-  for (const query of ['in | count', 'any/in', '(in) | count', ':x 1; in', ':x (get /a); in']) expect(readsItsSubject(parseSource(query), verbs), query).toBe(false);
-  for (const query of ['count | in', 'vec/in']) expect(readsItsSubject(parseSource(query), verbs), query).toBe(true);
-  expect(readsOf('in')).toBe(true);
-});
-
-it('a query reads its subject where such a verb is called by its name and a declaration before it shadows the name, its address left the host\'s', () => {
-  const verbs = new Set(['in', 'any/in']);
-  for (const query of [':vec/in ~(count); in', ':in ~(count); in', '(:string/in ~(count); in)']) expect(readsItsSubject(parseSource(query), verbs), query).toBe(true);
-  expect(readsItsSubject(parseSource(':vec/in ~(count); any/in'), verbs)).toBe(false);
+it('a query headed by a noun reads none, the streams and the host it asks among them', () => {
+  for (const query of ['::stdio | in | count', '(::stdio | in) | count', ':x 1; ::stdio | in', '::host | kinds']) expect(readsOf(query), query).toBe(false);
+  for (const query of ['count | stdio/out', 'stdio/out']) expect(readsOf(query), query).toBe(true);
 });
 
 it('a query reads past a step of the fail track at its head, which runs on a failure alone', () => {
   for (const query of ['!| 5 | count', '!| 5']) expect(readsOf(query), query).toBe(true);
-  expect(readsItsSubject(parseSource('!| in | count'), new Set(['in']))).toBe(true);
   expect(readsOf('!| count | (1)')).toBe(false);
 });
 

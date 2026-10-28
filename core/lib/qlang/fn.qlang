@@ -396,7 +396,7 @@
         ~(:number/inc (::fn | on |~~ The number to raise. ~~| | impl ~(add 1)); ::number/inc/subject | doc | content | trim | eq "The number to raise.")
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | on |~~ A number. ~~| !| tag | eq ::fn/on/SubjectNotFnError))
+        ~(::number | fn/on |~~ A number. ~~| !| tag | eq ::fn/on/SubjectNotFnError))
     ::builtin{}];
 
 :fn/takes
@@ -525,7 +525,7 @@
           | eq [::number/each/RulesElementKindNotTakenError 1])
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | takes :by |~~ How much. ~~| /0 !| tag | eq ::fn/takes/SubjectNotFnError)
+        ~(::number | fn/takes :by |~~ How much. ~~| /0 !| tag | eq ::fn/takes/SubjectNotFnError)
     | proves :handsWhatItWritesToTheChain
         |~~ A name that is no keyword is refused by the chain, which holds
             what each command writes.
@@ -577,7 +577,7 @@
         ~(:number/half (::fn | returns |~~ The half. ~~| ::number | impl ~(div 2)); ::number/half | manifest | has ::number/half/answer)
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | returns |~~ A number. ~~| ::number !| tag | eq ::fn/returns/SubjectNotFnError))
+        ~(::number | fn/returns |~~ A number. ~~| ::number !| tag | eq ::fn/returns/SubjectNotFnError))
     ::builtin{}];
 
 :fn/throws

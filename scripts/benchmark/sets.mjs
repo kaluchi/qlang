@@ -169,13 +169,13 @@ function finalQueriesOf(setId, reply) {
 }
 
 // What the tree answers for a query over the data of its task, as JSON,
-// which `| json | out` writes whole past the budget of every answer on the
+// which `| json | stdio/out` writes whole past the budget of every answer on the
 // last line, whatever the query wrote by `out` before it [QSCLI#answer], or null when
 // it fails.
 function answerOf(setId, task, query) {
   try {
     const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
-    const printed = execFileSync(process.execPath, [commandLine, `(${query}) | json | out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    const printed = execFileSync(process.execPath, [commandLine, `(${query}) | json | stdio/out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed.split('\n').at(-1)) };
   } catch {
     return null;

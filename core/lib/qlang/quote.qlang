@@ -312,7 +312,7 @@
         |~~ A name the code binds stays inside it: the stored query of a
             tax names its rate for its own steps alone.
         ~~|
-        ~(~(:rate 0.2; 100 | mul rate) | answer | get [~(it) ~(env | has :rate)] | eq [20 false])
+        ~(~(:rate 0.2; 100 | mul rate) | answer | get [~(it) ~(::host | env | has :rate)] | eq [20 false])
     | proves :runsFromNull
         |~~ The code runs from null. ~~|
         ~(~(tag) | answer | eq ::null)

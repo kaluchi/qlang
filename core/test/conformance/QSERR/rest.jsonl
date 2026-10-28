@@ -23,7 +23,7 @@
 {"name":"an-error-at-rest-prints-with-its-bang","query":"::Oops!{:a 1} | print","expect":"\"::Oops!{:a 1}\""}
 {"name":"an-error-value-is-no-raised-error","query":"::error{:k 1} | count","expect":"1"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| tag","expect":"::error"}
-{"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"kinds | has ::error","expect":"true"}
+{"decision":"D476","name":"the-kind-of-errors-is-a-noun-of-the-core","query":"::host | kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
 {"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) ~(found | tag)]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
 {"decision":"D421","name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | with {:v ~it} ~(print | parse | answer | eq v))]","expect":"[true true]"}

@@ -3,7 +3,7 @@
 import { parseSource } from '../parse.mjs';
 import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
-import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, takeWiring, makeKeyword } from '../types.mjs';
+import { isBinding, isDoc, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, takeWiring, makeBinding, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
@@ -29,6 +29,18 @@ export const BuiltinPrimitiveNamesNoBuiltinError = declareDefect('builtin/Primit
 
 const DECLARED_TWICE = '::bind/NameDeclaredTwiceError';
 
+// [D476]
+const HOST_NAME = 'host';
+const HOST_ORIGIN = 'qlang/host';
+
+function withThePageOfTheHost(root, declared) {
+  const page = declared.get(HOST_NAME);
+  const held = root.get(HOST_NAME);
+  if (page === undefined || held === undefined || held.get('origin')?.name !== HOST_ORIGIN || !isDoc(bindingValueOf(page))) return root;
+  declared.delete(HOST_NAME);
+  return new Map(root).set(HOST_NAME, makeBinding({ name: held.get('name'), docs: page.get('docs'), value: bindingValueOf(held), source: page.get('source'), origin: page.get('origin') }));
+}
+
 
 // [QSHST#source], [QSNAM#root]
 export async function declareRoot(scope, sources) {
@@ -43,6 +55,7 @@ export async function declareRoot(scope, sources) {
     const declared = new Map([...answered.scope].filter(([, record]) => isBinding(record)));
     const value = [...declared].find(([name, record]) => splitAddress(name)[0] === null && !declaresALabel(record));
     if (value !== undefined) throw new BuiltinRootValueNotWordError({ origin, name: makeKeyword(value[0]) });
+    root = withThePageOfTheHost(root, declared);
     const again = [...declared.keys()].find(name => root.has(name));
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: makeKeyword(again) });
     const taking = new Set();

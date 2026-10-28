@@ -68,7 +68,7 @@ describe('the arguments of the command line', () => {
     expect(parseArgv(['-i', '--budget=500']).kind).toBe('usageError');
   });
 
-  it('refuses --json, JSON read by `in | parseJson`', () => {
+  it('refuses --json, JSON read by `::stdio | in | parseJson`', () => {
     expect(parseArgv(['--json', 'get /a']).message).toBe('qplay: --json is no flag of the playground, which `qplay --help` lists\n');
   });
 
@@ -201,7 +201,7 @@ describe('the answer written as the language prints it, whatever standard input 
 it('writes what `out` writes and leaves the answer of the query unwritten', async () => {
   const s = captureStreams();
   const exitCode = await main(
-    ['[1 2 3] | count | print | out'],
+    ['[1 2 3] | count | print | stdio/out'],
     s.stdinStream, s.stdoutStream, s.stderrStream, {}
   );
   expect(exitCode).toBe(0);

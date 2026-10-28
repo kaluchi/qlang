@@ -243,13 +243,20 @@ function passesTheTagName(scope, record, kindName, subject, verbName) {
   return isVerbValue(value) && !(chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? []).includes(CORE_KIND.tag.name);
 }
 
-// [QSNAM#reach], [QSNAM#root]
+// [QSNAM#reach], [QSNAM#root], [QSDSP#refusal], [D476]
 export function bareNameReach(scope, name, subject) {
   if (scope.has(name) && isBinding(scope.get(name)) && !(isRootVerbScope(scope) && declaresALabel(scope.get(name)))) return { record: scope.get(name), underKind: false };
   const residence = residenceOnSubject(scope, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
   const residences = residencesOf(isRootVerbScope(scope) ? rootScopeOf(scope) : scope, name);
-  return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
+  return residences.length === 1 && servesItsLabelAlone(residences[0][1], scope) ? { record: residences[0][1], underKind: true } : null;
+}
+
+// [D476]
+function servesItsLabelAlone(record, scope) {
+  if (isNodeOfAPart(record, scope)) return true;
+  const value = bindingValueOf(record);
+  return (chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? null) === null;
 }
 
 export function residencesOf(scope, verbName) {

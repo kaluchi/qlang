@@ -5,7 +5,7 @@
 :binding
   |~~ A binding is the record a declaration writes: a name with its
       page, its value and where it came from, so what is named can be
-      listed and asked like data. `env` answers the bindings a reader
+      listed and asked like data. `::host | env` answers the bindings a reader
       declared, and `binding` the record of a name,
       `::vec/count | binding | origin` answering `:qlang/vec`.
 

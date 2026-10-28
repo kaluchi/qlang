@@ -694,7 +694,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
 }
 
 // [QSERR#site]
-const kindsServed = (labelName, chain) => kindsExpected(labelName, ...(chain.subject?.kinds ?? []));
+const kindsServed = (labelName, chain) => kindsExpected(labelName, ...(chain.subject?.kinds ?? []).filter(kind => kind !== ANY_KIND_NAME));
 
 // [QSERR#site]
 const isVerdictOfTheVerb = (tagName, address, scope) => tagName.startsWith(`${address}/`) && slotsOfAVerdict(kindOfAValueOf(scope, tagName)) !== undefined;

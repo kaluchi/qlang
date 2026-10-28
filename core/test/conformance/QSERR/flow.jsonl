@@ -11,7 +11,7 @@
 {"decision":"D421","name":"a-set-literal-answers-the-refusal-of-an-element","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)); #[1 ::Pos#-3] !| tag","expect":"::Pos/NotPositiveError"}
 {"decision":"D421","name":"an-error-literal-answers-the-refusal-of-a-fact","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)); !{:a ::Pos#-3} !| tag","expect":"::Pos/NotPositiveError"}
 {"decision":"D421","name":"a-declaration-whose-body-fails-fails-its-text","query":"~(:x (1 | div 0); 5) | answer !| trace | map ~failed","expect":"[~(div 0) ~(:x (1 | div 0);) ~(answer)]"}
-{"decision":"D421","name":"a-declaration-whose-body-fails-binds-nothing","query":"~(:x (1 | div 0)) | answer !| env | has :x","expect":"false"}
+{"decision":"D476","name":"a-declaration-whose-body-fails-binds-nothing","query":"get [~(~(:x (1 | div 0)) | answer !| tag) ~(::host | env | has :x)]","expect":"[::number/div/DivisorZeroError false]"}
 {"name":"a-failure-caught-in-each-element-is-an-error-at-rest","query":"[1 \"x\"] | map ~(add 1 !| it) | filter ~(is ::number/add/SubjectNotNumberError) | map ~(subject | found | tag)","expect":"[::string]"}
 {"name":"a-fact-computed-at-the-call-holds-the-error-at-rest","query":"[1 2 3] | filter (gt 1) !| predicate | found | tag","expect":"::call/KindsMismatchedError"}
 {"name":"a-value-input-hands-an-error-on-unchanged","query":"1 | add (!{:k 1} | raise) !| tag","expect":"::error"}

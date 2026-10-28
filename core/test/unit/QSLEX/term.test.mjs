@@ -8,7 +8,7 @@ it('refuses in every spelling a generic word the texts write in no sense: in pro
     'a pattern of text', 'Patterns', 'core/src/pattern.mjs', 'PATTERN_FLAGS', 'patternProblem', 'refuseUnreadPattern', ':TextNotPatternError/refusesARegex', 'a-pattern-has-no-string',
     'the outline of a value', ':answersTheOutline', 'OUTLINES', 'an outlined box',
     'a marker of a comment', 'Markers', 'stripPasteMarkers', 'a-marker-prints-on-one-line',
-    'in its place', 'the place of the args', 'Places', 'get-refuses-a-place-past-the-end', ':refusesAPlacePastTheEnd', 'placeIn', 'mergedPlaces', 'MISSED_PLACE',
+    '::stdio | in its place', 'the place of the args', 'Places', 'get-refuses-a-place-past-the-end', ':refusesAPlacePastTheEnd', 'placeIn', 'mergedPlaces', 'MISSED_PLACE',
     'the trail of a failure', 'Trails', 'makeTrail', 'TRAIL_TAG', 'KEY_TRAILS',
     'the kernel', 'a sigil', 'mints a tag', 'minted', 'deflects', 'a deflection', 're-lift', 'relifted', 'fail-apply', 'a plain comment'
   ]) expect(refused(text), text).toBe(true);

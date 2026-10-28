@@ -105,16 +105,11 @@ export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, de
 // [QSNAM#verb]
 const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
-// [QSCLI#stdin]
-export function readsItsSubject(steps, verbsOfNoSubject = new Set()) {
-  let unread = verbsOfNoSubject;
-  const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload, unread) : !holdsALiteral(step) && !unread.has(step.get('name').name));
-  for (const step of steps) {
-    if (isFailStep(step)) continue;
-    if (!isBindStep(step)) return readsBy(step);
-    unread = new Set([...unread].filter(name => name !== splitAddress(step.get('name').name)[1]));
-  }
-  return steps.length === 0 || !steps.every(isBindStep);
+// [QSCLI#stdin], [D476]
+export function readsItsSubject(steps) {
+  const head = steps.find(step => !isFailStep(step) && !isBindStep(step));
+  if (head === undefined) return steps.length === 0 || !steps.every(isBindStep);
+  return isGroupStep(head) ? readsItsSubject(head.payload) : !holdsALiteral(head);
 }
 
 // [QSNAM#scope]

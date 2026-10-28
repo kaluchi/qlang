@@ -1,6 +1,6 @@
 |~ The playground of the command line: the page of `::host` there, which
-   `qplay -h` prints.
-   The rules it holds: [QSCLI#answer], [QSCLI#stdin], [D477]. ~|
+   `qplay -h` prints, and the sections of its screen, `::host | status`.
+   The rules it holds: [QSCLI#answer], [QSCLI#stdin], [D476], [D477]. ~|
 
 :host
   |~~ qplay — a demo command-line app for playing with qlang and checking
@@ -18,8 +18,8 @@
       A query runs on what stdin holds. JSON is read as values, an object
       a map whose keys are keywords, `{"name": "Ann"}` arriving as
       `{:name "Ann"}`; any other text is one string. A query headed by
-      `in` reads the text as it came, JSON text among it, and
-      `in | parseJson` reads it as JSON alone. A query that reads no
+      `::stdio | in` reads the text as it came, JSON text among it, and
+      `::stdio | in | parseJson` reads it as JSON alone. A query that reads no
       subject, `qplay '::vec | doc'` or `qplay '[1 2] | sum'`, runs at once
       and reads no stdin. One that reads it with nothing piped, a terminal
       or `< /dev/null`, runs on the noun of the language, `::qlang`, so
@@ -53,18 +53,16 @@
       REPL, which prints it whole, and one past it prints as
       `::qlang/AnswerBeyondBudgetError`, whose `:budget` names the budget
       and `:answer` the cell whose `answer` reads the whole later;
-      `print | out` or `json | out` writes the whole, through the streams
-      of `::stdio`.
+      `print | stdio/out` or `json | stdio/out` writes the whole, through
+      the streams of `::stdio`; `::host | status` shows its screen.
       ::link~(::stdio) ::link~(::any/json) ::link~(::vec/table)
       ::link~(::qlang/errors) ::link~(::cell) ::link~(::qlang/hosts)
-  ~~|
-  ::kind
-    | accepts |~~ No value: `::host` names the host a session is in. ~~| #[]
-    | throws :PayloadKindNotTakenError
-        |~~ `::host` names the host a session is in, its page and its
-            words, and takes no payload: it is asked by itself,
-            `::host | doc`.
-        ~~|
-    | proves :PayloadKindNotTakenError/refusesAValue
-        |~~ No value is put under `::host`. ~~|
-        ~(5 | tag ::host !| tag | eq ::host/PayloadKindNotTakenError);
+  ~~|;
+
+:host/streams
+  |~~ The streams the playground installs, the words of `::stdio`. ~~|
+  ::snippet~(::stdio | manifest);
+
+:host/labels
+  |~~ How many kinds lie on the playground, the language's and the streams'. ~~|
+  ::snippet~(::host | kinds | count);

@@ -1,4 +1,4 @@
-{"decision":"D421","name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(:y 5; add 1 | add y); 1 | m | env | has :y","expect":"false"}
+{"decision":"D476","name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(:y 5; add 1 | add y); get [~(1 | m) ~(::host | env | has :y)]","expect":"[7 false]"}
 {"decision":"D421","name":"a-recipe-reads-no-value-of-a-sentence","query":"apply ~(:n 3; :number/times ~(mul n); 5 | times !| tag)","expect":"::call/UnknownNameError"}
 {"decision":"D421","name":"a-verb-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(mul (sub 1 | fact))); 5 | fact","expect":"120"}
 {"decision":"D421","name":"a-value-the-sentence-names-reaches-no-selector-of-a-verb","query":"apply ~(:it 5; 3 | is ::number)","expect":"true"}

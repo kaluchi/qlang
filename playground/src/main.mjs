@@ -1,11 +1,10 @@
 import { existsSync } from 'node:fs';
-import { parseSource, readsItsSubject, splitAddress } from '@kaluchi/qlang-core';
+import { parseSource, readsItsSubject } from '@kaluchi/qlang-core';
 import { parseArgv, VERSION_LINE } from './argv.mjs';
 import { runQuery } from './run.mjs';
 import { renderCellOutcome } from './render.mjs';
 import { runRepl } from './repl.mjs';
 import { readStdinToString, memoiseStdinReader } from './stdin.mjs';
-import { IN_ADDRESS } from '@kaluchi/qlang-stdio';
 
 export function resolveShouldColorize(colorMode, stdoutStream, env) {
   if (colorMode === 'always') return true;
@@ -31,9 +30,6 @@ export function queryAsWritten(queryText, env, exists = existsSync) {
   return queryText;
 }
 
-// [QSCLI#stdin]
-const VERBS_OF_NO_SUBJECT = new Set([IN_ADDRESS, splitAddress(IN_ADDRESS)[1]]);
-
 function queryReadsStdin(queryText) {
   let quote;
   try {
@@ -41,7 +37,7 @@ function queryReadsStdin(queryText) {
   } catch {
     return false;
   }
-  return readsItsSubject(quote, VERBS_OF_NO_SUBJECT);
+  return readsItsSubject(quote);
 }
 
 export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, env) {

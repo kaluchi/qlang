@@ -133,8 +133,8 @@ describe('a binding record and a vector under a tag', () => {
 });
 
 it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-  expect(await evalQuery(':number/f ~(add 1); :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; env | eq (print | parse | answer)')).toBe(true);
-  expect(await evalQuery('apply ~(:T |~~ A kind. ~~|; :T/v 5; env | eq (print | parse | answer))')).toBe(true);
+  expect(await evalQuery(':number/f ~(add 1); :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; ::host | env | eq (print | parse | answer)')).toBe(true);
+  expect(await evalQuery('apply ~(:T |~~ A kind. ~~|; :T/v 5; ::host | env | eq (print | parse | answer))')).toBe(true);
 });
 
 describe('printing steps read from text', () => {

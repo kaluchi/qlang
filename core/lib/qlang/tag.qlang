@@ -20,7 +20,7 @@
       which checks nothing and lays itself over the value. Tags rank after
       keywords and before paths, and JSON writes a tag as its literal,
       `"::Box"`.
-      ::snippet~(kinds) lists the kinds the scope reads, and
+      ::snippet~(::host | kinds) lists the kinds the scope reads, and
       ::snippet~(::Box::Crate{:width 2} | tag) answers the outer tag.
       ::link~(::qlang/values)
   ~~|

@@ -137,7 +137,7 @@
           | eq [::Box {:width 1}])
     | proves :isALabel
         |~~ A kind declared under a name is a label the scope reads. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map); kinds | has ::Box)
+        ~(:Box |~~ A parcel. ~~| (::kind | accepts |~~ The sizes. ~~| ::map); ::host | kinds | has ::Box)
     | proves :refusesAPayloadOfNoneOfItsKinds
         |~~ A payload of none of the kinds `accepts` names is refused under
             the kind.
@@ -311,7 +311,7 @@
           |  eq [::Topic/PayloadKindNotTakenError #[]])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | accepts |~~ A number. ~~| !| tag | eq ::kind/accepts/SubjectNotKindError))
+        ~(::number | kind/accepts |~~ A number. ~~| !| tag | eq ::kind/accepts/SubjectNotKindError))
     ::builtin{}];
 
 :kind/wires
@@ -374,7 +374,7 @@
           |  eq ::Box/WidthKindNotTakenError)
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | wires :width |~~ The width. ~~| /width !| tag | eq ::kind/wires/SubjectNotKindError))
+        ~(::number | kind/wires :width |~~ The width. ~~| /width !| tag | eq ::kind/wires/SubjectNotKindError))
     ::builtin{}];
 
 :kind/tells
@@ -413,7 +413,7 @@
           | eq [true])
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | tells :summary |~~ A summary. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
+        ~(::number | kind/tells :summary |~~ A summary. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
     ::builtin{}];
 
 :kind/reveals
@@ -451,7 +451,7 @@
           | eq "|~ size ::number · How many things ~|")
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
-        ~(::number | reveals :summary !| tag | eq ::kind/reveals/SubjectNotKindError))
+        ~(::number | kind/reveals :summary !| tag | eq ::kind/reveals/SubjectNotKindError))
     ::builtin{}];
 
 :kind/holds

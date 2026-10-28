@@ -28,4 +28,4 @@
         |~~ A key missing from some records and null in others is absent
             outside and nullable within.
         ~~|
-        ~([{:age 30} {:age null} {}] | shape | eq ::shape[{:age ::absent::nullable::number}])
+        ~([{:age 30} {:age null} {}] | shape | eq ::shape[{:age ::absent::nullable::number}]);

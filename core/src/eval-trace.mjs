@@ -5,6 +5,7 @@ import { kindsExpected } from './ordering.mjs';
 import { declareRefusal } from './errors.mjs';
 import { errorFromQlang } from './error-convert.mjs';
 import { walkToKinds } from './dispatch.mjs';
+import { NO_SUBJECT } from './state.mjs';
 
 export const flightOfACall = () => ({ path: null, resumes: false });
 export const flightOfThrow = thrown => ({ path: thrown?.part === undefined ? null : makePath(thrown.part.map(String)), resumes: false });
@@ -56,7 +57,7 @@ function withFrame(error, stepQuote, subject, scope, path) {
 export function answerOfStep(answer, stepQuoteOf, subject, scope, flight = null) {
   if (!isErrorValue(answer)) return answer;
   if (flight?.resumes) return withTrace(answer, answer.facts.get('trace'));
-  return withFrame(answer, stepQuoteOf(), subject, scope, flight?.path ?? null);
+  return withFrame(answer, stepQuoteOf(), subject === NO_SUBJECT ? null : subject, scope, flight?.path ?? null);
 }
 
 export function skipping(error, skippedStep, scope) {

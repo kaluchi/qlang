@@ -44,5 +44,5 @@
     | proves :PayloadEmptyError/keepsTheValueByIt
         |~~ A group of `it` is a step that keeps the value. ~~|
         ~(~(it) | tag ::group | get [~(it)] | tag ::quote | eq ~((it)))
-    | impl ::builtin{}
+    | impl ::builtin{};
 

@@ -90,7 +90,7 @@
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
-        ~(::regex"a" !| get [~(tag) ~(found | tag)] | eq [::regex/PayloadKindNotTakenError ::string])
+        ~(::regex"a" !| get [~(tag) ~(found | tag)] | eq [::regex/PayloadKindNotTakenError ::string]);
 
 :regex/toRegex
   |~~ Answers the regex itself, so `map ~toRegex` turns regexes and the
@@ -124,5 +124,5 @@
             regexes.
         ~~|
         ~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

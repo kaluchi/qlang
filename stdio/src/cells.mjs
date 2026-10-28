@@ -47,9 +47,9 @@ const cellFolder = identity => join(STORE, rootIdentity(), 'cells', identity);
 function namesOf(scope) {
   const declared = [];
   for (const [name, entry] of scope) {
-    if (typeof name === 'string' && entry.get('source') !== null) declared.push(`${printValue(entry.get('name'))} ${printValue(entry.get('value'))}`);
+    if (typeof name === 'string' && entry.get('source') !== null) declared.push(`${printValue(entry.get('name'))} ${printValue(entry.get('value'))};`);
   }
-  return declared.join('\n| ');
+  return declared.join('\n');
 }
 
 // [QSHST#cell]
@@ -89,7 +89,7 @@ export function cellPrimitives(sourcesOfTheRoot) {
       const names = readFileSync(join(folder, NAMES), 'utf8');
       const answer = readFileSync(join(folder, ANSWER), 'utf8');
       const { scope } = await createNotebook({ sources: sourcesOfTheRoot() });
-      return await evalQuery(names === '' ? answer : `${names}\n| ${answer}`, scope);
+      return await evalQuery(names === '' ? answer : `${names}\n${answer}`, scope);
     }
   };
 }

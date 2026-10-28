@@ -12,7 +12,7 @@ describe('the package root', () => {
 
   it('keeps a notebook whose cells share their names', async () => {
     const notebook = await core.createNotebook();
-    await notebook.evalCell(':any/x ~(2)');
+    await notebook.evalCell(':any/x ~(2);');
     expect((await notebook.evalCell('x | add 1')).result).toBe(3);
   });
 

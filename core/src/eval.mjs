@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withWritten, writtenIn, ownScopeOf
+  withWritten, writtenIn, ownScopeOf, NO_SUBJECT
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -12,18 +12,18 @@ import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
-  isFn, isKind, isBinding, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
-  ERROR_TAG, TRACE_TAG, isExcerpt, isCell, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf
+  isFn, isKind, isBinding, isTag, recipeOf, constructorOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
+  ERROR_TAG, TRACE_TAG, isExcerpt, isCell, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf, isBuiltinDescriptor
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
-  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf, declaresAName,
+  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
   commandStep, groupStep, declarationStep, namesAQuoteReads
 } from './steps.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
-  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isVerbValue, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
+  INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, CallValueWithheldError
 } from './nouns.mjs';
 import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn } from './chain.mjs';
@@ -45,8 +45,9 @@ const BindWrittenOutsideItsChainError = declareRefusal('bind/WrittenOutsideItsCh
 // [QSDSP#refusal]
 const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError');
 
-// [QSNAM#declare]
-const BindValueAtTheTopError = declareRefusal('bind/ValueAtTheTopError');
+// [D421]
+const BindSubjectNotGivenError = declareRefusal('bind/SubjectNotGivenError');
+const BindChainAnswersNoWordError = declareRefusal('bind/ChainAnswersNoWordError');
 
 // [D478]
 const BindPrintDeclaredError = declareRefusal('bind/PrintDeclaredError');
@@ -55,18 +56,25 @@ const PRINT_NAME = 'print';
 // [QSNAM#value]
 const CallValueAsALaterStepError = declareRefusal('call/ValueAsALaterStepError');
 
-// [QSQUO#step], [QSNAM#declare]
-export async function evalPipeline(steps, state, origin = originOf(steps), atTheTop = false) {
+// [QSQUO#step], [QSNAM#declare], [QSERR#trace], [D421]
+export async function evalPipeline(steps, state, origin = originOf(steps)) {
   let current = state;
+  const declared = [];
+  let queried = false;
   for (const [index, step] of steps.entries()) {
-    const at = { steps, index, origin, atTheTop };
+    const at = { steps, index, origin };
+    if (!queried && isBindStep(step)) {
+      const answered = await evalStep(step, withPipeValue(current, NO_SUBJECT), at);
+      if (isErrorValue(answered.pipeValue)) return withPipeValue(state, answerOfStep(answered.pipeValue, () => makeQuote(steps.slice(index)), NO_SUBJECT, current.scope, answered.flight));
+      current = withPipeValue(answered, state.pipeValue);
+      declared.push(makeTag(step.get('name').name));
+      continue;
+    }
+    queried = true;
     current = isFailStep(step) ? await applyFailTrack(current, step.payload[0], at) : await applySuccessTrack(current, step, at);
   }
-  return current;
+  return queried || declared.length === 0 ? current : withPipeValue(current, makeSet(declared));
 }
-
-// [QSNAM#declare]
-export const evalAtTheTop = (steps, state) => evalPipeline(steps, state, originOf(steps), true);
 
 // [QSERR#trace]
 async function evalStep(step, state, at) {
@@ -140,7 +148,7 @@ export async function errorAtRestOf(raised, state) {
 
 // [QSNAM#scope], [QSNAM#declare]
 async function evalGroup(group, state, at) {
-  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload), at?.atTheTop === true));
+  return await fork(state, inner => evalPipeline(group.payload, inner, at?.origin ?? originOf(group.payload)));
 }
 
 function evalItself(step, state) {
@@ -228,21 +236,23 @@ async function evalBind(bind, state, at) {
   const body = !bind.has('body') ? null : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
+  if (bind.has('body') && isChain(bind.get('body')) && !buildsAWord(answered, nounName)) throw new BindChainAnswersNoWordError({ name: makeKeyword(name), found: answered });
   if (nounName !== null && isFn(answered)) refuseAnInputOfTheWiring(state.scope, nounName, answered);
   if (writesOutsideItsChain(state.scope, nounName, splitAddress(name)[1], answered)) {
     throw new BindWrittenOutsideItsChainError({ name: makeKeyword(name), noun: nounName === null ? undefined : makeTag(nounName) });
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
-  if (at.atTheTop && bind.has('body') && !declaresAWord(nounName, answered)) throw new BindValueAtTheTopError({ name: makeKeyword(name) });
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// [QSNAM#declare]
-const declaresAWord = (nounName, value) => isKind(value) || (nounName !== null && (isVerbValue(value) || isLaw(value)));
+// [D421]
+const isChain = body => isGroupStep(body) && body.payload.length > 1 && isTag(body.payload[0]);
+const buildsAWord = (value, nounName) => isKind(value) || isFn(value) || isDoc(value) || isLaw(value) || isInvariant(value)
+  || (nounName !== null && (isQuote(value) || isBuiltinDescriptor(value)));
 
 // [QSNAM#scope]
 function laidByTheChainOfItsNoun(scope, name, nounName, at) {
@@ -370,9 +380,10 @@ const slotRefusedIn = facts => {
   return null;
 };
 
-// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value]
+// [QSNAM#reach], [QSQUO#held], [QSDSP#residence], [QSNAM#value], [D421]
 async function callByName(lookupName, modifiers, state, call, at) {
   refuseWithheld(state.scope, lookupName);
+  if (state.pipeValue === NO_SUBJECT) return await nameWithNoSubject(lookupName, modifiers, state, at);
   const reach = bareNameReach(state.scope, lookupName, state.pipeValue);
   if (reach === null) {
     const addresses = addressesOf(state.scope, lookupName);
@@ -385,6 +396,13 @@ async function callByName(lookupName, modifiers, state, call, at) {
   }
   if (reach.underKind) return await applyVerb(reach.record, modifiers, state);
   return await applyBinding(reach.record, lookupName, lookupName, modifiers, state, at);
+}
+
+// [D421]
+async function nameWithNoSubject(lookupName, modifiers, state, at) {
+  const entry = state.scope.get(lookupName);
+  if (isBinding(entry) && !declaresALabel(entry)) return await applyBinding(entry, lookupName, lookupName, modifiers, state, at);
+  throw new BindSubjectNotGivenError({ name: makeKeyword(lookupName) });
 }
 
 // [QSBLD#value]
@@ -404,7 +422,7 @@ async function applyBinding(entry, name, lastName, modifiers, state, at) {
   return valueCalled(value, name, lastName, modifiers, state);
 }
 
-const isALaterStep = at => at !== undefined && at.index > 0 && !isFailStep(at.steps[at.index]) && !declaresAName(at.steps[at.index - 1]);
+const isALaterStep = at => at !== undefined && at.index > 0 && !isFailStep(at.steps[at.index]) && !isBindStep(at.steps[at.index - 1]);
 
 // [QSNAM#value], [QSDSP#residence]
 function valueCalled(value, name, lastName, modifiers, state) {
@@ -419,7 +437,10 @@ async function callByAddress(call, address, modifierSteps, state, at) {
     throw new CallUnknownAddressError({ address: makeTag(address), nearest: nearestTagNames(state.scope, address) });
   }
   const modifiers = modifierSteps.map(step => modifierOf(step, state));
-  if (isVerb(state.scope, address)) return await applyVerb(record, modifiers, state);
+  if (isVerb(state.scope, address)) {
+    if (state.pipeValue === NO_SUBJECT) throw new BindSubjectNotGivenError({ name: makeKeyword(address) });
+    return await applyVerb(record, modifiers, state);
+  }
   return await applyBinding(record, address, splitAddress(address)[1], modifiers, state, at);
 }
 

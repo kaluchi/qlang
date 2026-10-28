@@ -112,6 +112,15 @@
             and a name declared again takes a name of its own, the root's
             left as they are.
         ~~|
+    | throws :RootValueNotWordError
+        |~~ A source of the root declared a value under a bare name, which
+            serves the query of its own text and reaches no reader, so the
+            source is refused and its declarations stay out of the root;
+            `:origin` names the source and `:name` the name. A source of the
+            root declares words, a kind, a verb under a label and a node
+            under a noun, data under an address among them,
+            `:Box/limit 10;`.
+        ~~|
     | throws :PrimitiveNamesNoBuiltinError
         |~~ A host handed a primitive beside a source of the root for a
             name the source declares neither as a `::builtin{}` under a
@@ -124,7 +133,7 @@
             name while a function of its own over the same `::builtin{}`
             runs nothing, so a host declares its primitive as the recipe of
             a verb under the label of its subject,
-            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
+            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.
         ~~|
@@ -155,4 +164,4 @@
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
         ~(::builtin[1 2 3] !| get [~(tag) ~(found | tag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
-    ::builtin{}]
+    ::builtin{}];

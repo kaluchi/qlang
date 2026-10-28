@@ -11,7 +11,7 @@ describe('the verbs that live on a kind', () => {
   it('a host verb declared under a kind serves its values beneath a tag', async () => {
     const notebook = await createNotebook({ sources: [{
       uri: 'tests/typed',
-      source: ':string/shout ::builtin{}',
+      source: ':string/shout ::builtin{};',
       primitives: { 'string/shout': text => text.toUpperCase() }
     }] });
     expect((await notebook.evalCell('::Box"hi" | shout')).result).toBe('HI');

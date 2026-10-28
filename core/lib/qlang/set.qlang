@@ -59,7 +59,7 @@
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
         ~(::set{:tea 4} !| get [~(tag) ~(found | tag)] | eq [::set/PayloadKindNotTakenError ::map])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/sort
   |~~ Answers the vector of the elements in the order the key ranks them,
@@ -103,7 +103,7 @@
     | proves :KeyKindNotTakenError/refusesAValueForCode
         |~~ A key computed at the call is refused under the input. ~~|
         ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/KeyKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/reverse
   |~~ Answers the vector of the elements from the greatest down,
@@ -125,7 +125,7 @@
     | proves :answersAVectorThatToSetMakesASet
         |~~ A reversed set is a set again after `toSet`. ~~|
         ~(#[3 1 2] | reverse | toSet | eq #[1 2 3])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/zip
   |~~ Answers the vectors the set holds read side by side, in its one
@@ -151,7 +151,7 @@
     | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
         |~~ The vectors the elements of a set hold are read first. ~~|
         ~(#[{:scores [1 2]} {:scores [3 4]}] | map /scores | zip | eq [[1 3] [2 4]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/groupBy
   |~~ Answers the map of the elements filed under the keyword their key
@@ -240,7 +240,7 @@
             with the kinds a key files under.
         ~~|
         ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(key | expected)] | eq [::set/groupBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/toVec
   |~~ Answers the vector of the set's elements in its order,
@@ -266,7 +266,7 @@
     | proves :readsBack
         |~~ A set turned into a vector turns back into itself. ~~|
         ~(#[2 1] | toVec | get [~(it) ~(toSet)] | eq [[1 2] #[1 2]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/toSet
   |~~ Answers the set itself under the tags it came with,
@@ -282,7 +282,7 @@
     | proves :keepsTheTagsItCameWith
         |~~ A set under a tag answers itself under the tag. ~~|
         ~(::Box#[2 1] | toSet | eq ::Box#[1 2])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/distinct
   |~~ The name other languages give `toSet`: answers the set itself under
@@ -295,7 +295,7 @@
     | proves :answersAsToSet
         |~~ `distinct` answers as `toSet`. ~~|
         ~(::Box#[2 1] | get [~(distinct) ~(toSet)] | eq [::Box#[1 2] ::Box#[1 2]])
-    | impl ~(toSet)
+    | impl ~(toSet);
 
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and
@@ -343,7 +343,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1] | union #[2] #[3] !| tag | eq ::set/union/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/minus
   |~~ Answers the set of the elements of the subject the other set does
@@ -390,7 +390,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2 3] | minus #[2] #[3] !| tag | eq ::set/minus/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :set/inter
   |~~ Answers the set of the elements both sets hold, under the tags the
@@ -439,4 +439,4 @@
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
         ~(#[1 2] | inter #[1] #[2] !| tag | eq ::set/inter/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};

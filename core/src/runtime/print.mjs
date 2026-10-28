@@ -63,17 +63,23 @@ const RAISED_LINE = '|~| raised, and no !| caught it';
 // [QSPRN#legend], [D478]
 const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
 
-async function collectLegends(part, state, printedOf) {
-  if (isLegend(part)) {
-    printedOf.set(part, await printOfALegend(part, state, printsOfLegends));
-    return;
+async function collectLegends(value, state, printedOf) {
+  const pending = [value];
+  const walked = new Set();
+  while (pending.length > 0) {
+    const part = pending.pop();
+    if (isLegend(part)) {
+      printedOf.set(part, await printOfALegend(part, state, printsOfLegends));
+      continue;
+    }
+    if (part === null || typeof part !== 'object' || walked.has(part)) continue;
+    walked.add(part);
+    const parts = part instanceof Map ? part.values()
+      : Array.isArray(part) ? part
+      : isErrorValue(part) ? part.facts.values()
+      : 'payload' in part ? [part.payload] : [];
+    for (const inner of parts) pending.push(inner);
   }
-  if (part === null || typeof part !== 'object') return;
-  const parts = part instanceof Map ? part.values()
-    : Array.isArray(part) ? part
-    : isErrorValue(part) ? part.facts.values()
-    : 'payload' in part ? [part.payload] : [];
-  for (const inner of parts) await collectLegends(inner, state, printedOf);
 }
 
 registerStateReader('any/print', (subject, state) => printAnswer(subject, state.scope, state));

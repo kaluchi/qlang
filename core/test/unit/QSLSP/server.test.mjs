@@ -6,14 +6,14 @@ import { isVec, isQuote } from '../../../src/types.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
 it('hands the tools the parts of a text and the letters of a name', () => {
-  const root = core.partOf(core.parseSource(':x 1 | x'));
+  const root = core.partOf(core.parseSource(':x 1; x'));
   expect(core.findNameOccurrences(root, 'x')).toHaveLength(2);
   expect([core.isNameStart('a'), core.isNameStart('_'), core.isNameStart('@')]).toEqual([true, true, false]);
 });
 
 describe('the parts of a text', () => {
   it('holds the span of the text of a doc, its quotes among it, which ends where its last word does, the whitespace before its closer aside', () => {
-    const source = ':x\n  |~~ one\n  two ~(add 1)\n  three\n  ~~|\n  1 | |~~| a line  ';
+    const source = ':x\n  |~~ one\n  two ~(add 1)\n  three\n  ~~|\n  1; |~~| a line  ';
     const [bind, line] = rootOf(source).parts;
     const [, doc] = bind.parts;
     const textOf = ({ text }) => [source.slice(text.start.offset, text.end.offset), text.end.line];

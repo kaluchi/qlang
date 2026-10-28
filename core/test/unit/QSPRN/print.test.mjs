@@ -10,7 +10,7 @@ const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\
 const KEYWORDS = [':a', ':ab-c', ':_x', ':e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
 const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
 const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
-const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
+const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1; x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3; take n', ':x ::number; mul x 2'];
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
@@ -101,7 +101,7 @@ function literalsOf(count, seed) {
     return computed(`(${noun}\n  | ${commands.join('\n  | ')})`);
   };
   const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_CONSTRUCTORS));
-  const underALabel = () => `:L |~~ L. ~~| | ${literal(2).text.replaceAll('::T', '::L')}`;
+  const underALabel = () => `:L |~~ L. ~~|; ${literal(2).text.replaceAll('::T', '::L')}`;
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }
 
@@ -133,13 +133,13 @@ describe('a binding record and a vector under a tag', () => {
 });
 
 it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-  expect(await evalQuery(':number/f ~(add 1) | :T |~~ A kind. ~~| | :T/v |~~ The v of a T. ~~| | env | eq (print | parse | answer)')).toBe(true);
-  expect(await evalQuery('apply ~(:T |~~ A kind. ~~| | :T/v 5 | env | eq (print | parse | answer))')).toBe(true);
+  expect(await evalQuery(':number/f ~(add 1); :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; env | eq (print | parse | answer)')).toBe(true);
+  expect(await evalQuery('apply ~(:T |~~ A kind. ~~|; :T/v 5; env | eq (print | parse | answer))')).toBe(true);
 });
 
 describe('printing steps read from text', () => {
   it('a doc in the slot of a declaration prints in its slot', async () => {
-    expect(await evalQuery('~(:x |~~ note ~~| it) | toString')).toBe(':x |~~ note ~~| it');
+    expect(await evalQuery('~(:x |~~ note ~~| it;) | toString')).toBe(':x |~~ note ~~| it;');
   });
 
   it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {

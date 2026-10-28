@@ -10,7 +10,7 @@ describe('the comments of a file read by the parser of its language', () => {
   });
 
   it('reads a source of the catalog by the parser of the core: its comments, and its docs where they are asked for, none inside a string', () => {
-    const text = '|~ The head. ~|\n:a |~~ A page holding `|~~ a doc ~~|` whole. ~~| "|~ no ~|" |~| a line\n';
+    const text = '|~ The head. ~|\n:a |~~ A page holding `|~~ a doc ~~|` whole. ~~| "|~ no ~|"; |~| a line\n';
     expect(said('x.qlang', text)).toEqual(['|~ The head. ~|', '|~| a line']);
     expect(said('x.qlang', text, { docs: true })).toEqual(['|~ The head. ~|', '|~~ A page holding `|~~ a doc ~~|` whole. ~~|', '|~| a line']);
   });

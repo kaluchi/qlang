@@ -55,4 +55,4 @@
         ~({:"@type" "Person" :name "Ann"} | shape | eq ::shape{:"@type" ::string :name ::string})
     | proves :keepsTheKeyOfAMapOfOne
         |~~ A map of one name keeps it. ~~|
-        ~({:users [1]} | shape | eq ::shape{:users [::number]})
+        ~({:users [1]} | shape | eq ::shape{:users [::number]});

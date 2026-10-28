@@ -31,7 +31,7 @@
         ~(::null#null | eq null)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null#1 !| get [~(tag) ~(found | tag)] | eq [::null/PayloadKindNotTakenError ::number])
+        ~(::null#1 !| get [~(tag) ~(found | tag)] | eq [::null/PayloadKindNotTakenError ::number]);
 
 :null/toString
   |~~ Answers `"null"`, the text `print` and `json` write for null, as
@@ -44,7 +44,7 @@
     | proves :writesTheLiteral
         |~~ Null turns into the text of its literal. ~~|
         ~(null | toString | eq "null")
-    | impl ~("null")
+    | impl ~("null");
 
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
@@ -57,5 +57,5 @@
         |~~ Null turns into the key `groupBy` files an absent field under.
         ~~|
         ~([{:country "US"} {}] | groupBy ~(query /country) | query (null | toKeyword) | eq [{}])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

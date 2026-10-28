@@ -6,7 +6,7 @@ it('`coalesce` leaves the alternatives after the first value unrun', async () =>
   const counting = await createNotebook({
     sources: [{
       uri: 'tests/counted',
-      source: ':any/counted ::builtin{}',
+      source: ':any/counted ::builtin{};',
       primitives: { 'any/counted': subject => { runs++; return subject; } }
     }]
   });

@@ -63,7 +63,7 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string#1 !| get [~(tag) ~(found | tag)] | eq [::string/PayloadKindNotTakenError ::number])
+        ~(::string#1 !| get [~(tag) ~(found | tag)] | eq [::string/PayloadKindNotTakenError ::number]);
 
 :string/count
   |~~ Answers how many characters the string holds, a letter of any
@@ -110,7 +110,7 @@
             that do.
         ~~|
         ~(5 | count !| addresses | eq #[::map/count ::string/count ::vec/count])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/size
   |~~ The name other languages give `count`: answers how many characters
@@ -123,7 +123,7 @@
     | proves :answersAsCount
         |~~ `size` answers as `count`. ~~|
         ~("привет" | get [~(size) ~(count)] | eq [6 6])
-    | impl ~(count)
+    | impl ~(count);
 
 :string/length
   |~~ The name other languages give `count`: answers how many characters
@@ -136,7 +136,7 @@
     | proves :answersAsCount
         |~~ `length` answers as `count`. ~~|
         ~("привет" | get [~(length) ~(count)] | eq [6 6])
-    | impl ~(count)
+    | impl ~(count);
 
 :string/take
   |~~ Answers the first characters of the string, as many as the count
@@ -189,7 +189,7 @@
     | proves :CountNotIntegerError/refusesAFraction
         |~~ A fraction of a count is refused. ~~|
         ~("abc" | take 1.5 !| tag | eq ::string/take/CountNotIntegerError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/drop
   |~~ Answers the string without its first characters, as many as the
@@ -241,7 +241,7 @@
     | proves :CountKindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~("abc" | drop "1" !| tag | eq ::string/drop/CountKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/split
   |~~ Answers the pieces of the string between the occurrences of the
@@ -333,7 +333,7 @@
     | proves :SeparatorNotGivenError/refusesACallWithNoSeparator
         |~~ A call with no separator is refused under the input. ~~|
         ~("abc" | split !| tag | eq ::string/split/SeparatorNotGivenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/lines
   |~~ Answers the lines of the text, a vector of strings without their
@@ -394,7 +394,7 @@
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| tag | eq ::string/lines/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/lower
   |~~ Answers the string with every letter in lower case, of any script,
@@ -435,7 +435,7 @@
     | proves :SubjectNotStringError/refusesAKeyword
         |~~ A keyword has no case to lower. ~~|
         ~(:Ab | lower !| tag | eq ::string/lower/SubjectNotStringError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/upper
   |~~ Answers the string with every letter in upper case, of any script,
@@ -475,7 +475,7 @@
             was likely meant as.
         ~~|
         ~(/name | upper !| repair | eq ~(get /name | upper))
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/trim
   |~~ Answers the string without the whitespace at its two ends, spaces,
@@ -516,7 +516,7 @@
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
         ~(42 | trim !| get [~(tag) ~(subject | found | tag)] | eq [::string/trim/SubjectNotStringError ::number])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/contains
   |~~ Answers whether the string holds the needle the call gives as a
@@ -582,7 +582,7 @@
             that do.
         ~~|
         ~({:tea 4} | contains "tea" !| addresses | eq #[::string/contains ::vec/contains])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/startsWith
   |~~ Answers whether the string begins with the prefix the call gives,
@@ -639,7 +639,7 @@
     | proves :PrefixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no prefix. ~~|
         ~("tea time" | startsWith :tea !| tag | eq ::string/startsWith/PrefixKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/endsWith
   |~~ Answers whether the string ends with the suffix the call gives,
@@ -694,7 +694,7 @@
     | proves :SuffixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no suffix. ~~|
         ~("tea time" | endsWith :time !| tag | eq ::string/endsWith/SuffixKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/prepend
   |~~ Answers the string with the prefix the call gives in front of it,
@@ -736,7 +736,7 @@
     | proves :PrefixKindNotTakenError/refusesANumber
         |~~ A number prefix is refused; `toString` makes it text. ~~|
         ~("x" | prepend 42 !| tag | eq ::string/prepend/PrefixKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/append
   |~~ Answers the string with the suffix the call gives after it,
@@ -777,7 +777,7 @@
     | proves :SuffixKindNotTakenError/refusesANumber
         |~~ A number suffix is refused; `toString` makes it text. ~~|
         ~("x" | append 42 !| tag | eq ::string/append/SuffixKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/parseJson
   |~~ Answers the value the JSON text of the string spells, the reverse of
@@ -871,7 +871,7 @@
             where the number is the whole text.
         ~~|
         ~(get [~("[1, 1e400]" | parseJson !| path) ~("1e400" | parseJson !| payload | has :path)] | eq [/1 false])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/parse
   |~~ Answers the quote of the steps the source text spells,
@@ -916,7 +916,7 @@
             stopped.
         ~~|
         ~("add )" | parse !| found | eq ")")
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toNumber
   |~~ Answers the number the whole text of the string writes as a
@@ -949,7 +949,7 @@
             refused.
         ~~|
         ~(["4x" "" " 42"] | map ~(toNumber !| tag) | eq [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toKeyword
   |~~ Answers the keyword the string names, `"draft" | toKeyword`
@@ -973,7 +973,7 @@
     | proves :namesTheKeywordOfATaggedString
         |~~ A string under a tag names the keyword of its text. ~~|
         ~(::Name"ab" | toKeyword | eq :ab)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toTag
   |~~ Answers the tag the string names, `"vec" | toTag` answering
@@ -1000,7 +1000,7 @@
     | proves :TextNotTagError/refusesASpace
         |~~ Text with a space names no tag. ~~|
         ~("a b" | toTag !| tag | eq ::string/toTag/TextNotTagError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toString
   |~~ Answers the string itself, so `map ~toString` turns the atoms of
@@ -1026,7 +1026,7 @@
             beside them.
         ~~|
         ~(get [~([1 2] | toString !| nearest) ~(|~~ a ~~| | toString !| nearest)] | eq [[:json :print] [:content :json :print]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/match
   |~~ Answers the first match of the regex the call gives as a vector,
@@ -1064,7 +1064,7 @@
     | proves :RegexKindNotTakenError/refusesAString
         |~~ Text is no regex; `toRegex` reads it as one. ~~|
         ~("a1" | match "\\d" !| tag | eq ::string/match/RegexKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/capture
   |~~ Answers the groups the regex names in its first match as a map,
@@ -1105,7 +1105,7 @@
     | proves :RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone
         |~~ A regex that names no group is refused. ~~|
         ~("5" | capture #"(\d)" !| tag | eq ::string/capture/RegexNamesNoGroupError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/scan
   |~~ Answers the text of every match of the regex, in order, `[]`
@@ -1131,7 +1131,7 @@
     | proves :answersNothingWhereNoneStands
         |~~ A text with no match answers the empty vector. ~~|
         ~("none" | scan #"\d" | eq [])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/replace
   |~~ Answers the text with the replacement the call gives instead of
@@ -1217,7 +1217,7 @@
     | proves :WithAnswerKindNotTakenError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
         ~("2" | replace #"\d" ~(get /0 | toNumber) !| get [~(tag) ~(with | expected)] | eq [::string/replace/WithAnswerKindNotTakenError #[::string]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toRegex
   |~~ Answers the regex whose source the string holds, with the flags
@@ -1289,7 +1289,7 @@
             it.
         ~~|
         ~(#"\d+"i | json | parseJson | get [~(toRegex !| tag) ~(parse | answer)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :string/toPath
   |~~ Answers the path the text writes in JSON Pointer's form, a slash
@@ -1316,5 +1316,5 @@
     | proves :NotPointerError/refusesAName
         |~~ A text with no slash before it writes no path. ~~|
         ~("name" | toPath !| tag | eq ::string/toPath/NotPointerError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 

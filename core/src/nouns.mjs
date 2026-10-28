@@ -238,6 +238,7 @@ export function residenceOnSubject(scope, verbName, subject) {
 // [QSDSP#tagname]
 function passesTheTagName(scope, record, kindName, subject, verbName) {
   if (!isTag(subject) || kindName !== subject.name || residenceOf(scope, ANY_KIND_NAME, verbName) === null) return false;
+  if (isNodeOfAPart(record, scope)) return true;
   const value = bindingValueOf(record);
   return isVerbValue(value) && !(chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? []).includes(CORE_KIND.tag.name);
 }

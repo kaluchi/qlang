@@ -21,13 +21,13 @@ it('names the cell in the refusal it prints, and answer reads the whole back in 
 });
 
 it('keeps the query, the words it declared and the answer under the identity of its root', async () => {
-  const [, identity] = await keptBy(':number/k ~(7) | 5000 | range');
+  const [, identity] = await keptBy(':number/k ~(7); 5000 | range');
   const folder = folderOf(identity);
   expect(['source.qlang', 'names.qlang', 'answer.qlang'].map(name => readFileSync(join(folder, name), 'utf8').slice(0, 10))).toEqual([':number/k ', ':number/k ', '[0 1 2 3 4']);
 });
 
 it('reads a value of a kind the query declared by its names where the reading query declares the kind again, and by payload in any', async () => {
-  const box = ':Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number)';
+  const box = ':Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number);';
   const [cell] = await keptBy(`${box} | 3000 | range | map ~(get {:w ~(it)} | tag ::Box)`);
   expect(await answerOf(`${box} | ${cell} | answer | last | w`)).toBe(2999);
   expect(await answerOf(`${cell} | answer | last | payload`)).toEqual(new Map([['w', 2999]]));

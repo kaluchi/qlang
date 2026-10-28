@@ -31,11 +31,11 @@ const NumberThrownToTheFoldRefusedError = declareRefusal('number/thrownToTheFold
 const BuiltRefusedError = declareRefusal('Built/RefusedError');
 
 const HANDING_SOURCE = [
-  ':any/answered |~~ Answers the failure its host makes. ~~| (::fn | impl ::builtin{})',
-  ':any/thrown |~~ Throws the refusal its host raises. ~~| (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
-  ':number/answeredToTheFold |~~ Answers a fold the failure its host makes. ~~| (::fn | takes :element |~~ The element. ~~| /0 | impl ::builtin{})',
-  ':number/thrownToTheFold |~~ Throws to a fold the refusal its host raises. ~~| (::fn | takes :element |~~ The element. ~~| /0 | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})',
-  ':Built |~~ A kind whose constructor its host hands. ~~| (::kind | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{})'
+  ':any/answered |~~ Answers the failure its host makes. ~~| (::fn | impl ::builtin{});',
+  ':any/thrown |~~ Throws the refusal its host raises. ~~| (::fn | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{});',
+  ':number/answeredToTheFold |~~ Answers a fold the failure its host makes. ~~| (::fn | takes :element |~~ The element. ~~| /0 | impl ::builtin{});',
+  ':number/thrownToTheFold |~~ Throws to a fold the refusal its host raises. ~~| (::fn | takes :element |~~ The element. ~~| /0 | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{});',
+  ':Built |~~ A kind whose constructor its host hands. ~~| (::kind | throws :RefusedError |~~ Refused. ~~| | impl ::builtin{});'
 ].join('\n');
 
 function hostHanding(trace) {
@@ -92,7 +92,7 @@ describe('a failure a host hands holds the :trace it writes as the kind of a tra
 
   it('carries no path of a fold\'s call of a host\'s word into another call that answers the same failure, the path a fact of its call', async () => {
     const kept = makeErrorValue(makeTag('error'), new Map());
-    const notebook = await createNotebook({ sources: [{ uri: 'host', source: ':any/again |~~ Answers the one failure its host keeps. ~~| (::fn | takes :x |~~ x ~~| ~(it) | impl ::builtin{})', primitives: { 'any/again': () => kept } }] });
+    const notebook = await createNotebook({ sources: [{ uri: 'host', source: ':any/again |~~ Answers the one failure its host keeps. ~~| (::fn | takes :x |~~ x ~~| ~(it) | impl ::builtin{});', primitives: { 'any/again': () => kept } }] });
     expect(await answerIn(notebook, '[1 2] | reduce 0 ~(again) !| get /trace | last | path')).toEqual(makePath(['0']));
     expect(await answerIn(notebook, '5 | again 1 !| get /trace | last | path')).toBe(null);
   });

@@ -10,7 +10,7 @@ it('filter of maps lists under its address its predicate, its answer, the refusa
 it('a noun answers the nodes declared one name under it', async () => {
   const notebook = await createNotebook({ sources: [{
     uri: 'shop',
-    source: ':shop |~~ A shop. ~~|\n:shop/Order |~~ An order. ~~|\n:shop/Line |~~ A line. ~~|\n:shop/Line/qty ~(1)'
+    source: ':shop |~~ A shop. ~~|;\n:shop/Order |~~ An order. ~~|;\n:shop/Line |~~ A line. ~~|;\n:shop/Line/qty ~(1);'
   }] });
   expect([...(await notebook.evalCell('::shop | manifest')).result])
     .toEqual([makeTag('shop/Line'), makeTag('shop/Order')]);

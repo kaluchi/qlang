@@ -40,4 +40,4 @@
         ~({:user {:age 30}} | shape | get /user/age | eq ::number)
     | proves :opensASetAsItOpensAVector
         |~~ A set opens as a vector does, one element for all of them. ~~|
-        ~({:sizes #[1 2]} | shape | eq ::shape{:sizes #[::number]})
+        ~({:sizes #[1 2]} | shape | eq ::shape{:sizes #[::number]});

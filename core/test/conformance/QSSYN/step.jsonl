@@ -27,7 +27,7 @@
 {"name":"a-dot-that-opens-no-path-of-jq-is-refused-where-the-dot-stands","query":"[\"..\" \"get .5\"] | map ~(parse !| location | start | column)","expect":"[1 5]"}
 {"name":"a-question-mark-inside-a-quoted-key-is-a-letter-of-the-key","query":"{:\"?a\" 1} | get /\"?a\"","expect":"1"}
 {"name":"a-question-mark-after-a-quoted-key-names-query-with-the-letters-of-the-key","query":"\"{:\\\"a?\\\" 1} | get /\\\"a?\\\"?\" | parse !| message","expect":"\"a part that may be missing is read by `query`, which answers null where it misses: write `query /\\\"a?\\\"`\""}
-{"decision":"D421","name":"a-semicolon-ends-a-declaration-and-the-query-after-it-reads-its-word","query":":Box |~~ A box. ~~|; :Box/area ~(mulOf /0 /1); ::Box[3 4] | area","expect":"12","target":true,"now":"::quote/ParseError"}
-{"decision":"D421","name":"a-pipe-after-a-declaration-is-refused-naming-the-semicolon","query":"\":double ~(mul 2) | 5 | double\" | parse !| tag","expect":"::quote/ParseError","target":true,"now":"~(:double ~(mul 2) | 5 | double)"}
-{"decision":"D421","name":"a-declaration-after-the-first-step-of-the-query-is-refused","query":"\"[1 2] | :x 1 | x\" | parse !| tag","expect":"::quote/ParseError","target":true,"now":"~([1 2] | :x 1 | x)"}
-{"decision":"D421","name":"a-declaration-after-a-chain-no-semicolon-ended-is-refused-naming-it","query":"\":Box |~~ B ~~| ::kind | accepts |~~ x ~~|\\n:Box/w |~~ W ~~| ~(1)\" | parse !| tag","expect":"::quote/ParseError","target":true,"now":"~(:Box |~~ B ~~| ::kind | accepts |~~ x ~~| | :Box/w |~~ W ~~| ~(1))"}
+{"decision":"D421","name":"a-semicolon-ends-a-declaration-and-the-query-after-it-reads-its-word","query":":Box |~~ A box. ~~|; :Box/area ~(mulOf /0 /1); ::Box[3 4] | area","expect":"12"}
+{"decision":"D421","name":"a-pipe-after-a-declaration-is-refused-naming-the-semicolon","query":"\":double ~(mul 2) | 5 | double\" | parse !| tag","expect":"::quote/ParseError"}
+{"decision":"D421","name":"a-declaration-after-the-first-step-of-the-query-is-refused","query":"\"[1 2] | :x 1 | x\" | parse !| tag","expect":"::quote/ParseError"}
+{"decision":"D421","name":"a-declaration-after-a-chain-no-semicolon-ended-is-refused-naming-it","query":"\":Box |~~ B ~~| ::kind | accepts |~~ x ~~|\\n:Box/w |~~ W ~~| ~(1)\" | parse !| tag","expect":"::quote/ParseError"}

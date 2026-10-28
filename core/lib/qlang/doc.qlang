@@ -56,7 +56,7 @@
     | proves :ElementKindNotTakenError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
         ~(["a" 1] | tag ::doc !| get [~(tag) ~(index) ~(expected)] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :doc/content
   |~~ Answers the text of the doc, a string: its prose with each quote
@@ -90,11 +90,11 @@
         ~(::vec/join | doc | content | contains "separator")
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
-        ~(:number/double ~(mul 2) | ::number/double | doc | content !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
+        ~(:number/double ~(mul 2); ::number/double | doc | content !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| tag | eq ::doc/content/SubjectNotDocError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :doc/segments
   |~~ Answers the parts of the doc in their order, a vector: each run of
@@ -145,7 +145,7 @@
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | doc/segments !| get [~(tag) ~(subject | found | tag)] | eq [::doc/segments/SubjectNotDocError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :doc/toVec
   |~~ Answers the vector of the doc's segments, as `segments` answers
@@ -160,7 +160,7 @@
             as well.
         ~~|
         ~([|~~ a ~(eq 1) b ~~| ::Box|~~ c ~~|] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 3] [::vec 1]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :doc/links
   |~~ Answers the links of the doc in their order, a vector: each a quote
@@ -197,7 +197,7 @@
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
           !| get [~(tag) ~(subject | found | tag)] | eq [::doc/links/SubjectNotDocError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :doc/snippets
   |~~ Answers the snippets of the doc in their order, a vector: each a
@@ -229,5 +229,5 @@
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("text" | snippets !| get [~(tag) ~(subject | found | tag)] | eq [::doc/snippets/SubjectNotDocError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

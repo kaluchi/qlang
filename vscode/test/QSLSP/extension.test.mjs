@@ -27,7 +27,7 @@ describe('a block of qlang in a preview of markdown', () => {
   });
 
   it('coats each kind of the core\'s tokens by a class of highlight.js, a token inside a quote leaning and whitespace plain', async () => {
-    const source = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
+    const source = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter ~(gt 1) !| count | (x) |~| c';
     const painter = await loaded();
     let rest = blockHtml(source, painter);
     for (const { start, end, kind, italic } of tokenize(source, painter.verbNames)) {

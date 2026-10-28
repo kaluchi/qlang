@@ -20,9 +20,9 @@
 
 :any/atomKinds
   |~~ The kinds of the atoms, a verb, since a recipe reads no value a
-      sentence names.
+      text names.
   ~~|
-  ~(#[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path])
+  ~(#[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path]);
 
 :any/gluedBy
   |~~ The reads of the parts of a value, the template alone under an
@@ -35,13 +35,11 @@
     | impl
         ~(if (glue | count | eq 0)
             ~()
-            ~(:reads it
-              | get {:name :get :modifiers ~(get [~(reads)])}
+            ~(get {:name :get :modifiers ~(get [~(it)])}
               | tag ::call
-              | :read it
-              | get [[~(read)] ~(glue)]
+              | get [[~(it)] ~(glue)]
               | flat
-              | tag ::quote))
+              | tag ::quote));
 
 :any/partsOf
   |~~ The parts a value that is no atom is built from, and the steps
@@ -49,31 +47,30 @@
       from the pairs of its keys and values, and a tagged value, a doc
       and an error at rest among them, from its tag and its payload.
   ~~|
-  ~(:kind (tag)
-    | cond
-        ~(kind | eq ::vec) ~(get {:parts ~(it) :glue ~(~())})
-        ~(kind | eq ::map) ~(:whole it | get {:parts ~(keys | sort | map ~(:key it | get [~(key) ~(whole | query key)])) :glue ~(~(indexBy ~(first) | map ~last))})
-        ~(get {:parts [~(kind) ~(payload)] :glue ~(~(with {:t /0 :p /1} ~(p | tag t)))}))
+  ~(with {:kind ~tag}
+      ~(cond
+          ~(kind | eq ::vec) ~(get {:parts ~(it) :glue ~(~())})
+          ~(kind | eq ::map) ~(with {:whole ~it} {:parts ~(keys | sort | map ~(with {:key ~it} [~(key) ~(whole | query key)])) :glue ~(~(indexBy ~(first) | map ~last))})
+          ~(get {:parts [~(kind) ~(payload)] :glue ~(~(with {:t /0 :p /1} ~(p | tag t)))})));
 
 :any/atomsOf
   |~~ The atoms of a value, its own when it is an atom and otherwise
       those of its parts, each part's gathered by the same verb.
   ~~|
-  ~(:item it | if (atomKinds | has (item | tag)) ~(get [~(it)]) ~(partsOf | get /parts | map ~atomsOf | flat))
+  ~(with {:item ~it} ~(if (atomKinds | has (item | tag)) ~(get [~(it)]) ~(partsOf | get /parts | map ~atomsOf | flat)));
 
 :any/indexKey
   |~~ The key an atom's index is read by, the keyword of its print, which
       tells `1` from `"1"`.
   ~~|
-  ~(print | toKeyword)
+  ~(print | toKeyword);
 
 :any/numberedWith
   |~~ The atoms numbered so far, `{:next … :pairs …}`, with one more. ~~|
   ::fn
     | takes :atom |~~ The atom numbered next. ~~| /0
     | impl
-        ~(:acc it
-          | get {:next ~(acc | get /next | add 1) :pairs ~(acc | get /pairs | append (get [~(atom) ~(acc | get /next)]))})
+        ~(with {:acc ~it} {:next ~(acc | get /next | add 1) :pairs ~(acc | get /pairs | append (get [~(atom) ~(acc | get /next)]))});
 
 :any/intoTemplate
   |~~ The reads built so far, `{:numbered … :reads …}`, with the read of
@@ -84,15 +81,17 @@
   ::fn
     | takes :element |~~ The value whose read comes next. ~~| /0
     | impl
-        ~(:acc it
-          | element
-          | :item it
-          | if (atomKinds | has (item | tag))
-              ~(get {:numbered ~(acc | get /numbered)
-                     :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | indexKey) | last)] | toPath))})
-              ~(partsOf | :built it
-                | built | get /parts | reduce (get {:numbered ~(acc | get /numbered) :reads []}) ~(intoTemplate) | :inner it
-                | get {:numbered ~(acc | get /numbered) :reads ~(acc | get /reads | append (inner | get /reads | gluedBy (built | get /glue)))}))
+        ~(with {:acc ~it}
+            ~(element
+              | with {:item ~it}
+                  ~(if (atomKinds | has (item | tag))
+                      ~(get {:numbered ~(acc | get /numbered)
+                             :reads ~(acc | get /reads | append (get [~(acc | get /numbered | query (item | indexKey) | last)] | toPath))})
+                      ~(partsOf
+                        | with {:built ~it}
+                            ~(built | get /parts | reduce (get {:numbered ~(acc | get /numbered) :reads []}) ~(intoTemplate)
+                              | with {:inner ~it}
+                                  {:numbered ~(acc | get /numbered) :reads ~(acc | get /reads | append (inner | get /reads | gluedBy (built | get /glue)))})))));
 
 :any/apart
   |~~ The atoms of the subject and its template. ~~|
@@ -103,12 +102,13 @@
         ~~|
         ~(["x" [1 1] {:b :a}] | apart | eq {:atoms #[1 "x" :a :b] :template [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)]})
     | impl
-        ~(:held get [~(it)]
-          | :atoms (held | map ~atomsOf | flat | tag ::set)
-          | :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | indexKey))
-          | :read (held | reduce (get {:numbered ~(numbered) :reads []}) ~(intoTemplate) | get /reads | first)
-          | get {:atoms ~(atoms) :template ~(read)})
+        ~(get [~(it)]
+          | with {:held ~it}
+              ~(:atoms (held | map ~atomsOf | flat | tag ::set);
+                :numbered (atoms | reduce {:next 0 :pairs []} ~(numberedWith) | get /pairs | indexBy ~(first | indexKey));
+                :read (held | reduce (get {:numbered ~(numbered) :reads []}) ~(intoTemplate) | get /reads | first);
+                get {:atoms ~(atoms) :template ~(read)}));
 
 :any/rebuilt
   |~~ The value `get` over the template of the subject builds from its atoms. ~~|
-  ~(apart | :pieces it | pieces | get /atoms | get (pieces | get /template))
+  ~(apart | with [/atoms /template] ~(atoms | get template));

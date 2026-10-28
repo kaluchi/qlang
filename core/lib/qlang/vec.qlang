@@ -65,7 +65,7 @@
         ~([#[2 1] ~(a | b) ::Box[1]] | map ~(tag ::vec | tag) | eq [::set ::quote ::Box])
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::vec{:id 7} !| get [~(tag) ~(found | tag)] | eq [::vec/PayloadKindNotTakenError ::map])
+        ~(::vec{:id 7} !| get [~(tag) ~(found | tag)] | eq [::vec/PayloadKindNotTakenError ::map]);
 
 :vec/count
   |~~ Answers the number of elements the vector holds, `[1 2 3] | count`
@@ -103,7 +103,7 @@
     | proves :ArgsBeyondInputsError/refusesAValue
         |~~ A value given to `count` is refused under the verb. ~~|
         ~(#[:tea] | count 1 !| tag | eq ::vec/count/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/size
   |~~ The name other languages give `count`: answers the number of
@@ -116,7 +116,7 @@
     | proves :answersAsCount
         |~~ `size` answers as `count`. ~~|
         ~([1 2 3] | get [~(size) ~(count)] | eq [3 3])
-    | impl ~(count)
+    | impl ~(count);
 
 :vec/length
   |~~ The name other languages give `count`: answers the number of
@@ -129,7 +129,7 @@
     | proves :answersAsCount
         |~~ `length` answers as `count`. ~~|
         ~([1 2 3] | get [~(length) ~(count)] | eq [3 3])
-    | impl ~(count)
+    | impl ~(count);
 
 :vec/empty
   |~~ Answers whether the vector holds no element, `[] | empty`
@@ -155,7 +155,7 @@
     | proves :failsOfASetOfNull
         |~~ A set of null holds an element. ~~|
         ~(#[null] | empty | not)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/first
   |~~ Answers the first element, `[10 20 30] | first` answering `10`, or
@@ -194,7 +194,7 @@
     | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused under the verb. ~~|
         ~(#[1 2] | first 2 !| tag | eq ::vec/first/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/last
   |~~ Answers the last element, `[10 20 30] | last` answering `30`, or
@@ -227,7 +227,7 @@
     | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `last` is refused under the verb. ~~|
         ~(#[1 2] | last 2 !| tag | eq ::vec/last/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/sum
   |~~ Answers the sum of the elements, each a number, `[1 2 3 4] | sum`
@@ -276,7 +276,7 @@
             the element was written.
         ~~|
         ~(["two" 1] | toSet | sum !| get [~(tag) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/avg
   |~~ Answers the mean of the elements, each a number, `[1 2 3 4] | avg`
@@ -342,7 +342,7 @@
     | proves :averagesEachElementOfASetOnce
         |~~ The set of a vector's elements counts a repeated one once. ~~|
         ~([1 1 4] | get [~(avg) ~(toSet | avg)] | eq [2 2.5])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/min
   |~~ Answers the least element in the one order of values,
@@ -408,7 +408,7 @@
     | proves :answersTheFirstOfASet
         |~~ A set answers its least element without a key, its first. ~~|
         ~(#[3 1 4] | get [~(min) ~(first)] | eq [1 1])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/max
   |~~ Answers the greatest element in the one order of values,
@@ -453,7 +453,7 @@
     | proves :answersTheLastOfASet
         |~~ A set answers its greatest element without a key, its last. ~~|
         ~(#[3 1 4] | get [~(max) ~(last)] | eq [4 4])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/map
   |~~ Answers the vector of what the code answers for each element, in
@@ -543,7 +543,7 @@
         ~([{:id 1 :tags [:new :vip]}] | map ~(get {:id /id :count ~(get /tags | count)}) | eq [{:id 1 :count 2}])
     | proves :keepsTheNamesOfARunInside
         |~~ The names a run declares stay in it. ~~|
-        ~([1 2] | map ~(:bonus 5 | add bonus) | bonus !| tag | eq ::call/UnknownNameError)
+        ~([1 2] | map ~(:bonus 5; add bonus) | bonus !| tag | eq ::call/UnknownNameError)
     | proves :keepsEveryElementByARecoveringCode
         |~~ A code that recovers keeps every element. ~~|
         ~([1 "a" 3] | map ~(add 1 !| 0) | eq [2 0 4])
@@ -552,7 +552,7 @@
             images each at its index.
         ~~|
         ~(#[3 1 2] | map ~(gt 1) | eq [false true true])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/filter
   |~~ Answers the elements whose predicate answers `true`, in their order,
@@ -600,7 +600,7 @@
         ~([{:age 25} {:age 15}] | filter ~(get /age | gte 18) | eq [{:age 25}])
     | proves :takesAVerbByItsName
         |~~ A verb by its name stands where a quote would. ~~|
-        ~([1 -2 3] | :number/positive ~(gt 0) | filter ~positive | eq [1 3])
+        ~(:number/positive ~(gt 0); [1 -2 3] | filter ~positive | eq [1 3])
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
             call.
@@ -650,7 +650,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoPredicates
         |~~ Two predicates are refused under the verb. ~~|
         ~([1 2] | filter ~(gt 1) ~(gt 0) !| tag | eq ::vec/filter/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/every
   |~~ Answers whether the predicate answers `true` for every element,
@@ -699,7 +699,7 @@
         ~([] | every ~(gt 0))
     | proves :takesAVerbByItsName
         |~~ A verb by its name stands where a quote would. ~~|
-        ~([2 4 6] | :number/positive ~(gt 0) | every ~positive)
+        ~(:number/positive ~(gt 0); [2 4 6] | every ~positive)
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
             call.
@@ -721,7 +721,7 @@
         ~~|
         ~(["x" 0] | get [~(every ~(gt 0) !| tag) ~(toSet | every ~(gt 0))]
           | eq [::call/KindsMismatchedError false])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/any
   |~~ Answers whether the predicate answers `true` for some element,
@@ -768,7 +768,7 @@
         ~([] | any ~(gt 0) | not)
     | proves :takesAVerbByItsName
         |~~ A verb by its name stands where a quote would. ~~|
-        ~([1 2 3] | :number/big ~(gt 2) | any ~big)
+        ~(:number/big ~(gt 2); [1 2 3] | any ~big)
     | proves :PredicateKindNotTakenError/refusesABoolean
         |~~ A value computed at the call is refused, a boolean among them.
         ~~|
@@ -785,7 +785,7 @@
         ~~|
         ~(["x" 3] | get [~(any ~(gt 2) !| tag) ~(toSet | any ~(gt 2))]
           | eq [::call/KindsMismatchedError true])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/has
   |~~ Answers whether the vector holds an element equal to the element the
@@ -854,7 +854,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoElements
         |~~ A call with two elements is refused under the verb. ~~|
         ~(#[1 2] | has 1 2 !| tag | eq ::vec/has/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/contains
   |~~ Answers whether the vector holds an element equal to the element the
@@ -891,7 +891,7 @@
             elements alone.
         ~~|
         ~(["abc" ["abc"] #["abc"]] | map ~(contains "b") | eq [true false false])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/groupBy
   |~~ Answers the map of vectors the key files the elements into, each
@@ -1004,7 +1004,7 @@
         ~~|
         ~([{:dept :ops} {:dept [:ops]}] | groupBy /dept !| get [~(tag) ~(key | answer | tag) ~(trace | last | path) ~(key | expected)]
           |  eq [::vec/groupBy/KeyAnswerKindNotTakenError ::vec /1 #[::boolean ::keyword ::null ::number ::string ::tag]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/indexBy
   |~~ Answers the map of the elements, each under the keyword its key
@@ -1114,7 +1114,7 @@
         ~~|
         ~([{:id [7]}] | indexBy /id !| get [~(tag) ~(key | answer | tag) ~(trace | last | path) ~(key | expected)]
           |  eq [::vec/indexBy/KeyAnswerKindNotTakenError ::vec /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/sort
   |~~ Answers the elements in the one order of values, the order every
@@ -1217,7 +1217,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the verb. ~~|
         ~([{:last "Lee" :first "Ann"}] | sort /last /first !| tag | eq ::vec/sort/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/take
   |~~ Answers the first elements, as many as the count the call gives,
@@ -1287,7 +1287,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the verb. ~~|
         ~(#[:tea :cake] | take 1 2 !| tag | eq ::vec/take/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/drop
   |~~ Answers the elements after the first ones, as many as the count the
@@ -1341,7 +1341,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoCounts
         |~~ A call with two counts is refused under the verb. ~~|
         ~(#[:tea :cake :jam] | drop 1 2 !| tag | eq ::vec/drop/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/distinct
   |~~ The name other languages give `toSet`: answers the set of the
@@ -1358,7 +1358,7 @@
             too.
         ~~|
         ~(::Box[2 1 2] | get [~(distinct) ~(toSet)] | eq [#[1 2] #[1 2]])
-    | impl ~(toSet)
+    | impl ~(toSet);
 
 :vec/reverse
   |~~ Answers the elements in the reverse order, `[1 2 3] | reverse`
@@ -1379,7 +1379,7 @@
     | proves :reversesTheStepsOfAQuote
         |~~ A quote reverses its steps. ~~|
         ~(~(add 1 | mul 2) | reverse | eq ~(mul 2 | add 1))
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/flat
   |~~ Answers the elements with one level of nesting spliced in,
@@ -1429,7 +1429,7 @@
     | proves :SubjectNotVecError/refusesABoolean
         |~~ A boolean holds nothing to splice. ~~|
         ~(true | flat !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flat/SubjectNotVecError ::boolean])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/flatten
   |~~ The name other languages give `flat`: answers the elements with one
@@ -1452,7 +1452,7 @@
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number holds nothing to splice. ~~|
         ~(42 | flatten !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flatten/SubjectNotVecError ::number])
-    | impl ~(flat)
+    | impl ~(flat);
 
 :vec/concat
   |~~ Answers the subject with the elements of each vector the call gives
@@ -1485,7 +1485,7 @@
     | proves :VectorsElementKindNotTakenError/refusesANumber
         |~~ A number is no vector to join. ~~|
         ~([1] | concat 2 !| tag | eq ::vec/concat/VectorsElementKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/zip
   |~~ Answers the vectors the subject holds read side by side, one vector
@@ -1521,7 +1521,7 @@
     | proves :ElementKindNotTakenError/refusesANumber
         |~~ An element that is no vector is refused at its index. ~~|
         ~([[1 2] 3] | zip !| get [~(tag) ~(trace | last | path) ~(subject | found | get /1 | tag) ~(subject | expected)] | eq [::vec/zip/ElementKindNotTakenError /1 ::number #[::vec]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/reduce
   |~~ Answers the seed folded over the elements by the reducer, each
@@ -1590,7 +1590,7 @@
         |~~ Code of more than one word runs on the pair of the value so
             far and the element.
         ~~|
-        ~([1 2 3] | reduce 0 ~(:acc (get /0) | :el (get /1) | acc | mul 10 | add el) | eq 123)
+        ~([1 2 3] | reduce 0 ~(get [~(get /0 | mul 10) /1] | sum) | eq 123)
     | proves :foldsAFieldOfEachElement
         |~~ Code reads a field of each element from the pair. ~~|
         ~([{:qty 2} {:qty 3}] | reduce 0 ~(sumOf /0 (get /1 | get /qty)) | eq 5)
@@ -1598,10 +1598,10 @@
         |~~ A name takes the value so far as its subject and the element
             as its first arg.
         ~~|
-        ~(:number/larger (::fn | takes :other |~~ The element. ~~| /0 ::number | impl ~(if (gt other) ~(it) ~(other))) | [3 1 4 1 5] | reduce 0 ~larger | eq 5)
+        ~(:number/larger (::fn | takes :other |~~ The element. ~~| /0 ::number | impl ~(if (gt other) ~(it) ~(other))); [3 1 4 1 5] | reduce 0 ~larger | eq 5)
     | proves :takesANameThatLeavesTheElement
         |~~ A name may leave the element unread. ~~|
-        ~(:number/tally (::fn | takes :el |~~ The element, unread. ~~| /0 | impl ~(add 1)) | [10 20 30] | reduce 0 ~tally | eq 3)
+        ~(:number/tally (::fn | takes :el |~~ The element, unread. ~~| /0 | impl ~(add 1)); [10 20 30] | reduce 0 ~tally | eq 3)
     | proves :answersTheSeedOfNothing
         |~~ The seed is the first value so far, answered as it is for an
             empty subject.
@@ -1627,11 +1627,11 @@
         ~([1 2 3] | reduce ~(add) !| tag | eq ::vec/reduce/ReducerNotGivenError)
     | proves :takesANameOfTwoSteps
         |~~ Two steps under a name of their own fold as one verb. ~~|
-        ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)) | [1 2 3] | reduce 0 ~(step) | eq 11)
+        ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)); [1 2 3] | reduce 0 ~(step) | eq 11)
     | proves :foldsASetInItsOneOrder
         |~~ A vector folds as written, its set in the one order. ~~|
         ~(["b" "a"] | get [~(reduce "" ~(append)) ~(toSet | reduce "" ~(append))] | eq ["ba" "ab"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/union
   |~~ Answers the union of the values the vector holds, from the first:
@@ -1699,7 +1699,7 @@
         |~~ The sets a set holds unite by the verb called by its address.
         ~~|
         ~(#[#[1] #[2]] | vec/union | eq #[1 2])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/minus
   |~~ Answers the first value the vector holds less each one after it: a
@@ -1782,7 +1782,7 @@
             holds in the order written.
         ~~|
         ~(get [~(#[#[1 2] #[1]] | vec/minus) ~([#[1 2] #[1]] | minus)] | eq [#[] #[2]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/inter
   |~~ Answers what the values the vector holds share: a set keeps the
@@ -1861,7 +1861,7 @@
             address.
         ~~|
         ~(#[#[1 2] #[2 3]] | vec/inter | eq #[2])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/join
   |~~ Answers the strings and keywords the vector holds joined into one,
@@ -1950,7 +1950,7 @@
         |~~ A number among the strings is refused at its index. ~~|
         ~(["a" 42 "c"] | join "," !| get [~(tag) ~(subject | found | get /1 | tag) ~(trace | last | path) ~(subject | expected)]
           |  eq [::vec/join/ElementKindNotTakenError ::number /1 #[::keyword ::string]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/prepend
   |~~ Answers the vector with the element the call gives at its head,
@@ -1978,7 +1978,7 @@
     | proves :keepsASetASet
         |~~ A set takes the element as a set does. ~~|
         ~(#[2 3] | prepend 3 | eq #[2 3])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/append
   |~~ Answers the vector with the element the call gives at its end, any
@@ -2008,7 +2008,7 @@
     | proves :keepsASetASet
         |~~ A set takes the element as a set does. ~~|
         ~(#[1 2] | append 1 | eq #[1 2])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/toSet
   |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
@@ -2046,7 +2046,7 @@
             `within` keeps the tag.
         ~~|
         ~(::Box[2 1 2] | get [~(toSet) ~(within ~(toSet))] | eq [#[1 2] ::Box#[1 2]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/toMap
   |~~ Answers the map the vector's pairs `[key value]` write, the reverse
@@ -2098,7 +2098,7 @@
             kinds a key files under.
         ~~|
         ~([[[1] 2]] | toMap !| get [~(tag) ~(subject | found | get /0/0 | tag) ~(trace | last | path) ~(subject | expected)] | eq [::vec/toMap/KeyKindNotTakenError ::vec /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/toVec
   |~~ Answers the vector itself, so `map ~toVec` turns vectors, sets,
@@ -2110,7 +2110,7 @@
     | proves :answersItself
         |~~ A vector answers itself. ~~|
         ~([2 1] | toVec | eq [2 1])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/toPath
   |~~ Answers the path whose segments are the texts of the elements, each
@@ -2145,5 +2145,5 @@
     | proves :ElementKindNotTakenError/refusesABoolean
         |~~ A boolean is no key alone, and is refused at its index. ~~|
         ~([:items true] | toPath !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

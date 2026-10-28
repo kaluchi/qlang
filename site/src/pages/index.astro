@@ -14,12 +14,12 @@ const examples = [
   {
     tab: "bind",
     file: "a name under a noun + map",
-    code: `|~| a name under a noun · run on each element\n> :number/double ~(mul 2) | [10 20 30] | map ~double\n[20 40 60]`,
+    code: `|~| a name under a noun · run on each element\n> :number/double ~(mul 2); [10 20 30] | map ~double\n[20 40 60]`,
   },
   {
     tab: "name",
     file: "a verb built from ::fn",
-    code: `|~| a verb with the inputs of its call\n> :string/surround (::fn\n  | takes :pfx |~~ The prefix. ~~| /0 ::string\n  | takes :sfx |~~ The suffix. ~~| /1 ::string\n  | impl ~(prepend pfx | append sfx))\n  | "world" | surround "[" "]"\n"[world]"`,
+    code: `|~| a verb with the inputs of its call\n> :string/surround ::fn\n  | takes :pfx |~~ The prefix. ~~| /0 ::string\n  | takes :sfx |~~ The suffix. ~~| /1 ::string\n  | impl ~(prepend pfx | append sfx);\n"world" | surround "[" "]"\n"[world]"`,
   },
   {
     tab: "code-as-data",

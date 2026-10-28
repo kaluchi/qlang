@@ -1,17 +1,22 @@
 // [QSHST#source], [QSDSP#walk], [QSDSP#residence], [QSQUO#modifier], [QSERR#site]
 
 import { parseSource } from '../parse.mjs';
-import { evalAtTheTop } from '../eval.mjs';
+import { evalPipeline } from '../eval.mjs';
 import { rootState } from '../state.mjs';
 import { isBinding, isErrorValue, isFn, isKind, isPrimitiveHanded, bindingValueOf, builtinOf, takePrimitive, takeWiring, makeKeyword } from '../types.mjs';
 import { ROOT_KEY } from '../scope-keys.mjs';
 import { rootOf } from '../state.mjs';
 import { declareDefect } from '../errors.mjs';
-import { isLabel, isUnderLabel } from '../nouns.mjs';
+import { declaresALabel, isLabel, isUnderLabel } from '../nouns.mjs';
+import { splitAddress } from '../address.mjs';
 import { functionOfRecipe, wiringAtPlaces } from '../chain.mjs';
 
 export const BuiltinRootSourceNotDeclaredError = declareDefect('builtin/RootSourceNotDeclaredError',
   ({ origin, tagName, name }) => `qlang root: the source ${origin.name} is refused with ${tagName}${name === undefined ? '' : ` for ${name.literal}`}, and its declarations stay out of the root`);
+
+// [D421]
+export const BuiltinRootValueNotWordError = declareDefect('builtin/RootValueNotWordError',
+  ({ origin, name }) => `qlang root: the source ${origin.name} declares ${name.literal}, a value under a bare name, which serves the query of its own text and reaches no reader: a source of the root declares words, a kind, a verb under a label and a node under a noun`);
 
 // [QSDSP#residence]
 export const BuiltinPrimitiveNotHandedError = declareDefect('builtin/PrimitiveNotHandedError',
@@ -31,11 +36,13 @@ export async function declareRoot(scope, sources) {
   for (const { uri, source, primitives = {} } of sources) {
     const origin = makeKeyword(uri);
     const sourceScope = new Map([[ROOT_KEY, root]]);
-    const answered = await evalAtTheTop(parseSource(source, { uri }), rootState(null, sourceScope));
+    const answered = await evalPipeline(parseSource(source, { uri }), rootState(null, sourceScope));
     if (isErrorValue(answered.pipeValue)) {
       throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: answered.pipeValue.tag.literal });
     }
     const declared = new Map([...answered.scope].filter(([, record]) => isBinding(record)));
+    const value = [...declared].find(([name, record]) => splitAddress(name)[0] === null && !declaresALabel(record));
+    if (value !== undefined) throw new BuiltinRootValueNotWordError({ origin, name: makeKeyword(value[0]) });
     const again = [...declared.keys()].find(name => root.has(name));
     if (again !== undefined) throw new BuiltinRootSourceNotDeclaredError({ origin, tagName: DECLARED_TWICE, name: makeKeyword(again) });
     const taking = new Set();

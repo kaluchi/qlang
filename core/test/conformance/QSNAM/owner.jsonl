@@ -1,10 +1,8 @@
-{"name":"a-reader-extension-of-a-noun-of-the-root-stays-out-of-a-verb-of-the-root","query":":vec/doc ~(\"a reader page\") | [1 2] | tutorial | first | tag","expect":"::doc"}
-{"name":"a-reader-extension-of-a-noun-of-the-root-answers-the-reader-s-own-call","query":":vec/doc ~(\"a reader page\") | [1 2] | doc","expect":"\"a reader page\""}
-{"name":"an-address-a-verb-of-the-root-reads-as-data-reaches-the-reader-s-node","query":":vec/second |~~ The second element. ~~| ~(get /1) | ::vec/second | tutorial | first","expect":"|~~ The second element. ~~|"}
-{"name":"a-kind-the-reader-declared-goes-with-its-value-into-a-verb-of-the-root","query":":Box |~~ A box. ~~| | ::Box{} | tutorial | first | content","expect":"\"A box.\""}
-{"name":"a-verb-of-a-kind-the-reader-declared-answers-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~| | :Box/doc ~(\"box page\") | ::Box{} | tutorial | first","expect":"\"box page\""}
-{"name":"a-verb-of-a-kind-the-reader-declared-keeps-its-inputs-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~| | :Box/doc (::fn | takes :n |~~ The n. ~~| ~(query /0 7) | impl ~(\"box \" | append (n | print))) | ::Box{} | tutorial | first","expect":"\"box 7\""}
-{"name":"a-bare-value-of-the-reader-stays-out-of-a-verb-of-the-root","query":"apply ~(:subject 99 | [1 2] | tutorial | first | tag)","expect":"::doc"}
-{"name":"a-value-of-the-reader-reaches-no-name-a-verb-of-the-root-writes","query":"apply ~(:laws 7 | :k |~~ K. ~~| 1 | ::k | tutorial | get [~(get /0 | content) /1])","expect":"[\"K.\" {}]"}
-{"name":"the-names-a-verb-of-the-root-declares-stay-out-of-what-it-reads","query":"::subject | tutorial !| tag","expect":"::any/doc/UnknownNameError"}
-{"name":"a-verb-reads-as-data-the-names-of-its-query-not-its-own","query":"apply ~(:x 1 | :any/names ~(:y 2 | env | get [~(has :y) ~(has :x)]) | names)","expect":"[false true]"}
+{"decision":"D421","name":"a-reader-extension-of-a-noun-of-the-root-stays-out-of-a-verb-of-the-root","query":":vec/doc ~(\"a reader page\"); [1 2] | tutorial | first | tag","expect":"::doc"}
+{"decision":"D421","name":"a-reader-extension-of-a-noun-of-the-root-answers-the-reader-s-own-call","query":":vec/doc ~(\"a reader page\"); [1 2] | doc","expect":"\"a reader page\""}
+{"decision":"D421","name":"an-address-a-verb-of-the-root-reads-as-data-reaches-the-reader-s-node","query":":vec/second |~~ The second element. ~~| ~(get /1); ::vec/second | tutorial | first","expect":"|~~ The second element. ~~|"}
+{"decision":"D421","name":"a-kind-the-reader-declared-goes-with-its-value-into-a-verb-of-the-root","query":":Box |~~ A box. ~~|; ::Box{} | tutorial | first | content","expect":"\"A box.\""}
+{"decision":"D421","name":"a-verb-of-a-kind-the-reader-declared-answers-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~|; :Box/doc ~(\"box page\"); ::Box{} | tutorial | first","expect":"\"box page\""}
+{"decision":"D421","name":"a-verb-of-a-kind-the-reader-declared-keeps-its-inputs-inside-a-verb-of-the-root","query":":Box |~~ A box. ~~|; :Box/doc (::fn | takes :n |~~ The n. ~~| ~(query /0 7) | impl ~(\"box \" | append (n | print))); ::Box{} | tutorial | first","expect":"\"box 7\""}
+{"decision":"D421","name":"a-value-of-the-reader-reaches-no-name-a-verb-of-the-root-writes","query":"apply ~(:laws 7; :k |~~ K. ~~| 1; ::k | tutorial | get [~(get /0 | content) /1])","expect":"[\"K.\" {}]"}
+{"decision":"D421","name":"a-verb-reads-as-data-the-names-of-its-query-not-its-own","query":"apply ~(:x 1; :any/names ~(:y 2; env | get [~(has :y) ~(has :x)]); names)","expect":"[false true]"}

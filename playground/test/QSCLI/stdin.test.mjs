@@ -43,7 +43,7 @@ describe('standard input read for a query that reads its subject', () => {
 
   it('lifts the subject for `in` called by its name where the query declared a verb of that name before it', async () => {
     const s = captureStreams('[1,2,3]');
-    await main([':vec/in ~(count) | in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main([':vec/in ~(count); in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('3\n');
   });
 

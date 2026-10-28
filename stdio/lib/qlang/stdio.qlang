@@ -38,7 +38,7 @@
         ~(::any | manifest | has ::any/out)
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::stdio`. ~~|
-        ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError)
+        ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError);
 
 :any/in
   |~~ Answers the text stdin holds, read to its end whatever the subject,
@@ -54,7 +54,7 @@
         |~~ The text stdin held, the empty string when nothing was piped.
         ~~|
         ::string
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :any/out
   |~~ Writes a line to stdout and answers its subject as it came: it
@@ -94,7 +94,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | out "a" "b" !| tag | eq ::any/out/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :any/err
   |~~ Writes a line to stderr, the channel of diagnostics, as `out`
@@ -133,7 +133,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | err "a" "b" !| tag | eq ::any/err/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :any/tap
   |~~ Writes `[tap <label>]` and its subject to stderr as an answer prints,
@@ -165,7 +165,7 @@
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
         ~(5 | tap :before :after !| tag | eq ::any/tap/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :cell/answer
   |~~ Answers the value the host keeps under the cell, read back
@@ -210,7 +210,7 @@
     | proves :SubjectNotCellError/refusesANumber
         |~~ A number names no cell. ~~|
         ~(5 | cell/answer !| tag | eq ::cell/answer/SubjectNotCellError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :vec/table
   |~~ Answers a vector of maps drawn as a table of fixed-width columns, a
@@ -254,5 +254,5 @@
         |~~ A row that is no map is refused at its index. ~~|
         ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(subject | found | get /0 | tag) ~(subject | expected)]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

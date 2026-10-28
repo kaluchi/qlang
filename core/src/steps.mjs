@@ -68,9 +68,6 @@ const isStep = value => isCallStep(value) || isBindStep(value) || isConstructSte
 // [QSSYN#step]
 export const standsAsCommand = step => isCallStep(step) || isBindStep(step) || isGroupStep(step);
 
-// [QSNAM#scope]
-export const declaresAName = step => isBindStep(step) || (isFailStep(step) && isBindStep(step.payload[0]));
-
 // [QSQUO#step]
 export const holdsALiteral = step => isLiteral(step) || isConstructStep(step);
 
@@ -130,14 +127,6 @@ function laterStepMessage(step, written) {
   if (isQuote(step)) return 'code runs on the value in the pipe by `apply`: write `apply ~(…)`';
   if (isSet(step) || isBareVec(step) || isBareMap(step) || isConstructStep(step)) return 'a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`';
   return 'a step is a command: a value stands at the head, where it is the subject, or as what a verb takes';
-}
-
-// [QSSYN#line]
-function chainMessage(payload, index, written) {
-  const bind = payload[payload.slice(0, index).findLastIndex(step => !isCallStep(step))];
-  if (!isBindStep(bind) || !isTag(bind.get('body'))) return null;
-  const [name, body] = [written.of(bind.get('name')), written.of(bind.get('body'))];
-  return `the body of \`${name}\` on the line of its name is one step, \`${body}\`, and the commands after it are steps of the query: a chain stands in parentheses, \`${name} (${body} | …)\``;
 }
 
 function nameMessage(name, written) {
@@ -247,10 +236,14 @@ export function quoteOf(payload, written) {
     if (holdsALiteral(step)) heldAsALiteral(step, QuoteLiteralComputesError, { index }, written);
   });
   payload.forEach((step, index) => {
-    if (index > 0 && !standsAsCommand(step) && !isFailStep(step) && !declaresAName(payload[index - 1])) {
-      throw new QuoteStepNotCommandError({ index, message: chainMessage(payload, index, written) ?? laterStepMessage(step, written), found: step });
+    if (index > 0 && !standsAsCommand(step) && !isFailStep(step) && !isBindStep(payload[index - 1])) {
+      throw new QuoteStepNotCommandError({ index, message: laterStepMessage(step, written), found: step });
     }
   });
+  // [D421]
+  const query = payload.findIndex(step => !isBindStep(step));
+  const later = payload.findIndex((step, index) => (query !== -1 && index > query && isBindStep(step)) || (isFailStep(step) && isBindStep(step.payload[0])));
+  if (later !== -1) throw new QuoteStepNotCommandError({ index: later, message: 'a declaration stands at the head of its text, before the query, each ended by `;`', found: payload[later] });
   return makeQuote(payload);
 }
 

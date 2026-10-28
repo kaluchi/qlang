@@ -7,7 +7,7 @@ import { BOX } from '../../helpers/box.mjs';
 describe('the refusals by rule of an input that names the kinds of each element', () => {
   it('names a value that is no vector where its selector reads one arg, and an element of none of its kinds', async () => {
     const own = await createNotebook();
-    await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs))');
+    await own.evalCell(':number/each (::fn | takes :xs |~~ Values. ~~| /0 [::number] | impl ~(xs));');
     expect(ruleRefusalsOf(own.scope, 'number/each')).toEqual([
       'number/each/SubjectNotNumberError',
       'number/each/ArgsBeyondInputsError',
@@ -19,7 +19,7 @@ describe('the refusals by rule of an input that names the kinds of each element'
 
   it('names an element of none of its kinds alone where its selector reads the args whole, which are a vector', async () => {
     const own = await createNotebook();
-    await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs))');
+    await own.evalCell(':number/all (::fn | takes :xs |~~ Values. ~~| ~(it) [::number] | impl ~(xs));');
     expect(ruleRefusalsOf(own.scope, 'number/all')).toEqual(['number/all/SubjectNotNumberError', 'number/all/XsElementKindNotTakenError']);
   });
 });
@@ -33,26 +33,26 @@ describe('the selector of an input', () => {
       ['::Foo!{:a 1}', '::Foo!{:a 1}'], ['~(add 1)', '~(add 1)'], ['("/a" | parse)', '::quote[/a]'], ['|~~ d ~~|', '(|~~ d ~~|)'],
       ['[~(add 1) {:b #[2]}]', '[~(add 1) {:b #[2]}]']
     ]) {
-      const filled = await answerOf(`(::fn | takes :v |~~ V. ~~| /0 | impl ~(v)) | fill ${value} | get [~(toString) ~(:q it | null | apply q | eq ${value})]`);
-      expect(filled, value).toEqual([`:v |~~ V. ~~| ${written} | v`, true]);
+      const filled = await answerOf(`(::fn | takes :v |~~ V. ~~| /0 | impl ~(v)) | fill ${value} | get [~(toString) ~(with {:q ~it} ~(null | apply q | eq ${value}))]`);
+      expect(filled, value).toEqual([`:v |~~ V. ~~| ${written}; v`, true]);
     }
   });
 
   it('reads a selector of a path a quote holds alone as the path', async () => {
-    expect(await answerOf(':any/h (::fn | takes :n |~~ N. ~~| ("/0" | parse) | impl ~(n)) | 1 | h 7')).toBe(7);
+    expect(await answerOf(':any/h (::fn | takes :n |~~ N. ~~| ("/0" | parse) | impl ~(n)); 1 | h 7')).toBe(7);
   });
 
   it('runs a selector that reads a part deeper than one arg as code over the args', async () => {
-    expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)) | 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
+    expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)); 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
   });
 
   it('runs a selector of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
-    expect((await answerOf(':any/three (::fn | takes :n |~~ N. ~~| ~(query /0 1 2) | impl ~(n)) | 1 | three 9')).tag.name).toBe('any/query/ArgsBeyondInputsError');
+    expect((await answerOf(':any/three (::fn | takes :n |~~ N. ~~| ~(query /0 1 2) | impl ~(n)); 1 | three 9')).tag.name).toBe('any/query/ArgsBeyondInputsError');
   });
 
   it('reads the args whole by `~(it)` alone, so a failed modifier is the answer under any other selector', async () => {
     for (const selector of ['~(it | first)', '~(it 1)']) {
-      const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${selector} ::quote | impl ~(code)) | 1 | g (count)`);
+      const failed = await answerOf(`:any/g (::fn | takes :code |~~ C. ~~| ${selector} ::quote | impl ~(code)); 1 | g (count)`);
       expect(failed.tag.name, selector).toBe('call/KindAnswersNoVerbError');
     }
   });
@@ -72,7 +72,7 @@ it('a host\'s primitive under a label reads the values after its lead by code ov
   const notebook = await createNotebook({
     sources: [{
       uri: 'probe/zap',
-      source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{})',
+      source: ':vec/zap (::fn | takes :lead |~~ The lead. ~~| /0 | takes :rest |~~ The values after the lead. ~~| ~(drop 1) | impl ::builtin{});',
       primitives: { 'vec/zap': (subject, lead, rest) => [lead, rest.length] }
     }]
   });

@@ -11,13 +11,40 @@
      6. Ctrl+Space — Completion
      7. Typing — Diagnostics
 
-   The file is one query: each example joins the one before it by
-   `|`, and its literal replaces the value in the pipe. Its top
-   declares words: a verb, called by its name on a value, is
-   declared under the label of the values it serves, and `::any`
-   holds the verbs that mean the same for every value; a value is
-   named in code, by the names `with` gives the code of one step.
+   The file is one text: its declarations at its head, each ended
+   by `;`, and one query after them, each example a group the one
+   before it joins by `|`, its literal replacing the value in the
+   pipe. A declaration adds a word: a verb, called by its name on a
+   value, is declared under the label of the values it serves, and
+   `::any` holds the verbs that mean the same for every value; a
+   value of the subject is named by `with` for the code of one step.
    The rules it holds: [QSSLF#catalog]. ~|
+
+
+|~| ── The declarations ──────────────────────────────────────
+|~| Code declared under the label of the values it serves is a verb
+|~| its name calls, and `~double` hands it on as code. Ctrl+Click
+|~| double to jump to its declaration; Shift+F12 finds the
+|~| declaration and its uses. A kind is built from `::kind` by
+|~| commands, `wires` a field of its payload held to its kinds, and
+|~| a value put under it keeps them. A verb declared under it serves
+|~| its values alone, called by its name on the value, and is built
+|~| from `::fn`, `takes` an input of the call held to its kinds. A
+|~| doc stands in the slot of the declaration it documents.
+
+:number/double |~~ Doubles a number. ~~| ~(mul 2);
+
+:Person |~~ A person, a name and an age. ~~| ::kind
+  | accepts |~~ The name and the age. ~~| ::map
+  | wires :name |~~ The name. ~~| /name ::string
+  | wires :age |~~ The age in years. ~~| /age ::number;
+:Person/adult |~~ Whether the person is of age. ~~| ~(age | gte 18);
+:Person/greet |~~ The person's name after a greeting. ~~| ::fn
+  | takes :greeting |~~ The words before the name. ~~| /0 ::string
+  | impl ~(name | prepend greeting);
+
+|~ a block comment between two declarations ~|
+:any/z |~~ The doc in the slot of z. ~~| ~(1);
 
 
 |~| ── 1. Hover ─────────────────────────────────────────────
@@ -31,10 +58,7 @@
 |~| ── 2. Code ──────────────────────────────────────────────
 |~| A quote, `~(…)`, is code: `apply` runs it on the value in the
 |~| pipe, `map` on each element, `filter` to keep the elements it
-|~| holds of. Code declared under the label of the values it serves
-|~| is a verb its name calls, and `~double` hands it on as code.
-|~| Ctrl+Click double to jump to its declaration; Shift+F12 finds
-|~| the declaration and its uses.
+|~| holds of.
 
 | (5 | apply ~(add 1 | mul 2))
 
@@ -42,28 +66,12 @@
 
 | ([1 2 3] | filter ~(gt 1))
 
-:number/double |~~ Doubles a number. ~~| ~(mul 2)
-
 | (5 | double)
 
 | ([1 2 3] | map ~double)
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
-|~| A kind is built from `::kind` by commands, `wires` a field of
-|~| its payload held to its kinds, and a value put under it keeps
-|~| them. A verb declared under it serves its values alone, called
-|~| by its name on the value, and is built from `::fn`, `takes` an
-|~| input of the call held to its kinds.
-
-:Person |~~ A person, a name and an age. ~~| (::kind
-  | accepts |~~ The name and the age. ~~| ::map
-  | wires :name |~~ The name. ~~| /name ::string
-  | wires :age |~~ The age in years. ~~| /age ::number)
-:Person/adult |~~ Whether the person is of age. ~~| ~(age | gte 18)
-:Person/greet |~~ The person's name after a greeting. ~~| (::fn
-  | takes :greeting |~~ The words before the name. ~~| /0 ::string
-  | impl ~(name | prepend greeting))
 
 | (::Person{:name "Ann" :age 30} | adult)
 
@@ -97,22 +105,22 @@
 
 
 |~| ── 6. Names and their scope ──────────────────────────────
-|~| The top declares words, and code names values of its own: a
-|~| name is declared once in its scope, and one declared inside
-|~| parentheses closes with them.
+|~| Code holds declarations of its own at its head, each ended by
+|~| `;`: a name is declared once in its scope, and one declared
+|~| inside parentheses closes with them; `with` names a value of the
+|~| subject for the code of one step.
 
 | apply ~(
-    :x 1
-    :y (x | add 1)
-    | (42 | :inner it | inner)
-    | y)
+    :x 1;
+    :y (x | add 1);
+    42 | with {:inner ~it} ~(inner | add y))
 
 
 |~| ── 7. Signature Help and Completion ──────────────────────
 |~| Inside a call of a verb of the language the active input
 |~| follows the modifier under the cursor: condition, then,
 |~| else. After `|` Ctrl+Space lists the verbs the kind of the
-|~| value answers and the names the file declares above.
+|~| value answers and the names the file declares.
 
 | (5 | if (gt 0) ~("pos") ~("neg"))
 
@@ -127,12 +135,5 @@
 
 | ([1 "x" 3] | map ~(add 10 !| 0))
 
-| ("hello" | add 1 !| doc)
-
-
-|~| ── 9. Comments ───────────────────────────────────────────
-|~| A comment, a line one or a block one, is whitespace;
-|~| a doc stands in the slot of the declaration it documents.
-
 |~ a block comment between two steps ~|
-:any/z |~~ The doc in the slot of z. ~~| ~(1)
+| ("hello" | add 1 !| doc)

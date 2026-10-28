@@ -135,14 +135,18 @@ export const asPrinted = { of: value => printValue(value), quoting: literal => p
 // [QSQUO#parse], [QSPRN#print]
 const AS_WRITTEN = { oneLine: false, printedOf: nothingPrintedAhead };
 
+// [QSQUO#parse], [D421]
 export function printQuoteSource(steps, view = AS_WRITTEN) {
   const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view), source: step }));
   const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
+  const firstOfTheQuery = steps.findIndex(step => !isBindStep(step));
+  const declarations = firstOfTheQuery === -1 ? steps.length : firstOfTheQuery;
   return printed.map(({ fail, step, source }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
-    const head = index === 0 ? '' : `${gap}| `;
-    return head + (view.oneLine || !passesTheLine(head + step) ? step : stepOnLines(source, view) ?? step);
+    const head = index === 0 ? '' : index <= declarations ? gap : `${gap}| `;
+    const end = index < declarations ? ';' : '';
+    return head + (view.oneLine || !passesTheLine(head + step + end) ? step : stepOnLines(source, view) ?? step) + end;
   }).join('');
 }
 

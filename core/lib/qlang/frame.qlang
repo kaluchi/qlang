@@ -127,7 +127,7 @@
         ~(::frame["x" ~(add 1) /0 5] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no frame. ~~|
-        ~(::frame{:failed ~(add 1)} !| tag | eq ::frame/PayloadKindNotTakenError)
+        ~(::frame{:failed ~(add 1)} !| tag | eq ::frame/PayloadKindNotTakenError);
 
 :frame/failed
   |~~ Answers the step that failed, the quote of its one step,
@@ -159,7 +159,7 @@
     | proves :SubjectNotFrameError/refusesAQuote
         |~~ A quote is no frame. ~~|
         ~(~(add 1) | frame/failed !| tag | eq ::frame/failed/SubjectNotFrameError)
-    | impl ~(unfinished | take 1)
+    | impl ~(unfinished | take 1);
 
 :frame/skipped
   |~~ Answers the steps the failure skipped after the step that failed, a
@@ -188,4 +188,4 @@
     | proves :SubjectNotFrameError/refusesAVector
         |~~ A vector is no frame. ~~|
         ~([1 2] | skipped !| tag | eq ::frame/skipped/SubjectNotFrameError)
-    | impl ~(unfinished | drop 1)
+    | impl ~(unfinished | drop 1);

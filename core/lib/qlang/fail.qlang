@@ -58,5 +58,5 @@
     | proves :StepNotCommandError/refusesAPath
         |~~ A path after `!|` is refused, naming the verb that reads it. ~~|
         ~([/kind] | tag ::quote | tag ::fail !| get [~(tag) ~(message)] | eq [::fail/StepNotCommandError "a path is a value, which the verb that takes it reads: write `get /kind`"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

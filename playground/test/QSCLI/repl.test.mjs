@@ -106,7 +106,7 @@ it('prints a failure with the steps its trace holds, the steps it skipped among 
 
 it('runs the query given on the command line before the typed cells, in the same notebook', async () => {
   const replHarness = captureRepl('x | add 1\n.exit\n');
-  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':any/x ~(41)', terminal: replHarness.stdinStream });
+  await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { initialQuery: ':any/x ~(41);', terminal: replHarness.stdinStream });
   const printed = stripAnsi(replHarness.stdoutText());
   expect(printed).toContain('qplay> :any/x ~(41)');
   expect(printed).toContain('42');
@@ -146,7 +146,7 @@ describe('an answer printed whole and a failure as its alert', () => {
   });
 
   it('prints the alert of a runaway recursion within its room', async () => {
-    const replHarness = captureRepl(':number/inf ~(add 1 | inf) | 0 | inf\n.exit\n');
+    const replHarness = captureRepl(':number/inf ~(add 1 | inf); 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const shown = stripAnsi(replHarness.stdoutText());
     expect(shown).toMatch(/\n {2}:depth 1001\n {2}:limit 1000\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/subject 999\n\}/);

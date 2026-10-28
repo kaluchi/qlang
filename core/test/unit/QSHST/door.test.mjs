@@ -22,17 +22,17 @@ beforeAll(async () => {
   notebook = await createNotebook({ sources: [{
     uri: 'tests/door',
     source: [
-      ':any/answer ::builtin{}',
-      ':any/later ::builtin{}',
-      ':any/twice ::builtin{}',
-      ':any/same ::builtin{}',
-      ':any/again (::any/answer | binding | value)',
-      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{})',
-      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{})',
-      ':any/break ::builtin{}',
-      ':Raw |~~ A raw. ~~| (::kind | impl ::builtin{})',
-      ':Kept |~~ A kept. ~~| (::kind | impl ::builtin{})',
-      ':Counted |~~ A counted. ~~| (::kind | impl ::builtin{})'
+      ':any/answer ::builtin{};',
+      ':any/later ::builtin{};',
+      ':any/twice ::builtin{};',
+      ':any/same ::builtin{};',
+      ':any/again (::any/answer | binding | value);',
+      ':any/refuse (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{});',
+      ':any/refuseLater (::fn | throws :RefusedError |~~ Refused. ~~| ~(wires :value |~~ The value refused. ~~| ~(query /value)) | impl ::builtin{});',
+      ':any/break ::builtin{};',
+      ':Raw |~~ A raw. ~~| (::kind | impl ::builtin{});',
+      ':Kept |~~ A kept. ~~| (::kind | impl ::builtin{});',
+      ':Counted |~~ A counted. ~~| (::kind | impl ::builtin{});'
     ].join('\n'),
     primitives: {
       'any/answer': index => ANSWERS[index],
@@ -288,7 +288,7 @@ describe('the answer of a primitive a host hands', () => {
     const s = await createNotebook({
       sources: [{
         uri: 'tests/later',
-        source: ':number/later ::builtin{}\n:number/elsewhere ::builtin{}',
+        source: ':number/later ::builtin{};\n:number/elsewhere ::builtin{};',
         primitives: {
           'number/later': n => ({ then(resolve) { resolve(n + 1); } }),
           'number/elsewhere': vm.runInNewContext('(async (n) => n + 1)')
@@ -302,7 +302,7 @@ describe('the answer of a primitive a host hands', () => {
     const s = await createNotebook({
       sources: [{
         uri: 'tests/past',
-        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{})\n:any/pastOne (::fn | returns |~~ A number. ~~| ::number | impl ::builtin{})',
+        source: ':any/past (::fn | returns |~~ A number or null. ~~| #[::number ::null] | impl ::builtin{});\n:any/pastOne (::fn | returns |~~ A number. ~~| ::number | impl ::builtin{});',
         primitives: { 'any/past': () => Infinity, 'any/pastOne': () => Infinity }
       }]
     });
@@ -316,7 +316,7 @@ it('lifts an error of JavaScript and any other value a primitive throws to a fai
   const s = await createNotebook({
     sources: [{
       uri: 'tests/bomb',
-      source: ':any/bomb ::builtin{}\n:any/hollow ::builtin{}',
+      source: ':any/bomb ::builtin{};\n:any/hollow ::builtin{};',
       primitives: { 'any/bomb': () => { throw new Error('raw boom'); }, 'any/hollow': () => { throw undefined; } }
     }]
   });
@@ -416,7 +416,7 @@ describe('a notebook takes what its host hands by the scan of the door', () => {
   it('answers a subject of no kind as the defect of its cell, raised past the fail track, and the cells after it run', async () => {
     const sessionInstance = await createNotebook();
     for (const [value, , account] of valuesOfNoKind()) {
-      const cell = await sessionInstance.evalCell(':late 1 | tag', { initialPipeValue: value });
+      const cell = await sessionInstance.evalCell(':late 1; tag', { initialPipeValue: value });
       expect([cell.result, cell.defect, cell.defect.facts], account).toEqual([null, expect.any(BuiltinForeignValueError), { found: account }]);
       expect(cell.scopeAfterCell.has('late')).toBe(false);
     }
@@ -425,7 +425,7 @@ describe('a notebook takes what its host hands by the scan of the door', () => {
 
   it('refuses a scope whose name holds a value of no kind, before its sources declare the root', async () => {
     for (const [value, , account] of valuesOfNoKind()) {
-      await expect(createNotebook({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{}' }] }), account)
+      await expect(createNotebook({ scope: await scopeHolding(value), sources: [{ uri: 'tests/never', source: ':any/never ::builtin{};' }] }), account)
         .rejects.toMatchObject({ address: 'builtin/ForeignValueError', facts: { found: account } });
     }
   });

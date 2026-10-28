@@ -8,7 +8,7 @@ const pause = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 async function sessionRecordingVisits(visits) {
   return await createNotebook({ sources: [{
     uri: 'probe',
-    source: ':any/visit ::builtin{}',
+    source: ':any/visit ::builtin{};',
     primitives: {
       'any/visit': async element => {
         visits.push(['start', element]);
@@ -44,7 +44,7 @@ it('a call hands on the error a modifier answers', async () => {
 it('computes the modifiers of a call up to the first that answers an error, and runs none after it', async () => {
   let noted = 0;
   const notebook = await createNotebook({
-    sources: [{ uri: 'probe/note', source: ':any/note ::builtin{}', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
+    sources: [{ uri: 'probe/note', source: ':any/note ::builtin{};', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
   });
   expect((await notebook.evalCell('[1 2] | query (get /nope) ("ran" | note) !| tag')).result).toEqual(makeTag('path/IndexNotIntegerError'));
   expect(noted).toBe(0);

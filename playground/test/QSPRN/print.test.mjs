@@ -46,9 +46,9 @@ it('prints a top-level String bare and a nested String quoted', async () => {
 });
 
 it('writes a quote of declarations on one line, steps that read back as the same steps', async () => {
-  const cellEntry = await runQuery('[{:q ~(:a 1\n| :b 2)}] | table', silentStreams);
-  expect(cellEntry.result).toContain('| ~(:a 1 | :b 2) |');
-  expect((await runQuery('"~(:a 1 | :b 2)" | parse | first | eq ~(:a 1\n| :b 2)', silentStreams)).result).toBe(true);
+  const cellEntry = await runQuery('[{:q ~(:a 1;\n:b 2;)}] | table', silentStreams);
+  expect(cellEntry.result).toContain('| ~(:a 1; :b 2;) |');
+  expect((await runQuery('"~(:a 1; :b 2)" | parse | first | eq ~(:a 1;\n:b 2;)', silentStreams)).result).toBe(true);
 });
 
 it('writes a doc of several lines on one line, each line break as a space, the view its page names', async () => {
@@ -57,12 +57,12 @@ it('writes a doc of several lines on one line, each line break as a space, the v
 });
 
 it('writes every part of a quote on one line, the modifiers of a call, the docs and the body of a declaration, a chain with its pages, the step after !| and the parts of a literal', async () => {
-  const declarations = '~(:a 1\n| :b 2)';
-  const cellEntry = await runQuery(`get [{:s ~(::vec/sort | source) :q ~(~(map ~(:x |~~ one\n  two ~~| 1\n| :b 2))) :f ~(~(get /a !| map ${declarations})) :v ~(~([${declarations}] | count)) :e ~(~(#[${declarations}] | count)) :m ~(~({:k ${declarations}} | count)) :t ~(~(::T[${declarations}] | count))}] | table | lines | count`, silentStreams);
+  const declarations = '~(:a 1;\n:b 2;)';
+  const cellEntry = await runQuery(`get [{:s ~(::vec/sort | source) :q ~(~(map ~(:x |~~ one\n  two ~~| 1;\n:b 2))) :f ~(~(get /a !| map ${declarations})) :v ~(~([${declarations}] | count)) :e ~(~(#[${declarations}] | count)) :m ~(~({:k ${declarations}} | count)) :t ~(~(::T[${declarations}] | count))}] | table | lines | count`, silentStreams);
   expect(cellEntry.result).toBe(5);
 });
 
 it('writes a doc on one line with the quotes it holds on one line too', async () => {
-  const cellEntry = await runQuery('[{:d |~~ see\n  ~(:a 1\n| :b 2) ~~|}] | table', silentStreams);
-  expect(cellEntry.result).toContain('| |~~ see ~(:a 1 | :b 2) ~~| |');
+  const cellEntry = await runQuery('[{:d |~~ see\n  ~(:a 1;\n:b 2;) ~~|}] | table', silentStreams);
+  expect(cellEntry.result).toContain('| |~~ see ~(:a 1; :b 2;) ~~| |');
 });

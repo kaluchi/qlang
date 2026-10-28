@@ -10,7 +10,7 @@ beforeAll(async () => {
 const alertOf = text => text.split('\n').filter(line => !line.startsWith('|~|')).join('\n');
 
 it('writes the alert of a runaway recursion within its room, its trace told by its tag and the views that fit where it keeps no cell', async () => {
-  const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf) | 0 | inf', scope), scope);
+  const text = await answerText(await evalQuery(':number/inf ~(add 1 | inf); 0 | inf', scope), scope);
   expect(alertOf(text)).toMatch(/^::call\/EvaluationDepthExceededError::excerpt\{\n {2}:depth 1001\n {2}:limit 1000\n {2}:trace\/tag ::trace\n {2}:trace\/subject 999\n\}$/);
   expect(alertOf(text).length).toBeLessThanOrEqual(2000);
 }, 60_000);

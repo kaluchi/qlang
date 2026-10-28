@@ -21,4 +21,4 @@
         ~([1 "a" null] | shape | eq ::shape[::nullable#[::number ::string]])
     | proves :leavesANullAloneAsItsKind
         |~~ A part that is null alone stands as its kind. ~~|
-        ~({:next null} | shape | eq ::shape{:next ::null})
+        ~({:next null} | shape | eq ::shape{:next ::null});

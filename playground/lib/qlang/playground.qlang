@@ -67,4 +67,4 @@
         ~~|
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::host`. ~~|
-        ~(5 | tag ::host !| tag | eq ::host/PayloadKindNotTakenError)
+        ~(5 | tag ::host !| tag | eq ::host/PayloadKindNotTakenError);

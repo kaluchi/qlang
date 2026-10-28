@@ -8,7 +8,7 @@ describe('the regex of a name', () => {
     const whole = new RegExp(`^(?:${core.NAME_REGEX.source})$`, 'u');
     const letters = Array.from({ length: 0x10000 }, (_, code) => String.fromCharCode(code)).filter(letter => !/[\ud800-\udfff]/.test(letter));
     expect(letters.filter(letter => whole.test(letter) !== core.isNameStart(letter) || whole.test(`a${letter}`) !== core.isNameContinue(letter))).toEqual([]);
-    expect([...':имя 5 | vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
+    expect([...':имя 5; vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
   });
 
   it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit', async () => {

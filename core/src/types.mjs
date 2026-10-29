@@ -303,7 +303,7 @@ export function tagsOver(value) {
   const tags = [];
   let part = value;
   for (; isValueClass(part, 'underTag'); part = part.payload) tags.push(part.tag.name);
-  const header = part[TAG_HEADER_SYMBOL];
+  const header = part?.[TAG_HEADER_SYMBOL];
   if (header !== undefined && !isKindOfTheCore(header.name)) tags.push(header.name);
   return tags;
 }

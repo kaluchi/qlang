@@ -64,7 +64,7 @@ const SECTIONS = {
   // No two modules bear one name [QSLEX#grep].
   sharedNames: found => section('Names two modules bear', found, ({ name, paths }) => `  ${name}  ${paths.join('  ')}\n`,
     'no two modules of the project bear one name, so a search of a name finds one file, a test file, which its section names, and a configuration of a tool aside by their form [QSLEX#grep].'),
-  // The declarations of a source of the catalog in the order of their names [D490].
+  // The declarations of a source of the catalog in the order of their names [QSSLF#catalog].
   catalogOrder: found => section('Declarations of the catalog out of the order of their names', found, ({ path, line, name, problem }) => `  ${path}:${line}  ::${name} ${problem}\n`,
-    'a source of the catalog declares a noun before the names under it and the names under a noun together, in the one order of their addresses, which `manifest` lists them in, `::number/abs` before `::number/add`, so a reader finds a verb where its name puts it [D490].')
+    'a source of the catalog declares a noun before the names under it and the names under a noun together, in the one order of their addresses, which `manifest` lists them in, `::number/abs` before `::number/add`, so a reader finds a verb where its name puts it [QSSLF#catalog].')
 };

@@ -161,7 +161,7 @@ connection.onDefinition(async (params) => {
   const def = await definitionAtOffset(state.root, offset, catalogCtx, state.source);
   if (!def) return null;
 
-  // [D494]
+  // [QSLSP#reach]
   const locationOf = ({ fileUri, source, startOffset, endOffset }) => (fileUri
     ? { uri: fileUri, range: offsetRangeToLineCol(source, startOffset, endOffset) }
     : { uri: params.textDocument.uri, range: { start: doc.positionAt(startOffset), end: doc.positionAt(endOffset) } });

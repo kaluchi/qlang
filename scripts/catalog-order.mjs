@@ -1,4 +1,4 @@
-// The order of the declarations of a source of the catalog [D490]: a noun
+// The order of the declarations of a source of the catalog [QSSLF#catalog]: a noun
 // before the names under it and the names under a noun together, in the one
 // order of their addresses, which `manifest` lists them in, as the parser
 // reads the source, so a reader finds a verb where its name puts it.

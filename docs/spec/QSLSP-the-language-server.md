@@ -14,8 +14,13 @@ the cursor, a step the server writes at the cursor and drops before the
 steps run, and what stands as whitespace there, a comment among it; the
 characters it asks a completion and the help of a signature at are its
 own. It prints no answer, and coats the tokens of `tokenize` by a type of
-semantic token, a bracket and a gap by none but the brackets of a quote,
-coated as strings, and of an error literal, as keywords [QSHST#tokens].
+semantic token and its modifiers, a bracket and a gap by none but the
+brackets of a quote, coated as strings, and of an error literal, as
+keywords: the name a declaration declares a function, `declaration`, a verb
+of the root a function of the library, `defaultLibrary`, a call of another
+name a variable, and a doc a comment, `documentation` [QSHST#tokens]. It
+sends the tokens of a document as the array of integers the protocol
+writes, five for each token.
 
 ```sh
 $ git grep -c -F "triggerCharacters: [" -- lsp/src/server.mjs
@@ -37,6 +42,22 @@ the catalog by the reach of a bare name [QSNAM#reach]. A verb of the root
 shows the inputs of its function and the content of its page,
 `doc | content`, and a reader's name the content of the docs of its
 declaration.
+
+The innermost part at a position answers there. A literal answers its
+kind: the hover shows it as written beside its kind and the content of the
+page of the kind, and the jump leads to the declaration of the kind, a
+vector, a map, a set, a quote, an error at rest and a group answering on
+their signs alone; a tag leads to the declaration of the address it names;
+and the code a doc holds between backquotes answers as the code around it,
+read at the position as `tokenize` reads it. The subject of a call is read
+from the steps before it in its own pipeline, the steps of a quote and of a
+group among them, and the hover, the jump and the help of a signature show
+the verb it reaches; where the kind of the subject is unknown or reaches no
+verb of the name, and no one verb of the name serves every value, the hover
+lists the form of the call of each verb of the name and the jump leads to
+each. The hover and the documentation of a completion write a page into
+Markdown as its prose reads, each sign of Markdown outside a span between
+backquotes escaped.
 
 ## offer
 
@@ -88,4 +109,7 @@ configuration of the language writes neither the regex of a word nor the
 bounds of a fold, which the core and the server answer. Its grammar
 paints the spans of a source no other form reads inside alone, its
 comments, its docs, its strings and its regexes, each nesting where it
-nests, and the semantic tokens of the server paint the rest.
+nests, a span between backquotes and a quote of a doc nesting no doc the
+parser does not, so a doc closes where the parser closes it; the semantic
+tokens of the server paint the rest, shown whatever the theme, a regex by
+the scope of a regex.

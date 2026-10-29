@@ -52,7 +52,7 @@ function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
-// [D493]
+// [QSLSP#reach]
 const PUNCTUATION_OF_MARKDOWN = /[!-\/:-@\[-`{-~]/g;
 
 const SPAN_BETWEEN_BACKQUOTES = /(?<!`)(`+)[\s\S]*?(?<!`)\1(?!`)/g;
@@ -255,7 +255,7 @@ function stepsOf(pipeline) {
   return pipeline.parts.map(read => (isFailStep(read.value) ? { combinator: '!|', read: read.parts[0] } : { combinator: '|', read }));
 }
 
-// [D492]
+// [QSLSP#reach]
 async function subjectKindsBefore(read, source) {
   const step = read.parent !== undefined && read.parent !== null && isFailStep(read.parent.value) ? read.parent : read;
   const pipeline = step.parent;
@@ -308,7 +308,7 @@ function verbsServing(scope, { kinds, value }) {
   }));
 }
 
-// [D492]
+// [QSLSP#reach]
 export async function hoverAtOffset(root, source, offset) {
   if (!root) return null;
 
@@ -397,7 +397,7 @@ async function hoverForCall(read, root, source) {
   return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', markdownOfProse(tidyPage(docs.join('\n')))].join('\n')), ...spanOf(read) };
 }
 
-// [D494]
+// [QSLSP#reach]
 function verbsOfTheName(scope, name, kinds) {
   if ((kinds !== null && verbsReaching(scope, kinds).has(name)) || bareNameReach(scope, name) !== null) return null;
   const addresses = residencesOf(scope, name).map(([, record]) => record.get('name').name).sort();
@@ -436,7 +436,7 @@ function nameAt(read, offset) {
   return isOnTagHead(read, offset) ? { name: tagWrittenBy(read), spelling: TAG_SPELLING } : null;
 }
 
-// [D492]
+// [QSLSP#reach]
 export async function definitionAtOffset(root, offset, catalogCtx, source = null) {
   if (!root) return null;
 
@@ -532,7 +532,7 @@ export function foldingRangesOf(root) {
   return ranges;
 }
 
-// [D492]
+// [QSLSP#reach]
 export async function signatureHelpAtOffset(root, source, offset) {
   if (!root) return null;
 
@@ -577,7 +577,7 @@ function readsAsWhitespace(text) {
   }
 }
 
-// [D491]
+// [QSLSP#server]
 const TYPE_OF_KIND = {
   verb:        ['function', 'defaultLibrary'],
   name:        ['variable'],

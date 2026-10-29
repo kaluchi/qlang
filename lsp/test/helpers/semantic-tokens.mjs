@@ -1,4 +1,4 @@
-// [D491]
+// [QSLSP#server]
 
 export function decodeSemanticTokens(data, types, modifiers = []) {
   const out = [];

@@ -135,7 +135,7 @@
 //
 //   (24) A source of the catalog declares a noun before the names under it
 //       and the names under a noun together, in the one order of their
-//       addresses, which `manifest` lists them in [D490].
+//       addresses, which `manifest` lists them in [QSSLF#catalog].
 //
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
@@ -943,7 +943,7 @@ function commentsThatAreNoMarks() {
 // A reader finds a verb of the catalog where its name puts it: a source
 // declares a noun before the names under it and the names under a noun
 // together, in the one order of their addresses, `scripts/catalog-order.mjs`
-// [D490].
+// [QSSLF#catalog].
 
 // ── Main ───────────────────────────────────────────────────────
 

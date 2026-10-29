@@ -372,7 +372,18 @@ declares a verb under a label only where it shows a verb, under the
 label of the values it serves. A declaration is laid out its name on a
 line, each doc of its slot on the lines after it indented two, a doc of one
 line on one line and a doc of several lines closing on a line of its own,
-and its value after them.
+and its value after them. A source declares a noun before the names under it
+and the names under a noun together, in the one order of their addresses,
+which `manifest` lists them in, `::number/abs` before `::number/add`, so a
+reader finds a verb where its name puts it; a source that declares under
+the noun of another stands those names together after its own.
+
+```sh
+$ git grep -h -o -E "^:number(/[A-Za-z]+)?" -- core/lib/qlang/number.qlang | head -3
+:number
+:number/abs
+:number/add
+```
 
 ```qlang
 > [::number ::string ::vec ::map ::set] | map ~(binding | value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct

@@ -53,7 +53,7 @@ function markdownHardBreaks(text) {
 }
 
 // [QSLSP#reach]
-const PUNCTUATION_OF_MARKDOWN = /[!-\/:-@\[-`{-~]/g;
+const PUNCTUATION_OF_MARKDOWN = /[!-/:-@[-`{-~]/g;
 
 const SPAN_BETWEEN_BACKQUOTES = /(?<!`)(`+)[\s\S]*?(?<!`)\1(?!`)/g;
 

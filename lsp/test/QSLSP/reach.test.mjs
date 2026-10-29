@@ -7,7 +7,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os';
 import { answerOf, framedMessage, lspDir } from '../helpers/server-process.mjs';
 
-const asRead = markdown => markdown.replace(/\\([!-\/:-@\[-`{-~])/g, '$1');
+const asRead = markdown => markdown.replace(/\\([!-/:-@[-`{-~])/g, '$1');
 
 describe('the hover', () => {
   it('returns hover for a verb of the language', async () => {

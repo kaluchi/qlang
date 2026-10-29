@@ -11,8 +11,8 @@
   |~~ A map holds named values under keywords, `{:id 7 :tags ["new"]}`:
       the value of a JSON object, a record of facts, and the shape an
       answer is written in. A value is read by its key, `/id`, a missing
-      key a failure and `query /id` null; `keys` answers the keys as a set,
-      and `entries` the pairs `[key value]`.
+      key a failure and `query /id` null; `keys` answers its keys and
+      `entries` the pairs `[key value]`, each in the order of its entries.
 
       It is written in braces, each keyword followed by its value,
       `{:apples 3 :pears 5}`, or as JSON writes it,
@@ -575,8 +575,8 @@
       keys kept, under the tags of the map: `{:cake 6 :tea 4} | sort`
       answers `{:tea 4 :cake 6}`. A key the call gives, code run on each
       value, ranks them, `sort /age`, and a key under `desc` descends,
-      `sort ~(desc)`. The entries of the answer read in order by `entries`
-      and `vals`, while `keys` answers its keys by name. A vector and a
+      `sort ~(desc)`. The entries of the answer read in order by `entries`,
+      `keys` and `vals`. A vector and a
       set order by a `sort` of their own.
       ::link~(::map/min) ::link~(::desc)
       ::link~(::vec/sort)

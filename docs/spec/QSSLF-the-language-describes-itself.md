@@ -192,9 +192,10 @@ them alone; beside them the names one of which begins the other, three
 letters at least; and the names the page of a verb it begins with links
 whose names end as it goes on, `addOf` meeting `sumOf`. Each stands
 among the names the step could reach at the depth of the one written:
-near a bare name the names a step reaches, a label of the root that is
-no verb standing as its tag, its tag first where the name written is the
-label's own; a tag among tags, an address among addresses, an anchor
+near a bare name the names a step reaches, the parts a kind of the root
+wires on its values among them, the facts of a refusal and its trace, a
+label of the root that is no verb standing as its tag, its tag first where
+the name written is the label's own; a tag among tags, an address among addresses, an anchor
 among the nodes the subject holds and the verbs the walk of its tags
 reaches, a key among the keys of the map a path missed. A name is no
 guess for itself.
@@ -211,6 +212,9 @@ guess for itself.
 
 > {:a 1 :b 2} | addOf /a /b !| nearest
 [:add :sumOf]
+
+> "x" | add 1 !| tarce !| nearest
+[:trace]
 ```
 
 ## doc
@@ -372,7 +376,18 @@ declares a verb under a label only where it shows a verb, under the
 label of the values it serves. A declaration is laid out its name on a
 line, each doc of its slot on the lines after it indented two, a doc of one
 line on one line and a doc of several lines closing on a line of its own,
-and its value after them.
+and its value after them. A source declares a noun before the names under it
+and the names under a noun together, in the one order of their addresses,
+which `manifest` lists them in, `::number/abs` before `::number/add`, so a
+reader finds a verb where its name puts it; a source that declares under
+the noun of another stands those names together after its own.
+
+```sh
+$ git grep -h -o -E "^:number(/[A-Za-z]+)?" -- core/lib/qlang/number.qlang | head -3
+:number
+:number/abs
+:number/add
+```
 
 ```qlang
 > [::number ::string ::vec ::map ::set] | map ~(binding | value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct

@@ -33,19 +33,6 @@
         |~~ A number payload is refused. ~~|
         ~(::null#1 !| get [~(tag) ~(found | tag)] | eq [::null/PayloadKindNotTakenError ::number]);
 
-:null/toString
-  |~~ Answers `"null"`, the text `print` and `json` write for null, as
-      every atom answers the text of its literal; a field that may be
-      absent is given a text of its own by `coalesce`.
-      ::link~(::null/toKeyword) ::link~(::any/coalesce)
-  ~~|
-  ::fn
-    | returns |~~ `"null"`. ~~| ::string
-    | proves :writesTheLiteral
-        |~~ Null turns into the text of its literal. ~~|
-        ~(null | toString | eq "null")
-    | impl ~("null");
-
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
       `groupBy ~(query /country)`.
@@ -58,4 +45,17 @@
         ~~|
         ~([{:country "US"} {}] | groupBy ~(query /country) | query (null | toKeyword) | eq [{}])
     | impl ::builtin{};
+
+:null/toString
+  |~~ Answers `"null"`, the text `print` and `json` write for null, as
+      every atom answers the text of its literal; a field that may be
+      absent is given a text of its own by `coalesce`.
+      ::link~(::null/toKeyword) ::link~(::any/coalesce)
+  ~~|
+  ::fn
+    | returns |~~ `"null"`. ~~| ::string
+    | proves :writesTheLiteral
+        |~~ Null turns into the text of its literal. ~~|
+        ~(null | toString | eq "null")
+    | impl ~("null");
 

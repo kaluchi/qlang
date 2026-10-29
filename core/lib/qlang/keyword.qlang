@@ -48,23 +48,19 @@
         ~~|
         ~(::keyword"k" !| get [~(tag) ~(found | tag)] | eq [::keyword/PayloadKindNotTakenError ::string]);
 
-:keyword/toString
-  |~~ Answers the name of the keyword as a string, `:draft | toString`
-      answering `"draft"`, the text JSON writes for it, so a key joins text,
-      `{:host "db"} | entries | map ~(get [~(get /0 | toString) "=" /1] | join "")`.
-      A quoted name and a name with a path answer their text as written,
-      `:"first name"` the string `"first name"`. `toKeyword` turns the
-      string back into the keyword.
-      ::link~(::string/toKeyword) ::link~(::keyword)
+:keyword/toKeyword
+  |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
+      strings and numbers into keys, `["draft" :paid 1] | map ~toKeyword`
+      answering `[:draft :paid :"1"]`.
+      ::link~(::string/toKeyword) ::link~(::number/toKeyword)
   ~~|
   ::fn
-    | returns |~~ The name of the keyword, a string. ~~| ::string
-    | proves :answersTheName
-        |~~ A keyword answers its name as written. ~~|
-        ~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
-    | proves :readsBack
-        |~~ A keyword turned into its name turns back into itself. ~~|
-        ~(:pending | toString | toKeyword | eq :pending)
+    | returns |~~ The keyword itself. ~~| ::keyword
+    | proves :answersItself
+        |~~ A keyword answers itself, so names, strings and numbers turn
+            into keys.
+        ~~|
+        ~(["draft" :paid 1] | map ~toKeyword | eq [:draft :paid :"1"])
     | impl ::builtin{};
 
 :keyword/toNumber
@@ -90,6 +86,25 @@
         ~(:id | toNumber !| tag | eq ::keyword/toNumber/NameNotNumberError)
     | impl ::builtin{};
 
+:keyword/toString
+  |~~ Answers the name of the keyword as a string, `:draft | toString`
+      answering `"draft"`, the text JSON writes for it, so a key joins text,
+      `{:host "db"} | entries | map ~(get [~(get /0 | toString) "=" /1] | join "")`.
+      A quoted name and a name with a path answer their text as written,
+      `:"first name"` the string `"first name"`. `toKeyword` turns the
+      string back into the keyword.
+      ::link~(::string/toKeyword) ::link~(::keyword)
+  ~~|
+  ::fn
+    | returns |~~ The name of the keyword, a string. ~~| ::string
+    | proves :answersTheName
+        |~~ A keyword answers its name as written. ~~|
+        ~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
+    | proves :readsBack
+        |~~ A keyword turned into its name turns back into itself. ~~|
+        ~(:pending | toString | toKeyword | eq :pending)
+    | impl ::builtin{};
+
 :keyword/toTag
   |~~ Answers the tag the keyword names, `:Box | toTag` answering
       `::Box`; a quoted name that names no tag is refused. `toKeyword`
@@ -108,20 +123,5 @@
     | proves :NameNotTagError/refusesASpace
         |~~ A name with a space names no tag. ~~|
         ~(:"a b" | toTag !| tag | eq ::keyword/toTag/NameNotTagError)
-    | impl ::builtin{};
-
-:keyword/toKeyword
-  |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
-      strings and numbers into keys, `["draft" :paid 1] | map ~toKeyword`
-      answering `[:draft :paid :"1"]`.
-      ::link~(::string/toKeyword) ::link~(::number/toKeyword)
-  ~~|
-  ::fn
-    | returns |~~ The keyword itself. ~~| ::keyword
-    | proves :answersItself
-        |~~ A keyword answers itself, so names, strings and numbers turn
-            into keys.
-        ~~|
-        ~(["draft" :paid 1] | map ~toKeyword | eq [:draft :paid :"1"])
     | impl ::builtin{};
 

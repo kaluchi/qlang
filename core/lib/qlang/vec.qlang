@@ -67,215 +67,98 @@
         |~~ A map payload is refused. ~~|
         ~(::vec{:id 7} !| get [~(tag) ~(found | tag)] | eq [::vec/PayloadKindNotTakenError ::map]);
 
-:vec/count
-  |~~ Answers the number of elements the vector holds, `[1 2 3] | count`
-      answering `3` and the empty vector `0`. A quote counts its steps,
-      a doc its segments, its prose and its quotes, and a set its
-      elements, each held once. A map and a string answer `count` by
-      verbs of their own, a map counting its entries and a string its
-      characters; a number, null or a boolean answers no `count`, and the
-      call is refused with the kinds that do.
-      ::link~(::vec/empty)
-      ::link~(::call/KindAnswersNoVerbError)
+:vec/any
+  |~~ Answers whether the predicate answers `true` for some element,
+      `[1 2 3] | any ~(gt 2)` answering `true`. It stops at the first
+      element that answers `true`, so the elements after it are not run,
+      and the empty vector answers `false`. The predicate is code run on
+      each element, a quote or a verb by its name, as `filter` takes it:
+      a value computed at the call is refused, and the predicate answers
+      a boolean. A set is asked in its one order, and a map of its values
+      by an `any` of its own; `every` asks whether each element holds.
+      ::link~(::vec/every) ::link~(::vec/filter)
   ~~|
   ::fn
-    | returns |~~ How many elements the vector holds. ~~| ::number
-    | throws :ArgsBeyondInputsError
-        |~~ `count` takes no value: whether the vector holds an element is
-            `has 1`, and how many elements hold a predicate is
-            `filter ~(gt 1) | count`.
+    | takes :predicate
+        |~~ The code each element is run through, which answers a boolean.
         ~~|
-    | proves :countsTheElements
-        |~~ Three elements count three. ~~|
-        ~([1 2 3] | count | eq 3)
-    | proves :countsTheStepsOfAQuote
-        |~~ A quote counts its steps. ~~|
-        ~(~(add 1 | mul 2 | sub 3) | count | eq 3)
-    | proves :countsNothingToZero
-        |~~ The empty vector counts zero. ~~|
-        ~([] | count | eq 0)
-    | proves :countsTheSegmentsOfADoc
-        |~~ A doc counts its segments, its prose and its quotes. ~~|
-        ~(|~~ a ::link~(1) b ~~| | count | eq 3)
-    | proves :countsTheElementsOfASetOnce
-        |~~ A set counts each element once. ~~|
-        ~([1 1 2] | get [~(count) ~(toSet | count)] | eq [3 2])
-    | proves :ArgsBeyondInputsError/refusesAValue
-        |~~ A value given to `count` is refused under the verb. ~~|
-        ~(#[:tea] | count 1 !| tag | eq ::vec/count/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/size
-  |~~ The name other languages give `count`: answers the number of
-      elements the vector holds, as `count` does, `[1 2 3] | size`
-      answering `3`.
-      ::link~(::vec/count)
-  ~~|
-  ::fn
-    | returns |~~ How many elements the vector holds. ~~| ::number
-    | proves :answersAsCount
-        |~~ `size` answers as `count`. ~~|
-        ~([1 2 3] | get [~(size) ~(count)] | eq [3 3])
-    | impl ~(count);
-
-:vec/length
-  |~~ The name other languages give `count`: answers the number of
-      elements the vector holds, as `count` does, `[1 2 3] | length`
-      answering `3`.
-      ::link~(::vec/count)
-  ~~|
-  ::fn
-    | returns |~~ How many elements the vector holds. ~~| ::number
-    | proves :answersAsCount
-        |~~ `length` answers as `count`. ~~|
-        ~([1 2 3] | get [~(length) ~(count)] | eq [3 3])
-    | impl ~(count);
-
-:vec/empty
-  |~~ Answers whether the vector holds no element, `[] | empty`
-      answering `true`; a vector of null holds an element, as a set of
-      null does, so it is not empty. A map answers `empty` by a verb of
-      its own; a string answers no `empty`, and text is asked
-      `count | eq 0`.
-      ::link~(::vec/count)
-  ~~|
-  ::fn
+        /0 #[::path ::quote]
+    | throws :PredicateKindNotTakenError
+        |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
+            `any /vip`; written without the tilde, `any (gt 2)`, it is
+            computed once at the call and refused.
+        ~~|
     | returns
-        |~~ `true` when the vector holds no element, `false` otherwise. ~~|
+        |~~ `true` when the predicate held for some element, `false`
+            otherwise.
+        ~~|
         ::boolean
-    | proves :holdsOfTheEmptyVector
-        |~~ The empty vector is empty. ~~|
-        ~([] | empty)
-    | proves :failsOfAnElement
-        |~~ A vector of one element is not empty. ~~|
-        ~([1] | empty | not)
-    | proves :failsOfANull
-        |~~ A vector of null holds an element. ~~|
-        ~([null] | empty | not)
-    | proves :failsOfASetOfNull
-        |~~ A set of null holds an element. ~~|
-        ~(#[null] | empty | not)
+    | throws :PredicateAnswerKindNotTakenError
+        |~~ The predicate of `any` answers a boolean for each element;
+            the path of its frame names the element whose predicate
+            answered another kind.
+        ~~|
+    | proves :holdsOfSomeElement
+        |~~ One element past two is enough. ~~|
+        ~([1 2 3] | any ~(gt 2))
+    | proves :failsOfNone
+        |~~ It is false when no element holds. ~~|
+        ~([1 2 3] | any ~(gt 99) | not)
+    | proves :stopsAtTheFirstTrue
+        |~~ The elements after the first true are not run. ~~|
+        ~([3 "x"] | any ~(gt 2))
+    | proves :failsOfNothing
+        |~~ An empty container answers false. ~~|
+        ~([] | any ~(gt 0) | not)
+    | proves :takesAVerbByItsName
+        |~~ A verb by its name stands where a quote would. ~~|
+        ~(:number/big ~(gt 2); [1 2 3] | any ~big)
+    | proves :PredicateKindNotTakenError/refusesABoolean
+        |~~ A value computed at the call is refused, a boolean among them.
+        ~~|
+        ~([1 2 3] | any (count | gt 1)
+          !| get [~(tag) ~(predicate | found | tag)]
+          |  eq [::vec/any/PredicateKindNotTakenError ::boolean])
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
+        |~~ A predicate that answers a number is refused at the element. ~~|
+        ~([1 2] | any ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
+          |  eq [::vec/any/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
+    | proves :asksASetInItsOneOrder
+        |~~ A set asks its number before its string, and the number that
+            holds decides, where the vector asks the string first.
+        ~~|
+        ~(["x" 3] | get [~(any ~(gt 2) !| tag) ~(toSet | any ~(gt 2))]
+          | eq [::call/KindsMismatchedError true])
     | impl ::builtin{};
 
-:vec/first
-  |~~ Answers the first element, `[10 20 30] | first` answering `10`, or
-      null for the empty vector, so a null answer may be an element that
-      is null or no element at all, which `count` tells apart. A quote
-      answers its first step, a doc its first segment and a set its least
-      element, the first of its one order, `#[:tea :cake :jam] | first`
-      answering `:cake`. A map answers its first value by a `first` of its
-      own; a string answers no `first`, and its first character is
-      `take 1`.
-      ::link~(::vec/last) ::link~(::any/query)
+:vec/append
+  |~~ Answers the vector with the element the call gives at its end, any
+      value, `[1 2] | append 3` answering `[1 2 3]`; a vector given is one
+      element, so `[1] | append [2 3]` answers `[1 [2 3]]`, and `flat`
+      after it splices the vector in. The answer keeps the kind of the
+      subject: a vector under a tag stays under it, a quote takes the
+      element as its last step, a set takes it through its constructor,
+      so it stays a set, and a doc takes a segment, a string or a quote,
+      and refuses another value. A string answers `append` by a verb of
+      its own; `prepend` puts the element at the head.
+      ::link~(::vec/prepend) ::link~(::vec/flat)
+      ::link~(::doc/ElementKindNotTakenError)
   ~~|
   ::fn
-    | returns
-        |~~ The first element, any value, null for the empty vector. ~~|
-        ::any
-    | throws :ArgsBeyondInputsError
-        |~~ `first` takes no value: the first two elements are `take 2`. ~~|
-    | proves :answersTheFirst
-        |~~ The first element answers. ~~|
-        ~([10 20 30] | first | eq 10)
-    | proves :answersNullOfNothing
-        |~~ The empty vector has no first element. ~~|
-        ~([] | first | eq null)
-    | proves :leavesCountToTellNullApart
-        |~~ A null element and no element both answer null, and `count`
-            tells them apart.
-        ~~|
-        ~([[null 1] []] | map ~(get [~(first) ~(count)]) | eq [[null 2] [null 0]])
-    | proves :answersTheFirstStepOfAQuote
-        |~~ A quote answers its first step. ~~|
-        ~(~(add 1 | mul 2) | first | tag | eq ::call)
-    | proves :answersTheLeastElementOfASet
-        |~~ A vector answers its first written, its set the least. ~~|
-        ~([:tea :cake :jam] | get [~(first) ~(toSet | first)] | eq [:tea :cake])
-    | proves :ArgsBeyondInputsError/refusesACount
-        |~~ A count given to `first` is refused under the verb. ~~|
-        ~(#[1 2] | first 2 !| tag | eq ::vec/first/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/last
-  |~~ Answers the last element, `[10 20 30] | last` answering `30`, or
-      null for the empty vector, as `first` answers from the other end.
-      A quote answers its last step, a doc its last segment and a set its
-      greatest element. A map answers its last value by a `last` of its
-      own, and a string answers no `last`.
-      ::link~(::vec/first)
-  ~~|
-  ::fn
-    | returns
-        |~~ The last element, any value, null for the empty vector. ~~|
-        ::any
-    | throws :ArgsBeyondInputsError
-        |~~ `last` takes no value: the last two elements are
-            `drop (count | sub 2)`, the count computed against the vector.
-        ~~|
-    | proves :answersTheLast
-        |~~ The last element answers. ~~|
-        ~([10 20 30] | last | eq 30)
-    | proves :answersNullOfNothing
-        |~~ The empty vector has no last element. ~~|
-        ~([] | last | eq null)
-    | proves :answersTheLastStepOfAQuote
-        |~~ A quote answers its last step. ~~|
-        ~(~(add 1 | mul 2) | last | get /name | eq :mul)
-    | proves :answersTheGreatestElementOfASet
-        |~~ A vector answers its last written, its set the greatest. ~~|
-        ~([:tea :cake :jam] | get [~(last) ~(toSet | last)] | eq [:jam :tea])
-    | proves :ArgsBeyondInputsError/refusesACount
-        |~~ A count given to `last` is refused under the verb. ~~|
-        ~(#[1 2] | last 2 !| tag | eq ::vec/last/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/sum
-  |~~ Answers the sum of the elements, each a number, `[1 2 3 4] | sum`
-      answering `10`, and `0` for the empty vector. An element that is
-      no number, a string, a record or null among them, is refused at its
-      index, so a field of each record is read first, `map /amount | sum`.
-      A set adds each element once, its index counting its one order, so
-      the set of a vector's elements may sum to less than the vector, and
-      a map sums its values by a `sum` of its own. Two fields
-      of one record add by `sumOf /price /tax`, and a number is added to each
-      element by `map ~(add 1)`.
-      ::link~(::vec/avg) ::link~(::any/sumOf)
-  ~~|
-  ::fn
-    | returns |~~ The sum of the elements, under the tags they share. ~~| ::number
-    | throws :ElementKindNotTakenError
-        |~~ `sum` adds numbers; the path of its frame names the first
-            element that is none, and a field is read first,
-            `map /amount | sum`.
-        ~~|
-    | proves :addsTheElements
-        |~~ The sum adds every element. ~~|
-        ~([1 2 3 4] | sum | eq 10)
-    | proves :sumsNothingToZero
-        |~~ The empty vector sums to zero. ~~|
-        ~([] | sum | eq 0)
-    | proves :sumsAFieldReadFirst
-        |~~ A field of each record is read before the sum. ~~|
-        ~([{:amount 900} {:amount 300}] | map /amount | sum | eq 1200)
-    | proves :ElementKindNotTakenError/refusesAString
-        |~~ A string among the numbers is refused at its index. ~~|
-        ~([1 "two" 3] | sum !| get [~(tag) ~(subject | found | get /1 | tag) ~(trace | last | path) ~(subject | expected)]
-          |  eq [::vec/sum/ElementKindNotTakenError ::string /1 #[::number]])
-    | proves :ElementKindNotTakenError/refusesARecord
-        |~~ A record whose field was not read is refused at its index. ~~|
-        ~([{:amount 900} {:amount 300}] | sum !| get [~(tag) ~(subject | found | get /0 | tag) ~(trace | last | path)]
-          |  eq [::vec/sum/ElementKindNotTakenError ::map /0])
-    | proves :ElementKindNotTakenError/refusesNull
-        |~~ Null is no number to add. ~~|
-        ~([1 null] | sum !| get [~(tag) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
-    | proves :addsOnceWhatASetHolds
-        |~~ The set of a vector's elements adds a repeated one once. ~~|
-        ~([1 1 2] | get [~(sum) ~(toSet | sum)] | eq [4 3])
-    | proves :ElementKindNotTakenError/namesTheIndexInTheOneOrderOfASet
-        |~~ The index a set is refused at counts its one order, not where
-            the element was written.
-        ~~|
-        ~(["two" 1] | toSet | sum !| get [~(tag) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
+    | takes :element |~~ The element put at the end, any value. ~~| /0
+    | returns |~~ The vector with the element as its last. ~~| ::vec
+    | proves :putsTheElementLast
+        |~~ The element goes last. ~~|
+        ~([1 2] | append 3 | eq [1 2 3])
+    | proves :putsAVectorInAsOneElement
+        |~~ A vector given is one element, which `flat` splices. ~~|
+        ~([1] | append [2 3] | get [~(it) ~(flat)] | eq [[1 [2 3]] [1 2 3]])
+    | proves :keepsTheTagOfTheSubject
+        |~~ A vector under a tag takes the element under it. ~~|
+        ~(::Box[1 2] | append 3 | eq ::Box[1 2 3])
+    | proves :keepsASetASet
+        |~~ A set takes the element as a set does. ~~|
+        ~(#[1 2] | append 1 | eq #[1 2])
     | impl ::builtin{};
 
 :vec/avg
@@ -346,214 +229,292 @@
         ~([1 1 4] | get [~(avg) ~(toSet | avg)] | eq [2 2.5])
     | impl ::builtin{};
 
-:vec/min
-  |~~ Answers the least element in the one order of values,
-      `[3 1 4] | min` answering `1`, or null for the empty vector. It
-      relates elements of one kind, as `lt` relates two values, so two of
-      two kinds are refused as the pair, a missing value among them, which
-      is taken out first, `filter ~(ne null) | min`. With a key the call
-      gives, the element whose key answers least answers whole, the first
-      of equal ones, `[{:age 30} {:age 20}] | min /age` answering
-      `{:age 20}`. The key is code run on each element, a path, `/age`, or
-      a quote, `~(get /age | abs)`, read as `sort` reads its key, so
-      `desc` turns it; a value computed at the call other than null, which
-      gives no key, is refused, and a key that misses its field answers the
-      error of the read. A set answers its least element without a key,
-      the first of its one order, and a map its least value by a `min` of
-      its own.
-      ::link~(::vec/max) ::link~(::vec/sort)
+:vec/concat
+  |~~ Answers the subject with the elements of each vector the call gives
+      after its own, in their order, `[1] | concat [2 3] [4]` answering
+      `[1 2 3 4]`, so `reduce [] ~(concat)` joins the vectors a vector
+      holds. The vectors join beneath the tags they share, a bare one
+      sharing any; `append` puts one element at the end.
+      ::link~(::vec/flat) ::link~(::vec/append)
   ~~|
   ::fn
-    | takes :key
-        |~~ The key the call gives, code run on each element, null when it
-            gives none.
-        ~~|
-        ~(query /0) #[::null ::path ::quote]
-    | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it
-            runs on each element, while `(get /age)` is computed once at the
-            call, against the vector, and refused with what it answered.
+    | takes :vectors |~~ The vectors joined after the subject. ~~| ~(it) [::vec]
+    | throws :VectorsElementKindNotTakenError
+        |~~ What `concat` joins is a vector, `concat [2 3]`; a single
+            element is put at the end by `append`, `append 2`.
         ~~|
     | returns
-        |~~ The least element, any value, null for the empty vector. ~~|
-        ::any
-    | proves :answersTheLeast
-        |~~ The least element answers. ~~|
-        ~([3 1 4 1 5] | min | eq 1)
-    | proves :answersNullOfNothing
-        |~~ The empty vector has no least element. ~~|
-        ~([] | min | eq null)
-    | proves :relatesValuesOfOneKind
-        |~~ Two elements of two kinds are refused, a missing one taken out
-            first.
+        |~~ The elements of the subject and of each vector, in order,
+            under the tags they share.
         ~~|
-        ~(get [~([3 null 1] | min !| tag) ~([3 null 1] | filter ~(ne null) | min)] | eq [::call/KindsMismatchedError 1])
-    | proves :answersTheElementOfTheLeastKey
-        |~~ The element whose key answers least answers whole. ~~|
-        ~([{:age 30} {:age 20}] | min /age | eq {:age 20})
-    | proves :answersTheFirstOfEqualKeys
-        |~~ Of elements whose keys are equal the first answers. ~~|
-        ~([{:age 20 :name "Ann"} {:age 20 :name "Bob"}] | min /age | get /name | eq "Ann")
-    | proves :turnsTheKeyByDesc
-        |~~ A key under `desc` answers the greatest. ~~|
-        ~([2 1 3] | min ~(desc) | eq 3)
-    | proves :answersTheErrorOfTheKey
-        |~~ A key that misses its field answers the error of the read. ~~|
-        ~([{:age 30} {:name "Bob"}] | min /age !| tag | eq ::path/KeyNotInMapError)
-    | proves :KeyKindNotTakenError/refusesAStepWithoutItsQuote
-        |~~ A step written without its quote runs on the whole subject at
-            the call, and its error is refused.
-        ~~|
-        ~([3 1] | min (get /age)
-          !| get [~(tag) ~(key | found | tag)]
-          |  eq [::vec/min/KeyKindNotTakenError ::path/IndexNotIntegerError])
-    | proves :answersTheFirstOfASet
-        |~~ A set answers its least element without a key, its first. ~~|
-        ~(#[3 1 4] | get [~(min) ~(first)] | eq [1 1])
+        ::vec
+    | proves :joinsTheVectorsAfterTheSubject
+        |~~ The vectors join after the subject in their order. ~~|
+        ~([1] | concat [2 3] [4] | eq [1 2 3 4])
+    | proves :foldsTheVectorsOfAVector
+        |~~ A fold by `concat` joins the vectors a vector holds. ~~|
+        ~([[1] [2 3]] | reduce [] ~(concat) | eq [1 2 3])
+    | proves :answersUnderTheTagOfTheSubject
+        |~~ A vector under a tag answers under the tag. ~~|
+        ~(::Box[1] | concat [2] | eq ::Box[1 2])
+    | proves :VectorsElementKindNotTakenError/refusesANumber
+        |~~ A number is no vector to join. ~~|
+        ~([1] | concat 2 !| tag | eq ::vec/concat/VectorsElementKindNotTakenError)
     | impl ::builtin{};
 
-:vec/max
-  |~~ Answers the greatest element in the one order of values,
-      `[3 1 4] | max` answering `4`, or null for the empty vector, as
-      `min` answers from the other end, of elements of one kind, and
-      with a key the element whose key answers greatest answers whole, the
-      first of equal ones, `[{:age 30} {:age 40}] | max /age` answering
-      `{:age 40}`. The key is read as `min` reads it; a set answers its
-      greatest element without a key, and a map its greatest value by a
-      `max` of its own.
-      ::link~(::vec/min)
+:vec/contains
+  |~~ Answers whether the vector holds an element equal to the element the
+      call gives, as `has` asks of an element, under the name a string
+      answers for its substrings, `["ops" "db"] | contains "ops"`
+      answering `true`; whether a value is one of several reads
+      `with {:fruit ~it} ~(["apple" "pear"] | contains fruit)`. A set is searched by its one order,
+      and a map answers no `contains` and asks `has` of its keys. A string
+      answers `contains` for a piece of its text, where a vector and a set
+      hold whole elements alone, so a query that may meet a string or a
+      vector asks `contains`.
+      ::link~(::vec/has) ::link~(::string/contains)
   ~~|
   ::fn
-    | takes :key
-        |~~ The key the call gives, code run on each element, null when it
-            gives none.
+    | takes :element
+        |~~ The element looked for, any value, computed against the
+            subject.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
-    | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
+        /0
     | returns
-        |~~ The greatest element, any value, null for the empty vector. ~~|
-        ::any
-    | proves :answersTheGreatest
-        |~~ The greatest element answers. ~~|
-        ~([3 1 4 1 5] | max | eq 5)
-    | proves :answersNullOfNothing
-        |~~ The empty vector has no greatest element. ~~|
-        ~([] | max | eq null)
-    | proves :relatesValuesOfOneKind
-        |~~ A number and a string are no pair a maximum relates. ~~|
-        ~([3 "a"] | max !| tag | eq ::call/KindsMismatchedError)
-    | proves :answersTheElementOfTheGreatestKey
-        |~~ The element whose key answers most answers whole. ~~|
-        ~([{:age 30} {:age 40}] | max /age | eq {:age 40})
-    | proves :answersTheFirstOfEqualKeys
-        |~~ Of elements whose keys are equal the first answers. ~~|
-        ~([{:age 40 :name "Ann"} {:age 40 :name "Bob"}] | max /age | get /name | eq "Ann")
-    | proves :KeyKindNotTakenError/refusesANumber
-        |~~ A key that is no quote is refused under the input. ~~|
-        ~([1 2] | max 1 !| tag | eq ::vec/max/KeyKindNotTakenError)
-    | proves :answersTheLastOfASet
-        |~~ A set answers its greatest element without a key, its last. ~~|
-        ~(#[3 1 4] | get [~(max) ~(last)] | eq [4 4])
+        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
+        ::boolean
+    | proves :findsAnElement
+        |~~ An element held is found. ~~|
+        ~(["ops" "db"] | contains "ops")
+    | proves :asksWhetherAValueIsOneOfSeveral
+        |~~ A value named first is looked for among several. ~~|
+        ~("pear" | with {:fruit ~it} ~(["apple" "pear"] | contains fruit))
+    | proves :searchesASetByItsOneOrder
+        |~~ A set answers what `has` answers. ~~|
+        ~(#[:dev :ops] | get [~(contains :ops) ~(contains :hr)] | eq [true false])
+    | proves :holdsOnlyWholeElements
+        |~~ A string holds a piece of its text, a vector and a set whole
+            elements alone.
+        ~~|
+        ~(["abc" ["abc"] #["abc"]] | map ~(contains "b") | eq [true false false])
     | impl ::builtin{};
 
-:vec/map
-  |~~ Answers the vector of what the code answers for each element, in
-      their order, `[1 2 3] | map ~(add 10)` answering `[11 12 13]`. The
-      code is a quote run on each element as its subject: a step of one
-      word or one path written short, `map /name` or `map ~count`,
-      several steps in one quote, `map ~(mul 2 | add 1)`, and the template
-      of `get`, which builds the shape of each element,
-      `map ~(get {:id /id :count ~(get /tags | count)})`.
-      A quote written in the call reads the names of its step, a name
-      declared before the call among them; a quote held in a name runs
-      in a lane of its own, which reads the verbs of the tree and no
-      value a reader named; and the names a run declares stay in it. The
-      first failure the code answers for an element is the answer of the
-      call, the elements after it left unrun, and a code that recovers,
-      `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
-      vector of their own, under no tag of the subject, whose tags speak
-      of the elements it held; a quote maps its steps, a doc its segments
-      and a set its elements in its one order, equal images each at its
-      index, which `toSet` makes a set. A map answers `map` by a verb of
-      its own; `filter` keeps the elements a predicate holds of, and
-      `reduce` folds them into one value.
-      ::link~(::vec/filter) ::link~(::vec/reduce)
-      ::link~(::map/map) ::link~(::qlang/code)
+:vec/count
+  |~~ Answers the number of elements the vector holds, `[1 2 3] | count`
+      answering `3` and the empty vector `0`. A quote counts its steps,
+      a doc its segments, its prose and its quotes, and a set its
+      elements, each held once. A map and a string answer `count` by
+      verbs of their own, a map counting its entries and a string its
+      characters; a number, null or a boolean answers no `count`, and the
+      call is refused with the kinds that do.
+      ::link~(::vec/empty)
+      ::link~(::call/KindAnswersNoVerbError)
   ~~|
   ::fn
-    | takes :code
-        |~~ The code run on each element, a quote. ~~|
-        /0 #[::path ::quote]
-    | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
-            written without the tilde, `map (add 1)`, it is computed once
-            at the call, against the vector, and refused with what it
-            answered.
-        ~~|
-    | throws :CodeNotGivenError
-        |~~ `map` runs the code the call gives on each element,
-            `map ~(add 1)`; a call without it has nothing to run.
-        ~~|
-    | returns
-        |~~ What the code answered for each element, in their order, a
-            vector under no tag.
-        ~~|
-        ::any
+    | returns |~~ How many elements the vector holds. ~~| ::number
     | throws :ArgsBeyondInputsError
-        |~~ `map` takes one code: several steps run in order inside one
-            quote, `map ~(mul 2 | add 1)`.
+        |~~ `count` takes no value: whether the vector holds an element is
+            `has 1`, and how many elements hold a predicate is
+            `filter ~(gt 1) | count`.
         ~~|
-    | proves :answersWhatEachElementAnswers
-        |~~ Each element is replaced by what the code answers for it. ~~|
-        ~([1 2 3] | map ~(add 10) | eq [11 12 13])
-    | proves :takesAPathShort
-        |~~ A path alone is written short. ~~|
-        ~([{:name "Ann"} {:name "Bob"}] | map /name | eq ["Ann" "Bob"])
-    | proves :runsSeveralStepsInOneQuote
-        |~~ Several steps run in one quote on each element. ~~|
-        ~([1 2 3] | map ~(mul 2 | add 1) | eq [3 5 7])
-    | proves :readsANameOfTheScope
-        |~~ A name of the code around the call is read inside. ~~|
-        ~({:rate 10 :prices [1 2]} | with [/rate /prices] ~(prices | map ~(mul rate)) | eq [10 20])
-    | proves :answersTheFirstFailure
-        |~~ The first error answers the call. ~~|
-        ~([1 "a" "b"] | map ~(add 1) !| trace | first | subject | eq "a")
-    | proves :recoversAFailedElement
-        |~~ A code that recovers keeps every element. ~~|
-        ~([1 "x"] | map ~(add 1 !| 0) | eq [2 0])
-    | proves :answersUnderNoTag
-        |~~ The answers stand under no tag of the subject. ~~|
-        ~(::Box[1 2] | map ~(add 1) | eq [2 3])
-    | proves :mapsTheStepsOfAQuote
-        |~~ A quote maps its steps. ~~|
-        ~(~(add 1 | mul 2) | map /name | eq [:add :mul])
-    | proves :answersTheEmptyVector
-        |~~ The empty vector answers the empty vector. ~~|
-        ~([] | map ~(add 1) | eq [])
-    | proves :CodeKindNotTakenError/refusesAStepComputedAtTheCall
-        |~~ A step written without its quote is refused. ~~|
-        ~([1 2] | map (add 1) !| tag | eq ::vec/map/CodeKindNotTakenError)
-    | proves :CodeNotGivenError/refusesACallWithoutCode
-        |~~ A call without code is refused under the input. ~~|
-        ~([1 2] | map !| tag | eq ::vec/map/CodeNotGivenError)
-    | proves :ArgsBeyondInputsError/refusesTwoCodes
-        |~~ Two codes are refused under the verb. ~~|
-        ~([1 2] | map ~(add 1) ~(mul 2) !| tag | eq ::vec/map/ArgsBeyondInputsError)
-    | proves :buildsTheShapeOfEachElementByATemplate
-        |~~ A template of `get` builds the shape of each element. ~~|
-        ~([{:id 1 :tags [:new :vip]}] | map ~(get {:id /id :count ~(get /tags | count)}) | eq [{:id 1 :count 2}])
-    | proves :keepsTheNamesOfARunInside
-        |~~ The names a run declares stay in it. ~~|
-        ~([1 2] | map ~(:bonus 5; add bonus) | bonus !| tag | eq ::call/UnknownNameError)
-    | proves :keepsEveryElementByARecoveringCode
-        |~~ A code that recovers keeps every element. ~~|
-        ~([1 "a" 3] | map ~(add 1 !| 0) | eq [2 0 4])
-    | proves :mapsASetInItsOneOrderIntoAVector
-        |~~ A set maps its elements in its one order into a vector, equal
-            images each at its index.
+    | proves :countsTheElements
+        |~~ Three elements count three. ~~|
+        ~([1 2 3] | count | eq 3)
+    | proves :countsTheStepsOfAQuote
+        |~~ A quote counts its steps. ~~|
+        ~(~(add 1 | mul 2 | sub 3) | count | eq 3)
+    | proves :countsNothingToZero
+        |~~ The empty vector counts zero. ~~|
+        ~([] | count | eq 0)
+    | proves :countsTheSegmentsOfADoc
+        |~~ A doc counts its segments, its prose and its quotes. ~~|
+        ~(|~~ a ::link~(1) b ~~| | count | eq 3)
+    | proves :countsTheElementsOfASetOnce
+        |~~ A set counts each element once. ~~|
+        ~([1 1 2] | get [~(count) ~(toSet | count)] | eq [3 2])
+    | proves :ArgsBeyondInputsError/refusesAValue
+        |~~ A value given to `count` is refused under the verb. ~~|
+        ~(#[:tea] | count 1 !| tag | eq ::vec/count/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:vec/distinct
+  |~~ Answers the elements, each once, in the order of its first
+      occurrence, `[2 1 2 3 1] | distinct` answering `[2 1 3]`; two values
+      one in the one order are one, a map whatever the order of its
+      entries, and a vector under a tag answers under it. The set of the
+      elements, the one order and no value twice, is `toSet`. It takes no
+      value.
+      ::link~(::vec/toSet)
+  ~~|
+  ::fn
+    | returns
+        |~~ The elements, each once, in the order of its first occurrence.
         ~~|
-        ~(#[3 1 2] | map ~(gt 1) | eq [false true true])
+        ::vec
+    | proves :keepsTheFirstOfEach
+        |~~ Each value stays once, where it first stands. ~~|
+        ~([2 1 2 3 1] | distinct | eq [2 1 3])
+    | proves :readsTwoMapsOfOneEntriesAsOne
+        |~~ Two maps of the same entries are one value, whatever their
+            order.
+        ~~|
+        ~([{:b 1 :a 2} {:a 2 :b 1}] | distinct | eq [{:b 1 :a 2}])
+    | proves :answersUnderTheTag
+        |~~ A vector under a tag answers under it, and `toSet` answers the
+            set.
+        ~~|
+        ~(::Box[2 1 2] | get [~(distinct) ~(toSet)] | eq [::Box[2 1] #[1 2]])
+    | impl ::builtin{};
+
+:vec/drop
+  |~~ Answers the elements after the first ones, as many as the count the
+      call gives, `[1 2 3 4 5] | drop 2` answering `[3 4 5]`. The count
+      is a whole number: past the length the empty vector answers, and a
+      count of zero or below drops nothing; a count that is no number, or
+      a fraction, is refused under the input. The answer keeps the kind of
+      the subject, as `take` keeps it, a set dropping its least elements,
+      and a map and a string answer `drop` by verbs of their own.
+      ::link~(::vec/take)
+  ~~|
+  ::fn
+    | takes :count |~~ How many. ~~| /0 ::number
+    | throws :CountKindNotTakenError
+        |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
+            is read by `toNumber` first, `drop ("2" | toNumber)`.
+        ~~|
+    | holds :CountNotIntegerError
+        |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
+            rounded first, `drop (1.5 | round)`.
+        ~~|
+        ~(count | eq (floor))
+    | returns |~~ The elements after the ones dropped. ~~| ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `drop` takes one count: the two elements after the first are
+            `drop 1 | take 2`.
+        ~~|
+    | proves :dropsTheFirst
+        |~~ Dropping two leaves the last three. ~~|
+        ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
+    | proves :dropsTheWholePastTheLength
+        |~~ A count past the length leaves the empty vector. ~~|
+        ~([1 2 3] | drop 99 | eq [])
+    | proves :dropsNothingByANegativeCount
+        |~~ A negative count drops nothing. ~~|
+        ~([1 2 3] | drop -1 | eq [1 2 3])
+    | proves :keepsAQuoteAQuote
+        |~~ A quote drops its first steps. ~~|
+        ~(~(add 1 | mul 2) | drop 1 | eq ~(mul 2))
+    | proves :CountNotIntegerError/refusesAFraction
+        |~~ A fraction is no count. ~~|
+        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/drop/CountNotIntegerError ::number])
+    | proves :CountKindNotTakenError/refusesAString
+        |~~ A count written as a string is refused. ~~|
+        ~([1 2] | drop "1" !| tag | eq ::vec/drop/CountKindNotTakenError)
+    | proves :dropsTheLeastOfASet
+        |~~ A vector drops the first it was written with, its set the
+            least, a set again.
+        ~~|
+        ~([3 1 2] | get [~(drop 2) ~(toSet | drop 2)] | eq [[2] #[3]])
+    | proves :ArgsBeyondInputsError/refusesTwoCounts
+        |~~ A call with two counts is refused under the verb. ~~|
+        ~(#[:tea :cake :jam] | drop 1 2 !| tag | eq ::vec/drop/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:vec/empty
+  |~~ Answers whether the vector holds no element, `[] | empty`
+      answering `true`; a vector of null holds an element, as a set of
+      null does, so it is not empty. A map answers `empty` by a verb of
+      its own; a string answers no `empty`, and text is asked
+      `count | eq 0`.
+      ::link~(::vec/count)
+  ~~|
+  ::fn
+    | returns
+        |~~ `true` when the vector holds no element, `false` otherwise. ~~|
+        ::boolean
+    | proves :holdsOfTheEmptyVector
+        |~~ The empty vector is empty. ~~|
+        ~([] | empty)
+    | proves :failsOfAnElement
+        |~~ A vector of one element is not empty. ~~|
+        ~([1] | empty | not)
+    | proves :failsOfANull
+        |~~ A vector of null holds an element. ~~|
+        ~([null] | empty | not)
+    | proves :failsOfASetOfNull
+        |~~ A set of null holds an element. ~~|
+        ~(#[null] | empty | not)
+    | impl ::builtin{};
+
+:vec/every
+  |~~ Answers whether the predicate answers `true` for every element,
+      the question a law asks of a listing, `[2 4 6] | every ~(gt 0)`
+      answering `true`. It stops at the first element that answers
+      `false`, so the elements after it are not run, and the empty
+      vector answers `true`. The predicate is code run on each element,
+      a quote or a verb by its name, as `filter` takes it: a value
+      computed at the call is refused, the predicate answers a boolean,
+      and an error it answers for an element answers the call. A set is
+      asked in its one order, and a map of its values by an `every` of its
+      own; `any` asks whether some element holds.
+      ::link~(::vec/any) ::link~(::vec/filter)
+  ~~|
+  ::fn
+    | takes :predicate
+        |~~ The code each element is run through, which answers a boolean.
+        ~~|
+        /0 #[::path ::quote]
+    | throws :PredicateKindNotTakenError
+        |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
+            `every /active`; written without the tilde, `every (gt 0)`, it
+            is computed once at the call and refused.
+        ~~|
+    | returns
+        |~~ `true` when the predicate held for every element, `false`
+            otherwise.
+        ~~|
+        ::boolean
+    | throws :PredicateAnswerKindNotTakenError
+        |~~ The predicate of `every` answers a boolean for each element;
+            the path of its frame names the element whose predicate
+            answered another kind.
+        ~~|
+    | proves :holdsOfEveryElement
+        |~~ Every element is positive. ~~|
+        ~([2 4 6 8] | every ~(gt 0))
+    | proves :failsOnOneElement
+        |~~ One element below the bar fails it. ~~|
+        ~([1 2 3] | every ~(gt 2) | not)
+    | proves :stopsAtTheFirstFalse
+        |~~ The elements after the first false are not run. ~~|
+        ~([0 "x"] | every ~(gt 0) | not)
+    | proves :holdsOfNothing
+        |~~ An empty container answers true. ~~|
+        ~([] | every ~(gt 0))
+    | proves :takesAVerbByItsName
+        |~~ A verb by its name stands where a quote would. ~~|
+        ~(:number/positive ~(gt 0); [2 4 6] | every ~positive)
+    | proves :answersTheErrorOfAnElement
+        |~~ An error the predicate answers for an element answers the
+            call.
+        ~~|
+        ~([{:age 30} {:name "Bob"}] | every ~(get /age | gt 0) !| tag | eq ::path/KeyNotInMapError)
+    | proves :PredicateKindNotTakenError/refusesABoolean
+        |~~ A value computed at the call is refused, a boolean among them.
+        ~~|
+        ~([1 2 3] | every (count | gt 1)
+          !| get [~(tag) ~(predicate | found | tag)]
+          |  eq [::vec/every/PredicateKindNotTakenError ::boolean])
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
+        |~~ A predicate that answers a number is refused at the element. ~~|
+        ~([1 2] | every ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
+          |  eq [::vec/every/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
+    | proves :asksASetInItsOneOrder
+        |~~ A set asks its number before its string, and the number that
+            fails decides, where the vector asks the string first.
+        ~~|
+        ~(["x" 0] | get [~(every ~(gt 0) !| tag) ~(toSet | every ~(gt 0))]
+          | eq [::call/KindsMismatchedError false])
     | impl ::builtin{};
 
 :vec/filter
@@ -654,246 +615,117 @@
         ~([1 2] | filter ~(gt 1) ~(gt 0) !| tag | eq ::vec/filter/ArgsBeyondInputsError)
     | impl ::builtin{};
 
-:vec/every
-  |~~ Answers whether the predicate answers `true` for every element,
-      the question a law asks of a listing, `[2 4 6] | every ~(gt 0)`
-      answering `true`. It stops at the first element that answers
-      `false`, so the elements after it are not run, and the empty
-      vector answers `true`. The predicate is code run on each element,
-      a quote or a verb by its name, as `filter` takes it: a value
-      computed at the call is refused, the predicate answers a boolean,
-      and an error it answers for an element answers the call. A set is
-      asked in its one order, and a map of its values by an `every` of its
-      own; `any` asks whether some element holds.
-      ::link~(::vec/any) ::link~(::vec/filter)
+:vec/first
+  |~~ Answers the first element, `[10 20 30] | first` answering `10`, or
+      null for the empty vector, so a null answer may be an element that
+      is null or no element at all, which `count` tells apart. A quote
+      answers its first step, a doc its first segment and a set its least
+      element, the first of its one order, `#[:tea :cake :jam] | first`
+      answering `:cake`. A map answers its first value by a `first` of its
+      own; a string answers no `first`, and its first character is
+      `take 1`.
+      ::link~(::vec/last) ::link~(::any/query)
   ~~|
   ::fn
-    | takes :predicate
-        |~~ The code each element is run through, which answers a boolean.
-        ~~|
-        /0 #[::path ::quote]
-    | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `every ~(gt 0)`, or a path,
-            `every /active`; written without the tilde, `every (gt 0)`, it
-            is computed once at the call and refused.
-        ~~|
     | returns
-        |~~ `true` when the predicate held for every element, `false`
-            otherwise.
-        ~~|
-        ::boolean
-    | throws :PredicateAnswerKindNotTakenError
-        |~~ The predicate of `every` answers a boolean for each element;
-            the path of its frame names the element whose predicate
-            answered another kind.
-        ~~|
-    | proves :holdsOfEveryElement
-        |~~ Every element is positive. ~~|
-        ~([2 4 6 8] | every ~(gt 0))
-    | proves :failsOnOneElement
-        |~~ One element below the bar fails it. ~~|
-        ~([1 2 3] | every ~(gt 2) | not)
-    | proves :stopsAtTheFirstFalse
-        |~~ The elements after the first false are not run. ~~|
-        ~([0 "x"] | every ~(gt 0) | not)
-    | proves :holdsOfNothing
-        |~~ An empty container answers true. ~~|
-        ~([] | every ~(gt 0))
-    | proves :takesAVerbByItsName
-        |~~ A verb by its name stands where a quote would. ~~|
-        ~(:number/positive ~(gt 0); [2 4 6] | every ~positive)
-    | proves :answersTheErrorOfAnElement
-        |~~ An error the predicate answers for an element answers the
-            call.
-        ~~|
-        ~([{:age 30} {:name "Bob"}] | every ~(get /age | gt 0) !| tag | eq ::path/KeyNotInMapError)
-    | proves :PredicateKindNotTakenError/refusesABoolean
-        |~~ A value computed at the call is refused, a boolean among them.
-        ~~|
-        ~([1 2 3] | every (count | gt 1)
-          !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/every/PredicateKindNotTakenError ::boolean])
-    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
-        |~~ A predicate that answers a number is refused at the element. ~~|
-        ~([1 2] | every ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::vec/every/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
-    | proves :asksASetInItsOneOrder
-        |~~ A set asks its number before its string, and the number that
-            fails decides, where the vector asks the string first.
-        ~~|
-        ~(["x" 0] | get [~(every ~(gt 0) !| tag) ~(toSet | every ~(gt 0))]
-          | eq [::call/KindsMismatchedError false])
-    | impl ::builtin{};
-
-:vec/any
-  |~~ Answers whether the predicate answers `true` for some element,
-      `[1 2 3] | any ~(gt 2)` answering `true`. It stops at the first
-      element that answers `true`, so the elements after it are not run,
-      and the empty vector answers `false`. The predicate is code run on
-      each element, a quote or a verb by its name, as `filter` takes it:
-      a value computed at the call is refused, and the predicate answers
-      a boolean. A set is asked in its one order, and a map of its values
-      by an `any` of its own; `every` asks whether each element holds.
-      ::link~(::vec/every) ::link~(::vec/filter)
-  ~~|
-  ::fn
-    | takes :predicate
-        |~~ The code each element is run through, which answers a boolean.
-        ~~|
-        /0 #[::path ::quote]
-    | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `any ~(gt 2)`, or a path,
-            `any /vip`; written without the tilde, `any (gt 2)`, it is
-            computed once at the call and refused.
-        ~~|
-    | returns
-        |~~ `true` when the predicate held for some element, `false`
-            otherwise.
-        ~~|
-        ::boolean
-    | throws :PredicateAnswerKindNotTakenError
-        |~~ The predicate of `any` answers a boolean for each element;
-            the path of its frame names the element whose predicate
-            answered another kind.
-        ~~|
-    | proves :holdsOfSomeElement
-        |~~ One element past two is enough. ~~|
-        ~([1 2 3] | any ~(gt 2))
-    | proves :failsOfNone
-        |~~ It is false when no element holds. ~~|
-        ~([1 2 3] | any ~(gt 99) | not)
-    | proves :stopsAtTheFirstTrue
-        |~~ The elements after the first true are not run. ~~|
-        ~([3 "x"] | any ~(gt 2))
-    | proves :failsOfNothing
-        |~~ An empty container answers false. ~~|
-        ~([] | any ~(gt 0) | not)
-    | proves :takesAVerbByItsName
-        |~~ A verb by its name stands where a quote would. ~~|
-        ~(:number/big ~(gt 2); [1 2 3] | any ~big)
-    | proves :PredicateKindNotTakenError/refusesABoolean
-        |~~ A value computed at the call is refused, a boolean among them.
-        ~~|
-        ~([1 2 3] | any (count | gt 1)
-          !| get [~(tag) ~(predicate | found | tag)]
-          |  eq [::vec/any/PredicateKindNotTakenError ::boolean])
-    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
-        |~~ A predicate that answers a number is refused at the element. ~~|
-        ~([1 2] | any ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::vec/any/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
-    | proves :asksASetInItsOneOrder
-        |~~ A set asks its number before its string, and the number that
-            holds decides, where the vector asks the string first.
-        ~~|
-        ~(["x" 3] | get [~(any ~(gt 2) !| tag) ~(toSet | any ~(gt 2))]
-          | eq [::call/KindsMismatchedError true])
-    | impl ::builtin{};
-
-:vec/has
-  |~~ Answers whether the vector holds an element equal to the element the
-      call gives, whether a JSON array holds a value,
-      `["ops" "db"] | has "ops"` answering `true`. Elements are compared
-      as `eq` compares them: a vector element is found by its content, a
-      number whatever its digits, and a keyword is not its string, so
-      `[:ops] | has "ops"` answers `false`. A set is searched by its one
-      order, `#[:dev :ops :qa] | has :ops` answering `true`, and a map answers
-      `has` of its keys by a verb of its own. A vector given is one
-      element: whether a set holds each of several is `inter`. A path
-      given reads the part it names, `[[1] 2] | has /0/0` answering
-      `true`, so a path held as an element is asked for by `contains`,
-      which asks for an element alone.
-      ::link~(::vec/contains) ::link~(::any/eq)
-  ~~|
-  ::fn
-    | takes :element
-        |~~ The element looked for, any value, computed against the
-            subject.
-        ~~|
-        /0
-    | throws :ElementNotGivenError
-        |~~ `has` asks for the element the call gives, `has 1`; whether the
-            vector holds any element is `empty | not`.
-        ~~|
-    | returns
-        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
-        ::boolean
+        |~~ The first element, any value, null for the empty vector. ~~|
+        ::any
     | throws :ArgsBeyondInputsError
-        |~~ `has` asks for one element: whether a set holds each of several
-            is `inter #[1 2] | eq #[1 2]`, and a vector is made a set
-            first, `toSet | inter #[1 2] | eq #[1 2]`.
+        |~~ `first` takes no value: the first two elements are `take 2`. ~~|
+    | proves :answersTheFirst
+        |~~ The first element answers. ~~|
+        ~([10 20 30] | first | eq 10)
+    | proves :answersNullOfNothing
+        |~~ The empty vector has no first element. ~~|
+        ~([] | first | eq null)
+    | proves :leavesCountToTellNullApart
+        |~~ A null element and no element both answer null, and `count`
+            tells them apart.
         ~~|
-    | proves :findsAnElement
-        |~~ An element held is found. ~~|
-        ~(["ops" "db"] | has "ops")
-    | proves :failsOfAnElementNotHeld
-        |~~ An element not held is not found. ~~|
-        ~(["ops" "db"] | has "x" | not)
-    | proves :findsAnEqualVector
-        |~~ A vector element is found by equality. ~~|
-        ~([1 [2]] | has [2])
-    | proves :findsANumberWhateverItsDigits
-        |~~ A number is found whatever its digits. ~~|
-        ~([1 2] | has 1.0)
-    | proves :keepsAKeywordApartFromItsString
-        |~~ A keyword is not its string. ~~|
-        ~([:ops] | has "ops" | not)
-    | proves :asksWhetherAPathReads
-        |~~ A path asks whether it reads, an index within an index among
-            them.
-        ~~|
-        ~([1 [2]] | has /1/0)
-    | proves :searchesASetByItsOneOrder
-        |~~ A set finds an element it holds and no other, a keyword apart
-            from its string.
-        ~~|
-        ~(#[:qa :dev :ops] | get [~(has :ops) ~(has "ops") ~(has :hr)] | eq [true false false])
-    | proves :asksAVectorAsOneElement
-        |~~ A vector given is one element, not several. ~~|
-        ~(#[1 2] | has [1 2] | not)
-    | proves :ElementNotGivenError/refusesACallWithNoElement
-        |~~ A call with no element is refused under the input. ~~|
-        ~(#[1 2] | has !| tag | eq ::vec/has/ElementNotGivenError)
-    | proves :ArgsBeyondInputsError/refusesTwoElements
-        |~~ A call with two elements is refused under the verb. ~~|
-        ~(#[1 2] | has 1 2 !| tag | eq ::vec/has/ArgsBeyondInputsError)
+        ~([[null 1] []] | map ~(get [~(first) ~(count)]) | eq [[null 2] [null 0]])
+    | proves :answersTheFirstStepOfAQuote
+        |~~ A quote answers its first step. ~~|
+        ~(~(add 1 | mul 2) | first | tag | eq ::call)
+    | proves :answersTheLeastElementOfASet
+        |~~ A vector answers its first written, its set the least. ~~|
+        ~([:tea :cake :jam] | get [~(first) ~(toSet | first)] | eq [:tea :cake])
+    | proves :ArgsBeyondInputsError/refusesACount
+        |~~ A count given to `first` is refused under the verb. ~~|
+        ~(#[1 2] | first 2 !| tag | eq ::vec/first/ArgsBeyondInputsError)
     | impl ::builtin{};
 
-:vec/contains
-  |~~ Answers whether the vector holds an element equal to the element the
-      call gives, as `has` asks of an element, under the name a string
-      answers for its substrings, `["ops" "db"] | contains "ops"`
-      answering `true`; whether a value is one of several reads
-      `with {:fruit ~it} ~(["apple" "pear"] | contains fruit)`. A set is searched by its one order,
-      and a map answers no `contains` and asks `has` of its keys. A string
-      answers `contains` for a piece of its text, where a vector and a set
-      hold whole elements alone, so a query that may meet a string or a
-      vector asks `contains`.
-      ::link~(::vec/has) ::link~(::string/contains)
+:vec/flat
+  |~~ Answers the elements with one level of nesting spliced in,
+      `[[1 2] [3] [4 5]] | flat` answering `[1 2 3 4 5]`. An element that
+      is a vector splices its elements whatever tag it stands under, so a
+      set, a quote and a doc splice too, a quote its steps and a doc its
+      segments; a vector deeper inside stays whole, and an element that is
+      no vector stays as it is, `[1 [2]] | flat` answering `[1 2]`. The
+      answer keeps the kind and the tags of the subject,
+      `::Box[[1] [2]] | flat` answering `::Box[1 2]`, so a set of sets
+      splices into the set of their elements, their union,
+      `#[#[1 2] #[2 3]] | flat` answering `#[1 2 3]`; `append` puts a
+      vector in as one element, and `flat` after it splices it.
+      ::link~(::vec/append) ::link~(::set/union)
   ~~|
   ::fn
-    | takes :element
-        |~~ The element looked for, any value, computed against the
-            subject.
-        ~~|
-        /0
     | returns
-        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
-        ::boolean
-    | proves :findsAnElement
-        |~~ An element held is found. ~~|
-        ~(["ops" "db"] | contains "ops")
-    | proves :asksWhetherAValueIsOneOfSeveral
-        |~~ A value named first is looked for among several. ~~|
-        ~("pear" | with {:fruit ~it} ~(["apple" "pear"] | contains fruit))
-    | proves :searchesASetByItsOneOrder
-        |~~ A set answers what `has` answers. ~~|
-        ~(#[:dev :ops] | get [~(contains :ops) ~(contains :hr)] | eq [true false])
-    | proves :holdsOnlyWholeElements
-        |~~ A string holds a piece of its text, a vector and a set whole
-            elements alone.
+        |~~ The elements with one level of nesting spliced in. ~~|
+        ::vec
+    | throws :SubjectNotVecError
+        |~~ `flat` splices the vectors a vector holds, a set's among them: a
+            map's values are read first, `vals | flat`.
         ~~|
-        ~(["abc" ["abc"] #["abc"]] | map ~(contains "b") | eq [true false false])
+    | proves :splicesOneLevel
+        |~~ The inner vectors splice into one. ~~|
+        ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
+    | proves :splicesAVectorUnderATag
+        |~~ A set and a vector under a tag splice. ~~|
+        ~([#[2 1] ::Box[3]] | flat | eq [1 2 3])
+    | proves :splicesTheStepsOfAQuote
+        |~~ A quote splices its steps. ~~|
+        ~([~(add 1) [2]] | flat | first | tag | eq ::call)
+    | proves :keepsADeeperVector
+        |~~ A vector two levels in stays whole. ~~|
+        ~([[1 [2]] 3] | flat | eq [1 [2] 3])
+    | proves :keepsAnElementThatIsNoVector
+        |~~ An element that is no vector stays as it is. ~~|
+        ~([1 [2]] | flat | eq [1 2])
+    | proves :keepsTheTagOfTheSubject
+        |~~ The tags of the subject stay over the answer. ~~|
+        ~(::Box[[1] [2]] | flat | eq ::Box[1 2])
+    | proves :unitesTheSetsASetHolds
+        |~~ A set of sets splices into their union, an element two of them
+            hold held once.
+        ~~|
+        ~([[1 2] [2 3]] | get [~(flat) ~(map ~(toSet) | toSet | flat)] | eq [[1 2 2 3] #[1 2 3]])
+    | proves :SubjectNotVecError/refusesABoolean
+        |~~ A boolean holds nothing to splice. ~~|
+        ~(true | flat !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flat/SubjectNotVecError ::boolean])
     | impl ::builtin{};
+
+:vec/flatten
+  |~~ The name other languages give `flat`: answers the elements with one
+      level of nesting spliced in, as `flat` does,
+      `[[1 2] [3]] | flatten` answering `[1 2 3]`; a vector deeper inside
+      stays whole, `[[1 [2]] 3] | flatten` answering `[1 [2] 3]`.
+      ::link~(::vec/flat)
+  ~~|
+  ::fn
+    | returns
+        |~~ The elements with one level of nesting spliced in. ~~|
+        ::vec
+    | throws :SubjectNotVecError
+        |~~ `flatten` splices a vector as `flat` does: a map's values are
+            read first, `vals | flatten`.
+        ~~|
+    | proves :answersAsFlat
+        |~~ `flatten` answers as `flat`, one level spliced in. ~~|
+        ~([[1 2] [3 [4]]] | get [~(flatten) ~(flat)] | eq [[1 2 3 [4]] [1 2 3 [4]]])
+    | proves :SubjectNotVecError/refusesANumber
+        |~~ A number holds nothing to splice. ~~|
+        ~(42 | flatten !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flatten/SubjectNotVecError ::number])
+    | impl ~(flat);
 
 :vec/groupBy
   |~~ Answers the map of vectors the key files the elements into, each
@@ -1008,6 +840,75 @@
           |  eq [::vec/groupBy/KeyAnswerKindNotTakenError ::vec /1 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{};
 
+:vec/has
+  |~~ Answers whether the vector holds an element equal to the element the
+      call gives, whether a JSON array holds a value,
+      `["ops" "db"] | has "ops"` answering `true`. Elements are compared
+      as `eq` compares them: a vector element is found by its content, a
+      number whatever its digits, and a keyword is not its string, so
+      `[:ops] | has "ops"` answers `false`. A set is searched by its one
+      order, `#[:dev :ops :qa] | has :ops` answering `true`, and a map answers
+      `has` of its keys by a verb of its own. A vector given is one
+      element: whether a set holds each of several is `inter`. A path
+      given reads the part it names, `[[1] 2] | has /0/0` answering
+      `true`, so a path held as an element is asked for by `contains`,
+      which asks for an element alone.
+      ::link~(::vec/contains) ::link~(::any/eq)
+  ~~|
+  ::fn
+    | takes :element
+        |~~ The element looked for, any value, computed against the
+            subject.
+        ~~|
+        /0
+    | throws :ElementNotGivenError
+        |~~ `has` asks for the element the call gives, `has 1`; whether the
+            vector holds any element is `empty | not`.
+        ~~|
+    | returns
+        |~~ `true` when the vector holds the element, `false` otherwise. ~~|
+        ::boolean
+    | throws :ArgsBeyondInputsError
+        |~~ `has` asks for one element: whether a set holds each of several
+            is `inter #[1 2] | eq #[1 2]`, and a vector is made a set
+            first, `toSet | inter #[1 2] | eq #[1 2]`.
+        ~~|
+    | proves :findsAnElement
+        |~~ An element held is found. ~~|
+        ~(["ops" "db"] | has "ops")
+    | proves :failsOfAnElementNotHeld
+        |~~ An element not held is not found. ~~|
+        ~(["ops" "db"] | has "x" | not)
+    | proves :findsAnEqualVector
+        |~~ A vector element is found by equality. ~~|
+        ~([1 [2]] | has [2])
+    | proves :findsANumberWhateverItsDigits
+        |~~ A number is found whatever its digits. ~~|
+        ~([1 2] | has 1.0)
+    | proves :keepsAKeywordApartFromItsString
+        |~~ A keyword is not its string. ~~|
+        ~([:ops] | has "ops" | not)
+    | proves :asksWhetherAPathReads
+        |~~ A path asks whether it reads, an index within an index among
+            them.
+        ~~|
+        ~([1 [2]] | has /1/0)
+    | proves :searchesASetByItsOneOrder
+        |~~ A set finds an element it holds and no other, a keyword apart
+            from its string.
+        ~~|
+        ~(#[:qa :dev :ops] | get [~(has :ops) ~(has "ops") ~(has :hr)] | eq [true false false])
+    | proves :asksAVectorAsOneElement
+        |~~ A vector given is one element, not several. ~~|
+        ~(#[1 2] | has [1 2] | not)
+    | proves :ElementNotGivenError/refusesACallWithNoElement
+        |~~ A call with no element is refused under the input. ~~|
+        ~(#[1 2] | has !| tag | eq ::vec/has/ElementNotGivenError)
+    | proves :ArgsBeyondInputsError/refusesTwoElements
+        |~~ A call with two elements is refused under the verb. ~~|
+        ~(#[1 2] | has 1 2 !| tag | eq ::vec/has/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
 :vec/indexBy
   |~~ Answers the map of the elements, each under the keyword its key
       answered, `[{:id :ann :age 30} {:id :bob :age 25}] | indexBy /id`
@@ -1116,686 +1017,6 @@
         ~~|
         ~([{:id [7]}] | indexBy /id !| get [~(tag) ~(key | answer | tag) ~(trace | last | path) ~(key | expected)]
           |  eq [::vec/indexBy/KeyAnswerKindNotTakenError ::vec /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
-    | impl ::builtin{};
-
-:vec/sort
-  |~~ Answers the elements in the one order of values, the order every
-      value takes against every other, the way a reader ranks what a query
-      found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
-      first, null, boolean, number, string, regex, keyword, tag name,
-      path, vector, set, map, quote and doc, then every value under
-      another tag by the name of its tag, a desc, an excerpt and an error
-      at rest among them; strings order by their characters, an upper
-      letter before a lower one.
-
-      With a key the call gives the elements rank by what the key answers
-      for each, a vector key index by index, so
-      `sort ~(get [~(get /count | desc) ~(get /name)])` reads as
-      `ORDER BY count DESC, name`, and `eq null` at the first index puts
-      null last; elements the key leaves alike keep the order of the
-      subject, and `desc` turns the key, or one index of it, to descend.
-      The key is code run on each element, a path, `/age`, or a quote,
-      `~(get /name | lower)`; a value computed at the call other than
-      null, which gives no key, is refused, one key is
-      given, and a key that misses its field answers the error of the
-      read, so a field an element may lack is read softly, `~(query /age)`.
-
-      The answer keeps the kind of the subject, a vector under a tag and a
-      quote among them; a set sorts into a vector, and a map by its
-      values, its keys kept, by verbs of their own.
-      ::link~(::vec/min) ::link~(::desc)
-  ~~|
-  ::fn
-    | takes :key
-        |~~ The code that ranks each element, null when the call gives
-            none.
-        ~~|
-        ~(query /0) #[::null ::path ::quote]
-    | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it
-            runs on each element, while `(get /age)` is computed once at the
-            call, against the vector, and refused with what it answered.
-        ~~|
-    | returns |~~ The elements in the order the key ranks them. ~~| ::vec
-    | throws :ArgsBeyondInputsError
-        |~~ `sort` takes one key; a key that ranks by several indices is a
-            vector, `sort ~(get [/last /first])`.
-        ~~|
-    | proves :ordersNumbers
-        |~~ Numbers ascend, equal ones side by side. ~~|
-        ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
-    | proves :ordersKindsFirst
-        |~~ Null comes before numbers, and numbers before strings. ~~|
-        ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
-    | proves :ordersTagsByName
-        |~~ Tag names order by their names. ~~|
-        ~([::Crate ::Box] | sort | eq [::Box ::Crate])
-    | proves :ordersAnUpperLetterFirst
-        |~~ Strings order by their code points, an upper letter
-            first.
-        ~~|
-        ~(["b" "B" "a"] | sort | eq ["B" "a" "b"])
-    | proves :ordersByTheKey
-        |~~ A key orders by what it answers for each element. ~~|
-        ~([{:age 30} {:age 20}] | sort /age | eq [{:age 20} {:age 30}])
-    | proves :ranksByTheFirstIndex
-        |~~ A vector key ranks by its first index. ~~|
-        ~([{:last "Lee" :first "Ann"} {:last "Kim" :first "Bob"}] | sort ~(get [/last /first]) | map /first | eq ["Bob" "Ann"])
-    | proves :breaksTiesByTheNextIndex
-        |~~ A vector key breaks the ties of its first index by its next. ~~|
-        ~([{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort ~(get [~(get /score | desc) /name]) | map /name
-          |  eq ["Ann" "Eve" "Bob"])
-    | proves :putsNullLast
-        |~~ `eq null` at the first index puts null last. ~~|
-        ~([3 null 1] | sort ~(get [~(eq null) ~(it)]) | eq [1 3 null])
-    | proves :keepsTheOrderOfAlikeElements
-        |~~ Elements the key leaves alike keep the order of the subject. ~~|
-        ~([{:score 9 :name "Bob"} {:score 7 :name "Eve"} {:score 9 :name "Ann"}] | sort /score | map /name | eq ["Eve" "Bob" "Ann"])
-    | proves :descendsUnderDesc
-        |~~ A key under `desc` descends. ~~|
-        ~([{:age 30} {:age 40}] | sort ~(get /age | desc) | first | get /age | eq 40)
-    | proves :turnsTheKey
-        |~~ `desc` turns one index of a vector key alone. ~~|
-        ~([{:dept :ops :age 30} {:dept :ops :age 41}] | sort ~(get [/dept ~(get /age | desc)]) | map /age | eq [41 30])
-    | proves :readsAFieldSoftly
-        |~~ A field an element may lack is read softly. ~~|
-        ~([{:age 30} {:name "Bob"}] | sort ~(query /age) | eq [{:name "Bob"} {:age 30}])
-    | proves :keepsTheTagOfTheSubject
-        |~~ A vector under a tag sorts under it. ~~|
-        ~(::Rows[{:age 41} {:age 30}] | sort /age | eq ::Rows[{:age 30} {:age 41}])
-    | proves :answersTheErrorOfTheKey
-        |~~ A key that misses its field answers the error of the read. ~~|
-        ~([{:age 30} {:name "Bob"}] | sort /age !| tag | eq ::path/KeyNotInMapError)
-    | proves :answersTheErrorAtAnIndex
-        |~~ A vector key whose read at an index misses its field answers
-            the error alike.
-        ~~|
-        ~([{:age 30} {:name "Bob"}] | sort ~(get [/age]) !| tag | eq ::path/KeyNotInMapError)
-    | proves :KeyKindNotTakenError/refusesANumber
-        |~~ A number given as the key is computed at the call, and
-            refused.
-        ~~|
-        ~([3 1 2] | sort 1 !| get [~(tag) ~(key | found | tag)] | eq [::vec/sort/KeyKindNotTakenError ::number])
-    | proves :ArgsBeyondInputsError/refusesTwoKeys
-        |~~ Two keys are refused under the verb. ~~|
-        ~([{:last "Lee" :first "Ann"}] | sort /last /first !| tag | eq ::vec/sort/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/take
-  |~~ Answers the first elements, as many as the count the call gives,
-      `[1 2 3 4 5] | take 3` answering `[1 2 3]`. The count is a whole
-      number: past the length the whole vector answers, and a count of
-      zero or below takes nothing; a count that is no number, or a
-      fraction, is refused under the input. The answer keeps the kind of
-      the subject, a vector under a tag, a quote, whose first steps it
-      takes, and a set, which takes its least elements, the first of its
-      one order. A map and a string answer `take` by verbs of their own,
-      a string taking its first characters. `drop` answers the rest, so
-      `drop 20 | take 10` reads a slice.
-      ::link~(::vec/drop) ::link~(::any/query)
-  ~~|
-  ::fn
-    | takes :count |~~ How many. ~~| /0 ::number
-    | throws :CountKindNotTakenError
-        |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
-            is read by `toNumber` first, `take ("2" | toNumber)`.
-        ~~|
-    | holds :CountNotIntegerError
-        |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
-            rounded first, `take (1.5 | round)`.
-        ~~|
-        ~(count | eq (floor))
-    | throws :CountNotGivenError
-        |~~ `take` takes as many of the first elements as its call counts,
-            `take 2`, and the first alone is `first`.
-        ~~|
-    | returns |~~ The first elements, as many as the count. ~~| ::vec
-    | throws :ArgsBeyondInputsError
-        |~~ `take` takes one count: the two elements after the first are
-            `drop 1 | take 2`.
-        ~~|
-    | proves :takesTheFirst
-        |~~ Three of five are the first three. ~~|
-        ~([1 2 3 4 5] | take 3 | eq [1 2 3])
-    | proves :takesTheWholePastTheLength
-        |~~ A count past the length takes the whole vector. ~~|
-        ~([1 2 3] | take 99 | eq [1 2 3])
-    | proves :takesNothingByANegativeCount
-        |~~ A negative count takes nothing. ~~|
-        ~([1 2 3] | take -1 | eq [])
-    | proves :takesTheFirstStepsOfAQuote
-        |~~ A quote takes its first steps. ~~|
-        ~(~(add 1 | mul 2 | sub 3) | take 2 | eq ~(add 1 | mul 2))
-    | proves :readsASliceAfterADrop
-        |~~ A drop and then a take read a slice. ~~|
-        ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
-    | proves :CountKindNotTakenError/refusesAString
-        |~~ A string is no count. ~~|
-        ~([1 2 3] | take "2" !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountKindNotTakenError ::string])
-    | proves :CountNotIntegerError/refusesAFraction
-        |~~ A fraction is no count. ~~|
-        ~([1 2 3] | take 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountNotIntegerError ::number])
-    | proves :keepsTheTag
-        |~~ A vector under a tag keeps its tag. ~~|
-        ~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
-    | proves :takesTheLeastOfASet
-        |~~ A vector takes the first it was written with, its set the
-            least, a set again.
-        ~~|
-        ~([3 1 2] | get [~(take 2) ~(toSet | take 2)] | eq [[3 1] #[1 2]])
-    | proves :CountNotGivenError/refusesACallWithNoCount
-        |~~ A call with no count is refused under the input. ~~|
-        ~(#[:tea :cake] | take !| tag | eq ::vec/take/CountNotGivenError)
-    | proves :ArgsBeyondInputsError/refusesTwoCounts
-        |~~ A call with two counts is refused under the verb. ~~|
-        ~(#[:tea :cake] | take 1 2 !| tag | eq ::vec/take/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/drop
-  |~~ Answers the elements after the first ones, as many as the count the
-      call gives, `[1 2 3 4 5] | drop 2` answering `[3 4 5]`. The count
-      is a whole number: past the length the empty vector answers, and a
-      count of zero or below drops nothing; a count that is no number, or
-      a fraction, is refused under the input. The answer keeps the kind of
-      the subject, as `take` keeps it, a set dropping its least elements,
-      and a map and a string answer `drop` by verbs of their own.
-      ::link~(::vec/take)
-  ~~|
-  ::fn
-    | takes :count |~~ How many. ~~| /0 ::number
-    | throws :CountKindNotTakenError
-        |~~ The count is a number, `[1 2 3] | drop 2`; text that holds one
-            is read by `toNumber` first, `drop ("2" | toNumber)`.
-        ~~|
-    | holds :CountNotIntegerError
-        |~~ The count is a whole number, `[1 2 3] | drop 2`; a fraction is
-            rounded first, `drop (1.5 | round)`.
-        ~~|
-        ~(count | eq (floor))
-    | returns |~~ The elements after the ones dropped. ~~| ::vec
-    | throws :ArgsBeyondInputsError
-        |~~ `drop` takes one count: the two elements after the first are
-            `drop 1 | take 2`.
-        ~~|
-    | proves :dropsTheFirst
-        |~~ Dropping two leaves the last three. ~~|
-        ~([1 2 3 4 5] | drop 2 | eq [3 4 5])
-    | proves :dropsTheWholePastTheLength
-        |~~ A count past the length leaves the empty vector. ~~|
-        ~([1 2 3] | drop 99 | eq [])
-    | proves :dropsNothingByANegativeCount
-        |~~ A negative count drops nothing. ~~|
-        ~([1 2 3] | drop -1 | eq [1 2 3])
-    | proves :keepsAQuoteAQuote
-        |~~ A quote drops its first steps. ~~|
-        ~(~(add 1 | mul 2) | drop 1 | eq ~(mul 2))
-    | proves :CountNotIntegerError/refusesAFraction
-        |~~ A fraction is no count. ~~|
-        ~([1 2 3] | drop 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/drop/CountNotIntegerError ::number])
-    | proves :CountKindNotTakenError/refusesAString
-        |~~ A count written as a string is refused. ~~|
-        ~([1 2] | drop "1" !| tag | eq ::vec/drop/CountKindNotTakenError)
-    | proves :dropsTheLeastOfASet
-        |~~ A vector drops the first it was written with, its set the
-            least, a set again.
-        ~~|
-        ~([3 1 2] | get [~(drop 2) ~(toSet | drop 2)] | eq [[2] #[3]])
-    | proves :ArgsBeyondInputsError/refusesTwoCounts
-        |~~ A call with two counts is refused under the verb. ~~|
-        ~(#[:tea :cake :jam] | drop 1 2 !| tag | eq ::vec/drop/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:vec/distinct
-  |~~ Answers the elements, each once, in the order of its first
-      occurrence, `[2 1 2 3 1] | distinct` answering `[2 1 3]`; two values
-      one in the one order are one, a map whatever the order of its
-      entries, and a vector under a tag answers under it. The set of the
-      elements, the one order and no value twice, is `toSet`. It takes no
-      value.
-      ::link~(::vec/toSet)
-  ~~|
-  ::fn
-    | returns
-        |~~ The elements, each once, in the order of its first occurrence.
-        ~~|
-        ::vec
-    | proves :keepsTheFirstOfEach
-        |~~ Each value stays once, where it first stands. ~~|
-        ~([2 1 2 3 1] | distinct | eq [2 1 3])
-    | proves :readsTwoMapsOfOneEntriesAsOne
-        |~~ Two maps of the same entries are one value, whatever their
-            order.
-        ~~|
-        ~([{:b 1 :a 2} {:a 2 :b 1}] | distinct | eq [{:b 1 :a 2}])
-    | proves :answersUnderTheTag
-        |~~ A vector under a tag answers under it, and `toSet` answers the
-            set.
-        ~~|
-        ~(::Box[2 1 2] | get [~(distinct) ~(toSet)] | eq [::Box[2 1] #[1 2]])
-    | impl ::builtin{};
-
-:vec/reverse
-  |~~ Answers the elements in the reverse order, `[1 2 3] | reverse`
-      answering `[3 2 1]`. The answer keeps the kind of the subject, a
-      vector under a tag and a quote, whose steps it reverses; a set and
-      a map answer `reverse` by verbs of their own, a set reversing into
-      a vector.
-      ::link~(::vec/sort)
-  ~~|
-  ::fn
-    | returns |~~ The elements in reverse order. ~~| ::vec
-    | proves :reversesTheOrder
-        |~~ The elements come in reverse order. ~~|
-        ~([1 2 3] | reverse | eq [3 2 1])
-    | proves :keepsTheTagOfTheSubject
-        |~~ A vector under a tag reverses under it. ~~|
-        ~(::Box[1 2 3] | reverse | eq ::Box[3 2 1])
-    | proves :reversesTheStepsOfAQuote
-        |~~ A quote reverses its steps. ~~|
-        ~(~(add 1 | mul 2) | reverse | eq ~(mul 2 | add 1))
-    | impl ::builtin{};
-
-:vec/flat
-  |~~ Answers the elements with one level of nesting spliced in,
-      `[[1 2] [3] [4 5]] | flat` answering `[1 2 3 4 5]`. An element that
-      is a vector splices its elements whatever tag it stands under, so a
-      set, a quote and a doc splice too, a quote its steps and a doc its
-      segments; a vector deeper inside stays whole, and an element that is
-      no vector stays as it is, `[1 [2]] | flat` answering `[1 2]`. The
-      answer keeps the kind and the tags of the subject,
-      `::Box[[1] [2]] | flat` answering `::Box[1 2]`, so a set of sets
-      splices into the set of their elements, their union,
-      `#[#[1 2] #[2 3]] | flat` answering `#[1 2 3]`; `append` puts a
-      vector in as one element, and `flat` after it splices it.
-      ::link~(::vec/append) ::link~(::set/union)
-  ~~|
-  ::fn
-    | returns
-        |~~ The elements with one level of nesting spliced in. ~~|
-        ::vec
-    | throws :SubjectNotVecError
-        |~~ `flat` splices the vectors a vector holds, a set's among them: a
-            map's values are read first, `vals | flat`.
-        ~~|
-    | proves :splicesOneLevel
-        |~~ The inner vectors splice into one. ~~|
-        ~([[1 2] [3] [4 5]] | flat | eq [1 2 3 4 5])
-    | proves :splicesAVectorUnderATag
-        |~~ A set and a vector under a tag splice. ~~|
-        ~([#[2 1] ::Box[3]] | flat | eq [1 2 3])
-    | proves :splicesTheStepsOfAQuote
-        |~~ A quote splices its steps. ~~|
-        ~([~(add 1) [2]] | flat | first | tag | eq ::call)
-    | proves :keepsADeeperVector
-        |~~ A vector two levels in stays whole. ~~|
-        ~([[1 [2]] 3] | flat | eq [1 [2] 3])
-    | proves :keepsAnElementThatIsNoVector
-        |~~ An element that is no vector stays as it is. ~~|
-        ~([1 [2]] | flat | eq [1 2])
-    | proves :keepsTheTagOfTheSubject
-        |~~ The tags of the subject stay over the answer. ~~|
-        ~(::Box[[1] [2]] | flat | eq ::Box[1 2])
-    | proves :unitesTheSetsASetHolds
-        |~~ A set of sets splices into their union, an element two of them
-            hold held once.
-        ~~|
-        ~([[1 2] [2 3]] | get [~(flat) ~(map ~(toSet) | toSet | flat)] | eq [[1 2 2 3] #[1 2 3]])
-    | proves :SubjectNotVecError/refusesABoolean
-        |~~ A boolean holds nothing to splice. ~~|
-        ~(true | flat !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flat/SubjectNotVecError ::boolean])
-    | impl ::builtin{};
-
-:vec/flatten
-  |~~ The name other languages give `flat`: answers the elements with one
-      level of nesting spliced in, as `flat` does,
-      `[[1 2] [3]] | flatten` answering `[1 2 3]`; a vector deeper inside
-      stays whole, `[[1 [2]] 3] | flatten` answering `[1 [2] 3]`.
-      ::link~(::vec/flat)
-  ~~|
-  ::fn
-    | returns
-        |~~ The elements with one level of nesting spliced in. ~~|
-        ::vec
-    | throws :SubjectNotVecError
-        |~~ `flatten` splices a vector as `flat` does: a map's values are
-            read first, `vals | flatten`.
-        ~~|
-    | proves :answersAsFlat
-        |~~ `flatten` answers as `flat`, one level spliced in. ~~|
-        ~([[1 2] [3 [4]]] | get [~(flatten) ~(flat)] | eq [[1 2 3 [4]] [1 2 3 [4]]])
-    | proves :SubjectNotVecError/refusesANumber
-        |~~ A number holds nothing to splice. ~~|
-        ~(42 | flatten !| get [~(tag) ~(subject | found | tag)] | eq [::vec/flatten/SubjectNotVecError ::number])
-    | impl ~(flat);
-
-:vec/concat
-  |~~ Answers the subject with the elements of each vector the call gives
-      after its own, in their order, `[1] | concat [2 3] [4]` answering
-      `[1 2 3 4]`, so `reduce [] ~(concat)` joins the vectors a vector
-      holds. The vectors join beneath the tags they share, a bare one
-      sharing any; `append` puts one element at the end.
-      ::link~(::vec/flat) ::link~(::vec/append)
-  ~~|
-  ::fn
-    | takes :vectors |~~ The vectors joined after the subject. ~~| ~(it) [::vec]
-    | throws :VectorsElementKindNotTakenError
-        |~~ What `concat` joins is a vector, `concat [2 3]`; a single
-            element is put at the end by `append`, `append 2`.
-        ~~|
-    | returns
-        |~~ The elements of the subject and of each vector, in order,
-            under the tags they share.
-        ~~|
-        ::vec
-    | proves :joinsTheVectorsAfterTheSubject
-        |~~ The vectors join after the subject in their order. ~~|
-        ~([1] | concat [2 3] [4] | eq [1 2 3 4])
-    | proves :foldsTheVectorsOfAVector
-        |~~ A fold by `concat` joins the vectors a vector holds. ~~|
-        ~([[1] [2 3]] | reduce [] ~(concat) | eq [1 2 3])
-    | proves :answersUnderTheTagOfTheSubject
-        |~~ A vector under a tag answers under the tag. ~~|
-        ~(::Box[1] | concat [2] | eq ::Box[1 2])
-    | proves :VectorsElementKindNotTakenError/refusesANumber
-        |~~ A number is no vector to join. ~~|
-        ~([1] | concat 2 !| tag | eq ::vec/concat/VectorsElementKindNotTakenError)
-    | impl ::builtin{};
-
-:vec/zip
-  |~~ Answers the vectors the subject holds read side by side, one vector
-      of the elements at each index, as long as the shortest:
-      `[["Ann" "Bob"] [30 25]] | zip` answers `[["Ann" 30] ["Bob" 25]]`,
-      and the empty vector answers `[]`. Each element is a vector, a set,
-      a quote and a doc among them; a single vector is put beside the
-      others in a vector first, `get [~(get /names) ~(get /ages)] | zip`,
-      and a set answers the vector of its columns by a `zip` of its own.
-      It takes no value.
-      ::link~(::vec/flat) ::link~(::set/zip)
-  ~~|
-  ::fn
-    | returns |~~ The elements at each index, a vector each. ~~| ::vec
-    | throws :ElementKindNotTakenError
-        |~~ `zip` reads vectors side by side; the path of its frame names
-            the first element that is no vector, the vectors read into one first,
-            `get [/names /ages] | zip`.
-        ~~|
-    | proves :pairsTheElementsAtEachIndex
-        |~~ The elements at each index stand together. ~~|
-        ~([["Ann" "Bob"] [30 25]] | zip | eq [["Ann" 30] ["Bob" 25]])
-    | proves :stopsAtTheShortest
-        |~~ The answer is as long as the shortest vector. ~~|
-        ~([["Ann" "Bob" "Eve"] [30]] | zip | eq [["Ann" 30]])
-    | proves :answersNothingOfNothing
-        |~~ The empty vector answers the empty vector. ~~|
-        ~([] | zip | eq [])
-    | proves :readsFieldsSideBySide
-        |~~ Two fields of a record read side by side pair their elements.
-        ~~|
-        ~({:names ["ann" "bob"] :ages [30 40]} | get [/names /ages] | zip | eq [["ann" 30] ["bob" 40]])
-    | proves :ElementKindNotTakenError/refusesANumber
-        |~~ An element that is no vector is refused at its index. ~~|
-        ~([[1 2] 3] | zip !| get [~(tag) ~(trace | last | path) ~(subject | found | get /1 | tag) ~(subject | expected)] | eq [::vec/zip/ElementKindNotTakenError /1 ::number #[::vec]])
-    | impl ::builtin{};
-
-:vec/reduce
-  |~~ Answers the seed folded over the elements by the reducer, each
-      element folded into the value so far,
-      `[1 2 3 4 5] | reduce 0 ~(add)` answering `15`; the empty vector
-      answers the seed. The seed comes first and the reducer after it, so
-      `reduce ~(add)` reads the quote as the seed and is refused for the
-      reducer it lacks. The reducer is code, a path or a quote. A quote
-      of one word, `~(add)` or `~add`, or of its address,
-      `~(number/add)`, names the verb the fold calls with the value so far
-      as its subject and the element as its first arg; any other code runs
-      on the pair of the value so far and the element, and what it answers
-      is the value so far after that element:
-      `[{:qty 2} {:qty 3}] | reduce 0 ~(sumOf /0 (get /1 | get /qty))`
-      answers `5`. A failure the reducer answers answers the call. Adding
-      from zero sums, multiplying from one gives the product, appending
-      from the empty string joins strings and uniting from the empty set
-      merges sets. A set folds its elements in its one order, not as they
-      were written, and a map folds its values by a `reduce` of its own.
-      ::link~(::vec/sum)
-  ~~|
-  ::fn
-    | takes :seed |~~ The value the fold starts from, any value. ~~| /0
-    | takes :reducer
-        |~~ Code: a quote of one word, which names the verb the fold calls
-            with the element, or a path or a quote it runs on the pair of
-            the value so far and the element.
-        ~~|
-        /1 #[::path ::quote]
-    | throws :ReducerKindNotTakenError
-        |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
-            seed: written first, `reduce ~(add) 0`, it is read as the
-            seed and the seed as the reducer, and written
-            without the tilde, `(add)`, it is computed once at the call;
-            either is refused.
-        ~~|
-    | throws :ReducerNotGivenError
-        |~~ `reduce` takes the seed first and the reducer after it,
-            `reduce 0 ~(add)`; a call of the reducer alone reads it as the
-            seed.
-        ~~|
-    | returns
-        |~~ The value folded after the last element, any value, the seed
-            for an empty vector.
-        ~~|
-        ::any
-    | proves :sums
-        |~~ Adding from zero sums. ~~|
-        ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
-    | proves :multiplies
-        |~~ Multiplying from one gives the product. ~~|
-        ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
-    | proves :joinsStrings
-        |~~ Appending from the empty string joins. ~~|
-        ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
-    | proves :unitesSets
-        |~~ Uniting from the empty set merges. ~~|
-        ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
-    | proves :takesTheQuoteOfAName
-        |~~ The quote of a name alone is a reducer. ~~|
-        ~([1 2 3] | reduce 0 ~add | eq 6)
-    | proves :takesTheAddressOfAVerb
-        |~~ A verb named by its address is a reducer. ~~|
-        ~([1 2 3] | reduce 0 ~(number/add) | eq 6)
-    | proves :runsCodeOnThePair
-        |~~ Code of more than one word runs on the pair of the value so
-            far and the element.
-        ~~|
-        ~([1 2 3] | reduce 0 ~(get [~(get /0 | mul 10) /1] | sum) | eq 123)
-    | proves :foldsAFieldOfEachElement
-        |~~ Code reads a field of each element from the pair. ~~|
-        ~([{:qty 2} {:qty 3}] | reduce 0 ~(sumOf /0 (get /1 | get /qty)) | eq 5)
-    | proves :takesAName
-        |~~ A name takes the value so far as its subject and the element
-            as its first arg.
-        ~~|
-        ~(:number/larger (::fn | takes :other |~~ The element. ~~| /0 ::number | impl ~(if (gt other) ~(it) ~(other))); [3 1 4 1 5] | reduce 0 ~larger | eq 5)
-    | proves :takesANameThatLeavesTheElement
-        |~~ A name may leave the element unread. ~~|
-        ~(:number/tally (::fn | takes :el |~~ The element, unread. ~~| /0 | impl ~(add 1)); [10 20 30] | reduce 0 ~tally | eq 3)
-    | proves :answersTheSeedOfNothing
-        |~~ The seed is the first value so far, answered as it is for an
-            empty subject.
-        ~~|
-        ~([] | reduce 42 ~(add) | eq 42)
-    | proves :answersTheErrorOfTheReducer
-        |~~ An error the reducer answers answers the call. ~~|
-        ~([1 "x" 3] | reduce 0 ~(add) !| tag | eq ::number/add/AddendKindNotTakenError)
-    | proves :ReducerKindNotTakenError/refusesANumber
-        |~~ A number computed at the call is refused. ~~|
-        ~([1 2 3] | reduce 0 1
-          !| get [~(tag) ~(reducer | found | tag)]
-          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
-    | proves :ReducerKindNotTakenError/refusesTheReducerFirst
-        |~~ A reducer written before the seed is read as the seed, and
-            the seed as the reducer.
-        ~~|
-        ~([1 2 3] | reduce ~(add) 0
-          !| get [~(tag) ~(reducer | found | tag)]
-          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
-    | proves :ReducerNotGivenError/readsALoneQuoteAsTheSeed
-        |~~ A call of the reducer alone lacks the reducer. ~~|
-        ~([1 2 3] | reduce ~(add) !| tag | eq ::vec/reduce/ReducerNotGivenError)
-    | proves :takesANameOfTwoSteps
-        |~~ Two steps under a name of their own fold as one verb. ~~|
-        ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)); [1 2 3] | reduce 0 ~(step) | eq 11)
-    | proves :foldsASetInItsOneOrder
-        |~~ A vector folds as written, its set in the one order. ~~|
-        ~(["b" "a"] | get [~(reduce "" ~(append)) ~(toSet | reduce "" ~(append))] | eq ["ba" "ab"])
-    | impl ::builtin{};
-
-:vec/union
-  |~~ Answers the union of the values the vector holds, from the first:
-      sets unite in the one order, `[#[:tea :cake] #[:cake :jam]] | union`
-      answering `#[:cake :jam :tea]`, maps merge with the last value
-      winning a key, `[{:font 12} {:font 14 :lang :en}] | union` answering
-      `{:font 14 :lang :en}`, and a vector of one value answers it. The
-      values are sets or maps: one that is neither is refused at its
-      index, a set beside a map with the pair, and the vector holds one
-      value at least. The call takes no value, and two values unite as
-      `#[:tea] | union #[:cake]`; the sets a set holds,
-      whose own `union` meets the set its call gives, unite by this verb
-      called by its address, `#[#[1] #[2]] | vec/union`, or by `flat`.
-      ::link~(::vec/minus) ::link~(::vec/inter)
-      ::link~(::set/union)
-  ~~|
-  ::fn
-    | returns
-        |~~ The union of the values, a set or a map. ~~|
-        #[::set ::map]
-    | throws :SubjectEmptyError
-        |~~ `union` over a vector unites its values from the first,
-            `[a b c] | union`, so the vector holds one at least; two
-            values unite as `a | union b`.
-        ~~|
-    | throws :ElementKindNotTakenError
-        |~~ The values `union` unites are sets or maps; the path of its
-            frame names the first that is neither, and a vector of vectors unites once
-            each is a set, `map ~(toSet) | union`.
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `union` over a vector unites the values it holds and takes no
-            value: two values unite as `a | union b`, `#[1] | union #[2]`.
-        ~~|
-    | proves :unitesTheValues
-        |~~ The sets the vector holds unite. ~~|
-        ~([#[:tea :cake] #[:cake :jam]] | union | eq #[:cake :jam :tea])
-    | proves :mergesMapsTheLastWinning
-        |~~ Maps merge with the last value winning a key. ~~|
-        ~([{:font 12} {:font 14 :lang :en}] | union | eq {:font 14 :lang :en})
-    | proves :answersAValueAlone
-        |~~ A vector of one value answers it. ~~|
-        ~([#[:tea]] | union | eq #[:tea])
-    | proves :SubjectEmptyError/refusesTheEmptyVector
-        |~~ The empty vector holds no value. ~~|
-        ~([] | union !| tag | eq ::vec/union/SubjectEmptyError)
-    | proves :ElementKindNotTakenError/refusesANumberAtItsIndex
-        |~~ A value that is neither a set nor a map is refused at its
-            index.
-        ~~|
-        ~([#[:tea] 2] | union !| get [~(tag) ~(trace | last | path) ~(subject | found | get /1 | tag) ~(subject | expected)]
-          |  eq [::vec/union/ElementKindNotTakenError /1 ::number #[::map ::set]])
-    | proves :ElementKindNotTakenError/unitesVectorsMadeSets
-        |~~ A vector of vectors unites once each is a set. ~~|
-        ~([[1 2] [2 3]] | map ~(toSet) | union | eq #[1 2 3])
-    | proves :refusesASetAndAMap
-        |~~ A set and a map do not unite. ~~|
-        ~([#[:tea] {:font 12}] | union
-          !| get [~(tag) ~(leftTag) ~(rightTag)]
-          |  eq [::call/KindsMismatchedError ::set ::map])
-    | proves :ArgsBeyondInputsError/refusesAValueGiven
-        |~~ A value the call gives is refused under the verb. ~~|
-        ~([#[1]] | union #[2] !| tag | eq ::vec/union/ArgsBeyondInputsError)
-    | proves :unitesTheSetsASetHoldsByItsAddress
-        |~~ The sets a set holds unite by the verb called by its address.
-        ~~|
-        ~(#[#[1] #[2]] | vec/union | eq #[1 2])
-    | impl ::builtin{};
-
-:vec/minus
-  |~~ Answers the first value the vector holds less each one after it: a
-      set loses the elements the next set holds,
-      `[#[:tea :cake :jam] #[:cake]] | minus` answering `#[:jam :tea]`, and
-      a map loses the keys of the next, which is a map, a set or a vector
-      of keys, each a keyword, a number or a string,
-      `[{:name "Ann" :tmp 3} [:tmp]] | minus` answering `{:name "Ann"}`; a
-      key of another kind is refused at its element. The first value is a
-      set or a map, refused at its index when it is neither, a value after
-      it the algebra has no rule for is refused with the pair, and the
-      vector holds one value at least. The call takes no value, and of two
-      values `#[:tea :cake] | minus #[:cake]` takes the second from the
-      first; the sets a set holds meet in its one order as the vector it is,
-      `toVec | minus`, or by this verb called by its address,
-      `#[#[1 2] #[1]] | vec/minus` answering `#[]`.
-      ::link~(::vec/union) ::link~(::vec/inter)
-      ::link~(::set/minus)
-  ~~|
-  ::fn
-    | returns
-        |~~ The first value less the ones after it, a set or a map. ~~|
-        #[::set ::map]
-    | throws :SubjectEmptyError
-        |~~ `minus` over a vector takes from its first value the ones
-            after it, `[a b c] | minus`, so the vector holds one at least;
-            of two values `a | minus b` takes `b` from `a`.
-        ~~|
-    | throws :ElementKindNotTakenError
-        |~~ The value `minus` takes from is a set or a map; the path of
-            its frame names the first value of the vector, which is
-            neither.
-        ~~|
-    | throws :KeyKindNotTakenError
-        |~~ A key `minus` takes out of a map is a keyword, a number or a
-            string, as `get` reads a key alone; the path of its frame
-            names the first key of a value of the vector that is none of
-            them, and `:expected` the three kinds.
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `minus` over a vector takes from its first value the ones
-            after it and takes no value: of two values `a | minus b` takes
-            `b` from `a`, `#[1 2] | minus #[2]`.
-        ~~|
-    | proves :subtractsTheRest
-        |~~ The first set loses what the next holds. ~~|
-        ~([#[:tea :cake :jam] #[:cake]] | minus | eq #[:jam :tea])
-    | proves :takesKeysOutOfAMap
-        |~~ A map loses the keys of a vector after it, a string among
-            them.
-        ~~|
-        ~([{:name "Ann" :tmp 3} ["tmp"]] | minus | eq {:name "Ann"})
-    | proves :takesTheKeysOfAMap
-        |~~ A map loses the keys of a map after it. ~~|
-        ~([{:name "Ann" :tmp 3} {:tmp null}] | minus | eq {:name "Ann"})
-    | proves :SubjectEmptyError/refusesTheEmptyVector
-        |~~ The empty vector holds no value. ~~|
-        ~([] | minus !| tag | eq ::vec/minus/SubjectEmptyError)
-    | proves :ElementKindNotTakenError/refusesANumberFirst
-        |~~ A first value that is neither a set nor a map is refused at
-            its index.
-        ~~|
-        ~([1 #[1]] | minus !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::vec/minus/ElementKindNotTakenError /0 #[::map ::set]])
-    | proves :refusesAMapAfterASet
-        |~~ A map after a set is refused with the pair. ~~|
-        ~([#[:tea] {:font 12}] | minus
-          !| get [~(tag) ~(leftTag) ~(rightTag)]
-          |  eq [::call/KindsMismatchedError ::set ::map])
-    | proves :KeyKindNotTakenError/refusesABoolean
-        |~~ A boolean among the keys is refused at its index, with the
-            kinds of a key.
-        ~~|
-        ~([{:name "Ann"} [:tmp true]] | minus !| get [~(tag) ~(subject | found | get /1/1 | tag) ~(trace | last | path) ~(subject | expected)]
-          |  eq [::vec/minus/KeyKindNotTakenError ::boolean /1/1 #[::keyword ::number ::string]])
-    | proves :ArgsBeyondInputsError/refusesAValueGiven
-        |~~ A value the call gives is refused under the verb. ~~|
-        ~([#[1]] | minus #[2] !| tag | eq ::vec/minus/ArgsBeyondInputsError)
-    | proves :takesTheSetsASetHoldsInItsOneOrder
-        |~~ The sets a set holds meet in its one order, the sets a vector
-            holds in the order written.
-        ~~|
-        ~(get [~(#[#[1 2] #[1]] | vec/minus) ~([#[1 2] #[1]] | minus)] | eq [#[] #[2]])
     | impl ::builtin{};
 
 :vec/inter
@@ -1966,6 +1187,345 @@
           |  eq [::vec/join/ElementKindNotTakenError ::number /1 #[::keyword ::string]])
     | impl ::builtin{};
 
+:vec/last
+  |~~ Answers the last element, `[10 20 30] | last` answering `30`, or
+      null for the empty vector, as `first` answers from the other end.
+      A quote answers its last step, a doc its last segment and a set its
+      greatest element. A map answers its last value by a `last` of its
+      own, and a string answers no `last`.
+      ::link~(::vec/first)
+  ~~|
+  ::fn
+    | returns
+        |~~ The last element, any value, null for the empty vector. ~~|
+        ::any
+    | throws :ArgsBeyondInputsError
+        |~~ `last` takes no value: the last two elements are
+            `drop (count | sub 2)`, the count computed against the vector.
+        ~~|
+    | proves :answersTheLast
+        |~~ The last element answers. ~~|
+        ~([10 20 30] | last | eq 30)
+    | proves :answersNullOfNothing
+        |~~ The empty vector has no last element. ~~|
+        ~([] | last | eq null)
+    | proves :answersTheLastStepOfAQuote
+        |~~ A quote answers its last step. ~~|
+        ~(~(add 1 | mul 2) | last | get /name | eq :mul)
+    | proves :answersTheGreatestElementOfASet
+        |~~ A vector answers its last written, its set the greatest. ~~|
+        ~([:tea :cake :jam] | get [~(last) ~(toSet | last)] | eq [:jam :tea])
+    | proves :ArgsBeyondInputsError/refusesACount
+        |~~ A count given to `last` is refused under the verb. ~~|
+        ~(#[1 2] | last 2 !| tag | eq ::vec/last/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:vec/length
+  |~~ The name other languages give `count`: answers the number of
+      elements the vector holds, as `count` does, `[1 2 3] | length`
+      answering `3`.
+      ::link~(::vec/count)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the vector holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `length` answers as `count`. ~~|
+        ~([1 2 3] | get [~(length) ~(count)] | eq [3 3])
+    | impl ~(count);
+
+:vec/map
+  |~~ Answers the vector of what the code answers for each element, in
+      their order, `[1 2 3] | map ~(add 10)` answering `[11 12 13]`. The
+      code is a quote run on each element as its subject: a step of one
+      word or one path written short, `map /name` or `map ~count`,
+      several steps in one quote, `map ~(mul 2 | add 1)`, and the template
+      of `get`, which builds the shape of each element,
+      `map ~(get {:id /id :count ~(get /tags | count)})`.
+      A quote written in the call reads the names of its step, a name
+      declared before the call among them; a quote held in a name runs
+      in a lane of its own, which reads the verbs of the tree and no
+      value a reader named; and the names a run declares stay in it. The
+      first failure the code answers for an element is the answer of the
+      call, the elements after it left unrun, and a code that recovers,
+      `map ~(add 1 !| 0)`, keeps every element. The answers stand in a
+      vector of their own, under no tag of the subject, whose tags speak
+      of the elements it held; a quote maps its steps, a doc its segments
+      and a set its elements in its one order, equal images each at its
+      index, which `toSet` makes a set. A map answers `map` by a verb of
+      its own; `filter` keeps the elements a predicate holds of, and
+      `reduce` folds them into one value.
+      ::link~(::vec/filter) ::link~(::vec/reduce)
+      ::link~(::map/map) ::link~(::qlang/code)
+  ~~|
+  ::fn
+    | takes :code
+        |~~ The code run on each element, a quote. ~~|
+        /0 #[::path ::quote]
+    | throws :CodeKindNotTakenError
+        |~~ The code is a quote, `map ~(add 1)`, or a path, `map /name`;
+            written without the tilde, `map (add 1)`, it is computed once
+            at the call, against the vector, and refused with what it
+            answered.
+        ~~|
+    | throws :CodeNotGivenError
+        |~~ `map` runs the code the call gives on each element,
+            `map ~(add 1)`; a call without it has nothing to run.
+        ~~|
+    | returns
+        |~~ What the code answered for each element, in their order, a
+            vector under no tag.
+        ~~|
+        ::any
+    | throws :ArgsBeyondInputsError
+        |~~ `map` takes one code: several steps run in order inside one
+            quote, `map ~(mul 2 | add 1)`.
+        ~~|
+    | proves :answersWhatEachElementAnswers
+        |~~ Each element is replaced by what the code answers for it. ~~|
+        ~([1 2 3] | map ~(add 10) | eq [11 12 13])
+    | proves :takesAPathShort
+        |~~ A path alone is written short. ~~|
+        ~([{:name "Ann"} {:name "Bob"}] | map /name | eq ["Ann" "Bob"])
+    | proves :runsSeveralStepsInOneQuote
+        |~~ Several steps run in one quote on each element. ~~|
+        ~([1 2 3] | map ~(mul 2 | add 1) | eq [3 5 7])
+    | proves :readsANameOfTheScope
+        |~~ A name of the code around the call is read inside. ~~|
+        ~({:rate 10 :prices [1 2]} | with [/rate /prices] ~(prices | map ~(mul rate)) | eq [10 20])
+    | proves :answersTheFirstFailure
+        |~~ The first error answers the call. ~~|
+        ~([1 "a" "b"] | map ~(add 1) !| trace | first | subject | eq "a")
+    | proves :recoversAFailedElement
+        |~~ A code that recovers keeps every element. ~~|
+        ~([1 "x"] | map ~(add 1 !| 0) | eq [2 0])
+    | proves :answersUnderNoTag
+        |~~ The answers stand under no tag of the subject. ~~|
+        ~(::Box[1 2] | map ~(add 1) | eq [2 3])
+    | proves :mapsTheStepsOfAQuote
+        |~~ A quote maps its steps. ~~|
+        ~(~(add 1 | mul 2) | map /name | eq [:add :mul])
+    | proves :answersTheEmptyVector
+        |~~ The empty vector answers the empty vector. ~~|
+        ~([] | map ~(add 1) | eq [])
+    | proves :CodeKindNotTakenError/refusesAStepComputedAtTheCall
+        |~~ A step written without its quote is refused. ~~|
+        ~([1 2] | map (add 1) !| tag | eq ::vec/map/CodeKindNotTakenError)
+    | proves :CodeNotGivenError/refusesACallWithoutCode
+        |~~ A call without code is refused under the input. ~~|
+        ~([1 2] | map !| tag | eq ::vec/map/CodeNotGivenError)
+    | proves :ArgsBeyondInputsError/refusesTwoCodes
+        |~~ Two codes are refused under the verb. ~~|
+        ~([1 2] | map ~(add 1) ~(mul 2) !| tag | eq ::vec/map/ArgsBeyondInputsError)
+    | proves :buildsTheShapeOfEachElementByATemplate
+        |~~ A template of `get` builds the shape of each element. ~~|
+        ~([{:id 1 :tags [:new :vip]}] | map ~(get {:id /id :count ~(get /tags | count)}) | eq [{:id 1 :count 2}])
+    | proves :keepsTheNamesOfARunInside
+        |~~ The names a run declares stay in it. ~~|
+        ~([1 2] | map ~(:bonus 5; add bonus) | bonus !| tag | eq ::call/UnknownNameError)
+    | proves :keepsEveryElementByARecoveringCode
+        |~~ A code that recovers keeps every element. ~~|
+        ~([1 "a" 3] | map ~(add 1 !| 0) | eq [2 0 4])
+    | proves :mapsASetInItsOneOrderIntoAVector
+        |~~ A set maps its elements in its one order into a vector, equal
+            images each at its index.
+        ~~|
+        ~(#[3 1 2] | map ~(gt 1) | eq [false true true])
+    | impl ::builtin{};
+
+:vec/max
+  |~~ Answers the greatest element in the one order of values,
+      `[3 1 4] | max` answering `4`, or null for the empty vector, as
+      `min` answers from the other end, of elements of one kind, and
+      with a key the element whose key answers greatest answers whole, the
+      first of equal ones, `[{:age 30} {:age 40}] | max /age` answering
+      `{:age 40}`. The key is read as `min` reads it; a set answers its
+      greatest element without a key, and a map its greatest value by a
+      `max` of its own.
+      ::link~(::vec/min)
+  ~~|
+  ::fn
+    | takes :key
+        |~~ The key the call gives, code run on each element, null when it
+            gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :KeyKindNotTakenError
+        |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
+    | returns
+        |~~ The greatest element, any value, null for the empty vector. ~~|
+        ::any
+    | proves :answersTheGreatest
+        |~~ The greatest element answers. ~~|
+        ~([3 1 4 1 5] | max | eq 5)
+    | proves :answersNullOfNothing
+        |~~ The empty vector has no greatest element. ~~|
+        ~([] | max | eq null)
+    | proves :relatesValuesOfOneKind
+        |~~ A number and a string are no pair a maximum relates. ~~|
+        ~([3 "a"] | max !| tag | eq ::call/KindsMismatchedError)
+    | proves :answersTheElementOfTheGreatestKey
+        |~~ The element whose key answers most answers whole. ~~|
+        ~([{:age 30} {:age 40}] | max /age | eq {:age 40})
+    | proves :answersTheFirstOfEqualKeys
+        |~~ Of elements whose keys are equal the first answers. ~~|
+        ~([{:age 40 :name "Ann"} {:age 40 :name "Bob"}] | max /age | get /name | eq "Ann")
+    | proves :KeyKindNotTakenError/refusesANumber
+        |~~ A key that is no quote is refused under the input. ~~|
+        ~([1 2] | max 1 !| tag | eq ::vec/max/KeyKindNotTakenError)
+    | proves :answersTheLastOfASet
+        |~~ A set answers its greatest element without a key, its last. ~~|
+        ~(#[3 1 4] | get [~(max) ~(last)] | eq [4 4])
+    | impl ::builtin{};
+
+:vec/min
+  |~~ Answers the least element in the one order of values,
+      `[3 1 4] | min` answering `1`, or null for the empty vector. It
+      relates elements of one kind, as `lt` relates two values, so two of
+      two kinds are refused as the pair, a missing value among them, which
+      is taken out first, `filter ~(ne null) | min`. With a key the call
+      gives, the element whose key answers least answers whole, the first
+      of equal ones, `[{:age 30} {:age 20}] | min /age` answering
+      `{:age 20}`. The key is code run on each element, a path, `/age`, or
+      a quote, `~(get /age | abs)`, read as `sort` reads its key, so
+      `desc` turns it; a value computed at the call other than null, which
+      gives no key, is refused, and a key that misses its field answers the
+      error of the read. A set answers its least element without a key,
+      the first of its one order, and a map its least value by a `min` of
+      its own.
+      ::link~(::vec/max) ::link~(::vec/sort)
+  ~~|
+  ::fn
+    | takes :key
+        |~~ The key the call gives, code run on each element, null when it
+            gives none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :KeyKindNotTakenError
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it
+            runs on each element, while `(get /age)` is computed once at the
+            call, against the vector, and refused with what it answered.
+        ~~|
+    | returns
+        |~~ The least element, any value, null for the empty vector. ~~|
+        ::any
+    | proves :answersTheLeast
+        |~~ The least element answers. ~~|
+        ~([3 1 4 1 5] | min | eq 1)
+    | proves :answersNullOfNothing
+        |~~ The empty vector has no least element. ~~|
+        ~([] | min | eq null)
+    | proves :relatesValuesOfOneKind
+        |~~ Two elements of two kinds are refused, a missing one taken out
+            first.
+        ~~|
+        ~(get [~([3 null 1] | min !| tag) ~([3 null 1] | filter ~(ne null) | min)] | eq [::call/KindsMismatchedError 1])
+    | proves :answersTheElementOfTheLeastKey
+        |~~ The element whose key answers least answers whole. ~~|
+        ~([{:age 30} {:age 20}] | min /age | eq {:age 20})
+    | proves :answersTheFirstOfEqualKeys
+        |~~ Of elements whose keys are equal the first answers. ~~|
+        ~([{:age 20 :name "Ann"} {:age 20 :name "Bob"}] | min /age | get /name | eq "Ann")
+    | proves :turnsTheKeyByDesc
+        |~~ A key under `desc` answers the greatest. ~~|
+        ~([2 1 3] | min ~(desc) | eq 3)
+    | proves :answersTheErrorOfTheKey
+        |~~ A key that misses its field answers the error of the read. ~~|
+        ~([{:age 30} {:name "Bob"}] | min /age !| tag | eq ::path/KeyNotInMapError)
+    | proves :KeyKindNotTakenError/refusesAStepWithoutItsQuote
+        |~~ A step written without its quote runs on the whole subject at
+            the call, and its error is refused.
+        ~~|
+        ~([3 1] | min (get /age)
+          !| get [~(tag) ~(key | found | tag)]
+          |  eq [::vec/min/KeyKindNotTakenError ::path/IndexNotIntegerError])
+    | proves :answersTheFirstOfASet
+        |~~ A set answers its least element without a key, its first. ~~|
+        ~(#[3 1 4] | get [~(min) ~(first)] | eq [1 1])
+    | impl ::builtin{};
+
+:vec/minus
+  |~~ Answers the first value the vector holds less each one after it: a
+      set loses the elements the next set holds,
+      `[#[:tea :cake :jam] #[:cake]] | minus` answering `#[:jam :tea]`, and
+      a map loses the keys of the next, which is a map, a set or a vector
+      of keys, each a keyword, a number or a string,
+      `[{:name "Ann" :tmp 3} [:tmp]] | minus` answering `{:name "Ann"}`; a
+      key of another kind is refused at its element. The first value is a
+      set or a map, refused at its index when it is neither, a value after
+      it the algebra has no rule for is refused with the pair, and the
+      vector holds one value at least. The call takes no value, and of two
+      values `#[:tea :cake] | minus #[:cake]` takes the second from the
+      first; the sets a set holds meet in its one order as the vector it is,
+      `toVec | minus`, or by this verb called by its address,
+      `#[#[1 2] #[1]] | vec/minus` answering `#[]`.
+      ::link~(::vec/union) ::link~(::vec/inter)
+      ::link~(::set/minus)
+  ~~|
+  ::fn
+    | returns
+        |~~ The first value less the ones after it, a set or a map. ~~|
+        #[::set ::map]
+    | throws :SubjectEmptyError
+        |~~ `minus` over a vector takes from its first value the ones
+            after it, `[a b c] | minus`, so the vector holds one at least;
+            of two values `a | minus b` takes `b` from `a`.
+        ~~|
+    | throws :ElementKindNotTakenError
+        |~~ The value `minus` takes from is a set or a map; the path of
+            its frame names the first value of the vector, which is
+            neither.
+        ~~|
+    | throws :KeyKindNotTakenError
+        |~~ A key `minus` takes out of a map is a keyword, a number or a
+            string, as `get` reads a key alone; the path of its frame
+            names the first key of a value of the vector that is none of
+            them, and `:expected` the three kinds.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `minus` over a vector takes from its first value the ones
+            after it and takes no value: of two values `a | minus b` takes
+            `b` from `a`, `#[1 2] | minus #[2]`.
+        ~~|
+    | proves :subtractsTheRest
+        |~~ The first set loses what the next holds. ~~|
+        ~([#[:tea :cake :jam] #[:cake]] | minus | eq #[:jam :tea])
+    | proves :takesKeysOutOfAMap
+        |~~ A map loses the keys of a vector after it, a string among
+            them.
+        ~~|
+        ~([{:name "Ann" :tmp 3} ["tmp"]] | minus | eq {:name "Ann"})
+    | proves :takesTheKeysOfAMap
+        |~~ A map loses the keys of a map after it. ~~|
+        ~([{:name "Ann" :tmp 3} {:tmp null}] | minus | eq {:name "Ann"})
+    | proves :SubjectEmptyError/refusesTheEmptyVector
+        |~~ The empty vector holds no value. ~~|
+        ~([] | minus !| tag | eq ::vec/minus/SubjectEmptyError)
+    | proves :ElementKindNotTakenError/refusesANumberFirst
+        |~~ A first value that is neither a set nor a map is refused at
+            its index.
+        ~~|
+        ~([1 #[1]] | minus !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::vec/minus/ElementKindNotTakenError /0 #[::map ::set]])
+    | proves :refusesAMapAfterASet
+        |~~ A map after a set is refused with the pair. ~~|
+        ~([#[:tea] {:font 12}] | minus
+          !| get [~(tag) ~(leftTag) ~(rightTag)]
+          |  eq [::call/KindsMismatchedError ::set ::map])
+    | proves :KeyKindNotTakenError/refusesABoolean
+        |~~ A boolean among the keys is refused at its index, with the
+            kinds of a key.
+        ~~|
+        ~([{:name "Ann"} [:tmp true]] | minus !| get [~(tag) ~(subject | found | get /1/1 | tag) ~(trace | last | path) ~(subject | expected)]
+          |  eq [::vec/minus/KeyKindNotTakenError ::boolean /1/1 #[::keyword ::number ::string]])
+    | proves :ArgsBeyondInputsError/refusesAValueGiven
+        |~~ A value the call gives is refused under the verb. ~~|
+        ~([#[1]] | minus #[2] !| tag | eq ::vec/minus/ArgsBeyondInputsError)
+    | proves :takesTheSetsASetHoldsInItsOneOrder
+        |~~ The sets a set holds meet in its one order, the sets a vector
+            holds in the order written.
+        ~~|
+        ~(get [~(#[#[1 2] #[1]] | vec/minus) ~([#[1 2] #[1]] | minus)] | eq [#[] #[2]])
+    | impl ::builtin{};
+
 :vec/prepend
   |~~ Answers the vector with the element the call gives at its head,
       any value, `[2 3] | prepend 1` answering `[1 2 3]`; a vector given
@@ -1994,73 +1554,370 @@
         ~(#[2 3] | prepend 3 | eq #[2 3])
     | impl ::builtin{};
 
-:vec/append
-  |~~ Answers the vector with the element the call gives at its end, any
-      value, `[1 2] | append 3` answering `[1 2 3]`; a vector given is one
-      element, so `[1] | append [2 3]` answers `[1 [2 3]]`, and `flat`
-      after it splices the vector in. The answer keeps the kind of the
-      subject: a vector under a tag stays under it, a quote takes the
-      element as its last step, a set takes it through its constructor,
-      so it stays a set, and a doc takes a segment, a string or a quote,
-      and refuses another value. A string answers `append` by a verb of
-      its own; `prepend` puts the element at the head.
-      ::link~(::vec/prepend) ::link~(::vec/flat)
-      ::link~(::doc/ElementKindNotTakenError)
+:vec/reduce
+  |~~ Answers the seed folded over the elements by the reducer, each
+      element folded into the value so far,
+      `[1 2 3 4 5] | reduce 0 ~(add)` answering `15`; the empty vector
+      answers the seed. The seed comes first and the reducer after it, so
+      `reduce ~(add)` reads the quote as the seed and is refused for the
+      reducer it lacks. The reducer is code, a path or a quote. A quote
+      of one word, `~(add)` or `~add`, or of its address,
+      `~(number/add)`, names the verb the fold calls with the value so far
+      as its subject and the element as its first arg; any other code runs
+      on the pair of the value so far and the element, and what it answers
+      is the value so far after that element:
+      `[{:qty 2} {:qty 3}] | reduce 0 ~(sumOf /0 (get /1 | get /qty))`
+      answers `5`. A failure the reducer answers answers the call. Adding
+      from zero sums, multiplying from one gives the product, appending
+      from the empty string joins strings and uniting from the empty set
+      merges sets. A set folds its elements in its one order, not as they
+      were written, and a map folds its values by a `reduce` of its own.
+      ::link~(::vec/sum)
   ~~|
   ::fn
-    | takes :element |~~ The element put at the end, any value. ~~| /0
-    | returns |~~ The vector with the element as its last. ~~| ::vec
-    | proves :putsTheElementLast
-        |~~ The element goes last. ~~|
-        ~([1 2] | append 3 | eq [1 2 3])
-    | proves :putsAVectorInAsOneElement
-        |~~ A vector given is one element, which `flat` splices. ~~|
-        ~([1] | append [2 3] | get [~(it) ~(flat)] | eq [[1 [2 3]] [1 2 3]])
-    | proves :keepsTheTagOfTheSubject
-        |~~ A vector under a tag takes the element under it. ~~|
-        ~(::Box[1 2] | append 3 | eq ::Box[1 2 3])
-    | proves :keepsASetASet
-        |~~ A set takes the element as a set does. ~~|
-        ~(#[1 2] | append 1 | eq #[1 2])
+    | takes :seed |~~ The value the fold starts from, any value. ~~| /0
+    | takes :reducer
+        |~~ Code: a quote of one word, which names the verb the fold calls
+            with the element, or a path or a quote it runs on the pair of
+            the value so far and the element.
+        ~~|
+        /1 #[::path ::quote]
+    | throws :ReducerKindNotTakenError
+        |~~ The reducer is a path or a quote, `reduce 0 ~(add)`, after the
+            seed: written first, `reduce ~(add) 0`, it is read as the
+            seed and the seed as the reducer, and written
+            without the tilde, `(add)`, it is computed once at the call;
+            either is refused.
+        ~~|
+    | throws :ReducerNotGivenError
+        |~~ `reduce` takes the seed first and the reducer after it,
+            `reduce 0 ~(add)`; a call of the reducer alone reads it as the
+            seed.
+        ~~|
+    | returns
+        |~~ The value folded after the last element, any value, the seed
+            for an empty vector.
+        ~~|
+        ::any
+    | proves :sums
+        |~~ Adding from zero sums. ~~|
+        ~([1 2 3 4 5] | reduce 0 ~(add) | eq 15)
+    | proves :multiplies
+        |~~ Multiplying from one gives the product. ~~|
+        ~([1 2 3 4 5] | reduce 1 ~(mul) | eq 120)
+    | proves :joinsStrings
+        |~~ Appending from the empty string joins. ~~|
+        ~(["a" "b" "c"] | reduce "" ~(append) | eq "abc")
+    | proves :unitesSets
+        |~~ Uniting from the empty set merges. ~~|
+        ~([#[1] #[2 3]] | reduce #[] ~(union) | eq #[1 2 3])
+    | proves :takesTheQuoteOfAName
+        |~~ The quote of a name alone is a reducer. ~~|
+        ~([1 2 3] | reduce 0 ~add | eq 6)
+    | proves :takesTheAddressOfAVerb
+        |~~ A verb named by its address is a reducer. ~~|
+        ~([1 2 3] | reduce 0 ~(number/add) | eq 6)
+    | proves :runsCodeOnThePair
+        |~~ Code of more than one word runs on the pair of the value so
+            far and the element.
+        ~~|
+        ~([1 2 3] | reduce 0 ~(get [~(get /0 | mul 10) /1] | sum) | eq 123)
+    | proves :foldsAFieldOfEachElement
+        |~~ Code reads a field of each element from the pair. ~~|
+        ~([{:qty 2} {:qty 3}] | reduce 0 ~(sumOf /0 (get /1 | get /qty)) | eq 5)
+    | proves :takesAName
+        |~~ A name takes the value so far as its subject and the element
+            as its first arg.
+        ~~|
+        ~(:number/larger (::fn | takes :other |~~ The element. ~~| /0 ::number | impl ~(if (gt other) ~(it) ~(other))); [3 1 4 1 5] | reduce 0 ~larger | eq 5)
+    | proves :takesANameThatLeavesTheElement
+        |~~ A name may leave the element unread. ~~|
+        ~(:number/tally (::fn | takes :el |~~ The element, unread. ~~| /0 | impl ~(add 1)); [10 20 30] | reduce 0 ~tally | eq 3)
+    | proves :answersTheSeedOfNothing
+        |~~ The seed is the first value so far, answered as it is for an
+            empty subject.
+        ~~|
+        ~([] | reduce 42 ~(add) | eq 42)
+    | proves :answersTheErrorOfTheReducer
+        |~~ An error the reducer answers answers the call. ~~|
+        ~([1 "x" 3] | reduce 0 ~(add) !| tag | eq ::number/add/AddendKindNotTakenError)
+    | proves :ReducerKindNotTakenError/refusesANumber
+        |~~ A number computed at the call is refused. ~~|
+        ~([1 2 3] | reduce 0 1
+          !| get [~(tag) ~(reducer | found | tag)]
+          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
+    | proves :ReducerKindNotTakenError/refusesTheReducerFirst
+        |~~ A reducer written before the seed is read as the seed, and
+            the seed as the reducer.
+        ~~|
+        ~([1 2 3] | reduce ~(add) 0
+          !| get [~(tag) ~(reducer | found | tag)]
+          |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
+    | proves :ReducerNotGivenError/readsALoneQuoteAsTheSeed
+        |~~ A call of the reducer alone lacks the reducer. ~~|
+        ~([1 2 3] | reduce ~(add) !| tag | eq ::vec/reduce/ReducerNotGivenError)
+    | proves :takesANameOfTwoSteps
+        |~~ Two steps under a name of their own fold as one verb. ~~|
+        ~(:number/step (::fn | takes :el |~~ The element. ~~| /0 ::number | impl ~(mul 2 | add el)); [1 2 3] | reduce 0 ~(step) | eq 11)
+    | proves :foldsASetInItsOneOrder
+        |~~ A vector folds as written, its set in the one order. ~~|
+        ~(["b" "a"] | get [~(reduce "" ~(append)) ~(toSet | reduce "" ~(append))] | eq ["ba" "ab"])
     | impl ::builtin{};
 
-:vec/toSet
-  |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
-      answering `#[1 2]`: the one order and no duplicates, two elements
-      one when `eq` says so, so two maps, vectors or sets of the same
-      content collapse and a number is one whatever its digits, and
-      `count` after it counts the distinct values. The set is of another
-      kind than the vector, so it leaves the tags of the subject behind,
-      `::Box[2 1 2] | toSet` answering `#[1 2]`, while `within ~(toSet)`
-      keeps them. `distinct` keeps the elements in the order of their first
-      occurrence instead, each once, and `toVec` turns the set back into a
-      vector. The set of the keys of a map is `keys | toSet`.
-      ::link~(::vec/distinct) ::link~(::set/toVec)
-      ::link~(::map/keys) ::link~(::any/eq)
-      ::link~(::tagged/within)
+:vec/reverse
+  |~~ Answers the elements in the reverse order, `[1 2 3] | reverse`
+      answering `[3 2 1]`. The answer keeps the kind of the subject, a
+      vector under a tag and a quote, whose steps it reverses; a set and
+      a map answer `reverse` by verbs of their own, a set reversing into
+      a vector.
+      ::link~(::vec/sort)
   ~~|
   ::fn
-    | returns |~~ The set of the elements. ~~| ::set
-    | proves :buildsTheSetOfTheKeysOfAMap
-        |~~ The keys of a map make the set of them. ~~|
-        ~({:id 7 :at 1} | keys | toSet | eq #[:at :id])
-    | proves :mergesEqualMaps
-        |~~ Two maps of the same entries are one. ~~|
-        ~([{:id 1} {:id 2} {:id 1}] | toSet | eq #[{:id 1} {:id 2}])
-    | proves :mergesANumberWhateverItsDigits
-        |~~ A number is one whatever its digits. ~~|
-        ~([1 1.0] | toSet | count | eq 1)
-    | proves :ordersByTheOneOrder
-        |~~ The set's vector is in the one order. ~~|
-        ~([2 1 2 3 1] | toSet | payload | eq [1 2 3])
-    | proves :countsTheDistinctValues
-        |~~ A count after it counts the distinct values. ~~|
-        ~([1 2 2] | toSet | count | eq 2)
-    | proves :leavesTheTagsOfTheSubjectBehind
-        |~~ The set of a vector under a tag stands under none, and
-            `within` keeps the tag.
+    | returns |~~ The elements in reverse order. ~~| ::vec
+    | proves :reversesTheOrder
+        |~~ The elements come in reverse order. ~~|
+        ~([1 2 3] | reverse | eq [3 2 1])
+    | proves :keepsTheTagOfTheSubject
+        |~~ A vector under a tag reverses under it. ~~|
+        ~(::Box[1 2 3] | reverse | eq ::Box[3 2 1])
+    | proves :reversesTheStepsOfAQuote
+        |~~ A quote reverses its steps. ~~|
+        ~(~(add 1 | mul 2) | reverse | eq ~(mul 2 | add 1))
+    | impl ::builtin{};
+
+:vec/size
+  |~~ The name other languages give `count`: answers the number of
+      elements the vector holds, as `count` does, `[1 2 3] | size`
+      answering `3`.
+      ::link~(::vec/count)
+  ~~|
+  ::fn
+    | returns |~~ How many elements the vector holds. ~~| ::number
+    | proves :answersAsCount
+        |~~ `size` answers as `count`. ~~|
+        ~([1 2 3] | get [~(size) ~(count)] | eq [3 3])
+    | impl ~(count);
+
+:vec/sort
+  |~~ Answers the elements in the one order of values, the order every
+      value takes against every other, the way a reader ranks what a query
+      found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
+      first, null, boolean, number, string, regex, keyword, tag name,
+      path, vector, set, map, quote and doc, then every value under
+      another tag by the name of its tag, a desc, an excerpt and an error
+      at rest among them; strings order by their characters, an upper
+      letter before a lower one.
+
+      With a key the call gives the elements rank by what the key answers
+      for each, a vector key index by index, so
+      `sort ~(get [~(get /count | desc) ~(get /name)])` reads as
+      `ORDER BY count DESC, name`, and `eq null` at the first index puts
+      null last; elements the key leaves alike keep the order of the
+      subject, and `desc` turns the key, or one index of it, to descend.
+      The key is code run on each element, a path, `/age`, or a quote,
+      `~(get /name | lower)`; a value computed at the call other than
+      null, which gives no key, is refused, one key is
+      given, and a key that misses its field answers the error of the
+      read, so a field an element may lack is read softly, `~(query /age)`.
+
+      The answer keeps the kind of the subject, a vector under a tag and a
+      quote among them; a set sorts into a vector, and a map by its
+      values, its keys kept, by verbs of their own.
+      ::link~(::vec/min) ::link~(::desc)
+  ~~|
+  ::fn
+    | takes :key
+        |~~ The code that ranks each element, null when the call gives
+            none.
         ~~|
-        ~(::Box[2 1 2] | get [~(toSet) ~(within ~(toSet))] | eq [#[1 2] ::Box#[1 2]])
+        ~(query /0) #[::null ::path ::quote]
+    | throws :KeyKindNotTakenError
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it
+            runs on each element, while `(get /age)` is computed once at the
+            call, against the vector, and refused with what it answered.
+        ~~|
+    | returns |~~ The elements in the order the key ranks them. ~~| ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `sort` takes one key; a key that ranks by several indices is a
+            vector, `sort ~(get [/last /first])`.
+        ~~|
+    | proves :ordersNumbers
+        |~~ Numbers ascend, equal ones side by side. ~~|
+        ~([3 1 4 1 5] | sort | eq [1 1 3 4 5])
+    | proves :ordersKindsFirst
+        |~~ Null comes before numbers, and numbers before strings. ~~|
+        ~([3 null "x" 1] | sort | eq [null 1 3 "x"])
+    | proves :ordersTagsByName
+        |~~ Tag names order by their names. ~~|
+        ~([::Crate ::Box] | sort | eq [::Box ::Crate])
+    | proves :ordersAnUpperLetterFirst
+        |~~ Strings order by their code points, an upper letter
+            first.
+        ~~|
+        ~(["b" "B" "a"] | sort | eq ["B" "a" "b"])
+    | proves :ordersByTheKey
+        |~~ A key orders by what it answers for each element. ~~|
+        ~([{:age 30} {:age 20}] | sort /age | eq [{:age 20} {:age 30}])
+    | proves :ranksByTheFirstIndex
+        |~~ A vector key ranks by its first index. ~~|
+        ~([{:last "Lee" :first "Ann"} {:last "Kim" :first "Bob"}] | sort ~(get [/last /first]) | map /first | eq ["Bob" "Ann"])
+    | proves :breaksTiesByTheNextIndex
+        |~~ A vector key breaks the ties of its first index by its next. ~~|
+        ~([{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort ~(get [~(get /score | desc) /name]) | map /name
+          |  eq ["Ann" "Eve" "Bob"])
+    | proves :putsNullLast
+        |~~ `eq null` at the first index puts null last. ~~|
+        ~([3 null 1] | sort ~(get [~(eq null) ~(it)]) | eq [1 3 null])
+    | proves :keepsTheOrderOfAlikeElements
+        |~~ Elements the key leaves alike keep the order of the subject. ~~|
+        ~([{:score 9 :name "Bob"} {:score 7 :name "Eve"} {:score 9 :name "Ann"}] | sort /score | map /name | eq ["Eve" "Bob" "Ann"])
+    | proves :descendsUnderDesc
+        |~~ A key under `desc` descends. ~~|
+        ~([{:age 30} {:age 40}] | sort ~(get /age | desc) | first | get /age | eq 40)
+    | proves :turnsTheKey
+        |~~ `desc` turns one index of a vector key alone. ~~|
+        ~([{:dept :ops :age 30} {:dept :ops :age 41}] | sort ~(get [/dept ~(get /age | desc)]) | map /age | eq [41 30])
+    | proves :readsAFieldSoftly
+        |~~ A field an element may lack is read softly. ~~|
+        ~([{:age 30} {:name "Bob"}] | sort ~(query /age) | eq [{:name "Bob"} {:age 30}])
+    | proves :keepsTheTagOfTheSubject
+        |~~ A vector under a tag sorts under it. ~~|
+        ~(::Rows[{:age 41} {:age 30}] | sort /age | eq ::Rows[{:age 30} {:age 41}])
+    | proves :answersTheErrorOfTheKey
+        |~~ A key that misses its field answers the error of the read. ~~|
+        ~([{:age 30} {:name "Bob"}] | sort /age !| tag | eq ::path/KeyNotInMapError)
+    | proves :answersTheErrorAtAnIndex
+        |~~ A vector key whose read at an index misses its field answers
+            the error alike.
+        ~~|
+        ~([{:age 30} {:name "Bob"}] | sort ~(get [/age]) !| tag | eq ::path/KeyNotInMapError)
+    | proves :KeyKindNotTakenError/refusesANumber
+        |~~ A number given as the key is computed at the call, and
+            refused.
+        ~~|
+        ~([3 1 2] | sort 1 !| get [~(tag) ~(key | found | tag)] | eq [::vec/sort/KeyKindNotTakenError ::number])
+    | proves :ArgsBeyondInputsError/refusesTwoKeys
+        |~~ Two keys are refused under the verb. ~~|
+        ~([{:last "Lee" :first "Ann"}] | sort /last /first !| tag | eq ::vec/sort/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:vec/sum
+  |~~ Answers the sum of the elements, each a number, `[1 2 3 4] | sum`
+      answering `10`, and `0` for the empty vector. An element that is
+      no number, a string, a record or null among them, is refused at its
+      index, so a field of each record is read first, `map /amount | sum`.
+      A set adds each element once, its index counting its one order, so
+      the set of a vector's elements may sum to less than the vector, and
+      a map sums its values by a `sum` of its own. Two fields
+      of one record add by `sumOf /price /tax`, and a number is added to each
+      element by `map ~(add 1)`.
+      ::link~(::vec/avg) ::link~(::any/sumOf)
+  ~~|
+  ::fn
+    | returns |~~ The sum of the elements, under the tags they share. ~~| ::number
+    | throws :ElementKindNotTakenError
+        |~~ `sum` adds numbers; the path of its frame names the first
+            element that is none, and a field is read first,
+            `map /amount | sum`.
+        ~~|
+    | proves :addsTheElements
+        |~~ The sum adds every element. ~~|
+        ~([1 2 3 4] | sum | eq 10)
+    | proves :sumsNothingToZero
+        |~~ The empty vector sums to zero. ~~|
+        ~([] | sum | eq 0)
+    | proves :sumsAFieldReadFirst
+        |~~ A field of each record is read before the sum. ~~|
+        ~([{:amount 900} {:amount 300}] | map /amount | sum | eq 1200)
+    | proves :ElementKindNotTakenError/refusesAString
+        |~~ A string among the numbers is refused at its index. ~~|
+        ~([1 "two" 3] | sum !| get [~(tag) ~(subject | found | get /1 | tag) ~(trace | last | path) ~(subject | expected)]
+          |  eq [::vec/sum/ElementKindNotTakenError ::string /1 #[::number]])
+    | proves :ElementKindNotTakenError/refusesARecord
+        |~~ A record whose field was not read is refused at its index. ~~|
+        ~([{:amount 900} {:amount 300}] | sum !| get [~(tag) ~(subject | found | get /0 | tag) ~(trace | last | path)]
+          |  eq [::vec/sum/ElementKindNotTakenError ::map /0])
+    | proves :ElementKindNotTakenError/refusesNull
+        |~~ Null is no number to add. ~~|
+        ~([1 null] | sum !| get [~(tag) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
+    | proves :addsOnceWhatASetHolds
+        |~~ The set of a vector's elements adds a repeated one once. ~~|
+        ~([1 1 2] | get [~(sum) ~(toSet | sum)] | eq [4 3])
+    | proves :ElementKindNotTakenError/namesTheIndexInTheOneOrderOfASet
+        |~~ The index a set is refused at counts its one order, not where
+            the element was written.
+        ~~|
+        ~(["two" 1] | toSet | sum !| get [~(tag) ~(trace | last | path)] | eq [::vec/sum/ElementKindNotTakenError /1])
+    | impl ::builtin{};
+
+:vec/take
+  |~~ Answers the first elements, as many as the count the call gives,
+      `[1 2 3 4 5] | take 3` answering `[1 2 3]`. The count is a whole
+      number: past the length the whole vector answers, and a count of
+      zero or below takes nothing; a count that is no number, or a
+      fraction, is refused under the input. The answer keeps the kind of
+      the subject, a vector under a tag, a quote, whose first steps it
+      takes, and a set, which takes its least elements, the first of its
+      one order. A map and a string answer `take` by verbs of their own,
+      a string taking its first characters. `drop` answers the rest, so
+      `drop 20 | take 10` reads a slice.
+      ::link~(::vec/drop) ::link~(::any/query)
+  ~~|
+  ::fn
+    | takes :count |~~ How many. ~~| /0 ::number
+    | throws :CountKindNotTakenError
+        |~~ The count is a number, `[1 2 3] | take 2`; text that holds one
+            is read by `toNumber` first, `take ("2" | toNumber)`.
+        ~~|
+    | holds :CountNotIntegerError
+        |~~ The count is a whole number, `[1 2 3] | take 2`; a fraction is
+            rounded first, `take (1.5 | round)`.
+        ~~|
+        ~(count | eq (floor))
+    | throws :CountNotGivenError
+        |~~ `take` takes as many of the first elements as its call counts,
+            `take 2`, and the first alone is `first`.
+        ~~|
+    | returns |~~ The first elements, as many as the count. ~~| ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `take` takes one count: the two elements after the first are
+            `drop 1 | take 2`.
+        ~~|
+    | proves :takesTheFirst
+        |~~ Three of five are the first three. ~~|
+        ~([1 2 3 4 5] | take 3 | eq [1 2 3])
+    | proves :takesTheWholePastTheLength
+        |~~ A count past the length takes the whole vector. ~~|
+        ~([1 2 3] | take 99 | eq [1 2 3])
+    | proves :takesNothingByANegativeCount
+        |~~ A negative count takes nothing. ~~|
+        ~([1 2 3] | take -1 | eq [])
+    | proves :takesTheFirstStepsOfAQuote
+        |~~ A quote takes its first steps. ~~|
+        ~(~(add 1 | mul 2 | sub 3) | take 2 | eq ~(add 1 | mul 2))
+    | proves :readsASliceAfterADrop
+        |~~ A drop and then a take read a slice. ~~|
+        ~([1 2 3 4 5] | drop 2 | take 2 | eq [3 4])
+    | proves :CountKindNotTakenError/refusesAString
+        |~~ A string is no count. ~~|
+        ~([1 2 3] | take "2" !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountKindNotTakenError ::string])
+    | proves :CountNotIntegerError/refusesAFraction
+        |~~ A fraction is no count. ~~|
+        ~([1 2 3] | take 1.5 !| get [~(tag) ~(count | found | tag)] | eq [::vec/take/CountNotIntegerError ::number])
+    | proves :keepsTheTag
+        |~~ A vector under a tag keeps its tag. ~~|
+        ~(::Box[1 2 3] | take 2 | eq ::Box[1 2])
+    | proves :takesTheLeastOfASet
+        |~~ A vector takes the first it was written with, its set the
+            least, a set again.
+        ~~|
+        ~([3 1 2] | get [~(take 2) ~(toSet | take 2)] | eq [[3 1] #[1 2]])
+    | proves :CountNotGivenError/refusesACallWithNoCount
+        |~~ A call with no count is refused under the input. ~~|
+        ~(#[:tea :cake] | take !| tag | eq ::vec/take/CountNotGivenError)
+    | proves :ArgsBeyondInputsError/refusesTwoCounts
+        |~~ A call with two counts is refused under the verb. ~~|
+        ~(#[:tea :cake] | take 1 2 !| tag | eq ::vec/take/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :vec/toMap
@@ -2115,18 +1972,6 @@
         ~([[[1] 2]] | toMap !| get [~(tag) ~(subject | found | get /0/0 | tag) ~(trace | last | path) ~(subject | expected)] | eq [::vec/toMap/KeyKindNotTakenError ::vec /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{};
 
-:vec/toVec
-  |~~ Answers the vector itself, so `map ~toVec` turns vectors, sets,
-      quotes and docs into vectors.
-      ::link~(::set/toVec)
-  ~~|
-  ::fn
-    | returns |~~ The vector itself. ~~| ::vec
-    | proves :answersItself
-        |~~ A vector answers itself. ~~|
-        ~([2 1] | toVec | eq [2 1])
-    | impl ::builtin{};
-
 :vec/toPath
   |~~ Answers the path whose segments are the texts of the elements, each
       a key alone, a keyword, a string or a number, as `get` reads one: a
@@ -2160,5 +2005,160 @@
     | proves :ElementKindNotTakenError/refusesABoolean
         |~~ A boolean is no key alone, and is refused at its index. ~~|
         ~([:items true] | toPath !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::vec/toPath/ElementKindNotTakenError #[::keyword ::number ::string] /1])
+    | impl ::builtin{};
+
+:vec/toSet
+  |~~ Answers the set of the vector's elements, `[2 1 2] | toSet`
+      answering `#[1 2]`: the one order and no duplicates, two elements
+      one when `eq` says so, so two maps, vectors or sets of the same
+      content collapse and a number is one whatever its digits, and
+      `count` after it counts the distinct values. The set is of another
+      kind than the vector, so it leaves the tags of the subject behind,
+      `::Box[2 1 2] | toSet` answering `#[1 2]`, while `within ~(toSet)`
+      keeps them. `distinct` keeps the elements in the order of their first
+      occurrence instead, each once, and `toVec` turns the set back into a
+      vector. The set of the keys of a map is `keys | toSet`.
+      ::link~(::vec/distinct) ::link~(::set/toVec)
+      ::link~(::map/keys) ::link~(::any/eq)
+      ::link~(::tagged/within)
+  ~~|
+  ::fn
+    | returns |~~ The set of the elements. ~~| ::set
+    | proves :buildsTheSetOfTheKeysOfAMap
+        |~~ The keys of a map make the set of them. ~~|
+        ~({:id 7 :at 1} | keys | toSet | eq #[:at :id])
+    | proves :mergesEqualMaps
+        |~~ Two maps of the same entries are one. ~~|
+        ~([{:id 1} {:id 2} {:id 1}] | toSet | eq #[{:id 1} {:id 2}])
+    | proves :mergesANumberWhateverItsDigits
+        |~~ A number is one whatever its digits. ~~|
+        ~([1 1.0] | toSet | count | eq 1)
+    | proves :ordersByTheOneOrder
+        |~~ The set's vector is in the one order. ~~|
+        ~([2 1 2 3 1] | toSet | payload | eq [1 2 3])
+    | proves :countsTheDistinctValues
+        |~~ A count after it counts the distinct values. ~~|
+        ~([1 2 2] | toSet | count | eq 2)
+    | proves :leavesTheTagsOfTheSubjectBehind
+        |~~ The set of a vector under a tag stands under none, and
+            `within` keeps the tag.
+        ~~|
+        ~(::Box[2 1 2] | get [~(toSet) ~(within ~(toSet))] | eq [#[1 2] ::Box#[1 2]])
+    | impl ::builtin{};
+
+:vec/toVec
+  |~~ Answers the vector itself, so `map ~toVec` turns vectors, sets,
+      quotes and docs into vectors.
+      ::link~(::set/toVec)
+  ~~|
+  ::fn
+    | returns |~~ The vector itself. ~~| ::vec
+    | proves :answersItself
+        |~~ A vector answers itself. ~~|
+        ~([2 1] | toVec | eq [2 1])
+    | impl ::builtin{};
+
+:vec/union
+  |~~ Answers the union of the values the vector holds, from the first:
+      sets unite in the one order, `[#[:tea :cake] #[:cake :jam]] | union`
+      answering `#[:cake :jam :tea]`, maps merge with the last value
+      winning a key, `[{:font 12} {:font 14 :lang :en}] | union` answering
+      `{:font 14 :lang :en}`, and a vector of one value answers it. The
+      values are sets or maps: one that is neither is refused at its
+      index, a set beside a map with the pair, and the vector holds one
+      value at least. The call takes no value, and two values unite as
+      `#[:tea] | union #[:cake]`; the sets a set holds,
+      whose own `union` meets the set its call gives, unite by this verb
+      called by its address, `#[#[1] #[2]] | vec/union`, or by `flat`.
+      ::link~(::vec/minus) ::link~(::vec/inter)
+      ::link~(::set/union)
+  ~~|
+  ::fn
+    | returns
+        |~~ The union of the values, a set or a map. ~~|
+        #[::set ::map]
+    | throws :SubjectEmptyError
+        |~~ `union` over a vector unites its values from the first,
+            `[a b c] | union`, so the vector holds one at least; two
+            values unite as `a | union b`.
+        ~~|
+    | throws :ElementKindNotTakenError
+        |~~ The values `union` unites are sets or maps; the path of its
+            frame names the first that is neither, and a vector of vectors unites once
+            each is a set, `map ~(toSet) | union`.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `union` over a vector unites the values it holds and takes no
+            value: two values unite as `a | union b`, `#[1] | union #[2]`.
+        ~~|
+    | proves :unitesTheValues
+        |~~ The sets the vector holds unite. ~~|
+        ~([#[:tea :cake] #[:cake :jam]] | union | eq #[:cake :jam :tea])
+    | proves :mergesMapsTheLastWinning
+        |~~ Maps merge with the last value winning a key. ~~|
+        ~([{:font 12} {:font 14 :lang :en}] | union | eq {:font 14 :lang :en})
+    | proves :answersAValueAlone
+        |~~ A vector of one value answers it. ~~|
+        ~([#[:tea]] | union | eq #[:tea])
+    | proves :SubjectEmptyError/refusesTheEmptyVector
+        |~~ The empty vector holds no value. ~~|
+        ~([] | union !| tag | eq ::vec/union/SubjectEmptyError)
+    | proves :ElementKindNotTakenError/refusesANumberAtItsIndex
+        |~~ A value that is neither a set nor a map is refused at its
+            index.
+        ~~|
+        ~([#[:tea] 2] | union !| get [~(tag) ~(trace | last | path) ~(subject | found | get /1 | tag) ~(subject | expected)]
+          |  eq [::vec/union/ElementKindNotTakenError /1 ::number #[::map ::set]])
+    | proves :ElementKindNotTakenError/unitesVectorsMadeSets
+        |~~ A vector of vectors unites once each is a set. ~~|
+        ~([[1 2] [2 3]] | map ~(toSet) | union | eq #[1 2 3])
+    | proves :refusesASetAndAMap
+        |~~ A set and a map do not unite. ~~|
+        ~([#[:tea] {:font 12}] | union
+          !| get [~(tag) ~(leftTag) ~(rightTag)]
+          |  eq [::call/KindsMismatchedError ::set ::map])
+    | proves :ArgsBeyondInputsError/refusesAValueGiven
+        |~~ A value the call gives is refused under the verb. ~~|
+        ~([#[1]] | union #[2] !| tag | eq ::vec/union/ArgsBeyondInputsError)
+    | proves :unitesTheSetsASetHoldsByItsAddress
+        |~~ The sets a set holds unite by the verb called by its address.
+        ~~|
+        ~(#[#[1] #[2]] | vec/union | eq #[1 2])
+    | impl ::builtin{};
+
+:vec/zip
+  |~~ Answers the vectors the subject holds read side by side, one vector
+      of the elements at each index, as long as the shortest:
+      `[["Ann" "Bob"] [30 25]] | zip` answers `[["Ann" 30] ["Bob" 25]]`,
+      and the empty vector answers `[]`. Each element is a vector, a set,
+      a quote and a doc among them; a single vector is put beside the
+      others in a vector first, `get [~(get /names) ~(get /ages)] | zip`,
+      and a set answers the vector of its columns by a `zip` of its own.
+      It takes no value.
+      ::link~(::vec/flat) ::link~(::set/zip)
+  ~~|
+  ::fn
+    | returns |~~ The elements at each index, a vector each. ~~| ::vec
+    | throws :ElementKindNotTakenError
+        |~~ `zip` reads vectors side by side; the path of its frame names
+            the first element that is no vector, the vectors read into one first,
+            `get [/names /ages] | zip`.
+        ~~|
+    | proves :pairsTheElementsAtEachIndex
+        |~~ The elements at each index stand together. ~~|
+        ~([["Ann" "Bob"] [30 25]] | zip | eq [["Ann" 30] ["Bob" 25]])
+    | proves :stopsAtTheShortest
+        |~~ The answer is as long as the shortest vector. ~~|
+        ~([["Ann" "Bob" "Eve"] [30]] | zip | eq [["Ann" 30]])
+    | proves :answersNothingOfNothing
+        |~~ The empty vector answers the empty vector. ~~|
+        ~([] | zip | eq [])
+    | proves :readsFieldsSideBySide
+        |~~ Two fields of a record read side by side pair their elements.
+        ~~|
+        ~({:names ["ann" "bob"] :ages [30 40]} | get [/names /ages] | zip | eq [["ann" 30] ["bob" 40]])
+    | proves :ElementKindNotTakenError/refusesANumber
+        |~~ An element that is no vector is refused at its index. ~~|
+        ~([[1 2] 3] | zip !| get [~(tag) ~(trace | last | path) ~(subject | found | get /1 | tag) ~(subject | expected)] | eq [::vec/zip/ElementKindNotTakenError /1 ::number #[::vec]])
     | impl ::builtin{};
 

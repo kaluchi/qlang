@@ -13,3 +13,4 @@
 {"name":"an-anchor-a-tag-lacks-names-the-verbs-its-walk-reaches","query":"::vec | doc :manifst !| nearest","expect":"[:manifest]"}
 {"name":"a-call-of-addof-names-sumof-among-the-names-near-it","query":"{:x 1} | addOf (get /x) (get /x) !| nearest | has :sumOf","expect":"true"}
 {"name":"an-anchor-near-a-fact-of-a-refusal-names-the-fact-its-kind-wires","query":"::number/add/SubjectNotNumberError | doc :subjct !| nearest","expect":"[:subject]"}
+{"name":"a-fact-a-refusal-wires-is-among-the-names-a-step-reaches","query":"\"x\" | add 1 !| tarce !| nearest","expect":"[:trace]"}

@@ -47,6 +47,21 @@
           "meta.embedded.block.qlang": "qlang"
         }
       }
+    ],
+    "configurationDefaults": {
+      "[qlang]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
+    "semanticTokenScopes": [
+      {
+        "language": "qlang",
+        "scopes": {
+          "regexp": [
+            "string.regexp.qlang"
+          ]
+        }
+      }
     ]
   },
   "dependencies": {
@@ -54,6 +69,7 @@
     "vscode-languageclient": "^10.1.1"
   },
   "devDependencies": {
+    "shiki": "^4.4.3",
     "vitest": "^5.0.0"
   }
 }

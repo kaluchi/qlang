@@ -315,6 +315,235 @@
         ~(::number | kind/accepts |~~ A number. ~~| !| tag | eq ::kind/accepts/SubjectNotKindError))
     ::builtin{}];
 
+:kind/holds
+  |~~ Writes an invariant of a kind, a quote under `::invariant`: the
+      refusal of a value that breaks it, named one level under the kind, its
+      page, and the condition the payload beneath the tag answers true to,
+      `| holds :TooWideError |~~ No wider than high. ~~| ~(subOf /height /width | gte 0)`,
+      each field it wires read by its name, `| holds :WidthNegativeError |~~ No
+      width below zero. ~~| ~(width | gte 0)`, once every field is held.
+      ::link~(::invariant)
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal of
+            a value that breaks it, a keyword of one segment read as a tag; its
+            page, a doc; and the condition the value answers true to, a quote.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the invariant. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `holds` writes an invariant of the noun's kind,
+            `::kind | holds …`, or of a kind.
+        ~~|
+    | proves :passesAValueThatKeepsIt
+        |~~ A value that keeps every invariant goes under the kind. ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | holds :TooWideError |~~ No wider than high. ~~| ~(subOf /height /width | gte 0));
+          ::Box{:width 1 :height 2}
+          | tag
+          | eq ::Box)
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0) !| tag | eq ::kind/holds/SubjectNotKindError))
+    ::builtin{}];
+
+:kind/impl
+  |~~ Gives a kind its constructor, `| impl ::builtin{}`, the second part
+      of the literal of the kind, `::number | binding | value | get /1`:
+      the one a host hands with a kind of the core attaches the tag to a
+      payload or refuses it, and one no host handed with the kind
+      constructs nothing, a kind of yours laying its tag by its commands;
+      code that would build another value from the payload is refused.
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :constructor
+        |~~ The constructor, a primitive of the host, `::builtin{}`, or
+            null.
+        ~~|
+        /0
+    | returns |~~ The kind with its constructor. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `impl` gives the constructor of the noun's kind,
+            `::kind | impl …`, or of a kind.
+        ~~|
+    | proves :standsAsTheSecondPartOfTheKind
+        |~~ The constructor stands as the second part of the literal of the
+            kind.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}); ::Box | binding | value | get /1 | eq ::builtin{})
+    | proves :refusesAConstructorThatIsNoBuiltin
+        |~~ A constructor that is no `::builtin{}` is refused as the
+            literal refuses it.
+        ~~|
+        ~(get [~(::kind | impl 5 !| tag) ~(::kind | impl ~(add 1) !| tag)] | eq [::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError])
+    | proves :constructsNothingByAConstructorOfAnotherKind
+        |~~ A constructor a host handed with another kind constructs
+            nothing under this one.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | value | get /1)); ::Box"x" | tag | eq ::Box)
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/impl ::builtin{} !| tag | eq ::kind/impl/SubjectNotKindError))
+    ::builtin{}];
+
+:kind/proves
+  |~~ Writes a law of a kind, a quote under `::law`, the claim its name
+      makes, its page and the query that proves it,
+      `| proves :holdsItsSizes |~~ … ~~| ~(…)`, which `laws` and `runLaws`
+      read under the kind; a name written with a path lays it under a name
+      the kind declares before it.
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the law, a
+            keyword read as a tag, under a name declared before it where it is
+            written with a path; its page, the claim it proves, a doc; and the
+            query that proves the claim, answering `true`, a quote.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the law. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `proves` writes a law of the noun's kind, `::kind | proves …`,
+            or of a kind.
+        ~~|
+    | proves :declaresALawOfTheKind
+        |~~ A law of a kind runs under it. ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number | proves :readsItsWidth |~~ A parcel reads its width by name. ~~| ~(::Box{:width 2} | width | eq 2));
+          ::Box
+          | runLaws
+          | map /ok
+          | eq [true])
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/proves :readsItsWidth |~~ A parcel reads its width. ~~| ~(true) !| tag | eq ::kind/proves/SubjectNotKindError))
+    ::builtin{}];
+
+:kind/reveals
+  |~~ Reveals a view of the values of a kind, `::kind | reveals :count`:
+      the name of a verb of the kind that takes no value, whose answer is a
+      fact of the value by that name. A host shows the tag of a fact past
+      the room of a fact and the views its kind reveals beside the cell it
+      keeps the fact in, each under the name of the fact and its own,
+      `:addend/found/tag ::vec` and `:addend/found/count 3410`; the legend
+      of the tag name lays the views out beside the names the kind wires,
+      and the legend of a failure glosses each by the verb its tag walks to.
+      A value shows the views of the first kind of the walk of its tags that
+      reveals any, so a set shows the views of vectors.
+      ::link~(::kind/wires) ::link~(::cell)
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the verb
+            the view reads, a keyword of one segment, neither `payload` nor
+            a word of a literal.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the view. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `reveals` names a view of the noun's kind, `::kind | reveals …`,
+            or of a kind.
+        ~~|
+    | proves :laysTheViewInTheLegendOfItsTag
+        |~~ The legend of the tag name lays a view out beside the names the
+            kind wires, the kind of what its verb answers and its gloss.
+        ~~|
+        ~(:Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size);
+          :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count));
+          ::Bag | legend | print | lines | last
+          | eq "|~ size ::number · How many things ~|")
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/reveals :summary !| tag | eq ::kind/reveals/SubjectNotKindError))
+    ::builtin{}];
+
+:kind/tells
+  |~~ Tells a page of a kind on a name, and the kinds it tells of where
+      they are given, `::kind | tells :values |~~ Values. … ~~| #[::tag ::vec]`:
+      a chapter of a topic, or a page a kind keeps beside its refusals,
+      laid under the kind for `doc` and `manifest`, and a law written
+      under its name lies under it.
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the page, a
+            keyword of one segment, neither `payload` nor a word
+            of a literal; the page told, a doc; and the kinds it tells of, a tag
+            or a set of one tag or more, none where none is written.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the page. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `tells` writes a page of the noun's kind, `::kind | tells …`,
+            or of a kind.
+        ~~|
+    | proves :laysThePageUnderTheKind
+        |~~ A page told lies under the kind, the kinds it tells of its
+            value.
+        ~~|
+        ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec]);
+          get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | value)]
+          | eq ["Where to start." #[::vec]])
+    | proves :holdsTheLawsUnderItsName
+        |~~ A law written under the name of a page lies under it. ~~|
+        ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| | proves :start/holds |~~ It holds. ~~| ~(true));
+          ::Guide/start
+          | runLaws
+          | map /ok
+          | eq [true])
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/tells :summary |~~ A summary. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
+    ::builtin{}];
+
+:kind/throws
+  |~~ Names a refusal of a kind, its page and the kind of its facts,
+      `::kind | throws :TooWideError |~~ A parcel past its height. ~~| ~(wires :height |~~ The height. ~~| ::number)`,
+      one level under the kind, the page of the refusal the kinds of a
+      field name among them, `:WidthKindNotTakenError`; a refusal a primitive
+      of the kind raises is paged so. A refusal that names no facts is the
+      verdict of the kind, the part refused under `found` beside
+      `expected` and `index`, as the refusal of a payload and of a part a
+      rule lays is; the facts a quote names are the commands of the kind of
+      the refusal, which `throws` builds into the kind as `::fn/throws`
+      does, and one that shares the kind of another names it by its tag, as
+      `::fn/throws` does.
+      ::link~(::fn/throws) ::link~(::fn/slot)
+  ~~|
+  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal, a
+            keyword of one segment read as a tag; its page, a doc; and the kind
+            of its facts, a
+            quote of `wires` or the tag of the refusal whose kind it shares,
+            none where it holds its trace alone.
+        ~~|
+        ~(it)
+    | returns |~~ The kind with the refusal. ~~| ::kind
+    | throws :SubjectNotKindError
+        |~~ `throws` names a refusal of the noun's kind,
+            `::kind | throws …`, or of a kind.
+        ~~|
+    | proves :pagesTheRefusalOfKinds
+        |~~ A refusal the kinds of a field name takes the page `throws`
+            gives it.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number | throws :WidthKindNotTakenError |~~ The width is a number. ~~|);
+          ::Box/WidthKindNotTakenError
+          | doc
+          | content
+          | trim
+          | eq "The width is a number.")
+    | proves :readsTheFactsOfARefusalByTheirNames
+        |~~ The error at rest of a refusal answers the facts its kind wires
+            by their names.
+        ~~|
+        ~(:Box |~~ A parcel. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| ~(wires :width |~~ The width. ~~| ::number));
+    ::Box/TooWideError!{:width 9} | get [~(width) ~(trace)] | eq [9 null])
+    | proves :SubjectNotKindError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | kind/throws :TooWideError |~~ Too wide. ~~| !| tag | eq ::kind/throws/SubjectNotKindError))
+    ::builtin{}];
+
 :kind/wires
   |~~ Wires a part of the payload of a kind to a name: its name, its page,
       its selector over the payload and the kinds it holds where they are
@@ -376,233 +605,4 @@
     | proves :SubjectNotKindError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | kind/wires :width |~~ The width. ~~| /width !| tag | eq ::kind/wires/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/tells
-  |~~ Tells a page of a kind on a name, and the kinds it tells of where
-      they are given, `::kind | tells :values |~~ Values. … ~~| #[::tag ::vec]`:
-      a chapter of a topic, or a page a kind keeps beside its refusals,
-      laid under the kind for `doc` and `manifest`, and a law written
-      under its name lies under it.
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the page, a
-            keyword of one segment, neither `payload` nor a word
-            of a literal; the page told, a doc; and the kinds it tells of, a tag
-            or a set of one tag or more, none where none is written.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the page. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `tells` writes a page of the noun's kind, `::kind | tells …`,
-            or of a kind.
-        ~~|
-    | proves :laysThePageUnderTheKind
-        |~~ A page told lies under the kind, the kinds it tells of its
-            value.
-        ~~|
-        ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| #[::vec]);
-          get [~(::Guide/start | doc | content | trim) ~(::Guide/start | binding | value)]
-          | eq ["Where to start." #[::vec]])
-    | proves :holdsTheLawsUnderItsName
-        |~~ A law written under the name of a page lies under it. ~~|
-        ~(:Guide |~~ A guide. ~~| (::kind | tells :start |~~ Where to start. ~~| | proves :start/holds |~~ It holds. ~~| ~(true));
-          ::Guide/start
-          | runLaws
-          | map /ok
-          | eq [true])
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/tells :summary |~~ A summary. ~~| !| tag | eq ::kind/tells/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/reveals
-  |~~ Reveals a view of the values of a kind, `::kind | reveals :count`:
-      the name of a verb of the kind that takes no value, whose answer is a
-      fact of the value by that name. A host shows the tag of a fact past
-      the room of a fact and the views its kind reveals beside the cell it
-      keeps the fact in, each under the name of the fact and its own,
-      `:addend/found/tag ::vec` and `:addend/found/count 3410`; the legend
-      of the tag name lays the views out beside the names the kind wires,
-      and the legend of a failure glosses each by the verb its tag walks to.
-      A value shows the views of the first kind of the walk of its tags that
-      reveals any, so a set shows the views of vectors.
-      ::link~(::kind/wires) ::link~(::cell)
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the verb
-            the view reads, a keyword of one segment, neither `payload` nor
-            a word of a literal.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the view. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `reveals` names a view of the noun's kind, `::kind | reveals …`,
-            or of a kind.
-        ~~|
-    | proves :laysTheViewInTheLegendOfItsTag
-        |~~ The legend of the tag name lays a view out beside the names the
-            kind wires, the kind of what its verb answers and its gloss.
-        ~~|
-        ~(:Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size);
-          :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count));
-          ::Bag | legend | print | lines | last
-          | eq "|~ size ::number · How many things ~|")
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/reveals :summary !| tag | eq ::kind/reveals/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/holds
-  |~~ Writes an invariant of a kind, a quote under `::invariant`: the
-      refusal of a value that breaks it, named one level under the kind, its
-      page, and the condition the payload beneath the tag answers true to,
-      `| holds :TooWideError |~~ No wider than high. ~~| ~(subOf /height /width | gte 0)`,
-      each field it wires read by its name, `| holds :WidthNegativeError |~~ No
-      width below zero. ~~| ~(width | gte 0)`, once every field is held.
-      ::link~(::invariant)
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the refusal of
-            a value that breaks it, a keyword of one segment read as a tag; its
-            page, a doc; and the condition the value answers true to, a quote.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the invariant. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `holds` writes an invariant of the noun's kind,
-            `::kind | holds …`, or of a kind.
-        ~~|
-    | proves :passesAValueThatKeepsIt
-        |~~ A value that keeps every invariant goes under the kind. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | holds :TooWideError |~~ No wider than high. ~~| ~(subOf /height /width | gte 0));
-          ::Box{:width 1 :height 2}
-          | tag
-          | eq ::Box)
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0) !| tag | eq ::kind/holds/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/throws
-  |~~ Names a refusal of a kind, its page and the kind of its facts,
-      `::kind | throws :TooWideError |~~ A parcel past its height. ~~| ~(wires :height |~~ The height. ~~| ::number)`,
-      one level under the kind, the page of the refusal the kinds of a
-      field name among them, `:WidthKindNotTakenError`; a refusal a primitive
-      of the kind raises is paged so. A refusal that names no facts is the
-      verdict of the kind, the part refused under `found` beside
-      `expected` and `index`, as the refusal of a payload and of a part a
-      rule lays is; the facts a quote names are the commands of the kind of
-      the refusal, which `throws` builds into the kind as `::fn/throws`
-      does, and one that shares the kind of another names it by its tag, as
-      `::fn/throws` does.
-      ::link~(::fn/throws) ::link~(::fn/slot)
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the refusal, a
-            keyword of one segment read as a tag; its page, a doc; and the kind
-            of its facts, a
-            quote of `wires` or the tag of the refusal whose kind it shares,
-            none where it holds its trace alone.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the refusal. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `throws` names a refusal of the noun's kind,
-            `::kind | throws …`, or of a kind.
-        ~~|
-    | proves :pagesTheRefusalOfKinds
-        |~~ A refusal the kinds of a field name takes the page `throws`
-            gives it.
-        ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number | throws :WidthKindNotTakenError |~~ The width is a number. ~~|);
-          ::Box/WidthKindNotTakenError
-          | doc
-          | content
-          | trim
-          | eq "The width is a number.")
-    | proves :readsTheFactsOfARefusalByTheirNames
-        |~~ The error at rest of a refusal answers the facts its kind wires
-            by their names.
-        ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | throws :TooWideError |~~ Too wide. ~~| ~(wires :width |~~ The width. ~~| ::number));
-    ::Box/TooWideError!{:width 9} | get [~(width) ~(trace)] | eq [9 null])
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/throws :TooWideError |~~ Too wide. ~~| !| tag | eq ::kind/throws/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/proves
-  |~~ Writes a law of a kind, a quote under `::law`, the claim its name
-      makes, its page and the query that proves it,
-      `| proves :holdsItsSizes |~~ … ~~| ~(…)`, which `laws` and `runLaws`
-      read under the kind; a name written with a path lays it under a name
-      the kind declares before it.
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the law, a
-            keyword read as a tag, under a name declared before it where it is
-            written with a path; its page, the claim it proves, a doc; and the
-            query that proves the claim, answering `true`, a quote.
-        ~~|
-        ~(it)
-    | returns |~~ The kind with the law. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `proves` writes a law of the noun's kind, `::kind | proves …`,
-            or of a kind.
-        ~~|
-    | proves :declaresALawOfTheKind
-        |~~ A law of a kind runs under it. ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number | proves :readsItsWidth |~~ A parcel reads its width by name. ~~| ~(::Box{:width 2} | width | eq 2));
-          ::Box
-          | runLaws
-          | map /ok
-          | eq [true])
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/proves :readsItsWidth |~~ A parcel reads its width. ~~| ~(true) !| tag | eq ::kind/proves/SubjectNotKindError))
-    ::builtin{}];
-
-:kind/impl
-  |~~ Gives a kind its constructor, `| impl ::builtin{}`, the second part
-      of the literal of the kind, `::number | binding | value | get /1`:
-      the one a host hands with a kind of the core attaches the tag to a
-      payload or refuses it, and one no host handed with the kind
-      constructs nothing, a kind of yours laying its tag by its commands;
-      code that would build another value from the payload is refused.
-  ~~|
-  ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
-    | takes :constructor
-        |~~ The constructor, a primitive of the host, `::builtin{}`, or
-            null.
-        ~~|
-        /0
-    | returns |~~ The kind with its constructor. ~~| ::kind
-    | throws :SubjectNotKindError
-        |~~ `impl` gives the constructor of the noun's kind,
-            `::kind | impl …`, or of a kind.
-        ~~|
-    | proves :standsAsTheSecondPartOfTheKind
-        |~~ The constructor stands as the second part of the literal of the
-            kind.
-        ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl ::builtin{}); ::Box | binding | value | get /1 | eq ::builtin{})
-    | proves :refusesAConstructorThatIsNoBuiltin
-        |~~ A constructor that is no `::builtin{}` is refused as the
-            literal refuses it.
-        ~~|
-        ~(get [~(::kind | impl 5 !| tag) ~(::kind | impl ~(add 1) !| tag)] | eq [::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError])
-    | proves :constructsNothingByAConstructorOfAnotherKind
-        |~~ A constructor a host handed with another kind constructs
-            nothing under this one.
-        ~~|
-        ~(:Box |~~ A parcel. ~~| (::kind | impl (::number | binding | value | get /1)); ::Box"x" | tag | eq ::Box)
-    | proves :SubjectNotKindError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | kind/impl ::builtin{} !| tag | eq ::kind/impl/SubjectNotKindError))
     ::builtin{}];

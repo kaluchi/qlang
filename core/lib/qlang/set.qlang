@@ -62,97 +62,21 @@
         ~(::set{:tea 4} !| get [~(tag) ~(found | tag)] | eq [::set/PayloadKindNotTakenError ::map])
     | impl ::builtin{};
 
-:set/sort
-  |~~ Answers the vector of the elements in the order the key ranks them,
-      the one order without a key: `#[{:age 41} {:age 30}] | sort /age`
-      answers `[{:age 30} {:age 41}]`, and a key under `desc` ranks from the
-      greatest down, `#[1 2 3] | sort ~(desc)` answering `[3 2 1]`. A set
-      keeps no order but the one order, so the answer is a vector, and
-      `toSet` after it brings the set back in the one order. The key is
-      code, a quote run on each element with the element as its subject;
-      a value computed at the call instead is refused under the
-      input.
-      ::link~(::vec/sort) ::link~(::set/reverse)
-      ::link~(::desc)
+:set/distinct
+  |~~ Answers the set itself, `it`, under the tags it came with, each of
+      its elements in it once already, `::Box#[1 2] | distinct` answering
+      `::Box#[1 2]`; the `distinct` of a vector keeps its elements in the
+      order of their first occurrence.
+      ::link~(::set/toSet) ::link~(::vec/distinct)
   ~~|
   ::fn
-    | takes :key
-        |~~ The code each element is ranked by, null when the call gives
-            none.
+    | returns |~~ The set itself. ~~| ::set
+    | proves :answersItself
+        |~~ A set is its distinct elements already, under the tags it came
+            with.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
-    | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it runs
-            on each element, while `(get /age)` is computed once at the call,
-            against the set, and refused with what it answered.
-        ~~|
-    | returns
-        |~~ The elements in the order the key ranks them, a vector. ~~|
-        ::vec
-    | proves :answersAVector
-        |~~ The sorted elements are a vector. ~~|
-        ~(#[:tea :cake :jam] | sort | eq [:cake :jam :tea])
-    | proves :ranksByTheKey
-        |~~ A key ranks the elements by what it answers. ~~|
-        ~(#[{:age 41} {:age 30}] | sort /age | eq [{:age 30} {:age 41}])
-    | proves :descendsByADescendingKey
-        |~~ A key under `desc` ranks from the greatest down. ~~|
-        ~(#[1 2 3] | sort ~(desc) | eq [3 2 1])
-    | proves :losesItsOrderToToSet
-        |~~ `toSet` after a sort brings the set back in the one order. ~~|
-        ~(#[1 2 3] | sort ~(desc) | toSet | eq #[1 2 3])
-    | proves :KeyKindNotTakenError/refusesAValueForCode
-        |~~ A key computed at the call is refused under the input. ~~|
-        ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/KeyKindNotTakenError)
-    | impl ::builtin{};
-
-:set/reverse
-  |~~ Answers the vector of the elements from the greatest down,
-      `#[:tea :cake :jam] | reverse` answering `[:tea :jam :cake]`, where
-      a vector reverses the order it was written in, `[3 1 2] | reverse`
-      answering `[2 1 3]`. A set keeps no order but the one order, so the
-      answer is a vector, and `toSet` after it gives the set back.
-      ::link~(::set/sort) ::link~(::vec/reverse)
-  ~~|
-  ::fn
-    | returns |~~ The elements from the greatest down, a vector. ~~| ::vec
-    | proves :answersAVector
-        |~~ The reversed elements are a vector. ~~|
-        ~(#[:tea :cake :jam] | reverse | eq [:tea :jam :cake])
-    | proves :reversesTheOneOrderNotTheVector
-        |~~ A vector reverses its order as written, its set the one order.
-        ~~|
-        ~([3 1 2] | get [~(reverse) ~(toSet | reverse)] | eq [[2 1 3] [3 2 1]])
-    | proves :answersAVectorThatToSetMakesASet
-        |~~ A reversed set is a set again after `toSet`. ~~|
-        ~(#[3 1 2] | reverse | toSet | eq #[1 2 3])
-    | impl ::builtin{};
-
-:set/zip
-  |~~ Answers the vectors the set holds read side by side, in its one
-      order, one vector of the elements at each index, as long as the
-      shortest: `#[[1 1] [2 2]] | zip` answers `[[1 2] [1 2]]`, a vector,
-      since two columns may be equal, as `sort` and `reverse` answer one.
-      It takes no value.
-      ::link~(::vec/zip) ::link~(::set/reverse)
-  ~~|
-  ::fn
-    | returns |~~ The elements at each index, a vector each. ~~| ::vec
-    | throws :ElementKindNotTakenError
-        |~~ `zip` reads the vectors a set holds side by side; the path of
-            its frame names the first element that is no vector, the
-            vectors its elements hold read first, `map /scores | zip`.
-        ~~|
-    | proves :keepsEqualColumns
-        |~~ The columns stand in a vector, two equal ones kept. ~~|
-        ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
-    | proves :ElementKindNotTakenError/refusesANumber
-        |~~ An element that is no vector is refused at its index. ~~|
-        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
-    | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
-        |~~ The vectors the elements of a set hold are read first. ~~|
-        ~(#[{:scores [1 2]} {:scores [3 4]}] | map /scores | zip | eq [[1 3] [2 4]])
-    | impl ::builtin{};
+        ~(::Box#[1 2] | get [~(it) ~(distinct)] | eq [::Box#[1 2] ::Box#[1 2]])
+    | impl ~(it);
 
 :set/groupBy
   |~~ Answers the map of the elements filed under the keyword their key
@@ -243,111 +167,53 @@
         ~(#[[1]] | groupBy !| get [~(tag) ~(trace | last | path) ~(key | expected)] | eq [::set/groupBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]])
     | impl ::builtin{};
 
-:set/toVec
-  |~~ Answers the vector of the set's elements in its order,
-      `#[2 1] | toVec` answering `[1 2]`, a vector whose verbs keep it a
-      vector, `#[3 1 2] | toVec | take 2` answering `[1 2]` where the set
-      takes the set `#[1 2]`. `toSet` turns the vector back into the set.
-      A map has no `toVec`: its pairs are `entries`, its keys `keys` and
-      its values `vals`; and the characters of a string are `split ""`.
-      ::link~(::vec/toSet) ::link~(::map/entries)
-      ::link~(::map/keys) ::link~(::map/vals)
-      ::link~(::string/split)
-  ~~|
-  ::fn
-    | returns |~~ The vector of the elements. ~~| ::vec
-    | proves :leadsAMapToItsParts
-        |~~ A map is led to its pairs and its values, the verbs that
-            answer a vector, and a string to `split`.
-        ~~|
-        ~(get [~({:id 7} | toVec !| nearest) ~("tea" | toVec !| nearest)] | eq [[:entries :keys :vals] [:split]])
-    | proves :keepsTheVerbsOfVectorsOnAVector
-        |~~ The vector of a set takes as a vector, the set as a set. ~~|
-        ~(#[3 1 2] | get [~(toVec | take 2) ~(take 2)] | eq [[1 2] #[1 2]])
-    | proves :readsBack
-        |~~ A set turned into a vector turns back into itself. ~~|
-        ~(#[2 1] | toVec | get [~(it) ~(toSet)] | eq [[1 2] #[1 2]])
-    | impl ::builtin{};
-
-:set/toSet
-  |~~ Answers the set itself, `it`, under the tags it came with,
-      `::Box#[1 2] | toSet` answering `::Box#[1 2]`, so `map ~toSet`
-      turns vectors and sets into sets; on a set `distinct` answers it
-      too.
-      ::link~(::vec/toSet) ::link~(::set/distinct)
-  ~~|
-  ::fn
-    | returns |~~ The set itself. ~~| ::set
-    | proves :answersItself
-        |~~ A set answers itself. ~~|
-        ~(#[1 2] | toSet | eq #[1 2])
-    | proves :keepsTheTagsItCameWith
-        |~~ A set under a tag answers itself under the tag. ~~|
-        ~(::Box#[1 2] | toSet | eq ::Box#[1 2])
-    | impl ::builtin{};
-
-:set/distinct
-  |~~ Answers the set itself, `it`, under the tags it came with, each of
-      its elements in it once already, `::Box#[1 2] | distinct` answering
-      `::Box#[1 2]`; the `distinct` of a vector keeps its elements in the
-      order of their first occurrence.
-      ::link~(::set/toSet) ::link~(::vec/distinct)
-  ~~|
-  ::fn
-    | returns |~~ The set itself. ~~| ::set
-    | proves :answersItself
-        |~~ A set is its distinct elements already, under the tags it came
-            with.
-        ~~|
-        ~(::Box#[1 2] | get [~(it) ~(distinct)] | eq [::Box#[1 2] ::Box#[1 2]])
-    | impl ~(it);
-
-:set/union
-  |~~ Answers the set of the elements of either set, in the one order and
-      under the tags the two share: `#[:tea :cake] | union #[:cake :jam]`
-      answers `#[:cake :jam :tea]`. The other value is a set the call
+:set/inter
+  |~~ Answers the set of the elements both sets hold, under the tags the
+      two share: `#[:tea :cake :jam] | inter #[:cake :pie]` answers
+      `#[:cake]`, and
+      whether the set holds each of several elements is
+      `inter #[1 2] | eq #[1 2]`. The other value is a set the call
       gives; a vector or a map beside a set is refused under the input,
-      and so is a call that gives none, and the parts a call computes
-      against one subject unite by `unionOf`. `minus` and `inter` answer
-      the difference and the common part.
-      ::link~(::set/minus) ::link~(::set/inter)
-      ::link~(::vec/union) ::link~(::any/unionOf)
+      and so is a call that gives none.
+      ::link~(::set/union) ::link~(::set/minus)
+      ::link~(::vec/inter) ::link~(::vec/has)
   ~~|
   ::fn
-    | takes :other |~~ The other set, which the call gives. ~~| /0 ::set
+    | takes :other |~~ The set whose elements stay, which the call gives. ~~| /0 ::set
     | throws :OtherKindNotTakenError
         |~~ The other value is a set; a vector is made a set by `toSet`
-            first, `#[1] | union ([2 3] | toSet)`.
+            first, `#[1 2] | inter ([2] | toSet)`.
         ~~|
     | throws :OtherNotGivenError
-        |~~ `union` unites the subject with the set the call gives,
-            `#[1] | union #[2]`; the sets a set holds unite by the verb of
-            vectors, `#[#[1] #[2]] | vec/union`, or by `flat`.
+        |~~ `inter` keeps of the subject what the set the call gives holds,
+            `#[1 2] | inter #[2]`; what the sets a set holds share is the
+            verb of vectors, `#[#[1 2] #[2 3]] | vec/inter`.
         ~~|
     | returns
-        |~~ The elements of both sets, a set under the tags they share.
+        |~~ The elements both sets hold, a set under the tags they share.
         ~~|
         ::set
     | throws :ArgsBeyondInputsError
-        |~~ `union` unites the subject with one set: several unite one
-            after another, `union #[2] | union #[3]`, or as the vector of
-            them, `[#[1] #[2] #[3]] | union`.
+        |~~ `inter` takes one set: several cross one after another,
+            `inter #[1 2] | inter #[2 3]`.
         ~~|
-    | proves :mergesTwoSets
-        |~~ The union holds the elements of either. ~~|
-        ~(#[:tea :cake] | union #[:cake :jam] | eq #[:cake :jam :tea])
-    | proves :unitesSeveralOneAfterAnother
-        |~~ Several sets unite one after another. ~~|
-        ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
+    | proves :keepsTheCommonElements
+        |~~ The elements both hold stay. ~~|
+        ~(#[:tea :cake :jam] | inter #[:cake :pie] | eq #[:cake])
+    | proves :asksForSeveralElements
+        |~~ A set holds each of several when crossing with them keeps them
+            all.
+        ~~|
+        ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
     | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:tea] | union [:cake] !| tag | eq ::set/union/OtherKindNotTakenError)
+        ~(#[:tea] | inter [:tea] !| tag | eq ::set/inter/OtherKindNotTakenError)
     | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1] #[2]] | union !| tag | eq ::set/union/OtherNotGivenError)
+        ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/OtherNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
-        ~(#[1] | union #[2] #[3] !| tag | eq ::set/union/ArgsBeyondInputsError)
+        ~(#[1 2] | inter #[1] #[2] !| tag | eq ::set/inter/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :set/minus
@@ -397,51 +263,185 @@
         ~(#[1 2 3] | minus #[2] #[3] !| tag | eq ::set/minus/ArgsBeyondInputsError)
     | impl ::builtin{};
 
-:set/inter
-  |~~ Answers the set of the elements both sets hold, under the tags the
-      two share: `#[:tea :cake :jam] | inter #[:cake :pie]` answers
-      `#[:cake]`, and
-      whether the set holds each of several elements is
-      `inter #[1 2] | eq #[1 2]`. The other value is a set the call
-      gives; a vector or a map beside a set is refused under the input,
-      and so is a call that gives none.
-      ::link~(::set/union) ::link~(::set/minus)
-      ::link~(::vec/inter) ::link~(::vec/has)
+:set/reverse
+  |~~ Answers the vector of the elements from the greatest down,
+      `#[:tea :cake :jam] | reverse` answering `[:tea :jam :cake]`, where
+      a vector reverses the order it was written in, `[3 1 2] | reverse`
+      answering `[2 1 3]`. A set keeps no order but the one order, so the
+      answer is a vector, and `toSet` after it gives the set back.
+      ::link~(::set/sort) ::link~(::vec/reverse)
   ~~|
   ::fn
-    | takes :other |~~ The set whose elements stay, which the call gives. ~~| /0 ::set
-    | throws :OtherKindNotTakenError
-        |~~ The other value is a set; a vector is made a set by `toSet`
-            first, `#[1 2] | inter ([2] | toSet)`.
+    | returns |~~ The elements from the greatest down, a vector. ~~| ::vec
+    | proves :answersAVector
+        |~~ The reversed elements are a vector. ~~|
+        ~(#[:tea :cake :jam] | reverse | eq [:tea :jam :cake])
+    | proves :reversesTheOneOrderNotTheVector
+        |~~ A vector reverses its order as written, its set the one order.
         ~~|
-    | throws :OtherNotGivenError
-        |~~ `inter` keeps of the subject what the set the call gives holds,
-            `#[1 2] | inter #[2]`; what the sets a set holds share is the
-            verb of vectors, `#[#[1 2] #[2 3]] | vec/inter`.
+        ~([3 1 2] | get [~(reverse) ~(toSet | reverse)] | eq [[2 1 3] [3 2 1]])
+    | proves :answersAVectorThatToSetMakesASet
+        |~~ A reversed set is a set again after `toSet`. ~~|
+        ~(#[3 1 2] | reverse | toSet | eq #[1 2 3])
+    | impl ::builtin{};
+
+:set/sort
+  |~~ Answers the vector of the elements in the order the key ranks them,
+      the one order without a key: `#[{:age 41} {:age 30}] | sort /age`
+      answers `[{:age 30} {:age 41}]`, and a key under `desc` ranks from the
+      greatest down, `#[1 2 3] | sort ~(desc)` answering `[3 2 1]`. A set
+      keeps no order but the one order, so the answer is a vector, and
+      `toSet` after it brings the set back in the one order. The key is
+      code, a quote run on each element with the element as its subject;
+      a value computed at the call instead is refused under the
+      input.
+      ::link~(::vec/sort) ::link~(::set/reverse)
+      ::link~(::desc)
+  ~~|
+  ::fn
+    | takes :key
+        |~~ The code each element is ranked by, null when the call gives
+            none.
+        ~~|
+        ~(query /0) #[::null ::path ::quote]
+    | throws :KeyKindNotTakenError
+        |~~ The key is a path, a quote or null: written `~(get /age)`, it runs
+            on each element, while `(get /age)` is computed once at the call,
+            against the set, and refused with what it answered.
         ~~|
     | returns
-        |~~ The elements both sets hold, a set under the tags they share.
+        |~~ The elements in the order the key ranks them, a vector. ~~|
+        ::vec
+    | proves :answersAVector
+        |~~ The sorted elements are a vector. ~~|
+        ~(#[:tea :cake :jam] | sort | eq [:cake :jam :tea])
+    | proves :ranksByTheKey
+        |~~ A key ranks the elements by what it answers. ~~|
+        ~(#[{:age 41} {:age 30}] | sort /age | eq [{:age 30} {:age 41}])
+    | proves :descendsByADescendingKey
+        |~~ A key under `desc` ranks from the greatest down. ~~|
+        ~(#[1 2 3] | sort ~(desc) | eq [3 2 1])
+    | proves :losesItsOrderToToSet
+        |~~ `toSet` after a sort brings the set back in the one order. ~~|
+        ~(#[1 2 3] | sort ~(desc) | toSet | eq #[1 2 3])
+    | proves :KeyKindNotTakenError/refusesAValueForCode
+        |~~ A key computed at the call is refused under the input. ~~|
+        ~(#[3 1 2] | sort (desc) !| tag | eq ::set/sort/KeyKindNotTakenError)
+    | impl ::builtin{};
+
+:set/toSet
+  |~~ Answers the set itself, `it`, under the tags it came with,
+      `::Box#[1 2] | toSet` answering `::Box#[1 2]`, so `map ~toSet`
+      turns vectors and sets into sets; on a set `distinct` answers it
+      too.
+      ::link~(::vec/toSet) ::link~(::set/distinct)
+  ~~|
+  ::fn
+    | returns |~~ The set itself. ~~| ::set
+    | proves :answersItself
+        |~~ A set answers itself. ~~|
+        ~(#[1 2] | toSet | eq #[1 2])
+    | proves :keepsTheTagsItCameWith
+        |~~ A set under a tag answers itself under the tag. ~~|
+        ~(::Box#[1 2] | toSet | eq ::Box#[1 2])
+    | impl ::builtin{};
+
+:set/toVec
+  |~~ Answers the vector of the set's elements in its order,
+      `#[2 1] | toVec` answering `[1 2]`, a vector whose verbs keep it a
+      vector, `#[3 1 2] | toVec | take 2` answering `[1 2]` where the set
+      takes the set `#[1 2]`. `toSet` turns the vector back into the set.
+      A map has no `toVec`: its pairs are `entries`, its keys `keys` and
+      its values `vals`; and the characters of a string are `split ""`.
+      ::link~(::vec/toSet) ::link~(::map/entries)
+      ::link~(::map/keys) ::link~(::map/vals)
+      ::link~(::string/split)
+  ~~|
+  ::fn
+    | returns |~~ The vector of the elements. ~~| ::vec
+    | proves :leadsAMapToItsParts
+        |~~ A map is led to its pairs and its values, the verbs that
+            answer a vector, and a string to `split`.
+        ~~|
+        ~(get [~({:id 7} | toVec !| nearest) ~("tea" | toVec !| nearest)] | eq [[:entries :keys :vals] [:split]])
+    | proves :keepsTheVerbsOfVectorsOnAVector
+        |~~ The vector of a set takes as a vector, the set as a set. ~~|
+        ~(#[3 1 2] | get [~(toVec | take 2) ~(take 2)] | eq [[1 2] #[1 2]])
+    | proves :readsBack
+        |~~ A set turned into a vector turns back into itself. ~~|
+        ~(#[2 1] | toVec | get [~(it) ~(toSet)] | eq [[1 2] #[1 2]])
+    | impl ::builtin{};
+
+:set/union
+  |~~ Answers the set of the elements of either set, in the one order and
+      under the tags the two share: `#[:tea :cake] | union #[:cake :jam]`
+      answers `#[:cake :jam :tea]`. The other value is a set the call
+      gives; a vector or a map beside a set is refused under the input,
+      and so is a call that gives none, and the parts a call computes
+      against one subject unite by `unionOf`. `minus` and `inter` answer
+      the difference and the common part.
+      ::link~(::set/minus) ::link~(::set/inter)
+      ::link~(::vec/union) ::link~(::any/unionOf)
+  ~~|
+  ::fn
+    | takes :other |~~ The other set, which the call gives. ~~| /0 ::set
+    | throws :OtherKindNotTakenError
+        |~~ The other value is a set; a vector is made a set by `toSet`
+            first, `#[1] | union ([2 3] | toSet)`.
+        ~~|
+    | throws :OtherNotGivenError
+        |~~ `union` unites the subject with the set the call gives,
+            `#[1] | union #[2]`; the sets a set holds unite by the verb of
+            vectors, `#[#[1] #[2]] | vec/union`, or by `flat`.
+        ~~|
+    | returns
+        |~~ The elements of both sets, a set under the tags they share.
         ~~|
         ::set
     | throws :ArgsBeyondInputsError
-        |~~ `inter` takes one set: several cross one after another,
-            `inter #[1 2] | inter #[2 3]`.
+        |~~ `union` unites the subject with one set: several unite one
+            after another, `union #[2] | union #[3]`, or as the vector of
+            them, `[#[1] #[2] #[3]] | union`.
         ~~|
-    | proves :keepsTheCommonElements
-        |~~ The elements both hold stay. ~~|
-        ~(#[:tea :cake :jam] | inter #[:cake :pie] | eq #[:cake])
-    | proves :asksForSeveralElements
-        |~~ A set holds each of several when crossing with them keeps them
-            all.
-        ~~|
-        ~(#[1 2 3] | inter #[1 2] | eq #[1 2])
+    | proves :mergesTwoSets
+        |~~ The union holds the elements of either. ~~|
+        ~(#[:tea :cake] | union #[:cake :jam] | eq #[:cake :jam :tea])
+    | proves :unitesSeveralOneAfterAnother
+        |~~ Several sets unite one after another. ~~|
+        ~(#[1] | union #[2] | union #[3] | eq #[1 2 3])
     | proves :OtherKindNotTakenError/refusesAVector
         |~~ A vector beside a set is refused under the input. ~~|
-        ~(#[:tea] | inter [:tea] !| tag | eq ::set/inter/OtherKindNotTakenError)
+        ~(#[:tea] | union [:cake] !| tag | eq ::set/union/OtherKindNotTakenError)
     | proves :OtherNotGivenError/refusesACallWithNoSet
         |~~ A call that gives no set is refused under the input. ~~|
-        ~(#[#[1 2] #[2 3]] | inter !| tag | eq ::set/inter/OtherNotGivenError)
+        ~(#[#[1] #[2]] | union !| tag | eq ::set/union/OtherNotGivenError)
     | proves :ArgsBeyondInputsError/refusesTwoSets
         |~~ A call with two sets is refused under the verb. ~~|
-        ~(#[1 2] | inter #[1] #[2] !| tag | eq ::set/inter/ArgsBeyondInputsError)
+        ~(#[1] | union #[2] #[3] !| tag | eq ::set/union/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:set/zip
+  |~~ Answers the vectors the set holds read side by side, in its one
+      order, one vector of the elements at each index, as long as the
+      shortest: `#[[1 1] [2 2]] | zip` answers `[[1 2] [1 2]]`, a vector,
+      since two columns may be equal, as `sort` and `reverse` answer one.
+      It takes no value.
+      ::link~(::vec/zip) ::link~(::set/reverse)
+  ~~|
+  ::fn
+    | returns |~~ The elements at each index, a vector each. ~~| ::vec
+    | throws :ElementKindNotTakenError
+        |~~ `zip` reads the vectors a set holds side by side; the path of
+            its frame names the first element that is no vector, the
+            vectors its elements hold read first, `map /scores | zip`.
+        ~~|
+    | proves :keepsEqualColumns
+        |~~ The columns stand in a vector, two equal ones kept. ~~|
+        ~(#[[1 1] [2 2]] | zip | eq [[1 2] [1 2]])
+    | proves :ElementKindNotTakenError/refusesANumber
+        |~~ An element that is no vector is refused at its index. ~~|
+        ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path) ~(subject | expected)] | eq [::set/zip/ElementKindNotTakenError /0 #[::vec]])
+    | proves :ElementKindNotTakenError/readsTheVectorsOfItsElementsFirst
+        |~~ The vectors the elements of a set hold are read first. ~~|
+        ~(#[{:scores [1 2]} {:scores [3 4]}] | map /scores | zip | eq [[1 3] [2 4]])
     | impl ::builtin{};

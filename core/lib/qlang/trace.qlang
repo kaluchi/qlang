@@ -102,21 +102,6 @@
         ~([1 "x" 3] | map ~(mul 2) !| trace | failed | eq [~(mul 2) ~(map ~(mul 2))])
     | impl ~(map ~failed);
 
-:trace/subject
-  |~~ Answers the subject the step that failed met, the value the frame
-      where the failure arose holds, `"x" | add 1 !| trace | subject`
-      answering `"x"`, the value a refusal of a subject leaves to the
-      trace. A host shows it beside a trace past the room of a fact,
-      `:trace/subject`.
-      ::link~(::frame/subject) ::link~(::kind/reveals)
-  ~~|
-  ::fn
-    | returns |~~ The subject the step that failed met. ~~| ::any
-    | proves :readsTheSubjectTheStepMet
-        |~~ The subject of the frame where the failure arose. ~~|
-        ~("x" | add 1 !| trace | subject | eq "x")
-    | impl ~(first | subject);
-
 :trace/paths
   |~~ Answers the paths of the parts the verbs of its levels ran their code
       on, from the level where the failure arose outward, a level that ran
@@ -132,3 +117,18 @@
         |~~ The path of the element `map` ran its code on. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | paths | eq [/1])
     | impl ~(map ~path | filter ~(ne null));
+
+:trace/subject
+  |~~ Answers the subject the step that failed met, the value the frame
+      where the failure arose holds, `"x" | add 1 !| trace | subject`
+      answering `"x"`, the value a refusal of a subject leaves to the
+      trace. A host shows it beside a trace past the room of a fact,
+      `:trace/subject`.
+      ::link~(::frame/subject) ::link~(::kind/reveals)
+  ~~|
+  ::fn
+    | returns |~~ The subject the step that failed met. ~~| ::any
+    | proves :readsTheSubjectTheStepMet
+        |~~ The subject of the frame where the failure arose. ~~|
+        ~("x" | add 1 !| trace | subject | eq "x")
+    | impl ~(first | subject);

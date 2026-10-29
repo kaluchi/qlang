@@ -34,60 +34,6 @@
         |~~ A number is no boolean and is refused. ~~|
         ~(::boolean#1 !| get [~(tag) ~(found | tag)] | eq [::boolean/PayloadKindNotTakenError ::number]);
 
-:boolean/not
-  |~~ Answers the other boolean, `true | not` answering `false`, and so
-      turns the condition before it, `filter ~(gt 1 | not)`. The subject
-      is a boolean, and `not` asks nothing of a value of another kind:
-      null, zero and an empty vector are each refused, so a value is
-      asked whether it is null by `eq null`, and a container whether it
-      is empty by `empty`. A condition is asked first and turned after,
-      `eq 5 | not`, or asked at once by `ne 5`; given to `not` as a
-      value, `5 | not (eq 5)`, it leaves `not` a subject that is no
-      boolean, and is refused.
-      ::link~(::any/ne) ::link~(::vec/empty)
-      ::link~(::boolean/and)
-  ~~|
-  ::fn
-    | returns
-        |~~ The other boolean: `false` for `true`, `true` for `false`. ~~|
-        ::boolean
-    | throws :SubjectNotBooleanError
-        |~~ `not` turns a boolean: a condition is asked first and turned
-            after it, `eq 5 | not`, or asked at once by `ne 5`; a value is
-            asked whether it is null by `eq null`, and a container whether
-            it is empty by `empty`.
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `not` takes no value: it answers the opposite of the boolean
-            in the pipe, and a condition goes before it as a step,
-            `5 | eq 5 | not`.
-        ~~|
-    | proves :turnsTrueFalse
-        |~~ Not true is false. ~~|
-        ~(true | not | eq false)
-    | proves :turnsFalseTrue |~~ Not false is true. ~~| ~(false | not)
-    | proves :turnsTheConditionBeforeIt
-        |~~ A condition is turned after it is asked. ~~|
-        ~([1 2] | filter ~(gt 1 | not) | eq [1])
-    | proves :SubjectNotBooleanError/refusesNull
-        |~~ Null is no boolean; it is asked for by `eq null`. ~~|
-        ~(null | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::null])
-    | proves :SubjectNotBooleanError/refusesANumber
-        |~~ A number is no boolean, and `not` refuses it. ~~|
-        ~(0 | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::number])
-    | proves :SubjectNotBooleanError/refusesAConditionGivenAsAValue
-        |~~ A condition given to `not` leaves it a subject that is no
-            boolean.
-        ~~|
-        ~(5 | not (eq 5) !| tag | eq ::boolean/not/SubjectNotBooleanError)
-    | proves :SubjectNotBooleanError/refusesAnEmptyVector
-        |~~ An empty vector is no boolean. ~~|
-        ~([] | not !| tag | eq ::boolean/not/SubjectNotBooleanError)
-    | proves :ArgsBeyondInputsError/refusesAConditionGiven
-        |~~ A condition given to the call is refused under the verb. ~~|
-        ~(true | not (eq 5) !| tag | eq ::boolean/not/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
 :boolean/and
   |~~ Answers whether the subject and the condition the call gives both
       hold, `true | and false` answering `false`. Both are booleans: a
@@ -150,6 +96,60 @@
             so a comparison of the element there is refused.
         ~~|
         ~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| get [~(tag) ~(leftTag)] | eq [::call/KindsMismatchedError ::boolean])
+    | impl ::builtin{};
+
+:boolean/not
+  |~~ Answers the other boolean, `true | not` answering `false`, and so
+      turns the condition before it, `filter ~(gt 1 | not)`. The subject
+      is a boolean, and `not` asks nothing of a value of another kind:
+      null, zero and an empty vector are each refused, so a value is
+      asked whether it is null by `eq null`, and a container whether it
+      is empty by `empty`. A condition is asked first and turned after,
+      `eq 5 | not`, or asked at once by `ne 5`; given to `not` as a
+      value, `5 | not (eq 5)`, it leaves `not` a subject that is no
+      boolean, and is refused.
+      ::link~(::any/ne) ::link~(::vec/empty)
+      ::link~(::boolean/and)
+  ~~|
+  ::fn
+    | returns
+        |~~ The other boolean: `false` for `true`, `true` for `false`. ~~|
+        ::boolean
+    | throws :SubjectNotBooleanError
+        |~~ `not` turns a boolean: a condition is asked first and turned
+            after it, `eq 5 | not`, or asked at once by `ne 5`; a value is
+            asked whether it is null by `eq null`, and a container whether
+            it is empty by `empty`.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `not` takes no value: it answers the opposite of the boolean
+            in the pipe, and a condition goes before it as a step,
+            `5 | eq 5 | not`.
+        ~~|
+    | proves :turnsTrueFalse
+        |~~ Not true is false. ~~|
+        ~(true | not | eq false)
+    | proves :turnsFalseTrue |~~ Not false is true. ~~| ~(false | not)
+    | proves :turnsTheConditionBeforeIt
+        |~~ A condition is turned after it is asked. ~~|
+        ~([1 2] | filter ~(gt 1 | not) | eq [1])
+    | proves :SubjectNotBooleanError/refusesNull
+        |~~ Null is no boolean; it is asked for by `eq null`. ~~|
+        ~(null | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::null])
+    | proves :SubjectNotBooleanError/refusesANumber
+        |~~ A number is no boolean, and `not` refuses it. ~~|
+        ~(0 | not !| get [~(tag) ~(subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::number])
+    | proves :SubjectNotBooleanError/refusesAConditionGivenAsAValue
+        |~~ A condition given to `not` leaves it a subject that is no
+            boolean.
+        ~~|
+        ~(5 | not (eq 5) !| tag | eq ::boolean/not/SubjectNotBooleanError)
+    | proves :SubjectNotBooleanError/refusesAnEmptyVector
+        |~~ An empty vector is no boolean. ~~|
+        ~([] | not !| tag | eq ::boolean/not/SubjectNotBooleanError)
+    | proves :ArgsBeyondInputsError/refusesAConditionGiven
+        |~~ A condition given to the call is refused under the verb. ~~|
+        ~(true | not (eq 5) !| tag | eq ::boolean/not/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :boolean/or
@@ -216,18 +216,6 @@
         ~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| get [~(tag) ~(leftTag)] | eq [::call/KindsMismatchedError ::boolean])
     | impl ::builtin{};
 
-:boolean/toString
-  |~~ Answers the literal of the boolean as a string, `true | toString`
-      answering `"true"`.
-      ::link~(::string/toString)
-  ~~|
-  ::fn
-    | returns |~~ `"true"` or `"false"`. ~~| ::string
-    | proves :writesTheLiteral
-        |~~ A boolean answers its literal. ~~|
-        ~([true false] | map ~toString | eq ["true" "false"])
-    | impl ::builtin{};
-
 :boolean/toKeyword
   |~~ Answers the keyword of the boolean's literal, `true | toKeyword`
       answering `:true`, as `groupBy` files the elements a condition
@@ -241,5 +229,17 @@
             under.
         ~~|
         ~([1 2 3] | groupBy ~(gt 1) | query (true | toKeyword) | eq [2 3])
+    | impl ::builtin{};
+
+:boolean/toString
+  |~~ Answers the literal of the boolean as a string, `true | toString`
+      answering `"true"`.
+      ::link~(::string/toString)
+  ~~|
+  ::fn
+    | returns |~~ `"true"` or `"false"`. ~~| ::string
+    | proves :writesTheLiteral
+        |~~ A boolean answers its literal. ~~|
+        ~([true false] | map ~toString | eq ["true" "false"])
     | impl ::builtin{};
 

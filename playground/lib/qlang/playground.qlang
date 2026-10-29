@@ -60,10 +60,10 @@
       ::link~(::qlang/errors) ::link~(::cell) ::link~(::qlang/hosts)
   ~~|;
 
-:host/streams
-  |~~ The streams the playground installs, the words of `::stdio`. ~~|
-  ::snippet~(::stdio | manifest);
-
 :host/labels
   |~~ How many kinds lie on the playground, the language's and the streams'. ~~|
   ::snippet~(::host | kinds | count);
+
+:host/streams
+  |~~ The streams the playground installs, the words of `::stdio`. ~~|
+  ::snippet~(::stdio | manifest);

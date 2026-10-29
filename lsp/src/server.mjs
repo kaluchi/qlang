@@ -24,7 +24,8 @@ import {
   foldingRangesOf,
   signatureHelpAtOffset,
   semanticTokensFor,
-  SEMANTIC_TOKEN_TYPES
+  SEMANTIC_TOKEN_TYPES,
+  SEMANTIC_TOKEN_MODIFIERS
 } from './features.mjs';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -67,7 +68,7 @@ connection.onInitialize(async () => {
       foldingRangeProvider: true,
       signatureHelpProvider: { triggerCharacters: [' '] },
       semanticTokensProvider: {
-        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
+        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: SEMANTIC_TOKEN_MODIFIERS },
         full: true
       }
     }
@@ -157,23 +158,14 @@ connection.onDefinition(async (params) => {
   if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = await definitionAtOffset(state.root, offset, catalogCtx);
+  const def = await definitionAtOffset(state.root, offset, catalogCtx, state.source);
   if (!def) return null;
 
-  if (def.fileUri) {
-    return {
-      uri: def.fileUri,
-      range: offsetRangeToLineCol(def.source, def.startOffset, def.endOffset)
-    };
-  }
-
-  return {
-    uri: params.textDocument.uri,
-    range: {
-      start: doc.positionAt(def.startOffset),
-      end: doc.positionAt(def.endOffset)
-    }
-  };
+  // [QSLSP#reach]
+  const locationOf = ({ fileUri, source, startOffset, endOffset }) => (fileUri
+    ? { uri: fileUri, range: offsetRangeToLineCol(source, startOffset, endOffset) }
+    : { uri: params.textDocument.uri, range: { start: doc.positionAt(startOffset), end: doc.positionAt(endOffset) } });
+  return Array.isArray(def) ? def.map(locationOf) : locationOf(def);
 });
 
 function offsetRangeToLineCol(source, startOffset, endOffset) {

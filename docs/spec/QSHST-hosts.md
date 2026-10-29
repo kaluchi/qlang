@@ -346,8 +346,10 @@ kind of its value, `null`, `boolean`, `number`, `string`, `regex`,
 literal; `doc` the prose of a doc, its quotes, the code its spans
 between backquotes hold and the tags written before a quote of it
 painted as they are; `comment`; `declaration` the name a declaration
-writes; `verb` the name of a call that names a word of the root, by its
-last name or its address, read by the name alone, and `name` any other;
+writes; `verb` the name of a call that names a word of the root, a verb
+or a part a kind of the root wires on its values, the facts of a refusal
+and its `trace` among them, by its last name or its address, read by the
+name alone, and `name` any other;
 `group` the parentheses of a group; `fail` the combinator `!|`;
 `punctuation` the rest a gap holds; `whitespace`; and `unparsed` the
 source past where its parse stopped. Each host coats those kinds its own

@@ -135,6 +135,12 @@ describe('the answer painted where the caller asks for colour', () => {
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
   });
 
+  it('paints a call an answer holds as a word of the root, a fact a refusal wires among them', async () => {
+    const cellEntry = await makeCellEntry({ result: await evalQuery('~(count !| trace)') });
+    const { stdoutText } = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: true });
+    expect([stdoutText.includes('\x1b[3;94mcount'), stdoutText.includes('\x1b[3;94mtrace')]).toEqual([true, true]);
+  });
+
   it('paints the failure of a query that does not parse in ANSI on stdout, exit 0', async () => {
     const cellEntry = await makeCellEntry({ result: await evalQuery('[1 2') });
     const cliOutcome = await renderCellOutcome(cellEntry, {

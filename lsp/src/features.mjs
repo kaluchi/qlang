@@ -52,6 +52,25 @@ function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
+// [QSLSP#reach]
+const PUNCTUATION_OF_MARKDOWN = /[!-/:-@[-`{-~]/g;
+
+const SPAN_BETWEEN_BACKQUOTES = /(?<!`)(`+)[\s\S]*?(?<!`)\1(?!`)/g;
+
+const escapedForMarkdown = text => text.replace(PUNCTUATION_OF_MARKDOWN, '\\$&');
+
+function markdownOfProse(prose) {
+  let markdown = '';
+  let at = 0;
+  for (const span of prose.matchAll(SPAN_BETWEEN_BACKQUOTES)) {
+    markdown += escapedForMarkdown(prose.slice(at, span.index)) + span[0];
+    at = span.index + span[0].length;
+  }
+  return markdown + escapedForMarkdown(prose.slice(at));
+}
+
+const markdownOfThePage = async address => markdownOfProse(await contentOfThePage(address));
+
 // [QSLSP#server]
 const contentOfPages = new Map();
 async function contentOfThePage(address) {
@@ -60,11 +79,6 @@ async function contentOfThePage(address) {
 }
 
 const callFormOf = shown => [shown.address.literal, ...shown.inputs].join(' ');
-
-// [QSSLF#catalog]
-async function subjectKindsAt(source, offset) {
-  return (await subjectAt(source, offset))?.kinds ?? null;
-}
 
 const spanOf = read => ({ startOffset: read.span.start.offset, endOffset: read.span.end.offset });
 const headOf = read => ({ startOffset: read.span.start.offset, endOffset: tagHeadEnd(read) });
@@ -150,7 +164,7 @@ async function nameCompletions() {
 async function verbCompletion(scope, name, kinds) {
   const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
-  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await contentOfThePage(shown.address.literal) };
+  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await markdownOfThePage(shown.address.literal) };
 }
 
 async function tagCompletions() {
@@ -159,7 +173,7 @@ async function tagCompletions() {
   _tagCompletions = [];
   for (const address of nodeAddresses(scope)) {
     const label = makeTag(address).literal;
-    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await contentOfThePage(label) });
+    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await markdownOfThePage(label) });
   }
   return _tagCompletions;
 }
@@ -241,6 +255,17 @@ function stepsOf(pipeline) {
   return pipeline.parts.map(read => (isFailStep(read.value) ? { combinator: '!|', read: read.parts[0] } : { combinator: '|', read }));
 }
 
+// [QSLSP#reach]
+async function subjectKindsBefore(read, source) {
+  const step = read.parent !== undefined && read.parent !== null && isFailStep(read.parent.value) ? read.parent : read;
+  const pipeline = step.parent;
+  if (pipeline === undefined || pipeline === null) return null;
+  const steps = stepsOf(pipeline);
+  const at = steps.findIndex(({ read: written }) => written === read);
+  if (at < 1 || steps[at].combinator === '!|') return null;
+  return (await subjectOfSteps(steps.slice(0, at), null, source))?.kinds ?? null;
+}
+
 // [QSLSP#offer]
 async function subjectOfSteps(steps, subject, text) {
   let answered = subject;
@@ -283,32 +308,106 @@ function verbsServing(scope, { kinds, value }) {
   }));
 }
 
+// [QSLSP#reach]
 export async function hoverAtOffset(root, source, offset) {
   if (!root) return null;
 
   const read = partAtOffset(root, offset);
   if (!read) return null;
+  const between = codeBetweenBackquotesAt(read, offset, source);
+  if (between !== null) return shiftedBy(await hoverAtOffset(between.root, between.code, offset - between.at), between.at);
   const { value } = read;
 
   if (isCallStep(value)) return await hoverForCall(read, root, source);
   if (isTag(value)) return await hoverForTag(value.name, spanOf(read));
   if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), headOf(read));
-  if (kindOf(value) === 'path') return await hoverForPath(read, source);
-  if (isKeyword(value)) return { content: `keyword \`${value.literal}\``, ...spanOf(read) };
-  return null;
+  if (namesADeclaration(read)) return { content: `keyword ${codeSpanOf(value.literal)}`, ...spanOf(read) };
+  const kind = literalKindAt(read, offset, source);
+  return kind === null ? null : await hoverForLiteral(read, kind, source);
+}
+
+const SIGNS_OF_A_FORM = { vec: 1, map: 1, set: 2, quote: 2, error: 2, group: 1 };
+
+const KINDS_A_PART_SHOWS = new Set(['null', 'boolean', 'number', 'string', 'regex', 'keyword', 'path', ...Object.keys(SIGNS_OF_A_FORM)]);
+
+const LONGEST_LITERAL_SHOWN = 60;
+
+function namesADeclaration(read) {
+  const { value, parent } = read;
+  return isKeyword(value) && parent !== undefined && parent !== null && isBindStep(parent.value) && parent.parts[0] === read;
+}
+
+function literalKindAt(read, offset, source) {
+  if (read.parent === undefined || read.parent === null) return null;
+  const kind = kindOf(read.value);
+  if (!KINDS_A_PART_SHOWS.has(kind)) return null;
+  const signs = SIGNS_OF_A_FORM[kind];
+  if (signs === undefined) return kind;
+  const start = read.span.start.offset;
+  const end = read.span.end.offset;
+  const opened = kind === 'quote' && source[start + 1] !== '(' ? 1 : signs;
+  return offset < start + opened || (opened === signs && offset >= end - 1) ? kind : null;
+}
+
+async function hoverForLiteral(read, kind, source) {
+  const literal = makeTag(kind).literal;
+  const written = isKeyword(read.value) ? read.value.literal : source.slice(read.span.start.offset, read.span.end.offset);
+  const heading = written.length <= LONGEST_LITERAL_SHOWN && !written.includes('\n') ? `${codeSpanOf(written)} — **${literal}**` : `**${literal}**`;
+  return { content: markdownHardBreaks([heading, '', await markdownOfThePage(literal)].join('\n')), ...spanOf(read) };
+}
+
+function codeSpanOf(text) {
+  const fence = '`'.repeat(Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length)) + 1);
+  return /^`|`$/.test(text) ? `${fence} ${text} ${fence}` : `${fence}${text}${fence}`;
+}
+
+function codeBetweenBackquotesAt(read, offset, source) {
+  const span = (read.backquoted ?? []).find(({ start, end }) => start.offset <= offset && offset < end.offset);
+  if (span === undefined || typeof source !== 'string') return null;
+  const code = source.slice(span.start.offset, span.end.offset);
+  try {
+    return { root: partOf(parseSource(code)), code, at: span.start.offset };
+  } catch (error) {
+    if (error instanceof SourceParseError) return null;
+    throw error;
+  }
+}
+
+const shiftedBy = (span, by) => (span === null ? null : { ...span, startOffset: span.startOffset + by, endOffset: span.endOffset + by });
+
+function shiftedIntoTheDocument(found, by) {
+  if (found === null) return null;
+  if (Array.isArray(found)) return found.map(one => shiftedIntoTheDocument(one, by));
+  return found.fileUri === undefined ? shiftedBy(found, by) : found;
 }
 
 async function hoverForCall(read, root, source) {
   const name = read.value.get('name').name;
   const scope = await langRuntime();
-  const shown = shownFor(scope, name, await subjectKindsAt(source, read.span.start.offset));
+  const kinds = await subjectKindsBefore(read, source);
+  const verbs = verbsOfTheName(scope, name, kinds);
+  if (verbs !== null) return hoverForTheVerbsOfTheName(read, name, kinds, verbs, scope);
+  const shown = shownFor(scope, name, kinds);
   if (shown !== undefined) {
     const heading = `**${name}** — ${callFormOf(shown)}`;
-    return { content: markdownHardBreaks([heading, '', await contentOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
+    return { content: markdownHardBreaks([heading, '', await markdownOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
   }
   const docs = await contentOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
   if (docs.length === 0) return null;
-  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyPage(docs.join('\n'))].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', markdownOfProse(tidyPage(docs.join('\n')))].join('\n')), ...spanOf(read) };
+}
+
+// [QSLSP#reach]
+function verbsOfTheName(scope, name, kinds) {
+  if ((kinds !== null && verbsReaching(scope, kinds).has(name)) || bareNameReach(scope, name) !== null) return null;
+  const addresses = residencesOf(scope, name).map(([, record]) => record.get('name').name).sort();
+  return addresses.length > 1 ? addresses : null;
+}
+
+function hoverForTheVerbsOfTheName(read, name, kinds, addresses, scope) {
+  const heading = kinds === null ? `**${name}** — the kind of the subject unknown, the verbs of the name:` : `**${name}** — ${makeTag(kinds[0]).literal} answers none of the verbs of the name:`;
+  const forms = addresses.map(address => escapedForMarkdown(callFormOf(shownFor(scope, name, [splitAddress(address)[0]]))));
+  return { content: markdownHardBreaks([heading, '', ...forms].join('\n')), ...spanOf(read) };
 }
 
 // [QSLIT#closed], [QSLSP#server]
@@ -328,12 +427,7 @@ async function hoverForTag(tag, head) {
   const scope = await langRuntime();
   if (nodeOf(scope, tag) === null) return null;
   const literal = makeTag(tag).literal;
-  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await contentOfThePage(literal)].join('\n')), ...head };
-}
-
-async function hoverForPath(read, source) {
-  const written = source.slice(read.span.start.offset, read.span.end.offset);
-  return { content: markdownHardBreaks([`path \`${written}\``, '', await contentOfThePage(tagOf(read.value).literal)].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await markdownOfThePage(literal)].join('\n')), ...head };
 }
 
 function nameAt(read, offset) {
@@ -342,17 +436,31 @@ function nameAt(read, offset) {
   return isOnTagHead(read, offset) ? { name: tagWrittenBy(read), spelling: TAG_SPELLING } : null;
 }
 
-export async function definitionAtOffset(root, offset, catalogCtx) {
+// [QSLSP#reach]
+export async function definitionAtOffset(root, offset, catalogCtx, source = null) {
   if (!root) return null;
 
   const read = partAtOffset(root, offset);
-  const named = read === null ? null : nameAt(read, offset);
-  if (named === null) return null;
+  if (read === null) return null;
+  const between = codeBetweenBackquotesAt(read, offset, source);
+  if (between !== null) return shiftedIntoTheDocument(await definitionAtOffset(between.root, offset - between.at, catalogCtx, between.code), between.at);
+  const named = nameAt(read, offset);
+  if (named === null) {
+    const kind = source === null || namesADeclaration(read) ? null : literalKindAt(read, offset, source);
+    return kind === null ? null : catalogCtx?.index.get(kind) ?? null;
+  }
 
-  const declaration = declarationOf(root, read, named, await langRuntime());
+  const scope = await langRuntime();
+  const declaration = declarationOf(root, read, named, scope);
   if (declaration !== undefined) return spanOf(declaration);
+  if (!catalogCtx) return null;
+  if (named.spelling === TAG_SPELLING) return catalogCtx.index.get(named.name) ?? null;
 
-  return catalogCtx ? catalogDeclarationOf(catalogCtx, named.name) : null;
+  if (source === null) return catalogDeclarationOf(catalogCtx, named.name);
+  const kinds = await subjectKindsBefore(read, source);
+  const verbs = verbsOfTheName(scope, named.name, kinds);
+  if (verbs !== null) return verbs.flatMap(address => catalogCtx.index.get(address) ?? []);
+  return catalogCtx.index.get(shownFor(scope, named.name, kinds)?.address.name) ?? catalogDeclarationOf(catalogCtx, named.name);
 }
 
 // [QSBLD#kind]
@@ -424,6 +532,7 @@ export function foldingRangesOf(root) {
   return ranges;
 }
 
+// [QSLSP#reach]
 export async function signatureHelpAtOffset(root, source, offset) {
   if (!root) return null;
 
@@ -432,7 +541,7 @@ export async function signatureHelpAtOffset(root, source, offset) {
 
   const name = call.value.get('name').name;
   const scope = await langRuntime();
-  const shown = shownFor(scope, name, await subjectKindsAt(source, call.span.start.offset));
+  const shown = shownFor(scope, name, await subjectKindsBefore(call, source));
   if (shown === undefined || (call.parts.length === 0 && shown.inputs.length === 0)) return null;
 
   const inputs = shown.inputs;
@@ -470,27 +579,32 @@ function readsAsWhitespace(text) {
 
 // [QSLSP#server]
 const TYPE_OF_KIND = {
-  verb:        'function',
-  name:        'variable',
-  declaration: 'keyword',
-  keyword:     'property',
-  path:        'property',
-  tag:         'struct',
-  string:      'string',
-  quote:       'string',
-  null:        'number',
-  boolean:     'number',
-  number:      'number',
-  regex:       'regexp',
-  doc:         'comment',
-  comment:     'comment',
-  error:       'keyword',
-  fail:        'keyword'
+  verb:        ['function', 'defaultLibrary'],
+  name:        ['variable'],
+  declaration: ['function', 'declaration'],
+  keyword:     ['property'],
+  path:        ['property'],
+  tag:         ['struct'],
+  string:      ['string'],
+  quote:       ['string'],
+  null:        ['number'],
+  boolean:     ['number'],
+  number:      ['number'],
+  regex:       ['regexp'],
+  doc:         ['comment', 'documentation'],
+  comment:     ['comment'],
+  error:       ['keyword'],
+  fail:        ['keyword']
 };
 
-export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND))];
+export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND).map(([type]) => type))];
 
-const TYPE_INDEX_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [kind, SEMANTIC_TOKEN_TYPES.indexOf(type)]));
+export const SEMANTIC_TOKEN_MODIFIERS = [...new Set(Object.values(TYPE_OF_KIND).flatMap(([, ...modifiers]) => modifiers))];
+
+const CODE_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, [type, ...modifiers]]) => [kind, {
+  type: SEMANTIC_TOKEN_TYPES.indexOf(type),
+  modifiers: modifiers.reduce((bits, modifier) => bits | (1 << SEMANTIC_TOKEN_MODIFIERS.indexOf(modifier)), 0)
+}]));
 
 let _rootVerbNames = null;
 async function rootVerbNames() {
@@ -506,8 +620,8 @@ export async function semanticTokensFor(source) {
   let prevChar = 0;
   const offsetToLineChar = buildLineCharIndex(source);
   for (const tok of tokens) {
-    const typeIndex = TYPE_INDEX_OF_KIND.get(tok.kind);
-    if (typeIndex === undefined) continue;
+    const code = CODE_OF_KIND.get(tok.kind);
+    if (code === undefined) continue;
     let segStart = tok.start;
     while (segStart < tok.end) {
       const { line: segLine, char: segChar } = offsetToLineChar(segStart);
@@ -517,14 +631,14 @@ export async function semanticTokensFor(source) {
       if (segLen > 0) {
         const dLine = segLine - prevLine;
         const dChar = dLine === 0 ? segChar - prevChar : segChar;
-        data.push(dLine, dChar, segLen, typeIndex, 0);
+        data.push(dLine, dChar, segLen, code.type, code.modifiers);
         prevLine = segLine;
         prevChar = segChar;
       }
       segStart = segEnd + (segEnd < tok.end ? 1 : 0);
     }
   }
-  return { data: Uint32Array.from(data) };
+  return { data };
 }
 
 function buildLineCharIndex(source) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseDocument, semanticTokensFor, SEMANTIC_TOKEN_TYPES } from '../../src/features.mjs';
+import { parseDocument, semanticTokensFor, SEMANTIC_TOKEN_TYPES, SEMANTIC_TOKEN_MODIFIERS } from '../../src/features.mjs';
 import { langRuntime, verbNames } from '@kaluchi/qlang-core';
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 import { spawn } from 'node:child_process';
@@ -48,6 +48,14 @@ describe('the semantic tokens', () => {
     expect(typeAt(src.indexOf('apply'))).not.toBe(typeAt(src.lastIndexOf('double')));
   });
 
+  it('coats the name a declaration declares and a verb of the root as functions, the one declared and the other of the library, and a doc as documentation, each modifier once in its legend', async () => {
+    const src = ':double |~~ Twice. ~~| ~(mul 2); 5 | apply double';
+    const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES, SEMANTIC_TOKEN_MODIFIERS);
+    const coatAt = offset => tokens.filter(({ char }) => char === offset).map(({ type, modifiers }) => [type, ...modifiers]);
+    expect([coatAt(0), coatAt(src.indexOf('|~~')), coatAt(src.indexOf('apply'))]).toEqual([[['function', 'declaration']], [['comment', 'documentation']], [['function', 'defaultLibrary']]]);
+    expect(SEMANTIC_TOKEN_MODIFIERS).toEqual([...new Set(SEMANTIC_TOKEN_MODIFIERS)]);
+  });
+
   it('splits a multi-line comment into per-line entries', async () => {
     const src = '|~ multi-\nline plain ~|\n42';
     const { data } = await semanticTokensFor(src);
@@ -88,6 +96,28 @@ it('starts over stdio and answers initialize with its capabilities', async () =>
     const response = await answer;
     expect(response.result.capabilities.hoverProvider).toBe(true);
     expect(response.result.capabilities.signatureHelpProvider.triggerCharacters).toEqual([' ']);
+  } finally {
+    serverProcess.kill();
+  }
+}, 30_000);
+
+it('sends the tokens of an opened document over stdio as the array of integers the protocol writes, the tokens it coats', async () => {
+  const serverProcess = spawn(process.execPath, [serverPath, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  try {
+    const initialized = answerOf(serverProcess, 1);
+    serverProcess.stdin.write(framedMessage({
+      jsonrpc: '2.0', id: 1, method: 'initialize', params: { processId: null, rootUri: null, capabilities: {} }
+    }));
+    await initialized;
+    const source = ':x |~~ A doc. ~~| 1; [1 2] | count';
+    const uri = 'file:///tokens.qlang';
+    const tokens = answerOf(serverProcess, 2);
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'initialized', params: {} }));
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', method: 'textDocument/didOpen', params: { textDocument: { uri, languageId: 'qlang', version: 1, text: source } } }));
+    serverProcess.stdin.write(framedMessage({ jsonrpc: '2.0', id: 2, method: 'textDocument/semanticTokens/full', params: { textDocument: { uri } } }));
+    const { result } = await tokens;
+    expect(result.data).toEqual((await semanticTokensFor(source)).data);
+    expect(result.data.length).toBeGreaterThan(0);
   } finally {
     serverProcess.kill();
   }

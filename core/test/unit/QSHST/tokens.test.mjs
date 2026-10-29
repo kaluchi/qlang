@@ -139,6 +139,13 @@ describe('the name of a call by its name, a word of the root a verb', () => {
     expect(await painted('[1] | vec/sort')).toContainEqual(['vec/sort', 'verb']);
   });
 
+  it('paints the name of a part a kind of the root wires on its values as a word of the root, the facts of a refusal, its trace and the slots of a verdict among them', async () => {
+    expect((await painted('"x" | add 1 !| trace | last')).filter(([, kind]) => kind === 'verb').map(([text]) => text)).toEqual(['add', 'trace', 'last']);
+    expect(await painted('5 | mul /qty !| repair')).toContainEqual(['repair', 'verb']);
+    expect(await painted('1 | add "x" !| addend | found')).toContainEqual(['addend', 'verb']);
+    expect(await painted('"[1" | parse !| message')).toContainEqual(['message', 'verb']);
+  });
+
   it('paints any other name as a name, a call by an address no word of the root stands at among them, its last name one\'s', async () => {
     expect(await painted('myVerb')).toEqual([['myVerb', 'name']]);
     expect(await painted('Box/area')).toEqual([['Box/area', 'name']]);

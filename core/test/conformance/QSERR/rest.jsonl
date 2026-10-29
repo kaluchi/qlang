@@ -21,17 +21,17 @@
 {"name":"the-bang-is-the-literal-of-the-kind-of-errors","query":"!{:a 1} | eq ::error{:a 1}","expect":"true"}
 {"name":"the-tag-before-the-bang-is-the-tag-over-the-error","query":"::Oops!{:a 1} | eq ::Oops::error{:a 1}","expect":"true"}
 {"name":"an-error-at-rest-prints-with-its-bang","query":"::Oops!{:a 1} | print","expect":"\"::Oops!{:a 1}\""}
-{"decision":"D481","name":"an-error-at-rest-is-no-failure","query":"::error{:k 1} | count","expect":"1"}
+{"name":"an-error-at-rest-is-no-failure","query":"::error{:k 1} | count","expect":"1"}
 {"name":"the-kind-of-a-bare-error-is-error","query":"!{} | raise !| tag","expect":"::error"}
 {"name":"the-kind-of-errors-is-a-noun-of-the-core","query":"::host | kinds | has ::error","expect":"true"}
 {"name":"an-error-literal-where-a-word-stands-is-a-value","query":"[!{:k 1}] | first","expect":"!{:k 1}"}
 {"name":"an-error-at-rest-holds-a-map-of-facts-and-refuses-another-payload","query":"::error[1] !| get [~(tag) ~(found | tag)]","expect":"[::error/PayloadKindNotTakenError ::vec]"}
 {"name":"the-kind-of-errors-over-an-error-at-rest-is-that-error","query":"get [~(!{:by 3} | tag ::error | eq !{:by 3}) ~(!{:by 3} | tag ::error | with {:v ~it} ~(print | parse | answer | eq v))]","expect":"[true true]"}
 {"name":"an-error-at-rest-under-the-kind-of-errors-alone-is-read-by-its-paths","query":"!{:reason :late} | raise !| get [~(tag) /reason]","expect":"[::error :late]"}
-{"decision":"D481","name":"an-error-literal-of-a-refusal-holds-its-facts-to-the-kinds-its-refusal-wires","query":"::number/add/SubjectNotNumberError!{:subject/expected 5} !| get [~(tag) ~(found) ~(doc | eq (::fn/slot/ExpectedKindNotTakenError | doc))]","expect":"[::fn/slot/ExpectedKindNotTakenError 5 true]"}
-{"decision":"D481","name":"the-trace-of-an-error-at-rest-is-a-trace-and-no-excerpt","query":"::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag","expect":"::number/add/AddendKindNotTakenError/TraceKindNotTakenError"}
+{"name":"an-error-literal-of-a-refusal-holds-its-facts-to-the-kinds-its-refusal-wires","query":"::number/add/SubjectNotNumberError!{:subject/expected 5} !| get [~(tag) ~(found) ~(doc | eq (::fn/slot/ExpectedKindNotTakenError | doc))]","expect":"[::fn/slot/ExpectedKindNotTakenError 5 true]"}
+{"name":"the-trace-of-an-error-at-rest-is-a-trace-and-no-excerpt","query":"::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag","expect":"::number/add/AddendKindNotTakenError/TraceKindNotTakenError"}
 {"name":"the-excerpt-of-a-refusal-answers-its-facts-by-their-names","query":"::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell\"f410f1df625c\" :addend/found/count 3410} | get [~(tag) ~(addend | expected) ~(addend | found | tag) ~(subject)]","expect":"[::number/add/AddendKindNotTakenError #[::number] ::cell null]"}
 {"name":"a-fact-an-error-at-rest-does-not-hold-reads-as-null","query":"::number/add/AddendKindNotTakenError!{} | get [~(addend) ~(subject) ~(trace)]","expect":"[null null null]"}
 {"name":"the-excerpt-of-an-error-reads-back-under-the-kind-of-errors","query":"::error::excerpt{:rows ::cell\"f410f1df625c\" :rows/count 5000} | get [~(tag) ~(get /:rows/count) ~(raise !| tag)]","expect":"[::error 5000 ::any/raise/SubjectKindNotTakenError]"}
 {"name":"the-kind-of-a-refusal-takes-the-excerpt-of-a-failure-of-no-refusal","query":"::error::excerpt{:rows/count 5000} | tag ::number/add/AddendKindNotTakenError | get [~(tag) ~(payload | tag) ~(payload | payload | tag)]","expect":"[::number/add/AddendKindNotTakenError ::error ::excerpt]"}
-{"decision":"D481","name":"a-kind-that-takes-an-error-takes-the-excerpt-of-its-facts","query":":Late |~~ L ~~| (::kind | accepts |~~ f ~~| #[::map ::error]); ::Late::excerpt{:rows/count 5000} | get [~(tag) ~(payload | tag)]","expect":"[::Late ::excerpt]"}
+{"name":"a-kind-that-takes-an-error-takes-the-excerpt-of-its-facts","query":":Late |~~ L ~~| (::kind | accepts |~~ f ~~| #[::map ::error]); ::Late::excerpt{:rows/count 5000} | get [~(tag) ~(payload | tag)]","expect":"[::Late ::excerpt]"}

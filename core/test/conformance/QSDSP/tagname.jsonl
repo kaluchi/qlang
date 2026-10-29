@@ -1,4 +1,4 @@
-{"decision":"D481","name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"get [~(::number | toString) ~(::number | number/toString !| tag)]","expect":"[\"number\" ::number/toString/SubjectNotNumberError]"}
+{"name":"the-verbs-of-tag-names-come-before-the-verbs-of-the-noun-a-tag-names","query":"get [~(::number | toString) ~(::number | number/toString !| tag)]","expect":"[\"number\" ::number/toString/SubjectNotNumberError]"}
 {"name":"a-tag-name-meets-the-names-of-its-noun","query":"::vec | count !| tag","expect":"::vec/count/SubjectNotVecError"}
 {"name":"a-verb-of-a-noun-takes-its-own-tag-name-alone","query":":Shop |~~ A shop. ~~| (::kind | accepts |~~ The sizes. ~~| ::map); :Shop/hours |~~ The hours. ~~| (::fn | on |~~ The shop. ~~| ::tag | impl ~(\"9 to 5\")); get [~(::Shop | hours) ~(::Shop{} | hours) ~(::Other | Shop/hours !| tag) ~(::number | Shop/hours !| tag)]","expect":"[\"9 to 5\" \"9 to 5\" ::Shop/hours/SubjectNotShopError ::Shop/hours/SubjectNotShopError]"}
 {"name":"a-function-apply-runs-on-tag-names-serves-any","query":"::Other | apply (::fn | on |~~ A tag name. ~~| ::tag | impl ~(toString))","expect":"\"Other\""}
@@ -10,4 +10,4 @@
 {"name":"a-tag-name-passes-a-verb-of-its-noun-values-to-the-verb-of-its-name-on-every-value","query":":vec/doc ~(\"mine\"); get [~([1 2] | doc) ~(::vec | doc | tag)]","expect":"[\"mine\" ::doc]"}
 {"name":"every-kind-the-scope-reads-prints-as-its-tag","query":"::host | kinds | map ~print | count | eq (::host | kinds | count)","expect":"true"}
 {"name":"a-tag-name-passes-a-part-of-its-noun-values-to-the-verb-of-its-name-on-every-value","query":":Box |~~ A box. ~~| (::kind | wires :with |~~ A width. ~~| /0); get [~(::Box | with {:k ~it} ~(k)) ~(::Box[3] | with)]","expect":"[::Box 3]"}
-{"decision":"D481","name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}
+{"name":"a-fan-out-over-a-noun-resolves-each-element-through-it","query":"::vec | get [~(manifest | has ::vec/count) ~(doc :count | eq (::vec/count | doc))]","expect":"[true true]"}

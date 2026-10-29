@@ -22,8 +22,8 @@
 {"name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
 {"name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}
 {"name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop -5","expect":"[1 2 3]"}
-{"decision":"D481","name":"take-over-length-answers-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
-{"decision":"D481","name":"drop-over-length-answers-empty","query":"[1 2 3] | drop 5","expect":"[]"}
+{"name":"take-over-length-answers-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
+{"name":"drop-over-length-answers-empty","query":"[1 2 3] | drop 5","expect":"[]"}
 {"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
 {"name":"has-answers-true-where-a-set-holds-the-element","query":"#[:a :b :c] | has :b","expect":"true"}

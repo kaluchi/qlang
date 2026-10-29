@@ -11,10 +11,10 @@
 {"name":"a-kind-holds-a-value-again-after-flat","query":":Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))); ::Sorted[1 2 3] | flat | payload","expect":"[1 2 3]"}
 {"name":"the-invariant-of-a-kind-refuses-a-payload-that-breaks-it","query":":Small |~~ Small. ~~| (::kind | holds :TooBigError |~~ Below ten. ~~| ~(lt 10)); ::Small#12 !| tag","expect":"::Small/TooBigError"}
 {"name":"a-label-declared-by-its-page-alone-holds-its-page","query":":ExplicitFirst |~~ ExplicitFirst. ~~|; ::ExplicitFirst[1 2] | (::ExplicitFirst | binding | value | tag)","expect":"::doc"}
-{"decision":"D481","name":"construct-is-a-name-of-a-label-like-any-other","query":":Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}); ::Pos#5 | construct !| tag","expect":"::call/UnknownNameError"}
+{"name":"construct-is-a-name-of-a-label-like-any-other","query":":Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}); ::Pos#5 | construct !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-word-of-a-literal-is-declared-by-the-chain-of-a-kind","query":"::null | binding | value | tag","expect":"::kind"}
 {"name":"a-kind-of-the-core-that-builds-its-payload-holds-a-constructor-and-one-that-reads-it-as-it-is-none","query":"get [~(::set | binding | value | get /1 | tag) ~(::keyword | binding | value | get /1) ~(::keyword | binding | value | tag)]","expect":"[::builtin null ::kind]"}
 {"name":"a-value-laid-under-a-tag-before-its-kind-keeps-the-tag","query":"::AutoLater[5] | apply ~(:AutoLater |~~ AutoLater. ~~| (::kind | holds :TooSmallError |~~ Above six. ~~| ~(gt 6)); tag)","expect":"::AutoLater"}
 {"name":"the-tag-of-a-name-that-holds-null-builds-nothing","query":"apply ~(:n null; ::n[1] !| tag)","expect":"::construct/TagNamesAValueError"}
 {"name":"the-node-of-an-invariant-holds-a-quote-under-invariant","query":"::vec/take/CountNotIntegerError | binding | value | tag","expect":"::invariant"}
-{"decision":"D481","name":"a-label-bound-to-a-kind-of-the-root-constructs-as-that-kind","query":":N |~~ N ~~| (::number | binding | value); :S |~~ S ~~| (::set | binding | value); get [~(5 | tag ::N) ~(::S[3 1 3])]","expect":"[::N#5 ::S#[1 3]]"}
+{"name":"a-label-bound-to-a-kind-of-the-root-constructs-as-that-kind","query":":N |~~ N ~~| (::number | binding | value); :S |~~ S ~~| (::set | binding | value); get [~(5 | tag ::N) ~(::S[3 1 3])]","expect":"[::N#5 ::S#[1 3]]"}

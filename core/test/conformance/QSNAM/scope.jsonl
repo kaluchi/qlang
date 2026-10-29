@@ -7,7 +7,7 @@
 {"name":"a-recipe-declares-no-args-of-its-call-again","query":":number/m ~(:args 5; add args); 1 | m !| get [~(tag) ~(name)]","expect":"[::bind/NameDeclaredTwiceError :args]"}
 {"name":"a-group-in-a-recipe-shadows-an-input-as-any-scope-of-its-own","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~((:x 3; x) | add x)); 1 | m 2","expect":"5"}
 {"name":"a-recipe-declares-a-name-its-call-binds-not","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:y 3; add x | add y)); 1 | m 2","expect":"6"}
-{"decision":"D481","name":"a-declaration-in-a-recipe-declares-no-input-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3; add 1 | add x)); 1 | m 2 !| get [~(tag) ~(name)]","expect":"[::bind/NameDeclaredTwiceError :x]"}
+{"name":"a-declaration-in-a-recipe-declares-no-input-again","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(:x 3; add 1 | add x)); 1 | m 2 !| get [~(tag) ~(name)]","expect":"[::bind/NameDeclaredTwiceError :x]"}
 {"name":"a-recipe-declares-no-input-its-call-leaves-to-the-default","query":":number/plus (::fn | takes :by |~~ The by. ~~| ~(query /0 1) | impl ~(:by 3; add by)); 5 | plus !| get [~(tag) ~(name)]","expect":"[::bind/NameDeclaredTwiceError :by]"}
 {"name":"a-quote-a-recipe-runs-declares-an-input-in-its-own-scope","query":":vec/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(map ~(:x 3; add x))); [1 2] | m 5","expect":"[4 5]"}
 {"name":"a-recipe-of-one-group-declares-an-input-in-the-group-s-scope","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~((:x 3; x))); 1 | m 2","expect":"3"}

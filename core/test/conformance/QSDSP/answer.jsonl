@@ -1,16 +1,16 @@
-{"decision":"D481","name":"a-verb-that-answers-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)); ::Width#5 | inc | get [~(tag) ~(payload)]","expect":"[::Width 6]"}
+{"name":"a-verb-that-answers-its-subject-keeps-the-tags-it-passed","query":":number/inc (::fn | returns |~~ The answer. ~~| ::number | impl ~(add 1)); ::Width#5 | inc | get [~(tag) ~(payload)]","expect":"[::Width 6]"}
 {"name":"a-tagged-map-keeps-its-tag-through-filter","query":"::T{:a 1 :b 2} | filter ~(eq 1) | tag","expect":"::T"}
 {"name":"a-tag-over-a-set-comes-back-on-take","query":"::Box#[1 2] | take 1","expect":"::Box#[1]"}
 {"name":"append-keeps-the-tag-of-its-vector","query":"::Box[1 2] | append 3","expect":"::Box[1 2 3]"}
 {"name":"append-lays-the-tag-of-its-subject-again","query":":P |~~ P. ~~| (::kind | holds :TooLongError |~~ Three at most. ~~| ~(count | lte 3)); ::P[1 2] | get [~(append 3 | tag) ~(append 3 | append 4 !| tag)]","expect":"[::P ::P/TooLongError]"}
 {"name":"a-tag-over-a-string-comes-back-on-append","query":"::Box\"ab\" | append \"c\"","expect":"::Box\"abc\""}
 {"name":"a-tag-over-a-string-comes-back-on-prepend","query":"::Box\"b\" | prepend \"a\"","expect":"::Box\"ab\""}
-{"decision":"D481","name":"an-edit-that-answers-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | tag","expect":"::T"}
+{"name":"an-edit-that-answers-its-subject-keeps-its-kind","query":"::T{:a 1} | union {:b 2} | tag","expect":"::T"}
 {"name":"an-answer-of-the-verbs-own-label-keeps-the-subjects-tags","query":"::Width#2 | add 3","expect":"::Width#5"}
 {"name":"filter-over-a-tag-stacked-on-a-set-keeps-the-tag","query":":Box |~~ Box. ~~|; ::Box#[1 2 3 4] | filter ~(gt 2)","expect":"::Box#[3 4]"}
 {"name":"a-stack-of-tags-comes-back-from-the-innermost-out","query":"::A::B[1 2 3] | filter ~(gt 1)","expect":"::A::B[2 3]"}
 {"name":"a-name-under-a-label-reaches-its-subject-through-the-tags","query":":number/inc ~(add 1); ::Width#5 | inc","expect":"::Width#6"}
-{"decision":"D481","name":"a-verb-that-answers-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}); ::T{:a 1} | grow | tag","expect":"::T"}
+{"name":"a-verb-that-answers-its-subject-answers-its-kind","query":":map/grow ~(union {:b 2}); ::T{:a 1} | grow | tag","expect":"::T"}
 {"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | tag","expect":"::AutoFilter"}
 {"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | tag","expect":"::AutoSort"}
 {"name":"a-kind-of-no-constructor-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~|; ::Box[1 2 3 4] | filter ~(gt 2) | tag","expect":"::Box"}

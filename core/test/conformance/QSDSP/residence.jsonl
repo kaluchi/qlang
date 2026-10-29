@@ -4,8 +4,8 @@
 {"name":"a-name-under-a-label-refuses-a-subject-of-another-kind","query":":number/inc ~(add 1); \"a\" | inc !| tag","expect":"::number/inc/SubjectNotNumberError"}
 {"name":"a-name-under-a-kind-serves-its-values-and-refuses-another-subject","query":"get [~(5 | add 1) ~(\"x\" | add 1 !| tag)]","expect":"[6 ::number/add/SubjectNotNumberError]"}
 {"name":"the-head-raises-the-refusal-of-the-site-at-the-subject","query":"\"a\" | add 1 !| get [~(tag) ~(subject | found | tag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
-{"decision":"D481","name":"a-comparison-of-strings-resides-on-any","query":"\"b\" | gt \"a\"","expect":"true"}
-{"decision":"D481","name":"a-comparison-of-keywords-resides-on-any","query":":b | lt :a","expect":"false"}
+{"name":"a-comparison-of-strings-resides-on-any","query":"\"b\" | gt \"a\"","expect":"true"}
+{"name":"a-comparison-of-keywords-resides-on-any","query":":b | lt :a","expect":"false"}
 {"name":"a-comparison-refuses-a-pair-of-two-kinds","query":"1 | gt \"x\" !| tag","expect":"::call/KindsMismatchedError"}
 {"name":"a-call-by-address-reaches-the-residence","query":"5 | any/gt 3","expect":"true"}
 {"name":"a-call-by-address-checks-the-subject-by-the-residence","query":"\"a\" | number/add 1 !| tag","expect":"::number/add/SubjectNotNumberError"}
@@ -24,7 +24,7 @@
 {"name":"vals-of-a-vector-is-refused-by-the-one-verb-of-its-name","query":"[1 2] | vals","raises":"::map/vals/SubjectNotMapError!{:subject/expected #[::map] :subject/found [1 2] :trace ::trace[::frame[[1 2] ~(vals)]]}"}
 {"name":"a-residence-takes-its-subject-by-the-walk-of-its-tags","query":":Box |~~ Box. ~~|; :Box/w2 ~(get /w | mul 2); get [~(::Box{:w 3} | Box/w2) ~({:w 3} | Box/w2 !| tag)]","expect":"[6 ::Box/w2/SubjectNotBoxError]"}
 {"name":"a-subject-is-taken-by-the-walk-of-its-tags","query":":Pos |~~ Pos. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)); :Pos/f ~(payload); get [~(::Pos#5 | f) ~(5 | f !| tag) ~(::Pos#0 !| tag)]","expect":"[5 ::Pos/f/SubjectNotPosError ::Pos/NotPositiveError]"}
-{"decision":"D481","name":"a-comparison-of-tags-resides-on-any","query":"::b | gte ::a","expect":"true"}
+{"name":"a-comparison-of-tags-resides-on-any","query":"::b | gte ::a","expect":"true"}
 {"name":"an-input-refuses-under-the-address-of-its-kinds-verb","query":"get [~(\"ab\" | take \"x\" !| tag) ~([1] | take \"x\" !| tag)]","expect":"[::string/take/CountKindNotTakenError ::vec/take/CountKindNotTakenError]"}
 {"name":"a-subject-that-is-no-string-is-refused-by-the-address","query":"42 | string/contains \"x\"","raises":"::string/contains/SubjectNotStringError!{:subject/expected #[::string] :subject/found 42 :trace ::trace[::frame[42 ~(string/contains \"x\")]]}"}
 {"name":"zip-resides-on-vectors-and-sets-whose-addresses-a-number-is-refused-with","query":"42 | zip !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]"}

@@ -597,7 +597,7 @@ export function nodeAddresses(scope) {
   return [...bindingsOf(scope)].map(([name]) => name);
 }
 
-// [QSNAM#verb], [QSLSP#server], [D495]
+// [QSNAM#verb], [QSLSP#server], [QSHST#tokens]
 export function verbNames(scope) {
   const names = new Set(partsTheKindsWire(rootOf(scope)));
   for (const [name, record] of bindingsOf(scope)) {
@@ -607,7 +607,7 @@ export function verbNames(scope) {
   return names;
 }
 
-// [D495]
+// [QSHST#tokens], [QSSLF#near]
 const PARTS_OF_A_ROOT = new WeakMap();
 
 function partsTheKindsWire(root) {

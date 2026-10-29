@@ -5,7 +5,7 @@ import { highlightAnsi } from './highlight-ansi.mjs';
 import { contentOfThePage } from './run.mjs';
 import { keepCell } from '@kaluchi/qlang-stdio';
 
-// [D495]
+// [QSCLI#colour]
 let rootWords = null;
 
 async function wordsOfTheRoot() {

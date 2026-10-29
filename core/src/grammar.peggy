@@ -262,16 +262,22 @@
   // A tagged literal, the construction of its tag over its payload, its head
   // the tag, but `::error` before an error literal, which is that literal
   // [QSQUO#step], [QSERR#rest], [QSHST#tokens].
-  function taggedRead(head, payload, at = span()) {
+  function taggedRead(head, payload, at) {
     if (head.value.name === ERROR_TAG.name && isOfTheKindOfErrors(payload.value)) return Object.assign(part(payload.value, [head, ...payload.parts], at), { head: { ...head.span, end: (payload.head ?? head.span).end } });
     return Object.assign(part(constructOf(new Map([['tag', head.value], ['payload', payload.value]])), [payload], at), { head: head.span });
   }
 
   // An error literal, a tag before its bang the tagged literal of it,
   // `::Late!{…}` the literal `::Late::error!{…}` [QSERR#rest].
-  function errorRead(tag, entries) {
-    if (tag === null) return entriesRead(facts => errorAtRest(facts), entries);
-    return taggedRead(tag, entriesRead(facts => errorAtRest(facts), entries, [], { ...span(), start: tag.span.end }));
+  function errorRead(tag, entries, at = span()) {
+    if (tag === null) return entriesRead(facts => errorAtRest(facts), entries, [], at);
+    return taggedRead(tag, entriesRead(facts => errorAtRest(facts), entries, [], { ...at, start: tag.span.end }), at);
+  }
+
+  // What a word under a tag read, from its tag [QSLIT#closed].
+  function fromTheTag(head) {
+    const { source, end } = range();
+    return { source, start: head.span.start, end: pointOf(end) };
   }
 
   // The segments of a doc, the span of its text to its last word and the spans
@@ -661,14 +667,13 @@ ChainStep
 
 Word
   = ParenGroup
+  / TagWord
   / ErrorLit
   / SetLit
   / VecLit
   / MapLit
   / QuoteLit
   / ShortQuoteLit
-  / TaggedLit
-  / TagLit
   / Path
   / Name
   / AtomLit
@@ -691,30 +696,36 @@ Name
 // lives on it, calls the verb by its address, as the keyword and the tag
 // name carry a path [QSDSP#walk]: `vec/count` is the `count` of vectors.
 CallName
-  = head:Ident tail:("/" @KeywordName)+
+  = head:Ident tail:("/" @KeywordName)*
     { return [head, ...tail].join('/'); }
-  / Ident
 
-// `::tag<payload>` puts a payload under a tag through its kind, the
-// payload touching the tag by a sign that continues the literal, a number,
-// a boolean, null or a path, whose literal would continue the tag's name,
-// by `#`, `::Width#5`; parentheses after a tag,
-// the sign of code, are refused [QSLIT#closed]. `::tag` alone is the tag name.
-// A tagged literal that failed at an offset fails there again at once [D404].
-TaggedLit
-  = &"::" &{ return !knownToFail(taggedFailures); } @(
-      head:TagLit "#" payload:PayloadAfterHash
-      { return taggedRead(head, payload); }
-    / &("::" TagName "(" _ PayloadAfterHash _ ")") "::" tag:TagName "(" _ payload:PayloadAfterHash _ ")"
-      { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${tag}#${sourceOf(payload)}\``); }
-    / &("::" TagName "(" _ TaggedPayload _ ")") "::" tag:TagName "(" _ payload:TaggedPayload _ ")"
-      { error(`a literal touches its tag by its own sign: write \`::${tag}${sourceOf(payload)}\``); }
-    / &("::" TagName ParenGroup) "::" tag:TagName group:ParenGroup
-      { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${input.slice(group.content.start.offset, group.content.end.offset)} | tag ::${tag}\``); }
-    / head:TagLit payload:TaggedPayload
-      { return taggedRead(head, payload); }
-    )
-  / &"::" &{ return failedHere(taggedFailures); } "::"
+// A word under a tag, its tag read once and what touches it read after it
+// [QSLIT#closed], [QSERR#rest]: `::Tag!{…}` the error literal laid through
+// the label of its tag, `::tag<payload>` a payload under a tag through its
+// kind, the payload touching the tag by a sign that continues the literal,
+// a number, a boolean, null or a path, whose literal would continue the
+// tag's name, by `#`, `::Width#5`; parentheses after a tag, the sign of
+// code, are refused, and `::tag` alone is the tag name. What touches a tag
+// that failed at an offset fails there again at once [D404].
+TagWord
+  = head:TagLit tagged:(
+      &{ return !knownToFail(taggedFailures); } @(
+          entries:ErrorBraces
+          { return errorRead(head, entries, fromTheTag(head)); }
+        / "#" payload:PayloadAfterHash
+          { return taggedRead(head, payload, fromTheTag(head)); }
+        / &("(" _ PayloadAfterHash _ ")") "(" _ payload:PayloadAfterHash _ ")"
+          { error(`a number, a boolean, null or a path touches its tag by \`#\`: write \`::${head.value.name}#${sourceOf(payload)}\``, fromTheTag(head)); }
+        / &("(" _ TaggedPayload _ ")") "(" _ payload:TaggedPayload _ ")"
+          { error(`a literal touches its tag by its own sign: write \`::${head.value.name}${sourceOf(payload)}\``, fromTheTag(head)); }
+        / &ParenGroup group:ParenGroup
+          { error(`the parentheses after a tag hold code, which a literal does not run: a value computed goes under a tag by \`tag\`, write \`${input.slice(group.content.start.offset, group.content.end.offset)} | tag ::${head.value.name}\``, fromTheTag(head)); }
+        / payload:TaggedPayload
+          { return taggedRead(head, payload, fromTheTag(head)); }
+        )
+    / &{ return failedHere(taggedFailures); }
+    )?
+    { return tagged ?? head; }
 
 PayloadAfterHash
   = NumberLit
@@ -723,15 +734,14 @@ PayloadAfterHash
   / Path
 
 TaggedPayload
-  = ErrorLit
+  = TagWord
+  / ErrorLit
   / RegexLit
   / SetLit
   / VecLit
   / MapLit
   / QuoteLit
   / ShortQuoteLit
-  / TaggedLit
-  / TagLit
   / StringLit
   / Keyword
   / DocLit
@@ -745,7 +755,6 @@ TagLit
 // [QSLIT#kind].
 TagName
   = NamespacedName
-  / KeywordName
 
 // A group that failed at an offset fails there again at once [D404].
 ParenGroup
@@ -929,14 +938,17 @@ DocQuoteTag
 
 // ── Literals ───────────────────────────────────────────────────────
 
-// An error literal, `!{…}`, the literal of an error at rest, and the
-// literal of one under a tag, `::Tag!{…}`, the tag written before the
-// bang and laid through its label [QSERR#rest].
+// An error literal, `!{…}`, the literal of an error at rest, whose
+// literal under a tag, `::Tag!{…}`, is a word under its tag [QSERR#rest].
 ErrorLit
-  = tag:TagLit? "!{" _ "}"
-    { return errorRead(tag, []); }
-  / tag:TagLit? "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
-    { return errorRead(tag, [head, ...tail]); }
+  = entries:ErrorBraces
+    { return errorRead(null, entries); }
+
+ErrorBraces
+  = "!{" _ "}"
+    { return []; }
+  / "!{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ "}"
+    { return [head, ...tail]; }
 
 // Braces with string keys and commas are JSON syntax for a map, whose keys
 // read as the keywords of their strings; where its entries end, the other
@@ -1024,7 +1036,6 @@ Path
 
 KeySegment
   = ":" name:NamespacedName { return name; }
-  / ":" name:KeywordName    { return name; }
   / QuotedKeywordName
   / KeywordName
   / RelaxedKeyName
@@ -1091,11 +1102,12 @@ NullLit
 Keyword
   = ":" name:QuotedKeywordName  { return part(makeKeyword(name)); }
   / ":" name:NamespacedName     { return part(makeKeyword(name)); }
-  / ":" name:KeywordName        { return part(makeKeyword(name)); }
 
+// A name after `:` or `::`, its segments joined by `/`, read once
+// [QSNAM#address].
 NamespacedName
-  = head:KeywordName tail:("/" @KeywordName)+
-    { return head + tail.map(t => '/' + t).join(''); }
+  = head:KeywordName tail:("/" @KeywordName)*
+    { return [head, ...tail].join('/'); }
 
 QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
@@ -1112,31 +1124,26 @@ Ident
 ReservedWord
   = ("true" / "false" / "null") !IdentTail
 
-// The letters of a name, `core/src/name-chars.mjs` [QSNAM#letters].
+// The letters of a name, `core/src/name-chars.mjs`, each a code point, a
+// letter past the first plane of Unicode two code units [QSNAM#letters].
 IdentStart "name"
-  = c:CodePoint &{ return isNameStart(c); } { return c; }
+  = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameStart(c); } { return c; }
 IdentTail  "letters of a name"
-  = c:CodePoint &{ return isNameContinue(c); } { return c; }
-
-// A character of a name is a code point, a letter past the first plane of
-// Unicode two code units [QSNAM#letters].
-CodePoint
-  = $([\uD800-\uDBFF] [\uDC00-\uDFFF])
-  / .
+  = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameContinue(c); } { return c; }
 
 // ── Whitespace ─────────────────────────────────────────────────────
 //
 // `_` is optional whitespace, `__` required whitespace, a line break among
 // it [QSSYN#line], and `_h1` whitespace within a line, which a refusal reads to
-// name a word written beside another on its line; a comment is whitespace
-// [QSSYN#comment].
+// name a word written beside another on its line; a comment is whitespace,
+// read where its `|` stands [QSSYN#comment].
 
 _   = Whitespace*
 __  = Whitespace+
 _h1 = InlineSpace+
 
-Whitespace "whitespace" = [ \t\n\r] / PlainComment
+Whitespace "whitespace" = [ \t\n\r] / &"|" @PlainComment
 
-InlineSpace "whitespace" = [ \t] / PlainComment
+InlineSpace "whitespace" = [ \t] / &"|" @PlainComment
 
 NonSpace = [^ \t\n\r]

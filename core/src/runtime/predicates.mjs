@@ -5,6 +5,7 @@ import { compareValues } from '../ordering.mjs';
 import { registerPrimitive, registerStateReader, asCombiner } from '../primitives.mjs';
 import { kindOfAValueOf } from '../nouns.mjs';
 import { walkToKinds } from '../dispatch.mjs';
+import { ownScopeOf } from '../state.mjs';
 
 registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) === 0);
 registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !== 0);
@@ -23,7 +24,7 @@ registerPrimitive('boolean/and', asCombiner((subject, condition) => subject && c
 registerPrimitive('boolean/or',  asCombiner((subject, condition) => subject || condition));
 registerPrimitive('boolean/not', subject => !subject);
 
-// [QSDSP#walk], [QSERR#site]
+// [D483], [QSERR#site]
 function closedByOneOf(value, names, scope) {
   const [outer] = tagsOver(value);
   if (outer === undefined || wiringOf(value) === undefined) return false;
@@ -33,5 +34,5 @@ function closedByOneOf(value, names, scope) {
 
 registerStateReader('any/is', (subject, kinds, state) => {
   const names = kinds.map(kind => kind.name);
-  return walkToKinds(subject, names) !== null || closedByOneOf(subject, names, state.scope);
+  return walkToKinds(subject, names) !== null || closedByOneOf(subject, names, ownScopeOf(state));
 });

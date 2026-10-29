@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withWritten, writtenIn, ownScopeOf, NO_SUBJECT
+  withWritten, writtenIn, ownScopeOf, ownStateOf, NO_SUBJECT
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -1021,18 +1021,19 @@ async function refusalOfFailedModifier(chain, address, index, error, state, scop
   return refusalUnder(kindsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected, found: atRest })), scope);
 }
 
-// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
+// [QSDSP#answer], [QSBLD#kind], [D483], [QSBLD#label], [QSERR#flow], [QSQUO#held]
 export async function layTag(tagName, laidOver, state) {
   if (isErrorValue(laidOver)) return laidOver;
-  refuseWithheld(state.scope, tagName, true);
+  const step = ownStateOf(state);
+  refuseWithheld(step.scope, tagName, true);
   const [outermost] = tagsOver(laidOver);
   if (outermost !== tagName && walkToKinds(laidOver, [tagName]) !== null) return laidOver;
   const payload = outermost === tagName ? payloadBeneath(laidOver) : laidOver;
-  const node = nodeOf(state.scope, tagName);
+  const node = nodeOf(step.scope, tagName);
   const declared = bindingValueOf(node);
-  const kind = kindOfAValueOf(state.scope, tagName);
-  if (kind !== null) return await underKind(tagName, kind, payload, state, refusalsAddressOf(state.scope, tagName));
-  if (isDoc(declared) || node === null || isVerb(state.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
+  const kind = kindOfAValueOf(step.scope, tagName);
+  if (kind !== null) return await underKind(tagName, kind, payload, step, refusalsAddressOf(step.scope, tagName));
+  if (isDoc(declared) || node === null || isVerb(step.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
   throw new ConstructTagNamesAValueError({ address: makeTag(tagName), found: declared });
 }
 

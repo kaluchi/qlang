@@ -270,10 +270,10 @@
     | impl ::builtin{};
 
 :set/toSet
-  |~~ Answers the set itself under the tags it came with,
-      `::Box#[2 1] | toSet` answering `::Box#[1 2]`, so `map ~toSet`
-      turns vectors and sets into sets; on a set `distinct` answers as it
-      does.
+  |~~ Answers the set itself, `it`, under the tags it came with,
+      `::Box#[1 2] | toSet` answering `::Box#[1 2]`, so `map ~toSet`
+      turns vectors and sets into sets; on a set `distinct` answers it
+      too.
       ::link~(::vec/toSet) ::link~(::set/distinct)
   ~~|
   ::fn
@@ -283,22 +283,24 @@
         ~(#[1 2] | toSet | eq #[1 2])
     | proves :keepsTheTagsItCameWith
         |~~ A set under a tag answers itself under the tag. ~~|
-        ~(::Box#[2 1] | toSet | eq ::Box#[1 2])
+        ~(::Box#[1 2] | toSet | eq ::Box#[1 2])
     | impl ::builtin{};
 
 :set/distinct
-  |~~ Answers the set itself under the tags it came with, each of its
-      elements in it once already, as `toSet` does,
-      `::Box#[2 1] | distinct` answering `::Box#[1 2]`, where the `distinct`
-      of a vector keeps its elements in the order of their first occurrence.
+  |~~ Answers the set itself, `it`, under the tags it came with, each of
+      its elements in it once already, `::Box#[1 2] | distinct` answering
+      `::Box#[1 2]`; the `distinct` of a vector keeps its elements in the
+      order of their first occurrence.
       ::link~(::set/toSet) ::link~(::vec/distinct)
   ~~|
   ::fn
     | returns |~~ The set itself. ~~| ::set
-    | proves :answersAsToSet
-        |~~ `distinct` answers as `toSet`. ~~|
-        ~(::Box#[2 1] | get [~(distinct) ~(toSet)] | eq [::Box#[1 2] ::Box#[1 2]])
-    | impl ~(toSet);
+    | proves :answersItself
+        |~~ A set is its distinct elements already, under the tags it came
+            with.
+        ~~|
+        ~(::Box#[1 2] | get [~(it) ~(distinct)] | eq [::Box#[1 2] ::Box#[1 2]])
+    | impl ~(it);
 
 :set/union
   |~~ Answers the set of the elements of either set, in the one order and

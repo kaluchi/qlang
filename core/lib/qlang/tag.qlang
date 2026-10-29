@@ -46,19 +46,6 @@
         |~~ A keyword payload is refused. ~~|
         ~(::tag:k !| get [~(tag) ~(found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword]);
 
-:tag/toString
-  |~~ Answers the name of the tag as a string, `::vec | toString`
-      answering `"vec"`, so a kind joins text. `toTag` turns the name
-      back into the tag.
-      ::link~(::string/toTag)
-  ~~|
-  ::fn
-    | returns |~~ The name of the tag, a string. ~~| ::string
-    | proves :answersTheName
-        |~~ A tag answers its name. ~~|
-        ~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
-    | impl ::builtin{};
-
 :tag/toKeyword
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
       answering `:Box`, as `groupBy ~(tag)` files values by their kinds.
@@ -70,6 +57,19 @@
     | proves :readsBack
         |~~ A tag turned into its keyword turns back into itself. ~~|
         ~(::Box | toKeyword | toTag | eq ::Box)
+    | impl ::builtin{};
+
+:tag/toString
+  |~~ Answers the name of the tag as a string, `::vec | toString`
+      answering `"vec"`, so a kind joins text. `toTag` turns the name
+      back into the tag.
+      ::link~(::string/toTag)
+  ~~|
+  ::fn
+    | returns |~~ The name of the tag, a string. ~~| ::string
+    | proves :answersTheName
+        |~~ A tag answers its name. ~~|
+        ~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
     | impl ::builtin{};
 
 :tag/toTag

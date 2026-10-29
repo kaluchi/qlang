@@ -66,6 +66,27 @@
           | eq [::number/NotFiniteError [~(mul 10)]])
     | impl ::builtin{};
 
+:number/abs
+  |~~ Answers the subject without its sign, `-3 | abs` answering `3`, a
+      number under a tag under the tag. It takes no value.
+      ::link~(::number/sub)
+  ~~|
+  ::fn
+    | returns
+        |~~ The subject without its sign, under the tags of the subject. ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `abs` takes the sign off a number: text that holds one is read
+            first by `toNumber`, `"-3" | toNumber | abs`.
+        ~~|
+    | proves :dropsTheSign
+        |~~ A negative number loses its sign, and a positive one stays. ~~|
+        ~([-3 3 -0.5] | map ~abs | eq [3 3 0.5])
+    | proves :SubjectNotNumberError/refusesAString
+        |~~ A subject that is no number is refused under the verb. ~~|
+        ~("-3" | abs !| get [~(tag) ~(subject | found | tag)] | eq [::number/abs/SubjectNotNumberError ::string])
+    | impl ::builtin{};
+
 :number/add
   |~~ Answers the subject plus the number the call gives, `10 | add 3`.
       The subject is a number: a vector adds to each of its elements by
@@ -123,107 +144,29 @@
         ~(::Width#2 | add 3 | eq ::Width#5)
     | impl ::builtin{};
 
-:number/sub
-  |~~ Answers the subject, the minuend, less the number the call gives,
-      `10 | sub 3`, which may fall below zero, `5 | sub 7` answering
-      `-2`. The subject is a number: a vector subtracts from each of its
-      elements by `map`, `map ~(sub 1)`, and text that holds a number is
-      read first by `toNumber`. The subtrahend is computed against the
-      subject, and two fields of one record subtract by
-      `subOf /total /paid`. A number under a tag answers under the tag.
-      ::link~(::number/add) ::link~(::any/subOf)
+:number/ceil
+  |~~ Answers the least whole number not below the subject, `2.1 | ceil`
+      answering `3` and `-2.7 | ceil` answering `-2`; `floor` answers
+      the greatest not above. It takes no value.
+      ::link~(::number/floor) ::link~(::number/round)
   ~~|
   ::fn
-    | takes :subtrahend
-        |~~ The number subtracted from the subject, computed against the
-            subject.
-        ~~|
-        /0 ::number
-    | throws :SubtrahendKindNotTakenError
-        |~~ The subtrahend is a number; text that holds one is read by
-            `toNumber` first, `10 | sub ("3" | toNumber)`.
-        ~~|
     | returns
-        |~~ The subject less the subtrahend, under the tags they share.
+        |~~ The least whole number not below the subject, under its tags.
         ~~|
         ::number
     | throws :SubjectNotNumberError
-        |~~ `sub` subtracts from a number: two fields of one record
-            subtract by `subOf /total /paid`, a vector subtracts from each
-            element by `map`, `map ~(sub 1)`, and text that holds a number
-            is read first by `toNumber`.
+        |~~ `ceil` rounds a number up: text that holds one is read first
+            by `toNumber`, `"2.1" | toNumber | ceil`.
         ~~|
-    | proves :subtractsTheNumber
-        |~~ `sub` answers the difference. ~~|
-        ~(10 | sub 3 | eq 7)
-    | proves :fallsBelowZero
-        |~~ A difference may fall below zero. ~~|
-        ~(5 | sub 7 | eq -2)
+    | proves :roundsUp
+        |~~ A number rounds up, a negative one toward zero, and prints no
+            negative zero.
+        ~~|
+        ~([2.1 -2.7 3 -0.5] | map ~ceil | eq [3 -2 3 0])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | sub 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/sub/SubjectNotNumberError ::string])
-    | proves :SubtrahendKindNotTakenError/refusesAString
-        |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~(1 | sub "x" !| get [~(tag) ~(subtrahend | found | tag)] | eq [::number/sub/SubtrahendKindNotTakenError ::string])
-    | proves :answersUnderTheTag
-        |~~ A number under a tag answers under the tag. ~~|
-        ~(::Width#5 | sub 3 | eq ::Width#2)
-    | impl ::builtin{};
-
-:number/mul
-  |~~ Answers the subject times the number the call gives, `10 | mul 3`,
-      a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
-      is a number: a vector multiplies each of its elements by `map`,
-      `map ~(mul 2)`, and text that holds a number is read first by
-      `toNumber`. The multiplier is computed against the subject, so
-      `5 | mul it` squares it, and two fields of one record multiply by
-      `mulOf /price /qty`. A number under a tag answers under the tag,
-      and a product past the doubles is refused as no number.
-      ::link~(::number/div) ::link~(::any/mulOf)
-  ~~|
-  ::fn
-    | takes :multiplier
-        |~~ The number the subject is multiplied by, computed against the
-            subject.
-        ~~|
-        /0 ::number
-    | throws :MultiplierKindNotTakenError
-        |~~ The multiplier is a number; text that holds one is read by
-            `toNumber` first, `2 | mul ("3" | toNumber)`.
-        ~~|
-    | returns
-        |~~ The subject times the multiplier, under the tags they share.
-        ~~|
-        ::number
-    | throws :SubjectNotNumberError
-        |~~ `mul` multiplies a number: two fields of one record multiply
-            by `mulOf /price /qty`, a vector multiplies each element by
-            `map`, `map ~(mul 2)`, and text that holds a number is read
-            first by `toNumber`.
-        ~~|
-    | proves :multipliesByTheNumber
-        |~~ `mul` answers the product. ~~|
-        ~(10 | mul 3 | eq 30)
-    | proves :SubjectNotNumberError/refusesAString
-        |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | mul 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mul/SubjectNotNumberError ::string])
-    | proves :MultiplierKindNotTakenError/refusesAString
-        |~~ A multiplier that is no number is refused under the input. ~~|
-        ~(1 | mul "x" !| get [~(tag) ~(multiplier | found | tag)] | eq [::number/mul/MultiplierKindNotTakenError ::string])
-    | proves :MultiplierKindNotTakenError/namesTheRepairOfAPath
-        |~~ A path given for the multiplier names the repair that reads its
-            field.
-        ~~|
-        ~(5 | mul /qty !| repair | eq ~(mul (get /qty)))
-    | proves :answersUnderTheTag
-        |~~ A number under a tag answers under the tag. ~~|
-        ~(::Width#2 | mul 3 | eq ::Width#6)
-    | proves :multipliesByAFraction
-        |~~ A fraction multiplies. ~~|
-        ~(7 | mul 0.5 | eq 3.5)
-    | proves :computesTheMultiplierAgainstTheSubject
-        |~~ The multiplier is computed against the subject. ~~|
-        ~(5 | mul it | eq 25)
+        ~("2.1" | ceil !| get [~(tag) ~(subject | found | tag)] | eq [::number/ceil/SubjectNotNumberError ::string])
     | impl ::builtin{};
 
 :number/div
@@ -284,6 +227,31 @@
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#6 | div 3 | eq ::Width#2)
+    | impl ::builtin{};
+
+:number/floor
+  |~~ Answers the greatest whole number not above the subject,
+      `2.7 | floor` answering `2` and `-2.1 | floor` answering `-3`;
+      `round` answers the nearest and `ceil` the least not below. It
+      takes no value.
+      ::link~(::number/ceil) ::link~(::number/round)
+  ~~|
+  ::fn
+    | returns
+        |~~ The greatest whole number not above the subject, under its
+            tags.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `floor` rounds a number down: text that holds one is read
+            first by `toNumber`, `"2.7" | toNumber | floor`.
+        ~~|
+    | proves :roundsDown
+        |~~ A number rounds down, a negative one away from zero. ~~|
+        ~([2.7 -2.1 3] | map ~floor | eq [2 -3 3])
+    | proves :SubjectNotNumberError/refusesAString
+        |~~ A subject that is no number is refused under the verb. ~~|
+        ~("2.7" | floor !| get [~(tag) ~(subject | found | tag)] | eq [::number/floor/SubjectNotNumberError ::string])
     | impl ::builtin{};
 
 :number/mod
@@ -348,75 +316,60 @@
         ~(7 | mod 0 !| tag | eq ::number/mod/DivisorZeroError)
     | impl ::builtin{};
 
-:number/abs
-  |~~ Answers the subject without its sign, `-3 | abs` answering `3`, a
-      number under a tag under the tag. It takes no value.
-      ::link~(::number/sub)
+:number/mul
+  |~~ Answers the subject times the number the call gives, `10 | mul 3`,
+      a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
+      is a number: a vector multiplies each of its elements by `map`,
+      `map ~(mul 2)`, and text that holds a number is read first by
+      `toNumber`. The multiplier is computed against the subject, so
+      `5 | mul it` squares it, and two fields of one record multiply by
+      `mulOf /price /qty`. A number under a tag answers under the tag,
+      and a product past the doubles is refused as no number.
+      ::link~(::number/div) ::link~(::any/mulOf)
   ~~|
   ::fn
-    | returns
-        |~~ The subject without its sign, under the tags of the subject. ~~|
-        ::number
-    | throws :SubjectNotNumberError
-        |~~ `abs` takes the sign off a number: text that holds one is read
-            first by `toNumber`, `"-3" | toNumber | abs`.
+    | takes :multiplier
+        |~~ The number the subject is multiplied by, computed against the
+            subject.
         ~~|
-    | proves :dropsTheSign
-        |~~ A negative number loses its sign, and a positive one stays. ~~|
-        ~([-3 3 -0.5] | map ~abs | eq [3 3 0.5])
-    | proves :SubjectNotNumberError/refusesAString
-        |~~ A subject that is no number is refused under the verb. ~~|
-        ~("-3" | abs !| get [~(tag) ~(subject | found | tag)] | eq [::number/abs/SubjectNotNumberError ::string])
-    | impl ::builtin{};
-
-:number/floor
-  |~~ Answers the greatest whole number not above the subject,
-      `2.7 | floor` answering `2` and `-2.1 | floor` answering `-3`;
-      `round` answers the nearest and `ceil` the least not below. It
-      takes no value.
-      ::link~(::number/ceil) ::link~(::number/round)
-  ~~|
-  ::fn
+        /0 ::number
+    | throws :MultiplierKindNotTakenError
+        |~~ The multiplier is a number; text that holds one is read by
+            `toNumber` first, `2 | mul ("3" | toNumber)`.
+        ~~|
     | returns
-        |~~ The greatest whole number not above the subject, under its
-            tags.
+        |~~ The subject times the multiplier, under the tags they share.
         ~~|
         ::number
     | throws :SubjectNotNumberError
-        |~~ `floor` rounds a number down: text that holds one is read
-            first by `toNumber`, `"2.7" | toNumber | floor`.
+        |~~ `mul` multiplies a number: two fields of one record multiply
+            by `mulOf /price /qty`, a vector multiplies each element by
+            `map`, `map ~(mul 2)`, and text that holds a number is read
+            first by `toNumber`.
         ~~|
-    | proves :roundsDown
-        |~~ A number rounds down, a negative one away from zero. ~~|
-        ~([2.7 -2.1 3] | map ~floor | eq [2 -3 3])
+    | proves :multipliesByTheNumber
+        |~~ `mul` answers the product. ~~|
+        ~(10 | mul 3 | eq 30)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.7" | floor !| get [~(tag) ~(subject | found | tag)] | eq [::number/floor/SubjectNotNumberError ::string])
-    | impl ::builtin{};
-
-:number/ceil
-  |~~ Answers the least whole number not below the subject, `2.1 | ceil`
-      answering `3` and `-2.7 | ceil` answering `-2`; `floor` answers
-      the greatest not above. It takes no value.
-      ::link~(::number/floor) ::link~(::number/round)
-  ~~|
-  ::fn
-    | returns
-        |~~ The least whole number not below the subject, under its tags.
+        ~("hello" | mul 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mul/SubjectNotNumberError ::string])
+    | proves :MultiplierKindNotTakenError/refusesAString
+        |~~ A multiplier that is no number is refused under the input. ~~|
+        ~(1 | mul "x" !| get [~(tag) ~(multiplier | found | tag)] | eq [::number/mul/MultiplierKindNotTakenError ::string])
+    | proves :MultiplierKindNotTakenError/namesTheRepairOfAPath
+        |~~ A path given for the multiplier names the repair that reads its
+            field.
         ~~|
-        ::number
-    | throws :SubjectNotNumberError
-        |~~ `ceil` rounds a number up: text that holds one is read first
-            by `toNumber`, `"2.1" | toNumber | ceil`.
-        ~~|
-    | proves :roundsUp
-        |~~ A number rounds up, a negative one toward zero, and prints no
-            negative zero.
-        ~~|
-        ~([2.1 -2.7 3 -0.5] | map ~ceil | eq [3 -2 3 0])
-    | proves :SubjectNotNumberError/refusesAString
-        |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.1" | ceil !| get [~(tag) ~(subject | found | tag)] | eq [::number/ceil/SubjectNotNumberError ::string])
+        ~(5 | mul /qty !| repair | eq ~(mul (get /qty)))
+    | proves :answersUnderTheTag
+        |~~ A number under a tag answers under the tag. ~~|
+        ~(::Width#2 | mul 3 | eq ::Width#6)
+    | proves :multipliesByAFraction
+        |~~ A fraction multiplies. ~~|
+        ~(7 | mul 0.5 | eq 3.5)
+    | proves :computesTheMultiplierAgainstTheSubject
+        |~~ The multiplier is computed against the subject. ~~|
+        ~(5 | mul it | eq 25)
     | impl ::builtin{};
 
 :number/range
@@ -528,21 +481,51 @@
         ~(3.14 | round "2" !| tag | eq ::number/round/DigitsKindNotTakenError)
     | impl ::builtin{};
 
-:number/toString
-  |~~ Answers the number written as text, as a query and JSON write it,
-      `42 | toString` answering `"42"` and `0.5` answering `"0.5"`, so a
-      number joins text, `get [~(5 | toString) "px"] | join ""`. `toNumber`
-      turns the text back into the number.
-      ::link~(::string/toNumber)
+:number/sub
+  |~~ Answers the subject, the minuend, less the number the call gives,
+      `10 | sub 3`, which may fall below zero, `5 | sub 7` answering
+      `-2`. The subject is a number: a vector subtracts from each of its
+      elements by `map`, `map ~(sub 1)`, and text that holds a number is
+      read first by `toNumber`. The subtrahend is computed against the
+      subject, and two fields of one record subtract by
+      `subOf /total /paid`. A number under a tag answers under the tag.
+      ::link~(::number/add) ::link~(::any/subOf)
   ~~|
   ::fn
-    | returns |~~ The text that writes the number. ~~| ::string
-    | proves :writesTheNumber
-        |~~ A number answers the text that writes it. ~~|
-        ~([42 -1.5 1e21] | map ~toString | eq ["42" "-1.5" "1e+21"])
-    | proves :readsBack
-        |~~ A number turned into its string turns back into itself. ~~|
-        ~(0.1 | add 0.2 | eq (toString | toNumber))
+    | takes :subtrahend
+        |~~ The number subtracted from the subject, computed against the
+            subject.
+        ~~|
+        /0 ::number
+    | throws :SubtrahendKindNotTakenError
+        |~~ The subtrahend is a number; text that holds one is read by
+            `toNumber` first, `10 | sub ("3" | toNumber)`.
+        ~~|
+    | returns
+        |~~ The subject less the subtrahend, under the tags they share.
+        ~~|
+        ::number
+    | throws :SubjectNotNumberError
+        |~~ `sub` subtracts from a number: two fields of one record
+            subtract by `subOf /total /paid`, a vector subtracts from each
+            element by `map`, `map ~(sub 1)`, and text that holds a number
+            is read first by `toNumber`.
+        ~~|
+    | proves :subtractsTheNumber
+        |~~ `sub` answers the difference. ~~|
+        ~(10 | sub 3 | eq 7)
+    | proves :fallsBelowZero
+        |~~ A difference may fall below zero. ~~|
+        ~(5 | sub 7 | eq -2)
+    | proves :SubjectNotNumberError/refusesAString
+        |~~ A subject that is no number is refused under the verb. ~~|
+        ~("hello" | sub 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/sub/SubjectNotNumberError ::string])
+    | proves :SubtrahendKindNotTakenError/refusesAString
+        |~~ A subtrahend that is no number is refused under the input. ~~|
+        ~(1 | sub "x" !| get [~(tag) ~(subtrahend | found | tag)] | eq [::number/sub/SubtrahendKindNotTakenError ::string])
+    | proves :answersUnderTheTag
+        |~~ A number under a tag answers under the tag. ~~|
+        ~(::Width#5 | sub 3 | eq ::Width#2)
     | impl ::builtin{};
 
 :number/toKeyword
@@ -576,5 +559,22 @@
             into numbers.
         ~~|
         ~([1 "2"] | map ~toNumber | eq [1 2])
+    | impl ::builtin{};
+
+:number/toString
+  |~~ Answers the number written as text, as a query and JSON write it,
+      `42 | toString` answering `"42"` and `0.5` answering `"0.5"`, so a
+      number joins text, `get [~(5 | toString) "px"] | join ""`. `toNumber`
+      turns the text back into the number.
+      ::link~(::string/toNumber)
+  ~~|
+  ::fn
+    | returns |~~ The text that writes the number. ~~| ::string
+    | proves :writesTheNumber
+        |~~ A number answers the text that writes it. ~~|
+        ~([42 -1.5 1e21] | map ~toString | eq ["42" "-1.5" "1e+21"])
+    | proves :readsBack
+        |~~ A number turned into its string turns back into itself. ~~|
+        ~(0.1 | add 0.2 | eq (toString | toNumber))
     | impl ::builtin{};
 

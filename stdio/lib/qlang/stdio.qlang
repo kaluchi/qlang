@@ -41,6 +41,46 @@
         |~~ No value is put under `::stdio`. ~~|
         ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError);
 
+:stdio/err
+  |~~ Writes a line to stderr, the channel of diagnostics, as `stdio/out`
+      writes to stdout, and answers its subject as it came; the answer of
+      the query is written as ever.
+      ::snippet~([1 2 3] | stdio/err "counting" | count) writes `counting`
+      to stderr and answers 3.
+  ~~|
+  ::fn
+    | on |~~ Any value, answered as it came. ~~| ::any
+    | takes :text
+        |~~ The text written, computed against the subject, null when the
+            call gives none.
+        ~~|
+        ~(query /0) #[::null ::string]
+    | throws :TextKindNotTakenError
+        |~~ The text `stdio/err` writes is a string: a value of another
+            kind is made text first, `stdio/err json` or `stdio/err print`.
+        ~~|
+    | returns |~~ The subject as it came. ~~| ::any
+    | throws :SubjectKindNotTakenError
+        |~~ `stdio/err` alone writes its subject, a string, as a line on
+            stderr; another value is written as the text the call computes
+            from it, `stdio/err json` or `stdio/err print`.
+        ~~|
+    | throws :ArgsBeyondInputsError
+        |~~ `stdio/err` writes its subject, or the one text its call gives,
+            `"hi" | stdio/err`; texts are joined first,
+            `stdio/err (["a" "b"] | join "")`.
+        ~~|
+    | proves :TextKindNotTakenError/refusesANumber
+        |~~ A text that is no string is refused. ~~|
+        ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
+    | proves :SubjectKindNotTakenError/refusesANumber
+        |~~ A number is no line `stdio/err` writes alone. ~~|
+        ~(42 | stdio/err !| get [~(tag) ~(subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
+    | proves :ArgsBeyondInputsError/refusesTwoTexts
+        |~~ A call with two texts is refused under the verb. ~~|
+        ~("hi" | stdio/err "a" "b" !| tag | eq ::stdio/err/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
 :stdio/in
   |~~ Answers the text stdin holds, read to its end; a terminal with
       nothing piped answers the empty string. It is asked of `::stdio` at
@@ -96,46 +136,6 @@
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | stdio/out "a" "b" !| tag | eq ::stdio/out/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
-:stdio/err
-  |~~ Writes a line to stderr, the channel of diagnostics, as `stdio/out`
-      writes to stdout, and answers its subject as it came; the answer of
-      the query is written as ever.
-      ::snippet~([1 2 3] | stdio/err "counting" | count) writes `counting`
-      to stderr and answers 3.
-  ~~|
-  ::fn
-    | on |~~ Any value, answered as it came. ~~| ::any
-    | takes :text
-        |~~ The text written, computed against the subject, null when the
-            call gives none.
-        ~~|
-        ~(query /0) #[::null ::string]
-    | throws :TextKindNotTakenError
-        |~~ The text `stdio/err` writes is a string: a value of another
-            kind is made text first, `stdio/err json` or `stdio/err print`.
-        ~~|
-    | returns |~~ The subject as it came. ~~| ::any
-    | throws :SubjectKindNotTakenError
-        |~~ `stdio/err` alone writes its subject, a string, as a line on
-            stderr; another value is written as the text the call computes
-            from it, `stdio/err json` or `stdio/err print`.
-        ~~|
-    | throws :ArgsBeyondInputsError
-        |~~ `stdio/err` writes its subject, or the one text its call gives,
-            `"hi" | stdio/err`; texts are joined first,
-            `stdio/err (["a" "b"] | join "")`.
-        ~~|
-    | proves :TextKindNotTakenError/refusesANumber
-        |~~ A text that is no string is refused. ~~|
-        ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
-    | proves :SubjectKindNotTakenError/refusesANumber
-        |~~ A number is no line `stdio/err` writes alone. ~~|
-        ~(42 | stdio/err !| get [~(tag) ~(subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
-    | proves :ArgsBeyondInputsError/refusesTwoTexts
-        |~~ A call with two texts is refused under the verb. ~~|
-        ~("hi" | stdio/err "a" "b" !| tag | eq ::stdio/err/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :stdio/tap

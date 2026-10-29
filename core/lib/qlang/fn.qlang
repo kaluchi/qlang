@@ -328,38 +328,159 @@
         ~~|
     | impl ::builtin{};
 
-:fn/slot
-  |~~ A slot of a verb as the verdict of a refusal tells it, the subject,
-      an input, the args past the inputs or the answer: what the verb
-      expects there and what the call put there, `addend/expected` and
-      `addend/found`, the value found whole or as the cell its host keeps
-      it in, its own names beneath it, `addend/found/count`, and never a
-      name of the verb. A slot is read from a refusal by its name and its
-      parts by theirs, `!| addend | found`.
-      ::link~(::fn) ::link~(::error)
+:fn/fill
+  |~~ Writes the args of a call into the head of the code of a
+      function, each input a declaration with its page of the value it
+      reads from them, as its call reads it, a quote among them written
+      as the data it is, and answers the code:
+      `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
+      answers `~(:by |~~ How much. ~~| 3; add by)`, as a quote takes
+      the values of the names it reads, `~(add by) | fill {:by 3}`.
+      ::link~(::quote/fill)
   ~~|
-  ::kind[~(accepts |~~ The parts of the slot, a map. ~~| ::map
-    | wires :expected
-        |~~ The kinds the rule takes: those of the value of the slot, as the
-            chain of its verb writes them, of the part of it the path of the
-            frame or `index` names, or of what its code answered.
+  ::fn[~(takes :args
+        |~~ The args, as a call holds them. ~~|
+        ~(it)
+    | returns |~~ The code, its inputs written at its head. ~~| ::quote
+    | throws :SubjectNotFnError |~~ `fill` writes into a function. ~~|
+    | throws :RecipeKindNotTakenError
+        |~~ `fill` writes into code, a quote: a contract or a primitive has
+            none.
         ~~|
-        ~(query /expected) #[::set ::null]
-    | wires :found
-        |~~ What the call put in the slot: the value as the call gave it, its
-            tags with it.
+    | proves :writesTheArgs
+        |~~ The value goes into the head of the code. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3; add by))
+    | proves :writesEachInput
+        |~~ Each input goes into the head of the code in its order. ~~|
+        ~(::fn
+          | takes :price |~~ The price. ~~| /0
+          | takes :fee |~~ The fee. ~~| /1
+          | impl ~(add price | add fee)
+          | fill 4 2
+          | eq ~(:price |~~ The price. ~~| 4; :fee |~~ The fee. ~~| 2; add price | add fee))
+    | proves :writesIntoTheEmptyCode
+        |~~ Into the empty code the value goes as its one declaration. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~() | fill 3 | eq ~(:by |~~ How much. ~~| 3;))
+    | proves :writesADocAsTheValue
+        |~~ A doc goes into the head of the code in parentheses, the value
+            of its input.
         ~~|
-        ~(query /found)
-    | wires :answer
-        |~~ What the code of the slot answered: where the verb ran it on a
-            part, the answer it refused.
+        ~(::fn | takes :note |~~ A note. ~~| /0 | impl ~(note | content) | fill |~~ Call back on Monday. ~~|
+          | eq ~(:note |~~ A note. ~~| (|~~ Call back on Monday. ~~|); note | content))
+    | proves :holdsTheKinds
+        |~~ A value of none of the kinds of its input is refused. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/ByKindNotTakenError)
+    | proves :SubjectNotFnError/refusesANumber
+        |~~ A number is no function. ~~|
+        ~(5 | fn/fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
+    | proves :RecipeKindNotTakenError/refusesAContract
+        |~~ A function with no recipe is refused. ~~|
+        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
+    ::builtin{}];
+
+:fn/holds
+  |~~ Writes an invariant of a function, a quote under `::invariant`: the
+      refusal of a call that breaks it, named one level under the function,
+      its page, and the condition the call answers true to, a small recipe,
+      the subject in the pipe and each input by its name,
+      `| holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100)`,
+      `| holds :SubjectNotIntegerError |~~ A whole number. ~~| ~(eq (floor))`.
+      It runs once the inputs are held and before the recipe, or, written
+      after `returns`, once the answer is held, which it reads as `answer`;
+      a name the chain declares reads its value past a verb of the subject
+      of that name, the verb called by its address, `vec/count`.
+      ::link~(::invariant)
+  ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the refusal of
+            a call that breaks it, a keyword of one segment read as a tag,
+            `:ByTooBigError`; its page, a doc; and the condition the call
+            answers true to, a quote.
         ~~|
-        ~(query /answer)
-    | wires :index
-        |~~ The index of the element refused: from zero, the first of the slot
-            so refused.
+        ~(it)
+    | returns |~~ The function with the invariant. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `holds` writes an invariant of the noun's function,
+            `::fn | holds …`, or of a function.
         ~~|
-        ~(query /index) #[::number ::null]) null];
+    | proves :writesAnInvariantOfAVerb
+        |~~ An invariant of a function named under a label is a node of
+            the verb.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by));
+          5
+          | plus 500
+          !| tag
+          |  eq ::number/plus/ByTooBigError)
+    | proves :writesAnInvariantOfTheSubject
+        |~~ An invariant of the subject of a verb refuses a subject that
+            breaks it under the verb.
+        ~~|
+        ~(:number/inc (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)); get [~(5 | inc) ~(-5 | inc !| tag)] | eq [6 ::number/inc/SubjectNotAboveZeroError])
+    | proves :passesAValueThatKeepsIt
+        |~~ A value that keeps every invariant of its input goes on to the
+            recipe.
+        ~~|
+        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by)) [3] | eq 8)
+    | proves :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | fn/holds :by/NegativeError |~~ No amount below zero. ~~| ~(true) !| tag | eq ::fn/holds/SubjectNotFnError))
+    ::builtin{}];
+
+:fn/impl
+  |~~ Gives a function its recipe, the code or the primitive that answers
+      for it, `| impl ~(add by)`, and answers the function it builds,
+      whatever came before it: `::fn | impl ~(add 1)` is the function of no
+      commands, `::fn[~() ~(add 1)]`, which a command written after it
+      joins, as after any `impl`. A recipe written alone under a label
+      stays the quote it is, which its call reads as that function.
+  ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :recipe
+        |~~ The recipe, a quote or a primitive of the host, `::builtin{}`,
+            or null for a contract.
+        ~~|
+        /0
+    | returns |~~ The function with its recipe. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `impl` gives the recipe of the noun's function,
+            `::fn | impl …`, or of a function.
+        ~~|
+    | proves :buildsTheFunctionOfNoCommands
+        |~~ Over the noun alone `impl` builds the function of no commands,
+            which a command after it joins.
+        ~~|
+        ~(get [~(::fn | impl ~(add 1)) ~(::fn | impl ~(add 1) | takes :by |~~ How much. ~~| /0 | inputs | map /name)] | eq [::fn[~() ~(add 1)] [:by]])
+    | proves :refusesARecipeThatIsNoCode
+        |~~ A recipe that is no code is refused as the literal refuses it.
+        ~~|
+        ~(::fn | impl 5 !| tag | eq ::fn/RecipeKindNotTakenError)
+    | proves :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | fn/impl ~(add 1) !| tag | eq ::fn/impl/SubjectNotFnError))
+    ::builtin{}];
+
+:fn/inputs
+  |~~ Answers the inputs of a function, each a map of its name, its page,
+      its selector and its kinds as written, null where it names none.
+  ~~|
+  ::fn[~(returns |~~ The inputs, a map for each. ~~| ::vec
+    | throws :SubjectNotFnError |~~ `inputs` reads a function. ~~|
+    | proves :readsTheInputs
+        |~~ The inputs come out by their names. ~~|
+        ~(::fn | takes :price |~~ The price. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(price) | inputs | map /name | eq [:price])
+    | proves :readsTheKindsAsWritten
+        |~~ The kinds of an input come out as written. ~~|
+        ~(::fn | takes :price |~~ The price. ~~| /0 ::number | takes :note |~~ A note. ~~| /1 | inputs | map /kinds | eq [::number null])
+    | proves :SubjectNotFnError/refusesANumber
+        |~~ A number is no function. ~~|
+        ~(5 | inputs !| tag | eq ::fn/inputs/SubjectNotFnError))
+    ::builtin{}];
 
 :fn/on
   |~~ Names the subject of a function, its page and the kinds it serves,
@@ -396,6 +517,132 @@
         |~~ A tag of another noun is refused. ~~|
         ~(::number | fn/on |~~ A number. ~~| !| tag | eq ::fn/on/SubjectNotFnError))
     ::builtin{}];
+
+:fn/proves
+  |~~ Writes a law of a function, a quote under `::law`, the claim its
+      name makes, its page and the query that proves it,
+      `| proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)`;
+      under a label it is a law of the verb, which `laws` and `runLaws`
+      read, and a name written with a path lays it under the subject, an
+      input, a refusal, a fact or the answer, the refusal an input's kinds
+      name among them.
+  ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the name of the law, a
+            keyword read as a tag, under a name declared before it where it is
+            written with a path; its page, the claim it proves, a doc; and the
+            query that proves the claim, answering `true`, a quote.
+        ~~|
+        ~(it)
+    | returns |~~ The function with the law. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `proves` writes a law of the noun's function,
+            `::fn | proves …`, or of a function.
+        ~~|
+    | proves :declaresALawOfAVerb
+        |~~ A law of a function named under a label is a law of the verb.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8) | impl ~(add by));
+          ::number/plus
+          | runLaws
+          | map /ok
+          | eq [true])
+    | proves :liesUnderTheRefusalOfAnInput
+        |~~ A law written under the refusal an input's kinds name lies
+            under it.
+        ~~|
+        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | proves :ByKindNotTakenError/refusesAString |~~ A string is refused. ~~| ~(5 | plus "x" !| tag | eq ::number/plus/ByKindNotTakenError) | impl ~(add by));
+          ::number/plus/ByKindNotTakenError
+          | runLaws
+          | map /ok
+          | eq [true])
+    | proves :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | fn/proves :addsOne |~~ One is added. ~~| ~(true) !| tag | eq ::fn/proves/SubjectNotFnError))
+    ::builtin{}];
+
+:fn/returns
+  |~~ Names the answer of a function, its page and its kinds, the tag or
+      the set of tags it is brought to,
+      `::fn | returns |~~ The sum. ~~| ::number`: an answer whose walk
+      reaches one of the kinds is the value it reaches, one that reaches
+      none is put under the one kind named, and one of none of the kinds
+      is refused under the answer.
+  ~~|
+  ::fn[~(on
+        |~~ The noun itself, which starts the function, or a function. ~~|
+        ::tag
+    | takes :modifiers
+        |~~ The modifiers of the command as written: the page of the answer, a
+            doc, and its kinds, a tag or a set of one tag or more.
+        ~~|
+        ~(it)
+    | returns |~~ The function with its answer. ~~| ::fn
+    | throws :SubjectNotFnError
+        |~~ `returns` names the answer of the noun's function,
+            `::fn | returns …`, or of a function.
+        ~~|
+    | proves :bringsTheAnswerUnderItsKind
+        |~~ An answer of another kind is refused under the answer of the
+            call, the kind its `:expected`.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /:answer/expected] | eq [::fn/call/AnswerKindNotTakenError #[::number]])
+    | proves :refusesAnAnswerOfNoneOfItsKinds
+        |~~ An answer of none of several kinds is refused under the answer
+            of the call.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
+          !| get [~(tag) /:answer/found]
+          |  eq [::fn/call/AnswerKindNotTakenError true])
+    | proves :passesTheFailureOfTheRecipe
+        |~~ A recipe that fails answers its failure, which no kind brings.
+        ~~|
+        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| tag | eq ::path/SubjectHasNoPartsError)
+    | proves :namesTheAnswerOfAVerb
+        |~~ The answer of a function named under a label is the answer of
+            the verb.
+        ~~|
+        ~(:number/half (::fn | returns |~~ The half. ~~| ::number | impl ~(div 2)); ::number/half | manifest | has ::number/half/answer)
+    | proves :SubjectNotFnError/refusesAnotherTag
+        |~~ A tag of another noun is refused. ~~|
+        ~(::number | fn/returns |~~ A number. ~~| ::number !| tag | eq ::fn/returns/SubjectNotFnError))
+    ::builtin{}];
+
+:fn/slot
+  |~~ A slot of a verb as the verdict of a refusal tells it, the subject,
+      an input, the args past the inputs or the answer: what the verb
+      expects there and what the call put there, `addend/expected` and
+      `addend/found`, the value found whole or as the cell its host keeps
+      it in, its own names beneath it, `addend/found/count`, and never a
+      name of the verb. A slot is read from a refusal by its name and its
+      parts by theirs, `!| addend | found`.
+      ::link~(::fn) ::link~(::error)
+  ~~|
+  ::kind[~(accepts |~~ The parts of the slot, a map. ~~| ::map
+    | wires :expected
+        |~~ The kinds the rule takes: those of the value of the slot, as the
+            chain of its verb writes them, of the part of it the path of the
+            frame or `index` names, or of what its code answered.
+        ~~|
+        ~(query /expected) #[::set ::null]
+    | wires :found
+        |~~ What the call put in the slot: the value as the call gave it, its
+            tags with it.
+        ~~|
+        ~(query /found)
+    | wires :answer
+        |~~ What the code of the slot answered: where the verb ran it on a
+            part, the answer it refused.
+        ~~|
+        ~(query /answer)
+    | wires :index
+        |~~ The index of the element refused: from zero, the first of the slot
+            so refused.
+        ~~|
+        ~(query /index) #[::number ::null]) null];
 
 :fn/takes
   |~~ Adds an input to a function: its name, its page, its selector over
@@ -533,53 +780,6 @@
         ~(::fn | takes "by" |~~ How much. ~~| /0 !| get [~(tag) ~(index) ~(found)] | eq [::fn/CommandNotTakenError 0 "by"]))
     ::builtin{}];
 
-:fn/returns
-  |~~ Names the answer of a function, its page and its kinds, the tag or
-      the set of tags it is brought to,
-      `::fn | returns |~~ The sum. ~~| ::number`: an answer whose walk
-      reaches one of the kinds is the value it reaches, one that reaches
-      none is put under the one kind named, and one of none of the kinds
-      is refused under the answer.
-  ~~|
-  ::fn[~(on
-        |~~ The noun itself, which starts the function, or a function. ~~|
-        ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the page of the answer, a
-            doc, and its kinds, a tag or a set of one tag or more.
-        ~~|
-        ~(it)
-    | returns |~~ The function with its answer. ~~| ::fn
-    | throws :SubjectNotFnError
-        |~~ `returns` names the answer of the noun's function,
-            `::fn | returns …`, or of a function.
-        ~~|
-    | proves :bringsTheAnswerUnderItsKind
-        |~~ An answer of another kind is refused under the answer of the
-            call, the kind its `:expected`.
-        ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~("x")) !| get [~(tag) /:answer/expected] | eq [::fn/call/AnswerKindNotTakenError #[::number]])
-    | proves :refusesAnAnswerOfNoneOfItsKinds
-        |~~ An answer of none of several kinds is refused under the answer
-            of the call.
-        ~~|
-        ~(5 | apply (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(gt 1))
-          !| get [~(tag) /:answer/found]
-          |  eq [::fn/call/AnswerKindNotTakenError true])
-    | proves :passesTheFailureOfTheRecipe
-        |~~ A recipe that fails answers its failure, which no kind brings.
-        ~~|
-        ~(5 | apply (::fn | returns |~~ A number. ~~| ::number | impl ~(get /nope)) !| tag | eq ::path/SubjectHasNoPartsError)
-    | proves :namesTheAnswerOfAVerb
-        |~~ The answer of a function named under a label is the answer of
-            the verb.
-        ~~|
-        ~(:number/half (::fn | returns |~~ The half. ~~| ::number | impl ~(div 2)); ::number/half | manifest | has ::number/half/answer)
-    | proves :SubjectNotFnError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | fn/returns |~~ A number. ~~| ::number !| tag | eq ::fn/returns/SubjectNotFnError))
-    ::builtin{}];
-
 :fn/throws
   |~~ Names a refusal of a function, its page and its own facts,
       `::fn | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
@@ -638,204 +838,4 @@
     | proves :SubjectNotFnError/refusesAnotherTag
         |~~ A tag of another noun is refused. ~~|
         ~(::number | fn/throws :E |~~ An e. ~~| !| tag | eq ::fn/throws/SubjectNotFnError))
-    ::builtin{}];
-
-:fn/holds
-  |~~ Writes an invariant of a function, a quote under `::invariant`: the
-      refusal of a call that breaks it, named one level under the function,
-      its page, and the condition the call answers true to, a small recipe,
-      the subject in the pipe and each input by its name,
-      `| holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100)`,
-      `| holds :SubjectNotIntegerError |~~ A whole number. ~~| ~(eq (floor))`.
-      It runs once the inputs are held and before the recipe, or, written
-      after `returns`, once the answer is held, which it reads as `answer`;
-      a name the chain declares reads its value past a verb of the subject
-      of that name, the verb called by its address, `vec/count`.
-      ::link~(::invariant)
-  ~~|
-  ::fn[~(on
-        |~~ The noun itself, which starts the function, or a function. ~~|
-        ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the refusal of
-            a call that breaks it, a keyword of one segment read as a tag,
-            `:ByTooBigError`; its page, a doc; and the condition the call
-            answers true to, a quote.
-        ~~|
-        ~(it)
-    | returns |~~ The function with the invariant. ~~| ::fn
-    | throws :SubjectNotFnError
-        |~~ `holds` writes an invariant of the noun's function,
-            `::fn | holds …`, or of a function.
-        ~~|
-    | proves :writesAnInvariantOfAVerb
-        |~~ An invariant of a function named under a label is a node of
-            the verb.
-        ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by));
-          5
-          | plus 500
-          !| tag
-          |  eq ::number/plus/ByTooBigError)
-    | proves :writesAnInvariantOfTheSubject
-        |~~ An invariant of the subject of a verb refuses a subject that
-            breaks it under the verb.
-        ~~|
-        ~(:number/inc (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)); get [~(5 | inc) ~(-5 | inc !| tag)] | eq [6 ::number/inc/SubjectNotAboveZeroError])
-    | proves :passesAValueThatKeepsIt
-        |~~ A value that keeps every invariant of its input goes on to the
-            recipe.
-        ~~|
-        ~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 | holds :ByTooBigError |~~ Under a hundred. ~~| ~(by | lt 100) | impl ~(add by)) [3] | eq 8)
-    | proves :SubjectNotFnError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | fn/holds :by/NegativeError |~~ No amount below zero. ~~| ~(true) !| tag | eq ::fn/holds/SubjectNotFnError))
-    ::builtin{}];
-
-:fn/proves
-  |~~ Writes a law of a function, a quote under `::law`, the claim its
-      name makes, its page and the query that proves it,
-      `| proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)`;
-      under a label it is a law of the verb, which `laws` and `runLaws`
-      read, and a name written with a path lays it under the subject, an
-      input, a refusal, a fact or the answer, the refusal an input's kinds
-      name among them.
-  ~~|
-  ::fn[~(on
-        |~~ The noun itself, which starts the function, or a function. ~~|
-        ::tag
-    | takes :modifiers
-        |~~ The modifiers of the command as written: the name of the law, a
-            keyword read as a tag, under a name declared before it where it is
-            written with a path; its page, the claim it proves, a doc; and the
-            query that proves the claim, answering `true`, a quote.
-        ~~|
-        ~(it)
-    | returns |~~ The function with the law. ~~| ::fn
-    | throws :SubjectNotFnError
-        |~~ `proves` writes a law of the noun's function,
-            `::fn | proves …`, or of a function.
-        ~~|
-    | proves :declaresALawOfAVerb
-        |~~ A law of a function named under a label is a law of the verb.
-        ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 | proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8) | impl ~(add by));
-          ::number/plus
-          | runLaws
-          | map /ok
-          | eq [true])
-    | proves :liesUnderTheRefusalOfAnInput
-        |~~ A law written under the refusal an input's kinds name lies
-            under it.
-        ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | proves :ByKindNotTakenError/refusesAString |~~ A string is refused. ~~| ~(5 | plus "x" !| tag | eq ::number/plus/ByKindNotTakenError) | impl ~(add by));
-          ::number/plus/ByKindNotTakenError
-          | runLaws
-          | map /ok
-          | eq [true])
-    | proves :SubjectNotFnError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | fn/proves :addsOne |~~ One is added. ~~| ~(true) !| tag | eq ::fn/proves/SubjectNotFnError))
-    ::builtin{}];
-
-:fn/impl
-  |~~ Gives a function its recipe, the code or the primitive that answers
-      for it, `| impl ~(add by)`, and answers the function it builds,
-      whatever came before it: `::fn | impl ~(add 1)` is the function of no
-      commands, `::fn[~() ~(add 1)]`, which a command written after it
-      joins, as after any `impl`. A recipe written alone under a label
-      stays the quote it is, which its call reads as that function.
-  ~~|
-  ::fn[~(on
-        |~~ The noun itself, which starts the function, or a function. ~~|
-        ::tag
-    | takes :recipe
-        |~~ The recipe, a quote or a primitive of the host, `::builtin{}`,
-            or null for a contract.
-        ~~|
-        /0
-    | returns |~~ The function with its recipe. ~~| ::fn
-    | throws :SubjectNotFnError
-        |~~ `impl` gives the recipe of the noun's function,
-            `::fn | impl …`, or of a function.
-        ~~|
-    | proves :buildsTheFunctionOfNoCommands
-        |~~ Over the noun alone `impl` builds the function of no commands,
-            which a command after it joins.
-        ~~|
-        ~(get [~(::fn | impl ~(add 1)) ~(::fn | impl ~(add 1) | takes :by |~~ How much. ~~| /0 | inputs | map /name)] | eq [::fn[~() ~(add 1)] [:by]])
-    | proves :refusesARecipeThatIsNoCode
-        |~~ A recipe that is no code is refused as the literal refuses it.
-        ~~|
-        ~(::fn | impl 5 !| tag | eq ::fn/RecipeKindNotTakenError)
-    | proves :SubjectNotFnError/refusesAnotherTag
-        |~~ A tag of another noun is refused. ~~|
-        ~(::number | fn/impl ~(add 1) !| tag | eq ::fn/impl/SubjectNotFnError))
-    ::builtin{}];
-
-:fn/fill
-  |~~ Writes the args of a call into the head of the code of a
-      function, each input a declaration with its page of the value it
-      reads from them, as its call reads it, a quote among them written
-      as the data it is, and answers the code:
-      `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
-      answers `~(:by |~~ How much. ~~| 3; add by)`, as a quote takes
-      the values of the names it reads, `~(add by) | fill {:by 3}`.
-      ::link~(::quote/fill)
-  ~~|
-  ::fn[~(takes :args
-        |~~ The args, as a call holds them. ~~|
-        ~(it)
-    | returns |~~ The code, its inputs written at its head. ~~| ::quote
-    | throws :SubjectNotFnError |~~ `fill` writes into a function. ~~|
-    | throws :RecipeKindNotTakenError
-        |~~ `fill` writes into code, a quote: a contract or a primitive has
-            none.
-        ~~|
-    | proves :writesTheArgs
-        |~~ The value goes into the head of the code. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3 | eq ~(:by |~~ How much. ~~| 3; add by))
-    | proves :writesEachInput
-        |~~ Each input goes into the head of the code in its order. ~~|
-        ~(::fn
-          | takes :price |~~ The price. ~~| /0
-          | takes :fee |~~ The fee. ~~| /1
-          | impl ~(add price | add fee)
-          | fill 4 2
-          | eq ~(:price |~~ The price. ~~| 4; :fee |~~ The fee. ~~| 2; add price | add fee))
-    | proves :writesIntoTheEmptyCode
-        |~~ Into the empty code the value goes as its one declaration. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~() | fill 3 | eq ~(:by |~~ How much. ~~| 3;))
-    | proves :writesADocAsTheValue
-        |~~ A doc goes into the head of the code in parentheses, the value
-            of its input.
-        ~~|
-        ~(::fn | takes :note |~~ A note. ~~| /0 | impl ~(note | content) | fill |~~ Call back on Monday. ~~|
-          | eq ~(:note |~~ A note. ~~| (|~~ Call back on Monday. ~~|); note | content))
-    | proves :holdsTheKinds
-        |~~ A value of none of the kinds of its input is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by) | fill "x" !| tag | eq ::fn/call/ByKindNotTakenError)
-    | proves :SubjectNotFnError/refusesANumber
-        |~~ A number is no function. ~~|
-        ~(5 | fn/fill 3 !| tag | eq ::fn/fill/SubjectNotFnError)
-    | proves :RecipeKindNotTakenError/refusesAContract
-        |~~ A function with no recipe is refused. ~~|
-        ~(::fn | takes :by |~~ How much. ~~| /0 | fill 3 !| get [~(tag) ~(subject | expected) ~(trace | last | path)] | eq [::fn/fill/RecipeKindNotTakenError #[::quote] /1]))
-    ::builtin{}];
-
-:fn/inputs
-  |~~ Answers the inputs of a function, each a map of its name, its page,
-      its selector and its kinds as written, null where it names none.
-  ~~|
-  ::fn[~(returns |~~ The inputs, a map for each. ~~| ::vec
-    | throws :SubjectNotFnError |~~ `inputs` reads a function. ~~|
-    | proves :readsTheInputs
-        |~~ The inputs come out by their names. ~~|
-        ~(::fn | takes :price |~~ The price. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(price) | inputs | map /name | eq [:price])
-    | proves :readsTheKindsAsWritten
-        |~~ The kinds of an input come out as written. ~~|
-        ~(::fn | takes :price |~~ The price. ~~| /0 ::number | takes :note |~~ A note. ~~| /1 | inputs | map /kinds | eq [::number null])
-    | proves :SubjectNotFnError/refusesANumber
-        |~~ A number is no function. ~~|
-        ~(5 | inputs !| tag | eq ::fn/inputs/SubjectNotFnError))
     ::builtin{}];

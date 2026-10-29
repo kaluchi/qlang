@@ -27,80 +27,6 @@
         |~~ No value is put under `::host`. ~~|
         ~(5 | tag ::host !| tag | eq ::host/PayloadKindNotTakenError);
 
-:host/status
-  |~~ Answers the screen of the host a session is in, its state in
-      sections, each a snippet the host declares under `::host` with its
-      page, `:host/budget |~~ The budget of an answer. ~~| ::snippet~(…);`:
-      a section holds the address that names it, the prose of its page,
-      the query that takes it again and what that query answers now, a
-      failure as its error at rest. A host that declares no section
-      answers none, the language alone among them.
-      ::link~(::snippet) ::link~(::host)
-  ~~|
-  ::fn
-    | on |~~ The host itself, `::host`. ~~| ::tag
-    | returns
-        |~~ The sections, each `{:section … :page … :query … :answer …}`,
-            in the order of their addresses.
-        ~~|
-        ::vec
-    | throws :ArgsBeyondInputsError
-        |~~ `status` answers every section and takes none: one is read by
-            its address, `::host | status | filter ~(get /section | eq ::host/budget)`.
-        ~~|
-    | proves :answersASectionDeclaredUnderTheHost
-        |~~ A snippet declared under `::host` is a section, its page, its
-            query and what the query answers now.
-        ~~|
-        ~(:host/rate |~~ The rate. ~~| ::snippet~(1 | add 1);
-          ::host | status | filter ~(get /section | eq ::host/rate)
-          | eq [{:section ::host/rate :page "The rate." :query ~(1 | add 1) :answer 2}])
-    | proves :ArgsBeyondInputsError/refusesASection
-        |~~ A section given to `status` is refused under the verb. ~~|
-        ~(::host | status :budget !| tag | eq ::host/status/ArgsBeyondInputsError)
-    | impl ~(manifest | toVec | filter ~(binding | value | tag | eq ::snippet)
-            | map ~(get {:section ~(it) :page ~(doc | content) :query ~(binding | value | payload) :answer ~(binding | value | answer !| it)}));
-
-:host/kinds
-  |~~ Answers the set of the labels the scope reads, the kinds declared
-      under a name, each by its tag name: those the language and the host
-      declared, the topic of the language and `::host` among them, and
-      those the reader declares. A query asks which kinds there are before
-      it asks one of them for its page, `::set | doc`, or for what lies
-      under it, `::set | manifest`. A chapter a topic tells is no kind:
-      `::qlang/values` is a page `doc` reads, which `manifest` of its
-      topic lists. It is asked of `::host` and takes no kind.
-      ::link~(::host/env) ::link~(::qlang)
-  ~~|
-  ::fn
-    | on |~~ The host itself, `::host`. ~~| ::tag
-    | returns |~~ The tag names of the kinds the scope reads. ~~| ::set
-    | throws :ArgsBeyondInputsError
-        |~~ `kinds` answers every kind and takes none: whether a kind is
-            there is `::host | kinds | has ::set`.
-        ~~|
-    | proves :holdsTheKindsOfTheLanguage
-        |~~ The kinds of the language are read. ~~|
-        ~(::host | kinds | has ::vec)
-    | proves :holdsTheTopic
-        |~~ The topic of the language is a label too. ~~|
-        ~(::host | kinds | has ::qlang)
-    | proves :holdsAReadersKind
-        |~~ A kind the reader declares is read. ~~|
-        ~(:Box |~~ A box. ~~|; ::host | kinds | has ::Box)
-    | proves :holdsNoChapter
-        |~~ A chapter of the topic is no kind. ~~|
-        ~(::host | kinds | has ::qlang/values | not)
-    | proves :refusesAnotherSubject
-        |~~ A value is no host: `kinds` of it is refused as a verb no kind
-            of the value answers, naming its address.
-        ~~|
-        ~([1 2] | kinds !| get [~(tag) ~(addresses)] | eq [::call/KindAnswersNoVerbError #[::host/kinds]])
-    | proves :ArgsBeyondInputsError/refusesAKind
-        |~~ A kind given to `kinds` is refused under the verb. ~~|
-        ~(::host | kinds ::set !| tag | eq ::host/kinds/ArgsBeyondInputsError)
-    | impl ::builtin{};
-
 :host/env
   |~~ Answers what the reader declared before the step, the cells of a
       notebook before it among them: a map from each name to the record of
@@ -153,3 +79,77 @@
         |~~ A name given to `env` is refused under the verb. ~~|
         ~(:Box |~~ A box. ~~|; ::host | env :Box !| tag | eq ::host/env/ArgsBeyondInputsError)
     | impl ::builtin{};
+
+:host/kinds
+  |~~ Answers the set of the labels the scope reads, the kinds declared
+      under a name, each by its tag name: those the language and the host
+      declared, the topic of the language and `::host` among them, and
+      those the reader declares. A query asks which kinds there are before
+      it asks one of them for its page, `::set | doc`, or for what lies
+      under it, `::set | manifest`. A chapter a topic tells is no kind:
+      `::qlang/values` is a page `doc` reads, which `manifest` of its
+      topic lists. It is asked of `::host` and takes no kind.
+      ::link~(::host/env) ::link~(::qlang)
+  ~~|
+  ::fn
+    | on |~~ The host itself, `::host`. ~~| ::tag
+    | returns |~~ The tag names of the kinds the scope reads. ~~| ::set
+    | throws :ArgsBeyondInputsError
+        |~~ `kinds` answers every kind and takes none: whether a kind is
+            there is `::host | kinds | has ::set`.
+        ~~|
+    | proves :holdsTheKindsOfTheLanguage
+        |~~ The kinds of the language are read. ~~|
+        ~(::host | kinds | has ::vec)
+    | proves :holdsTheTopic
+        |~~ The topic of the language is a label too. ~~|
+        ~(::host | kinds | has ::qlang)
+    | proves :holdsAReadersKind
+        |~~ A kind the reader declares is read. ~~|
+        ~(:Box |~~ A box. ~~|; ::host | kinds | has ::Box)
+    | proves :holdsNoChapter
+        |~~ A chapter of the topic is no kind. ~~|
+        ~(::host | kinds | has ::qlang/values | not)
+    | proves :refusesAnotherSubject
+        |~~ A value is no host: `kinds` of it is refused as a verb no kind
+            of the value answers, naming its address.
+        ~~|
+        ~([1 2] | kinds !| get [~(tag) ~(addresses)] | eq [::call/KindAnswersNoVerbError #[::host/kinds]])
+    | proves :ArgsBeyondInputsError/refusesAKind
+        |~~ A kind given to `kinds` is refused under the verb. ~~|
+        ~(::host | kinds ::set !| tag | eq ::host/kinds/ArgsBeyondInputsError)
+    | impl ::builtin{};
+
+:host/status
+  |~~ Answers the screen of the host a session is in, its state in
+      sections, each a snippet the host declares under `::host` with its
+      page, `:host/budget |~~ The budget of an answer. ~~| ::snippet~(…);`:
+      a section holds the address that names it, the prose of its page,
+      the query that takes it again and what that query answers now, a
+      failure as its error at rest. A host that declares no section
+      answers none, the language alone among them.
+      ::link~(::snippet) ::link~(::host)
+  ~~|
+  ::fn
+    | on |~~ The host itself, `::host`. ~~| ::tag
+    | returns
+        |~~ The sections, each `{:section … :page … :query … :answer …}`,
+            in the order of their addresses.
+        ~~|
+        ::vec
+    | throws :ArgsBeyondInputsError
+        |~~ `status` answers every section and takes none: one is read by
+            its address, `::host | status | filter ~(get /section | eq ::host/budget)`.
+        ~~|
+    | proves :answersASectionDeclaredUnderTheHost
+        |~~ A snippet declared under `::host` is a section, its page, its
+            query and what the query answers now.
+        ~~|
+        ~(:host/rate |~~ The rate. ~~| ::snippet~(1 | add 1);
+          ::host | status | filter ~(get /section | eq ::host/rate)
+          | eq [{:section ::host/rate :page "The rate." :query ~(1 | add 1) :answer 2}])
+    | proves :ArgsBeyondInputsError/refusesASection
+        |~~ A section given to `status` is refused under the verb. ~~|
+        ~(::host | status :budget !| tag | eq ::host/status/ArgsBeyondInputsError)
+    | impl ~(manifest | toVec | filter ~(binding | value | tag | eq ::snippet)
+            | map ~(get {:section ~(it) :page ~(doc | content) :query ~(binding | value | payload) :answer ~(binding | value | answer !| it)}));

@@ -221,57 +221,6 @@
         ~(":" | parse !| expected | eq ["\"" :name])
     | impl ::builtin{};
 
-:quote/toString
-  |~~ Answers the text of the quote's code, a string, its steps without
-      the brackets around them, `~(add 1 | mul 2) | toString` answering
-      `"add 1 | mul 2"`, which `parse` reads back as the quote, so a quote
-      turned into text and back is itself, `~(add 1) | toString | parse`
-      answering `~(add 1)`. The steps are written in the one spelling the
-      printer writes, so the spaces and the line breaks the quote was
-      written with are not kept, `"5 |  mul   2" | parse | toString`
-      answering `"5 | mul 2"`. A link or a snippet out of a page answers
-      the query it holds, without its tags, and the empty quote the empty
-      string; `print` writes the quote with its brackets.
-      ::link~(::string/parse) ::link~(::any/print)
-      ::link~(::quote/answer)
-  ~~|
-  ::fn
-    | returns |~~ The text the quote reads back from. ~~| ::string
-    | proves :writesTheTextOfItsCode
-        |~~ A quote answers the text of its code. ~~|
-        ~(~(add 1) | toString | eq "add 1")
-    | proves :readsBackAsTheQuote
-        |~~ The text parsed again is the quote. ~~|
-        ~(~(add 1 | mul 2) | eq (toString | parse))
-    | proves :writesOneSpelling
-        |~~ The spaces the quote was written with are not kept. ~~|
-        ~("5 |  mul   2" | parse | toString | eq "5 | mul 2")
-    | proves :leavesItsBracketsToPrint
-        |~~ `print` writes the quote with its brackets. ~~|
-        ~(~(add 1) | get [~(toString) ~(print)] | eq ["add 1" "~(add 1)"])
-    | proves :leavesTheTagsOfALink
-        |~~ A link answers the query it holds, without its tags. ~~|
-        ~(::link~(1 | add 1) | toString | eq "1 | add 1")
-    | proves :answersNothingForTheEmptyQuote
-        |~~ The empty quote writes the empty string. ~~|
-        ~(~() | toString | eq "")
-    | impl ::builtin{};
-
-:quote/toVec
-  |~~ Answers the vector of the quote's steps, the payload beneath its
-      tag, `~(add 1 | mul 2) | toVec | count` answering `2`, as `toVec`
-      of a set answers its elements.
-      ::link~(::set/toVec) ::link~(::any/payload)
-  ~~|
-  ::fn
-    | returns |~~ The vector of the steps. ~~| ::vec
-    | proves :answersTheVectorOfItsSteps
-        |~~ A quote answers the vector of its steps, under a tag of its own
-            as well.
-        ~~|
-        ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
-    | impl ::builtin{};
-
 :quote/answer
   |~~ Answers what the code the quote holds answers, run as a query
       beneath whatever tags stand over it, `~(1 | add 1) | answer`
@@ -392,5 +341,56 @@
     | proves :NamesKindNotTakenError/refusesAVector
         |~~ The values are named by a map. ~~|
         ~(~(mul rate) | fill [1.2] !| tag | eq ::quote/fill/NamesKindNotTakenError)
+    | impl ::builtin{};
+
+:quote/toString
+  |~~ Answers the text of the quote's code, a string, its steps without
+      the brackets around them, `~(add 1 | mul 2) | toString` answering
+      `"add 1 | mul 2"`, which `parse` reads back as the quote, so a quote
+      turned into text and back is itself, `~(add 1) | toString | parse`
+      answering `~(add 1)`. The steps are written in the one spelling the
+      printer writes, so the spaces and the line breaks the quote was
+      written with are not kept, `"5 |  mul   2" | parse | toString`
+      answering `"5 | mul 2"`. A link or a snippet out of a page answers
+      the query it holds, without its tags, and the empty quote the empty
+      string; `print` writes the quote with its brackets.
+      ::link~(::string/parse) ::link~(::any/print)
+      ::link~(::quote/answer)
+  ~~|
+  ::fn
+    | returns |~~ The text the quote reads back from. ~~| ::string
+    | proves :writesTheTextOfItsCode
+        |~~ A quote answers the text of its code. ~~|
+        ~(~(add 1) | toString | eq "add 1")
+    | proves :readsBackAsTheQuote
+        |~~ The text parsed again is the quote. ~~|
+        ~(~(add 1 | mul 2) | eq (toString | parse))
+    | proves :writesOneSpelling
+        |~~ The spaces the quote was written with are not kept. ~~|
+        ~("5 |  mul   2" | parse | toString | eq "5 | mul 2")
+    | proves :leavesItsBracketsToPrint
+        |~~ `print` writes the quote with its brackets. ~~|
+        ~(~(add 1) | get [~(toString) ~(print)] | eq ["add 1" "~(add 1)"])
+    | proves :leavesTheTagsOfALink
+        |~~ A link answers the query it holds, without its tags. ~~|
+        ~(::link~(1 | add 1) | toString | eq "1 | add 1")
+    | proves :answersNothingForTheEmptyQuote
+        |~~ The empty quote writes the empty string. ~~|
+        ~(~() | toString | eq "")
+    | impl ::builtin{};
+
+:quote/toVec
+  |~~ Answers the vector of the quote's steps, the payload beneath its
+      tag, `~(add 1 | mul 2) | toVec | count` answering `2`, as `toVec`
+      of a set answers its elements.
+      ::link~(::set/toVec) ::link~(::any/payload)
+  ~~|
+  ::fn
+    | returns |~~ The vector of the steps. ~~| ::vec
+    | proves :answersTheVectorOfItsSteps
+        |~~ A quote answers the vector of its steps, under a tag of its own
+            as well.
+        ~~|
+        ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
     | impl ::builtin{};
 

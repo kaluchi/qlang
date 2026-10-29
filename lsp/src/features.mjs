@@ -71,11 +71,6 @@ function markdownOfProse(prose) {
 
 const markdownOfThePage = async address => markdownOfProse(await contentOfThePage(address));
 
-function codeSpanOf(text) {
-  const fence = '`'.repeat(Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length)) + 1);
-  return /^`|`$/.test(text) ? `${fence} ${text} ${fence}` : `${fence}${text}${fence}`;
-}
-
 // [QSLSP#server]
 const contentOfPages = new Map();
 async function contentOfThePage(address) {
@@ -357,6 +352,11 @@ async function hoverForLiteral(read, kind, source) {
   const written = isKeyword(read.value) ? read.value.literal : source.slice(read.span.start.offset, read.span.end.offset);
   const heading = written.length <= LONGEST_LITERAL_SHOWN && !written.includes('\n') ? `${codeSpanOf(written)} — **${literal}**` : `**${literal}**`;
   return { content: markdownHardBreaks([heading, '', await markdownOfThePage(literal)].join('\n')), ...spanOf(read) };
+}
+
+function codeSpanOf(text) {
+  const fence = '`'.repeat(Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length)) + 1);
+  return /^`|`$/.test(text) ? `${fence} ${text} ${fence}` : `${fence}${text}${fence}`;
 }
 
 async function hoverForCall(read, root, source) {

@@ -24,7 +24,8 @@ import {
   foldingRangesOf,
   signatureHelpAtOffset,
   semanticTokensFor,
-  SEMANTIC_TOKEN_TYPES
+  SEMANTIC_TOKEN_TYPES,
+  SEMANTIC_TOKEN_MODIFIERS
 } from './features.mjs';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -67,7 +68,7 @@ connection.onInitialize(async () => {
       foldingRangeProvider: true,
       signatureHelpProvider: { triggerCharacters: [' '] },
       semanticTokensProvider: {
-        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: [] },
+        legend: { tokenTypes: SEMANTIC_TOKEN_TYPES, tokenModifiers: SEMANTIC_TOKEN_MODIFIERS },
         full: true
       }
     }

@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest';
 import Module, { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { tokenize } from '@kaluchi/qlang-core/highlight';
-import { langRuntime, verbNames, NAME_REGEX } from '@kaluchi/qlang-core';
+import { langRuntime, verbNames, NAME_REGEX, LANGUAGE_SOURCES, parseSource, partOf, forEachPart, tagOf } from '@kaluchi/qlang-core';
 
 const require = createRequire(import.meta.url);
 const { blockHtml } = require('../../src/markdown-block.js');
@@ -128,8 +128,74 @@ describe('the extension', () => {
     expect([configuration.wordPattern, configuration.folding]).toEqual([undefined, undefined]);
   });
 
-  it('paints by its grammar the spans no other form reads inside, its comments, its docs, its strings and its regexes, the language server the rest', () => {
+  it('names by its grammar no scope but those of a comment, a doc, a string, a regex and an escape a string holds, the language server painting the rest', () => {
+    const named = [];
+    const walk = rule => {
+      if (typeof rule !== 'object' || rule === null) return;
+      if (typeof rule.name === 'string' && rule !== grammar) named.push(rule.name);
+      for (const part of Object.values(rule)) walk(part);
+    };
     const grammar = JSON.parse(readFileSync(new URL('../../syntaxes/qlang.tmLanguage.json', import.meta.url), 'utf8'));
-    expect(Object.keys(grammar.repository).sort()).toEqual(['comment-block', 'comment-line', 'doc-block', 'doc-line', 'regex', 'string']);
+    walk(grammar);
+    expect(named.filter(name => !/^(comment|string)\.|^constant\.character\.escape\./.test(name))).toEqual([]);
+  });
+
+  it('paints by its grammar a comment, a doc, a string and a regex where the parser reads one and no code past them, a backquoted span and a quote of a doc nesting no doc the parser does not, over every source of the language', async () => {
+    const paint = await framePainter();
+    const planted = [
+      { uri: 'backquoted', source: ':x |~~ a `|~~` b ~~| [1]' },
+      { uri: 'quoted', source: ':x |~~ a ~("~~|" | count) b ~~| [1]' },
+      { uri: 'nested', source: ':x |~~ a |~~ b ~~| c ~~| [1]' }
+    ];
+    const ofTheLanguage = LANGUAGE_SOURCES.map(uri => ({ uri, source: readFileSync(new URL(import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`)), 'utf8') }));
+    const pastTheFrame = [...planted, ...ofTheLanguage].flatMap(({ uri, source }) => {
+      const painted = paint(source);
+      const framed = frameRead(source);
+      const past = [];
+      for (let at = 0; at < source.length; at++) if (painted[at] && !framed[at] && !/\s/.test(source[at])) past.push(at);
+      return past.length === 0 ? [] : [`${uri}:${source.slice(0, past[0]).split('\n').length}`];
+    });
+    expect(pastTheFrame).toEqual([]);
+  }, 60_000);
+
+  it('shows the semantic tokens of the language server whatever the theme, and paints a regex by the scope of a regex', () => {
+    const { contributes } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+    expect(contributes.configurationDefaults['[qlang]']['editor.semanticHighlighting.enabled']).toBe(true);
+    expect(contributes.semanticTokenScopes).toEqual([{ language: 'qlang', scopes: { regexp: ['string.regexp.qlang'] } }]);
   });
 });
+
+// The characters of a source the editor's grammar paints as a comment, a doc,
+// a string or a regex, by the engine of TextMate the editor runs.
+async function framePainter() {
+  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }, { bundledThemes }] = await Promise.all([import('shiki/core'), import('shiki/engine/javascript'), import('shiki/themes')]);
+  const grammar = JSON.parse(readFileSync(new URL('../../syntaxes/qlang.tmLanguage.json', import.meta.url), 'utf8'));
+  const highlighter = await createHighlighterCore({ themes: [bundledThemes['dark-plus']()], langs: [grammar], engine: createJavaScriptRegexEngine() });
+  return source => {
+    const painted = new Uint8Array(source.length);
+    let at = 0;
+    for (const line of highlighter.codeToTokensBase(source, { lang: 'qlang', theme: 'dark-plus', includeExplanation: true })) {
+      for (const { content, scopes } of line.flatMap(token => token.explanation)) {
+        if (scopes.some(({ scopeName }) => /^(comment|string)\./.test(scopeName))) painted.fill(1, at, at + content.length);
+        at += content.length;
+      }
+      at += 1;
+    }
+    return painted;
+  };
+}
+
+// The characters of a source the parser reads as a comment, a doc, a string or
+// a regex, or as a keyword or a path that quotes its name.
+function frameRead(source) {
+  const root = partOf(parseSource(source));
+  const framed = new Uint8Array(source.length);
+  const mark = ({ start, end }) => framed.fill(1, start.offset, end.offset);
+  for (const { location } of root.comments) mark(location);
+  forEachPart(root, ({ value, span }) => {
+    const kind = tagOf(value).name;
+    const quoting = (kind === 'keyword' || kind === 'path') && source.slice(span.start.offset, span.end.offset).includes('"');
+    if (kind === 'doc' || kind === 'string' || kind === 'regex' || quoting) mark(span);
+  });
+  return framed;
+}

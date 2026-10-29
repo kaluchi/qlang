@@ -468,29 +468,34 @@ function readsAsWhitespace(text) {
   }
 }
 
-// [QSLSP#server]
+// [D491]
 const TYPE_OF_KIND = {
-  verb:        'function',
-  name:        'variable',
-  declaration: 'keyword',
-  keyword:     'property',
-  path:        'property',
-  tag:         'struct',
-  string:      'string',
-  quote:       'string',
-  null:        'number',
-  boolean:     'number',
-  number:      'number',
-  regex:       'regexp',
-  doc:         'comment',
-  comment:     'comment',
-  error:       'keyword',
-  fail:        'keyword'
+  verb:        ['function', 'defaultLibrary'],
+  name:        ['variable'],
+  declaration: ['function', 'declaration'],
+  keyword:     ['property'],
+  path:        ['property'],
+  tag:         ['struct'],
+  string:      ['string'],
+  quote:       ['string'],
+  null:        ['number'],
+  boolean:     ['number'],
+  number:      ['number'],
+  regex:       ['regexp'],
+  doc:         ['comment', 'documentation'],
+  comment:     ['comment'],
+  error:       ['keyword'],
+  fail:        ['keyword']
 };
 
-export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND))];
+export const SEMANTIC_TOKEN_TYPES = [...new Set(Object.values(TYPE_OF_KIND).map(([type]) => type))];
 
-const TYPE_INDEX_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [kind, SEMANTIC_TOKEN_TYPES.indexOf(type)]));
+export const SEMANTIC_TOKEN_MODIFIERS = [...new Set(Object.values(TYPE_OF_KIND).flatMap(([, ...modifiers]) => modifiers))];
+
+const CODE_OF_KIND = new Map(Object.entries(TYPE_OF_KIND).map(([kind, [type, ...modifiers]]) => [kind, {
+  type: SEMANTIC_TOKEN_TYPES.indexOf(type),
+  modifiers: modifiers.reduce((bits, modifier) => bits | (1 << SEMANTIC_TOKEN_MODIFIERS.indexOf(modifier)), 0)
+}]));
 
 let _rootVerbNames = null;
 async function rootVerbNames() {
@@ -506,8 +511,8 @@ export async function semanticTokensFor(source) {
   let prevChar = 0;
   const offsetToLineChar = buildLineCharIndex(source);
   for (const tok of tokens) {
-    const typeIndex = TYPE_INDEX_OF_KIND.get(tok.kind);
-    if (typeIndex === undefined) continue;
+    const code = CODE_OF_KIND.get(tok.kind);
+    if (code === undefined) continue;
     let segStart = tok.start;
     while (segStart < tok.end) {
       const { line: segLine, char: segChar } = offsetToLineChar(segStart);
@@ -517,14 +522,14 @@ export async function semanticTokensFor(source) {
       if (segLen > 0) {
         const dLine = segLine - prevLine;
         const dChar = dLine === 0 ? segChar - prevChar : segChar;
-        data.push(dLine, dChar, segLen, typeIndex, 0);
+        data.push(dLine, dChar, segLen, code.type, code.modifiers);
         prevLine = segLine;
         prevChar = segChar;
       }
       segStart = segEnd + (segEnd < tok.end ? 1 : 0);
     }
   }
-  return { data: Uint32Array.from(data) };
+  return { data };
 }
 
 function buildLineCharIndex(source) {

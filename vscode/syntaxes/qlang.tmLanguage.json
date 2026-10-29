@@ -21,7 +21,30 @@
       "name": "comment.block.documentation.qlang",
       "begin": "\\|~~(?!\\|)",
       "end": "~~\\|",
-      "patterns": [{ "include": "#doc-block" }]
+      "patterns": [
+        { "include": "#backquoted" },
+        { "include": "#quote" },
+        { "include": "#doc-block" }
+      ]
+    },
+    "backquoted": {
+      "match": "(`+)(?:(?!~~\\|).)*?(?<!`)\\1(?!`)"
+    },
+    "quote": {
+      "begin": "~\\(",
+      "end": "\\)",
+      "patterns": [
+        { "include": "#parenthesized" },
+        { "include": "$self" }
+      ]
+    },
+    "parenthesized": {
+      "begin": "\\(",
+      "end": "\\)",
+      "patterns": [
+        { "include": "#parenthesized" },
+        { "include": "$self" }
+      ]
     },
     "comment-line": {
       "name": "comment.line.qlang",

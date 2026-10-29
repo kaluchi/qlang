@@ -14,7 +14,6 @@ async function raisedFrom(subject, state) {
   if (!isMap(facts) || isExcerpt(facts)) throw new AnyRaiseSubjectKindNotTakenError({ 'subject/expected': kindsExpected('map') });
   const [tagName] = tagsOver(subject);
   const laid = await factsWithTheirTrace(new Map(facts), state);
-  if (isErrorValue(laid)) return laid;
   if (tagName !== undefined && tagName !== ERROR_TAG.name) {
     const atRest = await layTag(tagName, makeTagged(ERROR_TAG, laid), state);
     if (isErrorValue(atRest)) return atRest;

@@ -465,7 +465,7 @@ function closingKindAt(scope, tagName) {
 const SLOTS_OF_EVERY_VERB = new Set([SUBJECT_NAME, SURPLUS_NAME, ANSWER_NAME]);
 
 // [QSERR#site], [QSSLF#axis]
-export const nodeOfARole = (scope, address) => (isSlotOfAVerb(scope, address) ? nodeOf(scope, `fn/${splitAddress(address)[1]}`) ?? nodeOf(scope, SLOT_KIND_ADDRESS) : null);
+export const nodeOfARole = (scope, address) => (isSlotOfAVerb(scope, address) ? nodeOf(scope, `fn/${splitAddress(address)[1]}`) : null);
 
 export const refusalsAddressOf = (scope, tagName) => (isSlotOfAVerb(scope, tagName) ? SLOT_KIND_ADDRESS : tagName);
 

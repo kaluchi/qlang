@@ -106,7 +106,6 @@ function errorOfThrow(caughtError, subject, scope) {
 export async function factsWithTheirTrace(facts, state) {
   if (!facts.has('trace')) return facts;
   const trace = await layTag(TRACE_TAG.name, facts.get('trace'), state);
-  if (isErrorValue(trace)) return trace;
   const laid = new Map(facts);
   if (trace.length > 0) laid.set('trace', trace);
   else laid.delete('trace');
@@ -1055,7 +1054,6 @@ async function underKind(tagName, kind, written, state, refusedUnder = tagName) 
   const { payload: payloadRole, fields, invariants } = chainOfKind(kind);
   const ofAnError = holdsTheFactsOfAnError(payloadRole);
   const payload = ofAnError ? await withItsTraceLaid(written, state) : written;
-  if (isErrorValue(payload)) return payload;
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, refusedUnder, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
@@ -1082,8 +1080,7 @@ const holdsTheFactsOfAnError = payloadRole => payloadRole?.kinds?.includes(ERROR
 // [QSERR#trace]
 async function withItsTraceLaid(payload, state) {
   if (!isMap(payload) || tagOf(payload).name !== ERROR_TAG.name || !isVec(payload.get('trace')) || tagOf(payload.get('trace')).name !== 'vec') return payload;
-  const facts = await factsWithTheirTrace(payload, state);
-  return isErrorValue(facts) ? facts : makeTagged(ERROR_TAG, facts);
+  return makeTagged(ERROR_TAG, await factsWithTheirTrace(payload, state));
 }
 
 const factsOfAnError = held => (tagsOver(held)[0] === ERROR_TAG.name && isExcerpt(beneathTags(held)) ? beneathTags(held) : held);

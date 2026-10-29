@@ -36,7 +36,7 @@ const HOST_ORIGIN = 'qlang/host';
 function withThePageOfTheHost(root, declared) {
   const page = declared.get(HOST_NAME);
   const held = root.get(HOST_NAME);
-  if (page === undefined || held === undefined || held.get('origin')?.name !== HOST_ORIGIN || !isDoc(bindingValueOf(page))) return root;
+  if (page === undefined || held === undefined || held.get('origin').name !== HOST_ORIGIN || !isDoc(bindingValueOf(page))) return root;
   declared.delete(HOST_NAME);
   return new Map(root).set(HOST_NAME, makeBinding({ name: held.get('name'), docs: page.get('docs'), value: bindingValueOf(held), source: page.get('source'), origin: page.get('origin') }));
 }

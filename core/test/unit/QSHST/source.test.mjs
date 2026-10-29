@@ -268,6 +268,17 @@ describe('the sources a host hands', () => {
     }
   });
 
+  it('takes the page a source of a host writes for `::host` over the noun of the core, whose verbs answer still, and refuses a second page and a host declared as no page as declared twice', async () => {
+    const page = { uri: 'tests/host', source: ':host |~~ The host of the tests. ~~|;' };
+    const notebook = await createNotebook({ sources: [page] });
+    expect(printValue((await notebook.evalCell('::host | doc')).result)).toBe('|~~ The host of the tests. ~~|');
+    expect((await notebook.evalCell('::host | kinds | has ::host')).result).toBe(true);
+    for (const [sources, uri] of [[[page, { uri: 'tests/again', source: ':host |~~ Again. ~~|;' }], 'tests/again'], [[{ uri: 'tests/kind', source: ':host |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map);' }], 'tests/kind']]) {
+      await expect(createNotebook({ sources }))
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword(uri), tagName: '::bind/NameDeclaredTwiceError', name: makeKeyword('host') } });
+    }
+  });
+
   it('declares a refusal of the host at its address again in every notebook of the process', async () => {
     declareRefusal('Probe/SessionProbeRefusalError');
     const sources = [{ uri: 'tests/refusal', source: ':Probe |~~ A probe. ~~|;\n:Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|;' }];

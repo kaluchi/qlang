@@ -144,7 +144,11 @@ combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, as `raise` laid it, none where
 the site is the kind of errors itself, so a label whose `accepts` names
 `#[::map ::error]` holds it and one that takes no error at rest refused
-its raise [QSERR#raise]. `ok` answers
+its raise [QSERR#raise]; where the scope of the catch declares the label
+otherwise than the scope that raised it, the label of the catch lays it
+and the catch answers its refusal, as a part read and a value computed at
+the call answer it where they bring a failure to rest [QSBLD#value],
+[QSQUO#modifier]. `ok` answers
 `true`, so `ok !| false` asks whether the step before stood. A fact is
 taken on the way by the payload, `!| payload | union {…} | raise`, which
 raises an error of `::error`, and a failure is recovered by its tag in

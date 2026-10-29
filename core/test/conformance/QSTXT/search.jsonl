@@ -37,3 +37,4 @@
 {"name":"contains-finds-a-path-among-the-elements","query":"[/a] | contains /a","expect":"true"}
 {"name":"a-verb-that-reads-text-refuses-a-keyword-for-its-text","query":"\"abc\" | contains :a !| tag","expect":"::string/contains/NeedleKindNotTakenError"}
 {"name":"a-text-needle-finds-no-half-of-a-code-point","query":"get [~(\"😀\" | split \"\\uD83D\" | count) ~(\"😀\" | contains \"\\uD83D\") ~(\"😀\" | startsWith \"\\uD83D\") ~(\"😀\" | endsWith \"\\uDE00\") ~(\"a😀b\" | split \"😀\")]","expect":"[1 false false false [\"a\" \"b\"]]"}
+{"name":"a-text-needle-that-is-half-of-a-code-point-finds-that-half-standing-alone","query":"get [~(\"a\\uD83Db\\uD83Dc\" | split \"\\uD83D\") ~(\"\\uD83D😀\" | split \"\\uD83D\" | count) ~(\"x\\uD83D\" | contains \"\\uD83D\") ~(\"\\uDE00x\" | contains \"\\uDE00\")]","expect":"[[\"a\" \"b\" \"c\"] 2 true true]"}

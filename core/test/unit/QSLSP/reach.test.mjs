@@ -260,4 +260,10 @@ describe('the names visible at a position', () => {
     const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
     expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
   });
+
+  it('answers a name in the body of a verb with the declaration nearer the verb, one farther out written after it set aside', () => {
+    const source = ':h (:vec/g |~~ inner ~~| ~(1); :vec/f ~(g); [1] | f); :vec/g |~~ outer ~~| ~(2); h';
+    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
+    expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
+  });
 });

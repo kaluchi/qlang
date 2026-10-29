@@ -5,6 +5,7 @@ import './sequence.mjs';
 import './map-primitives.mjs';
 import './setops.mjs';
 import './arith.mjs';
+import './one-subject.mjs';
 import './string-primitives.mjs';
 import './json.mjs';
 import './predicates.mjs';

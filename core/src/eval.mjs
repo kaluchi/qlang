@@ -680,7 +680,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
     if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), subjectRefused(kindsServed(handed.labelName, chain)), state.scope);
   }
   const scope = callScopeOf(state, ofTheRoot);
-  const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight, steps !== null && walked.byLabel ? wiringOf(walked.served) : undefined, handed === undefined ? undefined : inputsAsCode(handed.primitive)?.run);
+  const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight, steps !== null && walked.byLabel ? wiringOf(walked.served) : undefined, handed === undefined ? undefined : inputsAsCode(handed.primitive));
   if (isErrorValue(called)) return called;
   const pour = refused => slotsPoured(state.pipeValue, chain.inputs.map(({ name }, at) => [name.name, called.given[at]]), refused);
   const ofTheCall = chain.invariants.filter(({ ofTheAnswer }) => !ofTheAnswer);
@@ -930,15 +930,15 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach]
-async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts, runAsCode) {
+// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach], [D484]
+async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts, asCode) {
   const values = [];
   const written = new Set();
   const writtenAt = [];
   for (const [index, modifier] of modifiers.entries()) {
     const computing = modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
-    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values, runAsCode);
+    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values, asCode?.run);
     values.push(value);
     writtenAt.push(modifier.written === true);
     if (modifier.written === true) quotesWithin(value, written);
@@ -967,7 +967,7 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
     if (isErrorValue(read)) return read;
     given.push(read);
     const refusalOf = (each, refused) => refusalUnder(refusalsUnder(inputAddress)(each), slotsPoured(state.pipeValue, poured, slotRefused(name.name, { ...refused, found: read })), scope);
-    const held = heldByItsKinds(input, read, refusalOf, recipeSteps !== null);
+    const held = heldByItsKinds(input, read, refusalOf, recipeSteps !== null || asCode?.given?.has(name.name) === true);
     if (isErrorValue(held)) return held;
     poured.push([name.name, read]);
     inputValues.push(held);

@@ -136,7 +136,7 @@ query [QSPRN#json].
 {:name "alice" :age 30}
 
 > {"a b": 1} | keys
-#[:"a b"]
+[:"a b"]
 
 > [1, null, true]
 [1 null true]

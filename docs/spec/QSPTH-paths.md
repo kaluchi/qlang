@@ -78,7 +78,7 @@ reads as any value.
 [::path/SubjectHasNoPartsError 5]
 
 > get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box[1 2] !| found | found)]
-[[#[:found :path :segment :trace] 5] [1 2]]
+[[[:found :segment :path :trace] 5] [1 2]]
 
 > "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
 [[::path/TagClosedError #[:end :endColumn :endLine :endOffset :start :startColumn :startLine :startOffset] ~(start | line)] 1]
@@ -383,10 +383,11 @@ part above it. The shape of a part of the data is the shape of that part,
 of it and the share of its kinds are read from the data, by `count`,
 `get /0` and `groupBy ~(tag) | map ~count`.
 
-`paths` answers the leaves of a value, the set of the pairs of the path
-that reads each and its kind, the value read beneath the tags over it, a
-part under a tag a leaf, an empty vector, set or map a leaf of its kind
-and a set read as its vector, and `#[]` for an atom.
+`paths` answers the leaves of a value, the vector of the pairs of the path
+that reads each and its kind in the order the value holds its parts, the
+value read beneath the tags over it, a part under a tag a leaf, an empty
+vector, set or map a leaf of its kind and a set read as its vector, and
+`[]` for an atom.
 
 ```qlang
 > [1] | shape
@@ -429,7 +430,7 @@ and a set read as its vector, and `#[]` for an atom.
 ::shape[::nullable{:login ::string}]
 
 > {:q ~(add 1) :n [1 "x"] :s #[2]} | paths
-#[[/n/0 ::number] [/n/1 ::string] [/q ::quote] [/s/0 ::number]]
+[[/q ::quote] [/n/0 ::number] [/n/1 ::string] [/s/0 ::number]]
 
 > {:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)
 ["[/a/b ::number]" "[/a/c/0 ::number]" "[/a/c/1 ::number]" "[/d ::vec]"]

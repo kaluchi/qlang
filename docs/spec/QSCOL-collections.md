@@ -84,10 +84,11 @@ values, and its keys travel with them: `map`,
 `filter`, `sort`, `take`, `drop` and `reverse` act on the values and
 keep the keys, `first`, `last`, `sum`, `avg`, `min`, `max`, `reduce`,
 `every` and `any` read the values, a predicate sees the value alone, and
-`count`, `size` and `length` count its entries. `keys` answers the set of
-its keys, `vals` the vector of its values, `entries` the vector of its
-pairs `[key value]` in the order of its entries, the step that makes a
-key data, `empty` whether it holds none, by a verb of its own, and `has`
+`count`, `size` and `length` count its entries. `keys` answers the vector
+of its keys, `vals` the vector of its values and `entries` the vector of
+its pairs `[key value]`, each in the order of its entries, so the keys and
+the values of a map pair and the set of its keys is `keys | toSet`,
+`entries` the step that makes a key data, `empty` whether it holds none, by a verb of its own, and `has`
 whether a key stands [QSPTH#has]. The verbs a vector
 has beyond these, `distinct`, `groupBy`, `flat` and `contains` among
 them, a map does not answer, and a reader asks them of its values by

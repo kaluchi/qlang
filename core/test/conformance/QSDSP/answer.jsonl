@@ -14,7 +14,7 @@
 {"name":"filter-keeps-an-undeclared-tag","query":"::AutoFilter[1 2 3 4] | filter ~(gt 2) | tag","expect":"::AutoFilter"}
 {"name":"sort-keeps-an-undeclared-tag","query":"::AutoSort[3 1 2] | sort | tag","expect":"::AutoSort"}
 {"name":"a-kind-of-no-constructor-keeps-its-tag-after-filter","query":":Box |~~ Box. ~~|; ::Box[1 2 3 4] | filter ~(gt 2) | tag","expect":"::Box"}
-{"decision":"D485","name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-constructor-behind","query":":Box |~~ Box. ~~|; ::Box[1 2 1 3] | toSet | tag","expect":"::set"}
+{"name":"an-answer-of-another-kind-leaves-the-tag-of-a-kind-of-no-constructor-behind","query":":Box |~~ Box. ~~|; ::Box[1 2 1 3] | toSet | tag","expect":"::set"}
 {"name":"a-kind-of-no-constructor-keeps-its-tag-after-sort","query":":Box |~~ Box. ~~|; ::Box[3 1 2] | sort | tag","expect":"::Box"}
 {"name":"count-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~|; ::Box[1 2 3] | count","expect":"3"}
 {"name":"sum-of-a-tagged-vector-answers-a-number","query":":Box |~~ Box. ~~|; ::Box[1 2 3] | sum","expect":"6"}
@@ -28,8 +28,8 @@
 {"name":"sort-tagged-vec-elements-sorted","query":":Box |~~ Box. ~~|; ::Box[3 1 2] | sort | first","expect":"1"}
 {"name":"a-verb-of-numbers-reaches-the-number-beneath-a-tag-and-keeps-it","query":"::Box#5 | add 1","expect":"::Box#6"}
 {"name":"sort-over-a-tag-stacked-on-a-set-answers-the-bare-vector","query":":Box |~~ Box. ~~|; ::Box#[3 1 2] | sort","expect":"[1 2 3]"}
-{"decision":"D485","name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | toSet | tag","expect":"::set"}
-{"decision":"D485","name":"the-set-of-the-elements-beneath-the-tag-of-a-vector-is-made-within-it","query":"::Box[2 1 2] | within ~(toSet)","expect":"::Box#[1 2]"}
+{"name":"an-answer-of-another-kind-leaves-an-undeclared-tag-behind","query":"::AutoDist[1 2 1 3] | toSet | tag","expect":"::set"}
+{"name":"the-set-of-the-elements-beneath-the-tag-of-a-vector-is-made-within-it","query":"::Box[2 1 2] | within ~(toSet)","expect":"::Box#[1 2]"}
 {"name":"values-under-two-tags-combine-in-no-step-of-any-kind","query":"get [~(::Name\"a\" | append ::Other\"b\" !| tag) ~(::Name\"a\" | append \"b\") ~(\"a\" | append ::Name\"b\")]","expect":"[::call/KindsMismatchedError ::Name\"ab\" ::Name\"ab\"]"}
 {"name":"a-container-under-a-tag-it-holds-combines-as-every-tagged-value-does","query":"get [~([1] | concat ::Box[2]) ~(::A[1] | concat ::B[2] !| tag) ~(::A{:a 1} | union {:b 2}) ~({:a 1} | union ::B{:b 2}) ~(::A{:a 1} | union ::B{:b 2} !| tag)]","expect":"[::Box[1 2] ::call/KindsMismatchedError ::A{:a 1 :b 2} ::B{:a 1 :b 2} ::call/KindsMismatchedError]"}
 {"name":"a-value-that-steers-a-step-shares-no-tag","query":"get [~(1.234 | round ::D#2) ~(\"abc\" | replace \"b\" ::X\"z\") ~(\"b\" | prepend ::K:a) ~({:a 1 :b 2} | minus ::T[:a]) ~([::A{:a 1 :b 2} ::T[:a]] | minus)]","expect":"[1.23 \"azc\" \"ab\" {:b 2} ::A{:b 2}]"}

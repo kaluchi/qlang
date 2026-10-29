@@ -322,7 +322,7 @@ registerPrimitive('map/reverse', map => new Map([...map].reverse()));
 // [QSCOL#sequence], [QSCOL#algebra]
 registerPrimitive('vec/flat', sequence => sequence.flatMap(element => (isVec(beneathTags(element)) ? beneathTags(element) : [element])));
 
-// [D485]
+// [QSCND#convert]
 function firstOfEach(vector) {
   const order = [...vector.keys()].sort((left, right) => compareValues(vector[left], vector[right]) || left - right);
   const kept = new Set(order.filter((index, at) => at === 0 || compareValues(vector[order[at - 1]], vector[index]) !== 0));

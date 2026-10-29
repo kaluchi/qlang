@@ -47,17 +47,17 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 ## set
 
 A set is the vector in the one order without duplicates, under the tag
-`::set`: `#[…]` is its literal, `distinct` and `toSet` answer it, and
-its payload is that vector. Its constructor orders what it is given and
+`::set`: `#[…]` is its literal, `toSet` answers it, and its payload is
+that vector. Its constructor orders what it is given and
 holds each element once, so `tag ::set` and a write lay the set anew. A
 set reads by index as its vector does, two sets are equal by their
 elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
 Its own verbs are those whose answer on a set is not the answer of the
 verb of vectors on it: `sort` and `reverse` answer the vector of an
 order, `toVec` the vector of its elements, `zip` the vector of its
-columns, two equal ones kept, `toSet` the set itself under the tags it
-came with, `distinct` beside it the name of the habit [QSDSP#residence],
-`groupBy` files into sets, and `union`, `minus` and `inter` meet the set
+columns, two equal ones kept, `toSet` and `distinct` the set itself under
+the tags it came with, each element in it once already, `groupBy` files
+into sets, and `union`, `minus` and `inter` meet the set
 the call gives [QSCOL#algebra]. Every other verb of vectors reaches a set
 through the walk, an answer of the vector's label brought back as a set,
 each value held once there [QSDSP#residence], `filter`, `take` and `flat`
@@ -65,7 +65,7 @@ among them, and so does a verb of vectors called by its address on a set,
 while `map` answers the vector of the images.
 
 ```qlang
-> [2 1 2] | distinct
+> [2 1 2] | toSet
 #[1 2]
 
 > [3 1 3] | tag ::set

@@ -442,7 +442,7 @@ the node its subject holds under it [QSSLF#axis].
 [true false]
 
 > :Box |~~ A box. ~~|; :Box/side |~~ The side. ~~|; apply ~(:rate 2; ::host | env | keys)
-#[:Box :Box/side :rate]
+[:Box :Box/side :rate]
 
 > :Box |~~ A box. ~~|; :Box/side |~~ The side. ~~|; ::Box/side | doc
 |~~ The side. ~~|

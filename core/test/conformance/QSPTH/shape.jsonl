@@ -1,8 +1,8 @@
-{"decision":"D485","name":"paths-answers-each-leaf-with-its-kind","query":"{:a {:b 1 :c [2 \"x\"]} :d []} | paths","expect":"[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]]"}
-{"decision":"D485","name":"an-atom-has-no-paths","query":"5 | paths","expect":"[]"}
-{"decision":"D485","name":"paths-stands-at-a-part-under-a-tag","query":"{:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths","expect":"[[/q ::quote] [/d ::doc] [/t ::Box]]"}
-{"decision":"D485","name":"paths-reads-a-set-as-its-vector","query":"{:s #[1 2]} | paths","expect":"[[/s/0 ::number] [/s/1 ::number]]"}
-{"decision":"D485","name":"paths-reads-its-subject-beneath-its-tags","query":"::A::B{:w 2} | paths","expect":"[[/w ::number]]"}
+{"name":"paths-answers-each-leaf-with-its-kind","query":"{:a {:b 1 :c [2 \"x\"]} :d []} | paths","expect":"[[/a/b ::number] [/a/c/0 ::number] [/a/c/1 ::string] [/d ::vec]]"}
+{"name":"an-atom-has-no-paths","query":"5 | paths","expect":"[]"}
+{"name":"paths-stands-at-a-part-under-a-tag","query":"{:q ~(add 1) :d |~~ d ~~| :t ::Box{:w 1}} | paths","expect":"[[/q ::quote] [/d ::doc] [/t ::Box]]"}
+{"name":"paths-reads-a-set-as-its-vector","query":"{:s #[1 2]} | paths","expect":"[[/s/0 ::number] [/s/1 ::number]]"}
+{"name":"paths-reads-its-subject-beneath-its-tags","query":"::A::B{:w 2} | paths","expect":"[[/w ::number]]"}
 {"name":"shape-answers-the-kind-of-an-atom","query":"[5 \"a\" null :k /a true] | map ~shape","expect":"[::shape::number ::shape::string ::shape::null ::shape::keyword ::shape::path ::shape::boolean]"}
 {"name":"shape-keeps-the-keys-of-a-map","query":"{:a 1 :b {:c \"x\"}} | shape","expect":"::shape{:a ::number :b {:c ::string}}"}
 {"name":"shape-folds-the-elements-of-a-vector-into-one-an-empty-one-marking-it-absent","query":"[[1 2] [] [3]] | shape","expect":"::shape[[::absent::number]]"}

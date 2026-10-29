@@ -215,7 +215,7 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 [::string/parseJson/NumberNotFiniteError /0]
 
 > "1e400" | parseJson !| payload | keys
-#[:subject/found :trace]
+[:subject/found :trace]
 ```
 
 ## excerpt

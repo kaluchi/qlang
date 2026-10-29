@@ -203,8 +203,8 @@ subject and the kind it does not become, `toNumber` as
 `::keyword/toTag/NameNotTagError` and `::string/toTag/TextNotTagError`.
 `toSet`
 answers the elements of a vector in the one order without duplicates, as
-the constructor of `::set` builds them, `distinct` answering as it does,
-while a set beneath a tag, of `::set` already, answers itself under the
+the constructor of `::set` builds them, where `distinct` keeps them in
+the order of their first occurrence, each once, a vector, while a set beneath a tag, of `::set` already, answers itself under the
 tag; `toVec` answers the vector a set, a quote and a doc hold, the
 elements of a set in its order, the steps of a quote and the segments of
 a doc, the tags over the subject taken off with its own;
@@ -239,7 +239,7 @@ over any other, so `::Box#5 | desc` answers `::desc::Box#5` and
 [::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError ::call/KindAnswersNoVerbError]
 
 > get [~(::Box#[2 1] | toSet) ~(::Box#[2 1] | tag ::set !| tag) ~([2 1 2] | distinct) ~(::W#5 | toNumber)]
-[::Box#[1 2] ::Box#[1 2] #[1 2] ::W#5]
+[::Box#[1 2] ::Box#[1 2] [2 1] ::W#5]
 
 > get [~(::Box#[2 1] | toVec) ~(::Box~(add 1 | mul 2) | toVec | tag) ~(|~~ a ~(b) ~~| | toVec)]
 [[1 2] ::vec ["a " ~(b)]]

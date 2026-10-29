@@ -5,17 +5,17 @@ import { highlightAnsi } from './highlight-ansi.mjs';
 import { contentOfThePage } from './run.mjs';
 import { keepCell } from '@kaluchi/qlang-stdio';
 
-let _rootVerbNamesPromise = null;
-async function rootVerbNames() {
-  if (_rootVerbNamesPromise === null) {
-    _rootVerbNamesPromise = langRuntime().then(scope => verbNames(scope));
-  }
-  return _rootVerbNamesPromise;
+// [D495]
+let rootWords = null;
+
+async function wordsOfTheRoot() {
+  const scope = await langRuntime();
+  return { has: name => (rootWords ??= verbNames(scope)).has(name) };
 }
 
 async function maybePaint(text, shouldColorize) {
   if (!shouldColorize) return text;
-  return highlightAnsi(text, await rootVerbNames());
+  return highlightAnsi(text, await wordsOfTheRoot());
 }
 
 const defectLine = defect => `qplay: ${defect.message}\n`;

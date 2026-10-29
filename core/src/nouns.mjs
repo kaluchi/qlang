@@ -597,14 +597,30 @@ export function nodeAddresses(scope) {
   return [...bindingsOf(scope)].map(([name]) => name);
 }
 
-// [QSNAM#verb], [QSLSP#server]
+// [QSNAM#verb], [QSLSP#server], [D495]
 export function verbNames(scope) {
-  const names = new Set();
+  const names = new Set(partsTheKindsWire(rootOf(scope)));
   for (const [name, record] of bindingsOf(scope)) {
     const [nounName, lastName] = splitAddress(name);
     if (nounName !== null && residesOn(record, scope)) names.add(lastName).add(name);
   }
   return names;
+}
+
+// [D495]
+const PARTS_OF_A_ROOT = new WeakMap();
+
+function partsTheKindsWire(root) {
+  let parts = PARTS_OF_A_ROOT.get(root);
+  if (parts === undefined) {
+    parts = new Set();
+    for (const [name] of bindingsOf(root)) {
+      const kind = kindOfAValueOf(root, name);
+      for (const part of kind === null ? [] : chainOfKind(kind).wired.keys()) parts.add(part);
+    }
+    PARTS_OF_A_ROOT.set(root, parts);
+  }
+  return parts;
 }
 
 // [QSLSP#server], [QSLSP#offer]

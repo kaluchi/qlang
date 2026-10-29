@@ -15,7 +15,12 @@ it('a nearer name leaves the farther ones out, a name the typed one begins with 
 
 it('the names of the notebook count, a label of the root among them by its tag, and an address does not', async () => {
   expect(await nearestOf(':Limit |~~ Limit. ~~|; XLimit')).toEqual([makeKeyword('Limit')]);
-  expect(await nearestOf('numbe')).toEqual([makeTag('number')]);
+  expect(await nearestOf('numbe')).toEqual([makeTag('number'), makeKeyword('numbers')]);
+});
+
+it('a part a kind wires on its values counts among the names a step reaches, a fact of a refusal and its trace among them', async () => {
+  expect(await nearestOf('"x" | add 1 !| tarce')).toEqual([makeKeyword('trace')]);
+  expect(await nearestOf('"x" | add 1 !| mesage')).toEqual([makeKeyword('message')]);
 });
 
 it('follows the links of a page alone, by the tag a link opens with, past a capitalised tail', async () => {

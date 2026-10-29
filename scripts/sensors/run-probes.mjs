@@ -21,7 +21,7 @@
 // a target the tree meets, and a list of files without the flag fail the
 // run, which `npm run ci` and the checks of a push make; a
 // probe of a section a record in transit overrides is the record's, and an
-// answer its work changed waits for the move where the record holds a
+// answer its work changed waits for the closeout where the record holds a
 // probe of the same query, or overrides the chapter whole, which its
 // closeout writes anew [QSREQ#probe].
 //
@@ -213,7 +213,7 @@ async function answersAsRecorded({ query, answer, written }) {
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // Whether a record in transit holds a probe of the query, whose answer the
-// move writes into the section [QSREQ#probe].
+// closeout writes into the section [QSREQ#probe].
 const holdsTheQuery = (name, query) => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(query));
 
 // The shell probes of every document start at once, four running at a time,
@@ -233,7 +233,7 @@ for (const [documentPath, probes] of probesByDocument) {
     }
     if (verdict === 'STALE' && chapter !== undefined) {
       const { over, holding, whole } = recordsOverAProbe(transit, chapter, probe, holdsTheQuery);
-      if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the move]`];
+      if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the closeout]`];
       else if (whole !== undefined) [verdict, note] = ['waits', `  [${whole} overrides ${chapter} whole, which its closeout writes anew]`];
       else if (over.length > 0) note = `  [${over.join(', ')} overrides ${chapter}#${probe.section} and holds no probe of this query]`;
     }
@@ -241,4 +241,4 @@ for (const [documentPath, probes] of probesByDocument) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its chapter whole, or over its section by a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the closeout by the record in transit over its chapter whole, or over its section by a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');

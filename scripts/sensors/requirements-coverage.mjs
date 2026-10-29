@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The coverage of the sources of the core by its requirements alone, the
 // cases of the conformance suite and the laws of the catalog, run by the test
-// files of their two sections, `QSWRK/cases` and `QSSLF/laws`, under the
+// files of their two sections, `QSREQ/cases` and `QSSLF/laws`, under the
 // coverage of vitest with no threshold: the share of
 // each axis they reach, and by module the lines of code they reach not,
 // which a test of another suite holds or nothing does [QSGAT#gate].

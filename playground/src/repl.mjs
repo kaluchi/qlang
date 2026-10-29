@@ -43,8 +43,8 @@ with its structure preserved — the editor redraws the pasted
 block across as many rows as the content needs, so an appended
 step like \`| get /key\` can land on the same cell as the paste.
 
-Names a cell declares, \`:name body\` and \`:name it\` among them,
-persist across the cells of one run of the REPL.
+Names a cell declares, \`:name body;\`, persist across the cells of
+one run of the REPL; a value of the subject is named by \`with\`.
 `;
 
 export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQuery = null, terminal } = {}) {

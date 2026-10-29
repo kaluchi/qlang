@@ -192,7 +192,7 @@ if (!bumpDiff) {
 //
 // npm workspaces link a sibling by name, so the range a manifest
 // declares steers nothing inside the repo — and it rides out to the
-// registry verbatim. A consumer installing the CLI resolves that
+// registry verbatim. A consumer installing the playground resolves that
 // range against npm, so it has to name the core this release was
 // built and tested against.
 //

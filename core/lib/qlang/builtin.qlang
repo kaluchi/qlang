@@ -49,14 +49,12 @@
             input, one site to an address.
         ~~|
     | throws :RefusalFactNotDeclaredError
-        |~~ A refusal of the runtime carried a fact that neither its label
-            nor `::error` declares, a defect of the runtime: the facts an
-            error holds are the definitions under the label that names it,
-            and under `::error` for those every refusal shares. The fact
-            is declared as a definition, a name, its page and the kind it
-            holds, under the label of the refusal,
-            `::path/IndexOutOfBoundsError/length` holding `::number`, or
-            under `::error` when every refusal shares it.
+        |~~ A refusal of the runtime carried a fact the kind of its refusal
+            does not wire, a defect of the runtime: the facts a refusal
+            holds are the parts its kind wires. The fact is wired in the
+            chain of the refusal, `throws` and its `wires`, a name, its page
+            and the kinds it holds, `::path/IndexOutOfBoundsError/length`
+            holding `::number`.
         ~~|
     | throws :AddressKindNotTakenError
         |~~ A module of the runtime registered a primitive under an address

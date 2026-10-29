@@ -83,10 +83,10 @@ const LINE_RULE = setId => `\`${setId}1: <query>\``;
 function promptOf(setId, screen) {
   const tasks = tasksOf(setId);
   return [
-    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its command line, as the language prints them, and you may run the `qplay` command to try queries and to ask the language about itself.',
+    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its playground, as the language prints them, and you may run the `qplay` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qplay` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qlang \'<query>\' < file.json`, a text file alike, `qlang \'<query>\' < file.log`.',
-    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json` or `| out`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
+    'RULES: use the Bash tool only to run `qplay` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qplay \'<query>\' < file.json`, a text file alike, `qplay \'<query>\' < file.log`.',
+    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json` or `| stdio/out`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.data ?? 'no data file'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
   ].join('\n');

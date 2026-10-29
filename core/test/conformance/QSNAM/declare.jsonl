@@ -1,6 +1,6 @@
-{"name":"a-name-holds-the-value-in-the-pipe","query":"apply ~(42 | with {:answer ~it} ~(answer))","expect":"42"}
-{"name":"a-name-holds-the-value-for-the-steps-after","query":"apply ~([1 2 3] | with {:nums ~it} ~(nums | count))","expect":"3"}
-{"name":"names-hold-the-values-of-several-stages","query":"apply ~([85 92 47 78 68 95 52] | with {:allScores ~it} ~(filter ~(gte 70) | with {:passingScores ~it} ~(get [~(allScores | count), ~(passingScores | count)])))","expect":"[7 4]"}
+{"name":"with-names-the-subject-for-the-code-of-one-step","query":"apply ~(42 | with {:answer ~it} ~(answer))","expect":"42"}
+{"name":"the-code-of-with-reads-the-name-it-gives-in-its-steps","query":"apply ~([1 2 3] | with {:nums ~it} ~(nums | count))","expect":"3"}
+{"name":"with-inside-the-code-of-with-names-a-value-of-each-stage","query":"apply ~([85 92 47 78 68 95 52] | with {:allScores ~it} ~(filter ~(gte 70) | with {:passingScores ~it} ~(get [~(allScores | count), ~(passingScores | count)])))","expect":"[7 4]"}
 {"name":"a-vector-after-a-name-is-its-body","query":"apply ~(:xs [1 2]; xs)","expect":"[1 2]"}
 {"name":"a-binding-names-the-value-at-its-declaration","query":"apply ~(42 | with {:x ~it} ~(add 1 | (x)))","expect":"42"}
 {"name":"a-declaration-names-a-kind","query":"apply ~(:s ::vec; ::host | env | get /s | value)","expect":"::vec"}

@@ -133,7 +133,7 @@
             verb called in a body is refused, `:name` naming it, and so is
             a body that hands that absent value on, the fail track alone,
             `:x (!| 0);`, `:name` naming the declaration. A value of
-            the subject is named for the steps after it by `with`,
+            the subject is named for the code of one step by `with`,
             `[1 2 3] | with {:n ~count} ~(map ~(add n))` answering
             `[4 5 6]`, and the body of a declaration is computed from
             values, `:n ([1 2 3] | count);`.
@@ -176,7 +176,7 @@
         ~~|
         ~(~(:x (!| 0);) | answer !| get [~(tag) ~(name)] | eq [::bind/SubjectNotGivenError :x])
     | proves :SubjectNotGivenError/takesAValueOfTheSubjectByWith
-        |~~ A value of the subject is named for the steps after it by
+        |~~ A value of the subject is named for the code of one step by
             `with`.
         ~~|
         ~([1 2 3] | with {:n ~count} ~(map ~(add n)) | eq [4 5 6])

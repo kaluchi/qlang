@@ -41,7 +41,8 @@ whose laws run. A host embedding the core reads
 node scripts/release.mjs <version>
 ```
 
-Bumps the core and the command line and the sibling ranges, rebuilds,
+Bumps the workspaces the Deploy workflow publishes and the sibling
+ranges, rebuilds,
 runs the tests,
 commits, pushes, waits for CI and tags; the Deploy workflow publishes
 from the pushed tag to npm and creates the GitHub Release.

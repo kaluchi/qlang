@@ -52,7 +52,7 @@ Tier 2, by topic, only the files the topic names:
 - the reach of a name: `core/src/nouns.mjs`, `core/lib/qlang/any.qlang`
 - names, scope, the root, notebooks: `docs/spec/QSNAM-names-and-scope.md`,
   `core/src/state.mjs`, `core/src/scope-keys.mjs`,
-  `core/src/runtime/root.mjs`, `core/src/runtime/env.mjs`,
+  `core/src/runtime/root.mjs`, `core/src/runtime/host-primitives.mjs`,
   `core/src/notebook.mjs`
 - errors: `core/src/errors.mjs`, `core/src/error-convert.mjs`,
   `core/src/eval-trace.mjs`

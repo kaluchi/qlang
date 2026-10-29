@@ -72,7 +72,7 @@ describe('the arguments of the command line', () => {
     expect(parseArgv(['--json', 'get /a']).message).toBe('qplay: --json is no flag of the playground, which `qplay --help` lists\n');
   });
 
-  it('refuses --raw, a text read as it came by `in`', () => {
+  it('refuses --raw, a text read as it came by `::stdio | in`', () => {
     expect(parseArgv(['--raw', 'count']).message).toBe('qplay: --raw is no flag of the playground, which `qplay --help` lists\n');
   });
 

@@ -82,7 +82,7 @@
         |~~ A frame prints on one line whatever its subject holds. ~~|
         ~({:user {:tags [1 2]}} | get /group !| trace | first | print | lines | count | eq 1)
     | proves :readsItsPartsByTheirNames
-        |~~ A path reads the parts of a frame by the names its kind wires. ~~|
+        |~~ The parts of a frame are read by the names its kind wires, bare. ~~|
         ~("x" | add 1 | mul 2 !| trace | first | get [~(subject) ~(unfinished) ~(path)] | eq ["x" ~(add 1 | mul 2) null])
     | proves :refusesTheIndexOfAPart
         |~~ No path reads beneath the tag of a frame, by an index nor by a

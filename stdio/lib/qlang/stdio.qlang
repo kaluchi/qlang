@@ -145,9 +145,9 @@
       through a query:
       ::snippet~([{:on true} {:on false}] | stdio/tap :before | filter /on | stdio/tap :after | count)
       shows both vectors and answers 1. A subject past the budget is
-      written as `::qlang/AnswerBeyondBudgetError` with its head, each
-      `:read` in it continuing the query from the subject at the
-      `stdio/tap`, and `stdio/err print` writes a look whole.
+      written as `::qlang/AnswerBeyondBudgetError`, its `:answer` the cell
+      that keeps the subject, which `answer` reads back whole, and
+      `stdio/err print` writes a look whole.
   ~~|
   ::fn
     | on |~~ Any value, answered as it came. ~~| ::any

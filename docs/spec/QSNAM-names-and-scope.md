@@ -15,8 +15,7 @@ runs once, where the declaration stands, with no subject: a verb called
 there is refused as `::bind/SubjectNotGivenError` with its `:name`, and so
 is a body that hands on the value it is not given, the fail track alone,
 with the name of its declaration, and a value of the subject is named for
-the steps after it by `with`
-[QSPTH#template]. A failure of a declaration is the failure of its text,
+the code of one step by `with` [QSPTH#template]. A failure of a declaration is the failure of its text,
 which declares nothing and runs no query, the failure passing every `!|`
 of the text to whoever reads it, the host, `parse | answer`, `answer` or
 `apply` [QSERR#flow].

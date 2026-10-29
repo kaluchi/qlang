@@ -133,7 +133,7 @@ export function fromJsonText(text) {
   return valueAt([]);
 }
 
-// [QSQUO#modifier]
+// [QSPRN#json], [QSDSP#answer]
 export const StringParseJsonTextNotJsonError = declareRefusal('string/parseJson/TextNotJsonError');
 
 registerPrimitive('any/json', subject => JSON.stringify(toPlain(subject)));

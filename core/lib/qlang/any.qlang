@@ -1023,8 +1023,8 @@
             nothing. `:name` holds the name, and `:addresses` the
             addresses of the pages of that name, one for each kind that
             answers it, so the verb is read by one of them,
-            `::vec/filter | binding`. `source`, `doc`, `laws` and
-            `runLaws` read a name as `binding` does, and each is
+            `::vec/filter | binding`. `source`, `doc`, `manifest`, `laws`
+            and `runLaws` read a name as `binding` does, and each is
             refused under a tag of its own, so the tag says which of them
             read it. `:nearest` holds the names near the one it missed,
             the tags as deep as a tag it read, and for an anchor the subject

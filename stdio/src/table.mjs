@@ -3,7 +3,7 @@
 import { kindsExpected, printValue, tagOf } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';
 
-const VecTableRowKindNotTakenError     = declareRefusal('vec/table/RowKindNotTakenError');
+const VecTableRowKindNotTakenError = declareRefusal('vec/table/RowKindNotTakenError');
 
 // [QSPRN#print]
 function cellTextOf(cellValue) {

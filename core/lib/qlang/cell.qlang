@@ -8,10 +8,10 @@
       the language: an identity under its tag, `::cell"a3f9c2d1e04b"`,
       letters, digits and hyphens, whose literal reads back as itself in any
       later query, and its word `answer`, which its host declares and which
-      reads at the call what the host keeps under it. The command line keeps
-      so an answer past the budget of every answer and a fact of a failure
-      past the room of a fact, which the alert names instead of them,
-      `:answer ::cell"…";`, under the identity of the query and what it keeps,
+      reads at the call what the host keeps under it. A host of the streams
+      keeps so an answer past the budget of every answer and a fact of a
+      failure past the room of a fact, which the alert names instead of them,
+      `:answer ::cell"…"`, under the identity of the query and what it keeps,
       so one value of one query is one cell, and `::cell"a3f9c2d1e04b" | answer | take 3` reads the
       first three elements of the whole. A host that keeps no cell names
       none, and its `answer` refuses a cell it does not hold.

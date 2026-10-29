@@ -12,17 +12,17 @@
 //   * `no-var` / `prefer-const` — mutation and scope clarity.
 //   * `eqeqeq` — no implicit coercion from `==` / `!=`.
 //   * `no-restricted-imports` — `core/src/**` must not reach for
-//     `node:*` modules (CLAUDE.md hard invariant: the core ships
-//     to browser, Deno, Bun bundles; a stray Node import breaks
-//     every non-Node consumer). Test files, cli, and the lsp
-//     server are free to `node:*` as before.
+//     `node:*` modules ([QSGAT#workspaces]: the core ships to browser, Deno and
+//     Bun bundles, and a Node import breaks every consumer that is
+//     no Node). The tests, the streams, the playground and the
+//     language server take `node:*`.
 //
 // Global ignores:
 //   * node_modules — every workspace's own
-//   * core/gen/**  — generated parser + compiled core catalog
+//   * core/gen/**  — the generated parser
 //   * site/dist/** — astro build output
 //   * site/coverage/** — vitest coverage HTML artefacts
-//   * vscode/**    — vendored extension, not under our lint remit
+//   * vscode/**    — the editor's extension, outside this lint
 
 import js from '@eslint/js';
 
@@ -46,7 +46,7 @@ export default [
       ecmaVersion: 2024,
       sourceType: 'module',
       globals: {
-        // Node globals used by cli / lsp / scripts / tests.
+        // Node globals the streams, the playground, the language server, the scripts and the tests use.
         process:     'readonly',
         console:     'readonly',
         Buffer:      'readonly',

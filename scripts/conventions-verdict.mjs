@@ -47,7 +47,7 @@ const SECTIONS = {
   unread: found => section('Reports of the research without their reading', found, ({ path, reading }) => `  ${path}  wants ${reading}\n`,
     'the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSRVW#research].'),
   takenOutNamed: found => section('Names of what the branch took out', found, ({ file, line, token, snippet }) => `  ${file}:${line}  \`${token}\`  ${snippet}\n`,
-    `the code, the catalog and the cases hold none of these since the baseline ${found[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSVOX#pentimento].`),
+    `the code, the catalog and the cases hold none of these since the baseline ${found[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its closeout under a record in transit over it, and what was lives in the record and the commit [QSVOX#pentimento].`),
   retired: found => section('Words the language retired', found, ({ file, line, word, written, by }) => `  ${file}:${line}  \`${word}\`, which ${by} retired: write ${written}\n`,
     'a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [QSLEX#term].'),
   // The kinds of the catalog that bear the name of a command of a chain [QSBLD#fn].

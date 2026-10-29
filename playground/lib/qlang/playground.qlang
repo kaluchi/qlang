@@ -9,7 +9,7 @@
       the shell or in its REPL; the smallest host that embeds the language.
 
       Usage: `qplay [--color=MODE] [--fail] '<query>'` runs a query,
-      `qplay -i ['<query>']` opens a session of cells, the query its first,
+      `qplay -i ['<query>']` opens a notebook of cells, the query its first,
       `qplay -h` prints this page and `qplay -V` the version. The flags
       stand before the query, one argument the shell quotes whole.
       `--color=auto`, the default, paints where stdout is a terminal,

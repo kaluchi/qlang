@@ -33,7 +33,7 @@
             ::link~(::fail) ::link~(::qlang/pipeline)
         ~~|
         ~(wires :message |~~ What the rule says of the path, the verb that takes it. ~~| ::string
-          | wires :found |~~ The value written after the bang. ~~|)
+          | wires :found |~~ The value written after `!|`. ~~|)
     | proves :holdsItsStep
         |~~ The fail track holds its step as a quote. ~~|
         ~(~(!| get /kind) | first | payload | eq ~(get /kind))

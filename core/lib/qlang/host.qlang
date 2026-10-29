@@ -103,7 +103,7 @@
 
 :host/env
   |~~ Answers what the reader declared before the step, the cells of a
-      session before it among them: a map from each name to the record of
+      notebook before it among them: a map from each name to the record of
       its binding, `::binding` with its name, its docs, its value, its
       source and its origin. `:Box |~~ A box. ~~|; ::host | env` answers the
       record of `:Box`, and `::host | env | get /Box` hands it to the next

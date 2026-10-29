@@ -15,8 +15,9 @@ and passes it through steps, each answering a new value.
 ```
 
 The language documents itself: every name has a page, a doc whose
-laws run. `::qlang | doc` opens the first page, `env | keys` lists the
-names a query declared, `kinds` the labels the scope reads,
+laws run. `::qlang | doc` opens the first page, `::host | env | keys`
+lists the names a query declared, `::host | kinds` the labels the scope
+reads,
 `::vec | manifest` the nodes under one, `::vec/sort | manifest` the
 nodes under the `sort` of vectors, its inputs, its answer and its
 refusals, and `::vec/sort | doc` the page of a name. The command line,
@@ -72,11 +73,11 @@ cell.defect;              // what was raised past the fail track, else null
   `::call/HostFailureError`, and `fromPlain` builds a value from data the
   host holds parsed. The core takes the subject of a cell and what the
   names of the scope `createNotebook({ scope })` and `evalQuery(source,
-  scope)` are handed hold by the same walk, and a value of no kind there
+  scope)` are handed hold by the same scan, and a value of no kind there
   is a defect of the host, `::builtin/ForeignValueError`, raised past the
   fail track: a cell holds it as its `defect`, and the others throw it.
 - A host's verb refuses a call by a refusal declared at its site by its
-  address, `declareRefusal('any/out/SubjectKindNotTakenError')` from
+  address, `declareRefusal('stdio/out/SubjectKindNotTakenError')` from
   `@kaluchi/qlang-core/errors`, a refusal of a kind named by the role of
   the value it refuses with the kinds it takes as the fact `:expected`,
   `kindsExpected('string')`, and paged under its noun in the host's
@@ -97,10 +98,10 @@ cell.defect;              // what was raised past the fail track, else null
   one past the budget as `::qlang/AnswerBeyondBudgetError`, the answer shown
   as its `::excerpt` beside the `::cell` that `keep`, where the host hands
   one, answers for it, and a failure as its alert, each fact whole within
-  three hundred characters and past them as its excerpt; `printAnswer(
-  value, scope)` writes a value as the language prints it, the print a
-  kind declares among it and a failure under the line that says it was
-  raised. `printValue(value)` writes the literal of a value, which
+  three hundred characters and past them as the cell its host keeps it
+  in, beside its views; `printAnswer(value, scope)` writes a value as the
+  language prints it, its literal, and a failure under the line that says
+  it was raised. `printValue(value)` writes the literal of a value, which
   `evalQuery` reads back; the literal is the one lossless form. A refusal
   of a text holds its caret beneath its line, `:marker` under `:source`,
   so a host prints it as any failure. `toPlain` and
@@ -108,12 +109,13 @@ cell.defect;              // what was raised past the fail track, else null
   for.
 - `parseSource(source)` answers the quote of the steps the text writes, the
   records of its steps and its literals, and `partOf(quote)` the parts it
-  read, each with its span, which the walks of the tools read;
+  read, each with its span, which the tools read;
   `tokenize(source, verbNames)` answers the tokens a highlighter paints,
   each named by what it writes in the language, the call of a word of the
   root told by the names `verbNames` answers, from
   `@kaluchi/qlang-core/highlight`,
-  the light door that loads the parser and its walks and no runtime. The
+  the light door that loads the parser and the parts it keeps and no
+  runtime. The
   doors of the package are its root, `./errors`, `./highlight` and the
   sources of its catalog.
 

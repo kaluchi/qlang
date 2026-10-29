@@ -5,7 +5,7 @@
    The rules it holds: [QSBLD#kind]. ~|
 
 :kind
-  |~~ A kind: the payload its tag is laid over, the fields it reads of the
+  |~~ A kind: the payload its tag is laid over, the parts it wires of the
       payload, the refusals it pages and the facts each wires, the
       invariants its values hold, its laws, and for a kind of the core its
       constructor, which its host hands. It is built from the noun by a
@@ -339,7 +339,7 @@
             where none is written.
         ~~|
         ~(it)
-    | returns |~~ The kind with the field after the ones it read. ~~| ::kind
+    | returns |~~ The kind with the part after the ones it wires. ~~| ::kind
     | throws :SubjectNotKindError
         |~~ `wires` builds from the noun, `::kind | wires …`, or a kind. ~~|
     | proves :holdsTheKindsOfEachElement
@@ -422,7 +422,7 @@
       fact of the value by that name. A host shows the tag of a fact past
       the room of a fact and the views its kind reveals beside the cell it
       keeps the fact in, each under the name of the fact and its own,
-      `:addend/found/tag ::vec;` and `:addend/found/count 3410;`; the legend
+      `:addend/found/tag ::vec` and `:addend/found/count 3410`; the legend
       of the tag name lays the views out beside the names the kind wires,
       and the legend of a failure glosses each by the verb its tag walks to.
       A value shows the views of the first kind of the walk of its tags that

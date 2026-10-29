@@ -124,8 +124,8 @@
 //       groups or more; a section a record in transit brings is one a test
 //       file stands at until its closeout [QSREQ#marks].
 //
-//   (22) A comment of the sources and the tests of the core, the command
-//       line and the language server is a mark alone, one line of the
+//   (22) A comment of the sources and the tests of the core, the streams,
+//       the playground and the language server is a mark alone, one line of the
 //       citations its block holds, or a directive of a tool [QSLEX#code].
 //
 //   (23) No two modules of the project, its `.mjs`, `.js`, `.qlang` and
@@ -684,7 +684,7 @@ function unreadReports() {
 // holds what stands outside its docs and comments, a case holds the whole
 // line, and the prose of a chapter and of a seed names what stands outside
 // its fenced blocks; a section a record in transit overrides waits for the
-// move that writes it anew, as its probes wait [QSREQ#probe].
+// closeout that writes it anew, as its probes wait [QSREQ#probe].
 
 const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
@@ -767,7 +767,7 @@ function namesOfTakenOut() {
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSVOX#chapter].
+  // closeout [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const files = filesThatSpeak();
   const held = new Set();
@@ -808,7 +808,7 @@ const nameOfCase = line => {
 function retiredWordsWritten() {
   const files = filesThatSpeak();
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSVOX#chapter].
+  // closeout [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const found = [];
   for (const file of files) {

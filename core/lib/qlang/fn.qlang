@@ -27,7 +27,7 @@
       An input holds the value of its kind
       the walk of its tags reaches, and a value of none is refused under
       the input. A verb is a function named under a
-      label, called by its function alone, and `apply` runs a function on
+      label, and `apply` runs a function on
       its subject with a vector of args, as a call holds its args,
       `5 | apply f [3]`. A function holds no scope: its recipe reads its
       inputs, its subject and the verbs of the tree, and a value it needs
@@ -149,9 +149,7 @@
         |~~ The print of a function reads back as the function. ~~|
         ~(::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | eq (print | parse | answer))
     | proves :isAVerbNamedUnderALabel
-        |~~ A function named under a label is a verb, called by its
-            function.
-        ~~|
+        |~~ A function named under a label is a verb. ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); 5 | plus 3 | eq 8)
     | proves :pagesTheInputsOfAVerb
         |~~ The page of an input is the page of its node under the verb. ~~|
@@ -206,7 +204,7 @@
             refused as the literal's is, the modifier its `:found`.
         ~~|
         ~(::fn | takes 5 |~~ x ~~| /0 !| get [~(tag) ~(command) ~(index) ~(found)] | eq [::fn/CommandNotTakenError ~(takes 5 |~~ x ~~| /0) 0 5])
-    | proves :CommandNotTakenError/countsTheObjectsAsTheLiteralDoes
+    | proves :CommandNotTakenError/countsTheModifiersAsTheLiteralDoes
         |~~ A command its verb writes with a modifier left out or past the
             last is refused as the literal's is.
         ~~|

@@ -1,5 +1,5 @@
 |~ `::qlang`, the topic of the language, and what is declared under it:
-   its page, the first screen a session reads, the refusal of an answer
+   its page, the first page a session reads, the refusal of an answer
    past the budget, its chapters, and their laws.
    The rules it holds: [QSDSP#residence], [QSSLF#page], [QSERR#site]. ~|
 
@@ -175,8 +175,9 @@
       name, each a page and a query that answers true; `tag | doc`
       answers the page of the kind of any value, and `legend` its print
       with the gloss of each part, a tag name the parts of its kind.
-      An answer prints within the budget of every answer, and whole in the
-      REPL of the command line; one past it prints as
+      An answer prints within the budget of every answer, but where the
+      page of the host, `::host | doc`, says it prints one whole; one past
+      it prints as
       ::qlang/AnswerBeyondBudgetError, its answer the ::cell that keeps
       it, whose `answer` reads it back whole.
 
@@ -212,9 +213,8 @@
             views its kind reveals and its parts, `:answer/count` and
             `:answer/addend/found`, each key the chain that reads it.
             Narrow the answer by `get`, `take`, `keys`, `count` or
-            `shape`, or, where the host has streams, write it whole through
-            the door the query opens itself: `stdio/out` a text, `print | stdio/out` the
-            literal of a value and `json | stdio/out` its JSON. No step raises it
+            `shape`, or write it whole through the words of a stream the
+            host gives, which its page, `::host | doc`, names. No step raises it
             and no `!|` reaches it.
             ::link~(::qlang/hosts) ::link~(::cell)
         ~~|
@@ -673,9 +673,11 @@
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a
             value is asked of its kind, and one name serves many kinds.
-            The verbs of the kinds the walk of a value's tags reaches and
-            those of every value are the whole of its verbs: a verb in none
-            of them does not exist. Rests on values and the pipeline;
+            A bare name reaches the verbs of the kinds the walk of a
+            value's tags reaches and those of every value, and an address
+            reaches the verb it names, which serves the values of its label
+            and the kinds its `on` names, `5 | Shop/double`. Rests on values
+            and the pipeline;
             errors name the verb that refused.
             ::snippet~(::vec | manifest) lists the verbs of a kind and
             ::snippet~(::any | manifest) those of every value.
@@ -728,7 +730,7 @@
             A verb answers under the kind its `returns` names. A verb of a
             noun itself, whose subject `on` names `::tag`, takes the tag
             name as its subject, so a noun that stands for a thing outside
-            the language is addressed bare, `::Jenkins | builds`, while a
+            the language is addressed bare, `::Desk | hours`, while a
             verb or a field of the noun's values passes the tag name to the
             verb of its name on `::any`, `::Box | label` reading
             `:any/label` where `:Box/label` reads the values of `::Box`, and
@@ -966,28 +968,26 @@
             the query that takes it again, `::host | kinds` the kinds that
             lie on it and `::host | env` what the reader declared. A value is whole in
             the language, and a host prints every answer within one
-            budget of characters of its print, but the REPL of the
-            playground, which prints it whole: an answer that fits prints
-            whole, and one past it prints as the failure
+            budget of characters of its print, but where its page says it
+            prints one whole: an answer that fits prints whole, and one
+            past it prints as the failure
             `::qlang/AnswerBeyondBudgetError` instead, the answer the
             `::cell` the host keeps it in, whose `answer` reads it back
-            whole; `print | stdio/out` writes an answer whole. A failure the host
+            whole. A failure the host
             prints is an alert, the concentrate of its facts within two
             thousand characters, each fact whole within three hundred and
             past them as the cell the host keeps it in, beside its tag, the
             views its kind reveals that fit and its parts, `:addend/found/count`, the last facts
             dropped where the alert passes its room, a failure any fact of
             which gave way told as an `::excerpt` under the tag of its
-            refusal; the playground writes below it
-            the prose of its refusal's page, as `!| doc` reads it, so the
-            reader repairs the call where it failed. A cell is the interface
-            a host gives for the work with state: the playground keeps an
-            answer past the budget and a fact past the room of a fact under
-            the identity of what it keeps, and `answer` reads it in a later
-            query. The playground reads JSON
-            from stdin as values and other text as a string, and prints its
-            answer as the language prints it, a string as its text, so
-            `| json` writes JSON; its page, `::host | doc`, tells the rest.
+            refusal, and a host may write below it the prose of its
+            refusal's page, as `!| doc` reads it, so the reader repairs the
+            call where it failed. A cell is the interface a host gives for
+            the work with state: a host keeps an answer past the budget and
+            a fact past the room of a fact under the identity of what it
+            keeps, and `answer` reads it in a later query. How the host a
+            session is in reads its input, writes its answer and its
+            streams and keeps its cells, its page, `::host | doc`, tells.
             Rests on values and the hypertext.
             ::link~(::host) ::link~(::qlang/AnswerBeyondBudgetError)
             ::link~(::excerpt) ::link~(::cell)

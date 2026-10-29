@@ -29,7 +29,7 @@ const task = new Set(optionOf('task', '').split(',').filter(Boolean));
 // the tests and of the linter, and the instructions of the sessions and
 // the agents.
 const GATES = [
-  /^core\/test\/unit\/conformance\.test\.mjs$/,
+  /^core\/test\/unit\/QSREQ\/cases\.test\.mjs$/,
   /^core\/src\/ordering\.mjs$/,
   /^core\/test\/helpers\/expected-value\.mjs$/,
   /^core\/test\/helpers\/language-equality\.mjs$/,

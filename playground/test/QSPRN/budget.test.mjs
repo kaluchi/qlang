@@ -21,7 +21,7 @@ it('writes an answer past the budget as the refusal, the answer told by its tag 
   const text = await answerText(await evalQuery(past, scope), scope);
   expect(text).toMatch(/^\|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{\n {2}:characters 70891\n {2}:budget 16000\n {2}:answer\/tag ::vec\n {2}:answer\/count 3000\n {2}:answer\/shape ::shape\[\{:id ::number :name ::string\}\]\n {2}:answer\/first \{:id 0 :name "user"\}\n {2}:answer\/last \{:id 2999 :name "user"\}\n\}/);
   expect(text).toMatch(/\n\}\n\|~\| /);
-  expect(text).toContain('`json | stdio/out`');
+  expect(text).toContain('`::host | doc`');
 });
 
 it('writes a string past the budget as the refusal, the text it writes measured', async () => {

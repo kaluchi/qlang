@@ -80,8 +80,8 @@ function cite(text, isRecord = false) {
 function citeProse(text) {
   let written = text;
   for (const name of merged) written = written.replaceAll(`[${name}]`, `[${survivor}]`);
-  // A citation a document writes in words, which the walk reads beside
-  // the brackets.
+  // A citation a document writes in words, which the reconciliation reads
+  // beside the brackets.
   written = written.replace(CITATION_IN_WORDS, (run, list) => {
     const names = list.split(/,\s*| and /);
     if (!names.some(name => merged.includes(name))) return run;
@@ -145,7 +145,7 @@ for (const path of tracked.filter(path => /^core\/test\/conformance\/.*\.jsonl$/
 // A mark of an artifact, a citation of a document of the work and one of a
 // record in force name the survivor.
 const ARTIFACT = /\.(mjs|js|peggy|qlang)$|^\.github\/workflows\//;
-// The documents the walk holds to the records in force [QSWRK#reconciliation].
+// The documents the reconciliation holds to the records in force [QSWRK#reconciliation].
 const isDocument = path => CITING_DOCUMENTS.includes(path);
 const RECORD_IN_FORCE = /^docs\/journal\/D\d+\.md$/;
 const isRecordMerged = path => [survivor, ...merged].some(name => path === `${JOURNAL}/${name}.md`);

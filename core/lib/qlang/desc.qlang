@@ -31,4 +31,4 @@
         ~([2 1 3] | map ~desc | sort | map ~payload | eq [3 2 1])
     | proves :descendsAKey
         |~~ A key of `desc` sorts in reverse. ~~|
-        ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"])
+        ~(["b" "c" "a"] | sort ~(desc) | eq ["c" "b" "a"]);

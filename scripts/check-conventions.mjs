@@ -17,7 +17,7 @@
 //       refusal and every recording of a site takes the address as a
 //       literal, `'noun/LastNameError'`, and the constant that holds
 //       the class is the address without its slash, across `core/src`,
-//       `cli/src`, `lsp/src` [QSERR#site].
+//       `stdio/src`, `playground/src`, `lsp/src` [QSERR#site].
 //
 //   (3) Derivable tallies in markdown prose. A count that
 //       `npm test`, the manifest, or a grep already answers —
@@ -124,8 +124,8 @@
 //       groups or more; a section a record in transit brings is one a test
 //       file stands at until its closeout [QSREQ#marks].
 //
-//   (22) A comment of the sources and the tests of the core, the command
-//       line and the language server is a mark alone, one line of the
+//   (22) A comment of the sources and the tests of the core, the streams,
+//       the playground and the language server is a mark alone, one line of the
 //       citations its block holds, or a directive of a tool [QSLEX#code].
 //
 //   (23) No two modules of the project, its `.mjs`, `.js`, `.qlang` and
@@ -149,7 +149,7 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
-import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
+import { problemsOfTestFile, testFilesOfTree, titlesCitingARule, titlesOfTestsAndGroups } from './test-homes.mjs';
 import { anchorsTheTreeLacks } from './anchors.mjs';
 import { namesSharedInTree } from './grep-ergonomics.mjs';
 import { parse } from 'acorn';
@@ -168,7 +168,7 @@ const IGNORE_DIRS = new Set([
   'node_modules', '.git',
   'core/gen',
   'coverage',  // repo-root coverage/ from a top-level npm run test:coverage
-  'cli/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
+  'stdio/coverage', 'playground/coverage', 'core/coverage', 'lsp/coverage', 'site/coverage',
   'site/dist', 'site/public',
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSMSR#benchmark]
   'vscode'
@@ -279,7 +279,8 @@ function constantOfAddress(address) {
 // same scan, the root of its sources named here.
 const REFUSAL_SCAN_ROOTS = [
   ['core', 'src'],
-  ['cli',  'src'],
+  ['stdio', 'src'],
+  ['playground', 'src'],
   ['lsp',  'src']
 ];
 
@@ -452,7 +453,7 @@ function rangesOffTheirSibling() {
 // no page of the language, so a reference to one is a link that leads
 // nowhere, and the reason of a sentence lives with its decision [QSREQ#marks].
 
-const CATALOG_ROOTS = ['core/lib', 'cli/lib'];
+const CATALOG_ROOTS = ['core/lib', 'stdio/lib', 'playground/lib'];
 
 function catalogFiles(dir) {
   return readdirSync(join(repoRoot, dir), { withFileTypes: true }).flatMap(entry =>
@@ -629,7 +630,7 @@ function specIntrusions() {
     const match = HISTORY_DATE.exec(line);
     if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
   });
-  ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'].forEach(datedLines);
+  ['CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'].forEach(datedLines);
   for (const [root, ending] of TEXTS_THAT_STATE) {
     readdirSync(join(repoRoot, root), { recursive: true }).map(String).filter(name => ending.test(name))
       .forEach(name => datedLines(`${root}/${name.split(sep).join('/')}`));
@@ -639,8 +640,8 @@ function specIntrusions() {
 
 // Beside the chapters and the seeds, the catalog, the cases and the code
 // state what holds [QSVOX#voices].
-const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['cli/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
-  ['core/src', /\.(mjs|peggy)$/], ['cli/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
+const TEXTS_THAT_STATE = [['core/lib', /\.qlang$/], ['stdio/lib', /\.qlang$/], ['playground/lib', /\.qlang$/], ['core/test/conformance', /\.jsonl$/],
+  ['core/src', /\.(mjs|peggy)$/], ['stdio/src', /\.mjs$/], ['playground/src', /\.mjs$/], ['lsp/src', /\.mjs$/]];
 
 // ── (13) The marks of the artifacts ────────────────────────────
 //
@@ -683,7 +684,7 @@ function unreadReports() {
 // holds what stands outside its docs and comments, a case holds the whole
 // line, and the prose of a chapter and of a seed names what stands outside
 // its fenced blocks; a section a record in transit overrides waits for the
-// move that writes it anew, as its probes wait [QSREQ#probe].
+// closeout that writes it anew, as its probes wait [QSREQ#probe].
 
 const UNREAD_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 const TOKEN = /(?<![\\\w$])[A-Za-z_$][a-z$]*[A-Z0-9_][\w$]*\b|::[A-Za-z][\w/.-]*\w/g;
@@ -766,7 +767,7 @@ function namesOfTakenOut() {
     for (const number of numbers) for (const token of tokensIn(parts[number - 1]?.holds ?? '')) removed.add(token);
   }
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSVOX#chapter].
+  // closeout [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const files = filesThatSpeak();
   const held = new Set();
@@ -794,8 +795,13 @@ function namesOfTakenOut() {
 
 // ── (17) Retired words ─────────────────────────────────────────
 
-// The title a test states its rule in, `it('…')`, a string its code holds.
-const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)?\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
+// The titles a test file states its rules in, `it('…')` and `describe('…')`,
+// read by its parser and kept by their lines [QSREQ#rigor].
+function titlesByLine(text) {
+  const byLine = new Map();
+  for (const { line, title } of titlesOfTestsAndGroups(text)) byLine.set(line, [...(byLine.get(line) ?? []), title]);
+  return byLine;
+}
 
 const nameOfCase = line => {
   try { return JSON.parse(line).name ?? ''; } catch { return ''; }
@@ -807,7 +813,7 @@ const nameOfCase = line => {
 function retiredWordsWritten() {
   const files = filesThatSpeak();
   // The sections a record in transit overrides, whose text waits for the
-  // move [QSVOX#chapter].
+  // closeout [QSVOX#chapter].
   const waiting = new Set([...recordsInTransit(repoRoot).values()].flat());
   const found = [];
   for (const file of files) {
@@ -816,11 +822,12 @@ function retiredWordsWritten() {
     const text = readText(join(repoRoot, file));
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
+    const titles = isTest && /\.m?js$/.test(file) ? titlesByLine(text) : new Map();
     let section = '';
     partsOfLines(voice, text, file).forEach(({ holds, names }, index) => {
       if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
       if (chapter !== undefined && waitsForTheCloseout(waiting, chapter, section)) return;
-      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
+      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(titles.get(index + 1) ?? [])];
       for (const part of read) {
         for (const { regex, written, by } of RETIRED_WORDS) {
           const word = regex.exec(part)?.[0];
@@ -888,17 +895,22 @@ function testsOffTheirSection() {
     const record = records.get(name);
     return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
   };
-  return testFilesOfTree(repoRoot).flatMap(({ path, text }) => problemsOfTestFile(path, text, { sections, heldByItsTests })
-    .map(({ line, problem }) => ({ file: path, line, problem })));
+  const helpers = execFileSync('git', ['ls-files', '*/test/helpers/*.mjs'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  return [
+    ...testFilesOfTree(repoRoot).flatMap(({ path, text }) => problemsOfTestFile(path, text, { sections, heldByItsTests })
+      .map(({ line, problem }) => ({ file: path, line, problem }))),
+    ...helpers.flatMap(path => titlesCitingARule(readText(join(repoRoot, path)))
+      .map(({ line, cited }) => ({ file: path, line, problem: `cites ${cited} in a title, which the path of the file that calls it names` })))
+  ];
 }
 
 // ── (22) A comment of the code is a mark ───────────────────────
 //
-// A comment of the sources and the tests of the core, the command line and
-// the language server, read by acorn, is a mark alone, one line of the
+// A comment of the sources and the tests of the core, the streams, the
+// playground and the language server, read by acorn, is a mark alone, one line of the
 // citations its block holds, or a directive of a tool [QSLEX#code].
 
-const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'cli/src', 'cli/test', 'lsp/src', 'lsp/test'];
+const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'stdio/src', 'playground/src', 'playground/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;
 const MARKS_ALONE = new RegExp(String.raw`^\s*${CITED}(?:,\s*${CITED})*\s*$`);
 const TOOL_DIRECTIVE = /^\s*(?:eslint|global\s|@ts-|istanbul|c8\s|v8 ignore)/;
@@ -907,7 +919,8 @@ function commentsThatAreNoMarks() {
   const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`])], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
   return files.flatMap(file => {
     const text = readText(join(repoRoot, file));
-    return commentRanges(file, text).filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value))
+    const shebang = text.startsWith('#!');
+    return commentRanges(file, text).filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value) && !(shebang && comment.start === 0))
       .map(comment => ({ file, line: text.slice(0, comment.start).split('\n').length, snippet: comment.value.trim().slice(0, 100) }));
   });
 }

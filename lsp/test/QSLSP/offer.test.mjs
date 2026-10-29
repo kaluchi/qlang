@@ -36,7 +36,7 @@ describe('the names offered at a position', () => {
   });
 
   it('includes a name the document declares before the offset', async () => {
-    const src = ':myVar 42 | myVar';
+    const src = ':myVar 42; myVar';
     const { root } = parseDocument(src, 'test.qlang');
     const offsetAtEnd = src.length;
     const items = await completionsAtOffset(root, offsetAtEnd);
@@ -45,7 +45,7 @@ describe('the names offered at a position', () => {
   });
 
   it('a value the document names completes as a value', async () => {
-    const src = ':myVar 42 | myVar';
+    const src = ':myVar 42; myVar';
     const { root } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(root, src.length);
     const myVarItem = items.find(i => i.label === 'myVar');
@@ -53,14 +53,14 @@ describe('the names offered at a position', () => {
   });
 
   it('names each name the document declares by the role of its declaration, a verb under its own label or a label of the root and a label by its name and its tag', async () => {
-    const src = ':Box |~~ A box. ~~| | :Box/area ~(1) | :vec/second ~(get /1) | :n 1 | n';
+    const src = ':Box |~~ A box. ~~|; :Box/area ~(1); :vec/second ~(get /1); :n 1; n';
     const { root } = parseDocument(src, 'test.qlang');
     const roles = new Map((await completionsAtOffset(root, src.length)).map(item => [item.label, item.role]));
     expect(['area', 'second', 'n', 'Box', '::Box'].map(label => roles.get(label))).toEqual(['verb', 'verb', 'value', 'label', 'label']);
   });
 
   it('offers each name the document declares once, by the name a step calls it by, a name with a path by its last name, after a subject and with none', async () => {
-    for (const typed of [':vec/second ~(get /1) | [1 2] | ', ':vec/second ~(get /1) | ']) {
+    for (const typed of [':vec/second ~(get /1); [1 2] | ', ':vec/second ~(get /1); ']) {
       const src = `${typed}it`;
       const labels = (await completionsAtOffset(parseDocument(src, 'test.qlang').root, typed.length, src)).map(item => item.label);
       expect([labels.filter(label => label === 'second').length, labels.includes('vec/second')], typed).toEqual([1, false]);
@@ -96,7 +96,7 @@ describe('the names offered at a position', () => {
   });
 
   it('a kind the document declares is among the completions of tags, one with a path by its address', async () => {
-    const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42)) | :MyTag/In |~~ In. ~~|';
+    const src = ':MyTag |~~ MyTag. ~~| (::kind | impl ~(42)); :MyTag/In |~~ In. ~~|;';
     const { root } = parseDocument(src, 'test.qlang');
     const items = await completionsAtOffset(root, src.length, src);
     expect(['::MyTag', '::MyTag/In'].map(label => items.some(i => i.label === label))).toEqual([true, true]);
@@ -133,18 +133,18 @@ describe('the verbs offered after a value', () => {
     expect(labels).not.toContain('count');
   });
 
-  it('keeps the kinds of the subject through a declaration, and offers after a tagged literal the verbs the walk of its tags reaches', async () => {
-    const labels = await labelsAt('[1 2 3] | :xs it | ');
+  it('keeps the kinds of the subject past the declarations of its text, and offers after a tagged literal the verbs the walk of its tags reaches', async () => {
+    const labels = await labelsAt(':xs 1; [1 2 3] | ');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
-    const afterTagged = await labelsAt('[1 2 3] | :xs it | ::Box{:a 1} | ');
+    const afterTagged = await labelsAt(':xs 1; ::Box{:a 1} | ');
     expect(afterTagged).toContain('count');
     expect(afterTagged).toContain('payload');
     expect(afterTagged).not.toContain('add');
   });
 
   it('reads a literal alone over the root, a label the document declares a tag of identity, and a literal its constructor refuses by the kinds of its refusal', async () => {
-    const afterIdentity = await labelsAt(':Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 | ');
+    const afterIdentity = await labelsAt(':Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)); ::Pos#-1 | ');
     expect(afterIdentity).toContain('add');
     expect(afterIdentity).not.toContain('trace');
     const afterRefusal = await labelsAt('::number"5" | ');
@@ -230,14 +230,14 @@ describe('the verbs offered after a value', () => {
   });
 
   it('reads through a declaration and a group over a vector', async () => {
-    const labels = await labelsAt(':twice ~(mul 2) | ([1 2] | reverse) | ');
+    const labels = await labelsAt(':twice ~(mul 2); ([1 2] | reverse) | ');
     expect(labels).toContain('twice');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
   });
 
   it('offers every name where no declaration names the kind of the subject', async () => {
-    for (const src of [':x 1 | x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(', '"x" | add 1 !| ']) {
+    for (const src of [':x 1; x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(', '"x" | add 1 !| ']) {
       const labels = await labelsAt(src);
       expect(labels).toContain('count');
       expect(labels).toContain('add');

@@ -28,7 +28,8 @@ record, a line of fate, the aim, a report of the research and its reading
 among them, and master takes them with the merge. A subagent that works in
 a worktree commits on a branch of its own, which its stint takes back.
 Nothing in a stint switches the branch of the checkout, merges or writes to
-master but its closeout. A push waits for the maintainer's invitation, and
+master but its closeout, a release at the maintainer's word landing on
+master outside a stint [QSGAT#release]. A push waits for the maintainer's invitation, and
 a commit is never amended.
 
 A stint starts from every file and line where its cause shows, found by
@@ -47,7 +48,8 @@ reading lighter.
 
 A question the work of a stint raises is the stint's: the stint decides it
 before it lands, asking the maintainer where the choice is his, and the work
-of a record writes no record of a question of its own beside it. A landing in
+of a record leaves no open record of a question it raises beside it, a
+question of its own decided in a record of its own. A landing in
 the middle of the work, a total that relieves the tension of a long stint,
 lands what is done and carries no question of the stint to master, which the
 stint takes up again on its next branch from the new baseline, so a session
@@ -66,8 +68,9 @@ citation of a record is a link of markdown to its file, `[Dnn]`.
 
 A record is written in fields, each opening a line: `Domain.`, the part of
 the work it governs, `Language.` a change of the language whose
-requirements are cases, `Process.` a rule of the work, and any other domain
-one its own tests hold; `Decided by.`, `The maintainer` or `The model`, the
+requirements are cases, `Process.` a rule of the work, `Benchmark.` a
+measurement its runs and its screen hold [QSMSR#benchmark], and any other
+domain one its own tests hold; `Decided by.`, `The maintainer` or `The model`, the
 maintainer whose words it quotes or the model which says what it answered,
 and where a choice of the maintainer meets the mechanics the model worked
 out around it, the line names the parts that are the model's; `Decision.`,

@@ -8,12 +8,12 @@ describe('the regex of a name', () => {
     const whole = new RegExp(`^(?:${core.NAME_REGEX.source})$`, 'u');
     const letters = Array.from({ length: 0x10000 }, (_, code) => String.fromCharCode(code)).filter(letter => !/[\ud800-\udfff]/.test(letter));
     expect(letters.filter(letter => whole.test(letter) !== core.isNameStart(letter) || whole.test(`a${letter}`) !== core.isNameContinue(letter))).toEqual([]);
-    expect([...':имя 5 | vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
+    expect([...':имя 5; vec/count | _x-1'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['имя', 'vec', 'count', '_x-1']);
   });
 
-  it('reads no letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code unit', async () => {
-    expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a', 'b', 'c']);
-    expect(await core.evalQuery('":a𝐀 1" | parse !| tag')).toEqual(core.makeTag('quote/ParseError'));
+  it('reads a letter past the first plane of Unicode in the regex of a name, as the parser reads a character a code point', async () => {
+    expect([...'a𝐀b c𝐁'.matchAll(new RegExp(core.NAME_REGEX.source, 'gu'))].map(([name]) => name)).toEqual(['a𝐀b', 'c𝐁']);
+    expect(await core.evalQuery(':a𝐀 1; a𝐀')).toBe(1);
   });
 });
 
@@ -28,8 +28,8 @@ describe('the letters that begin a name', () => {
     expect(() => parseSource(':!mark')).toThrow(SourceParseError);
   });
 
-  it('reads no letter past the first plane of Unicode as the start of a bare name, and its quoted form takes it', () => {
-    expect(() => parseSource(':\u{10400}')).toThrow(SourceParseError);
+  it('reads a letter past the first plane of Unicode as the start of a bare name, the one keyword its quoted form writes', () => {
+    expect(stepOf(':\u{10400}').name).toBe('\u{10400}');
     expect(stepOf(':"\u{10400}"').name).toBe('\u{10400}');
   });
 });

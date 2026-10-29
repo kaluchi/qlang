@@ -1,0 +1,38 @@
+{
+  "env": "prod",
+  "services": [
+    {
+      "name": "web",
+      "port": 8080,
+      "enabled": true,
+      "replicas": 3
+    },
+    {
+      "name": "api",
+      "port": 9000,
+      "enabled": true
+    },
+    {
+      "name": "worker",
+      "port": null,
+      "enabled": false,
+      "replicas": 5
+    },
+    {
+      "name": "cache",
+      "port": 6379,
+      "enabled": true,
+      "replicas": 2
+    },
+    {
+      "name": "cron",
+      "enabled": true,
+      "replicas": null
+    },
+    {
+      "name": "admin",
+      "port": 8443,
+      "enabled": false
+    }
+  ]
+}

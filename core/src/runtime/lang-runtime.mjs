@@ -18,7 +18,7 @@ import './shape-primitives.mjs';
 import './constructors.mjs';
 import './tagged-primitives.mjs';
 import './quote-steps.mjs';
-import './env.mjs';
+import './host-primitives.mjs';
 import './manifest.mjs';
 import './code.mjs';
 import './kind-primitives.mjs';

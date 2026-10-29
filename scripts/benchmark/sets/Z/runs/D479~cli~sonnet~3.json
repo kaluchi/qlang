@@ -1,0 +1,196 @@
+{
+ "set": "Z",
+ "decision": "D479",
+ "screen": "D479",
+ "screenHash": "6c9bd96a21c2",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 3,
+ "date": "2026-10-28",
+ "commit": "e09c549f",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1",
+  "CLAUDE_CODE_EFFORT_LEVEL": "medium"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran every query below against its data file and each gave a plausible answer. I also checked Z13 by hand: 125 + 0 + 269.97 + 52.5 + 28 = 475.47. I didn't check the other results by hand.\n\nZ4 and Z8 return maps whose keys are keywords such as `:alice`, because qlang maps only take keyword keys. If the checker needs string keys, those two may not match.\n\nZ1: get /users | filter ~(allOf (get /active | eq true) ~(query /address/city | ne null)) | map ~(get /address/city | lower) | distinct | sort\nZ2: get /users | filter ~(allOf (get /active | eq true) ~(get /age | ne null)) | map /age | avg | round 1\nZ3: filter ~(get /status | lower | eq \"paid\") | map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum | round 2\nZ4: filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(count)\nZ5: filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum) | entries | sort ~(get [~(get /1 | desc) /0]) | take 3 | map ~(get /0 | toString)\nZ6: filter ~(allOf (get /state | eq \"open\") ~(get /assignee | eq null) ~(get /labels | map ~(lower) | contains \"bug\")) | count\nZ7: filter ~(get /state | eq \"open\") | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get {:number /number :title /title})\nZ8: groupBy ~(query /assignee/login \"unassigned\") | map ~(count)\nZ9: with [/dependencies /devDependencies] ~(dependencies | merge devDependencies) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString | lower) | sort | join \",\"\nZ10: get /services | filter ~(get /enabled | eq true) | map ~(query /replicas null | coalesce 1) | sum\nZ11: lines | map ~(split \" \") | map ~(get /3 | take 1) | apply ~(get {:\"2xx\" ~(filter ~(eq \"2\") | count) :\"4xx\" ~(filter ~(eq \"4\") | count) :\"5xx\" ~(filter ~(eq \"5\") | count)})\nZ12: lines | map ~(split \" \") | filter ~(get /1 | eq \"GET\") | map ~(get /4 | replace \"ms\" \"\" | toNumber) | avg | round 1\nZ13: lines | drop 1 | map ~(split \",\") | filter ~(get /2 | lower | eq \"tools\") | map ~(mulOf (get /3 | if (eq \"\") ~(0) ~(toNumber)) (get /4 | toNumber)) | sum | round 2\nZ14: \"alice@Example.com, bob@example.org; carol@EXAMPLE.COM, dave@mail.test, erin@Example.org, frank@mail.test\" | split #\"[,;]\\s*\" | map ~(split \"@\" | get /1 | lower) | distinct | sort",
+ "failed": false,
+ "requests": 9,
+ "turns": 10,
+ "inputTokens": 129166,
+ "outputTokens": 4023,
+ "calls": [
+  {
+   "command": "ls; head -c 600 users.json; echo; head -c 600 orders.json; echo; head -c 500 issues.json; echo; head -c 500 manifest.json; echo; head -c 500 config.json; echo; head -5 access.log; head -5 inventory.csv",
+   "answered": "value",
+   "head": "access.log config.json inventory.csv issues.json manifest.json orders.json users.json { \"page\": 1, \"users\": [ { \"id\": 1, \"name\": \"Ann\", \"active\": true, \"age\": 31, \"address\": { \"city\": \"Berlin\", \"country\": \"DE\" } }, { \"id\": 2, \"name\": \"Bob\","
+  },
+  {
+   "command": "qplay '[::vec ::map ::string ::number ::any] | map ~(get [~(it) ~(manifest)])'",
+   "answered": "value",
+   "head": "[[::vec #[::vec/PayloadKindNotTakenError ::vec/any ::vec/append ::vec/avg ::vec/concat ::vec/contains ::vec/count ::vec/distinct ::vec/drop ::vec/empty ::vec/every ::vec/filter ::vec/first ::vec/flat ::vec/flatten ::vec/groupBy ::vec/has ::"
+  },
+  {
+   "command": "qplay '::number/round | doc'; qplay 'get /users | filter ~(allOf (get /active | eq true) ~(query /address/city | ne null)) | map ~(get /address/city | lower) | distinct | sort' < users.json",
+   "answered": "value",
+   "head": "|~~ Answers the subject rounded to the digits after the point the call gives, none when it gives none: `3.14159 | round 2` answers `3.14` and `2.5 | round` answers `3`. A half rounds away from zero, as the digits are written, `1.005 | round"
+  },
+  {
+   "command": "qplay 'get /users | filter ~(allOf (get /active | eq true) ~(get /age | ne null)) | map /age | avg | round' < users.json",
+   "answered": "value",
+   "head": "31 Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\Z-D479-cli-sonnet-3"
+  },
+  {
+   "command": "qplay 'get /users | filter ~(allOf (get /active | eq true) ~(get /age | ne null)) | map /age | avg | round 1' < users.json\nqplay 'filter ~(get /status | lower | eq \"paid\") | map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum | round 2' < orders.json\nqplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(count)' < orders.json\nqplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum) | entries | sort ~(get [~(get /1 | desc) /0]) | take 3 | map",
+   "answered": "value",
+   "head": "31.2 162.48 { :alice 3 :bob 2 :dave 1 :carol 1 :erin 1 } [:carol :alice :bob] Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\Z-D479-cli-sonnet-3"
+  },
+  {
+   "command": "qplay '[] | sum'\nqplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum) | entries | sort ~(get [~(get /1 | desc) /0]) | take 3 | map ~(get /0 | toString)' < orders.json\nqplay 'filter ~(allOf (get /state | eq \"open\") ~(get /assignee | eq null) ~(get /labels | map ~(lower) | contains \"bug\")) | count' < issues.json\nqplay 'filter ~(get /state | eq \"open\") | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get {:number /number :title /title})' < issues.json\nqplay 'groupBy ~(query /",
+   "answered": "value",
+   "head": "0 [\"carol\" \"alice\" \"bob\"] 4 [{:number 104 :title \"Memory leak\"} {:number 108 :title \"Refactor auth\"} {:number 101 :title \"Crash on start\"}] { :unassigned 5 :zed 3 :amy 2 :bo 1 } Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qla"
+  },
+  {
+   "command": "qplay 'get [/dependencies /devDependencies] | apply ~(get /0 | merge (get /1))' < manifest.json\nqplay 'get [/dependencies /devDependencies] | apply ~(get /0 | merge (get /1)) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString | lower) | sort | join \",\"' < manifest.json\nqplay 'get /services | filter ~(get /enabled | eq true) | map ~(query /replicas null | coalesce 1) | sum' < config.json\nqplay 'lines | map ~(split \" \") | map ~(get /3 | take 1) | groupBy | map ~(count)' < access.log\nqplay 'lines | map ~(split \" \") | filter ~(get /1 | eq \"GET\") | map ~(get /4 | replace \"ms\" \"",
+   "answered": "value",
+   "head": "|~| raised, and no !| caught it ::path/KeyNotInMapError::excerpt{ :found { :express \"^4.18.2\" :lodash \"~4.17.21\" :zod \"^3.22.0\" :chalk \"5.3.0\" :ws \">=8.0.0\" } :key :\"1\" :nearest [] :path /1 :trace ::cell\"9ead57ed13e4\" :trace/tag ::trace :tr"
+  },
+  {
+   "command": "qplay 'with [/dependencies /devDependencies] ~(dependencies | merge devDependencies) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString | lower) | sort | join \",\"' < manifest.json\nqplay 'lines | map ~(split \" \") | map ~(get /3 | take 1) | apply ~(get {:\"2xx\" ~(filter ~(eq \"2\") | count) :\"4xx\" ~(filter ~(eq \"4\") | count) :\"5xx\" ~(filter ~(eq \"5\") | count)})' < access.log\nqplay 'lines | count' < access.log\ncat inventory.csv | head -20",
+   "answered": "value",
+   "head": "express,jest,mocha,prettier,typescript,zod { :\"2xx\" 6 :\"4xx\" 2 :\"5xx\" 3 } 11 sku,name,category,qty,price T1,Hammer,Tools,10,12.5 T2,Saw,tools,,20 T3,Drill,TOOLS,3,89.99 G1,Rake,Garden,7,15 G2,Hose,Garden,4,22.4 T4,Wrench,Tools,6,8.75 K1,Pan"
+  },
+  {
+   "command": "qplay 'lines | drop 1 | map ~(split \",\") | filter ~(get /2 | lower | eq \"tools\") | map ~(mulOf (get /3 | if (eq \"\") ~(0) ~(toNumber)) (get /4 | toNumber)) | sum | round 2' < inventory.csv\nqplay '\"alice@Example.com, bob@example.org; carol@EXAMPLE.COM, dave@mail.test, erin@Example.org, frank@mail.test\" | split #\"[,;]\\s*\" | map ~(split \"@\" | get /1 | lower) | distinct | sort'",
+   "answered": "value",
+   "head": "475.47 [\"example.com\" \"example.org\" \"mail.test\"] Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\Z-D479-cli-sonnet-3"
+  }
+ ],
+ "score": [
+  {
+   "task": "Z1",
+   "query": "get /users | filter ~(allOf (get /active | eq true) ~(query /address/city | ne null)) | map ~(get /address/city | lower) | distinct | sort",
+   "answer": [
+    "berlin",
+    "madrid",
+    "paris"
+   ],
+   "solved": true
+  },
+  {
+   "task": "Z2",
+   "query": "get /users | filter ~(allOf (get /active | eq true) ~(get /age | ne null)) | map /age | avg | round 1",
+   "answer": 31.2,
+   "solved": true
+  },
+  {
+   "task": "Z3",
+   "query": "filter ~(get /status | lower | eq \"paid\") | map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum | round 2",
+   "answer": 162.48,
+   "solved": true
+  },
+  {
+   "task": "Z4",
+   "query": "filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(count)",
+   "answer": {
+    "alice": 3,
+    "bob": 2,
+    "dave": 1,
+    "carol": 1,
+    "erin": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "Z5",
+   "query": "filter ~(get /status | lower | ne \"cancelled\") | groupBy ~(get /customer | lower) | map ~(map ~(query /items [] | map ~(mulOf /qty /price) | sum) | sum) | entries | sort ~(get [~(get /1 | desc) /0]) | take 3 | map ~(get /0 | toString)",
+   "answer": [
+    "carol",
+    "alice",
+    "bob"
+   ],
+   "solved": true
+  },
+  {
+   "task": "Z6",
+   "query": "filter ~(allOf (get /state | eq \"open\") ~(get /assignee | eq null) ~(get /labels | map ~(lower) | contains \"bug\")) | count",
+   "answer": 4,
+   "solved": true
+  },
+  {
+   "task": "Z7",
+   "query": "filter ~(get /state | eq \"open\") | sort ~(get [~(get /comments | desc) /number]) | take 3 | map ~(get {:number /number :title /title})",
+   "answer": [
+    {
+     "number": 104,
+     "title": "Memory leak"
+    },
+    {
+     "number": 108,
+     "title": "Refactor auth"
+    },
+    {
+     "number": 101,
+     "title": "Crash on start"
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "Z8",
+   "query": "groupBy ~(query /assignee/login \"unassigned\") | map ~(count)",
+   "answer": {
+    "unassigned": 5,
+    "zed": 3,
+    "amy": 2,
+    "bo": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "Z9",
+   "query": "with [/dependencies /devDependencies] ~(dependencies | merge devDependencies) | entries | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString | lower) | sort | join \",\"",
+   "answer": "express,jest,mocha,prettier,typescript,zod",
+   "solved": true
+  },
+  {
+   "task": "Z10",
+   "query": "get /services | filter ~(get /enabled | eq true) | map ~(query /replicas null | coalesce 1) | sum",
+   "answer": 7,
+   "solved": true
+  },
+  {
+   "task": "Z11",
+   "query": "lines | map ~(split \" \") | map ~(get /3 | take 1) | apply ~(get {:\"2xx\" ~(filter ~(eq \"2\") | count) :\"4xx\" ~(filter ~(eq \"4\") | count) :\"5xx\" ~(filter ~(eq \"5\") | count)})",
+   "answer": {
+    "2xx": 6,
+    "4xx": 2,
+    "5xx": 3
+   },
+   "solved": true
+  },
+  {
+   "task": "Z12",
+   "query": "lines | map ~(split \" \") | filter ~(get /1 | eq \"GET\") | map ~(get /4 | replace \"ms\" \"\" | toNumber) | avg | round 1",
+   "answer": 252.7,
+   "solved": false
+  },
+  {
+   "task": "Z13",
+   "query": "lines | drop 1 | map ~(split \",\") | filter ~(get /2 | lower | eq \"tools\") | map ~(mulOf (get /3 | if (eq \"\") ~(0) ~(toNumber)) (get /4 | toNumber)) | sum | round 2",
+   "answer": 475.47,
+   "solved": true
+  },
+  {
+   "task": "Z14",
+   "query": "\"alice@Example.com, bob@example.org; carol@EXAMPLE.COM, dave@mail.test, erin@Example.org, frank@mail.test\" | split #\"[,;]\\s*\" | map ~(split \"@\" | get /1 | lower) | distinct | sort",
+   "answer": [
+    "example.com",
+    "example.org",
+    "mail.test"
+   ],
+   "solved": true
+  }
+ ]
+}

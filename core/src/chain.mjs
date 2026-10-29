@@ -11,8 +11,8 @@ import { isCallStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
 import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
-const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
-const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
+export const FnCommandNotTakenError = declareRefusal('fn/CommandNotTakenError');
+export const FnNameDeclaredTwiceError = declareRefusal('fn/NameDeclaredTwiceError');
 const FnLawUnderNoNameError = declareRefusal('fn/LawUnderNoNameError');
 const KindCommandNotTakenError = declareRefusal('kind/CommandNotTakenError');
 const KindNameDeclaredTwiceError = declareRefusal('kind/NameDeclaredTwiceError');
@@ -81,6 +81,9 @@ function kindsOf(value) {
   return names.includes(ANY_KIND_NAME) ? null : names;
 }
 
+// [QSDSP#residence]
+const subjectKindsOf = value => (value === undefined ? null : isTag(value) ? [value.name] : value.map(tag => tag.name));
+
 function kindsWritten(written) {
   const each = isPlainVec(written);
   return { each, kinds: kindsOf(each ? written[0] : written), written: written ?? null };
@@ -110,7 +113,7 @@ function readChainOfFn(quote) {
     switch (step.get('name').name) {
       case 'on':
         names.declare(SUBJECT_NAME);
-        chain.subject = { page: first, kinds: kindsOf(second), written: second ?? null };
+        chain.subject = { page: first, kinds: subjectKindsOf(second), written: second ?? null };
         break;
       case 'takes': {
         names.declare(first.name);
@@ -130,6 +133,7 @@ function readChainOfFn(quote) {
         names.declare(first.name);
         chain.pages.set(first.name, second);
         keepTheKindOfARefusal(chain, first.name, third);
+        for (const fact of factsWrittenBy(chain, first.name)) names.named.add(`${first.name}/${fact.name.name}`);
         break;
       case 'holds':
         if (names.named.has(first.name)) throw new FnNameDeclaredTwiceError({ name: first, found: quote });
@@ -142,8 +146,23 @@ function readChainOfFn(quote) {
         chain.laws.push({ name: first.name, page: second, query: third });
     }
   }
+  refuseAFactNamedByASlot(chain);
   chain.arity = arityOfReadings(chain.inputs.map(input => input.reading));
   return Object.freeze(chain);
+}
+
+// [QSBLD#fn], [QSERR#site]
+const factsWrittenBy = (chain, name) => {
+  const kind = chain.refusalKinds.get(name);
+  return kind === undefined ? [] : chainOfKind(kindThrowsFinishes(kind)).fields.filter(({ name: fact }) => fact.name !== TRACE_TAG.name);
+};
+
+function refuseAFactNamedByASlot(chain) {
+  const slots = new Set([...NAMES_OF_A_VERDICT, ...chain.inputs.map(({ name }) => name.name)]);
+  for (const [name, kind] of chain.refusalKinds) {
+    const fact = factsWrittenBy(chain, name).find(({ name: written }) => slots.has(written.name));
+    if (fact !== undefined) throw new KindNameDeclaredTwiceError({ name: fact.name, found: commandsOf(kind) });
+  }
 }
 
 function readChainOfKind(quote) {
@@ -191,6 +210,7 @@ function readChainOfKind(quote) {
         names.declare(first.name);
         kind.pages.set(first.name, second);
         keepTheKindOfARefusal(kind, first.name, third);
+        for (const fact of factsWrittenBy(kind, first.name)) names.named.add(`${first.name}/${fact.name.name}`);
         break;
       default:
         if (first.name.includes('/') && !names.isUnderANamed(first.name)) throw new KindLawUnderNoNameError({ name: first, found: quote });

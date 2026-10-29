@@ -13,7 +13,7 @@ import { verdictOf } from '../../../../scripts/conventions-verdict.mjs';
 import { TestsProbeTypeError } from '../../helpers/probe-refusal.mjs';
 
 const probeScope = async () => (await createNotebook({ sources: [{ uri: 'tests/probe', source:
-  ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :value |~~ The value. ~~| ::string | wires :note |~~ A note. ~~|)' }] })).scope;
+  ':tests |~~ Probes. ~~|\n  ::kind | throws :ProbeTypeError |~~ A probe. ~~| ~(wires :value |~~ The value. ~~| ::string | wires :note |~~ A note. ~~|);' }] })).scope;
 
 describe('a refusal converted to a failure', () => {
   it('converts a refusal — its address the tag, its facts in the order the kind of its refusal wires them', async () => {
@@ -122,7 +122,7 @@ it('every refusal of the runtime is one kind of error, its message its address',
     '[1 "two"] | sum',
     '42 | get /name',
     '42 | map ~(add 1)',
-    '5 | :five it | five 42',
+    'apply ~(:five 5; five 42)',
     '42 | reduce 0 ~(add)'
   ];
   for (const q of queries) {
@@ -134,10 +134,10 @@ it('every refusal of the runtime is one kind of error, its message its address',
 
 const notebook = await createNotebook();
 await notebook.evalCell([
-  ':number/pick (::fn | takes :by |~~ How much. ~~| /0 ::number | returns |~~ A boolean or a string. ~~| #[::boolean ::string] | impl ~(gt by))',
-  ':number/keep (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(add 1))',
-  ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by))'
-].join(' | '));
+  ':number/pick (::fn | takes :by |~~ How much. ~~| /0 ::number | returns |~~ A boolean or a string. ~~| #[::boolean ::string] | impl ~(gt by));',
+  ':number/keep (::fn | returns |~~ A number or a string. ~~| #[::number ::string] | impl ~(add 1));',
+  ':number/plain (::fn | takes :by |~~ How much. ~~| ~(query /0 1) | impl ~(add by));'
+].join(' '));
 
 describe('the refusals a verb that is a function raises by rule', () => {
   it('names an answer of none of several kinds where its label is none of them', () => {
@@ -159,14 +159,14 @@ describe('the refusals a verb that is a function raises by rule', () => {
   });
 
   it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', async () => {
-    const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2)');
+    const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2);');
     expect([kindsSharedBy(scopeAfterCell, 'set/groupBy'), kindsSharedBy(scopeAfterCell, 'bind'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
       .toEqual([['vec/groupBy/KeyTakenError'], ['call/PayloadNotSchemaError'], [], []]);
   });
 
   it('names the refusals of a verb written as its recipe alone, the function of no commands it is', async () => {
     const own = await createNotebook();
-    await own.evalCell(':number/v ~(1)');
+    await own.evalCell(':number/v ~(1);');
     expect(ruleRefusalsOf(own.scope, 'number/v')).toEqual(['number/v/SubjectNotNumberError', 'number/v/ArgsBeyondInputsError']);
   });
 });
@@ -199,10 +199,10 @@ describe('a refusal names a kind only where its address names it', () => {
   it('reads what `throws` and `holds` write in a chain and in the quote of a literal, and leaves a law, a doc and a command of no name', () => {
     const planted = [{ path: 'box.qlang', text: [
       ':Box', '  |~~ A box. ~~|', '  ::kind', '    | holds :NotWideError |~~ Wide. ~~| ~(gt 0)',
-      '    | proves :x |~~ An x. ~~| ~(:Pos |~~ P. ~~| (::kind | holds :NotPositiveError |~~ P. ~~| ~(gt 0)) | true)',
+      '    | proves :x |~~ An x. ~~| ~(:Pos |~~ P. ~~| (::kind | holds :NotPositiveError |~~ P. ~~| ~(gt 0)); true);',
       ':Box/w', '  |~~ The width, `| throws :NotNumberError`. ~~|', '  ::fn', '    | throws :SubjectNotBoxError |~~ A box. ~~|',
-      '    | throws |~~ No name. ~~|', '    | holds',
-      ':Box/h ::fn[~(throws :RowNotMapError |~~ A row. ~~|) ::builtin{}]', ':Box/d |~~ A page. ~~|', ''].join('\n') }];
+      '    | throws |~~ No name. ~~|', '    | holds;',
+      ':Box/h ::fn[~(throws :RowNotMapError |~~ A row. ~~|) ::builtin{}];', ':Box/d |~~ A page. ~~|;', ''].join('\n') }];
     expect(refusalsOfTheCatalog(planted)).toEqual([
       { address: 'Box/NotWideError', file: 'box.qlang', line: 4 },
       { address: 'Box/w/SubjectNotBoxError', file: 'box.qlang', line: 9 },
@@ -212,8 +212,8 @@ describe('a refusal names a kind only where its address names it', () => {
 
   it('reads the kinds a source declares, by the page alone and by the chain, and no node under one and no value', () => {
     const planted = [{ path: 'kinds.qlang', text: [
-      ':Holds', '  |~~ A page alone. ~~|', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | accepts |~~ The payload. ~~| ::vec',
-      ':Box/w', '  |~~ A node. ~~|', ':limit 5', ':double ~(mul 2)', ''].join('\n') }];
+      ':Holds', '  |~~ A page alone. ~~|;', ':Box', '  |~~ A box. ~~|', '  ::kind', '    | accepts |~~ The payload. ~~| ::vec;',
+      ':Box/w', '  |~~ A node. ~~|;', ':limit 5;', ':double ~(mul 2);', ''].join('\n') }];
     expect(kindsDeclaredBy(planted)).toEqual(new Set(['Holds', 'Box']));
   });
 
@@ -253,19 +253,19 @@ describe('the refusals a kind raises by rule', () => {
 
   it('names a payload that is no vector where it names the kinds of each element', async () => {
     const own = await createNotebook();
-    await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | accepts |~~ The numbers. ~~| [::number]');
+    await own.evalCell(':Nums\n  |~~ Numbers. ~~|\n  ::kind\n    | accepts |~~ The numbers. ~~| [::number];');
     expect(ruleRefusalsOf(own.scope, 'Nums')).toEqual(['Nums/PayloadKindNotTakenError', 'Nums/ElementKindNotTakenError']);
   });
 
-  it('names no refusal of a kind that writes no wraps and no field', async () => {
+  it('names no refusal of a kind that writes no accepts and no field', async () => {
     const own = await createNotebook();
-    await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true)');
+    await own.evalCell(':Mark\n  |~~ A mark. ~~|\n  ::kind\n    | proves :holds |~~ It holds. ~~| ~(true);');
     expect(ruleRefusalsOf(own.scope, 'Mark')).toEqual([]);
   });
 
-  it('names the refusal of every payload for a kind whose wraps names no kind', async () => {
+  it('names the refusal of every payload for a kind whose accepts names no kind', async () => {
     const own = await createNotebook();
-    await own.evalCell(':Topic\n  |~~ A topic. ~~|\n  ::kind\n    | accepts |~~ None. ~~| #[]');
+    await own.evalCell(':Topic\n  |~~ A topic. ~~|\n  ::kind\n    | accepts |~~ None. ~~| #[];');
     expect(ruleRefusalsOf(own.scope, 'Topic')).toEqual(['Topic/PayloadKindNotTakenError']);
   });
 });

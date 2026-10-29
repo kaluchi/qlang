@@ -9,8 +9,9 @@
 // that record ran. The readers run at once; each report is written into the
 // run, `<codes>.md`, beneath a line that says how it was made, and the
 // session writes its reading beside them, `reading.md`, the fate of each
-// finding in it. With `--records`, each
-// open record named has a clean reader of its own, who bootstraps alike and
+// finding in it. With `--records`, each record named, an open one or a
+// decision before its code [QSRVW#audits], has a clean reader of its own, who
+// bootstraps alike and
 // critiques the record against the tree, answering
 // `scripts/design-check-prompt.txt`, the report landing as the next critique
 // of its record, `design-check/D329~3.md`, named after the record as the runs
@@ -37,7 +38,7 @@ import { join, relative } from 'node:path';
 import { RESEARCH } from './decision-records.mjs';
 import { WORK_CHAPTERS } from './reconciliation.mjs';
 import {
-  allowedReading, effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoOpenRecord,
+  allowedReading, effortOfTheRun, headOf, holdTheRun, minuteOf, nextRunOf, packByWeight, refuseASecondRun, refuseNoRecordToCritique,
   refuseNoRecordInForce, runLine, startReaders, stillTheTree, treeOfTheRun
 } from './research-runs.mjs';
 
@@ -75,7 +76,7 @@ const language = chapters.filter(file => !ofTheWork(file)).map(file => ({ file, 
 const work = chapters.filter(ofTheWork);
 const groups = records !== null ? records.map(record => [record])
   : [...packByWeight(language, groupCount).map(group => group.map(({ file }) => file)), ...(work.length === 0 ? [] : [work])];
-for (const record of records ?? []) refuseNoOpenRecord(repoRoot, record);
+for (const record of records ?? []) refuseNoRecordToCritique(repoRoot, record);
 if (process.argv.includes('--dry')) {
   for (const group of groups) console.log(group.join(' '));
   process.exit(0);
@@ -94,7 +95,7 @@ const listed = files => {
 };
 const what = group => (records === null
   ? `A check of the chapters ${group.map(file => `\`${file.slice(0, 5)}\``).join(', ')} for ${calledFor} by a clean Opus answering \`${shown(promptPath)}\`.`
-  : `A critique of the open record ${group[0]} by a clean Opus answering \`${shown(promptPath)}\`.`);
+  : `A critique of the record ${group[0]} by a clean Opus answering \`${shown(promptPath)}\`.`);
 
 // The record that called for a run holds it under `Runs.` [QSWRK#journal].
 const held = (record, report, started, ended) => holdTheRun(repoRoot, record, runLine({
@@ -125,7 +126,7 @@ mkdirSync(run, { recursive: true });
 for (const [at, { name, answer, started, ended }] of answers.entries()) {
   if (answer === null) continue;
   const report = join(run, records === null ? `${name}.md` : reportOf.get(name));
-  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qlang`, `grep` and `git ls-files`', effort });
+  const head = headOf({ what: what(groups[at]), tree, onTheBaseline, date, started, ended, allowed: '`qplay`, `grep` and `git ls-files`', effort });
   writeFileSync(report, `${head}\n\n${linkedFromTheRun(answer)}\n`);
   if (records !== null) held(name, report, started, ended);
   console.log(`${name}: ${shown(report)}${records === null ? '' : `, its reading to stand beside it as ${shown(report).replace(/\.md$/, '~reading.md')}`}`);

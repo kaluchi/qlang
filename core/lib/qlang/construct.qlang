@@ -100,13 +100,13 @@
     | proves :LiteralComputesError/refusesAPayloadOfCode
         |~~ The step of a call as the payload computes, and is refused. ~~|
         ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ::Box~(x)`"])
+          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ~(x) | tag ::Box`"])
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
     | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/limit 5 | ::Box/limit[1] !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::Box/limit ::number])
+        ~(:Box |~~ A box. ~~|; :Box/limit 5; ::Box/limit[1] !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::Box/limit ::number])
     | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | tag | eq ::vec/take)
@@ -117,6 +117,6 @@
         ~(::vec/take/CountNotIntegerError#5 !| tag | eq ::vec/take/CountNotIntegerError/PayloadKindNotTakenError)
     | proves :TagNamesAValueError/putsTheValueUnderATagOfItsOwn
         |~~ The value of a name is put under a tag of its own. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/limit 5 | Box/limit | tag ::Limit | payload | eq 5)
-    | impl ::builtin{}
+        ~(:Box |~~ A box. ~~|; :Box/limit 5; Box/limit | tag ::Limit | payload | eq 5)
+    | impl ::builtin{};
 

@@ -26,8 +26,9 @@ path of the step's frame naming it [QSERR#trace], a total past the
 doubles refused as no number, and `min` and `max`, which relate the
 elements as `gt` relates two values [QSORD#sort]; `first`, `last`,
 `min`, `max` and `avg` answer null over an empty container. `avg`
-answers the mean, null over nothing, kept as a running mean, under the
-tags its numbers share, read as `sum` reads them, an element that is no
+answers the mean, the sum of its numbers over their count where the sum
+stays among the doubles and the running mean where it passes them, null
+over nothing, under the tags its numbers share, read as `sum` reads them, an element that is no
 number refused at its index, at its key over a map. `has` asks whether the vector or the set holds an element
 equal to one [QSPTH#has]. `append` and `prepend` put one element at an
 end, a vector given among them, and a set takes it into its order. `zip`
@@ -60,6 +61,9 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [1 2 3 4] | avg
 2.5
 
+> get [~([0 1 6 1] | avg) ~([1e308 1e308] | avg | eq 1e308) ~([1e308 -1e308] | avg)]
+[2 true 0]
+
 > [1 "x"] | avg !| get [~(tag) ~(trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]
 
@@ -83,7 +87,8 @@ keep the keys, `first`, `last`, `sum`, `avg`, `min`, `max`, `reduce`,
 `count`, `size` and `length` count its entries. `keys` answers the set of
 its keys, `vals` the vector of its values, `entries` the vector of its
 pairs `[key value]` in the order of its entries, the step that makes a
-key data, and `has` whether a key stands [QSPTH#has]. The verbs a vector
+key data, `empty` whether it holds none, by a verb of its own, and `has`
+whether a key stands [QSPTH#has]. The verbs a vector
 has beyond these, `distinct`, `groupBy`, `flat` and `contains` among
 them, a map does not answer, and a reader asks them of its values by
 `vals` first, `{:a 1} | vals | contains 1` answering `true`.
@@ -107,7 +112,8 @@ plain map of the answers under the same keys; over a set, which the
 `map` of vectors serves, the vector of the images in the one order, its
 answer naming `::any` [QSDSP#answer]. The first error its code answers
 is the answer of the call. A value computed at the call instead of the
-code is refused with the repair.
+code is refused with what it computed as `found`, its page naming the
+tilde [QSQUO#modifier].
 
 ```qlang
 > #[1 2 3] | map ~(mod 2)
@@ -163,10 +169,10 @@ of `reduce` names the path of the element [QSERR#trace].
 > [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
-> [1 2 3] | reduce 0 ~(:sofar (get /0) | :digit (get /1) | sofar | mul 10 | add digit)
+> [1 2 3] | reduce 0 ~(with {:sofar /0 :digit /1} ~(sofar | mul 10 | add digit))
 123
 
-> apply ~(:add 5 | [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
+> apply ~(:add 5; [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
 [::call/ValueTakesNoModifiersError #[::number/add]]
 
 > [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
@@ -256,9 +262,10 @@ keyword `toKeyword` answers for it [QSCND#convert]: a keyword as it is, a
 string or a number under the keyword of its text, a boolean or null
 under that of its literal, a tag name under that of its name, and without
 a key an element is its own. A key of another kind is refused at its
-element under the verb as `…/KeyKindNotTakenError`, its `:expected` the
-kinds a key files under, and two values that file under one keyword meet,
-the second refused as `KeyTakenError`, its `:key` the keyword and
+element under the verb as `…/KeyAnswerKindNotTakenError`, its `:expected`
+the kinds a key files under, a key that is no code refused under the input
+as `…/KeyKindNotTakenError`, and two values that file under one keyword
+meet, the second refused as `KeyTakenError`, `key | answer` the keyword and
 `:taken` the value that filed under it first, the path of the step's
 frame naming the element in each [QSERR#trace].
 

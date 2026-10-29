@@ -33,12 +33,10 @@ import Base from "../layouts/Base.astro"
               id="editor"
               spellcheck="false"
               autocomplete="off"
-              placeholder="Type qlang queries here...
+              placeholder="Type a qlang text here: its declarations, each ended by ;, and the query after them.
 
-[1 2 3 4 5] | filter ~(gt 2) | count
-
-:number/double ~(mul 2)
-| [10 20 30] | map ~double"
+:number/double ~(mul 2);
+[10 20 30] | map ~double | filter ~(gt 30)"
             ></textarea>
           </div>
         </div>
@@ -230,26 +228,19 @@ import Base from "../layouts/Base.astro"
       const source = editor.value.trim();
       if (!source) return;
 
-      // Split by blank lines into the cells it holds, which run in one
-      // notebook, a name one declares staying for the cells after it.
-      const cells = source.split(/\n\s*\n/).filter(s => s.trim());
+      // The text runs as one cell: its declarations, each ended by `;`, and
+      // the query after them, an empty line a space among it [QSSYN#line].
       const notebook = await createNotebook({ scope });
-
-      const entries: HTMLElement[] = [];
-      for (const cell of cells) {
-        const { text: printed, failed } = await cellShown(await notebook.evalCell(cell.trim()));
-        const entry = document.createElement('div');
-        entry.className = 'pg-entry';
-        const highlighted = highlightQlang(cell.trim(), rootVerbNames)
-          .replace(/\n/g, '<br>');
-        const highlightedResult = highlightQlang(printed, rootVerbNames);
-        entry.innerHTML = `
-          <div class="pg-source">${highlighted}</div>
-          <div class="${failed ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>
-        `;
-        entries.push(entry);
-      }
-      results.prepend(...entries);
+      const { text: printed, failed } = await cellShown(await notebook.evalCell(source));
+      const entry = document.createElement('div');
+      entry.className = 'pg-entry';
+      const highlighted = highlightQlang(source, rootVerbNames).replace(/\n/g, '<br>');
+      const highlightedResult = highlightQlang(printed, rootVerbNames);
+      entry.innerHTML = `
+        <div class="pg-source">${highlighted}</div>
+        <div class="${failed ? 'pg-error' : 'pg-value'}">${highlightedResult}</div>
+      `;
+      results.prepend(entry);
       results.scrollTop = 0;
     }
 

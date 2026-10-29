@@ -37,7 +37,7 @@
         ~~|
     | proves :reachesPayload
         |~~ A box answers `payload`. ~~|
-        ~(:Box |~~ A box. ~~| | ::Box[1 2] | payload | eq [1 2])
+        ~(:Box |~~ A box. ~~|; ::Box[1 2] | payload | eq [1 2])
     | proves :readsAsAConstructStep
         |~~ The step `::Box[1 2]` is a `::construct`. ~~|
         ~(~(::Box[1 2]) | first | tag | eq ::construct)
@@ -45,7 +45,7 @@
         |~~ No value is put under `::tagged`, and a value under a tag is of
             it already.
         ~~|
-        ~(get [~(5 | tag ::tagged !| tag) ~(::Box#5 | tag ::tagged)] | eq [::tagged/PayloadKindNotTakenError ::Box#5])
+        ~(get [~(5 | tag ::tagged !| tag) ~(::Box#5 | tag ::tagged)] | eq [::tagged/PayloadKindNotTakenError ::Box#5]);
 
 :tagged/within
   |~~ Answers the subject with code run beneath its tag: the quote the
@@ -88,7 +88,7 @@
         ~~|
     | proves :keepsTheTag
         |~~ The edit returns under the tag. ~~|
-        ~(:Box |~~ A box. ~~| | ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+        ~(:Box |~~ A box. ~~|; ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
     | proves :editsASetAsItsVector
         |~~ Code runs on a set as on its vector, and its answer comes back
             a set.
@@ -98,15 +98,15 @@
         |~~ An answer the tag's invariant refuses is refused as it goes
             back under the tag.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5) !| tag | eq ::Pos/NotPositiveError)
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3 | within ~(sub 5) !| tag | eq ::Pos/NotPositiveError)
     | proves :keepsItsNamesInside
-        |~~ A name the code binds stays inside it: the prices shift down by
-            the lowest one, which names nothing after the call.
+        |~~ A name `with` gives the code stays inside it: the prices shift
+            down by the lowest one, which names nothing after the call.
         ~~|
-        ~(::Prices[30 10 20] | within ~(:low (min) | map ~(sub low)) | get [~(it) ~(env | has :low)] | eq [::Prices[20 0 10] false])
+        ~(::Prices[30 10 20] | within ~(with {:low ~min} ~(map ~(sub low))) | get [~(it) ~(::host | env | has :low)] | eq [::Prices[20 0 10] false])
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
-        ~(:Box |~~ A box. ~~| | ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
+        ~(:Box |~~ A box. ~~|; ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
     | proves :CodeKindNotTakenError/refusesANumber
         |~~ A number computed at the call is refused. ~~|
         ~(#[3 1] | within 1 !| get [~(tag) ~(code | found | tag)] | eq [::tagged/within/CodeKindNotTakenError ::number])
@@ -121,6 +121,6 @@
         |~~ The steps between may break the tag's invariant, and the
             answer alone is checked.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)) | ::Pos#3 | within ~(sub 5 | add 10) | eq ::Pos#8)
-    | impl ::builtin{}
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3 | within ~(sub 5 | add 10) | eq ::Pos#8)
+    | impl ::builtin{};
 

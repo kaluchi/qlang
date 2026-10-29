@@ -31,15 +31,17 @@ export function parseSource(source, opts = {}) {
   }
   const commentTrivia = new Map();
   const uri = opts.uri ?? 'inline';
+  const read = { commentTrivia, grammarSource: uri };
   let root;
   try {
-    root = peggyParse(source, { commentTrivia, grammarSource: uri });
+    root = peggyParse(source, read);
   } catch (err) {
     // [QSQUO#step], [QSSYN#refusal]
     if (!(err instanceof PeggySyntaxError)) throw err;
     const atTheEnd = err.expected !== null && err.found === null;
-    const unclosed = atTheEnd || (err.expected !== null && source.includes(COMMENT_OPENER)) ? bracketLeftOpen(source) : null;
-    const sentence = unclosed?.message ?? (atTheEnd ? stepMissedAtTheEnd(source) : undefined);
+    const missed = atTheEnd ? read.stepMissed : undefined;
+    const unclosed = missed === undefined && (atTheEnd || (err.expected !== null && source.includes(COMMENT_OPENER))) ? bracketLeftOpen(source) : null;
+    const sentence = missed !== undefined ? `\`${missed}\` joins two steps, and the step after it is missing` : unclosed?.message ?? spaceNotRead(err);
     const location = unclosed === null || atTheEnd ? err.location : endOf(source, err.location.source);
     throw new SourceParseError(sentence ?? (err.expected === null ? err.message : expectedSentence(err.expected, err.found)), location, opts.uri ?? null, {
       expected: unclosed?.expected ?? err.expected,
@@ -52,6 +54,13 @@ export function parseSource(source, opts = {}) {
   root.uri = uri;
   root.comments = [...commentTrivia.values()].sort((left, right) => left.location.start.offset - right.location.start.offset);
   return keepParts(root).value;
+}
+
+// [QSSYN#refusal]
+function spaceNotRead({ expected, found }) {
+  if (expected === null || found === null || !/^\s$/u.test(found) || /^[ \t\n\r]$/.test(found)) return undefined;
+  const codePoint = `U+${found.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`;
+  return `${codePoint} is a space of Unicode that qlang reads as no whitespace: its whitespace is a space, a tab or a line break`;
 }
 
 function endOf(source, grammarSource) {
@@ -102,12 +111,6 @@ function attemptOf(candidate) {
 function blockClosedAt({ commentTrivia, nestedBlocks }, offset) {
   for (const { location } of commentTrivia.values()) if (location.end.offset === offset) return location.start;
   return nestedBlocks.get(offset) ?? null;
-}
-
-// [QSSYN#combinator]
-function stepMissedAtTheEnd(source) {
-  const combinator = /(?:^|\s)(!?\|)\s*$/.exec(source)?.[1];
-  return combinator === undefined ? undefined : `\`${combinator}\` joins two steps, and the step after it is missing`;
 }
 
 function completionOf(source) {

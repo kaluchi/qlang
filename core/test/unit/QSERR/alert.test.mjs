@@ -36,7 +36,7 @@ describe('a host prints a failure as the concentrate of its facts', () => {
 
   it('shows the views of a trace past the room that fit, a view that answers nothing left out', async () => {
     const { keep } = keeping();
-    const alert = await alertOf('kinds | add 1', keep);
+    const alert = await alertOf('::host | kinds | add 1', keep);
     expect([[...alert.facts.keys()], printValue(alert.facts.get('trace/failed'))]).toEqual([['subject/expected', 'subject/found', 'subject/found/tag', 'subject/found/count', 'subject/found/shape', 'subject/found/first', 'subject/found/last', 'trace', 'trace/tag', 'trace/failed'], '[~(add 1)]']);
   });
 
@@ -70,13 +70,13 @@ describe('a host prints a failure as the concentrate of its facts', () => {
 describe('the excerpt of a refusal read back', () => {
   it('answers the facts by their names, a cell among them, its tag the refusal\'s', async () => {
     const { keep } = keeping();
-    const alert = await alertOf('kinds | add 1', keep);
-    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(subject | found | tag) ~(payload | get /:subject/found/count | eq (kinds | count)) ~(trace | tag) ~(payload | get /:trace/failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::cell true ::cell [~(add 1)]]'));
+    const alert = await alertOf('::host | kinds | add 1', keep);
+    expect(await evalQuery(`${printValue(alert)} | get [~(tag) ~(subject | found | tag) ~(payload | get /:subject/found/count | eq (::host | kinds | count)) ~(trace | tag) ~(payload | get /:trace/failed)]`)).toEqual(await evalQuery('[::number/add/SubjectNotNumberError ::cell true ::cell [~(add 1)]]'));
   });
 
   it('is refused by raise, which raises no excerpt', async () => {
     const { keep } = keeping();
-    const alert = await alertOf('kinds | add 1', keep);
+    const alert = await alertOf('::host | kinds | add 1', keep);
     expect((await evalQuery(`${printValue(alert)} | raise !| tag`)).name).toBe('any/raise/SubjectKindNotTakenError');
   });
 

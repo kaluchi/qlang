@@ -1,21 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import * as core from '../../../src/index.mjs';
-import { evalQuery, createNotebook } from '../../../src/notebook.mjs';
+import { evalQuery } from '../../../src/notebook.mjs';
 import { printValue } from '../../../src/print-value.mjs';
 import { makeBinding, makeKeyword, makeTag, makeTagged, makeErrorValue } from '../../../src/types.mjs';
 import { compareValues } from '../../../src/ordering.mjs';
 
-it('prints every part of a kind of the root by the print a host source declares under its label, bare or under a tag', async () => {
-  const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':number/print ~("h")' }] });
-  expect((await notebook.evalCell('[::Box#5 7 "s"] | print')).result).toBe('[h h "s"]');
-});
 
 const NUMBERS = ['0', '-0', '1', '-1.5', '0.1', '1e10', '1e21', '1e-7', '5e-324', '1.7976931348623157e308', '-2.5e-3'];
 const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\\nbreak"', '"tab\\t"', '"ünïcödé"', '"\\u0001"', '"~(not code)"', '"|~ c ~|"', '"::T"'];
 const KEYWORDS = [':a', ':ab-c', ':_x', ':e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
 const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
 const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
-const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1 | x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3 | take n', ':x ::number | mul x 2'];
+const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1; x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3; take n', ':x ::number; mul x 2'];
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
@@ -106,7 +101,7 @@ function literalsOf(count, seed) {
     return computed(`(${noun}\n  | ${commands.join('\n  | ')})`);
   };
   const built = () => (random() < 0.5 ? chain('::fn', FN_COMMANDS, FN_RECIPES) : chain('::kind', KIND_COMMANDS, KIND_CONSTRUCTORS));
-  const underALabel = () => `:L |~~ L. ~~| | ${literal(2).text.replaceAll('::T', '::L')}`;
+  const underALabel = () => `:L |~~ L. ~~|; ${literal(2).text.replaceAll('::T', '::L')}`;
   return Array.from({ length: count }, () => (random() < 0.25 ? underALabel() : literal(2).text));
 }
 
@@ -137,45 +132,14 @@ describe('a binding record and a vector under a tag', () => {
   });
 });
 
-describe('the print declared under a kind', () => {
-  const BADGE_SOURCE = [
-    ':badge |~~ A badge. ~~|',
-    ':badge/print',
-    '  |~~ A badge as its name. ~~|',
-    '  ~(get /name)'
-  ].join('\n');
-
-  async function badgeSession() {
-    return await createNotebook({ sources: [{ uri: 'badge', source: BADGE_SOURCE }] });
-  }
-
-  it('takes the print of a part from the kind of that part', async () => {
-    const notebook = await badgeSession();
-    const printed = await notebook.evalCell('[::badge{:name "ok"} {:k ::badge{:name "no"}} 1] | print');
-    expect(printed.result).toBe('[\n  ok\n  {\n    :k no\n  }\n  1\n]');
-  });
-
-  it('takes the print of a kind for a part inside an error at rest, under a tag of its own or none', async () => {
-    const notebook = await badgeSession();
-    expect((await notebook.evalCell('[::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  !{\n    :k in\n  }\n]');
-    expect((await notebook.evalCell('[::Box::error{:k ::badge{:name "in"}}] | print')).result).toBe('[\n  ::Box!{\n    :k in\n  }\n]');
-  });
-
-  it('prints what a kind answers that is no string as the value it is', async () => {
-    const notebook = await badgeSession();
-    const printed = await notebook.evalCell('get [~(5 | tag ::badge)] | print');
-    expect(printed.result).toContain('::path/SubjectHasNoPartsError!{');
-  });
-});
-
 it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-  expect(await evalQuery(':number/f ~(add 1) | :T |~~ A kind. ~~| | :T/v |~~ The v of a T. ~~| | env | eq (print | parse | answer)')).toBe(true);
-  expect(await evalQuery('apply ~(:T |~~ A kind. ~~| | :T/v 5 | env | eq (print | parse | answer))')).toBe(true);
+  expect(await evalQuery(':number/f ~(add 1); :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; ::host | env | eq (print | parse | answer)')).toBe(true);
+  expect(await evalQuery('apply ~(:T |~~ A kind. ~~|; :T/v 5; ::host | env | eq (print | parse | answer))')).toBe(true);
 });
 
 describe('printing steps read from text', () => {
   it('a doc in the slot of a declaration prints in its slot', async () => {
-    expect(await evalQuery('~(:x |~~ note ~~| it) | toString')).toBe(':x |~~ note ~~| it');
+    expect(await evalQuery('~(:x |~~ note ~~| it;) | toString')).toBe(':x |~~ note ~~| it;');
   });
 
   it('a key that is no bare name prints quoted, a keyword of names joined by a slash behind a colon', async () => {

@@ -73,8 +73,8 @@ describe('multi-line blocks', () => {
 
   it('a query of several lines: prompt + continuation share highlighting context', () => {
     const src = [
-      '> :double mul 2',
-      '  | [10 20] | map ~double'
+      '> :double ~(mul 2);',
+      '  [10 20] | map ~double'
     ].join('\n');
     const lines = fmt(src).split('\n');
     // prompt line has the > prompt prefix
@@ -131,11 +131,11 @@ describe('a name', () => {
   });
 
   it('is a declaration where a declaration writes it', () => {
-    expect(hl(':x 1')).toContain('<span class="declaration">:x</span>');
+    expect(hl(':x 1;')).toContain('<span class="declaration">:x</span>');
   });
 
   it('is a name where it calls a reader\'s, and wherever no names of the root\'s words are handed', () => {
-    const out = hl(':double mul 2 | 10 | double');
+    const out = hl(':double mul 2; 10 | double');
     expect(out).toContain('<span class="name">double</span>');
     expect(highlightQlang('count', null)).toBe('<span class="name">count</span>');
   });

@@ -20,7 +20,7 @@
       which checks nothing and lays itself over the value. Tags rank after
       keywords and before paths, and JSON writes a tag as its literal,
       `"::Box"`.
-      ::snippet~(kinds) lists the kinds the scope reads, and
+      ::snippet~(::host | kinds) lists the kinds the scope reads, and
       ::snippet~(::Box::Crate{:width 2} | tag) answers the outer tag.
       ::link~(::qlang/values)
   ~~|
@@ -44,7 +44,7 @@
         ~(::tag::Box | eq ::Box)
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [~(tag) ~(found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword])
+        ~(::tag:k !| get [~(tag) ~(found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword]);
 
 :tag/toString
   |~~ Answers the name of the tag as a string, `::vec | toString`
@@ -57,7 +57,7 @@
     | proves :answersTheName
         |~~ A tag answers its name. ~~|
         ~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :tag/toKeyword
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
@@ -70,7 +70,7 @@
     | proves :readsBack
         |~~ A tag turned into its keyword turns back into itself. ~~|
         ~(::Box | toKeyword | toTag | eq ::Box)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :tag/toTag
   |~~ Answers the tag itself, so `map ~toTag` turns names and tags into
@@ -83,5 +83,5 @@
     | proves :answersItself
         |~~ A tag answers itself, so names and tags turn into tags. ~~|
         ~(["vec" :Box ::map] | map ~toTag | eq [::vec ::Box ::map])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

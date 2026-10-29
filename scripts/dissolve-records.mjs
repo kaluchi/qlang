@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './reconciliation.mjs';
+import { commentRanges } from './comments.mjs';
 import { JOURNAL } from './decision-records.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
@@ -38,6 +39,18 @@ function sectionLink(fromPath, section) {
   const [chapter, anchor] = section.split('#');
   const target = relative(dirname(join(repoRoot, fromPath)), join(repoRoot, 'docs', 'spec', specOf(chapter))).split('\\').join('/');
   return `[${section}]: ${target}${anchor === undefined ? '' : `#${anchor}`}`;
+}
+
+// A citation of the code names the section in its comments alone, as
+// `marks.mjs` reads them, a string of the code kept [QSREQ#marks].
+function sectionCitedInComments(path, text, name, section) {
+  let written = '';
+  let at = 0;
+  for (const { start, end } of commentRanges(path, text)) {
+    written += text.slice(at, start) + citedOnce(text.slice(start, end).replaceAll(`[${name}]`, `[${section}]`), section);
+    at = end;
+  }
+  return written + text.slice(at);
 }
 
 // A citation of the record names its section, once in a run, and the one
@@ -74,7 +87,7 @@ for (const name of names) {
   for (const path of citing) {
     rewrite(path, text => {
       if (!text.includes(`[${name}]`)) return text;
-      if (sections.length === 1) return sectionCited(path, text, name, sections[0]);
+      if (sections.length === 1) return isCitingCode(path) ? sectionCitedInComments(path, text, name, sections[0]) : sectionCited(path, text, name, sections[0]);
       text.split('\n').forEach((line, index) => { if (line.includes(`[${name}]`)) left.push(`${path}:${index + 1}`); });
       return text;
     });

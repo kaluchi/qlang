@@ -8,7 +8,7 @@ it('refuses in every spelling a generic word the texts write in no sense: in pro
     'a pattern of text', 'Patterns', 'core/src/pattern.mjs', 'PATTERN_FLAGS', 'patternProblem', 'refuseUnreadPattern', ':TextNotPatternError/refusesARegex', 'a-pattern-has-no-string',
     'the outline of a value', ':answersTheOutline', 'OUTLINES', 'an outlined box',
     'a marker of a comment', 'Markers', 'stripPasteMarkers', 'a-marker-prints-on-one-line',
-    'in its place', 'the place of the args', 'Places', 'get-refuses-a-place-past-the-end', ':refusesAPlacePastTheEnd', 'placeIn', 'mergedPlaces', 'MISSED_PLACE',
+    '::stdio | in its place', 'the place of the args', 'Places', 'get-refuses-a-place-past-the-end', ':refusesAPlacePastTheEnd', 'placeIn', 'mergedPlaces', 'MISSED_PLACE',
     'the trail of a failure', 'Trails', 'makeTrail', 'TRAIL_TAG', 'KEY_TRAILS',
     'the kernel', 'a sigil', 'mints a tag', 'minted', 'deflects', 'a deflection', 're-lift', 'relifted', 'fail-apply', 'a plain comment'
   ]) expect(refused(text), text).toBe(true);
@@ -165,4 +165,11 @@ it('refuses the names the cut of a value to a budget once had', () => {
 
 it('leaves the excerpt, the concentrate of a failure and the words beside the cut', () => {
   for (const text of ['excerpt', '::excerpt', 'x | excerpt 4000', 'the concentrate of a failure', 'an ellipsis on each side', 'delight', 'the alert of a failure']) expect(refused(text), text).toBe(false);
+});
+it('refuses the names the tag of a value, the facts of a refusal and the page of a value once had', () => {
+  for (const text of ['typeOf(value)', ':actualType', 'leftType', 'rightType', '`explain`', 'x | explain', 'any/explain', '::explanation', ':actualTag', 'actualValue', 'refusingTheSubject']) expect(refused(text), text).toBe(true);
+});
+
+it('leaves the tag of a value, the tags two values part at, the page and the value a rule met', () => {
+  for (const text of ['tagOf(value)', ':leftTag', ':rightTag', 'x | doc', 'found | tag', 'the subject refused']) expect(refused(text), text).toBe(false);
 });

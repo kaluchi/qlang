@@ -1,4 +1,4 @@
 {"name":"a-binding-names-the-source-it-came-from","query":"::vec/filter | binding | origin","expect":":qlang/vec"}
-{"name":"kinds-answers-the-labels-the-scope-reads","query":":Box |~~ Box. ~~| | kinds | get [~(has ::vec) ~(has ::Box) ~(has ::qlang)]","expect":"[true true true]"}
+{"name":"kinds-answers-the-labels-the-scope-reads","query":":Box |~~ Box. ~~|; ::host | kinds | get [~(has ::vec) ~(has ::Box) ~(has ::qlang)]","expect":"[true true true]"}
 {"name":"a-binding-records-its-origin","query":"::number/add | binding | origin","expect":":qlang/number"}
-{"name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":"apply ~(:vec 5 | get [~(kinds | has ::vec)] | append (env | get /vec | value))","expect":"[true 5]"}
+{"name":"kinds-reads-a-kind-of-the-root-a-reader-stands-over","query":"apply ~(:vec 5; get [~(::host | kinds | has ::vec)] | append (::host | env | get /vec | value))","expect":"[true 5]"}

@@ -1,4 +1,5 @@
-|~ `::error`, the kind every error is a value of, and what is declared
+|~ `::error`, the kind of the errors at rest a reader writes and of the
+   facts beneath the tag of a refusal, and what is declared
    under it: the refusal of a payload that is no map, and its laws. The
    error at rest, the value a catch holds of a failure, is `::error{…}`,
    or the tag of the refusal that refused over it, which its kind closes,
@@ -9,9 +10,8 @@
   |~~ An error is the facts of a failure as a value: what refused, on
       what, and the trace the failure left, under the tag of the site
       that refused, which names the page that tells how to repair the
-      call. A step that fails answers an error raised, a failure; a
-      reader learning a tool fails often, and the failure brings what
-      the reader needs at the moment it is cheapest to give.
+      call. A step that fails answers an error raised, a failure, which
+      carries the repair where it is met.
 
       An error at rest is written with a bang, `!{:reason :late}`, the
       tag of its site before the bang, `::Late!{:by 3}`; it is
@@ -27,8 +27,9 @@
 
       Raised by `raise`, an error is a failure, which lives in the pipe
       alone; a host prints it as its error at rest, the trace it left
-      among its facts, and as the excerpt of its facts, `::error::excerpt{…}`
-      under its tag, where a fact passes the room of a fact, under the line
+      among its facts, and as the excerpt of its facts under the tag of
+      its refusal, `::X::excerpt{…}`, `::error::excerpt{…}` for a failure of
+      no refusal, where a fact passes the room of a fact, under the line
       `|~| raised, and no !| caught it`, which a reading passes over, so
       the print raised flies on from that trace; a query that does not
       parse flew no step and prints its facts alone.
@@ -100,5 +101,5 @@
         ~(::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count) ~(raise !| tag)] | eq [::error 5000 ::any/raise/SubjectKindNotTakenError])
     | proves :readsAnErrorAtRestAsItself
         |~~ The kind of errors over an error at rest is that error. ~~|
-        ~(!{:by 3} | tag ::error | eq !{:by 3})
+        ~(!{:by 3} | tag ::error | eq !{:by 3});
 

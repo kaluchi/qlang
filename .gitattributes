@@ -2,7 +2,7 @@
 # lines reads, whatever line endings a checkout writes.
 *.qlang text eol=lf
 
-# The entry of the command line keeps the line feed an install writes into
+# The entry of the playground keeps the line feed an install writes into
 # its first line, so the worktree a run of the research installs stays as
 # its commit holds it [QSRVW#readers].
-cli/src/bin.mjs text eol=lf
+playground/src/bin.mjs text eol=lf

@@ -6,7 +6,8 @@ of the language core plus tooling workspaces.
 ```
 qlang/                  ← this repo
 ├── core/               @kaluchi/qlang-core   — language core, pure JS, zero runtime deps
-├── cli/                @kaluchi/qlang-cli    — command line and REPL, `qlang` and `ql`
+├── stdio/              @kaluchi/qlang-stdio  — the streams a host on the command line installs, `::stdio`
+├── playground/         @kaluchi/qlang-playground — the playground of the command line, `qplay`, and its REPL, a demo
 ├── lsp/                @kaluchi/qlang-lsp    — language server
 ├── site/               @kaluchi/qlang-site   — Astro site, private: a landing page and a playground
 ├── vscode/             qlang-vscode          — editor extension, unpublished, running the language server of the checkout
@@ -29,7 +30,7 @@ npm run ci                               # every gate a push must pass
 
 ## Documentation
 
-The language documents itself: `qlang '::qlang | doc'` opens the first
+The language documents itself: `qplay '::qlang | doc'` opens the first
 page, whose links lead to every concept, kind and verb, each page a doc
 whose laws run. A host embedding the core reads
 [core/README.md](core/README.md).
@@ -40,7 +41,8 @@ whose laws run. A host embedding the core reads
 node scripts/release.mjs <version>
 ```
 
-Bumps the core and the command line and the sibling ranges, rebuilds,
+Bumps the workspaces the Deploy workflow publishes and the sibling
+ranges, rebuilds,
 runs the tests,
 commits, pushes, waits for CI and tags; the Deploy workflow publishes
 from the pushed tag to npm and creates the GitHub Release.

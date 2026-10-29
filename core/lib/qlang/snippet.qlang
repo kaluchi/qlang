@@ -30,5 +30,5 @@
         ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | answer | has ::vec/count)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A snippet is a quote. ~~|
-        ~(::snippet"x" !| tag | eq ::snippet/PayloadKindNotTakenError)
+        ~(::snippet"x" !| tag | eq ::snippet/PayloadKindNotTakenError);
 

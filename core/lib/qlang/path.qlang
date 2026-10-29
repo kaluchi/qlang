@@ -112,6 +112,11 @@
         ~~|
         ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
           | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+    | proves :TagClosedError/refusesAPathBeneathAWiredTag
+        |~~ No path reads beneath the tag of a value whose kind wires its
+            parts, which its names read.
+        ~~|
+        ~("x" | add 1 !| trace | first | get [~(get /subject !| tag) ~(subject)] | eq [::path/TagClosedError "x"])
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | tag | eq ::path)
@@ -173,7 +178,7 @@
         ~(#[:tea :cake :jam] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
-        ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"])
+        ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"]);
 
 :path/segments
   |~~ Answers the keys and indices of the path, an index as its number
@@ -189,7 +194,7 @@
     | proves :readsBackByToPath
         |~~ The segments build the path back. ~~|
         ~(/items/0 | segments | toPath | print | eq "/items/0")
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :path/toPath
   |~~ Answers the path itself, so `map ~toPath` turns paths, the vectors of
@@ -206,5 +211,5 @@
     | proves :answersUnderItsTags
         |~~ A path under a tag answers under the tag. ~~|
         ~(::Field#/age | toPath | eq ::Field#/age)
-    | impl ::builtin{}
+    | impl ::builtin{};
 

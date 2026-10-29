@@ -32,7 +32,7 @@
         ~(::boolean#false | eq false)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number is no boolean and is refused. ~~|
-        ~(::boolean#1 !| get [~(tag) ~(found | tag)] | eq [::boolean/PayloadKindNotTakenError ::number])
+        ~(::boolean#1 !| get [~(tag) ~(found | tag)] | eq [::boolean/PayloadKindNotTakenError ::number]);
 
 :boolean/not
   |~~ Answers the other boolean, `true | not` answering `false`, and so
@@ -86,7 +86,7 @@
     | proves :ArgsBeyondInputsError/refusesAConditionGiven
         |~~ A condition given to the call is refused under the verb. ~~|
         ~(true | not (eq 5) !| tag | eq ::boolean/not/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :boolean/and
   |~~ Answers whether the subject and the condition the call gives both
@@ -150,7 +150,7 @@
             so a comparison of the element there is refused.
         ~~|
         ~([1 2 3] | filter ~(gt 1 | and (lt 3)) !| get [~(tag) ~(leftTag)] | eq [::call/KindsMismatchedError ::boolean])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :boolean/or
   |~~ Answers whether the subject or the condition the call gives holds,
@@ -214,7 +214,7 @@
             so a comparison of the element there is refused.
         ~~|
         ~([1 2 3] | filter ~(gt 1 | or (lt 3)) !| get [~(tag) ~(leftTag)] | eq [::call/KindsMismatchedError ::boolean])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :boolean/toString
   |~~ Answers the literal of the boolean as a string, `true | toString`
@@ -226,7 +226,7 @@
     | proves :writesTheLiteral
         |~~ A boolean answers its literal. ~~|
         ~([true false] | map ~toString | eq ["true" "false"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :boolean/toKeyword
   |~~ Answers the keyword of the boolean's literal, `true | toKeyword`
@@ -241,5 +241,5 @@
             under.
         ~~|
         ~([1 2 3] | groupBy ~(gt 1) | query (true | toKeyword) | eq [2 3])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

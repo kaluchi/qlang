@@ -14,7 +14,6 @@ import {
   isFrame,
   isTrace,
   ERROR_TAG,
-  LEGEND_TAG,
   formOf,
   refuseForeign,
   TAG_HEADER_SYMBOL,
@@ -53,9 +52,9 @@ const PRINT_HANDLERS = {
   regex:   printRegex,
   path:    printPath,
   error:   printErrorValue,
-  vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine, v.some(isLegend)),
+  vec:     (v, indent, printedOf, oneLine) => printListLike('[', v, indent, printedOf, oneLine, v.some(part => printedAhead(printedOf, part))),
   map:     (m, indent, printedOf, oneLine) => printMapLike('{', m, indent, printedOf, oneLine),
-  set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine, s.some(isLegend)),
+  set:     (s, indent, printedOf, oneLine) => printListLike('#[', s, indent, printedOf, oneLine, s.some(part => printedAhead(printedOf, part))),
   quote:   (q, indent, printedOf, oneLine) => printQuote(q, oneLine ? { oneLine, printedOf } : AS_WRITTEN),
   doc:     (d, indent) => printDoc(d, indent),
   underTag: printUnderTag
@@ -66,16 +65,16 @@ function printQuote(quote, view) {
   return isPathAlone(quote) ? `::quote[${printPath(quote[0])}]` : '~(' + printQuoteSource(quote, view) + ')';
 }
 
-const printedByNoKind = () => undefined;
+const nothingPrintedAhead = () => undefined;
 
-export function printValue(v, indent = 0, printedOf = printedByNoKind, oneLine = false) {
+export function printValue(v, indent = 0, printedOf = nothingPrintedAhead, oneLine = false) {
   const printed = printedOf(v);
   if (printed !== undefined) return printed.split('\n').join('\n' + '  '.repeat(indent));
   return dispatchQlangValue(v, PRINT_HANDLERS, indent, printedOf, oneLine);
 }
 
-// [QSPRN#legend]
-const isLegend = value => value?.[TAG_HEADER_SYMBOL]?.name === LEGEND_TAG.name;
+// [QSPRN#print]
+const printedAhead = (printedOf, part) => printedOf(part) !== undefined;
 
 // [QSPRN#print]
 function printListLike(open, elements, indent, printedOf, oneLine = false, stacked = false) {
@@ -101,7 +100,7 @@ export function underTagLiteral(tagLiteral, payload, payloadPrint) {
 // [QSERR#rest]
 function printUnderTag(tagged, indent, printedOf, oneLine) {
   const tagLiteral = tagged[TAG_HEADER_SYMBOL].literal;
-  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), (isTrace(tagged) && tagged.length > 1) || tagged.some(isLegend));
+  if (Array.isArray(tagged)) return tagLiteral + printListLike('[', [...tagged], indent, printedOf, oneLine || isFrame(tagged), (isTrace(tagged) && tagged.length > 1) || tagged.some(part => printedAhead(printedOf, part)));
   if (isOfTheKindOfErrors(tagged)) return printMapLike('!{', tagged, indent, printedOf, oneLine);
   if (tagged instanceof Map) return tagLiteral + printMapLike('{', tagged, indent, printedOf, oneLine);
   return underTagLiteral(tagLiteral, tagged.payload, printValue(tagged.payload, indent, printedOf, oneLine));
@@ -110,7 +109,7 @@ function printUnderTag(tagged, indent, printedOf, oneLine) {
 // [QSPRN#print]
 function printMapLike(open, m, indent, printedOf, oneLine = false) {
   const entries = [...m];
-  const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v) || isLegend(v));
+  const hasComposite = entries.some(([, v]) => isMap(v) || isVec(v) || printedAhead(printedOf, v));
   if (oneLine || (entries.length <= 2 && !hasComposite)) {
     return `${open}${entries.map(([k, v]) => `${canonicalKeywordLiteral(k)} ${printValue(v, indent, printedOf, oneLine)}`).join(' ')}}`;
   }
@@ -134,16 +133,20 @@ function printDoc(doc, indent) {
 export const asPrinted = { of: value => printValue(value), quoting: literal => printStep(literal, true), computesWithin };
 
 // [QSQUO#parse], [QSPRN#print]
-const AS_WRITTEN = { oneLine: false, printedOf: printedByNoKind };
+const AS_WRITTEN = { oneLine: false, printedOf: nothingPrintedAhead };
 
+// [QSQUO#parse]
 export function printQuoteSource(steps, view = AS_WRITTEN) {
   const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view), source: step }));
   const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
+  const firstOfTheQuery = steps.findIndex(step => !isBindStep(step));
+  const declarations = firstOfTheQuery === -1 ? steps.length : firstOfTheQuery;
   return printed.map(({ fail, step, source }, index) => {
     if (fail !== undefined) return `${index === 0 ? '' : gap}!| ${fail}`;
-    const head = index === 0 ? '' : `${gap}| `;
-    return head + (view.oneLine || !passesTheLine(head + step) ? step : stepOnLines(source, view) ?? step);
+    const head = index === 0 ? '' : index <= declarations ? gap : `${gap}| `;
+    const end = index < declarations ? ';' : '';
+    return head + (view.oneLine || !passesTheLine(head + step + end) ? step : stepOnLines(source, view) ?? step) + end;
   }).join('');
 }
 

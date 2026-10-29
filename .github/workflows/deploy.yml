@@ -17,17 +17,18 @@ jobs:
       contents: read
       id-token: write
     strategy:
-      # Core is built first — other workspaces that import from it
-      # at test time need the generated artefacts. Serial publish
-      # keeps the npm-registry transition visible per package.
+      # One package is published at a time, in the order the matrix
+      # names them, each job building the core it imports.
       max-parallel: 1
       fail-fast: true
       matrix:
         include:
           - workspace: "@kaluchi/qlang-core"
             dir: core
-          - workspace: "@kaluchi/qlang-cli"
-            dir: cli
+          - workspace: "@kaluchi/qlang-stdio"
+            dir: stdio
+          - workspace: "@kaluchi/qlang-playground"
+            dir: playground
     steps:
       - uses: actions/checkout@v7
 

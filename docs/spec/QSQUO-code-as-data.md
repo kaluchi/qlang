@@ -49,9 +49,9 @@ the same step; a step of the fail track under `::fail`; a group as its quote
 under `::group`; and any other value as itself, a literal, the step that
 stands as the value it writes, a regex, the error at rest `!{…}` writes
 and a doc, the quotes of its roles under the tags written before them,
-among them. `::fail` and a
-declaration stand in a pipeline alone, so inside a container, a field or
-a payload a step is an element step. The parser reads a text into these
+among them. A declaration stands at the head of its text, before its
+query, and `::fail` in a pipeline alone, so inside a container, a field
+or a payload a step is a part of a literal. The parser reads a text into these
 records, building each through its constructor, and keeps beside them
 the span of every part it read, which a refusal and the tools
 read.
@@ -60,9 +60,12 @@ Each rule a step holds stands once, in the constructor of the record or
 of `::quote` that holds the step, which `tag ::quote` and the parser both
 go through, refusing under its holder: a value written as a later step on
 the success track as `::quote/StepNotCommandError`, its message naming
-the verb that takes the value, `get` a path and a container, `tag` a tag
-name, `apply` a quote, and any other value 'a step is a command'
-[QSSYN#step]; a part that computes inside a literal [QSLIT#closed], the
+the verb that takes the value, `get` a path, a container and a tagged
+literal, `tag` a tag name, `apply` a quote, and any other value 'a step
+is a command'
+[QSSYN#step], and a declaration after the first step of the query or on
+the fail track so, its message naming the head of the text; a part that
+computes inside a literal [QSLIT#closed], the
 payload of a tagged literal as `::construct/LiteralComputesError`, the
 value it refuses the map the record is built from, which reads back from
 its print, and an element or a field of a container step as
@@ -94,10 +97,10 @@ parser, which gives the path bare.
 > ~(add 1 !| 0) | query /1
 ::fail~(0)
 
-> ~(:rate |~~ The rate. ~~| it) | first | get /docs
+> ~(:rate |~~ The rate. ~~| it;) | first | get /docs
 [|~~ The rate. ~~|]
 
-> [~(:rate 1) ~(:rate |~~ The rate. ~~| 1) ~(:Box |~~ A box. ~~|)] | map ~(first | keys)
+> [~(:rate 1;) ~(:rate |~~ The rate. ~~| 1;) ~(:Box |~~ A box. ~~|;)] | map ~(first | keys)
 [#[:body :name] #[:body :docs :name] #[:docs :name]]
 
 > ~(::Box[1 2]) | first | get [~(tag) /tag /payload]
@@ -146,9 +149,11 @@ writes and without its brackets, `"5 |  mul   2" | parse | toString`
 answering `"5 | mul 2"`, and `parse` reads that text back as the quote,
 so a quote turned into text and read back is itself. A quote whose steps
 are all declarations, or of several steps one of which takes several
-lines, writes a step a line, each after the first led by its pipe, a
-step that takes several lines written on them, and any other quote
-writes its steps on one line; on one line, as a frame of a trace and a
+lines, writes a step a line, each declaration ended by its `;` and each
+step of the query after the first led by its pipe, a step that takes
+several lines written on them, and any other quote
+writes its steps on one line, a step past eighty characters laid on lines
+as [QSPRN#print] lays it; on one line, as a frame of a trace and a
 cell of a table print it, every quote writes each step and each part of
 it on one line [QSPRN#print]. Every text a quote prints reads back as
 the same quote.
@@ -160,8 +165,8 @@ the same quote.
 > ~(add 1 | mul 2) | get [~(toString) ~(print) ~(toString | parse | eq ~(add 1 | mul 2))]
 ["add 1 | mul 2" "~(add 1 | mul 2)" true]
 
-> ~(:rate 2 | :fee 5) | toString
-":rate 2\n| :fee 5"
+> ~(:rate 2; :fee 5;) | toString
+":rate 2;\n:fee 5;"
 
 > ~(add 1 | mul 2) | parse !| get [~(tag) ~(subject | found | tag)]
 [::string/parse/SubjectNotStringError ::quote]
@@ -191,7 +196,7 @@ its code answers, so a print reads back as the value it writes by
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
 8
 
-> {:id 7} | apply ~(:rate 2) | rate !| tag
+> {:id 7} | apply ~(:rate 2;) | rate !| tag
 ::call/UnknownNameError
 
 > 42 | apply 1 !| tag
@@ -218,9 +223,11 @@ A verb that runs a part per element, in its own order, or only when the
 part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 `reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
 the condition of `if`, which always runs, is a value. An input that
-takes code takes a quote or a path, a group that computes a quote among
-them, `apply` a function too, and refuses a value computed at the call
-that none of its kinds takes, a failure among it, one level under the
+takes code, one its function runs as code whatever kinds it names among
+them, the alternatives of `coalesce`, takes a quote or a path, beneath
+the tags over it, a group that computes a quote among them, `apply` a
+function too, and refuses a value computed at the call that none of its
+kinds takes, a failure among it, one level under the
 verb by the input's name raised, the value the input's `found`, but for a
 name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of
@@ -236,7 +243,7 @@ its modifier on as the answer of the call.
 > [1 2] | take (get /count) !| tag
 ::path/IndexNotIntegerError
 
-> [1 2] | apply ~(:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) | map plus !| tag)
+> [1 2] | apply ~(:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); map plus !| tag)
 ::vec/map/CodeKindNotTakenError
 ```
 
@@ -289,41 +296,41 @@ names the code reads near it as `:nearest`. Code that calls itself is a
 verb.
 
 ```qlang
-> [1 2] | apply ~(:bonus 10 | map ~(add bonus))
+> [1 2] | apply ~(:bonus 10; map ~(add bonus))
 [11 12]
 
-> :vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)) | [1] | apply ~(:bonus 10 | get [~(show ~(add bonus)) ~(show ~(add 1))])
-[~(:bonus 10 | add bonus) ~(add 1)]
+> :vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)); [1] | apply ~(:bonus 10; get [~(show ~(add bonus)) ~(show ~(add 1))])
+[~(:bonus 10; add bonus) ~(add 1)]
 
-> :vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)) | [1 2] | apply ~(:bonus 10 | twice ~(add bonus))
+> :vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); [1 2] | apply ~(:bonus 10; twice ~(add bonus))
 [21 22]
 
-> 5 | apply ~(:bonus 10 | get [~(get ::Late!{:by ~(add bonus)}) ~(get !{:by ~(add bonus)})])
+> 5 | apply ~(:bonus 10; get [~(get ::Late!{:by ~(add bonus)}) ~(get !{:by ~(add bonus)})])
 [::Late!{:by 15} !{:by 15}]
 
 > ~(add bonus) | eq ~(add bonus)
 true
 
-> apply ~(:vec 5 | get [~(env | has :vec) ~(vec)])
+> apply ~(:vec 5; get [~(::host | env | has :vec) ~(vec)])
 [false 5]
 
-> [1 5 10] | apply ~(:big ~(gt limit) | :limit 4 | filter big !| get [~(tag) ~(name)])
+> [1 5 10] | apply ~(:big ~(gt limit); :limit 4; filter big !| get [~(tag) ~(name)])
 [::call/ValueWithheldError :limit]
 
-> [1 2] | apply ~(:bonus 10 | get [~(map (~(add bonus)) !| tag) ~(:rule ~(add bonus) | map rule !| tag)])
+> [1 2] | apply ~(:bonus 10; get [~(map (~(add bonus)) !| tag) ~(:rule ~(add bonus); map rule !| tag)])
 [::call/ValueWithheldError ::call/ValueWithheldError]
 
-> 5 | apply ~(:rate 1 | :rule ~(:rate 2 | add rate) | apply rule)
+> 5 | apply ~(:rate 1; :rule ~(:rate 2; add rate); apply rule)
 7
 
-> :vec/tally ~(:count 7 | :rule ~(count) | apply rule) | [1 2 3] | tally !| query [~(tag) ~(name)]
+> :vec/tally ~(:count 7; :rule ~(count); apply rule); [1 2 3] | tally !| query [~(tag) ~(name)]
 [::call/ValueWithheldError :count]
 
-> [1 2] | apply ~(:bonus "x" | map ~(add bonus) !| trace | map ~failed)
+> [1 2] | apply ~(:bonus "x"; map ~(add bonus) !| trace | map ~failed)
 [~(add bonus) ~(map ~(add bonus))]
 
 > get [~(~(mul qty | add fee) | fill {:fee 5 :qty 3}) ~(5 | apply (~(add bonus) | fill {:bonus 10}))]
-[~(:qty 3 | :fee 5 | mul qty | add fee) 15]
+[~(:qty 3; :fee 5; mul qty | add fee) 15]
 
 > ~(add myaddend) | fill {:myadend 1} !| get [~(tag) ~(name) ~(nearest)]
 [::quote/fill/NamesNameNotReadError :myadend [:myaddend]]

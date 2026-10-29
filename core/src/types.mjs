@@ -303,7 +303,7 @@ export function tagsOver(value) {
   const tags = [];
   let part = value;
   for (; isValueClass(part, 'underTag'); part = part.payload) tags.push(part.tag.name);
-  const header = part[TAG_HEADER_SYMBOL];
+  const header = part?.[TAG_HEADER_SYMBOL];
   if (header !== undefined && !isKindOfTheCore(header.name)) tags.push(header.name);
   return tags;
 }
@@ -319,6 +319,21 @@ export class TagsInCommon {
     if (over.length > 0 && this.first === null) [this.first, this.tags] = [value, over];
     return over.length === 0 || sameTags(this.tags, over) ? null : this.first;
   }
+}
+
+// [QSCND#compare], [QSORD#desc]
+const kindBeneath = value => {
+  const beneath = beneathTags(value);
+  return isMap(beneath) ? CORE_KIND.map.name : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec.name : tagOf(beneath).name;
+};
+
+export function ofTwoKinds(left, right) {
+  const [lefts, rights] = [tagsOver(left), tagsOver(right)];
+  for (let depth = 0; depth < Math.max(lefts.length, rights.length); depth++) {
+    if (lefts[depth] !== rights[depth]) return true;
+    if (lefts[depth] === DESC_TAG.name) return false;
+  }
+  return kindBeneath(left) !== kindBeneath(right);
 }
 
 // [QSDSP#answer], [QSCND#compare]

@@ -84,7 +84,7 @@
     | proves :ElementKindNotTakenError/refusesAMap
         |~~ An element that is no frame is refused at its index. ~~|
         ~(::trace[{:failed ~(add 1)}] !| get [~(tag) ~(index)] | eq [::trace/ElementKindNotTakenError 0])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :trace/failed
   |~~ Answers the step that failed at each level of the trace, from the
@@ -100,7 +100,7 @@
     | proves :readsTheStepThatFailedAtEachLevel
         |~~ The step of each level, from the one that refused. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | failed | eq [~(mul 2) ~(map ~(mul 2))])
-    | impl ~(map ~failed)
+    | impl ~(map ~failed);
 
 :trace/subject
   |~~ Answers the subject the step that failed met, the value the frame
@@ -115,7 +115,7 @@
     | proves :readsTheSubjectTheStepMet
         |~~ The subject of the frame where the failure arose. ~~|
         ~("x" | add 1 !| trace | subject | eq "x")
-    | impl ~(first | subject)
+    | impl ~(first | subject);
 
 :trace/paths
   |~~ Answers the paths of the parts the verbs of its levels ran their code
@@ -131,4 +131,4 @@
     | proves :readsThePathsOfTheParts
         |~~ The path of the element `map` ran its code on. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | paths | eq [/1])
-    | impl ~(map ~path | filter ~(ne null))
+    | impl ~(map ~path | filter ~(ne null));

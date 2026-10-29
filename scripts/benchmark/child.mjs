@@ -1,7 +1,7 @@
 // A clean child [QSMSR#benchmark]: `claude -p` started from a directory of its own,
 // with no settings, no memory, no MCP server and a one-line system
 // prompt, so its context is the prompt it is handed and nothing the
-// session that runs it knows. It runs `qlang` alone, on the data files
+// session that runs it knows. It runs `qplay` alone, on the data files
 // copied beside it [QSMSR#benchmark], and its record keeps every call it made and
 // what the language answered, the frictions a reading of the run looks
 // for.
@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 
 const SYSTEM_PROMPT = 'You are a careful assistant.';
-const COMMAND_LINE_TOOLS = ['Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(cat:*)', 'Bash(head:*)'];
+const COMMAND_LINE_TOOLS = ['Bash(qplay:*)', 'Bash(MSYS_NO_PATHCONV=1 qplay:*)', 'Bash(cat:*)', 'Bash(head:*)'];
 
 // The environment a child runs in beside the session's [QSCLI#shell]: Git Bash
 // rewrites an argument that begins with `/` into a path of Windows, which
@@ -29,14 +29,14 @@ export const BENCHMARK_EFFORT = Object.freeze({ CLAUDE_CODE_EFFORT_LEVEL: 'mediu
 export const RUN_ENVIRONMENT = Object.freeze({ ...CHILD_ENVIRONMENT, ...BENCHMARK_EFFORT });
 
 // The environment with the command line of a tree first on the PATH as
-// `qlang`, so a reader of a worktree runs the language of the tree it reads
+// `qplay`, so a reader of a worktree runs the language of the tree it reads
 // [QSRVW#readers].
 export function withTheLanguageOf(repoRoot, env) {
   const commands = mkdtempSync(join(tmpdir(), 'qlang-of-the-tree-'));
-  const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
+  const commandLine = join(repoRoot, 'playground', 'src', 'bin.mjs');
   const forTheShell = commandLine.split('\\').join('/');
-  writeFileSync(join(commands, 'qlang'), ['#!/bin/sh', `exec node "${forTheShell}" "$@"`, ''].join('\n'), { mode: 0o755 });
-  writeFileSync(join(commands, 'qlang.cmd'), `@node "${commandLine}" %*\r\n`);
+  writeFileSync(join(commands, 'qplay'), ['#!/bin/sh', `exec node "${forTheShell}" "$@"`, ''].join('\n'), { mode: 0o755 });
+  writeFileSync(join(commands, 'qplay.cmd'), `@node "${commandLine}" %*\r\n`);
   const pathKey = Object.keys(env).find(key => key.toUpperCase() === 'PATH') ?? 'PATH';
   return { ...env, [pathKey]: `${commands}${delimiter}${env[pathKey] ?? ''}` };
 }
@@ -106,7 +106,7 @@ function recordOfStream(streamText) {
 
 // runChild({ prompt, model, workDir }) → the record of the run;
 // `workDir` the directory the child starts in, which holds the data
-// files, its `qlang` the command line of the tree the run measures
+// files, its `qplay` the playground of the tree the run measures
 // [QSMSR#benchmark].
 export function runChild({ prompt, model, workDir }) {
   mkdirSync(workDir, { recursive: true });

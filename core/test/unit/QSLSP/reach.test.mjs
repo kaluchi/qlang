@@ -58,7 +58,7 @@ describe('a verb as the tooling reads it', () => {
 
   it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs', async () => {
     const notebook = await createNotebook();
-    await notebook.evalCell(':number/double ~(mul 2)');
+    await notebook.evalCell(':number/double ~(mul 2);');
     expect(shownFor(notebook.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
@@ -76,7 +76,7 @@ describe('where the head of a tag ends', () => {
 
   it('reads where the tags an error literal writes before its bang end, none for an error literal that writes none', () => {
     expect(headsOf('[::E!{:k 1} ::E::error!{} !{:j 2} ::A::B!{}]')).toEqual(['::E', '::E', '::error', '::A', '::B']);
-    expect(headsOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3}')).toEqual(['::Late']);
+    expect(headsOf(':Late |~~ A late error. ~~|\n  ::Late!{:by 3};')).toEqual(['::Late']);
   });
 
   it('reads where the tags written before a quote of a doc end', () => {
@@ -105,8 +105,8 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds the declaration of a name beside its calls', () => {
-    expect(findNameOccurrences(rootOf(':double mul 2 | double'), 'double').map(kindOf)).toEqual(['bind', 'call']);
-    expect(findNameOccurrences(rootOf('42 | :snapshot it | snapshot'), 'snapshot').map(kindOf)).toEqual(['bind', 'call']);
+    expect(findNameOccurrences(rootOf(':double mul 2; double'), 'double').map(kindOf)).toEqual(['bind', 'call']);
+    expect(findNameOccurrences(rootOf(':snapshot 42; snapshot'), 'snapshot').map(kindOf)).toEqual(['bind', 'call']);
   });
 
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
@@ -131,7 +131,7 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds a name with a path by the name a step calls it by', () => {
-    const refs = findNameOccurrences(rootOf(':any/double ~(mul 2) | [1 2] | map ~double | any/double'), 'double');
+    const refs = findNameOccurrences(rootOf(':any/double ~(mul 2); [1 2] | map ~double | any/double'), 'double');
     expect(refs.map(kindOf)).toEqual(['bind', 'call', 'call']);
   });
 
@@ -141,8 +141,8 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds the declaration of a kind written as a tag, and no declaration of a value of that name', () => {
-    expect(findNameOccurrences(rootOf(':Box |~~ Box. ~~|'), 'Box', TAG_SPELLING).map(kindOf)).toEqual(['bind']);
-    expect(findNameOccurrences(rootOf(':Box 1'), 'Box', TAG_SPELLING)).toEqual([]);
+    expect(findNameOccurrences(rootOf(':Box |~~ Box. ~~|;'), 'Box', TAG_SPELLING).map(kindOf)).toEqual(['bind']);
+    expect(findNameOccurrences(rootOf(':Box 1;'), 'Box', TAG_SPELLING)).toEqual([]);
   });
 });
 
@@ -150,24 +150,24 @@ describe('the names visible at a position', () => {
   const visibleIn = (source, offset = source.length, spelling) => bindingNamesVisibleAt(rootOf(source), offset, spelling);
 
   it('returns the names declared before the cursor', () => {
-    const visible = visibleIn(':x 1 | :y 2 | z');
+    const visible = visibleIn(':x 1; :y 2; z');
     expect(visible.has('x')).toBe(true);
     expect(visible.has('y')).toBe(true);
   });
 
   it('offers a name with a path by the name a step calls it by', () => {
-    expect(visibleIn(':any/twice ~(mul 2) | 5').has('twice')).toBe(true);
+    expect(visibleIn(':any/twice ~(mul 2); 5').has('twice')).toBe(true);
   });
 
   it('does not include bindings ahead of the cursor', () => {
-    const source = ':early 1 | here | :late 2';
+    const source = ':early 1; :late (here); late';
     const visible = visibleIn(source, source.indexOf('here'));
     expect(visible.has('early')).toBe(true);
     expect(visible.has('late')).toBe(false);
   });
 
-  it('includes the declarations of it', () => {
-    expect(visibleIn('42 | :answer it | answer').has('answer')).toBe(true);
+  it('includes the declarations of the text in its query', () => {
+    expect(visibleIn(':answer 42; answer').has('answer')).toBe(true);
   });
 
   it('a step that declares nothing contributes no name', () => {
@@ -176,52 +176,52 @@ describe('the names visible at a position', () => {
   });
 
   it('hides bindings whose enclosing group closes before the cursor', () => {
-    const source = '(:local 1 | local) | here';
+    const source = '(:local 1; local) | here';
     expect(visibleIn(source, source.indexOf('here')).has('local')).toBe(false);
   });
 
   it('sees a binding inside its enclosing group', () => {
-    const source = '(:local 1 | local | other)';
+    const source = '(:local 1; local | other)';
     expect(visibleIn(source, source.indexOf('other')).has('local')).toBe(true);
   });
 
   it('hides bindings inside one quote of a vector from a sibling element', () => {
-    const source = 'get [~(:x 1 | x) ~(x)]';
+    const source = 'get [~(:x 1; x) ~(x)]';
     expect(visibleIn(source, source.lastIndexOf('x')).has('x')).toBe(false);
   });
 
   it('hides bindings inside one map entry value from a sibling entry value', () => {
-    const source = 'get {:a ~(:x 1 | x) :b ~(x)}';
+    const source = 'get {:a ~(:x 1; x) :b ~(x)}';
     expect(visibleIn(source, source.lastIndexOf('x')).has('x')).toBe(false);
   });
 
   it('sees a binding of the query inside nested groups, literals and quotes', () => {
-    const source = ':outer 1 | ((get [{:k ~(outer)}]))';
+    const source = ':outer 1; ((get [{:k ~(outer)}]))';
     expect(visibleIn(source, source.lastIndexOf('outer')).has('outer')).toBe(true);
   });
 
   it('surfaces the declarations of kinds by their names under the spelling of a tag', () => {
-    expect(visibleIn(':MyType |~~ MyType. ~~| (::kind | impl ~(42)) | 42', undefined, TAG_SPELLING).has('MyType')).toBe(true);
+    expect(visibleIn(':MyType |~~ MyType. ~~| (::kind | impl ~(42)); 42', undefined, TAG_SPELLING).has('MyType')).toBe(true);
   });
 
   it('skips the declarations of names that are no kind under the spelling of a tag', () => {
-    const visible = visibleIn(':valueName 1 | 42', undefined, TAG_SPELLING);
+    const visible = visibleIn(':valueName 1; 42', undefined, TAG_SPELLING);
     expect(visible.size).toBe(0);
   });
 
   it('hides the kind a closed group declares under the spelling of a tag', () => {
-    const source = '(:Local |~~ Local. ~~| (::kind | impl ~(42))) | here';
+    const source = '(:Local |~~ Local. ~~| (::kind | impl ~(42));) | here';
     expect(visibleIn(source, source.indexOf('here'), TAG_SPELLING).has('Local')).toBe(false);
   });
 
   it('answers each name with the part of the last of its declarations visible there', () => {
-    const source = ':x 1 | :vec/x ~(2) | (:x 3) | here';
+    const source = ':x 1; :vec/x ~(2); (:x 3;) | here';
     const read = visibleIn(source, source.indexOf('here')).get('x');
     expect(source.slice(read.span.start.offset, read.span.end.offset)).toBe(':vec/x ~(2)');
   });
 
   it('answers a name with a path by its address beside its last name, and a label under the spelling of a tag by its address alone', () => {
-    const source = ':vec/x ~(1) | :string/x ~(2) | :Box |~~ B ~~| | :Box/In |~~ I ~~| | here';
+    const source = ':vec/x ~(1); :string/x ~(2); :Box |~~ B ~~|; :Box/In |~~ I ~~|; here';
     const visible = visibleIn(source, source.indexOf('here'));
     const written = name => source.slice(visible.get(name).span.start.offset, visible.get(name).span.end.offset);
     expect(['vec/x', 'string/x', 'x', 'In'].map(written)).toEqual([':vec/x ~(1)', ':string/x ~(2)', ':string/x ~(2)', ':Box/In |~~ I ~~|']);
@@ -229,7 +229,7 @@ describe('the names visible at a position', () => {
   });
 
   describe('in the body of a verb, around it and in its docs', () => {
-    const source = ':k 1 | :map/walk |~~ see ~(walk) ~~| ~(:j 2 | get /kids | map ~walk) | here | :vec/f ~(f) | :Late |~~ L ~~| | :n 3';
+    const source = ':k 1; :map/walk |~~ see ~(walk) ~~| ~(:j 2; get /kids | map ~walk); :vec/f ~(f); :Late |~~ L ~~|; :n 3; here';
     const verbs = read => read.value.get('name').name.includes('/');
     const namesAt = (offset, spelling, declaresAVerb) => [...bindingNamesVisibleAt(rootOf(source), offset, spelling, declaresAVerb).keys()];
     const inTheBody = source.indexOf('~walk') + 1;
@@ -247,7 +247,7 @@ describe('the names visible at a position', () => {
     });
 
     it('sees after the body of a verb the declarations before the offset', () => {
-      expect(namesAt(source.indexOf('here'), undefined, verbs)).toEqual(['k', 'map/walk', 'walk']);
+      expect(namesAt(source.indexOf(':vec/f'), undefined, verbs)).toEqual(['k', 'map/walk', 'walk']);
     });
 
     it('sees in the docs of a verb the declarations before the offset', () => {
@@ -255,8 +255,14 @@ describe('the names visible at a position', () => {
     });
   });
 
-  it('answers a name in the body of a verb with its nearest declaration, one in a pipeline nearer the verb before one written later farther out', () => {
-    const source = '(:vec/g |~~ inner ~~| ~(1) | :vec/f ~(g) | [1] | f) | :vec/g |~~ outer ~~| ~(2)';
+  it('answers a name in the body of a verb with its nearest declaration, one in a text nearer the verb before one farther out', () => {
+    const source = ':vec/g |~~ outer ~~| ~(2); (:vec/g |~~ inner ~~| ~(1); :vec/f ~(g); [1] | f)';
+    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
+    expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
+  });
+
+  it('answers a name in the body of a verb with the declaration nearer the verb, one farther out written after it set aside', () => {
+    const source = ':h (:vec/g |~~ inner ~~| ~(1); :vec/f ~(g); [1] | f); :vec/g |~~ outer ~~| ~(2); h';
     const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
     expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
   });

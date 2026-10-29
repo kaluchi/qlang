@@ -29,7 +29,7 @@ const task = new Set(optionOf('task', '').split(',').filter(Boolean));
 // the tests and of the linter, and the instructions of the sessions and
 // the agents.
 const GATES = [
-  /^core\/test\/unit\/conformance\.test\.mjs$/,
+  /^core\/test\/unit\/QSREQ\/cases\.test\.mjs$/,
   /^core\/src\/ordering\.mjs$/,
   /^core\/test\/helpers\/expected-value\.mjs$/,
   /^core\/test\/helpers\/language-equality\.mjs$/,
@@ -117,7 +117,7 @@ for (const path of changedPaths) {
 
 // An implementation that spells a target it met answers the case, not
 // the rule.
-const implementationAdded = git('diff', '-U0', base, head, '--', 'core/src', 'core/lib', 'cli/src', 'cli/lib', 'lsp/src')
+const implementationAdded = git('diff', '-U0', base, head, '--', 'core/src', 'core/lib', 'stdio/src', 'stdio/lib', 'playground/src', 'playground/lib', 'lsp/src')
   .split('\n').filter(line => line.startsWith('+') && !line.startsWith('+++')).join('\n');
 for (const met of metTargets) {
   const written = met.expect ?? met.raises;

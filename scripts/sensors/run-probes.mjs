@@ -2,8 +2,8 @@
 // beginning with "> " inside a fenced block, followed by the answer the
 // document records; under a fence marked `target` the answer is one the
 // tree must not give yet, and a target that states none is met when its
-// query answers no error. Answers compare as the printer writes them,
-// because a probe records what was printed: a literal answer is read
+// query answers no error. Answers compare as the printer writes them, a
+// probe recording what was printed: a literal answer is read
 // and printed again, an answer with … matches piece by piece in order,
 // and a string, which prints raw, compares as the command line prints
 // it. A literal answer that prints alike and is another value is lossy:
@@ -21,7 +21,7 @@
 // a target the tree meets, and a list of files without the flag fail the
 // run, which `npm run ci` and the checks of a push make; a
 // probe of a section a record in transit overrides is the record's, and an
-// answer its work changed waits for the move where the record holds a
+// answer its work changed waits for the closeout where the record holds a
 // probe of the same query, or overrides the chapter whole, which its
 // closeout writes anew [QSREQ#probe].
 //
@@ -55,8 +55,8 @@ const documents = process.argv.length > 2 ? process.argv.slice(2)
 const core = file => import(pathToFileURL(join(repoRoot, 'core', 'src', file)).href);
 const { evalQuery, printValue, parseSource, isErrorValue, makeTag, createNotebook } = await core('index.mjs');
 const { compareValues } = await core('ordering.mjs');
-const { cliSources } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'cli-sources.mjs')).href);
-const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.mjs')).href);
+const { playgroundSources } = await import(pathToFileURL(join(repoRoot, 'playground', 'src', 'playground-sources.mjs')).href);
+const { main } = await import(pathToFileURL(join(repoRoot, 'playground', 'src', 'main.mjs')).href);
 
 // A probe reads as the command line reads a query: the first cell of a
 // notebook of its own over the scope the command line's sources declare once,
@@ -64,7 +64,7 @@ const { main } = await import(pathToFileURL(join(repoRoot, 'cli', 'src', 'main.m
 // answered once in a run [QSREQ#probe], [QSCLI#stdin].
 const LANGUAGE_NOUN = makeTag('qlang');
 const SILENT_STREAMS = { stdinReader: () => Promise.resolve(''), stdoutWrite: () => {}, stderrWrite: () => {} };
-const { scope: withTheCommandLine } = await createNotebook({ sources: cliSources(SILENT_STREAMS) });
+const { scope: withTheCommandLine } = await createNotebook({ sources: playgroundSources(SILENT_STREAMS) });
 const answers = new Map();
 function answerOf(query) {
   if (!answers.has(query)) {
@@ -86,7 +86,7 @@ function probesOf(source) {
   let open = null;
   let section = '';
   const close = () => {
-    if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')) });
+    if (open?.answer.length || open?.target) probes.push({ ...open, answer: squash(open.answer.join('\n')), written: open.answer.join('\n') });
     open = null;
   };
   source.split('\n').forEach((rawLine, index) => {
@@ -151,11 +151,11 @@ const SHELLS_AT_ONCE = 4;
 const shellsWaiting = [];
 let shellsRunning = 0;
 function printedByShell(command) {
-  const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs').split('\\').join('/');
+  const commandLine = join(repoRoot, 'playground', 'src', 'bin.mjs').split('\\').join('/');
   return new Promise(resolve => {
     const start = () => {
       shellsRunning += 1;
-      const shell = execFile(SHELL, ['-c', `set -o pipefail\nqlang() { node "${commandLine}" "$@"; }\n${command}`],
+      const shell = execFile(SHELL, ['-c', `set -o pipefail\nqplay() { node "${commandLine}" "$@"; }\n${command}`],
         { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28, env: shellEnv }, (failed, stdout, stderr) => {
           shellsRunning -= 1;
           shellsWaiting.shift()?.();
@@ -180,16 +180,18 @@ async function printedByCore(query) {
   try { return squash(printValue(await answerOf(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
-// The print of an error begins with its literal, `::Tag!{` or `!{`, a
-// failure's under the line that says it was raised [QSERR#rest].
-const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
+// The print of an error begins with its literal, `::Tag!{` or `!{`, or
+// with the excerpt of its facts, `::Tag::excerpt{`, a failure's under the
+// line that says it was raised [QSERR#rest], [QSERR#alert].
+const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(?:(::[\w/.-]+)?!\{|(::[\w/.-]+)?::excerpt\{)/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints. An answer with … holds
 // only where the print is an error exactly when the answer is one, so
 // the words of a page do not match inside the error that carries the
-// page as its subject [QSREQ#probe].
-async function answersAsRecorded({ query, answer }) {
+// page as its subject [QSREQ#probe]. A literal answer compares as the value
+// its lines write, the whitespace inside a string among it.
+async function answersAsRecorded({ query, answer, written }) {
   if (answer === '') return !isErrorValue(await answerOf(query));
   if (answer.includes('…')) {
     const printed = squash(await onCommandLine(query));
@@ -206,13 +208,13 @@ async function answersAsRecorded({ query, answer }) {
   if (typeof await answerOf(query) === 'string' && squash(await onCommandLine(query)) === answer) return true;
   try { parseSource(answer); } catch { return squash(await onCommandLine(query)) === answer; }
   if ((await printedByCore(query)) !== (await printedByCore(answer))) return false;
-  try { return compareValues(await answerOf(query), await evalQuery(answer)) === 0 || 'lossy'; } catch { return 'lossy'; }
+  try { return compareValues(await answerOf(query), await evalQuery(written)) === 0 || 'lossy'; } catch { return 'lossy'; }
 }
 
 const textOf = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 
 // Whether a record in transit holds a probe of the query, whose answer the
-// move writes into the section [QSREQ#probe].
+// closeout writes into the section [QSREQ#probe].
 const holdsTheQuery = (name, query) => probesOf(textOf(join(recordsDir, `${name}.md`))).some(held => squash(held.query) === squash(query));
 
 // The shell probes of every document start at once, four running at a time,
@@ -232,7 +234,7 @@ for (const [documentPath, probes] of probesByDocument) {
     }
     if (verdict === 'STALE' && chapter !== undefined) {
       const { over, holding, whole } = recordsOverAProbe(transit, chapter, probe, holdsTheQuery);
-      if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the move]`];
+      if (holding !== undefined) [verdict, note] = ['waits', `  [${holding} holds its answer until the closeout]`];
       else if (whole !== undefined) [verdict, note] = ['waits', `  [${whole} overrides ${chapter} whole, which its closeout writes anew]`];
       else if (over.length > 0) note = `  [${over.join(', ')} overrides ${chapter}#${probe.section} and holds no probe of this query]`;
     }
@@ -240,4 +242,4 @@ for (const [documentPath, probes] of probesByDocument) {
     if (['STALE', 'MET', 'UNGUARDED'].includes(verdict)) process.exitCode = 1;
   }
 }
-if (process.exitCode === 1) console.log('a probe whose answer changed is held until the move by the record in transit over its chapter whole, or over its section by a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');
+if (process.exitCode === 1) console.log('a probe whose answer changed is held until the closeout by the record in transit over its chapter whole, or over its section by a probe of the same query in the record; a met target drops its mark, and a probe that lists files fails where one is missing [QSREQ#probe], [QSREQ#target]');

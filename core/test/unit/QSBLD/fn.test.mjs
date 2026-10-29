@@ -18,10 +18,10 @@ it('mul given no multiplier is refused under its input', async () => {
 describe('no kind of the catalog bears the name of a command of a chain', () => {
   it('finds a label that bears the name of a command, declared by its chain, by its page alone, on one line or by its literal', () => {
     const planted = [
-      { path: 'holds.qlang', text: ':Holds\n  |~~ A name of another case. ~~|\n:holds\n  |~~ An invariant. ~~|\n  ::kind\n    | accepts |~~ The condition. ~~| ::quote\n' },
-      { path: 'accepts.qlang', text: ':accepts\n  |~~ A payload. ~~|\n' },
-      { path: 'proves.qlang', text: ':proves |~~ A law. ~~| (::kind | accepts |~~ The query. ~~| ::quote)' },
-      { path: 'impl.qlang', text: ':impl\n  |~~ A recipe. ~~|\n  ::kind[~() null]\n' }
+      { path: 'holds.qlang', text: ':Holds\n  |~~ A name of another case. ~~|;\n:holds\n  |~~ An invariant. ~~|\n  ::kind\n    | accepts |~~ The condition. ~~| ::quote;\n' },
+      { path: 'accepts.qlang', text: ':accepts\n  |~~ A payload. ~~|;\n' },
+      { path: 'proves.qlang', text: ':proves |~~ A law. ~~| (::kind | accepts |~~ The query. ~~| ::quote);' },
+      { path: 'impl.qlang', text: ':impl\n  |~~ A recipe. ~~|\n  ::kind[~() null];\n' }
     ];
     expect(kindsNamedForCommands(planted)).toEqual([
       { path: 'holds.qlang', line: 3, name: 'holds' }, { path: 'accepts.qlang', line: 1, name: 'accepts' },
@@ -31,9 +31,9 @@ describe('no kind of the catalog bears the name of a command of a chain', () => 
 
   it('leaves a name of data, a label named for a verb that is no command, a declaration inside a law and a source of no declaration', () => {
     const planted = [
-      { path: 'takes.qlang', text: ':takes\n  5\n' },
-      { path: 'fill.qlang', text: ':fill\n  |~~ A fill. ~~|\n:inputs\n  |~~ The inputs. ~~|\n' },
-      { path: 'box.qlang', text: ':Box\n  |~~ A box. ~~|\n  ::kind\n    | proves :x |~~ An x. ~~| ~(:holds |~~ An invariant. ~~| | true)\n' },
+      { path: 'takes.qlang', text: ':takes\n  5;\n' },
+      { path: 'fill.qlang', text: ':fill\n  |~~ A fill. ~~|;\n:inputs\n  |~~ The inputs. ~~|;\n' },
+      { path: 'box.qlang', text: ':Box\n  |~~ A box. ~~|\n  ::kind\n    | proves :x |~~ An x. ~~| ~(:holds |~~ An invariant. ~~|; true);\n' },
       { path: 'value.qlang', text: '5' }
     ];
     expect(kindsNamedForCommands(planted)).toEqual([]);

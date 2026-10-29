@@ -7,7 +7,7 @@
   |~~ A keyword is a name that stands for itself, `:name`. It is apart
       from the string so that no name is read by its look: every key of
       a map is a keyword, `/name` reads the field a keyword names, and a
-      keyword names a declaration, `:Box |~~ A box. ~~|` declaring `Box`.
+      keyword names a declaration, `:Box |~~ A box. ~~|;` declaring `Box`.
 
       A bare keyword is a colon and a name that begins with a letter of
       any script or `_` and goes on with letters, digits, `_` and `-`,
@@ -46,7 +46,7 @@
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| get [~(tag) ~(found | tag)] | eq [::keyword/PayloadKindNotTakenError ::string])
+        ~(::keyword"k" !| get [~(tag) ~(found | tag)] | eq [::keyword/PayloadKindNotTakenError ::string]);
 
 :keyword/toString
   |~~ Answers the name of the keyword as a string, `:draft | toString`
@@ -65,7 +65,7 @@
     | proves :readsBack
         |~~ A keyword turned into its name turns back into itself. ~~|
         ~(:pending | toString | toKeyword | eq :pending)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :keyword/toNumber
   |~~ Answers the number the name of the keyword writes,
@@ -88,7 +88,7 @@
     | proves :NameNotNumberError/refusesAName
         |~~ A name that writes no number is refused. ~~|
         ~(:id | toNumber !| tag | eq ::keyword/toNumber/NameNotNumberError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :keyword/toTag
   |~~ Answers the tag the keyword names, `:Box | toTag` answering
@@ -108,7 +108,7 @@
     | proves :NameNotTagError/refusesASpace
         |~~ A name with a space names no tag. ~~|
         ~(:"a b" | toTag !| tag | eq ::keyword/toTag/NameNotTagError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :keyword/toKeyword
   |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
@@ -123,5 +123,5 @@
             into keys.
         ~~|
         ~(["draft" :paid 1] | map ~toKeyword | eq [:draft :paid :"1"])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

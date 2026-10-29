@@ -83,8 +83,9 @@ $ node -e "import('./scripts/grep-ergonomics.mjs').then(m => console.log(m.names
 
 The code names each thing as the language names it: a tag is a tag,
 `makeTag`, `isTag`, `TagLit`, a step a step, a modifier a modifier. A
-comment of the sources and the tests of the core, the command line and the
-language server is a mark alone, one line of the citations of the sections
+comment of the modules of JavaScript of the core, the streams, the
+playground and the language server, their sources and their tests, is a
+mark alone, the grammar keeping its prose over its rules, one line of the citations of the sections
 and the records its block holds, `// [QSNAM#reach], [QSDSP#walk]`, or a
 directive of a tool, `/* global fetch */`. What the code does is read from
 the code and its names, the rule from its section and the reason from its

@@ -25,7 +25,7 @@ mkdirSync(join(recordsDir, 'replaced'), { recursive: true });
 // reads as `git show` at that commit, so nothing it names leads into
 // today's tree [QSWRK#journal].
 const head = git('rev-parse', '--short=8', 'HEAD').trim();
-const TREE_PATH = /`((?:core|cli|lsp|vscode|site|scripts|docs|\.claude|\.github)\/[A-Za-z0-9_./-]+)`/g;
+const TREE_PATH = /`((?:core|cli|stdio|playground|lsp|vscode|site|scripts|docs|\.claude|\.github)\/[A-Za-z0-9_./-]+)`/g;
 const atHead = path => {
   try {
     git('cat-file', '-e', `${head}:${path.replace(/\/$/, '')}`);

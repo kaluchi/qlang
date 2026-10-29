@@ -7,9 +7,11 @@ requirements of each section are the cases of its file under
 ## string
 
 A string counts, by `count`, `size` and `length` alike, takes and drops
-by its code points, a letter of any script, an emoji and a combining mark
-each one. `trim` answers it
-without the whitespace at its two ends, `lower` and `upper` fold its
+by its code points, a letter of any script, a character past the first
+plane of Unicode and a combining mark each one, and an emoji of several
+code points, a skin tone, a flag or a joined one, each of its code points.
+`trim` answers it without the whitespace of Unicode at its two ends,
+wider than the four characters the grammar reads as whitespace [QSSYN#refusal], `lower` and `upper` fold its
 case as Unicode maps the text, a letter to two where it writes two and a
 sigma at the end of a word to its final form, and `lines` cuts it at `\n`
 and `\r\n`, a line break at the end closing the last line and the empty
@@ -50,7 +52,8 @@ with the addresses of its verbs.
 ## search
 
 `contains`, `startsWith` and `endsWith` ask a string for a text, case
-and all, a regex for `contains` among them [QSTXT#match], and the
+and all, by its code points, so no half of a pair of surrogates is found
+in a character, a regex for `contains` among them [QSTXT#match], and the
 empty text stands in every string; a verb that reads text refuses a
 keyword for its text. `contains` asks a vector for an element, a path
 among them, which `has` reads as the path it is, and a set answers it by
@@ -76,9 +79,10 @@ true
 
 ## split
 
-`split` cuts a string at every occurrence of a text or every match of a
-regex, the pieces between them alone, the empty text cutting at every
-code point; a separator at an end or two together leave empty pieces, so
+`split` cuts a string at every occurrence of a text, by its code points,
+or every match of a regex, the pieces between them alone, the empty text
+and an empty match cutting between code points and at neither end; a
+separator at an end or two together leave empty pieces, so
 `split` and `join` round-trip by one separator string. `join` writes the
 elements of a vector, or of a set in its order, between a separator, a
 keyword written as its name; an element that is no string or keyword is
@@ -144,8 +148,9 @@ stands; `capture` the named groups of the first match as a map, or null,
 refusing a regex that names no group as
 `::string/capture/RegexNamesNoGroupError`; `scan` the text of every
 match, an empty match met before every code point and at the end, `[]`
-where none stands. `replace` puts a text, or what code answers on each
-match's vector, instead of every match, read by code points: the
+where none stands. `replace` puts a text, a keyword written as its name,
+or what code answers on each match's vector, instead of every match, read
+by code points: the
 string that replaces a match of a regex names the parts of the match by
 `$1`, `$<name>`, `$&`, the text before and after it by `` $` `` and `$'`,
 and a dollar by `$$`, a group the regex lacks standing as written, but

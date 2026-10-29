@@ -1,6 +1,6 @@
 # Reviews
 
-Two kinds of review, each kept as its reviewer wrote it [QSWRK#review].
+Two kinds of review, each kept as its reviewer wrote it [QSRVW#review].
 
 A review of the work a record did, by a clean reader who puts a word or a
 form through its paces as a session meets it, is named after the record
@@ -10,7 +10,7 @@ record holding the run under `Runs.`; the reading of the first review of a recor
 holds the prompt the reviewers answered. Beside it stands the session's
 reading, `D324~3~reading.md`, every finding with its fate. It stays while
 the record is in force or a text in force cites it, and leaves with the
-record at the move of the baseline [QSWRK#baseline].
+record at the closeout of its stint [QSWRK#closeout].
 
 A review of a branch, held against the principles of the aim and the
 rules of the work, its verdict and its findings with their files and
@@ -18,5 +18,5 @@ lines, is named by its date and the branch,
 `2026-10-13-the-path-is-a-value.md`, the fate of each finding below it. It
 stays while a text in force cites it.
 
-[QSWRK#baseline]: ../../../spec/QSWRK-the-work.md#baseline
-[QSWRK#review]: ../../../spec/QSWRK-the-work.md#review
+[QSRVW#review]: ../../../spec/QSRVW-the-reviews-and-the-research.md#review
+[QSWRK#closeout]: ../../../spec/QSWRK-the-work.md#closeout

@@ -30,7 +30,7 @@ describe('the diagnostics of a document', () => {
 });
 
 describe('the semantic tokens', () => {
-  const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}] | filter ~(gt 1) !| count | (x) |~| c';
+  const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter ~(gt 1) !| count | (x) |~| c';
   const UNCOATED = new Set(['vec', 'set', 'map', 'group', 'punctuation', 'whitespace', 'unparsed']);
 
   it('coats each kind of the core\'s tokens but a bracket and a gap by a type of its legend, which holds each type once', async () => {
@@ -42,7 +42,7 @@ describe('the semantic tokens', () => {
   });
 
   it('coats a call of a verb of the root apart from a name of the reader', async () => {
-    const src = ':double ~(mul 2) | 5 | apply double';
+    const src = ':double ~(mul 2); 5 | apply double';
     const tokens = decodeSemanticTokens((await semanticTokensFor(src)).data, SEMANTIC_TOKEN_TYPES);
     const typeAt = offset => tokens.find(({ char }) => char === offset).type;
     expect(typeAt(src.indexOf('apply'))).not.toBe(typeAt(src.lastIndexOf('double')));

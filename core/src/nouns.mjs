@@ -28,6 +28,9 @@ export function nodeOf(scope, tagName) {
   return isBinding(entry) ? entry : null;
 }
 
+// [QSPRN#excerpt]
+export const verbOfAView = (scope, kindName, name) => nodeOf(scope, `${kindName}/${name}`) ?? nodeOf(scope, `${ANY_KIND_NAME}/${name}`);
+
 // [QSQUO#held]
 export const CallValueWithheldError = declareRefusal('call/ValueWithheldError');
 
@@ -235,17 +238,25 @@ export function residenceOnSubject(scope, verbName, subject) {
 // [QSDSP#tagname]
 function passesTheTagName(scope, record, kindName, subject, verbName) {
   if (!isTag(subject) || kindName !== subject.name || residenceOf(scope, ANY_KIND_NAME, verbName) === null) return false;
+  if (isNodeOfAPart(record, scope)) return true;
   const value = bindingValueOf(record);
   return isVerbValue(value) && !(chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? []).includes(CORE_KIND.tag.name);
 }
 
-// [QSNAM#reach], [QSNAM#root]
+// [QSNAM#reach], [QSNAM#root], [QSDSP#residence], [QSDSP#refusal]
 export function bareNameReach(scope, name, subject) {
   if (scope.has(name) && isBinding(scope.get(name)) && !(isRootVerbScope(scope) && declaresALabel(scope.get(name)))) return { record: scope.get(name), underKind: false };
   const residence = residenceOnSubject(scope, name, subject);
   if (residence !== null) return { record: residence, underKind: true };
   const residences = residencesOf(isRootVerbScope(scope) ? rootScopeOf(scope) : scope, name);
-  return residences.length === 1 ? { record: residences[0][1], underKind: true } : null;
+  return residences.length === 1 && servesItsLabelAlone(residences[0][1], scope) ? { record: residences[0][1], underKind: true } : null;
+}
+
+// [QSDSP#refusal]
+function servesItsLabelAlone(record, scope) {
+  if (isNodeOfAPart(record, scope)) return true;
+  const value = bindingValueOf(record);
+  return (chainOfFn(isFn(value) ? value : functionOfRecipe(value)).subject?.kinds ?? null) === null;
 }
 
 export function residencesOf(scope, verbName) {
@@ -336,6 +347,13 @@ export function ruleRefusalsOf(scope, address) {
   const value = bindingValueOf(nodeOf(scope, address));
   if (isKind(value)) return [...kindRulesOf(chainOfKind(value), address).keys()];
   return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0]).keys()];
+}
+
+// [QSBLD#fn]
+export function invariantNamedByARule(fn, address, labelName) {
+  const chain = chainOfFn(fn);
+  const rules = functionRulesOf(chain, address, labelName);
+  return chain.invariants.find(({ name }) => rules.has(`${address}/${name}`))?.name ?? null;
 }
 
 // [QSBLD#fn]
@@ -445,6 +463,11 @@ function closingKindAt(scope, tagName) {
 
 // [QSERR#site]
 const SLOTS_OF_EVERY_VERB = new Set([SUBJECT_NAME, SURPLUS_NAME, ANSWER_NAME]);
+
+// [QSERR#site], [QSSLF#axis]
+export const nodeOfARole = (scope, address) => (isSlotOfAVerb(scope, address) ? nodeOf(scope, `fn/${splitAddress(address)[1]}`) : null);
+
+export const refusalsAddressOf = (scope, tagName) => (isSlotOfAVerb(scope, tagName) ? SLOT_KIND_ADDRESS : tagName);
 
 function isSlotOfAVerb(scope, address) {
   const [holder, name] = splitAddress(address);

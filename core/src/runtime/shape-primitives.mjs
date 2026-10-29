@@ -5,6 +5,7 @@ import {
   makePath, makeTag, isMap, isVec, isSet, isTagged, makeTagged, beneathTags, payloadBeneath, tagOf, TAG_HEADER_SYMBOL
 } from '../types.mjs';
 import { makeSet, compareValues } from '../ordering.mjs';
+import { numberWritten } from './convert.mjs';
 
 const SHAPE_TAG = makeTag('shape');
 const ABSENT_TAG = makeTag('absent');
@@ -47,13 +48,14 @@ function tupleOf(elements) {
   return byIndex.every(shape => compareValues(shape, byIndex[0]) === 0) ? null : Object.freeze(byIndex);
 }
 
+const MAY_WRITE_A_NUMBER = /^-?\d[\d.eE+-]*$/;
+const writesANumber = key => MAY_WRITE_A_NUMBER.test(key) && numberWritten(key) !== null;
 const DATA_KEYS = [
-  /^-?\d+(\.\d+)?$/,
   /^\d{4}-\d{2}-\d{2}/,
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 ];
-const isDataKey = key => DATA_KEYS.some(regex => regex.test(key));
+const isDataKey = key => writesANumber(key) || DATA_KEYS.some(regex => regex.test(key));
 const NAMES_A_RECORD_HOLDS = 8;
 const holdsParts = part => part === null || isMap(part) || isVec(part) || isTagged(part);
 

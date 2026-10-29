@@ -6,7 +6,7 @@ import {
   makeTag, makeQuote, makeDoc, payloadBeneath, beneathTags, NULL
 } from '../types.mjs';
 import {
-  addressesOf, declarationsUnder, nodeOf, partOfTheLabel, refuseWithheld, residenceOnSubject
+  addressesOf, declarationsUnder, nodeOf, nodeOfARole, partOfTheLabel, refuseWithheld, residenceOnSubject
 } from '../nouns.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
@@ -30,7 +30,7 @@ export function declaringRecordOf(scope, subject) {
   if (isBinding(subject)) return subject;
   if (isTag(subject)) {
     refuseWithheld(scope, subject.name, true);
-    return nodeOf(scope, subject.name) ?? partOfTheLabel(scope, subject.name) ?? nodeOfRefused(scope, subject.name);
+    return nodeOf(scope, subject.name) ?? partOfTheLabel(scope, subject.name) ?? nodeOfARole(scope, subject.name) ?? nodeOfRefused(scope, subject.name);
   }
   return recordOfKind(scope, subject);
 }
@@ -38,7 +38,7 @@ export function declaringRecordOf(scope, subject) {
 // [QSSLF#axis]
 function recordOfKind(scope, value) {
   const name = tagOf(value).name;
-  return nodeOf(scope, name) ?? nodeOfRefused(scope, name) ?? recordOfKind(scope, payloadBeneath(value));
+  return nodeOf(scope, name) ?? nodeOfARole(scope, name) ?? nodeOfRefused(scope, name) ?? recordOfKind(scope, payloadBeneath(value));
 }
 
 function nodeOfRefused(scope, name) {

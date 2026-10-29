@@ -16,3 +16,4 @@
 {"name":"a-query-reads-by-get-and-its-verbs-take-a-path","query":"{:data {:users [{:name \"Ann\" :age 30 :active true} {:name \"Bo\" :age 15 :active false} {:name \"Cy\" :age 20 :active true}]}} | get /data/users | filter /active | sort /age | map /name","expect":"[\"Cy\" \"Ann\"]"}
 {"name":"a-path-run-as-code-passes-a-frame-at-the-value-it-missed-as-its-get-does","query":"[{:n 1} {:m 2}] | map /n !| get [~(trace | map ~subject) ~(trace | map ~failed)]","expect":"[[{:m 2} [{:n 1} {:m 2}]] [~(get /n) ~(map /n)]]"}
 {"name":"an-input-of-any-value-takes-a-path-as-the-value-it-is","query":"[1] | append /a","expect":"[1 /a]"}
+{"name":"a-call-by-address-and-an-input-of-each-element-name-the-repair-of-a-path","query":"get [~(5 | number/mul /qty !| repair) ~([1] | concat /a !| repair) ~(/tags | map/keys !| repair)]","expect":"[~(number/mul (get /qty)) ~(concat (get /a)) ~(get /tags | map/keys)]"}

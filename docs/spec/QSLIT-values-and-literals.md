@@ -26,14 +26,14 @@ literal writes after the tag of its kind, a number, a string, a vector
 and a map their own and a set, a quote and a doc the vector of their
 elements, of their steps and of their segments, so every value splits
 into its tag and its payload and joins back by `tag`,
-`:t (tag) | payload | tag t`; behaviour lives in the catalog and is found
+`with {:t ~tag} ~(payload | tag t)`; behaviour lives in the catalog and is found
 through the tag.
 
 ```qlang
 > [1 2] | tag
 ::vec
 
-> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | :t (tag) | payload | tag t)]
+> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | with {:t ~tag} ~(payload | tag t))]
 [::number 1 [1 2] ::Box#5]
 
 > null | tag
@@ -177,7 +177,7 @@ is `#[1 3]` and a vector under a tag of another kind is no payload of a
 set, which `payload` opens. A tag no declaration names and the tag of a
 verb lay themselves over a payload as it is [QSNAM#address], the tag of a
 refusal, an invariant's among them, lays the kind of the refusal over an
-error at rest alone [QSERR#rest], a tag whose `accepts` names the set of no kinds takes no
+error at rest or the excerpt of its facts alone [QSERR#rest], a tag whose `accepts` names the set of no kinds takes no
 payload, `5 | tag ::tagged` refused as
 `::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name
@@ -196,7 +196,7 @@ value, a vector of a tag and a value the vector it is.
 > ::number"5" !| tag
 ::number/PayloadKindNotTakenError
 
-> :Lab |~~ L ~~| | get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
+> :Lab |~~ L ~~|; get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
 [::Lab[1] ::set/PayloadKindNotTakenError]
 
 > get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[2 1] | tag ::vec) ~(::Box#5 | tag ::number) ~(5 | tag ::tagged !| tag)]
@@ -205,7 +205,7 @@ value, a vector of a tag and a value the vector it is.
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5 | ::limit#1 !| tag)]
+> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5; ::limit#1 !| tag)]
 [::vec/sort ::vec/take/CountNotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
 ```
 
@@ -217,11 +217,14 @@ tag it writes is laid through the label the scope declares under that
 name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
 is refused by the parser, which names the literal as the template of
-`get`, its tags and its brackets kept, `[::Box[x] 1]` naming
-`get [::Box[~(x)] 1]` [QSPTH#template], a template past a line, eighty
-characters, written by its parts that compute alone, each run of the rest
-cut to `…`, and inside an error literal names the facts built by `get` and
-made an error by `raise`; code in
+`get`, its brackets and the tags of its parts kept, `[::Box[x] 1]` naming
+`get [::Box[~(x)] 1]` [QSPTH#template], a literal under a tag its payload
+built so and the tag laid after it, through the kind of the tag,
+`::Box{:w (x)}` naming `get {:w ~(x)} | tag ::Box`, a template past a line,
+eighty characters, written by its parts that compute alone, each run of the
+rest cut to `…`, and inside an error literal names the facts built by `get`
+and made an error by `raise`, under its bang where a tag stands over it,
+`get !{:subject/found ~(…)} | tag ::number/add/SubjectNotNumberError | raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it
@@ -241,7 +244,7 @@ true
 > "{:a 1 2}" | parse !| get [~(message) ~(location)]
 ["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
-> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)) | ::Pos#-1 !| tag
+> :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)); ::Pos#-1 !| tag
 ::Pos/NegError
 ```
 

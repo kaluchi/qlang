@@ -36,9 +36,12 @@
         |~~ An excerpt is the map of the facts a host tells of a failure,
             `::excerpt{:addend/found ::cell"…" :addend/found/count 3410}`.
         ~~|
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ An excerpt is a map of facts, no vector. ~~|
+        ~(::excerpt[1] !| tag | eq ::excerpt/PayloadKindNotTakenError)
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
         ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer))
     | proves :readsAViewByItsKey
         |~~ A view stands under the name of its fact and its own. ~~|
-        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count | eq 3410)
+        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count | eq 3410);

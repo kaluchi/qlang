@@ -1,8 +1,8 @@
 {"name":"a-call-no-kind-of-the-subject-answers-names-the-residences-of-its-name","query":"5 | count !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]]"}
-{"name":"the-contract-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| addresses","expect":"#[::map/filter ::vec/filter]"}
-{"name":"the-contract-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| addresses","expect":"#[::string/prepend ::vec/prepend]"}
+{"name":"the-refusal-of-filter-names-its-residences","query":"42 | filter ~(gt 0) !| addresses","expect":"#[::map/filter ::vec/filter]"}
+{"name":"the-refusal-of-prepend-names-its-residences","query":"42 | prepend \"x\" !| addresses","expect":"#[::string/prepend ::vec/prepend]"}
 {"name":"a-call-of-a-name-no-kind-answers-names-where-its-verbs-live","query":"42 | toTag !| addresses","expect":"#[::keyword/toTag ::string/toTag ::tag/toTag]"}
-{"name":"a-contract-names-its-residences","query":"5 | count !| addresses","expect":"#[::map/count ::string/count ::vec/count]"}
+{"name":"a-name-of-verbs-on-several-kinds-names-its-residences","query":"5 | count !| addresses","expect":"#[::map/count ::string/count ::vec/count]"}
 {"name":"a-call-no-kind-of-its-subject-answers-names-the-kinds-that-do","query":"5 | take 2 !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::map/take ::string/take ::vec/take]]"}
 {"name":"filter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | filter ~(gt 0)","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :filter\n  :addresses #[::map/filter ::vec/filter]\n  :trace ::trace[::frame[42 ~(filter ~(gt 0))]]\n}"}
 {"name":"map-on-a-value-of-no-kind-of-it-names-where-it-lives","query":"5 | map ~(add 1) !| addresses","expect":"#[::map/map ::vec/map]"}
@@ -24,7 +24,7 @@
 {"name":"parse-of-a-number-is-refused-by-the-one-verb-of-its-name","query":"42 | parse","raises":"::string/parse/SubjectNotStringError!{:subject/expected #[::string] :subject/found 42 :trace ::trace[::frame[42 ~(parse)]]}"}
 {"name":"a-refused-call-leads-to-the-act-the-kind-keeps","query":"get [~([1 2] | toString !| nearest) ~(|~~ a ~~| | toString !| nearest) ~({:a 1} | toVec !| nearest) ~({:a 1} | toSet !| nearest)]","expect":"[[:json :print] [:content :json :print] [:entries :vals] [:keys]]"}
 {"name":"a-refused-call-leads-only-to-a-verb-of-its-answer","query":"get [~(42 | take 2 !| payload | has :nearest) ~(42 | filter ~(gt 0) !| payload | has :nearest)]","expect":"[false false]"}
-{"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box |~~ Box. ~~| | :Circle |~~ Circle. ~~| | :Box/area ~(1) | :Circle/area ~(2) | 5 | area !| addresses","expect":"#[::Box/area ::Circle/area]"}
+{"name":"a-name-several-kinds-declare-is-refused-with-their-addresses","query":":Box |~~ Box. ~~|; :Circle |~~ Circle. ~~|; :Box/area ~(1); :Circle/area ~(2); 5 | area !| addresses","expect":"#[::Box/area ::Circle/area]"}
 {"name":"union-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | union","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :union\n  :addresses #[::map/union ::set/union ::vec/union]\n  :trace ::trace[::frame[42 ~(union)]]\n}"}
 {"name":"minus-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | minus","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :minus\n  :addresses #[::map/minus ::set/minus ::vec/minus]\n  :trace ::trace[::frame[42 ~(minus)]]\n}"}
 {"name":"inter-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | inter","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :inter\n  :addresses #[::map/inter ::set/inter ::vec/inter]\n  :trace ::trace[::frame[42 ~(inter)]]\n}"}
@@ -32,3 +32,5 @@
 {"name":"max-of-a-string-is-refused-with-the-kinds-that-answer-it","query":"\"hello\" | max","raises":"::call/KindAnswersNoVerbError!{\n  :found \"hello\"\n  :name :max\n  :addresses #[::map/max ::vec/max]\n  :trace ::trace[::frame[\"hello\" ~(max)]]\n}"}
 {"name":"sum-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | sum","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :sum\n  :addresses #[::map/sum ::vec/sum]\n  :nearest [:sumOf]\n  :trace ::trace[::frame[42 ~(sum)]]\n}"}
 {"name":"has-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | has :foo","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :has\n  :addresses #[::map/has ::vec/has]\n  :nearest [:eq]\n  :trace ::trace[::frame[42 ~(has :foo)]]\n}"}
+{"name":"a-verb-a-reader-declares-under-a-second-noun-makes-the-refusal-of-a-name-of-the-root-the-calls","query":":Box |~~ A box. ~~|; :Box/keys ~(1); 42 | keys !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]"}
+{"name":"a-name-one-kind-wires-as-a-part-refuses-a-subject-of-another-kind-by-that-part","query":":Card |~~ C ~~| (::kind | accepts |~~ p ~~| ::vec | wires :took |~~ t ~~| /1 ::number); 5 | took !| tag","expect":"::Card/took/SubjectNotCardError"}

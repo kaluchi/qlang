@@ -18,8 +18,9 @@ the fate it met.
 A report of the research is named after the record that called for it and
 numbered in the order the reports of that record ran, as the runs of the
 benchmark are named after the record they measure: a review of the work a
-record did, `docs/journal/research/reviews/D324~4.md`; a critique of an open
-record, `docs/journal/research/design-check/D329~2.md`; a study of the prior
+record did, `docs/journal/research/reviews/D324~4.md`; a critique of a
+record, open or decided before its code,
+`docs/journal/research/design-check/D329~2.md`; a study of the prior
 art of a question a record holds, by a reader the session starts who
 searches the work outside the tree, each finding with its source,
 `docs/journal/research/prior-art/D404~1.md`; an outside audit,
@@ -51,7 +52,7 @@ report into being, how each is named and how long it stays.
 ## readers
 
 A reader of the research is clean: a model started from an empty directory
-of its own with no instruction file, memory or server, the tree's `qlang`
+of its own with no instruction file, memory or server, the tree's `qplay`
 first on its path and the tools that read, which reads the tree and runs the
 language with the history out of its reach. Every script of the research
 starts its readers alike, `scripts/research-runs.mjs`, at the effort `max`
@@ -76,12 +77,19 @@ stop at.
 
 ## audits
 
-A critique gives each open record named a clean critic of its own, `node
-scripts/spec-check.mjs --records Dnn …`, who reads the record and the
-records it cites and holds each of its roads against the chapters, the
-cases, the catalog and the implementation, with findings of five kinds, a
-counterexample, a cost, a conflict, a road and a hole, each with its probe.
-A record that is not open is refused.
+A critique gives each record named a clean critic of its own, `node
+scripts/spec-check.mjs --records Dnn …`: an open record, whose roads it
+weighs before the decision, and a record of the language decided before its
+code, every case it names a target and none met, whose decision and the
+roads it set aside it weighs before the implementation meets them; any other
+record is refused. The critic reads the record and the records it cites and
+answers `scripts/design-check-prompt.txt`, which asks of the roads of the
+record, the one it decided among them where it decided one, what they break
+and what they cost, and whether a road it does not lay out answers its
+question with less, laid out with its cost, holding each road against the
+chapters, the cases, the catalog and the implementation, with findings of
+five kinds, a counterexample, a cost, a conflict, a road and a hole, each
+with its probe; which road is taken stays the maintainer's.
 
 The check of the chapters holds the consistency of what the specification
 says, its chapters among themselves and each with its cases, with the pages
@@ -97,7 +105,8 @@ section, or a rule no case holds; and a pentimento and a drift
 scripts/sensors/run-probes.mjs` runs again on its report.
 
 The outside audit, `node scripts/outside-audit.mjs --for Dnn`, has one clean
-reader read the tree at HEAD and run `qlang`, the history out of its reach.
+reader read the tree at HEAD, the tree a closeout landed [QSWRK#closeout],
+and run `qplay`, the history out of its reach.
 
 The pentimento audit reads the whole tree, where a review reads a diff, a
 critique a record and a check a group of chapters: its readers read the

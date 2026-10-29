@@ -22,8 +22,8 @@
 {"name":"take-negative-large-clamps-to-empty","query":"[1 2 3] | take -5","expect":"[]"}
 {"name":"drop-negative-clamps-to-whole","query":"[1 2 3] | drop -1","expect":"[1 2 3]"}
 {"name":"drop-negative-large-clamps-to-whole","query":"[1 2 3] | drop -5","expect":"[1 2 3]"}
-{"name":"take-over-length-returns-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
-{"name":"drop-over-length-returns-empty","query":"[1 2 3] | drop 5","expect":"[]"}
+{"name":"take-over-length-answers-whole","query":"[1 2 3] | take 5","expect":"[1 2 3]"}
+{"name":"drop-over-length-answers-empty","query":"[1 2 3] | drop 5","expect":"[]"}
 {"name":"take-negative-on-set-clamps-to-empty","query":"#[1 2 3] | take -1 | count","expect":"0"}
 {"name":"drop-negative-on-set-clamps-to-whole","query":"#[1 2 3] | drop -1 | count","expect":"3"}
 {"name":"has-answers-true-where-a-set-holds-the-element","query":"#[:a :b :c] | has :b","expect":"true"}
@@ -65,3 +65,4 @@
 {"name":"join-answers-under-the-tags-its-strings-share","query":"get [~([::T\"a\" ::T\"b\"] | join \",\") ~([::T\"a\" ::U\"b\"] | join \",\" !| get [~(tag) ~(trace | last | path)]) ~([::K:a \"b\"] | join \",\")]","expect":"[::T\"a,b\" [::call/KindsMismatchedError /1] \"a,b\"]"}
 {"name":"flat-answers-under-the-tags-of-its-subject-alone","query":"get [~([::A[1] ::B[2]] | flat) ~(::Box[[1] [2]] | flat)]","expect":"[[1 2] ::Box[1 2]]"}
 {"name":"min-and-max-of-a-vector-of-one-element-answer-that-element","query":"get [~([42] | min) ~([42] | max)]","expect":"[42 42]"}
+{"name":"avg-answers-the-sum-over-the-count-and-the-running-mean-past-the-doubles","query":"get [~([0 1 6 1] | avg) ~([1e308 1e308] | avg | eq 1e308) ~([1e308 1e308 1e308 -1e308] | avg | eq 5e307)]","expect":"[2 true true]"}

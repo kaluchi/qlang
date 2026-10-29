@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CHILD_ENVIRONMENT, withTheLanguageOf } from './benchmark/child.mjs';
 import { baselineOf } from './reconciliation.mjs';
-import { JOURNAL, isOpenText } from './decision-records.mjs';
+import { JOURNAL, readDecisionRecords, replacedWhole } from './decision-records.mjs';
 
 // runLine({ report, kind, tree, baseline, date, from, to, why }) → the line
 // of one run, `report` its path from the root of the repository.
@@ -44,17 +44,21 @@ const git = (repoRoot, ...args) => execFileSync('git', ['-C', repoRoot, ...args]
 export const minuteOf = at => at.toISOString().slice(11, 16);
 
 // A run is called for by a record in force, which holds the run and carries
-// the fates of its findings, and a critique by an open record.
+// the fates of its findings, and a critique by an open record or a decision
+// before its code [QSRVW#audits].
 export function refuseNoRecordInForce(repoRoot, record, what) {
   if (record !== null && /^D\d+$/.test(record) && existsSync(join(repoRoot, JOURNAL, `${record}.md`))) return;
   console.error(`${what} is called for by a record in force, which carries its fates: write the record, then run \`--for Dnn\``);
   process.exit(1);
 }
 
-export function refuseNoOpenRecord(repoRoot, record) {
-  const path = join(repoRoot, JOURNAL, `${record}.md`);
-  if (existsSync(path) && isOpenText(readFileSync(path, 'utf8'))) return;
-  console.error(`${record} is no open record of the journal: a critique reads a question still open`);
+// A critique reads an open record, or a record of the language decided
+// before its code, every case it names a target and none met [QSRVW#audits].
+export function refuseNoRecordToCritique(repoRoot, record) {
+  const read = readDecisionRecords(repoRoot).get(record);
+  const beforeItsCode = read?.domain === 'language' && read.met.length === 0 && read.targets.length > 0;
+  if (read !== undefined && !replacedWhole(read) && (read.open || beforeItsCode)) return;
+  console.error(`${record} is neither an open record of the journal nor a decision before its code: a critique reads a question still open, or a decision whose every case is a target`);
   process.exit(1);
 }
 
@@ -104,12 +108,12 @@ export function refuseASecondRun(dir, record, form, tree, shown) {
 }
 
 // The start of a clean reader: a clean Opus from an empty directory of its
-// own, with no instruction file, memory or server, the tree's `qlang` first
+// own, with no instruction file, memory or server, the tree's `qplay` first
 // on its path, its tools Read, Grep, Glob and Bash for what its caller
 // allows and the commands that only read, which the harness passes unasked,
 // and no git command but the listing of the files a caller gives it [QSRVW#readers].
 export const READER_TOOLS = ['Read', 'Grep', 'Glob', 'Bash'];
-export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qlang:*)', 'Bash(MSYS_NO_PATHCONV=1 qlang:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
+export const allowedReading = repoPath => ['Read', 'Grep', 'Glob', 'Bash(qplay:*)', 'Bash(MSYS_NO_PATHCONV=1 qplay:*)', 'Bash(grep:*)', `Bash(git -C ${repoPath} ls-files:*)`];
 
 // The effort a clean reader runs at, `max` unless its run names another of
 // the efforts by `--effort`, which `CLAUDE_CODE_EFFORT_LEVEL` sets in the

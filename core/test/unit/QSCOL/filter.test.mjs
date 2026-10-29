@@ -6,5 +6,5 @@ it('`filter` takes its predicate as code, a quote or a path, on each kind that d
 });
 
 it('`filter` over a map runs a predicate that names a value as that value for each entry, true keeping every entry and false none', async () => {
-  expect(await evalQuery('get [~(true | :n it | {:a 1 :b 2} | filter ~(n) | count) ~(false | :n it | {:a 1 :b 2} | filter ~(n) | count)]')).toEqual([2, 0]);
+  expect(await evalQuery('get [~(:n true; {:a 1 :b 2} | filter ~(n) | count) ~(:n false; {:a 1 :b 2} | filter ~(n) | count)]')).toEqual([2, 0]);
 });

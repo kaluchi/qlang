@@ -33,10 +33,10 @@
 {"name":"a-doc-s-quote-under-a-role-reads-under-it","query":"|~~ see ::link~(::vec) ~~| | segments | get /1 | tag","expect":"::link"}
 {"name":"a-doc-a-quote-holds-writes-its-text-as-written","query":"~(|~~ see ::vec~(x) ~~|) | first | content","expect":"\"see ::vec~(x)\""}
 {"name":"the-quote-of-a-doc-under-the-tag-of-quotes-is-the-quote-itself","query":"|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)","expect":"true"}
-{"name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":":x |~~ see ::map~(x) ~~| 1 !| tag","expect":"::map/PayloadKindNotTakenError"}
-{"name":"a-page-whose-quote-breaks-an-invariant-of-its-role-refuses-its-declaration","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | :x |~~ see ::Role~(x) ~~| 1 !| tag","expect":"::Role/k"}
-{"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag","expect":"::Role/k"}
-{"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)) | |~~ see ::Role~(x) ~~| | segments | get /1 | tag","expect":"::Role"}
+{"name":"a-page-whose-quote-a-label-refuses-refuses-its-declaration","query":"~(:x |~~ see ::map~(x) ~~| 1) | answer !| tag","expect":"::map/PayloadKindNotTakenError"}
+{"name":"a-page-whose-quote-breaks-an-invariant-of-its-role-refuses-its-declaration","query":"~(:Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)); :x |~~ see ::Role~(x) ~~| 1) | answer !| tag","expect":"::Role/k"}
+{"name":"a-doc-s-quote-under-a-label-whose-invariant-refuses-the-quote-refuses-the-doc","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)); |~~ see ::Role~(x) ~~| !| tag","expect":"::Role/k"}
+{"name":"a-doc-s-quote-under-a-label-whose-invariant-holds-takes-its-role","query":":Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 0)); |~~ see ::Role~(x) ~~| | segments | get /1 | tag","expect":"::Role"}
 {"name":"a-link-is-followed-by-apply","query":"|~~ ::link~(::vec | manifest) ~~| | links | first | apply it | has ::vec/count","expect":"true"}
 {"name":"a-tagged-quote-in-a-doc-is-a-segment-of-its-own","query":"|~~ see ::link~(::qlang | manifest) ~~| | segments | count","expect":"2"}
 {"name":"links-answers-the-links-of-a-doc","query":"|~~ see ::link~(::qlang | manifest) and ~(eq 1) ~~| | links | count","expect":"1"}
@@ -50,6 +50,6 @@
 {"name":"a-quote-holds-a-doc-under-the-tag-of-a-kind-as-written","query":"~(|~~ see ::number~(~(x)) ~~|) | print","expect":"\"~(|~~ see ::number~(~(x)) ~~|)\""}
 {"name":"a-doc-prints-its-quote-as-print-writes-it-and-refuses-a-broken-one","query":"get [~(|~~ a ~(add   1) b ~~| | print) ~(\"|~~ a ~(count | 1) b ~~|\" | parse !| tag)]","expect":"[\"|~~ a ~(add 1) b ~~|\" ::quote/ParseError]"}
 {"name":"two-equal-docs-print-alike-whatever-their-spacing","query":"get [~(|~~ a ~(add   1) ~~| | print) ~(|~~ a ~(add 1) ~~| | print)] | toSet | count","expect":"1"}
-{"name":"a-doc-s-quote-under-the-tag-of-a-group-is-a-segment-that-computes-nothing","query":"get [~(|~~ see ::group~(add 1) ~~| | segments | count) ~([|~~ ::group~(add 1) ~~|] | count) ~(\"f |~~ ::group~(x) ~~|\" | parse | first | get /modifiers | first | segments | count) ~([\"a\" ::group~(x)] | tag ::doc | :d it | print | parse | first | eq d)]","expect":"[2 1 1 true]"}
+{"name":"a-doc-s-quote-under-the-tag-of-a-group-is-a-segment-that-computes-nothing","query":"get [~(|~~ see ::group~(add 1) ~~| | segments | count) ~([|~~ ::group~(add 1) ~~|] | count) ~(\"f |~~ ::group~(x) ~~|\" | parse | first | get /modifiers | first | segments | count) ~([\"a\" ::group~(x)] | tag ::doc | with {:d ~it} ~(print | parse | first | eq d))]","expect":"[2 1 1 true]"}
 {"name":"a-doc-s-quote-whose-text-the-grammar-refuses-is-refused-with-its-rule","query":"get [~(\"|~~ a ~(f 01) ~~|\" | parse !| message) ~(\"|~~ a ~(f [x] 01) ~~|\" | parse !| message) ~(\"[01]\" | parse !| tag)]","expect":"[\"a number is written without a leading zero: write `1`\" \"a number is written without a leading zero: write `1`\" ::quote/ParseError]"}
 {"name":"a-link-and-a-snippet-hold-a-quote-or-each-other","query":"get [~(::link#5 !| tag) ~(::snippet\"x\" !| tag) ~(|~~ a ::link::snippet~(1) b ~~| | get [~(links | count) ~(snippets | count)])]","expect":"[::link/PayloadKindNotTakenError ::snippet/PayloadKindNotTakenError [1 1]]"}

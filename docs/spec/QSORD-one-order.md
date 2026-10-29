@@ -55,7 +55,8 @@ elements, and equality reads the kind, so `#[1 2] | eq [1 2]` is false.
 Its own verbs are those whose answer on a set is not the answer of the
 verb of vectors on it: `sort` and `reverse` answer the vector of an
 order, `toVec` the vector of its elements, `zip` the vector of its
-columns, two equal ones kept, `toSet` and `distinct` the set itself,
+columns, two equal ones kept, `toSet` the set itself under the tags it
+came with, `distinct` beside it the name of the habit [QSDSP#residence],
 `groupBy` files into sets, and `union`, `minus` and `inter` meet the set
 the call gives [QSCOL#algebra]. Every other verb of vectors reaches a set
 through the walk, an answer of the vector's label brought back as a set,
@@ -100,7 +101,8 @@ them, refused where its second stands, a missing value taken out first,
 `filter ~(ne null) | max`, and a value that is no container answers none
 of them. Each takes a key, null, a
 quote or a path, another kind refused under its input `key`,
-`::vec/sort/KeyKindNotTakenError`, `::map/sort/key/…` and `::vec/min/key/…`,
+`::vec/sort/KeyKindNotTakenError`, `::map/sort/KeyKindNotTakenError` and
+`::vec/min/KeyKindNotTakenError`,
 and ranks by what the key answers, a vector key ranking index by index,
 the first index first and each later one among the elements the indices
 before it leave alike; `min` and `max` with a key answer the element,
@@ -131,12 +133,12 @@ compare within one kind [QSCND#compare].
 `::desc` is a tag whose values rank among the other tags by its name and
 within it by the reverse of their payloads' rank, under another tag as
 well, written by `desc` or by its literal, `::desc#5`. `desc` turns its
-subject: a value under `::desc` answers its payload and any other is laid
-under `::desc`, so a value turned twice is itself and ranks, compares and
-equals as itself. `::desc` laid over a value under it stands once,
-`::desc::desc#5` being `::desc#5`, and a value of `::desc` beneath another
-tag is of it already [QSLIT#tag], `5 | desc | tag ::Box | desc` answering
-`::Box::desc#5`.
+subject: a value of `::desc` answers its payload, the tags over it kept,
+and any other is laid under `::desc`, so a value turned twice is itself
+and ranks, compares and equals as itself, `5 | desc | tag ::Box | desc`
+answering `::Box#5` and a key turned ranking a value of `::desc` under
+another tag the other way. `::desc` laid over a value under it stands
+once, `::desc::desc#5` being `::desc#5` [QSLIT#tag].
 The comparisons compare two values under `::desc` by the reverse of their
 payloads of any kinds, as `sort` ranks them, so `min`, `max` and `sort`
 read it alike, and one element of a vector key descends whatever the
@@ -160,7 +162,10 @@ true
 [::call/KindsMismatchedError true [1 2]]
 
 > get [~(5 | desc | desc) ~(::desc::desc#5) ~(5 | desc | tag ::Box | desc)]
-[5 ::desc#5 ::Box::desc#5]
+[5 ::desc#5 ::Box#5]
+
+> [1 2] | map ~(desc | tag ::Box) | get [~(sort | map ~(payload | payload)) ~(sort ~(desc) | map ~(payload | payload))]
+[[2 1] [1 2]]
 
 > [1 3 2] | sort ~(desc | desc)
 [1 2 3]

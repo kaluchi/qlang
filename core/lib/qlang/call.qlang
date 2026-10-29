@@ -102,12 +102,12 @@
               ~~|
               ::set)
     | throws :ValueAsALaterStepError
-        |~~ A step after the head of a pipeline is a command, and the name
-            holds a value, which `:found` holds: a value stands at the head,
-            where it is the subject, after a declaration and after `!|`, or
-            as what a verb takes, and written as a later step it would drop
-            the subject the steps before it answered, as a literal there
-            would. A name declared in the code is read where a value stands,
+        |~~ A step after the head of a query is a command, and the name
+            holds a value, which `:found` holds: a value stands at the head
+            of the query, where it is the subject, and after `!|`, or as what
+            a verb takes, and is refused as a later step, as a literal
+            written there is.
+            A name that holds a value is read where a value stands,
             `with [/qty /price] ~(qty | mul price)`, and stands over a verb
             of its name, which lives where `:addresses` names and is called
             by its address, `[1 2] | vec/count`; code under a name runs by
@@ -143,7 +143,8 @@
             name by `toString`, `:host | toString | append ":80"`, or a
             verb of another name was meant, which `:nearest` names where a
             page leads to it. A value under a kind that wires its parts
-            answers the verbs of its kind and of every value alone, and no
+            answers the verbs of its kind, of `::tagged` and of every value
+            alone, and no
             verb of the kind of its payload: its parts are read by the
             names its kind wires, which `tag | manifest` lists, `took`.
             ::link~(::call) ::link~(::any/coalesce)
@@ -186,7 +187,7 @@
             and no verb of any kind: `:nearest` holds the names it was
             likely meant to be, and `:name` the name as typed. A name is
             declared before the steps that read it,
-            `:number/double ~(mul 2) | 5 | double`; a field of
+            `:number/double ~(mul 2); 5 | double`; a field of
             a record is no verb but a key, read by a path, `get /name`;
             and a kind is no verb either: its tag reaches it, which
             `:nearest` names first, `5 | string` pointing to `::string`,
@@ -243,7 +244,7 @@
             calls itself, is refused here, on the fail track, while the
             host's memory stays bounded: the case that ends the recursion
             is tested first,
-            `:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down`.
+            `:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)); 5 | down`.
             ::link~(::call) ::link~(::any/if)
         ~~|
         ~(wires :depth |~~ The evaluation depth refused, one past the limit. ~~| ::number
@@ -321,7 +322,7 @@
         |~~ An input named as a verb stands over the verb in the recipe of
             its verb, the verb called there by its address.
         ~~|
-        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])) | [1 2 3] | firstN 2 | eq [2 [1 2] 3])
+        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])); [1 2 3] | firstN 2 | eq [2 [1 2] 3])
     | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue
         |~~ A name that holds a value refuses the modifiers a call gives it. ~~|
         ~({:limit 10} | with [/limit] ~(limit 3) !| get [~(tag) ~(name) ~(found | tag)] | eq [::call/ValueTakesNoModifiersError :limit ::number])
@@ -329,10 +330,10 @@
         |~~ The refusal names where a verb of the name lives, which the name
             stands over.
         ~~|
-        ~(:string/limit ~(count) | {:limit 10} | with [/limit] ~(limit 3) !| get [~(tag) ~(addresses)] | eq [::call/ValueTakesNoModifiersError #[::string/limit]])
+        ~(:string/limit ~(count); {:limit 10} | with [/limit] ~(limit 3) !| get [~(tag) ~(addresses)] | eq [::call/ValueTakesNoModifiersError #[::string/limit]])
     | proves :ValueTakesNoModifiersError/reachesTheVerbByItsAddress
         |~~ A call by its address reaches the verb of the name. ~~|
-        ~(:string/limit ~(count) | {:limit 10} | with [/limit] ~("tea" | string/limit) | eq 3)
+        ~(:string/limit ~(count); {:limit 10} | with [/limit] ~("tea" | string/limit) | eq 3)
     | proves :KindAnswersNoVerbError/namesTheKindAndTheVerbs
         |~~ The refusal names the kind of the subject and where the verbs
             of the name live.
@@ -352,9 +353,9 @@
         |~~ The verbs of the name under a reader's nouns are named by
             their addresses.
         ~~|
-        ~(:Box |~~ A box. ~~| | :Ring |~~ A ring. ~~|
-          | :Box/area ~(1) | :Ring/area ~(2)
-          | 5 | area
+        ~(:Box |~~ A box. ~~|; :Ring |~~ A ring. ~~|;
+          :Box/area ~(1); :Ring/area ~(2);
+          5 | area
           !| get [~(tag) ~(addresses)]
           |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
     | proves :KindAnswersNoVerbError/namesTheVerbsItsPagesLeadTo
@@ -376,7 +377,7 @@
         ~(fist !| nearest | eq [:first])
     | proves :UnknownNameError/suggestsTheReadersNames
         |~~ A reader's own names are suggested too. ~~|
-        ~(:number/double ~(mul 2) | 5 | doubel !| nearest | eq [:double])
+        ~(:number/double ~(mul 2); 5 | doubel !| nearest | eq [:double])
     | proves :UnknownNameError/suggestsAVerbThePageOfItsBeginningLinks
         |~~ A name that goes on past a verb is led where the page of that
             verb links.
@@ -385,9 +386,6 @@
     | proves :UnknownNameError/suggestsNothingFarAway
         |~~ A name near nothing suggests nothing. ~~|
         ~(zzzzqqq !| nearest | eq [])
-    | proves :UnknownNameError/refusesANameReadBeforeItsDeclaration
-        |~~ A name read before its declaration names nothing yet. ~~|
-        ~(double | :number/double ~(mul 2) !| tag | eq ::call/UnknownNameError)
     | proves :UnknownNameError/pointsAKindToItsTag
         |~~ The name of a kind points to its tag. ~~|
         ~(5 | string !| get [~(tag) ~(nearest)] | eq [::call/UnknownNameError [::string]])
@@ -402,20 +400,20 @@
         ~([1] | vec/countt !| nearest | has ::vec/count)
     | proves :UnknownAddressError/readsAValueByItsAddress
         |~~ A value under a label is read by its address. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/side 3 | Box/side | eq 3)
+        ~(:Box |~~ A box. ~~|; :Box/side 3; Box/side | eq 3)
     | proves :ValueWithheldError/refusesAValueOfTheReader
         |~~ A quote held in a name reads no value of the reader. ~~|
-        ~(apply ~(:limit 4 | :big ~(gt limit) | [1 5 10] | filter big !| get [~(tag) ~(name)]) | eq [::call/ValueWithheldError :limit])
+        ~(apply ~(:limit 4; :big ~(gt limit); [1 5 10] | filter big !| get [~(tag) ~(name)]) | eq [::call/ValueWithheldError :limit])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
         |~~ A verb that calls itself without end is refused past the
             limit of the evaluation depth.
         ~~|
-        ~(:number/inf ~(add 1 | inf) | 0 | inf !| tag | eq ::call/EvaluationDepthExceededError)
+        ~(:number/inf ~(add 1 | inf); 0 | inf !| tag | eq ::call/EvaluationDepthExceededError)
     | proves :EvaluationDepthExceededError/namesADepthPastTheLimit
         |~~ The depth refused lies past the limit. ~~|
-        ~(:any/forever ~(forever) | forever !| with {:limit ~limit} ~(depth | gt limit))
+        ~(:any/forever ~(forever); forever !| with {:limit ~limit} ~(depth | gt limit))
     | proves :EvaluationDepthExceededError/endsARecursionByItsBaseCase
         |~~ A recursion that tests its base case first ends. ~~|
-        ~(:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)) | 5 | down | eq 0)
-    | impl ::builtin{}
+        ~(:number/down ~(if (eq 0) ~(0) ~(sub 1 | down)); 5 | down | eq 0)
+    | impl ::builtin{};
 

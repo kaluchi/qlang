@@ -59,13 +59,17 @@
             ::link~(::quote)
         ~~|
     | throws :StepNotCommandError
-        |~~ A step after the first is a command, a call, a declaration or
-            a group, and a value stands at the head, where it is the
-            subject, after a declaration and after `!|`, where it is the
-            recovery: the step at `:index` is a value, and `:message` names
-            the verb that takes it, `get` for a path and a literal, `tag`
-            for a tag and `apply` for a quote. A value a step answers is
-            built by a verb, `get [1 2]`, and a value under a tag by `tag`.
+        |~~ The code of a quote is its declarations and the query after
+            them, and a step of the query after its first is a command, a
+            call or a group: a value stands at the head of the query, where
+            it is the subject, and after `!|`, where it is the recovery, and
+            a declaration stands at the head of the code, none after the
+            first step of the query nor on the fail track. The step at
+            `:index` is refused, and `:message` names the verb that takes a
+            value, `get` for a path and a literal, `tag` for a tag and
+            `apply` for a quote, or the head where a declaration stands. A
+            value a step answers is built by a verb, `get [1 2]`, and a value
+            under a tag by `tag`.
             ::link~(::quote) ::link~(::qlang/pipeline)
         ~~|
         ~(wires :message
@@ -88,9 +92,10 @@
             beneath `:source` under the character where the reading
             stopped, `:location` names that span, its line and column read
             by `line` and `column` of its `start`, `:message` names the habit a form of
-            another language wrote, and where none does `:expected` lists
-            what could stand there and a source cut short names the bracket
-            it left open.
+            another language wrote, the step a combinator misses and what a
+            source cut short left open, a bracket, a string, a quote, a doc
+            or a comment, and beside it `:expected` lists what could stand
+            there where the reading went no further.
             ::link~(::quote) ::link~(::span)
         ~~|
         ~(wires :source
@@ -139,7 +144,7 @@
         ~(~(1 | add 1 | mul 2) | count | eq 3)
     | proves :printsADeclarationALine
         |~~ A quote of declarations alone prints a declaration a line. ~~|
-        ~(~(:rate 2 | :fee 5) | toString | eq ":rate 2\n| :fee 5")
+        ~(~(:rate 2; :fee 5) | toString | eq ":rate 2;\n:fee 5;")
     | proves :equalsItsCopy
         |~~ Two quotes of one code are equal. ~~|
         ~(~(add 1) | eq ~(add 1))
@@ -177,10 +182,13 @@
         ~~|
         ~(get [[1 2] ~(~(count) | first)] | tag ::quote | apply it | eq 2)
     | proves :StepNotCommandError/keepsAValueAfterADeclaration
-        |~~ A value after a declaration is the subject the steps after it
+        |~~ A value after the declarations is the subject the steps after it
             run on.
         ~~|
-        ~(get [~(~(:rate 2) | first) 5] | tag ::quote | apply it | eq 5)
+        ~(get [~(~(:rate 2;) | first) 5] | tag ::quote | apply it | eq 5)
+    | proves :StepNotCommandError/refusesADeclarationInTheQuery
+        |~~ A declaration after the first step of the query is refused. ~~|
+        ~(get [5 ~(~(:rate 2;) | first)] | tag ::quote !| get [~(tag) ~(index)] | eq [::quote/StepNotCommandError 1])
     | proves :LiteralComputesError/refusesANameInAVector
         |~~ A vector that holds a name is refused, naming the template
             `get` builds.
@@ -211,7 +219,7 @@
             named in the words of the language.
         ~~|
         ~(":" | parse !| expected | eq ["\"" :name])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :quote/toString
   |~~ Answers the text of the quote's code, a string, its steps without
@@ -247,7 +255,7 @@
     | proves :answersNothingForTheEmptyQuote
         |~~ The empty quote writes the empty string. ~~|
         ~(~() | toString | eq "")
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :quote/toVec
   |~~ Answers the vector of the quote's steps, the payload beneath its
@@ -262,7 +270,7 @@
             as well.
         ~~|
         ~([~(add 1 | mul 2) ::Box~(add 1)] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 2] [::vec 1]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :quote/answer
   |~~ Answers what the code the quote holds answers, run as a query
@@ -305,7 +313,7 @@
         |~~ A name the code binds stays inside it: the stored query of a
             tax names its rate for its own steps alone.
         ~~|
-        ~(~(:rate 0.2 | 100 | mul rate) | answer | get [~(it) ~(env | has :rate)] | eq [20 false])
+        ~(~(:rate 0.2; 100 | mul rate) | answer | get [~(it) ~(::host | env | has :rate)] | eq [20 false])
     | proves :runsFromNull
         |~~ The code runs from null. ~~|
         ~(~(tag) | answer | eq ::null)
@@ -325,13 +333,13 @@
     | proves :refusesAQueryThatReadsASubject
         |~~ Code that reads a subject is refused on null. ~~|
         ~(~(add 1) | answer !| tag | eq ::number/add/SubjectNotNumberError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :quote/fill
   |~~ Answers the quote with the value the call gives for each name the
       code reads written at its head, a declaration each in the order the
       code reads them, `~(mul rate) | fill {:rate 1.2}` answering
-      `~(:rate 1.2 | mul rate)`, so code held as data, in a name, a field
+      `~(:rate 1.2; mul rate)`, so code held as data, in a name, a field
       or a page, runs with the values it needs, as a step writes into the
       code it hands a verb the values of its scope it reads. A name the
       code does not read, one it declares itself among them, is refused
@@ -363,12 +371,12 @@
     | proves :writesTheValueAtTheHead
         |~~ The rate of a price goes to the head of the code that reads it.
         ~~|
-        ~(~(mul rate) | fill {:rate 1.2} | eq ~(:rate 1.2 | mul rate))
+        ~(~(mul rate) | fill {:rate 1.2} | eq ~(:rate 1.2; mul rate))
     | proves :writesTheNamesInTheOrderTheCodeReadsThem
         |~~ The quantity and the fee go to the head in the order the code
             reads them.
         ~~|
-        ~(~(mul qty | add fee) | fill {:fee 5 :qty 3} | eq ~(:qty 3 | :fee 5 | mul qty | add fee))
+        ~(~(mul qty | add fee) | fill {:fee 5 :qty 3} | eq ~(:qty 3; :fee 5; mul qty | add fee))
     | proves :runsWithTheValuesWritten
         |~~ A rule kept as data prices each order with the rate written in.
         ~~|
@@ -380,9 +388,9 @@
         ~(~(mul rate) | fill {:rtae 1.2} !| get [~(tag) ~(name) ~(nearest)] | eq [::quote/fill/NamesNameNotReadError :rtae [:rate]])
     | proves :NamesNameNotReadError/refusesANameTheCodeDeclares
         |~~ A name the code declares itself is no name it reads. ~~|
-        ~(~(:rate 1.5 | mul rate) | fill {:rate 1.2} !| tag | eq ::quote/fill/NamesNameNotReadError)
+        ~(~(:rate 1.5; mul rate) | fill {:rate 1.2} !| tag | eq ::quote/fill/NamesNameNotReadError)
     | proves :NamesKindNotTakenError/refusesAVector
         |~~ The values are named by a map. ~~|
         ~(~(mul rate) | fill [1.2] !| tag | eq ::quote/fill/NamesKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 

@@ -22,6 +22,6 @@ it('reads the tag alone of a value no kind of its walk reveals a view of', async
 it('leaves out a view whose verb refuses the value, and one that names no verb', async () => {
   expect((await viewsOf('::trace[]')).map(([name]) => name)).toEqual(['tag', 'failed', 'paths']);
   const notebook = await createNotebook();
-  const bag = await notebook.evalCell(':Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size) | ::Bag[1 2]');
+  const bag = await notebook.evalCell(':Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size); ::Bag[1 2]');
   expect((await viewsOfKinds(bag.scopeAfterCell)(bag.result)).map(([name]) => name)).toEqual(['tag']);
 });

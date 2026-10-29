@@ -15,4 +15,4 @@
 {"name":"a-word-of-the-literals-after-a-colon-is-a-keyword","query":":null | tag","expect":"::keyword"}
 {"name":"the-word-false-after-a-colon-is-a-keyword","query":":false | tag","expect":"::keyword"}
 {"name":"the-word-true-after-a-colon-is-a-keyword","query":":true | tag","expect":"::keyword"}
-{"name":"the-keyword-of-a-name-stays-a-keyword","query":":Box |~~ A box. ~~| | (:Box | tag)","expect":"::keyword"}
+{"name":"the-keyword-of-a-name-stays-a-keyword","query":":Box |~~ A box. ~~|; (:Box | tag)","expect":"::keyword"}

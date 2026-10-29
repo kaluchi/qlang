@@ -1,0 +1,126 @@
+[
+  {
+    "id": "Z1",
+    "data": "users.json",
+    "text": "The file has a \"users\" array. Take users whose \"active\" is true and whose address exists and has a non-null \"city\". Return an array of the distinct city names converted to lower case, sorted ascending alphabetically.",
+    "expected": [
+      "berlin",
+      "madrid",
+      "paris"
+    ]
+  },
+  {
+    "id": "Z2",
+    "data": "users.json",
+    "text": "Among users (the \"users\" array) whose \"active\" is true and whose \"age\" is not null, compute the average age. Return a number rounded to 1 decimal place.",
+    "expected": 31.2
+  },
+  {
+    "id": "Z3",
+    "data": "orders.json",
+    "text": "Each order has \"items\" (an array of {sku, qty, price}; it may be missing or empty, which means a value of 0). The order value is the sum of qty*price over its items. Considering only orders whose status equals \"paid\" ignoring case, return the sum of their order values as a number rounded to 2 decimal places.",
+    "expected": 162.48
+  },
+  {
+    "id": "Z4",
+    "data": "orders.json",
+    "text": "Ignore orders whose status equals \"cancelled\" ignoring case. For the remaining orders, count orders per customer, with customer names converted to lower case. Return an object mapping each lower-case customer name to its order count (key order does not matter).",
+    "expected": {
+      "alice": 3,
+      "bob": 2,
+      "dave": 1,
+      "carol": 1,
+      "erin": 1
+    }
+  },
+  {
+    "id": "Z5",
+    "data": "orders.json",
+    "text": "The order value is the sum of qty*price over its \"items\" (missing or empty items mean 0). Ignore orders whose status equals \"cancelled\" ignoring case. Group the remaining orders by customer name converted to lower case and sum their order values. Return an array of the 3 lower-case customer names with the highest totals, highest first (ties, if any, broken by name ascending).",
+    "expected": [
+      "carol",
+      "alice",
+      "bob"
+    ]
+  },
+  {
+    "id": "Z6",
+    "data": "issues.json",
+    "text": "Count the issues whose state is \"open\", whose assignee is null, and whose labels include \"bug\" compared ignoring case. Return a number.",
+    "expected": 4
+  },
+  {
+    "id": "Z7",
+    "data": "issues.json",
+    "text": "Take issues whose state is \"open\". Sort them by \"comments\" descending, ties broken by \"number\" ascending. Return the first 3 as an array of objects with exactly the keys \"number\" and \"title\".",
+    "expected": [
+      {
+        "number": 104,
+        "title": "Memory leak"
+      },
+      {
+        "number": 108,
+        "title": "Refactor auth"
+      },
+      {
+        "number": 101,
+        "title": "Crash on start"
+      }
+    ]
+  },
+  {
+    "id": "Z8",
+    "data": "issues.json",
+    "text": "Count all issues (any state) per assignee login. Issues with a null assignee are counted under the key \"unassigned\". Return an object mapping each key to its count (key order does not matter).",
+    "expected": {
+      "unassigned": 5,
+      "zed": 3,
+      "amy": 2,
+      "bo": 1
+    }
+  },
+  {
+    "id": "Z9",
+    "data": "manifest.json",
+    "text": "Combine the packages from \"dependencies\" and \"devDependencies\". Keep those whose version string starts with \"^\". Return a single string: their names converted to lower case, sorted ascending alphabetically, joined with a comma and no spaces.",
+    "expected": "express,jest,mocha,prettier,typescript,zod"
+  },
+  {
+    "id": "Z10",
+    "data": "config.json",
+    "text": "Among entries of \"services\" whose \"enabled\" is true, sum their \"replicas\". A missing or null \"replicas\" counts as 1. Return a number.",
+    "expected": 7
+  },
+  {
+    "id": "Z11",
+    "data": "access.log",
+    "text": "Each line of the log is \"<timestamp> <METHOD> <path> <status> <duration>ms\". Group the requests by status class: \"2xx\", \"4xx\", \"5xx\" (by the first digit of the status). Return an object with exactly those three keys mapping to the number of requests in each class.",
+    "expected": {
+      "2xx": 6,
+      "4xx": 2,
+      "5xx": 3
+    }
+  },
+  {
+    "id": "Z12",
+    "data": "access.log",
+    "text": "Each line of the log is \"<timestamp> <METHOD> <path> <status> <duration>ms\". Take requests with method GET. Return the average duration in milliseconds as a number rounded to 1 decimal place.",
+    "expected": 252.8
+  },
+  {
+    "id": "Z13",
+    "data": "inventory.csv",
+    "text": "The file is CSV with a header row (sku,name,category,qty,price). Take rows whose category equals \"Tools\" ignoring case. The value of a row is qty*price, where an empty qty counts as 0. Return the sum of the values as a number rounded to 2 decimal places.",
+    "expected": 475.47
+  },
+  {
+    "id": "Z14",
+    "data": null,
+    "text": "Given this string of e-mail addresses separated by commas or semicolons (with optional spaces): \"alice@Example.com, bob@example.org; carol@EXAMPLE.COM, dave@mail.test, erin@Example.org, frank@mail.test\". Return an array of the distinct domains (the part after \"@\") converted to lower case, sorted ascending alphabetically.",
+    "expected": [
+      "example.com",
+      "example.org",
+      "mail.test"
+    ]
+  }
+]

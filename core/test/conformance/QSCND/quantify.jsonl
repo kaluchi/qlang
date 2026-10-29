@@ -1,6 +1,6 @@
-{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/every/ConditionKindNotTakenError /1]"}
+{"name":"every-refuses-a-condition-of-another-kind","query":"[true 1] | every ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/every/PredicateAnswerKindNotTakenError /1]"}
 {"name":"every-stops-at-the-first-false","query":"[false 1] | every ~(it)","expect":"false"}
-{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/any/ConditionKindNotTakenError /1]"}
+{"name":"any-refuses-a-condition-of-another-kind","query":"[false \"x\"] | any ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/any/PredicateAnswerKindNotTakenError /1]"}
 {"name":"at-least-one-satisfies","query":"[1 2 3] | any ~(gt 2)","expect":"true"}
 {"name":"any-answers-false-where-no-element-meets-the-predicate","query":"[1 2 3] | any ~(gt 99)","expect":"false"}
 {"name":"any-answers-true-where-the-first-element-meets-the-predicate","query":"[5 1 2] | any ~(gt 2)","expect":"true"}
@@ -14,9 +14,9 @@
 {"name":"any-over-a-map-answers-true-where-a-value-meets-the-predicate","query":"{:a -1 :b 0 :c 2} | any ~(gt 0)","expect":"true"}
 {"name":"any-over-a-map-answers-false-where-no-value-meets-the-predicate","query":"{:a -1 :b -2 :c -3} | any ~(gt 0)","expect":"false"}
 {"name":"any-answers-false-over-an-empty-map","query":"{} | any ~(gt 0)","expect":"false"}
-{"name":"any-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":"{:a -1 :b 2} | :any/pos ~(gt 0) | any ~(pos)","expect":"true"}
-{"name":"any-over-a-map-takes-a-verb-handed-on-as-code","query":"{:a -1 :b 2} | :any/positive ~(gt 0) | any ~positive","expect":"true"}
-{"name":"any-over-a-map-answers-false-where-the-verb-holds-for-no-value","query":"{:a -1 :b -2} | :any/positive ~(gt 0) | any ~positive","expect":"false"}
+{"name":"any-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":":any/pos ~(gt 0); {:a -1 :b 2} | any ~(pos)","expect":"true"}
+{"name":"any-over-a-map-takes-a-verb-handed-on-as-code","query":":any/positive ~(gt 0); {:a -1 :b 2} | any ~positive","expect":"true"}
+{"name":"any-over-a-map-answers-false-where-the-verb-holds-for-no-value","query":":any/positive ~(gt 0); {:a -1 :b -2} | any ~positive","expect":"false"}
 {"name":"every-answers-true-where-all-elements-meet-the-predicate","query":"[2 4 6 8] | every ~(gt 0)","expect":"true"}
 {"name":"every-answers-false-where-a-later-element-does-not-meet-the-predicate","query":"[2 4 -1 8] | every ~(gt 0)","expect":"false"}
 {"name":"every-answers-false-where-the-first-element-does-not-meet-the-predicate","query":"[-1 4 6 8] | every ~(gt 0)","expect":"false"}
@@ -29,16 +29,16 @@
 {"name":"every-over-a-map-answers-true-where-all-values-meet-the-predicate","query":"{:a 1 :b 2 :c 3} | every ~(gt 0)","expect":"true"}
 {"name":"every-over-a-map-answers-false-where-one-value-does-not-meet-the-predicate","query":"{:a 1 :b -2 :c 3} | every ~(gt 0)","expect":"false"}
 {"name":"every-answers-true-over-an-empty-map","query":"{} | every ~(gt 0)","expect":"true"}
-{"name":"every-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":"{:a 1 :b 2} | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-over-a-map-takes-a-verb-handed-on-as-code","query":"{:a 1 :b 2} | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"name":"every-over-a-map-answers-false-where-the-verb-does-not-hold-for-a-value","query":"{:a 1 :b -2} | :any/positive ~(gt 0) | every ~positive","expect":"false"}
+{"name":"every-over-a-map-runs-a-verb-the-reader-declares-in-its-predicate","query":":any/big ~(gt 0); {:a 1 :b 2} | every ~(big)","expect":"true"}
+{"name":"every-over-a-map-takes-a-verb-handed-on-as-code","query":":any/positive ~(gt 0); {:a 1 :b 2} | every ~positive","expect":"true"}
+{"name":"every-over-a-map-answers-false-where-the-verb-does-not-hold-for-a-value","query":":any/positive ~(gt 0); {:a 1 :b -2} | every ~positive","expect":"false"}
 {"name":"any-over-a-set-answers-true-where-an-element-meets-the-predicate","query":"#[1 2 3] | any ~(gt 2)","expect":"true"}
 {"name":"any-over-a-set-answers-false-where-no-element-meets-the-predicate","query":"#[1 2 3] | any ~(gt 99)","expect":"false"}
-{"name":"any-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[1 2 3] | :any/big ~(gt 2) | any ~(big)","expect":"true"}
-{"name":"any-over-a-set-takes-a-verb-handed-on-as-code","query":"#[1 2 3] | :any/big ~(gt 2) | any ~big","expect":"true"}
+{"name":"any-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":":any/big ~(gt 2); #[1 2 3] | any ~(big)","expect":"true"}
+{"name":"any-over-a-set-takes-a-verb-handed-on-as-code","query":":any/big ~(gt 2); #[1 2 3] | any ~big","expect":"true"}
 {"name":"every-over-a-set-answers-true-where-all-elements-meet-the-predicate","query":"#[2 4 6] | every ~(gt 0)","expect":"true"}
 {"name":"every-over-a-set-answers-false-where-one-element-does-not-meet-the-predicate","query":"#[2 4 -1] | every ~(gt 0)","expect":"false"}
-{"name":"every-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":"#[2 4 6] | :any/big ~(gt 0) | every ~(big)","expect":"true"}
-{"name":"every-over-a-set-takes-a-verb-handed-on-as-code","query":"#[2 4 6] | :any/positive ~(gt 0) | every ~positive","expect":"true"}
-{"name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::map/every/ConditionKindNotTakenError /b]"}
+{"name":"every-over-a-set-runs-a-verb-the-reader-declares-in-its-predicate","query":":any/big ~(gt 0); #[2 4 6] | every ~(big)","expect":"true"}
+{"name":"every-over-a-set-takes-a-verb-handed-on-as-code","query":":any/positive ~(gt 0); #[2 4 6] | every ~positive","expect":"true"}
+{"name":"a-condition-over-a-map-that-is-no-boolean-is-refused-at-its-key","query":"{:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]","expect":"[::map/every/PredicateAnswerKindNotTakenError /b]"}
 {"name":"a-predicate-that-fails-fails-the-quantifier","query":"[1 2] | any ~(div 0) !| tag","expect":"::number/div/DivisorZeroError"}

@@ -74,7 +74,7 @@
         |~~ A value of `::map` already, a map under a tag of its own and an
             error at rest, stays as it is; `payload` reads the map beneath.
         ~~|
-        ~(get [~(::map::Box{:id 7} | tag) ~(::map!{:id 7} | tag) ~(::Box{:id 7} | payload | tag)] | eq [::Box ::error ::map])
+        ~(get [~(::map::Box{:id 7} | tag) ~(::map!{:id 7} | tag) ~(::Box{:id 7} | payload | tag)] | eq [::Box ::error ::map]);
 
 :map/count
   |~~ Answers how many entries the map holds,
@@ -106,7 +106,7 @@
             first.
         ~~|
         ~({:apples 3 :pears 5} | count ~(gt 4) !| tag | eq ::map/count/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/size
   |~~ The name other languages give `count`: answers how many entries the
@@ -119,7 +119,7 @@
     | proves :answersAsCount
         |~~ `size` answers as `count`. ~~|
         ~({:apples 3 :pears 5} | get [~(size) ~(count)] | eq [2 2])
-    | impl ~(count)
+    | impl ~(count);
 
 :map/length
   |~~ The name other languages give `count`: answers how many entries the
@@ -132,7 +132,7 @@
     | proves :answersAsCount
         |~~ `length` answers as `count`. ~~|
         ~({:apples 3 :pears 5} | get [~(length) ~(count)] | eq [2 2])
-    | impl ~(count)
+    | impl ~(count);
 
 :map/empty
   |~~ Answers whether the map holds no entry, `{} | empty` answering
@@ -151,7 +151,7 @@
     | proves :failsOfAKeyWithANullValue
         |~~ A key held with a null value is an entry. ~~|
         ~({:note null} | empty | not)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/first
   |~~ Answers the value of the first entry, in the order the map holds its
@@ -186,7 +186,7 @@
     | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused; `take` takes it. ~~|
         ~({:mon 12 :tue 15} | first 2 !| tag | eq ::map/first/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/last
   |~~ Answers the value of the last entry, in the order the map holds its
@@ -205,7 +205,7 @@
     | proves :answersNullForTheEmptyMap
         |~~ The empty map answers null. ~~|
         ~({} | last | eq null)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/sum
   |~~ Answers the sum of the values, each a number,
@@ -248,13 +248,14 @@
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
         ~({:rent {:amount 900}} | sum /amount !| tag | eq ::map/sum/ArgsBeyondInputsError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/avg
   |~~ Answers the mean of the values, each a number,
       `{:mon 12 :tue 15} | avg` answering `13.5`, or null for the empty
-      map, which has no mean, the mean of numbers staying among the finite
-      doubles, `{:high 1e308 :low -1e308} | avg` answering `0`; it takes
+      map, which has no mean, the sum of the values over their count as
+      `avg` of vectors reads it, staying among the finite doubles,
+      `{:high 1e308 :low -1e308} | avg` answering `0`; it takes
       no value. A value that is no number is refused, the path of its frame
       naming its key, and a field of each value is read first by `map`,
       `map /amount | avg`. A vector and a set answer by the `avg` of
@@ -284,7 +285,7 @@
         |~~ A string among the values is refused under its key. ~~|
         ~({:mon 12 :tue "15"} | avg !| get [~(tag) ~(subject | found | get /tue | tag) ~(trace | last | path) ~(subject | expected)]
           |  eq [::map/avg/ElementKindNotTakenError ::string /tue #[::number]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/min
   |~~ Answers the least value in the one order of values, the values of
@@ -333,7 +334,7 @@
         ~({:ann {:age 30}} | min (get /age)
           !| get [~(tag) ~(key | found | tag)]
           |  eq [::map/min/KeyKindNotTakenError ::path/KeyNotInMapError])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/max
   |~~ Answers the greatest value in the one order of values, the values
@@ -369,7 +370,7 @@
     | proves :ranksByTheKey
         |~~ The key the call gives ranks each value. ~~|
         ~({:ann {:age 30} :bob {:age 40}} | max /age | eq {:age 40})
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/map
   |~~ Answers the map of what the code answers for each value, under the
@@ -416,7 +417,7 @@
     | proves :CodeKindNotTakenError/refusesAStepComputedAtTheCall
         |~~ A step written without its quote is refused. ~~|
         ~({:tea 4} | map (add 1) !| tag | eq ::map/map/CodeKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/filter
   |~~ Answers the entries whose value the predicate answers true for,
@@ -446,7 +447,7 @@
             tags of the map.
         ~~|
         ::map
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for the value of
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
@@ -468,11 +469,11 @@
     | proves :PredicateKindNotTakenError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
         ~({:tea 4} | filter (gt 3) !| tag | eq ::map/filter/PredicateKindNotTakenError)
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | filter ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/filter/ConditionKindNotTakenError /tea ::number #[::boolean]])
-    | impl ::builtin{}
+          |  eq [::map/filter/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
+    | impl ::builtin{};
 
 :map/every
   |~~ Answers whether the predicate answers true for every value,
@@ -497,7 +498,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `every` answers a boolean for the value of
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
@@ -513,16 +514,16 @@
     | proves :holdsOfTheEmptyMap
         |~~ The empty map holds no value to fail. ~~|
         ~({} | every ~(gt 0))
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | every ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/every/ConditionKindNotTakenError /tea ::number #[::boolean]])
+          |  eq [::map/every/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
     | proves :PredicateKindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
         ~({:tea 4} | every (gt 0) !| tag | eq ::map/every/PredicateKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/any
   |~~ Answers whether the predicate answers true for some value,
@@ -547,7 +548,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `any` answers a boolean for the value of each
             entry; the path of its frame names the entry whose predicate
             answered another kind.
@@ -558,16 +559,16 @@
     | proves :failsOfTheEmptyMap
         |~~ The empty map holds no value to pass. ~~|
         ~({} | any ~(gt 0) | not)
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | any ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/any/ConditionKindNotTakenError /tea ::number #[::boolean]])
+          |  eq [::map/any/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
     | proves :PredicateKindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
         ~~|
         ~({:tea 4} | any (gt 0) !| tag | eq ::map/any/PredicateKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/sort
   |~~ Answers the entries ordered by their values in the one order, their
@@ -607,7 +608,7 @@
     | proves :KeyKindNotTakenError/refusesANumber
         |~~ A key that is no code is refused. ~~|
         ~({:tea 4 :cake 6} | sort 1 !| tag | eq ::map/sort/KeyKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/take
   |~~ Answers the first entries of the map, as many as the count the call
@@ -649,7 +650,7 @@
     | proves :CountKindNotTakenError/refusesAString
         |~~ A count written as a string is refused. ~~|
         ~({:ann 41} | take "1" !| tag | eq ::map/take/CountKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/drop
   |~~ Answers the entries after the first ones, as many as the count the
@@ -693,7 +694,7 @@
     | proves :CountNotIntegerError/refusesAFraction
         |~~ A count that is no whole number is refused. ~~|
         ~({:ann 41} | drop 1.5 !| tag | eq ::map/drop/CountNotIntegerError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/reverse
   |~~ Answers the entries in the reverse order, their keys kept, under the
@@ -712,7 +713,7 @@
     | proves :keepsTheKeys
         |~~ Each value keeps its key. ~~|
         ~({:ann 41 :bob 43} | reverse | entries | first | eq [:bob 43])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/reduce
   |~~ Answers the seed folded over the values by the reducer, in the order
@@ -767,7 +768,7 @@
             far and the value.
         ~~|
         ~({:rent 900 :food 300} | reduce 0 ~(sumOf /0 /1) | eq 1200)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/keys
   |~~ Answers the set of the keys, each a keyword, in the order of their
@@ -808,7 +809,7 @@
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
         ~(42 | keys !| get [~(tag) ~(subject | found | tag)] | eq [::map/keys/SubjectNotMapError ::number])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/vals
   |~~ Answers the vector of the values, in the order of the entries:
@@ -834,7 +835,7 @@
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
         ~([1 2] | vals !| get [~(tag) ~(subject | found | tag)] | eq [::map/vals/SubjectNotMapError ::vec])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/entries
   |~~ Answers the vector of the pairs `[key value]` of the map, in the
@@ -870,7 +871,7 @@
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
         ~([1 2] | entries !| get [~(tag) ~(subject | found | tag)] | eq [::map/entries/SubjectNotMapError ::vec])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/has
   |~~ Answers whether the map holds the key the call gives, a keyword, a
@@ -923,7 +924,7 @@
         ~({:name "Ann"} | has [:name]
           !| get [~(tag) ~(key | found | tag)]
           |  eq [::map/has/KeyKindNotTakenError ::vec])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/union
   |~~ Answers the entries of the subject together with those of the map
@@ -965,7 +966,7 @@
     | proves :OtherKindNotTakenError/refusesASetOfKeys
         |~~ A set of keys unites with no map. ~~|
         ~({:theme :dark} | union #[:lang] !| tag | eq ::map/union/OtherKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/merge
   |~~ The name other languages give `union` over maps: answers the entries
@@ -994,7 +995,7 @@
     | proves :OtherKindNotTakenError/refusesASetOfKeys
         |~~ A set of keys merges with no map. ~~|
         ~({:theme :dark} | merge #[:lang] !| tag | eq ::map/merge/OtherKindNotTakenError)
-    | impl ~(union other)
+    | impl ~(union other);
 
 :map/minus
   |~~ Answers the entries of the map whose keys are not among the keys the
@@ -1054,7 +1055,7 @@
         ~~|
         ~({:name "Ann"} | minus [:tmp true] !| get [~(tag) ~(keys | found | get /1 | tag) ~(keys | index) ~(keys | expected)]
           |  eq [::map/minus/KeysElementKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/inter
   |~~ Answers the entries of the map whose keys are among the keys the
@@ -1109,7 +1110,7 @@
             input.
         ~~|
         ~({:name "Ann"} | inter 5 !| tag | eq ::map/inter/KeysKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :map/toMap
   |~~ Answers the map itself, so `map ~toMap` turns maps and vectors of
@@ -1121,5 +1122,5 @@
     | proves :answersItself
         |~~ A map answers itself. ~~|
         ~({:name "Ann"} | toMap | eq {:name "Ann"})
-    | impl ::builtin{}
+    | impl ::builtin{};
 

@@ -1,12 +1,12 @@
 // The surface of the root of the package against what a host builds on: the
 // names the root exports and each module it re-exports them from, read by the
-// parser of JavaScript the linter runs; the names a host reads from the
+// parser of JavaScript the scripts read a module by; the names a host reads from the
 // package by an import, a re-export, a namespace or a dynamic import; and the
 // names the page of the package writes [QSGAT#workspaces].
 
-import { parse } from 'espree';
+import { parse } from 'acorn';
 
-const parsed = text => parse(text, { ecmaVersion: 'latest', sourceType: 'module', loc: true });
+const parsed = text => parse(text, { ecmaVersion: 'latest', sourceType: 'module', locations: true, allowHashBang: true });
 
 // The code of a source: an Astro page's frontmatter, any other source whole.
 export const codeOf = (path, text) => (path.endsWith('.astro') ? /^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? '' : text);

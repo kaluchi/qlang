@@ -12,13 +12,14 @@ import { existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { readText, treeAt } from './tree-reads.mjs';
+import { commentRanges } from './comments.mjs';
 import { readDecisionRecords, replacedWhole, isBeingDecided, isHeld, foldersOfForm, JOURNAL, RESEARCH } from './decision-records.mjs';
 
-export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'cli/src', 'cli/lib', 'cli/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
+export const CITING_CODE_ROOTS = ['core/src', 'core/host', 'core/lib', 'core/test/unit', 'core/test/helpers', 'core/test/qlang', 'stdio/src', 'stdio/lib', 'playground/src', 'playground/lib', 'playground/test', 'lsp/src', 'lsp/test', 'vscode/src', 'vscode/test', 'site/src', 'site/scripts', 'site/test', 'core/scripts', 'scripts', '.github/workflows'];
 // The code beside the roots: the configurations at the root of the
 // repository and of each workspace.
-export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'cli/vitest.config.mjs', 'cli/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'vscode/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
-export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'cli/README.md'];
+export const CITING_CODE_FILES = ['eslint.config.mjs', 'core/vitest.config.mjs', 'playground/vitest.config.mjs', 'playground/vitest.integration.config.mjs', 'lsp/vitest.config.mjs', 'vscode/vitest.config.mjs', 'site/astro.config.mjs', 'site/vitest.config.mjs'];
+export const CITING_DOCUMENTS = ['CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'];
 export const CODE_FILE = /\.(mjs|js|ts|astro|peggy|qlang|yml)$/;
 const UNCITING_FOLDERS = new Set(['node_modules', 'gen', 'dist', '.astro', 'sets']);
 // A citation a document writes in words, `decision Dnn` or `decisions Dnn
@@ -39,6 +40,16 @@ function filesUnder(repoRoot, dir, regex) {
 // and those beside them the tree holds; isCitingCode(path) whether a path is one.
 export const citingCodeOf = repoRoot => [...CITING_CODE_ROOTS.flatMap(root => filesUnder(repoRoot, root, CODE_FILE)), ...CITING_CODE_FILES.filter(path => existsSync(join(repoRoot, path)))];
 export const isCitingCode = path => CITING_CODE_FILES.includes(path) || (CODE_FILE.test(path) && CITING_CODE_ROOTS.some(root => path.startsWith(`${root}/`)));
+
+// citationsOfCode(path, text) → the citations a file of code writes, read in
+// its comments as `marks.mjs` reads them, a citation in backquotes the example
+// of one and a string of the code naming none [QSREQ#marks].
+export function citationsOfCode(path, text) {
+  return commentRanges(path, text).flatMap(({ start, value }) => {
+    const first = text.slice(0, start).split('\n').length;
+    return citationsIn(value.replace(/`[^`\n]*`/g, '')).map(({ name, line }) => ({ name, line: first + line - 1 }));
+  });
+}
 
 export function citationsIn(text) {
   const cited = [];
@@ -156,7 +167,7 @@ export function reconciliationOf(repoRoot) {
   reconciled.since = [...records.keys()].filter(name => !atBaseline.has(name));
   const notClosed = record => !replacedWhole(record) && !isBeingDecided(record);
   for (const file of citingCodeOf(repoRoot)) {
-    for (const { name, line } of citationsIn(readText(join(repoRoot, file)))) {
+    for (const { name, line } of citationsOfCode(file, readText(join(repoRoot, file)))) {
       const record = records.get(name);
       if (record !== undefined && !isHeld(record)) reconciled.violations.push({ where: `${file}:${line}`, problem: `cites ${name}, ${stateOf(record)}` });
     }

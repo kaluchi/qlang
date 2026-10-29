@@ -64,7 +64,7 @@
         ~~|
         ~(1e308 | mul 10 | add 1 !| get [~(tag) ~(trace | map ~failed)]
           | eq [::number/NotFiniteError [~(mul 10)]])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/add
   |~~ Answers the subject plus the number the call gives, `10 | add 3`.
@@ -73,11 +73,7 @@
       `append`; and text that holds a number is read first by
       `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
-      of one record add by `sumOf /price /tax`. Two numbers add beneath the
-      tags they share, a bare one sharing any, `::Width#2 | add 3`
-      answering `::Width#5`, and two under different tags are refused,
-      `::call/KindsMismatchedError`; a sum past the doubles is refused as
-      no number.
+      of one record add by `sumOf /price /tax`.
       ::link~(::number/sub) ::link~(::any/sumOf)
   ~~|
   ::fn
@@ -125,7 +121,7 @@
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#2 | add 3 | eq ::Width#5)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/sub
   |~~ Answers the subject, the minuend, less the number the call gives,
@@ -172,7 +168,7 @@
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#5 | sub 3 | eq ::Width#2)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/mul
   |~~ Answers the subject times the number the call gives, `10 | mul 3`,
@@ -228,7 +224,7 @@
     | proves :computesTheMultiplierAgainstTheSubject
         |~~ The multiplier is computed against the subject. ~~|
         ~(5 | mul it | eq 25)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/div
   |~~ Answers the subject, the dividend, divided by the number the call
@@ -288,7 +284,7 @@
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#6 | div 3 | eq ::Width#2)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/mod
   |~~ Answers the remainder of the subject divided by the number the
@@ -350,7 +346,7 @@
             divisor.
         ~~|
         ~(7 | mod 0 !| tag | eq ::number/mod/DivisorZeroError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/abs
   |~~ Answers the subject without its sign, `-3 | abs` answering `3`, a
@@ -371,7 +367,7 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
         ~("-3" | abs !| get [~(tag) ~(subject | found | tag)] | eq [::number/abs/SubjectNotNumberError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/floor
   |~~ Answers the greatest whole number not above the subject,
@@ -396,7 +392,7 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
         ~("2.7" | floor !| get [~(tag) ~(subject | found | tag)] | eq [::number/floor/SubjectNotNumberError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/ceil
   |~~ Answers the least whole number not below the subject, `2.1 | ceil`
@@ -421,7 +417,7 @@
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
         ~("2.1" | ceil !| get [~(tag) ~(subject | found | tag)] | eq [::number/ceil/SubjectNotNumberError ::string])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/range
   |~~ Answers the whole numbers from zero up to the subject, the subject
@@ -472,7 +468,7 @@
     | proves :SubjectNotNumberError/refusesAVector
         |~~ A vector is counted first. ~~|
         ~([:tea :cake] | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotNumberError ::vec])
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/round
   |~~ Answers the subject rounded to the digits after the point the call
@@ -530,7 +526,7 @@
             input.
         ~~|
         ~(3.14 | round "2" !| tag | eq ::number/round/DigitsKindNotTakenError)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/toString
   |~~ Answers the number written as text, as a query and JSON write it,
@@ -547,7 +543,7 @@
     | proves :readsBack
         |~~ A number turned into its string turns back into itself. ~~|
         ~(0.1 | add 0.2 | eq (toString | toNumber))
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/toKeyword
   |~~ Answers the keyword a number files under as a key, `1 | toKeyword`
@@ -565,7 +561,7 @@
     | proves :readsBack
         |~~ A number turned into its keyword turns back into itself. ~~|
         ~(1 | toKeyword | toNumber | eq 1)
-    | impl ::builtin{}
+    | impl ::builtin{};
 
 :number/toNumber
   |~~ Answers the number itself, so `map ~toNumber` turns numbers and the
@@ -580,5 +576,5 @@
             into numbers.
         ~~|
         ~([1 "2"] | map ~toNumber | eq [1 2])
-    | impl ::builtin{}
+    | impl ::builtin{};
 

@@ -9,7 +9,7 @@
 {"name":"replace-names-the-groups-of-a-match","query":"[\"2026-10-12\" \"id: 7\"] | get [~(get /0 | replace #\"(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)\" \"$<d>.$<m>.$<y>\") ~(get /1 | replace #\"\\d+\" \"[$&]\")]","expect":"[\"12.10.2026\" \"id: [7]\"]"}
 {"name":"replace-puts-a-text-as-written","query":"\"price $5\" | replace \"$5\" \"$&10\"","expect":"\"price $&10\""}
 {"name":"replace-runs-code-on-the-vector-of-each-match","query":"\"3x4 and 5x6\" | replace #\"(\\d+)x(\\d+)\" ~(mulOf (get /1 | toNumber) (get /2 | toNumber) | toString)","expect":"\"12 and 30\""}
-{"name":"replace-runs-code-on-each-match-of-a-text","query":"\"a.b.c\" | replace \".\" ~(:m (get /0) | m | append m)","expect":"\"a..b..c\""}
+{"name":"replace-runs-code-on-each-match-of-a-text","query":"\"a.b.c\" | replace \".\" ~(with {:m /0} ~(m | append m))","expect":"\"a..b..c\""}
 {"name":"replace-hands-on-the-failure-its-code-answers","query":"\"a1\" | replace #\"\\d\" ~(get /0 | add 1) !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"replace-refuses-a-replacement-of-another-kind","query":"\"a\" | replace #\"a\" 5 !| tag","expect":"::string/replace/WithKindNotTakenError"}
 {"name":"toRegex-reads-a-regex-kept-in-data","query":"{:rule \"^\\\\d{3}$\"} | with {:p ~(get /rule | toRegex)} ~(get [\"123\" \"12a\"] | map ~(contains p))","expect":"[true false]"}
@@ -31,3 +31,4 @@
 {"name":"capture-answers-null-where-the-regex-matches-nothing","query":"\"abc\" | capture #\"(?<n>x)\"","expect":"null"}
 {"name":"toRegex-refuses-flags-that-are-no-string","query":"\"a\" | toRegex 5 !| tag","expect":"::string/toRegex/FlagsKindNotTakenError"}
 {"name":"a-two-digit-group-the-regex-lacks-reads-as-the-group-of-its-first-digit","query":"\"abc\" | replace #\"(b)\" \"[$10]\"","expect":"\"a[b0]c\""}
+{"name":"replace-writes-a-keyword-as-its-name","query":"get [~(\"abc\" | replace \"a\" :x) ~(\"a-b\" | replace #\"-\" :plus)]","expect":"[\"xbc\" \"aplusb\"]"}

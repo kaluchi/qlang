@@ -2,7 +2,7 @@
 
 import { splitAddress } from './address.mjs';
 import { isPath, isTag } from './types.mjs';
-import { isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, holdsALiteral, declaresAName, declaresKind } from './steps.mjs';
+import { isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, holdsALiteral, declaresKind } from './steps.mjs';
 
 // [QSNAM#address]
 export const CALL_SPELLING = 'call';
@@ -106,22 +106,16 @@ export function bindingNamesVisibleAt(root, offset, spelling = CALL_SPELLING, de
 const declaresANodeOrALabel = bind => splitAddress(bind.get('name').name)[0] !== null || declaresKind(bind);
 
 // [QSCLI#stdin]
-export function readsItsSubject(steps, verbsOfNoSubject = new Set()) {
-  let unread = verbsOfNoSubject;
-  const readsBy = step => (isGroupStep(step) ? readsItsSubject(step.payload, unread) : !holdsALiteral(step) && !unread.has(step.get('name').name));
-  for (const step of steps) {
-    if (isFailStep(step)) continue;
-    if (!isBindStep(step)) return readsBy(step);
-    if (step.has('body') && readsBy(step.get('body'))) return true;
-    unread = new Set([...unread].filter(name => name !== splitAddress(step.get('name').name)[1]));
-  }
-  return true;
+export function readsItsSubject(steps) {
+  const head = steps.find(step => !isFailStep(step) && !isBindStep(step));
+  if (head === undefined) return steps.length === 0 || !steps.every(isBindStep);
+  return isGroupStep(head) ? readsItsSubject(head.payload) : !holdsALiteral(head);
 }
 
 // [QSNAM#scope]
 const REPEATED_DECLARATIONS = new WeakMap();
 
-const declaredNameOf = step => (isFailStep(step) ? step.payload[0] : step).get('name').name;
+const declaredNameOf = step => step.get('name').name;
 
 export function repeatsDeclarationAt(steps, index) {
   let repeated = REPEATED_DECLARATIONS.get(steps);
@@ -129,7 +123,7 @@ export function repeatsDeclarationAt(steps, index) {
     repeated = new Set();
     const declared = new Set();
     steps.forEach((step, at) => {
-      if (!declaresAName(step)) return;
+      if (!isBindStep(step)) return;
       const name = declaredNameOf(step);
       if (declared.has(name)) repeated.add(at);
       declared.add(name);
@@ -141,5 +135,5 @@ export function repeatsDeclarationAt(steps, index) {
 
 // [QSNAM#scope]
 export function declaresBefore(steps, index, name) {
-  return steps.slice(0, index).some(step => declaresAName(step) && declaredNameOf(step) === name);
+  return steps.slice(0, index).some(step => isBindStep(step) && declaredNameOf(step) === name);
 }

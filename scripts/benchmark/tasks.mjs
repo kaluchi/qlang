@@ -54,13 +54,13 @@ export const TASKS = [
   {
     id: 'L1',
     question: 'declare a verb of your own named triple that multiplies a number by three, and answer the vector [1 2 3] with every element tripled.',
-    reference: ":number/triple ~(mul 3) | [1 2 3] | map ~triple",
+    reference: ":number/triple ~(mul 3); [1 2 3] | map ~triple",
     answer: "[3 6 9]"
   },
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)) | get [~(::Small#3 | tag) ~(::Small#12 | ok | not !| true)]",
+    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)); get [~(::Small#3 | tag) ~(::Small#12 | ok | not !| true)]",
     answer: "[::Small true]"
   },
   {
@@ -96,7 +96,7 @@ export const TASKS = [
   {
     id: 'L8',
     question: 'declare a name of your own holding 2 with two laws under it, the claims "eq 2" and "gt 1" of 2, and answer how many laws the name has.',
-    reference: 'apply ~(:two 2 | :two/isTwo ::law~(2 | eq 2) | :two/exceedsOne ::law~(2 | gt 1) | ::two | laws | count)',
+    reference: 'apply ~(:two 2; :two/isTwo ::law~(2 | eq 2); :two/exceedsOne ::law~(2 | gt 1); ::two | laws | count)',
     answer: "2"
   },
   {
@@ -116,8 +116,8 @@ export const TASKS = [
   {
     id: 'N1',
     question: 'in one query, the text of the page of every kind the language lists.',
-    reference: 'kinds | map ~(doc | content)',
-    answer: 'kinds | map ~doc | map ~content'
+    reference: '::host | kinds | map ~(doc | content)',
+    answer: '::host | kinds | map ~doc | map ~content'
   },
   {
     id: 'N2',
@@ -128,7 +128,7 @@ export const TASKS = [
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: 'kinds | filter ~(doc | links | map ~answer | has ::error)',
+    reference: '::host | kinds | filter ~(doc | links | map ~answer | has ::error)',
     answer: '#[::fail]'
   },
   {

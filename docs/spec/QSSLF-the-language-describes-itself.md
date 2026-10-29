@@ -43,7 +43,9 @@ the laws of the name its subject reads, takes no anchor, refusing one as
 
 A tag nothing declares whose last name ends in `Error` reads the record
 of the address before it, the call of a function, `::fn/call`, among them
-[QSBLD#fn]; any other name nothing declares is refused
+[QSBLD#fn]; the tag of a role of a verb, which closes the slot of its
+verdict, reads the record of its role, its input or the role every verb
+holds, `::fn/subject` [QSERR#site]; any other name nothing declares is refused
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the
@@ -55,8 +57,11 @@ of the kinds of an input, a field or a payload the page of that part, and every 
 its page with its repair. The page of a refusal says what failed, which
 fact or which path of the frame names the culprit and how the call is
 repaired, and the laws of a refusal a query can meet hold the recovery
-through `!|`, a defect of the runtime and a failure inside a primitive a
-host hands, which no query of the language raises, holding none. A map is
+through `!|`, a defect of the runtime, a failure inside a primitive a
+host hands and the refusal of an answer past the budget, which no query
+of the language raises, holding none, as the kind the refusals of the
+axes share and a refusal no query meets, the kinds of the parts of a
+point and of a span its elements guard first. A map is
 read by its kind whatever its fields hold, `{:kind ::set} | doc` the
 page of maps, and a label may declare a `doc` of its own, which its
 values answer before the verb of every value. A reader adds an axis of
@@ -124,7 +129,7 @@ true
 > ::qlang | manifest | get [~(has ::qlang/values) ~(has ::qlang/AnswerBeyondBudgetError)]
 [true true]
 
-> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number) | ::Box | manifest
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box | manifest
 #[::Box/WKindNotTakenError ::Box/w]
 
 > ::vec/take/count | manifest
@@ -163,7 +168,7 @@ name's page and its laws, a name nothing declares refused as `doc`
 refuses it. Every law of the core passes.
 
 ```qlang
-> :Box |~~ A box. ~~| | :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1) | ::Box | runLaws | map /ok
+> :Box |~~ A box. ~~|; :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1); ::Box | runLaws | map /ok
 [true]
 
 > ::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]
@@ -172,7 +177,7 @@ refuses it. Every law of the core passes.
 > ::number/add | laws | count
 4
 
-> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])
+> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])))))
 [0 true]
 ```
 
@@ -269,17 +274,19 @@ written.
 > get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(found | tag)])]
 [1 [::link/PayloadKindNotTakenError ::Foo]]
 
-> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)) | |~~ see ::Role~(x) ~~| !| tag
+> :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)); |~~ see ::Role~(x) ~~| !| tag
 ::Role/k
 
-> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(:x |~~ see ::map~(x) ~~| 1 !| tag)]
+> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(~(:x |~~ see ::map~(x) ~~| 1) | answer !| tag)]
 [true ::map/PayloadKindNotTakenError]
 ```
 
 ## page
 
 `::qlang` is the topic of the language, a label whose page is the first
-page, and `::cli` the topic of the command line. What `tells` declares
+page, `::host` the host a session is in, whose page the host writes
+[QSHST#source], and `::stdio` the topic of the streams a host on the
+command line installs [QSHST#effect]. What `tells` declares
 under a topic is a chapter, the page of a concept the first page names,
 a node under the topic, `::qlang/pipeline`, read at its address or by
 its anchor, `::qlang | doc :pipeline`, and listed by `manifest` of the
@@ -300,16 +307,16 @@ true
 > ::qlang | doc :pipeline | tag
 ::doc
 
-> get [~(kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
+> get [~(::host | kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
 > ::qlang | doc | content | get [~(contains "its views and its parts") ~(contains "the ::cell that") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> kinds | toVec | apply ~(:level1 it | map ~(manifest) | flat | :level2 it | map ~(manifest) | flat | :level3 it | map ~(manifest) | flat | :level4 it | map ~(manifest) | flat | :level5 it | get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])
+> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])))))
 [0 true]
 
-> kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
+> ::host | kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
 true
 
 > ::qlang | doc | print | count | lte 13664
@@ -318,7 +325,7 @@ true
 
 ## catalog
 
-A verb enters the catalog when it expresses what was inexpressible over the
+The catalog holds a verb that expresses what was inexpressible over the
 values the language has, or shortens what every host would otherwise write;
 the verbs and the nouns of a domain belong to its host. The core carries the
 working set a shell would supply to every host, one with no shell around
@@ -334,8 +341,8 @@ verb that answers what the habit expects, as `distinct` stands beside
 `length` beside `count`: a function under the same label whose recipe calls
 the verb, its page naming the verb, so the fact keeps one spelling and the
 name is another road to it. Where the habit expects another answer or
-another call, the name is a verb of its own, as `concat` is, or none, since
-a name that answers otherwise than the habit expects fails in silence.
+another call, the name is a verb of its own, as `concat` is, or none, no
+name answering otherwise than the habit expects.
 
 The catalog is the reference of the language, and its pages follow one
 form. A page is prose about the name it is declared with: what the name

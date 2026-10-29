@@ -1,0 +1,33 @@
+{
+  "name": "@kaluchi/qlang-stdio",
+  "version": "0.10.0",
+  "description": "The streams a host of qlang on the command line installs: ::stdio and its verbs, table, and the cells that keep an answer past the budget",
+  "type": "module",
+  "main": "src/stdio-sources.mjs",
+  "exports": {
+    ".": {
+      "import": "./src/stdio-sources.mjs"
+    }
+  },
+  "files": [
+    "src/",
+    "lib/"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "keywords": [
+    "qlang",
+    "stdio",
+    "query-language"
+  ],
+  "license": "Apache-2.0",
+  "author": "kaluchi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaluchi/qlang.git"
+  },
+  "dependencies": {
+    "@kaluchi/qlang-core": "^0.10.0"
+  }
+}

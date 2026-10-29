@@ -83,7 +83,7 @@ requirements and the gates, which the review reads first.
 ## probe
 
 A probe is a fenced block of a document whose lines that begin with `>` are
-queries typed into `qlang`, each read as the command line reads a query with
+queries typed into `qplay`, each read as the playground reads a query with
 nothing piped, over its sources and from `::qlang`, and whose other lines
 are what the tree answers; one that begins with `$` is a shell command. A
 probe answers the sentence it stands under, a verdict, the things the
@@ -122,9 +122,10 @@ holds the rule, and a source of the catalog in the comment above its pages,
 marks its section by its path, and a case the record in transit over that
 section by its `decision` [QSREQ#cases]. A test file marks by its path the
 section whose rule its tests hold, `<chapter>/<section>.test.mjs` under the
-tests of its workspace, `core/test/unit/`, `cli/test/`,
-`cli/test/integration/` for the tests that run the command line in a process
-of its own, `lsp/test/`, `site/test/` and `vscode/test/`, or, where no
+tests of its workspace, `core/test/unit/`, `playground/test/`, the tests of
+the streams it installs among them, `playground/test/integration/` for the
+tests that run the playground in a process of its own, `lsp/test/`,
+`site/test/` and `vscode/test/`, or, where no
 chapter states the rule, the record in force of a domain its tests hold,
 `core/test/unit/D404.test.mjs`. A section holds one test file in each
 folder, and a part that cannot run beside the rest, a module of Node it

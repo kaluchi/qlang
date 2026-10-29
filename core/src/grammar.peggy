@@ -1,12 +1,12 @@
 // PEG grammar for the qlang pipeline query language.
 //
-// A step is a command, a name followed by its modifiers, each one word
-// [QSSYN#step]. A line break is whitespace, and around a declaration it tells
-// where the declaration ends: a keyword that begins a line opens a
-// declaration of its own, which ends the modifiers of a command before
-// it [QSSYN#line], and the body of a name with a path begun on a later
-// line runs on to the next declaration [QSSYN#line]. Every combinator is set
-// off by whitespace on both sides.
+// A text is its declarations, each ended by `;`, and at most one query after
+// them: a declaration a keyword with its page or its body, the body one
+// step or a chain, a tag name and the commands joined to it up to the `;`,
+// and the query the steps a combinator joins, each a command, a name followed
+// by its modifiers, each one word [QSSYN#step]. A line break is whitespace
+// wherever whitespace stands [QSSYN#line]. Every combinator is set off by whitespace on
+// both sides.
 //
 // Every rule answers a part, the record of a step its constructor builds or
 // a literal, its span, which names the source the caller gives, and the parts
@@ -22,10 +22,10 @@
 {{
   import { isNameStart, isNameContinue } from '../src/name-chars.mjs';
   import { canonicalFlags, regexProblem, regexRefusal, REGEX_FLAGS } from '../src/regex-read.mjs';
-  import { makeKeyword, isKeyword, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
+  import { makeKeyword, isKeyword, isDoc, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
   import { makeSet } from '../src/ordering.mjs';
   import { QlangError } from '../src/errors.mjs';
-  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, standsAsCommand, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
+  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
   import { forEachPart } from '../src/parsed-parts.mjs';
 
   // A span between backquotes in the prose of a doc: its text and the span of
@@ -228,12 +228,17 @@
     return { read: word };
   }
 
-  // A body begun on a later line: one step, or a sentence of them in the
-  // group of its steps [QSSYN#line].
-  function sentenceOf(head, tail) {
-    if (tail.length === 0) return { read: head };
+  // The chain a declaration's body is, a tag name and the commands joined to
+  // it, in the group of its steps [QSNAM#declare].
+  function chainOf(head, tail) {
     const { value, parts } = pipelineOf('|', head, tail);
     return { value: groupOf(value), parts };
+  }
+
+  // A text, its declarations at the head of the steps of its query [QSSYN#step].
+  function textOf(declarations, query) {
+    const parts = [...declarations, ...(query === null ? [] : query.parts)];
+    return { value: quoteRead(parts), parts };
   }
 
   function callFieldsOf(name, modifiers) {
@@ -349,8 +354,36 @@
 // pipeline, which answers the value it is handed, as the empty quote
 // does [QSSYN#comment].
 Query
-  = _ p:Pipeline _ { return p; }
+  = _ p:Text _ { return p; }
   / _ { return part(quoteOf([], asWritten)); }
+
+// ── Texts ──────────────────────────────────────────────────────────
+
+// A text, a query of the command line, a source, the code of a quote or of a
+// group: its declarations, each ended by `;`, the last one by the end of the
+// text where no query follows, and at most one query after them [QSSYN#step].
+Text
+  = head:Declaration tail:(_ ";" _ @Declaration)* query:QueryAfterTheDeclarations
+    &{ return accepted(() => textOf([head, ...tail], query)); }
+    { return taken(); }
+  / Pipeline
+
+// What follows the declarations of a text: `;` and the query, `;` at its end,
+// or its end; a `|` or a `!|` after a declaration is refused, and so is any
+// other word, each naming the `;` [QSSYN#refusal].
+QueryAfterTheDeclarations
+  = _ ";" _ query:Pipeline { return query; }
+  / _ ";" { return null; }
+  / &(_ (!. / ")")) { return null; }
+  / _ "!|" { error('a failure of a declaration is the failure of its text, which no `!|` of the text catches: a declaration ends with `;`, and a failure of the text is caught where the text is read, `~(…) | answer !| …`'); }
+  / _ &("|" !"~") "|" { error('a declaration ends with `;`, which joins it to the query after it: write `:name body; query`'); }
+  / _ &. { error('a declaration ends with `;` before what follows it: write `:name body; …`'); }
+
+// A declaration where a step of the query stands is refused: the
+// declarations of a text stand at its head, before its query [QSSYN#step].
+DeclarationInTheQuery
+  = &Declaration Declaration
+    { error('a declaration stands at the head of its text, before the query, each ended by `;`: write `:x 1; [1 2] | x`'); }
 
 // ── Pipelines ──────────────────────────────────────────────────────
 
@@ -360,6 +393,7 @@ Pipeline
     { return taken(); }
   / &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
     { refuseCombinatorAfterCombinator(first, second); }
+  / c:LeadingCombinator _ !. &{ options.stepMissed = c; return false; }
 
 // The `!"~"` lookahead keeps the openers of a comment `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe; a pipe written before `!|` stands for it
@@ -385,10 +419,17 @@ TagDeclarationRefusal
 ContinuationUnit
   = _ DocBeforeDeclaration
   / _ DocAfterStep
-  / __ step:BindStep { return { combinator: '|', step }; }
+  / __ DeclarationInTheQuery
   / __ c:Combinator __ step:PipelineStep { return { combinator: c, step }; }
   / __ c:PipedCombinator __ step:PipelineStep { return { combinator: c, step }; }
+  / StepMissedAtTheEnd
   / SpacingRefusal
+
+// A combinator the source ends with, comments after it read as whitespace,
+// misses its step: the parser keeps it for the refusal of the source, which
+// names it beside the continuations [QSSYN#refusal].
+StepMissedAtTheEnd
+  = __ c:(PipedCombinator / Combinator) _ !. &{ options.stepMissed = c; return false; }
 
 // A pipe written before `!|`, the habit of a pipe before every step,
 // stands for it [QSERR#catch].
@@ -411,14 +452,14 @@ SpacingRefusal
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only a first modifier that opens with a parenthesis may touch the name of its command, `f(a) (b)`'); }
     / _ &"," "," { error('modifiers are separated by spaces, not by commas: `f a b`', lastOf(1)); }
-    / _ &";" ";" { error('`;` joins neither steps nor queries: steps are joined by `|`, and one query asks several by a template, `get [~(…) ~(…)]`', lastOf(1)); }
+    / _ &";" ";" { error('`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [~(…) ~(…)]`', lastOf(1)); }
     / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
     / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
     )
 
 PipelineStep
   = DocStep
-  / BindStep
+  / DeclarationInTheQuery
   / TagDeclarationRefusal
   / Step
 
@@ -427,7 +468,7 @@ PipelineStep
 // it stands in, and a doc after it with no combinator is refused as a note in
 // a pipeline [QSSYN#doc].
 DocStep
-  = head:DocLit tail:(&(_ DocOpen) _ @DocLit)* declared:(_ &BindStep)?
+  = head:DocLit tail:(&(_ DocOpen) _ @DocLit)* declared:(_ &Declaration)?
     {
       if (declared !== null) error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`');
       if (tail.length > 0) error('a doc is a value, which stands at the head or where a verb takes it; a note inside a pipeline is a comment, `|~ … ~|`', openerOf(tail[0]));
@@ -438,7 +479,7 @@ DocStep
 // name and the body; written before a declaration it is refused, since
 // no step reads a doc it hands to the next [QSSYN#doc].
 DocBeforeDeclaration
-  = &(DocLit (_ DocLit)* _ BindStep) DocLit (_ DocLit)* _
+  = &(DocLit (_ DocLit)* _ Declaration) DocLit (_ DocLit)* _
     { error('a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`'); }
 
 // A doc written after a step with no combinator is refused: a note in a
@@ -560,46 +601,34 @@ DotAlone
 
 // A path written before a word, the method call of other languages,
 // `/ne ""`, or the read of a part before a word, `/tags count`: a part is
-// read by `get`, and a verb is called by its name alone.
+// read by `get`, and a verb is called by its name alone, which a path of
+// one name may have meant.
 PathBeforeWord
   = "/" name:KeywordName &(_h1 !Combinator !"!|" Word) _h1 next:$Word
     { error(`\`/${name}\` is a path, a value: a part is read by \`get\`, \`get /${name} | ${next}\`, and a verb is called by its name alone, \`${name} ${next}\``); }
+  / path:$("/" KeySegment)+ &(_h1 !Combinator !"!|" Word) _h1 next:$Word
+    { error(`\`${path}\` is a path, a value: a part is read by \`get\`, \`get ${path} | ${next}\``); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
-// the group `(gt(1))`.
+// the group `(gt(1))`. A keyword with its page after the first modifier is
+// the declaration after a chain no `;` ended, refused naming the `;` [QSSYN#line].
 Command
-  = callName:CallName touching:(&"(" @ModifierWord)? rest:(ModifierGap @ModifierWord)*
+  = callName:CallName touching:(&"(" @ModifierWord)? rest:(__ @ModifierWord)*
     &{
       const modifiers = touching === null ? rest : [touching, ...rest];
+      const declared = modifiers.findIndex((modifier, at) => at > 0 && isKeyword(modifier.value) && modifiers[at + 1] !== undefined && isDoc(modifiers[at + 1].value));
+      if (declared !== -1) error(`a declaration after a chain begins after the \`;\` that ends the chain: write \`…;\` before \`${sourceOf(modifiers[declared])}\``, modifiers[declared].span);
       return accepted(() => ({ value: through(() => callOf(callFieldsOf(callName, modifiers), asWritten), facts => modifiers[facts.index]), parts: modifiers }));
     }
     { return taken(); }
 
-// The whitespace before a modifier: on the same line, or on a later one
-// that does not open a declaration [QSSYN#line].
-ModifierGap
-  = _h1 !Whitespace
-  / __ !DeclarationOpens
-
-// Whether a declaration opens here [QSSYN#line]: a keyword with its doc or with
-// the step its body opens with, read no further than that opening.
-DeclarationOpens
-  = BindName (__ DocOpen / _h1 !Whitespace StepOpens / __ !Keyword StepOpens)
-
-// A step opens here: no combinator, no closing bracket and no end.
-StepOpens
-  = !Combinator ![)\]},] .
-
 // A declaration: a keyword, then the doc literals of its slot and an
-// optional body, each of which may take a line of its own [QSNAM#address]; a lone
-// `:foo` is a keyword, its name and its slot read once [D404].
-BindStep
-  = key:BindName docs:(__ @DocSlot)? body:(
-        &{ return key.value.name.includes('/'); } @DefinitionBody
-      / &{ return docs !== null; } @ChainBody
-      / @Body
-    )?
+// optional body, each after whitespace, a line break among it
+// [QSNAM#address], [QSSYN#line]; a lone `:foo` is a keyword, its name and its slot
+// read once [D404].
+Declaration
+  = key:BindName docs:(__ @DocSlot)? body:(__ @DeclarationBody)?
     & { return docs !== null || body !== null; }
     &{ return accepted(() => bindOfReads(key, docs, body)); }
     { return taken(); }
@@ -611,45 +640,19 @@ DocSlot
   = first:DocLit rest:(_ @DocLit)*
     { return [first, ...rest]; }
 
-// A body is a step read once after the whitespace before it: a keyword is
-// a body on the line of its declaration's name or doc, since on a later
-// line it opens a declaration of its own, and a tag name, which opens
-// none [QSNAM#address], is the body on a later line too [QSSYN#line].
-Body
-  = later:BodyBreak body:Step
-    & { return !isKeyword(body.value) || !later; }
-    { return body; }
+// The body of a declaration: the chain that builds from a tag name, the tag
+// name and the commands joined to it up to the `;`, or one step [QSNAM#declare].
+DeclarationBody
+  = Chain
+  / Step
 
-// Whether the whitespace before a body crosses a line.
-BodyBreak
-  = _h1 !Whitespace { return false; }
-  / __ { return true; }
-
-// The body of a definition, a name with a path, begun on a later line is a
-// sentence, its steps joined by a combinator up to the next declaration or
-// a value that heads the sentence after it; on the line of its name it is
-// one step, as a body is [QSSYN#line]. The body of a bare name with its page,
-// begun on a later line with a tag name, is the sentence that builds from
-// the noun it names, `:Box |~~ … ~~| ::kind | accepts …` [QSSYN#line]; any other
-// body of a bare name is one step.
-ChainBody
-  = !(_h1 !Whitespace) __ !TaggedLit head:TagLit tail:BodySentenceStep*
-    &{ return accepted(() => sentenceOf(head, tail)); }
+Chain
+  = head:TagLit tail:ChainStep+
+    &{ return accepted(() => chainOf(head, tail)); }
     { return taken(); }
 
-DefinitionBody
-  = _h1 !Whitespace body:Step { return body; }
-  / __ head:Step & { return !isKeyword(head.value); } tail:BodySentenceStep*
-    &{ return accepted(() => sentenceOf(head, tail)); }
-    { return taken(); }
-
-// A later step of a body begun on a later line, where no declaration opens
-// [D404]: a command, or after `!|` the recovery, a value among them.
-BodySentenceStep
-  = __ c:Combinator __ !DeclarationOpens step:Step & { return c === '!|' || standsAsCommand(step.value); }
-    { return { combinator: c, step }; }
-  / __ c:PipedCombinator __ !DeclarationOpens step:Step
-    { return { combinator: c, step }; }
+ChainStep
+  = __ "|" !"~" __ step:Command { return { combinator: '|', step }; }
 
 // ── Words ──────────────────────────────────────────────────────────
 //
@@ -746,7 +749,7 @@ TagName
 
 // A group that failed at an offset fails there again at once [D404].
 ParenGroup
-  = "(" &{ return !knownToFail(groupFailures); } _ p:Pipeline _ ")"
+  = "(" &{ return !knownToFail(groupFailures); } _ p:Text _ ")"
     {
       const read = part(groupOf(p.value), p.parts);
       read.content = p.span;
@@ -759,7 +762,7 @@ ParenGroup
 // alone may drop the parentheses, `~add`, `~::T`, and a path is refused [QSSYN#step];
 // a quote that failed at an offset fails there again at once [D404].
 QuoteLit
-  = "~(" &{ return !knownToFail(quoteFailures); } _ pipeline:Pipeline? _ ")"
+  = "~(" &{ return !knownToFail(quoteFailures); } _ pipeline:Text? _ ")"
     {
       const path = pathAlone(pipeline);
       if (path !== null) error(`the quote of a path answers the path, which no verb wants: give the path bare, \`${sourceOf(path)}\``);
@@ -939,9 +942,9 @@ ErrorLit
 // read as the keywords of their strings; where its entries end, the other
 // spelling is refused, and so is an entry of two values [QSLIT#json], [QSLIT#closed].
 MapLit
-  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &("," _ Keyword) { refuseMixedSpellings(); })
+  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &(("," _)? Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
-  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
     { return entriesRead(map => map, [head, ...tail]); }
   / "{" _ "}"
     { return part(new Map()); }
@@ -1083,7 +1086,8 @@ BooleanLit
 NullLit
   = "null" !IdentTail { return part(null); }
 
-// `:name` and `:"any text"` read as the same keyword.
+// A keyword is a name or any text in quotes after `:`, a bare name in
+// quotes that name, `:"name"` the keyword `:name` [QSLIT#keyword].
 Keyword
   = ":" name:QuotedKeywordName  { return part(makeKeyword(name)); }
   / ":" name:NamespacedName     { return part(makeKeyword(name)); }
@@ -1110,16 +1114,22 @@ ReservedWord
 
 // The letters of a name, `core/src/name-chars.mjs` [QSNAM#letters].
 IdentStart "name"
-  = c:. &{ return isNameStart(c); } { return c; }
+  = c:CodePoint &{ return isNameStart(c); } { return c; }
 IdentTail  "letters of a name"
-  = c:. &{ return isNameContinue(c); } { return c; }
+  = c:CodePoint &{ return isNameContinue(c); } { return c; }
+
+// A character of a name is a code point, a letter past the first plane of
+// Unicode two code units [QSNAM#letters].
+CodePoint
+  = $([\uD800-\uDBFF] [\uDC00-\uDFFF])
+  / .
 
 // ── Whitespace ─────────────────────────────────────────────────────
 //
-// `_` is optional whitespace, `__` required whitespace, and `_h1`
-// whitespace within a line, which tells a body or a modifier on the line
-// of its name from a declaration that opens a later line [QSSYN#line]; a
-// comment is whitespace [QSSYN#comment].
+// `_` is optional whitespace, `__` required whitespace, a line break among
+// it [QSSYN#line], and `_h1` whitespace within a line, which a refusal reads to
+// name a word written beside another on its line; a comment is whitespace
+// [QSSYN#comment].
 
 _   = Whitespace*
 __  = Whitespace+

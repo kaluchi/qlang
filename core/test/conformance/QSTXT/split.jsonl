@@ -34,7 +34,7 @@
 {"name":"join-by-the-empty-text-writes-the-strings-side-by-side","query":"[\"x\" \"y\" \"z\"] | join \"\"","expect":"\"xyz\""}
 {"name":"join-writes-a-separator-of-two-characters-between-the-strings","query":"[\"a\" \"b\" \"c\"] | join \"::\"","expect":"\"a::b::c\""}
 {"name":"join-writes-a-separator-that-holds-spaces-between-the-strings","query":"[\"a\" \"b\" \"c\"] | join \" -> \"","expect":"\"a -> b -> c\""}
-{"name":"empty-vec-yields-empty-string","query":"[] | join \",\"","expect":"\"\""}
+{"name":"empty-vec-answers-empty-string","query":"[] | join \",\"","expect":"\"\""}
 {"name":"join-of-the-empty-vector-by-the-empty-text-is-the-empty-string","query":"[] | join \"\"","expect":"\"\""}
 {"name":"join-of-one-string-writes-no-separator","query":"[\"only\"] | join \",\"","expect":"\"only\""}
 {"name":"join-of-one-empty-string-is-the-empty-string","query":"[\"\"] | join \",\"","expect":"\"\""}

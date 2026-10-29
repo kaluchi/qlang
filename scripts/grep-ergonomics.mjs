@@ -8,6 +8,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse } from 'acorn';
 
 const MODULE = /\.(?:mjs|js|qlang|peggy)$/;
 const ASIDE_BY_FORM = /\.(?:test|config)\.m?js$/;
@@ -33,7 +34,11 @@ export function namesSharedByModules(paths) {
 // namesSharedInTree(repoRoot) → the names the tracked modules share.
 export const namesSharedInTree = repoRoot => namesSharedByModules(tracked(repoRoot));
 
-const EXPORTED = /^export (?:async )?(?:function\*?|const|let|class) ([A-Za-z_$][\w$]*)/gm;
+// The names a module exports by a declaration, read by its parser [QSREQ#rigor].
+const exportedNames = text => parse(text, { ecmaVersion: 'latest', sourceType: 'module', allowHashBang: true }).body
+  .filter(node => node.type === 'ExportNamedDeclaration' && node.declaration !== null)
+  .flatMap(({ declaration }) => (declaration.type === 'VariableDeclaration' ? declaration.declarations.map(({ id }) => id.name) : [declaration.id?.name]))
+  .filter(name => typeof name === 'string');
 const escaped = name => name.replace(/\$/g, '\\$');
 
 // falseMatchesOf(texts) → for each name a module of `core/src` exports, `{
@@ -44,7 +49,7 @@ export function falseMatchesOf(texts) {
   const defined = new Map();
   for (const [path, text] of texts) {
     if (!path.startsWith('core/src/') || !path.endsWith('.mjs')) continue;
-    for (const [, name] of text.matchAll(EXPORTED)) if (!defined.has(name)) defined.set(name, path);
+    for (const name of exportedNames(text)) if (!defined.has(name)) defined.set(name, path);
   }
   return [...defined].map(([name, module]) => {
     const word = new RegExp(`(?<![\\w$])${escaped(name)}(?![\\w$])`, 'g');

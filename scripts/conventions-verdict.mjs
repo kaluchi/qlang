@@ -47,7 +47,7 @@ const SECTIONS = {
   unread: found => section('Reports of the research without their reading', found, ({ path, reading }) => `  ${path}  wants ${reading}\n`,
     'the session writes its reading beside each report it runs, every finding with its probe and its fate, and commits the two together [QSRVW#research].'),
   takenOutNamed: found => section('Names of what the branch took out', found, ({ file, line, token, snippet }) => `  ${file}:${line}  \`${token}\`  ${snippet}\n`,
-    `the code, the catalog and the cases hold none of these since the baseline ${found[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its move under a record in transit over it, and what was lives in the record and the commit [QSVOX#pentimento].`),
+    `the code, the catalog and the cases hold none of these since the baseline ${found[0].baseline}: a comment, a doc and the prose name what the reader finds, a section of a chapter waiting for its closeout under a record in transit over it, and what was lives in the record and the commit [QSVOX#pentimento].`),
   retired: found => section('Words the language retired', found, ({ file, line, word, written, by }) => `  ${file}:${line}  \`${word}\`, which ${by} retired: write ${written}\n`,
     'a word the language retired stays retired in every text that states what holds, and a record that renames a word writes the old one into scripts/retired-words.mjs [QSLEX#term].'),
   // The kinds of the catalog that bear the name of a command of a chain [QSBLD#fn].
@@ -57,10 +57,10 @@ const SECTIONS = {
     'the root re-exports by name from a module of the core what a workspace beside the core reads from the package or the page of the package writes, each function of the package at one door, and the core reads its own names from their modules [QSGAT#workspaces].'),
   testsOffTheirSection: found => section('Tests that stand at no section of their rule', found, ({ file, line, problem }) => `  ${file}:${line}  ${problem}
 `,
-    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `cli/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSREQ#marks].'),
+    'a test file stands in the section whose rule its tests hold, as a file of the cases does, `playground/test/QSCLI/answer.test.mjs`, cites that section nowhere, groups its tests by two or more in a file of two groups or more, and the title of a test and of a group says the rule in the words of its section, citing none and naming no binding the file imports from the code [QSREQ#marks].'),
   // A comment of the code is a mark [QSLEX#code].
   commentsNoMarks: found => section('Comments that are no marks', found, ({ file, line, snippet }) => `  ${file}:${line}  ${snippet}\n`,
-    'a comment of the sources and the tests of the core, the command line and the language server is a mark alone, one line of the citations of the sections and the records its block holds, or a directive of a tool: the code says what it does by its names, a section its rule and a record its reason [QSLEX#code].'),
+    'a comment of the sources and the tests of the core, the streams, the playground and the language server is a mark alone, one line of the citations of the sections and the records its block holds, or a directive of a tool: the code says what it does by its names, a section its rule and a record its reason [QSLEX#code].'),
   // No two modules bear one name [QSLEX#grep].
   sharedNames: found => section('Names two modules bear', found, ({ name, paths }) => `  ${name}  ${paths.join('  ')}\n`,
     'no two modules of the project bear one name, so a search of a name finds one file, a test file, which its section names, and a configuration of a tool aside by their form [QSLEX#grep].')

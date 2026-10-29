@@ -49,14 +49,12 @@
             input, one site to an address.
         ~~|
     | throws :RefusalFactNotDeclaredError
-        |~~ A refusal of the runtime carried a fact that neither its label
-            nor `::error` declares, a defect of the runtime: the facts an
-            error holds are the definitions under the label that names it,
-            and under `::error` for those every refusal shares. The fact
-            is declared as a definition, a name, its page and the kind it
-            holds, under the label of the refusal,
-            `::path/IndexOutOfBoundsError/length` holding `::number`, or
-            under `::error` when every refusal shares it.
+        |~~ A refusal of the runtime carried a fact the kind of its refusal
+            does not wire, a defect of the runtime: the facts a refusal
+            holds are the parts its kind wires. The fact is wired in the
+            chain of the refusal, `throws` and its `wires`, a name, its page
+            and the kinds it holds, `::path/IndexOutOfBoundsError/length`
+            holding `::number`.
         ~~|
     | throws :AddressKindNotTakenError
         |~~ A module of the runtime registered a primitive under an address
@@ -112,6 +110,15 @@
             and a name declared again takes a name of its own, the root's
             left as they are.
         ~~|
+    | throws :RootValueNotWordError
+        |~~ A source of the root declared a value under a bare name, which
+            serves the query of its own text and reaches no reader, so the
+            source is refused and its declarations stay out of the root;
+            `:origin` names the source and `:name` the name. A source of the
+            root declares words, a kind, a verb under a label and a node
+            under a noun, data under an address among them,
+            `:Box/limit 10;`.
+        ~~|
     | throws :PrimitiveNamesNoBuiltinError
         |~~ A host handed a primitive beside a source of the root for a
             name the source declares neither as a `::builtin{}` under a
@@ -124,10 +131,13 @@
             name while a function of its own over the same `::builtin{}`
             runs nothing, so a host declares its primitive as the recipe of
             a verb under the label of its subject,
-            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})`.
+            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.
         ~~|
+        ~(wires :origin |~~ The source the primitive was handed beside. ~~| ::keyword
+          | wires :name |~~ The name handed a primitive. ~~| ::keyword
+          | wires :sharedWith |~~ The other name whose `::builtin{}` the name holds. ~~| ::keyword)
     | throws :SourceLoadError
         |~~ A source of the language was found where its package maps it,
             and could not be read; `:origin` names the source,
@@ -136,6 +146,9 @@
             the language with it hands the runtime a locator of them, which
             reads each where it keeps them.
         ~~|
+        ~(wires :origin |~~ The source that could not be read. ~~| ::keyword
+          | wires :sourceLocation |~~ Where the platform looked for it. ~~| ::string
+          | wires :cause |~~ The host's account of the failure. ~~|)
     | proves :isAValueOfItsOwn
         |~~ An empty descriptor is a value like any other, which prints and
             reads back as itself.
@@ -155,4 +168,4 @@
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
         ~(::builtin[1 2 3] !| get [~(tag) ~(found | tag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
-    ::builtin{}]
+    ::builtin{}];

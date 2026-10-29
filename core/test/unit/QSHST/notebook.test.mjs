@@ -6,7 +6,7 @@ import { QlangDefect, QlangError } from '../../../src/errors.mjs';
 describe('the cells of a notebook', () => {
   it('evalCell returns an entry with its result and the scope after the cell', async () => {
     const sessionInstance = await createNotebook();
-    const cellEntry = await sessionInstance.evalCell('42 | :Box |~~ A box. ~~|');
+    const cellEntry = await sessionInstance.evalCell(':Box |~~ A box. ~~|; 42');
     expect(cellEntry.result).toBe(42);
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.scopeAfterCell).toBe(sessionInstance.scope);
@@ -27,27 +27,30 @@ describe('the cells of a notebook', () => {
 
   it('evalCell keeps the verbs a cell declares for the cells after it', async () => {
     const sessionInstance = await createNotebook();
-    await sessionInstance.evalCell(':any/double ~(mul 2)');
+    await sessionInstance.evalCell(':any/double ~(mul 2);');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });
 
   it('evalCell keeps the kinds a cell declares for the cells after it', async () => {
     const sessionInstance = await createNotebook();
-    await sessionInstance.evalCell(':Box |~~ A box. ~~| (::kind | accepts |~~ A number. ~~| ::number)');
+    await sessionInstance.evalCell(':Box |~~ A box. ~~| (::kind | accepts |~~ A number. ~~| ::number);');
     const cellEntry = await sessionInstance.evalCell('::Box#42 | payload | mul 2');
     expect(cellEntry.result).toBe(84);
   });
 
-  it('evalCell refuses a value a cell names at its top, so no value passes to the cells after it', async () => {
+  it('evalCell keeps the value a cell names at its top for the cells after it, a later cell naming it again, and a cell whose declaration fails declares nothing', async () => {
     const sessionInstance = await createNotebook();
-    expect((await sessionInstance.evalCell('42 | :n it')).result.tag).toEqual(makeTag('bind/ValueAtTheTopError'));
-    expect((await sessionInstance.evalCell('n | mul 2')).result.tag).toEqual(makeTag('call/UnknownNameError'));
+    await sessionInstance.evalCell(':n 42;');
+    expect((await sessionInstance.evalCell('n | mul 2')).result).toBe(84);
+    expect((await sessionInstance.evalCell(':n 5; n')).result).toBe(5);
+    expect((await sessionInstance.evalCell(':m 1; :k (1 | div 0);')).result.tag).toEqual(makeTag('number/div/DivisorZeroError'));
+    expect((await sessionInstance.evalCell('m')).result.tag).toEqual(makeTag('call/UnknownNameError'));
   });
 
   it('a notebook starts from the scope a host hands it, the record a cell wrote among it', async () => {
     const sessionInstance = await createNotebook();
-    await sessionInstance.evalCell(':answer |~~ The answer. ~~|');
+    await sessionInstance.evalCell(':answer |~~ The answer. ~~|;');
     const other = await createNotebook({ scope: sessionInstance.scope });
     expect(other.scope.get('answer')).toBe(sessionInstance.scope.get('answer'));
     expect((await other.evalCell('::answer | doc | content')).result).toBe('The answer.');
@@ -99,7 +102,7 @@ describe('a cell whose failure is no error value', () => {
   const collapsing = () => createNotebook({
     sources: [{
       uri: 'tests/collapse',
-      source: ':any/collapse ::builtin{}',
+      source: ':any/collapse ::builtin{};',
       primitives: { 'any/collapse': () => { throw new QlangDefect('a defect of the host'); } }
     }]
   });
@@ -118,6 +121,6 @@ describe('a cell whose failure is no error value', () => {
 
 it('a query runs as one cell of a notebook over the scope it is handed, the root\'s where none is', async () => {
   const notebook = await createNotebook();
-  await notebook.evalCell(':any/k ~(7)');
+  await notebook.evalCell(':any/k ~(7);');
   expect([await evalQuery('k', notebook.scope), (await evalQuery('k')).tag]).toEqual([7, makeTag('call/UnknownNameError')]);
 });

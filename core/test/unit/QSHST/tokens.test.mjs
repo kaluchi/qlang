@@ -146,7 +146,7 @@ describe('the name of a call by its name, a word of the root a verb', () => {
   });
 
   it('paints the name a declaration writes as a declaration', async () => {
-    expect(await painted(':x 1 | x')).toEqual([[':x', 'declaration'], ['1', 'number'], ['|', 'punctuation'], ['x', 'name']]);
+    expect(await painted(':x 1; x')).toEqual([[':x', 'declaration'], ['1', 'number'], [';', 'punctuation'], ['x', 'name']]);
   });
 });
 
@@ -220,10 +220,11 @@ describe('the gaps between the parts', () => {
     expect(await painted('filter(gt 1)')).toEqual([['filter', 'verb'], ['(', 'group'], ['gt', 'verb'], ['1', 'number'], [')', 'group']]);
   });
 
-  it('paints no parenthesis where the steps of a body begun on a later line stand in a group the text writes none of', async () => {
-    expect(await painted('[1 2 3] | :vec/f\n  ~(get /1) | count')).toEqual([
-      ['[', 'vec'], ['1', 'number'], ['2', 'number'], ['3', 'number'], [']', 'vec'], ['|', 'punctuation'], [':vec/f', 'declaration'],
-      ['~(', 'quote'], ['get', 'verb italic'], ['/1', 'path italic'], [')', 'quote'], ['|', 'punctuation'], ['count', 'verb']
+  it('paints no parenthesis where the steps of a chain stand in a group the text writes none of', async () => {
+    expect(await painted(':number/plus ::fn | takes :by |~~ b ~~| /0 | impl ~(add by); 5 | plus 3')).toEqual([
+      [':number/plus', 'declaration'], ['::fn', 'tag'], ['|', 'punctuation'], ['takes', 'verb'], [':by', 'keyword'], ['|~~ b ~~|', 'doc'], ['/0', 'path'],
+      ['|', 'punctuation'], ['impl', 'verb'], ['~(', 'quote'], ['add', 'verb italic'], ['by', 'name italic'], [')', 'quote'], [';', 'punctuation'],
+      ['5', 'number'], ['|', 'punctuation'], ['plus', 'name'], ['3', 'number']
     ]);
   });
 });
@@ -341,7 +342,7 @@ describe('the docs of a slot', () => {
   });
 
   it('each doc of a slot is a doc of its own', async () => {
-    const tokens = await painted(':double |~~ One. ~~| |~~ Two. ~~| mul 2');
+    const tokens = await painted(':double |~~ One. ~~| |~~ Two. ~~| mul 2;');
     expect(tokens.filter(([, kind]) => kind === 'doc').map(([text]) => text)).toEqual(['|~~ One. ~~|', '|~~ Two. ~~|']);
   });
 

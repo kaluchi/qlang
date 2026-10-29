@@ -5,13 +5,13 @@
 :binding
   |~~ A binding is the record a declaration writes: a name with its
       page, its value and where it came from, so what is named can be
-      listed and asked like data. `env` answers the bindings a reader
+      listed and asked like data. `::host | env` answers the bindings a reader
       declared, and `binding` the record of a name,
       `::vec/count | binding | origin` answering `:qlang/vec`.
 
       It prints as a map under its tag, its fields read under the kind;
-      the record of `:Box/side 3` read from the cell `cell-1` is
-      `::binding{:name :Box/side :docs [] :value 3 :source ~(:Box/side 3) :origin :cell-1}`.
+      the record of `:Box/side 3;` read from the cell `cell-1` is
+      `::binding{:name :Box/side :docs [] :value 3 :source ~(:Box/side 3;) :origin :cell-1}`.
       A binding no declaration wrote, a node a chain lays among them, holds
       no source.
       ::link~(::bind) ::link~(::any/binding)
@@ -60,13 +60,13 @@
         ~~|
     | proves :holdsTheValue
         |~~ The record of a name holds its value. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | value | eq 3)
+        ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | value | eq 3)
     | proves :holdsThePage
         |~~ The record of a name holds its page. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | doc | content | eq "The side.")
+        ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | doc | content | eq "The side.")
     | proves :holdsTheName
         |~~ The record of a name holds the name. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | name | eq :Box/side)
+        ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | name | eq :Box/side)
     | proves :holdsNoSourceForANodeAChainLays
         |~~ A binding no declaration wrote, a node a chain lays, holds no
             source.
@@ -74,11 +74,26 @@
         ~(::number/add/addend | binding | source | eq null)
     | proves :readsBackFromItsPrint
         |~~ The record of a name reads back from its print. ~~|
-        ~(:Box |~~ A box. ~~| | :Box/side |~~ The side. ~~| 3 | ::Box/side | binding | eq (print | parse | answer))
+        ~(:Box |~~ A box. ~~|; :Box/side |~~ The side. ~~| 3; ::Box/side | binding | eq (print | parse | answer))
     | proves :DocsNotGivenError/refusesARecordWithNoDocs
         |~~ A binding a reader writes holds every field of the record. ~~|
         ~(::binding{:name :rate} !| tag | eq ::binding/DocsNotGivenError)
     | proves :NameKindNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of a binding is a keyword. ~~|
         ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/NameKindNotTakenError)
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ The record of a name is a map. ~~|
+        ~(::binding[1] !| tag | eq ::binding/PayloadKindNotTakenError)
+    | proves :DocsKindNotTakenError/refusesANumber
+        |~~ The docs of a binding are a vector. ~~|
+        ~(::binding{:name :a :docs 5 :value 1 :source null :origin null} !| tag | eq ::binding/DocsKindNotTakenError)
+    | proves :DocsElementKindNotTakenError/refusesANumber
+        |~~ Each of the docs of a binding is a doc. ~~|
+        ~(::binding{:name :a :docs [5] :value 1 :source null :origin null} !| tag | eq ::binding/DocsElementKindNotTakenError)
+    | proves :SourceKindNotTakenError/refusesANumber
+        |~~ The source of a binding is a quote or null. ~~|
+        ~(::binding{:name :a :docs [] :value 1 :source 5 :origin null} !| tag | eq ::binding/SourceKindNotTakenError)
+    | proves :OriginKindNotTakenError/refusesANumber
+        |~~ The origin of a binding is a keyword or null. ~~|
+        ~(::binding{:name :a :docs [] :value 1 :source null :origin 5} !| tag | eq ::binding/OriginKindNotTakenError);
 

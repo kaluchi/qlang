@@ -21,7 +21,7 @@ import { JOURNAL } from '../decision-records.mjs';
 
 const benchDir = import.meta.dirname;
 const repoRoot = join(benchDir, '..', '..');
-const commandLine = join(repoRoot, 'cli', 'src', 'bin.mjs');
+const commandLine = join(repoRoot, 'playground', 'src', 'bin.mjs');
 const setsDir = join(benchDir, 'sets');
 const scratchRoot = join(tmpdir(), 'qlang-benchmark');
 
@@ -83,10 +83,10 @@ const LINE_RULE = setId => `\`${setId}1: <query>\``;
 function promptOf(setId, screen) {
   const tasks = tasksOf(setId);
   return [
-    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its command line, as the language prints them, and you may run the `qlang` command to try queries and to ask the language about itself.',
+    'You are taking part in a usability experiment for a small pipeline query language called qlang. You have never seen it. Below are the pages of the language and of its playground, as the language prints them, and you may run the `qplay` command to try queries and to ask the language about itself.',
     '', '<<<', screenText(screen), '>>>', '',
-    'RULES: use the Bash tool only to run `qlang` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qlang \'<query>\' < file.json`, a text file alike, `qlang \'<query>\' < file.log`.',
-    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json` or `| out`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
+    'RULES: use the Bash tool only to run `qplay` and to `cat` or `head` the data files of the current directory; read nothing else. A query over a data file reads it from stdin: `qplay \'<query>\' < file.json`, a text file alike, `qplay \'<query>\' < file.log`.',
+    '', 'TASKS (each answer is one qlang query whose answer is the requested value; do not end it with `| json` or `| stdio/out`; a task with no data file runs with nothing piped, so its query writes the data the task gives as a literal):',
     ...tasks.map(task => `${task.id} (${task.data ?? 'no data file'}): ${task.text}`),
     '', `When done, end your reply with exactly one line per task, ${LINE_RULE(setId)} and so on, the query alone on the line.`
   ].join('\n');
@@ -169,13 +169,13 @@ function finalQueriesOf(setId, reply) {
 }
 
 // What the tree answers for a query over the data of its task, as JSON,
-// which `| json | out` writes whole past the budget of every answer on the
+// which `| json | stdio/out` writes whole past the budget of every answer on the
 // last line, whatever the query wrote by `out` before it [QSCLI#answer], or null when
 // it fails.
 function answerOf(setId, task, query) {
   try {
     const data = task.data === null ? '' : readFileSync(join(setDirOf(setId), 'data', task.data));
-    const printed = execFileSync(process.execPath, [commandLine, `(${query}) | json | out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
+    const printed = execFileSync(process.execPath, [commandLine, `(${query}) | json | stdio/out`], { input: data, encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'ignore'], env: pipeEnv }).trim();
     return { answer: JSON.parse(printed.split('\n').at(-1)) };
   } catch {
     return null;

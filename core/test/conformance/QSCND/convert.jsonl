@@ -28,6 +28,6 @@
 {"name":"the-last-pair-of-a-key-wins","query":"[[:a 1] [:a 2]] | toMap","expect":"{:a 2}"}
 {"name":"an-element-that-is-no-pair-is-refused-at-its-index","query":"[[:a 1] [:b]] | toMap !| get [~(tag) ~(trace | last | path)]","expect":"[::vec/toMap/ElementNotPairError /1]"}
 {"name":"a-key-of-another-kind-is-refused","query":"[[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) ~(subject | expected)]","expect":"[::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]"}
-{"name":"every-atom-turns-into-the-text-of-its-literal","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
+{"name":"null-a-boolean-a-number-a-keyword-and-a-tag-turn-into-their-text","query":"[null true 5 :a ::vec] | map ~toString","expect":"[\"null\" \"true\" \"5\" \"a\" \"vec\"]"}
 {"name":"a-regex-has-no-string-its-text-being-its-literal","query":"#\"a\" | toString !| tag","expect":"::call/KindAnswersNoVerbError"}
 {"name":"a-quote-and-a-doc-turn-into-the-vector-they-hold","query":"get [~(~(add 1 | mul 2) | toVec | get [~(tag) ~(count)]) ~(|~~ a ~~| | toVec)]","expect":"[[::vec 2] [\"a\"]]"}

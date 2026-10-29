@@ -4,7 +4,7 @@ import { stepOf, refusalOf } from '../../helpers/read-text.mjs';
 
 describe('a doc documents the declaration whose slot it stands in', () => {
   it('holds the docs of the slot as the record of the declaration holds any doc', () => {
-    const [declaration] = parseSource(':x |~~ one ~~| |~~ two ~~| 42');
+    const [declaration] = parseSource(':x |~~ one ~~| |~~ two ~~| 42;');
     expect(declaration.get('docs').map(doc => [...doc])).toEqual([['one'], ['two']]);
   });
 
@@ -12,7 +12,7 @@ describe('a doc documents the declaration whose slot it stands in', () => {
     expect(() => parseSource('|~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
     expect(() => parseSource('5 | |~~ note ~~| :x 42')).toThrow(/slot of the declaration/);
     expect(() => parseSource('|~~| note\n:x 42')).toThrow(/slot of the declaration/);
-    expect(() => parseSource(':y 1\n|~~ note ~~|\n:x 42')).toThrow(/slot of the declaration/);
+    expect(() => parseSource(':y 1;\n|~~ note ~~|\n:x 42')).toThrow(/slot of the declaration/);
   });
 });
 
@@ -55,7 +55,7 @@ describe('a quote of a doc is code', () => {
 });
 
 it('reads as code a quote of a doc that takes a value after a declaration or after `!|`', () => {
-  for (const quote of ['~(:x 1 | 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
+  for (const quote of ['~(:x 1; 5)', '~(f !| 0)']) expect(stepOf(`|~~ a ${quote} b ~~|`), quote).toHaveLength(3);
 });
 
 describe('a block doc left unbalanced, refused', () => {

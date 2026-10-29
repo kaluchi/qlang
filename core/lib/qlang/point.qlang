@@ -51,4 +51,4 @@
         ~(::point[0 1 1 4 1 5] !| tag | eq ::point/PayloadNotOffsetLineAndColumnError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
-        ~(::point{:offset 0 :line 1 :column 1} !| tag | eq ::point/PayloadKindNotTakenError)
+        ~(::point{:offset 0 :line 1 :column 1} !| tag | eq ::point/PayloadKindNotTakenError);

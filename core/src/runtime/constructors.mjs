@@ -13,7 +13,8 @@ registerPrimitive('set', makeSet);
 
 // [QSNUM#arithmetic]
 const NumberNotFiniteError = declareRefusal('number/NotFiniteError');
-registerPrimitive('number', () => {
+registerPrimitive('number', payload => {
+  if (Number.isFinite(payload)) return payload;
   throw new NumberNotFiniteError({});
 });
 

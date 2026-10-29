@@ -75,4 +75,4 @@
         ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)
     | proves :ElementKindNotTakenError/namesTheElement
         |~~ An element that is no number is refused by its index. ~~|
-        ~(::span[0 1 "x" 1 1 2] !| index | eq 2)
+        ~(::span[0 1 "x" 1 1 2] !| index | eq 2);

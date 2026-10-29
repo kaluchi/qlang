@@ -6,14 +6,15 @@ notebook a query runs in, the verbs of a host for the streams of its
 process, the cell a host keeps a value in, and the tokens the core hands
 its painters. The cases of
 `core/test/conformance/QSHST/` and the tests of the core's host hold its
-sections; the command line is [QSCLI], and the language server and the
-editor [QSLSP].
+sections; the playground of the command line is [QSCLI], and the
+language server and the editor [QSLSP].
 
 ## source
 
 A host is a tool that hands the language its sources and receives its
 answers: the core is the host of the language's own sources, and the
-command line, the language server and the site are hosts, so a verb of
+playground of the command line, the language server and the site are
+hosts, so a verb of
 the core and a verb of another host answer alike, as a verb written in
 the language and a primitive do [QSNAM#owner]. A host
 hands each source as `{ uri, source, primitives }`: the source declares
@@ -30,9 +31,10 @@ refuses the payload. The root
 refuses, as it is declared, a `::builtin{}` its host handed no primitive
 for, `::builtin/PrimitiveNotHandedError`, a primitive handed for a name
 its source declares otherwise, `::builtin/PrimitiveNamesNoBuiltinError`,
-and a source whose run answers an error, declares again a name the root
-holds or declares a value under a bare name,
-`::builtin/RootSourceNotDeclaredError`. The root writes into
+and a source whose run answers an error or declares again a name the
+root holds, `::builtin/RootSourceNotDeclaredError`, and one that declares
+a value under a bare name, which serves the query of its own text and
+reaches no reader, `::builtin/RootValueNotWordError`. The root writes into
 the descriptor of each primitive it takes the address it takes it under,
 `:of`, the tag of the verb or of the kind, `::builtin{:of ::number/add}`,
 while the source writes `::builtin{}` and the axis `source` reads it so;
@@ -70,8 +72,8 @@ noun in the host's source, the value its rule met as `:found` whether it
 is the subject or a part of it, and a refusal of a part of the subject
 through `refusingAPart` with the segments of the part's path, which the
 frame of the step names [QSERR#site],
-[QSERR#trace]; a failure of the host's own world is the error
-value `makeErrorValue` makes of a tag and a map of its facts, and a host
+[QSERR#trace]; a failure of the host's own world is the failure
+`makeErrorValue` makes of a tag and a map of its facts, and a host
 lays a tag over its answer through the language, by the kind its verb
 `returns`.
 
@@ -80,7 +82,9 @@ declared under it after, so a kind lives whole in the source of its
 noun, and a kind with no verb of its own has a source of its page and
 its laws; the source `qlang` holds the topic of the language. A host's
 source declares its own noun and its verbs under the labels of their
-subjects. A source is code as written: the text a host hands, the step
+subjects, a host's verbs under a noun of another source among them,
+`::cell/answer` of the streams beside `::cell` of the core, and the page
+of the host the root lays over `::host` of the core once [QSNAM#root]. A source is code as written: the text a host hands, the step
 that declared a binding, its `:source`, and every declaration under an
 address, which the axis `source` reads, null for a binding no
 declaration wrote, a node a chain lays among them. Where a text came from
@@ -107,8 +111,9 @@ quote as the data it is. A call waits on an answer that has a `then`, a
 host's thenable and its promise of another realm among them. The engine
 a host runs on bounds the length of a vector and runs a regex alike on
 every platform. A host's setting is the first value of its pipe, the
-subject its query starts from, the command line's what standard input
-lifts to, or the noun of the language [QSCLI#stdin].
+subject its query starts from, the playground's what standard input
+lifts to, or the noun of the language where nothing is piped
+[QSCLI#stdin].
 
 The sources of the language are read where `core/package.json` maps
 them, by the road each platform asks for: the files on Node, read by the
@@ -136,7 +141,7 @@ the failure.
 > ::vec | binding | origin
 :qlang/vec
 
-> get [~(~((:rate 1 | env | get /rate | origin)) | first)] | tag ::quote | apply it
+> get [~(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | apply it
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
@@ -145,13 +150,13 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | apply ~(:counting it | print | parse | answer | :back it | get [~(eq counting) ~([1 2] | apply back) ~({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [~(tag) ~(of)])])
+> ::vec/count | binding | value | with {:counting ~it} ~(print | parse | answer | with {:back ~it} ~(get [~(eq counting) ~([1 2] | apply back) ~({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [~(tag) ~(of)])]))
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
-> :B |~~ B. ~~| (::kind | impl ::builtin{}) | ::B[1]
+> :B |~~ B. ~~| (::kind | impl ::builtin{}); ::B[1]
 ::B[1]
 
-> get [~({:id 7} | apply (::vec/first | binding | value) [] !| tag) ~(:any/greet (::fn | impl ::builtin{}) | 5 | greet !| tag)]
+> get [~({:id 7} | apply (::vec/first | binding | value) [] !| tag) ~(:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [~("add (" | parse !| origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
@@ -159,7 +164,7 @@ true
 ```
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply ~(:rate 1 | named)')).result)"
+$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply ~(:rate 1; named)')).result)"
 true
 ```
 
@@ -210,88 +215,104 @@ scope?)` answers the value one cell of a notebook over the scope answers,
 booting the root where none is handed, a declaration it makes naming its
 origin as every cell's does, `:cell-1`, and raises a defect to its
 caller; and `langRuntime` answers the scope of the root. A host puts its
-names into the scope by its sources alone, and a reader by a declaration.
+names into the root by its sources alone, a reader into the scope by a
+declaration, and the scope a host hands a notebook or `evalQuery` is held
+where the core takes it, by the scan of the door [QSHST#door].
 
 The REPL of the site keeps one notebook across its cells, a word one cell
-declares staying for the cells after it, and its playground runs the cells
-of one run in one notebook, each printing its answer within the budget of
-every answer [QSPRN#budget], a failure as its alert under the line that
+declares staying for the cells after it, and its playground runs the text
+of one run as one cell, its declarations and the query after them,
+printing its answer within the budget of every answer [QSPRN#budget], a failure as its alert under the line that
 says it was raised [QSERR#print], and showing a defect as `qlang:` and its
 message.
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':Box |~~ A box. ~~| | env | get /Box | origin')).name)"
+$ node --input-type=module -e "const { createNotebook, evalQuery } = await import('./core/src/index.mjs'); const s = await createNotebook(); const e = await s.evalCell('add ('); console.log(Object.keys(e).join(' '), e.result.tag.name, e.defect, (await evalQuery(':Box |~~ A box. ~~|; ::host | env | get /Box | origin')).name)"
 source uri result defect scopeAfterCell quote/ParseError null cell-1
 ```
 
 ## effect
 
 A query reads, and writes only by a host's verbs for the streams of its
-process, each an explicit step performed when it runs: the command
-line's `in` reads standard input when it is called, the empty string in
-the REPL, whose prompt holds it, `out` writes a string as a line of
-standard output and `err` as a line of standard error, each whole, and
-`tap` writes `[tap <label>]` and its subject on standard error halfway
-through a query as a host prints an answer, the print a kind declares
-among it, within the budget of every answer and past it as the refusal
-instead, the subject the cell the command line keeps it in, beside the
-views its kind reveals [QSHST#cell]; the query goes on with the subject as it came, and `err print`
-writes a look whole. What changes the world
+process, each an explicit step performed when it runs, the words of
+`::stdio` a host on the command line installs, a verb of a stream called
+by its address and `in` asked of `::stdio` by its bare name, its `on`
+naming `::tag` [QSDSP#tagname]: `::stdio | in` reads standard input when
+it is called, the
+empty string in the REPL, whose prompt holds it; `stdio/out` writes a
+line of standard output and `stdio/err` one of standard error, each
+whole, the subject where it is a string or the text the call computes
+against it, `42 | stdio/out json`; and `stdio/tap` writes
+`[tap <label>]` and its subject on standard error halfway through a
+query as a host prints an answer, within the budget of every answer and
+past it as the refusal instead, the subject the cell the host keeps it
+in, beside the views its kind reveals [QSHST#cell]. Each answers its
+subject as it came, so the query goes on with it, and
+`stdio/err print` writes a look whole. What changes the world
 is a verb of its host, addressing the same names the queries read, and
 its result a noun that queries read. A verb of a host has one output, a
 value under its tag, and the kinds of its refusals; what it answers is
 the data its inputs chose, filtered for the question. A tag may describe
 an effect a host is to perform, and such a value is performed by an
-explicit step at the boundary; a host that wants the provenance of a
-value seen tags the value. A constructor is pure, and reading or
+explicit step at the boundary, the provenance of a value a host shows
+being a tag over it. A constructor is pure, and reading or
 constructing a literal performs nothing. The forks of a sequence run in
 its order, so a verb of a host with an effect meets the elements in their
-order, and a host whose verb is better served by calls at once takes the
-whole vector and bounds its own calls.
+order, and a verb of a host that takes the whole vector bounds its calls
+itself.
 
 ```qlang
-> :any/quiet ~(out) | 1
+> :any/quiet ~(stdio/out); 1
 1
+
+> "hi" | out !| get [~(tag) ~(addresses)]
+[::call/KindAnswersNoVerbError #[::stdio/out]]
 ```
 
 ```sh
-$ qlang ':Box |~~ B ~~| | :Box/print ~("box") | [::Box#1] | tap :x | count' < /dev/null 2>&1
-[tap x] [box]
+$ qplay '[::Box#1] | stdio/tap :x | count' < /dev/null 2>&1
+[tap x] [::Box#1]
 1
 
-$ qlang '5000 | range | tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|:answer ::cell|:answer/count 5000|^5000$'
+$ qplay '5000 | range | stdio/tap :big | count' < /dev/null 2>&1 | grep -o -E '^\[tap big\] \|~\| raised, and no !\| caught it|:answer ::cell|:answer/count 5000|^5000$'
 [tap big] |~| raised, and no !| caught it
 :answer ::cell
 :answer/count 5000
 5000
 ```
 
-The words of the streams of a process, `in`, `out`, `err` and `tap`, are
-the command line's, beside `table`, and a host that runs as a command takes
-them with their source from `./cli-sources` of the command line's package.
+The streams of a process are the words of `::stdio`, `in`, `out`, `err`
+and `tap`, beside `table` under `::vec` and `answer` under `::cell`,
+which the package `@kaluchi/qlang-stdio` hands with their source,
+`stdioSources`, to a host that runs as a command, the playground and the
+sister project among them. A verb of a stream serves any value, its `on`
+naming `::any`, and is called by its address, a bare name of it reaching
+none [QSDSP#residence].
 
 ## cell
 
 A cell is the interface a host gives for the work with state inside the
-language: `::cell`, a kind of the core over its identity, letters, digits
-and hyphens, whose literal reads back as itself in any later query, and its
+language: `::cell`, a kind of the core over its identity, the Latin
+letters, digits and hyphens, whose literal reads back as itself in any later query, and its
 word `answer`, which its host declares and which reads at the call what the
-host keeps under it. The command line, its REPL among it, keeps so an
-answer and a subject at a `tap` past the budget of every answer
+host keeps under it. A host of the streams, the playground and its REPL
+among them, keeps so an answer and a subject at a `stdio/tap` past the
+budget of every answer
 [QSPRN#budget] and a fact of a failure past the room of a fact
 [QSERR#alert], which the alert names instead of the value, under the
 identity of what it keeps, twelve digits of hexadecimal of the hash of the
 query, the words it declared and the print of the value, so one value of
 one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
 `<root>` the identity of the sources and the code it booted, the query,
-`source.qlang`, the words the query declared, each with its value as the
-core prints it, `names.qlang`, and the answer as the core prints it,
-`answer.qlang`, the `print` of every kind left out; a cell older than a
-day leaves when it keeps another, and one kept again stays a day more.
-`answer` reads the answer back over the root and those words, a value
+`source.qlang`, the declarations of the query that hold a source, each
+with its value as the core prints it, a kind and a verb among them, each
+ended by its `;`, `names.qlang`, and the answer as
+the core prints it, `answer.qlang`; a cell older than a day leaves when
+it keeps another, and one kept again stays a day more.
+`answer` reads the answer back over the root and those declarations, a value
 under a kind the query declared answering its names where the reading
 query declares that kind again and `payload` in any, and refuses a cell
-it does not hold as `::cell/answer/NotHeldError`. A host that keeps no
+it does not hold as `::cell/answer/SubjectNotHeldError`. A host that keeps no
 cell names none.
 
 ```qlang
@@ -303,13 +324,13 @@ cell names none.
 ```
 
 ```sh
-$ qlang "$(qlang '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
+$ qplay "$(qplay '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
 3000
 
-$ qlang '::cell"000000000000" | answer !| tag' < /dev/null
-::cell/answer/NotHeldError
+$ qplay '::cell"000000000000" | answer !| tag' < /dev/null
+::cell/answer/SubjectNotHeldError
 
-$ for i in 1 2; do qlang '1 | add (3410 | range)' < /dev/null | grep -o '::cell"[0-9a-f]*"'; done | sort -u | wc -l
+$ for i in 1 2; do qplay '1 | add (3410 | range)' < /dev/null | grep -o '::cell"[0-9a-f]*"'; done | sort -u | wc -l
 1
 ```
 
@@ -330,7 +351,7 @@ last name or its address, read by the name alone, and `name` any other;
 `group` the parentheses of a group; `fail` the combinator `!|`;
 `punctuation` the rest a gap holds; `whitespace`; and `unparsed` the
 source past where its parse stopped. Each host coats those kinds its own
-way: the command line by a colour [QSCLI#colour], the language server by
+way: the playground by a colour [QSCLI#colour], the language server by
 a type of semantic token [QSLSP#server], the extension of the editor by
 a class of highlight.js [QSLSP#extension], and the site by a class named
 for the kind, the examples of its pages split into a prompt and its

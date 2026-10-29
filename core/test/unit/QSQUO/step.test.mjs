@@ -167,7 +167,7 @@ describe('assembling steps by hand', () => {
   it('an index, a tag name and calls and paths inside a container are steps', async () => {
     expect(await evalQuery('[[/items/0]] | tag ::quote | toString')).toBe('[/items/0]');
     expect(await evalQuery('[[::T]] | tag ::quote | toString')).toBe('[::T]');
-    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | toString')).toBe(':point {:x 0}');
+    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | toString')).toBe(':point {:x 0};');
     expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | toString')).toBe('get [~(count) /a]');
   });
 
@@ -176,7 +176,7 @@ describe('assembling steps by hand', () => {
     expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
     expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
     expect(await messageOf('get [~(~(count) | tag ::group)]')).toContain('write `get [~(count)]`');
-    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
+    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a ~(count)} | tag ::Foo | raise`');
   });
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {
@@ -205,7 +205,7 @@ describe('assembling steps by hand', () => {
       ['~() | tag ::group', 'group/PayloadEmptyError']
     ];
     for (const [query, address] of refusals) {
-      expect(await evalQuery(`${query} !| get [~(tag) ~(:e it | print | parse | answer | eq e)]`), query).toEqual([makeTag(address), true]);
+      expect(await evalQuery(`${query} !| get [~(tag) ~(eq (print | parse | answer))]`), query).toEqual([makeTag(address), true]);
     }
     expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| found | tag')).toEqual(makeTag('map'));
   });
@@ -246,7 +246,7 @@ describe('the parts of a text', () => {
   });
 
   it('holds the name and the body of a declaration, and the modifiers of a call', () => {
-    const [bind] = rootOf(':double mul 2').parts;
+    const [bind] = rootOf(':double mul 2;').parts;
     expect(kindOf(bind)).toBe('bind');
     expect(bind.parts.map(kindOf)).toEqual(['literal', 'call']);
     expect([bind.parts[0].value.name, bind.parts[1].value.get('name').name]).toEqual(['double', 'mul']);

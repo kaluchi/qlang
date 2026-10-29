@@ -3,9 +3,9 @@ import { Worker } from 'node:worker_threads';
 
 const millisecondsOfARead = text => new Promise((resolve, reject) => {
   const worker = new Worker(`const { parentPort, workerData } = require('node:worker_threads');
-      import(workerData.parser).then(({ parse }) => {
+      import(workerData.parser).then(({ parseSource, SourceParseError }) => {
         const started = Date.now();
-        try { parse(workerData.text); } catch {}
+        try { parseSource(workerData.text); } catch (refused) { if (!(refused instanceof SourceParseError)) throw refused; }
         parentPort.postMessage(Date.now() - started);
       });`, { eval: true, workerData: { text, parser: new URL('../../src/parse.mjs', import.meta.url).href } });
   const stop = setTimeout(() => worker.terminate().then(() => resolve(Infinity)), 10000);
@@ -23,7 +23,7 @@ it.each([
   ['block docs nested, left open', '|~~ a '.repeat(20)],
   ['block comments nested, left open', '|~ a '.repeat(24)],
   ['line docs in the quotes of line docs', '|~~| ' + '~(|~~| '.repeat(13) + 'x'],
-  ['a run of declarations joined by pipes, their bodies on the next line', Array.from({ length: 700 }, (_, at) => `:vec/f${at}\n  ~(get /0)`).join(' |\n') + ' | [1]']
+  ['a run of declarations, each ended by its `;`, their bodies on the next line', Array.from({ length: 700 }, (_, at) => `:vec/f${at}\n  ~(get /0);`).join('\n') + '\n[1]']
 ])('reads %s within two seconds, a time linear in its size', async (_, text) => {
   expect(await millisecondsOfARead(text)).toBeLessThan(2000);
 });

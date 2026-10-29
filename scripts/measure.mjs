@@ -19,8 +19,8 @@ const repoRoot = join(import.meta.dirname, '..');
 const git = args => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 28 });
 
 const FINE_AREAS = ['core sources', 'core catalog', 'core conformance', 'core unit tests', 'cli sources',
-  'cli catalog', 'cli tests', 'lsp', 'vscode', 'site', 'scripts', 'spec', 'other docs',
-  'lockfile', 'rest'];
+  'cli catalog', 'cli tests', 'stdio sources', 'stdio catalog', 'playground sources', 'playground catalog',
+  'playground tests', 'lsp', 'vscode', 'site', 'scripts', 'spec', 'other docs', 'lockfile', 'rest'];
 const COARSE_AREAS = ['core sources', 'catalog', 'documents', 'tests', 'tooling'];
 
 function fineAreaOf(path) {
@@ -31,6 +31,11 @@ function fineAreaOf(path) {
   if (path.startsWith('cli/') && path.endsWith('.qlang')) return 'cli catalog';
   if (path.startsWith('cli/src/')) return 'cli sources';
   if (path.startsWith('cli/test/')) return 'cli tests';
+  if (path.startsWith('stdio/') && path.endsWith('.qlang')) return 'stdio catalog';
+  if (path.startsWith('playground/') && path.endsWith('.qlang')) return 'playground catalog';
+  if (path.startsWith('stdio/src/')) return 'stdio sources';
+  if (path.startsWith('playground/src/')) return 'playground sources';
+  if (path.startsWith('playground/test/')) return 'playground tests';
   if (path.startsWith('docs/spec/')) return 'spec';
   if (path.startsWith('docs/journal/')) return 'journal';
   if (path.startsWith('docs/')) return 'other docs';
@@ -86,9 +91,9 @@ const SURFACE = [
   ['conformance cases', '^\\{', 'core/test/conformance'],
 ];
 
-// The ratio of comment lines to code lines over the core, the command line
-// and the language server, which falls on every branch [QSLEX#code].
-const COMMENTED_SOURCES = ['core/src', 'cli/src', 'lsp/src'];
+// The ratio of comment lines to code lines over the core, the streams, the
+// playground and the language server, which falls on every branch [QSLEX#code].
+const COMMENTED_SOURCES = ['core/src', 'stdio/src', 'playground/src', 'lsp/src'];
 function commentRatio(ref) {
   const lines = regex => COMMENTED_SOURCES.reduce((total, root) => total + matchingLines(ref, regex, root), 0);
   const comments = lines('^[[:space:]]*//');
@@ -102,7 +107,7 @@ function printSummary(fromRef, toRef) {
   const diff = diffByArea(fromRef, toRef, fineAreaOf);
   const countsOf = area => ({ before: before.get(area) ?? 0, after: after.get(area) ?? 0, ...(diff.get(area) ?? { added: 0, removed: 0 }) });
   const printRow = (label, { before: linesBefore, after: linesAfter, added, removed }) => console.log(
-    `${label.padEnd(17)}${String(linesBefore).padStart(6)} → ${String(linesAfter).padEnd(6)}${signed(linesAfter - linesBefore).padEnd(7)} +${added} −${removed}`);
+    `${label.padEnd(19)}${String(linesBefore).padStart(6)} → ${String(linesAfter).padEnd(6)}${signed(linesAfter - linesBefore).padEnd(7)} +${added} −${removed}`);
   const total = { before: 0, after: 0, added: 0, removed: 0 };
   console.log(`== ${fromRef} → ${toRef}, ${git(['rev-list', '--count', `${fromRef}..${toRef}`]).trim()} commits`);
   for (const area of FINE_AREAS) {

@@ -98,7 +98,7 @@ it('writes a boolean as the boolean of JSON, which parseJson reads back', async 
 it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {
   const scope = new Map(await langRuntime()).set('kindName', makeBinding({ name: makeKeyword('kindName'), value: makeTag('Foo') }));
   const notebook = await createNotebook({ scope });
-  const parsed = JSON.parse((await notebook.evalCell('env | json')).result);
+  const parsed = JSON.parse((await notebook.evalCell('::host | env | json')).result);
   expect(parsed.kindName.payload.value).toBe('::Foo');
 });
 

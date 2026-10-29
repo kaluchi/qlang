@@ -69,8 +69,8 @@ describe('a host\'s verb written as the chain of its function', () => {
     const hosted = await createNotebook({ sources: [{
       uri: 'test/declared',
       source: [
-        ':number/twice |~~ Runs the code twice. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{})',
-        '| :number/each |~~ Runs each code. ~~| (::fn | takes :codes |~~ The codes. ~~| ~(it) [#[::path ::quote]] | impl ::builtin{})'
+        ':number/twice |~~ Runs the code twice. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{});',
+        ':number/each |~~ Runs each code. ~~| (::fn | takes :codes |~~ The codes. ~~| ~(it) [#[::path ::quote]] | impl ::builtin{});'
       ].join('\n'),
       primitives: {
         'number/twice': runsAsCode(['code'], async (subject, code) => await code(await code(subject))),
@@ -78,16 +78,16 @@ describe('a host\'s verb written as the chain of its function', () => {
       }
     }] });
     expect((await hosted.evalCell('5 | twice ~(add 1)')).result).toBe(7);
-    expect((await hosted.evalCell('5 | apply ~(:k 10 | each ~(add k) ~(mul 2))')).result).toEqual([15, 10]);
+    expect((await hosted.evalCell('5 | apply ~(:k 10; each ~(add k) ~(mul 2))')).result).toEqual([15, 10]);
   });
 
   it('hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
     const hosted = await createNotebook({ sources: [{
       uri: 'test/declared-values',
       source: [
-        ':any/both |~~ Runs the code on the subject for each of two. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{})',
-        '| :any/pair |~~ Pairs the subject with a value. ~~| (::fn | takes :value |~~ The value. ~~| /0 | impl ::builtin{})',
-        '| :any/each |~~ Runs each code, and keeps each other value. ~~| (::fn | takes :items |~~ The codes and the values. ~~| ~(it) | impl ::builtin{})'
+        ':any/both |~~ Runs the code on the subject for each of two. ~~| (::fn | takes :code |~~ The code. ~~| /0 #[::path ::quote] | impl ::builtin{});',
+        ':any/pair |~~ Pairs the subject with a value. ~~| (::fn | takes :value |~~ The value. ~~| /0 | impl ::builtin{});',
+        ':any/each |~~ Runs each code, and keeps each other value. ~~| (::fn | takes :items |~~ The codes and the values. ~~| ~(it) | impl ::builtin{});'
       ].join('\n'),
       primitives: {
         'any/both': runsAsCode(['code'], async (subject, code) => [await code(subject), await code(subject)]),
@@ -103,15 +103,15 @@ describe('a host\'s verb written as the chain of its function', () => {
 
 it('hands a word of a host the state of its call where it marks its primitive as a reader of it', async () => {
   const primitive = core.readingState((subject, state) => state.scope.has('k'));
-  const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/where': primitive } }] });
+  const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{});', primitives: { 'any/where': primitive } }] });
   expect((await notebook.evalCell('1 | where')).result).toBe(false);
-  expect((await notebook.evalCell('apply ~(:k 5 | 1 | where)')).result).toBe(true);
+  expect((await notebook.evalCell('apply ~(:k 5; 1 | where)')).result).toBe(true);
 });
 
 it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
   const hosted = await createNotebook({ sources: [{
     uri: 'test/hosted-kind',
-    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}]\n| :Hk/seen (~(seen) | fill (::Hk#1 | payload | get {:seen ~(it)}))',
+    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}];\n:Hk/seen (~(seen) | fill (::Hk#1 | payload | get {:seen ~(it)}));',
     primitives: { 'Hk': payload => payload + 1 }
   }] });
   expect(printValue((await hosted.evalCell('::Hk#1 | Hk/seen')).result)).toBe('1');
@@ -122,10 +122,10 @@ const gaugeSession = () => createNotebook({
   sources: [{
     uri: 'probe/gauge',
     source: lines(
-      ':Gauge |~~ A reading. ~~| (::kind | impl ::builtin{})',
-      ':Gauge/over |~~ Whether the reading passes the test. ~~| (::fn | takes :test |~~ The test. ~~| /0 ::quote | impl ::builtin{})',
-      ':Gauge/shifted |~~ The reading shifted. ~~| (::fn | takes :by |~~ The shift. ~~| /0 | impl ::builtin{})',
-      ':Dial |~~ A reading of a dial. ~~| (::kind | impl ::builtin{})'
+      ':Gauge |~~ A reading. ~~| (::kind | impl ::builtin{});',
+      ':Gauge/over |~~ Whether the reading passes the test. ~~| (::fn | takes :test |~~ The test. ~~| /0 ::quote | impl ::builtin{});',
+      ':Gauge/shifted |~~ The reading shifted. ~~| (::fn | takes :by |~~ The shift. ~~| /0 | impl ::builtin{});',
+      ':Dial |~~ A reading of a dial. ~~| (::kind | impl ::builtin{});'
     ),
     primitives: {
       'Gauge': payload => payload * 2,
@@ -153,7 +153,7 @@ describe('a host\'s primitive under a label', () => {
     const notebook = await createNotebook({
       sources: [{
         uri: 'probe/pair',
-        source: ':vec/pair2 (::fn | takes :b |~~ The second. ~~| /1 | takes :a |~~ The first. ~~| /0 | impl ::builtin{})',
+        source: ':vec/pair2 (::fn | takes :b |~~ The second. ~~| /1 | takes :a |~~ The first. ~~| /0 | impl ::builtin{});',
         primitives: { 'vec/pair2': (subject, b, a) => [a, b] }
       }]
     });
@@ -171,9 +171,9 @@ describe('the sources a host hands', () => {
   const HOST_SOURCES = [{
     uri: 'tests/host',
     source: [
-      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :ByKindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{})',
-      ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{})',
-      ':any/doubled ~(fetch | append fetch)'
+      ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :ByKindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{});',
+      ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});',
+      ':any/doubled ~(fetch | append fetch);'
     ].join('\n'),
     primitives: { 'number/less': (subject, by) => subject - by, 'any/fetch': () => 'fetched' }
   }];
@@ -203,14 +203,14 @@ describe('the sources a host hands', () => {
   });
 
   it('refuses a name that is a ::builtin{} the host hands nothing for, as the root is declared, naming the source and the name', async () => {
-    await expect(createNotebook({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{}' }] }))
+    await expect(createNotebook({ sources: [{ uri: 'tests/bare', source: ':any/hello ::builtin{};' }] }))
       .rejects.toMatchObject({ name: 'PrimitiveNotHandedError', address: 'builtin/PrimitiveNotHandedError', facts: { origin: makeKeyword('tests/bare'), name: makeKeyword('any/hello') } });
   });
 
   it('takes no primitive for a name that holds a ::builtin{} another name took, which runs that name\'s where it holds that name\'s value, and refuses one handed for it, naming the name whose ::builtin{} it holds', async () => {
     const aliasing = primitives => createNotebook({ sources: [{
       uri: 'tests/alias',
-      source: ':any/plus (::number/add | binding | value)\n:any/greet ::builtin{}\n:any/hail (::any/greet | binding | value)',
+      source: ':any/plus (::number/add | binding | value);\n:any/greet ::builtin{};\n:any/hail (::any/greet | binding | value);',
       primitives
     }] });
     expect((await (await aliasing({ 'any/greet': () => 'hi' })).evalCell('get [~(5 | plus 1) ~(hail)]')).result).toEqual([6, 'hi']);
@@ -227,7 +227,7 @@ describe('the sources a host hands', () => {
   it('runs a function read back from its print by the primitive the root it runs in hands at the address its descriptor names, and the function its host handed by the primitive handed with it', async () => {
     const greeting = word => createNotebook({ sources: [{
       uri: 'tests/greet',
-      source: ':any/greet |~~ A greeting. ~~| (::fn | returns |~~ The greeting. ~~| ::string | impl ::builtin{})',
+      source: ':any/greet |~~ A greeting. ~~| (::fn | returns |~~ The greeting. ~~| ::string | impl ::builtin{});',
       primitives: { 'any/greet': () => word }
     }] });
     const [hello, hi] = [await greeting('hello'), await greeting('hi')];
@@ -239,42 +239,55 @@ describe('the sources a host hands', () => {
 
   it('refuses a primitive handed for a verb of steps', async () => {
     await expect(createNotebook({ sources: [{
-      uri: 'tests/over', source: ':any/many ~(count)', primitives: { 'any/many': () => 0 }
+      uri: 'tests/over', source: ':any/many ~(count);', primitives: { 'any/many': () => 0 }
     }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', address: 'builtin/PrimitiveNamesNoBuiltinError' });
   });
 
   it('refuses a primitive handed for a name that is no ::builtin{} under a label, saying so', async () => {
     const refusal = (uri, name) => `qlang root: the source ${uri} is handed a primitive for :${name}, which it declares as no ::builtin{} under a label`;
-    for (const [uri, source, name] of [['tests/verb', ':any/v (::fn | impl ~(1))\n:any/v/shout ::builtin{}', 'any/v/shout'], ['tests/law', ':Box |~~ A box. ~~|\n:Box/fits |~~ A box fits. ~~| ::law~(true)\n:Box/fits/shout ::builtin{}', 'Box/fits/shout'], ['tests/stray', ':Box |~~ A box. ~~|\n:Box/limit |~~ The limit. ~~|', 'Box/limit']]) {
+    for (const [uri, source, name] of [['tests/verb', ':any/v (::fn | impl ~(1));\n:any/v/shout ::builtin{};', 'any/v/shout'], ['tests/law', ':Box |~~ A box. ~~|;\n:Box/fits |~~ A box fits. ~~| ::law~(true);\n:Box/fits/shout ::builtin{};', 'Box/fits/shout'], ['tests/stray', ':Box |~~ A box. ~~|;\n:Box/limit |~~ The limit. ~~|;', 'Box/limit']]) {
       const refused = await createNotebook({ sources: [{ uri, source, primitives: { [name]: text => text } }] }).catch(caught => caught);
       expect(refused).toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', message: refusal(uri, name) });
       expect(refused.facts).toEqual({ origin: makeKeyword(uri), name: makeKeyword(name) });
     }
   });
 
-  it('refuses a source that declares a value at its top, a quote, a function and a descriptor under a bare name and data under an address among them, by one refusal naming the source as its origin', async () => {
-    for (const source of [':limit 10', ':x {}', ':double ~(mul 2)', ':f (::fn | impl ~(1))', ':shout ::builtin{}', ':Box |~~ A box. ~~|\n:Box/limit 10', ':Box |~~ A box. ~~|\n:Box/kind ::number']) {
+  it('refuses a source that declares a value under a bare name, a quote, a function and a descriptor among them, naming the source and the name, and takes data under an address', async () => {
+    for (const [source, name] of [[':limit 10;', 'limit'], [':x {};', 'x'], [':double ~(mul 2);', 'double'], [':f (::fn | impl ~(1));', 'f'], [':shout ::builtin{};', 'shout']]) {
       await expect(createNotebook({ sources: [{ uri: 'tests/value', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/value'), tagName: '::bind/ValueAtTheTopError' } });
+        .rejects.toMatchObject({ name: 'RootValueNotWordError', facts: { origin: makeKeyword('tests/value'), name: makeKeyword(name) } });
     }
+    const notebook = await createNotebook({ sources: [{ uri: 'tests/data', source: ':Box |~~ A box. ~~|;\n:Box/limit 10;\n:Box/kind ::number;' }] });
+    expect((await notebook.evalCell('get [~(Box/limit) ~(Box/kind)]')).result).toEqual([10, makeTag('number')]);
   });
 
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin', async () => {
-    for (const source of [':vec |~~ again ~~|', ':vec/count ~(0)']) {
+    for (const source of [':vec |~~ again ~~|;', ':vec/count ~(0);']) {
       await expect(createNotebook({ sources: [{ uri: 'tests/twice', source }] }))
         .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
     }
   });
 
+  it('takes the page a source of a host writes for `::host` over the noun of the core, whose verbs answer still, and refuses a second page and a host declared as no page as declared twice', async () => {
+    const page = { uri: 'tests/host', source: ':host |~~ The host of the tests. ~~|;' };
+    const notebook = await createNotebook({ sources: [page] });
+    expect(printValue((await notebook.evalCell('::host | doc')).result)).toBe('|~~ The host of the tests. ~~|');
+    expect((await notebook.evalCell('::host | kinds | has ::host')).result).toBe(true);
+    for (const [sources, uri] of [[[page, { uri: 'tests/again', source: ':host |~~ Again. ~~|;' }], 'tests/again'], [[{ uri: 'tests/kind', source: ':host |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map);' }], 'tests/kind']]) {
+      await expect(createNotebook({ sources }))
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword(uri), tagName: '::bind/NameDeclaredTwiceError', name: makeKeyword('host') } });
+    }
+  });
+
   it('declares a refusal of the host at its address again in every notebook of the process', async () => {
     declareRefusal('Probe/SessionProbeRefusalError');
-    const sources = [{ uri: 'tests/refusal', source: ':Probe |~~ A probe. ~~|\n:Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|' }];
+    const sources = [{ uri: 'tests/refusal', source: ':Probe |~~ A probe. ~~|;\n:Probe/SessionProbeRefusalError |~~ SessionProbeRefusalError. ~~|;' }];
     await createNotebook({ sources });
     expect((await (await createNotebook({ sources })).evalCell('::Probe | manifest | count')).result).toBe(1);
   });
 
   it('refuses a source whose run answers an error', async () => {
-    await expect(createNotebook({ sources: [{ uri: 'tests/broken', source: ':Box |~~ A box. ~~|\n| 1 | add "x"' }] }))
+    await expect(createNotebook({ sources: [{ uri: 'tests/broken', source: ':Box |~~ A box. ~~|;\n1 | add "x"' }] }))
       .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', message: expect.stringContaining('the source tests/broken is refused') });
   });
 });
@@ -283,13 +296,13 @@ describe('a kind whose constructor is a primitive of the host', () => {
   it('puts a payload under the tag through the constructor its host hands', async () => {
     const { createNotebook } = await import('../../../src/notebook.mjs');
     const sessionInstance = await createNotebook({
-      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{})', primitives: { 'myType': payload => payload * 2 } }]
+      sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{});', primitives: { 'myType': payload => payload * 2 } }]
     });
     expect((await sessionInstance.evalCell('::myType#4 | get [~(tag) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
   });
 
   it('a kind a reader declares with a constructor no host hands lays its tag over a quote', async () => {
-    const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}) | ::myType~(add 1) | tag');
+    const result = await evalQuery(':myType |~~ myType. ~~| (::kind | impl ::builtin{}); ::myType~(add 1) | tag');
     expect(result).toEqual(makeTag('myType'));
   });
 });

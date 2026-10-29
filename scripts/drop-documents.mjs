@@ -1,6 +1,6 @@
 // Drops documents of the research that nothing in force holds, and gives the
-// members of each series past its two latest to the history, at the move of
-// the baseline, the one cleaning of the work of a branch [QSWRK#closeout]:
+// members of each series past its two latest to the history, at the closeout
+// of a stint, the one cleaning of the work of a branch [QSWRK#closeout]:
 // each leaves the tree, which git keeps, a record replaced reading it at the
 // commit the record left at; and the lines of the fates a document holds
 // that say open are printed, for the author to carry into an open record of

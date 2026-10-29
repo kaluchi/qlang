@@ -76,7 +76,7 @@ jobs:
       matrix:
         workspace:
           - "@kaluchi/qlang-core"
-          - "@kaluchi/qlang-cli"
+          - "@kaluchi/qlang-playground"
     steps:
       - uses: actions/checkout@v7
 
@@ -96,7 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         workspace:
-          - "@kaluchi/qlang-cli"
+          - "@kaluchi/qlang-playground"
     steps:
       - uses: actions/checkout@v7
 
@@ -134,10 +134,8 @@ jobs:
     needs: [lint, conventions, workspace-tests, coverage, integration, site-build]
     runs-on: ubuntu-latest
     steps:
-      # Every needed job must report `success`. Naming the failing
-      # states instead would let `skipped` through — a matrix entry
-      # that never ran, or one whose own dependency was skipped,
-      # would report this gate green to branch protection.
+      # The gate holds where every needed job reports `success`, a job
+      # skipped or never run among the failures.
       - name: Verify every job succeeded
         run: |
           for result in ${{ join(needs.*.result, ' ') }}; do

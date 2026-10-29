@@ -1,0 +1,81 @@
+{
+  "page": 1,
+  "users": [
+    {
+      "id": 1,
+      "name": "Ann",
+      "active": true,
+      "age": 31,
+      "address": {
+        "city": "Berlin",
+        "country": "DE"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "active": true,
+      "age": null,
+      "address": {
+        "city": "paris",
+        "country": "FR"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Cid",
+      "active": false,
+      "age": 45,
+      "address": {
+        "city": "Rome",
+        "country": "IT"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Dee",
+      "active": true,
+      "age": 28
+    },
+    {
+      "id": 5,
+      "name": "Eve",
+      "active": true,
+      "age": 40,
+      "address": {
+        "city": "BERLIN",
+        "country": "DE"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Fay",
+      "active": true,
+      "age": 22,
+      "address": {
+        "city": null,
+        "country": "ES"
+      }
+    },
+    {
+      "id": 7,
+      "name": "Gus",
+      "active": false,
+      "age": null,
+      "address": {
+        "city": "Oslo",
+        "country": "NO"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Hal",
+      "active": true,
+      "age": 35,
+      "address": {
+        "city": "Madrid",
+        "country": "ES"
+      }
+    }
+  ]
+}

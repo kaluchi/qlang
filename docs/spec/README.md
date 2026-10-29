@@ -6,7 +6,9 @@ probes, which `npm run check:probes` runs, and a chapter of the work
 by the checks it names. The requirements of a section of the language
 are the cases of the conformance file named for it,
 `core/test/conformance/QSNAM/scope.jsonl` for the section `scope` of
-`QSNAM`, and the code, the tests and the documents cite a section by
+`QSNAM`, a rule a case cannot write, the budget of an answer among them,
+held by the tests of its section, and of a host the tests its chapter
+names, and the code, the tests and the documents cite a section by
 its chapter's code and its heading, `[QSNAM#scope]`.
 
 The chapters, in the order the concepts rest on each other:

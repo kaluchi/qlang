@@ -14,7 +14,8 @@ the cursor, a step the server writes at the cursor and drops before the
 steps run, and what stands as whitespace there, a comment among it; the
 characters it asks a completion and the help of a signature at are its
 own. It prints no answer, and coats the tokens of `tokenize` by a type of
-semantic token, a bracket and a gap by none [QSHST#tokens].
+semantic token, a bracket and a gap by none but the brackets of a quote,
+coated as strings, and of an error literal, as keywords [QSHST#tokens].
 
 ```sh
 $ git grep -c -F "triggerCharacters: [" -- lsp/src/server.mjs
@@ -69,7 +70,7 @@ a verb, and no document run to name them, so a kind built elsewhere and
 bound by name is a kind to the runtime and a value to the tools:
 
 ```qlang
-> :K (::kind | accepts |~~ x ~~| ::map) | :Box |~~ A box. ~~| K | get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag) ~(kinds | has ::Box)]
+> :K (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag) ~(::host | kinds | has ::Box)]
 [::Box ::Box/PayloadKindNotTakenError true]
 ```
 

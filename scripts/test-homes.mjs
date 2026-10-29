@@ -13,9 +13,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'acorn';
 
-// The folders of the tests of the workspaces, the tests that run the command
-// line in a process of its own apart.
-const HOME = /^(?:core\/test\/unit|cli\/test(?:\/integration)?|lsp\/test|site\/test|vscode\/test)\/(?:(QS[A-Z]{3})\/([a-z][a-z-]*)|([DE]\d+))(?:\.([a-z][a-z0-9-]*))?\.test\.m?js$/;
+// The folders of the tests of the workspaces, the tests that run the
+// playground in a process of its own apart.
+const HOME = /^(?:core\/test\/unit|playground\/test(?:\/integration)?|lsp\/test|site\/test|vscode\/test)\/(?:(QS[A-Z]{3})\/([a-z][a-z-]*)|([DE]\d+))(?:\.([a-z][a-z0-9-]*))?\.test\.m?js$/;
 
 // homeOfPath(path) → `{ section }`, `{ record }` or null, the rule the path
 // of a test file names.
@@ -161,6 +161,19 @@ export function problemsOfTestFile(path, text, { sections, heldByItsTests }) {
   if (testsOutside === 0 && outermost.length === 1) problems.push({ line: outermost[0].line, problem: 'holds its tests in one group, which says again what its path names' });
   return problems;
 }
+
+// titlesOfTestsAndGroups(text) → [{ line, title }]: the title of each test and
+// of each group the source states, by its parser.
+export function titlesOfTestsAndGroups(text) {
+  const { tests, groups } = testsOfSource(text);
+  return [...tests, ...groups.filter(({ title }) => title !== null)];
+}
+
+// titlesCitingARule(text) → [{ line, cited }]: each title of the source that
+// cites a rule, which a helper of the tests writes for the files that call it.
+export const titlesCitingARule = text => titlesOfTestsAndGroups(text)
+  .map(({ line, title }) => ({ line, cited: CITATION.exec(title)?.[0] }))
+  .filter(({ cited }) => cited !== undefined);
 
 // testFilesOfTree(repoRoot) → [{ path, text }]: every tracked test file of
 // the workspaces.

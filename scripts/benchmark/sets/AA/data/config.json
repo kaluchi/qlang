@@ -1,0 +1,34 @@
+{
+  "app": "shop",
+  "services": {
+    "web": {
+      "port": 8080,
+      "replicas": 3
+    },
+    "api": {
+      "port": 3000,
+      "replicas": 2,
+      "enabled": true
+    },
+    "worker": {
+      "replicas": 4
+    },
+    "cache": {
+      "port": 6379,
+      "enabled": false
+    },
+    "db": {
+      "port": 5432,
+      "replicas": 1,
+      "enabled": null
+    },
+    "admin": {
+      "port": 9000,
+      "enabled": false,
+      "replicas": 1
+    },
+    "metrics": {
+      "port": 9100
+    }
+  }
+}

@@ -12,7 +12,7 @@ it('writes an answer whose print fits the budget whole', async () => {
 });
 
 it('writes the first screen whole, the budget never smaller than it', async () => {
-  const cellEntry = await runQuery('[::qlang ::host] | map ~(get [~(it) ~(doc)])', silentStreams);
+  const cellEntry = await runQuery('[::qlang ::host] | map ~(get [~it ~doc])', silentStreams);
   expect(await boundAnswer(cellEntry.result, cellEntry.scopeAfterCell)).toBe(cellEntry.result);
 });
 

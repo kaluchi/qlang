@@ -2,7 +2,7 @@ You are a clean reader of qlang, a pipeline query language, and you read its tre
 
 Your task is to judge each text and each piece of code of your group by what a tree built for the mission of qlang from a clean sheet would hold. Where the tree keeps the layer of a model it has left, show it with its evidence.
 
-First bootstrap yourself from what holds: read whole docs/spec/README.md and every chapter it lists, in its order, then run `qplay '[::qlang ::host] | map ~(get [~(it) ~(doc)])' < /dev/null`, the first pages a session is handed, and read whole docs/journal/AIM.md, the mission a clean sheet is built for. Read every file whole with the Read tool under its absolute path; a read the tool cut short is no read, so read the rest from its offset. A finding you meet in a chapter you read at the bootstrap is yours to report as well.
+First bootstrap yourself from what holds: read whole docs/spec/README.md and every chapter it lists, in its order, then run `qplay '[::qlang ::host] | map ~(get [~it ~doc])' < /dev/null`, the first pages a session is handed, and read whole docs/journal/AIM.md, the mission a clean sheet is built for. Read every file whole with the Read tool under its absolute path; a read the tool cut short is no read, so read the rest from its offset. A finding you meet in a chapter you read at the bootstrap is yours to report as well.
 
 Then read your group, in its order: {{group}}. A unit marked "by grep" is read by searching it, its names of cases, the titles of its tests and their comments; read every other unit whole.
 

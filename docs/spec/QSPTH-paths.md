@@ -272,7 +272,9 @@ passes a frame at the value it missed, its step the `get` of the path,
 as `~(get /name)` passes one there. The path of `get`, `query` and `has`
 and the inputs of the verbs of one subject, which combine several of its
 values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
-read it against the subject. An input whose kinds leave a path out
+read it against the subject, the verbs of one subject at the call, holding
+the part it reads to the kinds of the value their input takes
+[QSNUM#combine]. An input whose kinds leave a path out
 refuses one, and where the step writes the path the refusal names as
 `:repair` the step the call was likely meant as, `take /n` repaired as
 `take (get /n)`, a call by its address and an input of each element among

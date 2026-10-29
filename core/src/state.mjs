@@ -53,7 +53,7 @@ export function ownScopeOf(state) {
   return state.own ?? state.scope;
 }
 
-// [D483]
+// [QSNAM#owner]
 export function ownStateOf(state) {
   return state.own === null ? state : makeState(state.pipeValue, state.own, state.depth, state.written);
 }

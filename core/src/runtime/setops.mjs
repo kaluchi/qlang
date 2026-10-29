@@ -64,7 +64,7 @@ const interOfMap = (map, keys, KeyRefusal, at) => {
   return new Map([...map].filter(([key]) => names.has(key)));
 };
 
-// [D484]
+// [QSCOL#algebra]
 export const unitedOf = (left, right) => (isSet(left) ? mergeSets(left, right, UNION_KEEPS) : unionOfMaps(left, right));
 
 // [QSCOL#algebra]

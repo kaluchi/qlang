@@ -24,7 +24,7 @@ registerPrimitive('boolean/and', asCombiner((subject, condition) => subject && c
 registerPrimitive('boolean/or',  asCombiner((subject, condition) => subject || condition));
 registerPrimitive('boolean/not', subject => !subject);
 
-// [D483], [QSERR#site]
+// [QSDSP#walk], [QSERR#site]
 function closedByOneOf(value, names, scope) {
   const [outer] = tagsOver(value);
   if (outer === undefined || wiringOf(value) === undefined) return false;

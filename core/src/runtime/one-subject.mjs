@@ -1,4 +1,4 @@
-// [D484]
+// [QSNUM#combine], [QSCOL#algebra]
 
 import { beneathTags, isErrorValue, isMap, isNumber, isSet, pairRefused, TagsInCommon } from '../types.mjs';
 import { kindsExpected } from '../ordering.mjs';

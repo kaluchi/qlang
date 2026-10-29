@@ -78,7 +78,7 @@ const marking = way => (names, primitive) => {
 export const runsAsCode = marking('run');
 export const runsWithinAsCode = marking('within');
 export const foldsAsCode = marking('folded');
-// [D484]
+// [QSNUM#combine]
 export const takesAsGiven = marking('given');
 export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);
 

@@ -930,7 +930,7 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach], [D484]
+// [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach], [QSNUM#combine]
 async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts, asCode) {
   const values = [];
   const written = new Set();
@@ -1021,7 +1021,7 @@ async function refusalOfFailedModifier(chain, address, index, error, state, scop
   return refusalUnder(kindsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected, found: atRest })), scope);
 }
 
-// [QSDSP#answer], [QSBLD#kind], [D483], [QSBLD#label], [QSERR#flow], [QSQUO#held]
+// [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
 export async function layTag(tagName, laidOver, state) {
   if (isErrorValue(laidOver)) return laidOver;
   const step = ownStateOf(state);

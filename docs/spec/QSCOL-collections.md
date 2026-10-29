@@ -213,9 +213,13 @@ keys sharing none [QSDSP#answer]; a vector's fold answers a set or a map
 under the tags the values it combines share, a later value of a map's
 difference or common part naming keys and sharing none, each laid
 through its kind, and refuses at each value its kind, its pair and then
-its tags. `unionOf` unites the maps or the sets its call computes, one
+its tags. `unionOf` unites the maps or the sets its call computes, each a
+map, a set, or a path or a quote that reads one against the subject, one
 part at least, `::any/unionOf/PartsEmptyError` refusing none, under the
-tags they share; one part answers itself.
+tags they share; one part answers itself, a part of another kind is
+refused at its index, `::any/unionOf/PartsElementKindNotTakenError` where
+it is given and `::any/unionOf/PartsAnswerKindNotTakenError` where its code
+read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 
 ```qlang
 > {:age 20} | union {:age 30}

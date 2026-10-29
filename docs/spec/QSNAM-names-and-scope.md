@@ -302,8 +302,8 @@ names it writes past a label the reader named so.
 > ::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])
 [2 3]
 
-> :sum |~~ A sum of a bill. ~~|; {:price 4 :tax 1} | sumOf /price /tax
-5
+> :count |~~ A count of a bill. ~~|; [1 2] | size
+2
 ```
 
 ## address
@@ -470,11 +470,17 @@ verb's own scope [QSBLD#recipe], and what the recipe reads as data,
 `::host | env`, a page, a binding, reads the tree of names of the query that
 called the verb, as a verb of the host that reads the state of its call
 reads that tree wherever it is called; the tree carries down through
-every verb the recipe calls. The recipe's own names, its inputs and the
-names its steps declare, stay in its scope, and a value of the reader
-reaches the recipe as data alone.
+every verb the recipe calls. A tag a step of the recipe writes resolves
+through the label the recipe's own scope declares, laid by a literal,
+`tag` or `raise` and asked by `is` alike, as the catch lays it, so one name
+stands for one label along the recipe. The recipe's own names, its inputs
+and the names its steps declare, stay in its scope, and a value of the
+reader reaches the recipe as data alone.
 
 ```qlang
+> :vec/build ~(:Q |~~ Q ~~| (::kind | accepts |~~ m ~~| ::map); get [~(5 | tag ::Q !| tag) ~(::Q[5] !| tag)]); [1] | build
+[::Q/PayloadKindNotTakenError ::Q/PayloadKindNotTakenError]
+
 > :vec/doc ~("a reader page"); [1 2] | doc
 "a reader page"
 

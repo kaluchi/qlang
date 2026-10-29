@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { parseDocument, buildCatalogIndex, completionsAtOffset, hoverAtOffset, definitionAtOffset, referencesAtOffset } from '../../src/features.mjs';
-import { langRuntime, evalQuery } from '@kaluchi/qlang-core';
+import { parseDocument, buildCatalogIndex, completionsAtOffset, hoverAtOffset, definitionAtOffset, referencesAtOffset, signatureHelpAtOffset } from '../../src/features.mjs';
+import { langRuntime, evalQuery, LANGUAGE_SOURCES } from '@kaluchi/qlang-core';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
-import { cpSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { answerOf, framedMessage, lspDir } from '../helpers/server-process.mjs';
 
@@ -81,7 +81,7 @@ describe('the hover', () => {
     expect(hover.content).toMatch(/a name of the root/);
   });
 
-  it('returns hover for the tag an error literal writes before its bang', async () => {
+  it('returns hover for the tag an error literal writes before its bang, and for the error at rest its bang opens', async () => {
     // [QSERR#rest]
     const src = '::number/NotFiniteError!{:step 1}';
     const { root } = parseDocument(src, 'test.qlang');
@@ -89,7 +89,7 @@ describe('the hover', () => {
     expect(hover).not.toBeNull();
     expect(hover.content).toContain("::number/NotFiniteError");
     expect(hover.endOffset - hover.startOffset).toBe('::number/NotFiniteError'.length);
-    expect(await hoverAtOffset(root, src, src.indexOf('!{'))).toBeNull();
+    expect((await hoverAtOffset(root, src, src.indexOf('!{'))).content.startsWith('`!{:step 1}` — **::error**')).toBe(true);
   });
 
   it('returns hover for `::error` written before a bang, and finds it among the references of `::error`', async () => {
@@ -138,10 +138,15 @@ describe('the hover', () => {
     }
   });
 
-  it('shows a keyword by its literal, the key of a JSON literal among them', async () => {
+  it('shows a keyword by its literal and the page of its kind, the key of a JSON literal among them, and the name of a declaration as a keyword alone', async () => {
     const src = '{"1": 2}';
     const { root } = parseDocument(src, 'test.qlang');
-    expect((await hoverAtOffset(root, src, 2)).content).toBe('keyword `:"1"`');
+    const page = await evalQuery('::keyword | doc | content');
+    const { content } = await hoverAtOffset(root, src, 2);
+    expect(content.startsWith('`:"1"` — **::keyword**')).toBe(true);
+    expect(content).toContain(page.split('\n')[0]);
+    const declared = ':rate 2; rate';
+    expect((await hoverAtOffset(parseDocument(declared, 'test.qlang').root, declared, 1)).content).toBe('keyword `:rate`');
   });
 
   it('shows nothing on the sign that joins a payload to its tag, past the head of the tag', async () => {
@@ -323,6 +328,59 @@ describe('the jump to a declaration', () => {
 
   it('returns null for a text that does not parse', async () => {
     expect(await definitionAtOffset(null, 0)).toBeNull();
+  });
+});
+
+const languageCatalogCtx = await (async () => {
+  const index = new Map();
+  for (const uri of LANGUAGE_SOURCES) {
+    const fileUri = import.meta.resolve(`@kaluchi/qlang-core/lib/${uri}.qlang`);
+    const source = readFileSync(new URL(fileUri), 'utf8');
+    for (const [name, range] of buildCatalogIndex(parseDocument(source, uri).root)) index.set(name, { ...range, fileUri, source });
+  }
+  return { index, scope: await langRuntime() };
+})();
+
+describe('a literal and its kind', () => {
+  const firstLineOfThePage = async kind => (await evalQuery(`::${kind} | doc | content`)).split('\n')[0];
+
+  it('shows a literal by its text, its kind and the page of its kind, a container on its signs alone and nothing on what it holds between them', async () => {
+    const src = '[#"\\d" 1.5 "s" #[:a] ~(add 1) !{:k 1}] | count';
+    const { root } = parseDocument(src, 'test.qlang');
+    const hoverAt = async offset => (await hoverAtOffset(root, src, offset))?.content ?? null;
+    const shown = [['#"', '#"\\d"', 'regex'], ['1.5', '1.5', 'number'], ['"s"', '"s"', 'string'], ['#[', '#[:a]', 'set'], ['~(', '~(add 1)', 'quote'], ['!{', '!{:k 1}', 'error'], ['] |', src.slice(0, src.indexOf(' |')), 'vec']];
+    for (const [needle, written, kind] of shown) {
+      const content = await hoverAt(src.indexOf(needle));
+      expect(content.startsWith(`\`${written}\` — **::${kind}**`), kind).toBe(true);
+      expect(content).toContain(await firstLineOfThePage(kind));
+    }
+    expect(await hoverAt(src.indexOf(' 1.5'))).toBeNull();
+    expect((await hoverAt(src.indexOf('add'))).startsWith('**add**')).toBe(true);
+  });
+
+  it('jumps from a literal to the declaration of its kind in the catalog, from a tag to the declaration it names, a verb of its name aside, and from a call to the verb its subject reaches', async () => {
+    const declaredAt = async (src, offset) => {
+      const def = await definitionAtOffset(parseDocument(src, 'test.qlang').root, offset, languageCatalogCtx, src);
+      return def.source.slice(def.startOffset).split(/\s/)[0];
+    };
+    expect(await declaredAt('#"a" | toRegex "i"', 0)).toBe(':regex');
+    expect(await declaredAt('[::map] | count', 3)).toBe(':map');
+    expect(await declaredAt('[1 2] | count', 8)).toBe(':vec/count');
+    expect(await declaredAt('"ab" | count', 7)).toBe(':string/count');
+  });
+
+  it('reads the subject of a call from the steps before it in its own pipeline, inside a quote and a group, the hover, the jump and the help of a signature showing the verb it reaches, and a group by its parentheses', async () => {
+    const src = '~(#"a" | toRegex "i" | eq ("a" | toRegex "i"))';
+    const { root } = parseDocument(src, 'test.qlang');
+    const [first, second, group] = [src.indexOf('toRegex'), src.lastIndexOf('toRegex'), src.indexOf('("a"')];
+    const headings = await Promise.all([first, second, group].map(async offset => (await hoverAtOffset(root, src, offset)).content.split('\n')[0].trim()));
+    expect(headings).toEqual(['**toRegex** — ::regex/toRegex flags', '**toRegex** — ::string/toRegex flags', '`("a" | toRegex "i")` — **::group**']);
+    const declared = async offset => {
+      const def = await definitionAtOffset(root, offset, languageCatalogCtx, src);
+      return def.source.slice(def.startOffset).split(/\s/)[0];
+    };
+    expect([await declared(first), await declared(second), await declared(group)]).toEqual([':regex/toRegex', ':string/toRegex', ':group']);
+    expect((await signatureHelpAtOffset(root, src, first + 'toRegex '.length)).documentation).toBe(await evalQuery('::regex/toRegex | doc | content'));
   });
 });
 

@@ -158,7 +158,7 @@ connection.onDefinition(async (params) => {
   if (!state?.root || !doc) return null;
 
   const offset = doc.offsetAt(params.position);
-  const def = await definitionAtOffset(state.root, offset, catalogCtx);
+  const def = await definitionAtOffset(state.root, offset, catalogCtx, state.source);
   if (!def) return null;
 
   if (def.fileUri) {

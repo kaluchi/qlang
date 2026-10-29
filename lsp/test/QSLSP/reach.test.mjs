@@ -372,6 +372,8 @@ describe('the innermost part at a position', () => {
     }
     expect(await hoverAt(src.indexOf(' 1.5'))).toBeNull();
     expect((await hoverAt(src.indexOf('add'))).startsWith('**add**')).toBe(true);
+    const backquoted = '"a`b" | count';
+    expect((await hoverAtOffset(parseDocument(backquoted, 'test.qlang').root, backquoted, 0)).content.startsWith('``"a`b"`` — **::string**')).toBe(true);
   });
 
   it('jumps from a literal to the declaration of its kind in the catalog, from a tag to the declaration it names, a verb of its name aside, and from a call to the verb its subject reaches', async () => {

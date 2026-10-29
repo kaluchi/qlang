@@ -71,6 +71,11 @@ function markdownOfProse(prose) {
 
 const markdownOfThePage = async address => markdownOfProse(await contentOfThePage(address));
 
+function codeSpanOf(text) {
+  const fence = '`'.repeat(Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length)) + 1);
+  return /^`|`$/.test(text) ? `${fence} ${text} ${fence}` : `${fence}${text}${fence}`;
+}
+
 // [QSLSP#server]
 const contentOfPages = new Map();
 async function contentOfThePage(address) {
@@ -319,7 +324,7 @@ export async function hoverAtOffset(root, source, offset) {
   if (isCallStep(value)) return await hoverForCall(read, root, source);
   if (isTag(value)) return await hoverForTag(value.name, spanOf(read));
   if (isOnTagHead(read, offset)) return await hoverForTag(tagWrittenBy(read), headOf(read));
-  if (namesADeclaration(read)) return { content: `keyword \`${value.literal}\``, ...spanOf(read) };
+  if (namesADeclaration(read)) return { content: `keyword ${codeSpanOf(value.literal)}`, ...spanOf(read) };
   const kind = literalKindAt(read, offset, source);
   return kind === null ? null : await hoverForLiteral(read, kind, source);
 }
@@ -350,7 +355,7 @@ function literalKindAt(read, offset, source) {
 async function hoverForLiteral(read, kind, source) {
   const literal = makeTag(kind).literal;
   const written = isKeyword(read.value) ? read.value.literal : source.slice(read.span.start.offset, read.span.end.offset);
-  const heading = written.length <= LONGEST_LITERAL_SHOWN && !written.includes('\n') ? `\`${written}\` — **${literal}**` : `**${literal}**`;
+  const heading = written.length <= LONGEST_LITERAL_SHOWN && !written.includes('\n') ? `${codeSpanOf(written)} — **${literal}**` : `**${literal}**`;
   return { content: markdownHardBreaks([heading, '', await markdownOfThePage(literal)].join('\n')), ...spanOf(read) };
 }
 

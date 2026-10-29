@@ -387,6 +387,18 @@ describe('the innermost part at a position', () => {
     expect(await declaredAt('"ab" | count', 7)).toBe(':string/count');
   });
 
+  it('answers inside the code a doc holds between backquotes as in the code around it, the hover and the jump, and nothing in its prose or in a span that reads as no code', async () => {
+    const src = ':x |~~ Counts, `::Box[1 2] | count` answering `2`; `|~~` opens a doc. ~~| 1; x';
+    const { root } = parseDocument(src, 'test.qlang');
+    const hoverOf = async needle => await hoverAtOffset(root, src, src.indexOf(needle));
+    const counted = await hoverOf('count`');
+    expect([counted.content.split('\n')[0].trim(), counted.startOffset]).toEqual(['**count** — ::vec/count', src.indexOf('count`')]);
+    expect((await hoverOf('2`;')).content.startsWith('`2` — **::number**')).toBe(true);
+    expect([await hoverOf('Counts'), await hoverOf('|~~` opens')]).toEqual([null, null]);
+    const def = await definitionAtOffset(root, src.indexOf('count`'), languageCatalogCtx, src);
+    expect(def.source.slice(def.startOffset).split(/\s/)[0]).toBe(':vec/count');
+  });
+
   it('jumps from a call to every verb of its name where the kind of the subject reaches none of them, and to the one verb that serves every value', async () => {
     const declaredAt = async (src, needle) => {
       const def = await definitionAtOffset(parseDocument(src, 'test.qlang').root, src.lastIndexOf(needle), languageCatalogCtx, src);

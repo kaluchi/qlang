@@ -314,6 +314,8 @@ export async function hoverAtOffset(root, source, offset) {
 
   const read = partAtOffset(root, offset);
   if (!read) return null;
+  const between = codeBetweenBackquotesAt(read, offset, source);
+  if (between !== null) return shiftedBy(await hoverAtOffset(between.root, between.code, offset - between.at), between.at);
   const { value } = read;
 
   if (isCallStep(value)) return await hoverForCall(read, root, source);
@@ -357,6 +359,26 @@ async function hoverForLiteral(read, kind, source) {
 function codeSpanOf(text) {
   const fence = '`'.repeat(Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length)) + 1);
   return /^`|`$/.test(text) ? `${fence} ${text} ${fence}` : `${fence}${text}${fence}`;
+}
+
+function codeBetweenBackquotesAt(read, offset, source) {
+  const span = (read.backquoted ?? []).find(({ start, end }) => start.offset <= offset && offset < end.offset);
+  if (span === undefined || typeof source !== 'string') return null;
+  const code = source.slice(span.start.offset, span.end.offset);
+  try {
+    return { root: partOf(parseSource(code)), code, at: span.start.offset };
+  } catch (error) {
+    if (error instanceof SourceParseError) return null;
+    throw error;
+  }
+}
+
+const shiftedBy = (span, by) => (span === null ? null : { ...span, startOffset: span.startOffset + by, endOffset: span.endOffset + by });
+
+function shiftedIntoTheDocument(found, by) {
+  if (found === null) return null;
+  if (Array.isArray(found)) return found.map(one => shiftedIntoTheDocument(one, by));
+  return found.fileUri === undefined ? shiftedBy(found, by) : found;
 }
 
 async function hoverForCall(read, root, source) {
@@ -420,6 +442,8 @@ export async function definitionAtOffset(root, offset, catalogCtx, source = null
 
   const read = partAtOffset(root, offset);
   if (read === null) return null;
+  const between = codeBetweenBackquotesAt(read, offset, source);
+  if (between !== null) return shiftedIntoTheDocument(await definitionAtOffset(between.root, offset - between.at, catalogCtx, between.code), between.at);
   const named = nameAt(read, offset);
   if (named === null) {
     const kind = source === null || namesADeclaration(read) ? null : literalKindAt(read, offset, source);

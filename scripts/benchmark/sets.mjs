@@ -158,11 +158,11 @@ export async function run(setId, { decision, model, runs, reason }) {
 // ── grade ──────────────────────────────────────────────────────
 
 // The final queries of a reply, one per task, by the number after the
-// letter of the set, whatever letter the child wrote.
+// letters of the set, whatever letters the child wrote.
 function finalQueriesOf(setId, reply) {
   const finals = new Map();
   for (const line of String(reply ?? '').split(/\r?\n/)) {
-    const numbered = /^\s*[`*]*[A-Z](\d+)[`*]*:\s*`?(.+?)`?\s*$/.exec(line);
+    const numbered = /^\s*[`*]*[A-Z]+(\d+)[`*]*:\s*`?(.+?)`?\s*$/.exec(line);
     if (numbered !== null) finals.set(`${setId}${numbered[1]}`, numbered[2]);
   }
   return finals;

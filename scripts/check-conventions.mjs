@@ -149,7 +149,7 @@ import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
 import { readText, treeAt } from './tree-reads.mjs';
-import { problemsOfTestFile, testFilesOfTree } from './test-homes.mjs';
+import { problemsOfTestFile, testFilesOfTree, titlesCitingARule, titlesOfTestsAndGroups } from './test-homes.mjs';
 import { anchorsTheTreeLacks } from './anchors.mjs';
 import { namesSharedInTree } from './grep-ergonomics.mjs';
 import { parse } from 'acorn';
@@ -795,8 +795,13 @@ function namesOfTakenOut() {
 
 // ── (17) Retired words ─────────────────────────────────────────
 
-// The title a test states its rule in, `it('…')`, a string its code holds.
-const TEST_TITLE = /\b(?:it|test|describe)(?:\.\w+)?\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
+// The titles a test file states its rules in, `it('…')` and `describe('…')`,
+// read by its parser and kept by their lines [QSREQ#rigor].
+function titlesByLine(text) {
+  const byLine = new Map();
+  for (const { line, title } of titlesOfTestsAndGroups(text)) byLine.set(line, [...(byLine.get(line) ?? []), title]);
+  return byLine;
+}
 
 const nameOfCase = line => {
   try { return JSON.parse(line).name ?? ''; } catch { return ''; }
@@ -817,11 +822,12 @@ function retiredWordsWritten() {
     const text = readText(join(repoRoot, file));
     const lines = text.split(/\r?\n/);
     const chapter = /^docs\/spec\/(QS[A-Z]{3})-/.exec(file)?.[1];
+    const titles = isTest && /\.m?js$/.test(file) ? titlesByLine(text) : new Map();
     let section = '';
     partsOfLines(voice, text, file).forEach(({ holds, names }, index) => {
       if (chapter !== undefined && lines[index].startsWith('## ')) section = lines[index].slice(3).trim();
       if (chapter !== undefined && waitsForTheCloseout(waiting, chapter, section)) return;
-      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(isTest ? [...holds.matchAll(TEST_TITLE)].map(match => match[2]) : [])];
+      const read = voice === 'case' ? [nameOfCase(holds)] : [names, ...(titles.get(index + 1) ?? [])];
       for (const part of read) {
         for (const { regex, written, by } of RETIRED_WORDS) {
           const word = regex.exec(part)?.[0];
@@ -889,8 +895,13 @@ function testsOffTheirSection() {
     const record = records.get(name);
     return record !== undefined && !record.open && !replacedWhole(record) && !['language', 'process', 'benchmark'].includes(record.domain);
   };
-  return testFilesOfTree(repoRoot).flatMap(({ path, text }) => problemsOfTestFile(path, text, { sections, heldByItsTests })
-    .map(({ line, problem }) => ({ file: path, line, problem })));
+  const helpers = execFileSync('git', ['ls-files', '*/test/helpers/*.mjs'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  return [
+    ...testFilesOfTree(repoRoot).flatMap(({ path, text }) => problemsOfTestFile(path, text, { sections, heldByItsTests })
+      .map(({ line, problem }) => ({ file: path, line, problem }))),
+    ...helpers.flatMap(path => titlesCitingARule(readText(join(repoRoot, path)))
+      .map(({ line, cited }) => ({ file: path, line, problem: `cites ${cited} in a title, which the path of the file that calls it names` })))
+  ];
 }
 
 // ── (22) A comment of the code is a mark ───────────────────────
@@ -908,7 +919,8 @@ function commentsThatAreNoMarks() {
   const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`])], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
   return files.flatMap(file => {
     const text = readText(join(repoRoot, file));
-    return commentRanges(file, text).filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value))
+    const shebang = text.startsWith('#!');
+    return commentRanges(file, text).filter(comment => !MARKS_ALONE.test(comment.value) && !TOOL_DIRECTIVE.test(comment.value) && !(shebang && comment.start === 0))
       .map(comment => ({ file, line: text.slice(0, comment.start).split('\n').length, snippet: comment.value.trim().slice(0, 100) }));
   });
 }

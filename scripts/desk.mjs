@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { citationsIn, citingCodeOf, recordsInTransit, reconciliationOf } from './reconciliation.mjs';
+import { citationsOfCode, citingCodeOf, recordsInTransit, reconciliationOf, seriesPastTheirTwoLatest } from './reconciliation.mjs';
 import { marksOfTree, touchedRecords } from './marks.mjs';
 import { readText } from './tree-reads.mjs';
 
@@ -44,6 +44,10 @@ else {
   lines.push(`  the reconciliation breaks ${reconciled.violations.length} times [QSWRK#reconciliation]:`);
   for (const { where, problem } of reconciled.violations.slice(0, 8)) lines.push(`    ${where}  ${problem}`);
 }
+// The series of the benchmark past their two latest at the baseline, which
+// the reconciliation refuses beside the rest [QSWRK#reconciliation].
+const pastTheirLatest = reconciled.baseline === undefined ? [] : seriesPastTheirTwoLatest(root, reconciled.baseline);
+for (const { name, older } of pastTheirLatest) lines.push(`  the series ${name} holds ${older.length} past its two latest at the baseline, which the closeout drops`);
 
 const requirements = execFileSync(process.execPath, [join(root, 'scripts', 'requirements.mjs')], { cwd: root, encoding: 'utf8' }).split('\n');
 const targets = requirements.filter(line => line.startsWith('target · ')).map(line => `  ${line}`);
@@ -71,7 +75,7 @@ const claimed = readdirSync(conformance, { recursive: true }).map(String).filter
   .filter(line => line.trim() !== '' && !line.trim().startsWith('//'))
   .filter(line => decisionOf(line).some(name => transit.has(name))).length;
 const citing = citingCodeOf(root)
-  .map(file => new Set(citationsIn(readText(join(root, file))).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
+  .map(file => new Set(citationsOfCode(file, readText(join(root, file))).filter(({ name }) => transit.has(name)).map(({ line }) => line)).size)
   .reduce((sum, count) => sum + count, 0);
 lines.push(transit.size === 0 ? '  no record in transit, the tension relaxed'
   : `  reach ${transit.size} records in transit over ${new Set([...transit.values()].flat()).size} sections, ${claimed} cases they claim and ${citing} lines of code that cite them: the closeout parts them [QSVOX#voices]`);

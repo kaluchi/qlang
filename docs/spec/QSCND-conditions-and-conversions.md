@@ -17,7 +17,10 @@ of its kind as `tag` answers it, by the one order, so `a | gt b` answers
 exactly where `eq` does. The order ranks every value, the kinds among
 themselves, while a comparison relates two values of one kind: a pair of
 two kinds is refused as the pair, `::call/KindsMismatchedError`, its
-facts the two kinds, `:leftTag` and `:rightTag`, a value under a tag
+facts the two kinds where they part, `:leftTag` and `:rightTag`, two
+values under one tag whose payloads are of two kinds among them,
+`::Box#5 | gt ::Box"a"`, while under `::desc` payloads of any kinds
+compare as they rank [QSORD#desc], a value under a tag
 compared with a value of its payload's kind by `payload`, and text that
 holds a number with a number by `toNumber`. A comparison takes one value,
 two fields of one record compared through a name. Null is tested with
@@ -46,12 +49,14 @@ true
 ## boolean
 
 A condition answers a boolean, `true` or `false`, read beneath the tags
-over it, the condition of an invariant and of a law among them
-[QSDSP#walk], or is refused under the verb that runs it or the input
-that takes it. `not` takes a boolean
+over it [QSDSP#walk], or is refused under the verb that runs it or the
+input that takes it, while an invariant breaks and a law fails where its
+condition answers anything but `true` [QSSLF#laws]. `not` takes a boolean
 subject, and `and` and `or` join a boolean subject with the
 `:condition` the call gives, a value computed at the call and checked
-whatever the subject decides, a subject of another kind refused under
+whatever the subject decides, beneath the tags the two share as `add`
+joins its numbers, the tag of either over the answer and two under
+different tags refused as the pair [QSDSP#answer], a subject of another kind refused under
 the verb, `::boolean/and/SubjectNotBooleanError`, and a condition under
 the input. `allOf` and `anyOf` take conditions, one at least,
 `::any/allOf/ConditionsEmptyError` refusing none: each a boolean
@@ -59,7 +64,7 @@ computed at the call, or a quote or a path that answers one in its turn,
 run once every condition before it held for `allOf` and once none did
 for `anyOf`, the first that decides answering with the quotes after it
 unrun. A quote that answers another kind is refused at its index,
-`::any/allOf/ConditionKindNotTakenError`, a quote that answers a failure
+`::any/allOf/ConditionsAnswerKindNotTakenError`, a quote that answers a failure
 hands it on as the answer, a condition of another kind than a boolean, a
 path or a quote is refused as `ElementKindNotTakenError` at the first
 such index, and an error computed at the call at its own, the conditions
@@ -76,7 +81,7 @@ computed in their order before their kinds are read [QSQUO#modifier].
 false
 
 > 5 | allOf ~(1) !| get [~(tag) ~(conditions | index)]
-[::any/allOf/ConditionKindNotTakenError 0]
+[::any/allOf/ConditionsAnswerKindNotTakenError 0]
 
 > 5 | allOf ~(true | tag ::Ok)
 true
@@ -93,7 +98,7 @@ condition or a branch the call leaves out is refused,
 paths, pairs of a predicate and a branch run in order, an odd last
 clause the default, null where none matches and no default stands: a
 predicate that answers no boolean is refused as
-`::any/cond/ConditionKindNotTakenError` at its index from zero, one that
+`::any/cond/ClausesAnswerKindNotTakenError` at its index from zero, one that
 answers a failure hands it on, a clause of another kind is refused as
 `::any/cond/ClausesElementKindNotTakenError`, and a call with no pair as
 `::any/cond/ClausesNoBranchesError`.
@@ -116,7 +121,7 @@ all do, each stopping at the first that decides: `any` false and `every`
 true over an empty container. They reside on vectors and on maps, a set
 reaching those of vectors [QSDSP#residence], and over a map they read
 its values. A predicate that answers no boolean is refused as
-`::vec/every/ConditionKindNotTakenError` at its index, at its key over a
+`::vec/every/PredicateAnswerKindNotTakenError` at its index, at its key over a
 map, the path of the step's frame naming it [QSERR#trace], and a
 predicate that answers a failure hands it on as the answer.
 
@@ -128,10 +133,10 @@ true
 true
 
 > get [~(#[true 1] | every ~(it) !| tag) ~(42 | any ~(gt 0) !| addresses)]
-[::vec/every/ConditionKindNotTakenError #[::map/any ::vec/any]]
+[::vec/every/PredicateAnswerKindNotTakenError #[::map/any ::vec/any]]
 
 > {:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]
-[::map/every/ConditionKindNotTakenError /b]
+[::map/every/PredicateAnswerKindNotTakenError /b]
 ```
 
 ## coalesce
@@ -145,14 +150,16 @@ before the alternative where the call gives one and it is a value, so
 values alone, which read no subject, are refused,
 `::any/coalesce/AlternativesValuesAloneError`, the subject first written
 by a quote, `coalesce ~(it) e 8080`, and a field by a path,
-`coalesce /t 30`. An alternative passes to the next where it answers
+`coalesce /t 30`. A quote or a path beneath tags is code there
+[QSDSP#walk]. An alternative passes to the next where it answers
 null, beneath the tags over it, or the refusal of a read `query` answers
 null for, a key a map
 lacks, an index past an end or null on the way [QSPTH#query], met on its
 own way and not in the code a verb ran on a part of it, whose frame
 names the path of the part [QSERR#trace]; code that answers any other
-failure answers the call with it, and so does a value computed at the
-call that is a failure [QSQUO#modifier]. Null answers where every
+failure answers the call with it, and a value computed at the call that
+is a failure is refused under the alternatives, which the function runs as
+code, `::any/coalesce/AlternativesKindNotTakenError` [QSQUO#modifier]. Null answers where every
 alternative passes, and code after the alternative that answers stays
 unrun.
 
@@ -177,7 +184,9 @@ unrun.
 
 A value is read as another kind by a verb of its own kind named `to` and
 the kind it answers, a kind answering its own verb with itself under the
-tags it came with, `::set/toSet` and `::map/toMap` among them. `toString`
+tags it came with, `::set/toSet` and `::map/toMap` among them, but for a
+regex given flags, which answers its source with those flags
+[QSTXT#regex]. `toString`
 writes the text a value stands for: a number as JSON writes it, a
 keyword and a tag name by their names, a boolean and null by their
 literals, and a quote by its code [QSQUO#parse]; a regex has no string,
@@ -212,8 +221,9 @@ into text and a keyword one way. A container's texts are `print` and
 are read by `entries`, `keys` and `vals`.
 `tag ::K` converts nothing, a value of `::K` already standing as it is
 [QSLIT#tag]. `desc`, a verb of any value, turns its subject, its recipe
-taking `::desc` off a value under it and laying it over any other, so
-`::Box#5 | desc` answers `::desc::Box#5` [QSORD#desc].
+taking `::desc` off a value of it beneath the tags over it and laying it
+over any other, so `::Box#5 | desc` answers `::desc::Box#5` and
+`::Box::desc#5 | desc` answers `::Box#5` [QSORD#desc].
 
 ```qlang
 > "42" | toNumber
@@ -243,6 +253,6 @@ taking `::desc` off a value under it and laying it over any other, so
 > [1] | toKeyword !| tag
 ::call/KindAnswersNoVerbError
 
-> get [~(::Box#5 | desc) ~(::any/desc | binding | value | get /1)]
-[::desc::Box#5 ~(if (tag | eq ::desc) ~(payload) ~(tag ::desc))]
+> get [~(::Box#5 | desc) ~(::Box::desc#5 | desc) ~(::any/desc | binding | value | get /1)]
+[::desc::Box#5 ::Box#5 ~(if (is ::desc) ~(if (tag | eq ::desc) ~(payload) ~(within ~(desc))) ~(tag ::desc))]
 ```

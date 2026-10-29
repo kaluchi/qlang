@@ -52,3 +52,4 @@
 {"name":"two-texts-that-write-one-error-literal-are-one-step","query":"[\"::E::error!{:k 1}\" \"::error::error!{}\" \"::A::B::error!{}\"] | map ~parse | eq [~(::E!{:k 1}) ~(!{}) ~(::A::B!{})]","expect":"true"}
 {"name":"a-payload-of-code-refused-under-construct-holds-the-map-of-its-record","query":"get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct !| get [~(tag) ~(found | tag) ~(eq (print | parse | answer))]","expect":"[::construct/LiteralComputesError ::map true]"}
 {"name":"the-kinds-of-the-steps-accept-the-kind-of-their-payload-by-their-chain","query":"[::call ::bind ::construct ::fail ::group] | map ~(manifest | filter ~(toString | endsWith \"/payload\") | first | binding | value)","expect":"[::map ::map ::map ::quote ::quote]"}
+{"name":"a-nest-past-the-stack-of-the-parser-is-refused-as-a-parse-error","query":"20000 | range | map ~(\"[\") | join \"\" | parse !| tag","expect":"::quote/ParseError"}

@@ -1,4 +1,4 @@
-// [QSDSP#residence], [QSQUO#modifier]
+// [QSDSP#residence]
 
 import { kindsExpected, printValue, tagOf } from '@kaluchi/qlang-core';
 import { declareRefusal, refusingAPart } from '@kaluchi/qlang-core/errors';

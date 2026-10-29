@@ -18,3 +18,4 @@
 {"name":"a-value-named-as-a-verb-of-any-meets-the-verb-on-every-subject","query":"apply ~(:type 5; 1 | type !| addresses)","expect":"#[::any/type]"}
 {"name":"a-name-of-with-stands-over-the-verb-of-its-name-which-its-address-calls","query":"::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])","expect":"[2 3]"}
 {"name":"a-part-a-kind-wires-read-after-a-step-reads-the-subject","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card[\"a\" 312] | took","expect":"312"}
+{"name":"a-name-that-reaches-nothing-in-the-body-of-a-declaration-is-refused-with-the-names-near-it","query":"~(:x cout; 1) | answer !| get [~(tag) ~(nearest | contains :count)]","expect":"[::call/UnknownNameError true]"}

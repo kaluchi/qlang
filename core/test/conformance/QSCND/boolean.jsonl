@@ -19,6 +19,7 @@
 {"name":"if-takes-either-condition-by-anyOf","query":"{:vip false :score 99} | if (anyOf (get /vip) (get /score | gt 95)) ~(\"premium\") ~(\"standard\")","expect":"\"premium\""}
 {"name":"filter-by-allOf-of-two-negations-keeps-the-strings-equal-to-neither","query":"\"a,b,c,d\" | split \",\" | filter ~(allOf (eq \"a\" | not) (eq \"c\" | not))","expect":"[\"b\" \"d\"]"}
 {"name":"allOf-takes-one-condition-at-least","query":"5 | allOf !| tag","expect":"::any/allOf/ConditionsEmptyError"}
-{"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| tag","expect":"::any/allOf/ConditionKindNotTakenError"}
+{"decision":"D481","name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf ~(1) !| tag","expect":"::any/allOf/ConditionsAnswerKindNotTakenError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
 {"name":"a-failure-computed-at-the-call-is-refused-before-the-kinds-of-the-conditions","query":"get [~(5 | allOf 3 true !| conditions | index) ~(5 | allOf 3 (1 | div 0) !| conditions | index)]","expect":"[0 1]"}
+{"decision":"D481","name":"and-and-or-work-beneath-the-tags-the-two-share","query":"get [~(::Ok#true | and false) ~(false | and ::Ok#true) ~(::Ok#true | and ::No#true !| tag) ~(true | or ::Ok#false)]","expect":"[::Ok#false ::Ok#false ::call/KindsMismatchedError ::Ok#true]"}

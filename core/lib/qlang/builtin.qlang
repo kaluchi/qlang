@@ -135,6 +135,9 @@
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.
         ~~|
+        ~(wires :origin |~~ The source the primitive was handed beside. ~~| ::keyword
+          | wires :name |~~ The name handed a primitive. ~~| ::keyword
+          | wires :sharedWith |~~ The other name whose `::builtin{}` the name holds. ~~| ::keyword)
     | throws :SourceLoadError
         |~~ A source of the language was found where its package maps it,
             and could not be read; `:origin` names the source,
@@ -143,6 +146,9 @@
             the language with it hands the runtime a locator of them, which
             reads each where it keeps them.
         ~~|
+        ~(wires :origin |~~ The source that could not be read. ~~| ::keyword
+          | wires :sourceLocation |~~ Where the platform looked for it. ~~| ::string
+          | wires :cause |~~ The host's account of the failure. ~~|)
     | proves :isAValueOfItsOwn
         |~~ An empty descriptor is a value like any other, which prints and
             reads back as itself.

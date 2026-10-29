@@ -14,8 +14,9 @@ folder of it with a README that says what it holds.
 
 The screen of the work, `npm run desk`, and the sensors under
 `scripts/sensors/`, which read the transcripts, the history and the files,
-compute what a session starts from. A sensor that reads the transcripts
-says which directories it read and how many transcripts each gave, so a
+compute what a session starts from. A sensor that reads the transcripts of
+the project says which directories it read and how many transcripts each
+gave, one that reads the transcript of a session it is named naming none, so a
 search of the maintainer's words that read a part of them says which part.
 His words are what he typed, the answer and the note he wrote to a question
 a session put to him among them; an option he chose of those a session

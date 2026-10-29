@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { createNotebook, evalQuery, printValue } from '@kaluchi/qlang-core';
 import { declareRefusal } from '@kaluchi/qlang-core/errors';
 
-const CellAnswerNotHeldError = declareRefusal('cell/answer/NotHeldError');
+const CellAnswerSubjectNotHeldError = declareRefusal('cell/answer/SubjectNotHeldError');
 
 const STORE = join(tmpdir(), 'qlang');
 const SOURCE = 'source.qlang';
@@ -85,7 +85,7 @@ export function cellPrimitives(sourcesOfTheRoot) {
   return {
     'cell/answer': async cell => {
       const folder = cellFolder(cell.payload);
-      if (!existsSync(join(folder, ANSWER))) throw new CellAnswerNotHeldError({});
+      if (!existsSync(join(folder, ANSWER))) throw new CellAnswerSubjectNotHeldError({});
       const names = readFileSync(join(folder, NAMES), 'utf8');
       const answer = readFileSync(join(folder, ANSWER), 'utf8');
       const { scope } = await createNotebook({ sources: sourcesOfTheRoot() });

@@ -20,10 +20,12 @@ reaches `::vec` or `::map` after `::tagged`. A word reads a value it takes
 from its subject or from code as a kind the same way, beneath every tag
 over it, `::desc` among them: an element, a key, a condition, a pair and a
 part a path meets on its way, two values that file under one keyword
-meeting as they are. The verbs of `::any` meet the subject whole: `eq`
+meeting as they are, and a quote or a path beneath tags, which an input
+that runs code runs. The verbs of `::any` meet the subject whole: `eq`
 and the comparisons relate two values as they are, so a value under a tag
-and a value of its payload's kind are a pair of two kinds to a comparison
-[QSCND#compare], while a verb of the payload's kind answers under the tag,
+and a value of its payload's kind are a pair of two kinds to a comparison,
+and so are two values under one tag whose payloads are of two kinds,
+`::desc` aside [QSCND#compare], while a verb of the payload's kind answers under the tag,
 and two values a step combines meet beneath the tags they share, a bare
 one sharing any, two under different tags combining in no step
 [QSDSP#answer]. A name means one act
@@ -31,11 +33,13 @@ wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
 kind. `is` answers whether the walk of a value's tags reaches a value of
-one of the kinds it is given, one kind at least, a call of none refused
-as `::any/is/KindsEmptyError`, `::any` among them; a tag name is a value
-of `::tag`, so `::vec | is ::vec` is false and `::vec | is ::tag` true,
-and a tag the walk of a value reaches, laid over it, changes nothing
-[QSLIT#tag]. A kind that wires the parts of its payload closes its tag
+one of the kinds it is given, or one of them closes the value, the slot of
+a verdict a value of `::fn/slot` [QSERR#site], one kind at least, a call
+of none refused as `::any/is/KindsEmptyError`, `::any` among them; a tag
+name is a value of `::tag`, so `::vec | is ::vec` is false and
+`::vec | is ::tag` true, and a tag the walk of a value reaches beneath its
+outermost, laid over it, changes nothing, the outermost laid again through
+its kind [QSLIT#tag]. A kind that wires the parts of its payload closes its tag
 [QSBLD#value]: the walk stops at it, the names its kind wires, its words
 and those of `::tagged` and `::any` serving its value and no word of a
 kind beneath it, so a closed value of a vector answers no `count` but the
@@ -184,12 +188,15 @@ A verb written in steps runs on its subject and its inputs as the call
 gives them, their tags with them, and what it answers keeps the tags its
 steps keep; a primitive runs on the values the walk served. A primitive
 that combines its subject with the value its input takes, `add`, `sub`,
-`mul`, `div` and `mod`, `append` and `prepend`, `concat`, the `union`
-of a set or a map and the `minus` and the `inter` of a set, works
+`mul`, `div` and `mod`, `and` and `or`, the `append` and the `prepend` of
+a string, `concat`, the `union` of a set or a map and the `minus` and the
+`inter` of a set, works
 beneath the tags the two share, a bare one sharing any and a value of
 another kind its input takes sharing none, and two under different tags
 are refused as the pair, `::call/KindsMismatchedError`, its facts their
-kinds where their tags part; an input of any other step steers it and
+kinds where their tags part; `append` and `prepend` of a vector put the
+element whole under the tags of the subject [QSCOL#sequence]; an input
+of any other step steers it and
 shares no tag, the digits of `round` and the keys a map's `minus` takes
 off among them. `returns` names the kinds a verb answers, each answer
 brought to them by the one rule of [QSBLD#answer]: an answer of the
@@ -202,8 +209,7 @@ and an answer of another kind leaves the tags the walk passed behind and
 stands as it is, so `distinct`, whose answer names `::set`,
 answers a set under no tag over a vector under one,
 `::Box[2 1 2] | distinct` answering `#[1 2]`, and the distinct elements
-beneath the tag of a vector, a quote or a doc stay under it by
-`within ~(distinct)`. An answer the rule brings to none of the kinds is
+beneath the tag of a vector stay under it by `within ~(distinct)`. An answer the rule brings to none of the kinds is
 refused as `…/AnswerKindNotTakenError`. A verb whose answer names
 `::any`, or that names none, hands on what it computed, `map` among
 them, and no chain of the catalog names a kind its verb does not answer
@@ -224,6 +230,9 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 
 > get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
+
+> get [~(::Ok#true | and false) ~(::Ok#true | and ::No#true !| tag) ~(::A[1] | append ::B[2])]
+[::Ok#false ::call/KindsMismatchedError ::A[1 ::B[2]]]
 
 > get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(tag) ~(leftTag) ~(rightTag)]) ~(1.234 | round ::D#2)]
 [::Cents#101 [::call/KindsMismatchedError ::Cents ::Dollars] 1.23]
@@ -250,8 +259,8 @@ the bare name, `::call/KindAnswersNoVerbError`, and is refused by the
 command called by its address as by every verb.
 
 ```qlang
-> ::number | gt ::A
-true
+> get [~(::number | toString) ~(::number | number/toString !| tag)]
+["number" ::number/toString/SubjectNotNumberError]
 
 > ::vec | count !| tag
 ::vec/count/SubjectNotVecError

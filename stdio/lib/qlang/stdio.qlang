@@ -116,9 +116,6 @@
         |~~ The text `stdio/err` writes is a string: a value of another
             kind is made text first, `stdio/err json` or `stdio/err print`.
         ~~|
-    | proves :TextKindNotTakenError/refusesANumber
-        |~~ A text that is no string is refused. ~~|
-        ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
     | returns |~~ The subject as it came. ~~| ::any
     | throws :SubjectKindNotTakenError
         |~~ `stdio/err` alone writes its subject, a string, as a line on
@@ -130,6 +127,9 @@
             `"hi" | stdio/err`; texts are joined first,
             `stdio/err (["a" "b"] | join "")`.
         ~~|
+    | proves :TextKindNotTakenError/refusesANumber
+        |~~ A text that is no string is refused. ~~|
+        ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `stdio/err` writes alone. ~~|
         ~(42 | stdio/err !| get [~(tag) ~(subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
@@ -196,7 +196,7 @@
         |~~ `answer` reads a cell, `::cell"a3f9c2d1e04b" | answer`, the one
             the refusal of an answer past the budget names.
         ~~|
-    | throws :NotHeldError
+    | throws :SubjectNotHeldError
         |~~ The host holds no such cell: it aged past a day, the
             temporary folder was emptied, the cell was kept over other
             sources or by another host, or none drew it. The answer is read again by the query
@@ -208,9 +208,9 @@
         |~~ `answer` reads the whole a cell keeps and takes no value: a part
             of it is read after it, `answer | take 3`.
         ~~|
-    | proves :NotHeldError/refusesACellNoneKept
+    | proves :SubjectNotHeldError/refusesACellNoneKept
         |~~ A cell no query kept is refused. ~~|
-        ~(::cell"000000000000" | answer !| tag | eq ::cell/answer/NotHeldError)
+        ~(::cell"000000000000" | answer !| tag | eq ::cell/answer/SubjectNotHeldError)
     | proves :SubjectNotCellError/refusesANumber
         |~~ A number names no cell. ~~|
         ~(5 | cell/answer !| tag | eq ::cell/answer/SubjectNotCellError)

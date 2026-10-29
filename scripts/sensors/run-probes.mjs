@@ -2,8 +2,8 @@
 // beginning with "> " inside a fenced block, followed by the answer the
 // document records; under a fence marked `target` the answer is one the
 // tree must not give yet, and a target that states none is met when its
-// query answers no error. Answers compare as the printer writes them,
-// because a probe records what was printed: a literal answer is read
+// query answers no error. Answers compare as the printer writes them, a
+// probe recording what was printed: a literal answer is read
 // and printed again, an answer with … matches piece by piece in order,
 // and a string, which prints raw, compares as the command line prints
 // it. A literal answer that prints alike and is another value is lossy:
@@ -180,9 +180,10 @@ async function printedByCore(query) {
   try { return squash(printValue(await answerOf(query))); } catch (thrown) { return `threw ${thrown.message}`; }
 }
 
-// The print of an error begins with its literal, `::Tag!{` or `!{`, a
-// failure's under the line that says it was raised [QSERR#rest].
-const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(::[\w/.-]+)?!\{/.test(text);
+// The print of an error begins with its literal, `::Tag!{` or `!{`, or
+// with the excerpt of its facts, `::Tag::excerpt{`, a failure's under the
+// line that says it was raised [QSERR#rest], [QSERR#alert].
+const readsAsError = text => /^(\|~\| raised, and no !\| caught it\s+)?(?:(::[\w/.-]+)?!\{|(::[\w/.-]+)?::excerpt\{)/.test(text);
 
 // An answer that is no literal, a raw string the command line printed,
 // compares as the text the command line prints. An answer with … holds

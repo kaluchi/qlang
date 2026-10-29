@@ -26,7 +26,7 @@ literal writes after the tag of its kind, a number, a string, a vector
 and a map their own and a set, a quote and a doc the vector of their
 elements, of their steps and of their segments, so every value splits
 into its tag and its payload and joins back by `tag`,
-`:t (tag) | payload | tag t`; behaviour lives in the catalog and is found
+`with {:t ~tag} ~(payload | tag t)`; behaviour lives in the catalog and is found
 through the tag.
 
 ```qlang
@@ -177,7 +177,7 @@ is `#[1 3]` and a vector under a tag of another kind is no payload of a
 set, which `payload` opens. A tag no declaration names and the tag of a
 verb lay themselves over a payload as it is [QSNAM#address], the tag of a
 refusal, an invariant's among them, lays the kind of the refusal over an
-error at rest alone [QSERR#rest], a tag whose `accepts` names the set of no kinds takes no
+error at rest or the excerpt of its facts alone [QSERR#rest], a tag whose `accepts` names the set of no kinds takes no
 payload, `5 | tag ::tagged` refused as
 `::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name
@@ -217,11 +217,14 @@ tag it writes is laid through the label the scope declares under that
 name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
 is refused by the parser, which names the literal as the template of
-`get`, its tags and its brackets kept, `[::Box[x] 1]` naming
-`get [::Box[~(x)] 1]` [QSPTH#template], a template past a line, eighty
-characters, written by its parts that compute alone, each run of the rest
-cut to `…`, and inside an error literal names the facts built by `get` and
-made an error by `raise`; code in
+`get`, its brackets and the tags of its parts kept, `[::Box[x] 1]` naming
+`get [::Box[~(x)] 1]` [QSPTH#template], a literal under a tag its payload
+built so and the tag laid after it, through the kind of the tag,
+`::Box{:w (x)}` naming `get {:w ~(x)} | tag ::Box`, a template past a line,
+eighty characters, written by its parts that compute alone, each run of the
+rest cut to `…`, and inside an error literal names the facts built by `get`
+and made an error by `raise`, under its bang where a tag stands over it,
+`get !{:subject/found ~(…)} | tag ::number/add/SubjectNotNumberError | raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it

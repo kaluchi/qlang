@@ -89,6 +89,9 @@
             name.
         ~~|
         ~("x" | add 1 !| trace | get [~(get /0/0 !| tag) ~(get /0/subject !| repair)] | eq [::path/TagClosedError ~(get /0 | subject)])
+    | proves :UnfinishedKindNotTakenError/refusesANumber
+        |~~ The unfinished steps of a frame are a quote. ~~|
+        ~(::frame[1 2] !| tag | eq ::frame/UnfinishedKindNotTakenError)
     | proves :subject/holdsTheWholeSubjectOfAVerb
         |~~ The frame of `map` holds the vector it ran its code over. ~~|
         ~([1 "x" 3] | map ~(mul 2) !| trace | last | subject | eq [1 "x" 3])

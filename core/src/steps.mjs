@@ -113,8 +113,12 @@ const runsCut = pieces => pieces.filter((piece, at) => piece !== '…' || pieces
 function literalMessage(literal, written) {
   const template = templateOf(literal, written);
   const tagged = isConstructStep(literal) && errorFieldsOf(literal.get('payload')) !== null;
-  if (errorFieldsOf(literal) === null && !tagged) return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${template}\``;
-  return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${template.slice(template.indexOf('!') + 1)}${tagged ? ` | tag ${literal.get('tag').literal}` : ''} | raise\``;
+  if (errorFieldsOf(literal) === null && !tagged) {
+    const shape = isConstructStep(literal) ? `${templateOf(literal.get('payload'), written)} | tag ${literal.get('tag').literal}` : template;
+    return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${shape}\``;
+  }
+  const facts = template.slice(template.indexOf('!') + (tagged ? 0 : 1));
+  return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${facts}${tagged ? ` | tag ${literal.get('tag').literal}` : ''} | raise\``;
 }
 
 function heldAsALiteral(literal, Refusal, facts, written) {

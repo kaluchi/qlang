@@ -53,7 +53,7 @@ export async function conformanceLiterals() {
 }
 
 export function describeCatalogShare(share) {
-  describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog [QSLIT#atoms]`, () => {
+  describe(`the ring of atoms over share ${share} of ${SHARES} of the catalog`, () => {
     let notebook;
     beforeAll(async () => { notebook = await ringNotebook(); }, RING_TIMEOUT);
 

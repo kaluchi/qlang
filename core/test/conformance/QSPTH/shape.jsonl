@@ -57,3 +57,4 @@
 {"name":"shape-of-empty-vectors-and-of-empty-sets-stays-empty","query":"get [~([[] []] | shape) ~([#[] #[]] | shape)]","expect":"[::shape[[]] ::shape[#[]]]"}
 {"name":"shape-merges-tuples-whose-indices-merge-alike-into-a-list","query":"[{:p [[1 \"a\"] [2 \"b\"]]} {:p [[\"c\" 3] [\"d\" 4]]}] | shape","expect":"::shape[{:p [[#[::number ::string]]]}]"}
 {"name":"shape-keeps-the-mark-of-a-part-merged-below-when-it-merges-again","query":"get [~([[{:a 1} {}] [{:a 2}]] | shape) ~([[{:a 2}] [{:a 1} {}]] | shape)]","expect":"[::shape[[{:a ::absent::number}]] ::shape[[{:a ::absent::number}]]]"}
+{"decision":"D481","name":"a-key-writes-a-number-where-tonumber-reads-it","query":"get [~({:\"01\" 1 :\"02\" 2} | shape) ~({:\"1e3\" 1 :\"2e3\" 2} | shape)]","expect":"[::shape{:\"01\" ::number :\"02\" ::number} ::shape::each{:\"1e3\" ::number}]"}

@@ -31,8 +31,9 @@ its score, each final query run by that tree against the author's answer. A
 verdict sets the runs of a measurement beside the measurement before it, as
 they fixed them.
 
-Each task keeps a reference, the shortest query the tree answers it with,
-`scripts/benchmark/tasks.mjs`. The references run in the gate as
+Each task of `scripts/benchmark/tasks.mjs` keeps a reference, the shortest
+query the tree answers it with, and a task of a set the answer its script
+computes. The references run in the gate as
 `check:benchmark` and no child reads them: a reference proves its task
 solvable and names the price the language asks, so a reference that shrinks
 is a repair. The series of the benchmark are its sets with their runs and

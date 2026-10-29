@@ -44,13 +44,14 @@ segments are, and the one order ranks paths by their segments
 holding the path it followed as `:path`: a key a map lacks,
 `::path/KeyNotInMapError` with the key as `:key` and the keys near it as
 `:nearest`; an index past either end, `::path/IndexOutOfBoundsError`
-with the index as `:index`; a segment that is no whole number on a value
+with the index as `:index` and the length of the value as `:length`; a segment that is no whole number on a value
 read by index, `::path/IndexNotIntegerError`, and a value on the path
 that has no parts, `::path/SubjectHasNoPartsError`, each naming the
 segment it could not read as `:segment`. A path reads beneath the tags
 over each value it meets, each refusal holding the value it met beneath
 them as `:found`, the subject of the step that reads it among them,
-`get`, `query`, `has`, a write and a path run as code [QSERR#site], the
+`get`, `query`, a write and a path run as code [QSERR#site], while `has`
+answers `false` where `get` refuses [QSPTH#has], the
 selector of an input or a field holding the args or the payload it met; and a vector, a set, a doc, a quote, a function
 and a kind read by index. No path reads beneath a closed tag
 [QSBLD#value]: a value whose kind wires its parts is read by their names,
@@ -115,7 +116,7 @@ the key of its text; a key of another kind is refused as
 `::map/has/KeyKindNotTakenError`. On a vector and a set `has` asks
 whether an element equal to the value stands, and reads a path, answering
 whether `get` reads a part there, so a path held as an element is
-asked for by `contains` [QSCOL#sequence].
+asked for by `contains` [QSTXT#search].
 
 ```qlang
 > {:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]
@@ -274,7 +275,8 @@ values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
 read it against the subject. An input whose kinds leave a path out
 refuses one, and where the step writes the path the refusal names as
 `:repair` the step the call was likely meant as, `take /n` repaired as
-`take (get /n)`; an input that takes any value, the
+`take (get /n)`, a call by its address and an input of each element among
+them, `5 | number/mul /qty` repaired as `number/mul (get /qty)`; an input that takes any value, the
 value of `put`, `append`, `eq` and the default of `query`, takes the path
 as the value it is.
 
@@ -308,7 +310,7 @@ the segment of its text [QSPTH#key], an empty one refused as
 `::vec/toPath/ElementKindNotTakenError` at its index, the path of the step's
 frame naming it [QSERR#trace]; from a string in the form of JSON
 Pointer, its escapes read and a leading `#` of a fragment among it, a
-string of another form refused as `::string/toPath/NotPointerError`; and
+string of another form refused as `::string/toPath/TextNotPathError`; and
 a path answers it with itself.
 
 ```qlang
@@ -337,7 +339,7 @@ template of `get` writes the shape of an answer [QSPTH#template].
 `::shape`, a label whose page tells how a shape reads, so `doc` on the
 answer reads that page: each map keeping its keys, each vector and each
 set one element whose shape holds of all its elements, a set as `#[E]`,
-an empty vector `[]`, and each part that holds no parts its kind, as
+an empty vector `[]` and an empty set `#[]`, and each part that holds no parts its kind, as
 `tag` answers it, a part under a tag standing whole as its tag, a quote
 and a doc among them. The tags a shape lays over a part are its marks:
 `::absent` over a part some of the data lacks, `::nullable` over a part
@@ -361,8 +363,9 @@ tuples, a shape for each index, where vectors of one length and one shape
 are lists, and so are tuples whose indices merge alike. A map whose
 values are not all null folds into `::each` over its least key and the
 shape of its values, the one key standing for all of them and
-telling how the keys of the data read: where every key is data, a number,
-a text that begins with a date, a uuid or an email, whatever its values
+telling how the keys of the data read: where every key is data, a number
+as `toNumber` reads it, `"1e3"` among them and `"01"` none, a text that
+begins with a date, a uuid or an email, whatever its values
 hold, and where it holds more than eight names whose values, maps,
 vectors, sets, values under a tag or null, share one shape, a null among
 them marking it `::nullable`; a map of names over atoms keeps them however
@@ -380,8 +383,8 @@ of it and the share of its kinds are read from the data, by `count`,
 
 `paths` answers the leaves of a value, the set of the pairs of the path
 that reads each and its kind, the value read beneath the tags over it, a
-part under a tag a leaf and a set read as its vector, and `#[]` for an
-atom.
+part under a tag a leaf, an empty vector, set or map a leaf of its kind
+and a set read as its vector, and `#[]` for an atom.
 
 ```qlang
 > [1] | shape

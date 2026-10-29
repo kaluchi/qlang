@@ -12,3 +12,4 @@
 {"name":"a-pipe-after-the-catch-at-the-head-is-refused-as-the-habit","query":"\"!| | 0\" | parse !| message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
 {"name":"a-semicolon-between-two-queries-is-refused-naming-a-template","query":"\"::vec | doc; ::map | doc\" | parse !| message","expect":"\"`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [~(…) ~(…)]`\""}
 {"name":"a-semicolon-after-a-step-is-refused-where-it-stands","query":"\"[1 2] | count ; count\" | parse !| location","expect":"::span[14 1 15 15 1 16]"}
+{"name":"a-combinator-the-source-ends-with-before-a-comment-names-the-step-it-misses","query":"[\"[1] | |~ note ~|\" \"[1] |~ note ~| |\"] | map ~(parse !| message)","expect":"[\"`|` joins two steps, and the step after it is missing\" \"`|` joins two steps, and the step after it is missing\"]"}

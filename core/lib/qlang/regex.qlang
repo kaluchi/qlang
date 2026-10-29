@@ -19,8 +19,8 @@
       characters, so `#"\p{L}+"` is a run of letters of any script.
       The dialect is the one of JavaScript in its edition of 2018, which
       the engine reads alike on every platform: a group of flags,
-      `(?i:…)`, and a group name written twice, which only later engines
-      read, do not parse, nor does a regex the engine cannot read, and
+      `(?i:…)`, and a group name written twice, past that edition, do not
+      parse, nor does a regex the engine cannot read, and
       the refusal says why, naming the repair of a habit of another
       dialect, flags written inside or a backslash before a character
       that needs none, `\-`, `\:`.
@@ -107,15 +107,15 @@
         ~(query /0 null) #[::null ::string]
     | throws :FlagsKindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
+    | throws :FlagsNotFlagsError
+        |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
+    | returns |~~ The regex itself, or its source with the flags. ~~| ::regex
     | proves :FlagsKindNotTakenError/refusesANumber
         |~~ Flags that are no string are refused. ~~|
         ~(#"a" | toRegex 5 !| tag | eq ::regex/toRegex/FlagsKindNotTakenError)
-    | throws :FlagsNotFlagsError
-        |~~ The flags are `i`, `m` and `s`, each once, `toRegex "im"`. ~~|
     | proves :FlagsNotFlagsError/refusesALetterOfNoFlag
         |~~ A letter that names no flag is refused. ~~|
         ~(#"a" | toRegex "z" !| tag | eq ::regex/toRegex/FlagsNotFlagsError)
-    | returns |~~ The regex itself, or its source with the flags. ~~| ::regex
     | proves :takesFlagsAsAStringDoes
         |~~ A regex given flags answers its source with them. ~~|
         ~(#"a" | toRegex "i" | eq ("a" | toRegex "i"))

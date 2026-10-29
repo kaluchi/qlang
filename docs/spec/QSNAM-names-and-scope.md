@@ -8,7 +8,7 @@ file under `core/test/conformance/QSNAM/`, `scope.jsonl` for
 ## declare
 
 One form declares every name: `:name body;`, which stands at the head of
-its text, before the query [QSSYN#step], and adds a word with its page to
+its text, before the query [QSSYN#step], and adds a name with its page to
 the scope of the text. The body, the step after the name and its page,
 `:body` of the `::bind` a quote holds of the declaration [QSQUO#step],
 runs once, where the declaration stands, with no subject: a verb called
@@ -20,12 +20,12 @@ which declares nothing and runs no query, the failure passing every `!|`
 of the text to whoever reads it, the host, `parse | answer`, `answer` or
 `apply` [QSERR#flow].
 
-A text declares the words its query reads: a verb or a recipe under the
+A text declares the names its query reads: a verb or a recipe under the
 label of the values it serves, `:number/double ~(mul 2);`, a kind by its
 chain or by its page alone, `:Box |~~ A box. ~~|;`, a page under a noun
 among them, a law under a noun,
 `:Box/fits |~~ A box fits. ~~| ::law~(true);`, a node of data under an
-address, a word every code reads, and a value under a bare name, a
+address, which every code reads, and a value under a bare name, a
 constant the query reads where a value stands and the code its steps write
 carries, while code held as data withholds it and the body of a word does
 not see it [QSQUO#held]. A chain, a tag name and the commands joined to it
@@ -34,9 +34,10 @@ noun the recipe of a verb among them, and one that answers any other
 value is refused as `::bind/ChainAnswersNoWordError` with its `:name` and
 what it answered as `:found`. A text of declarations alone answers the set
 of the addresses it declared, `:Box |~~ A box. ~~|` answering `#[::Box]`.
-Inside a command a name holds a value: in a modifier, in a quote, which
-declares names of its own, and in the recipe of a verb, whose inputs its
-call declares [QSBLD#recipe].
+Inside a command a declaration declares as at the head of a text, a
+value, a kind and a verb under a label among it: in a modifier, in a
+quote, which declares names of its own, and in the recipe of a verb,
+whose inputs its call declares [QSBLD#recipe].
 
 The body is a step: a literal, a group for what the group computes, a
 name for the value it holds, a quote, which is held as the value it is, a
@@ -84,9 +85,11 @@ true
 
 ## letters
 
-A name a step can call begins with a letter of any script or `_` and
-goes on with letters, digits, `_` and `-`, and a tag is written in the
-same letters, while a key of a path may begin with a digit or `-` as
+A name a step can call begins with a letter of any script, past the
+first plane of Unicode as within it, or `_`, and goes on with the
+characters Unicode lets a name go on with, letters, combining marks,
+digits and connectors, `_` among them, and `-`, the parser reading each
+by its code point, and a tag is written in the same letters, while a key of a path may begin with a digit or `-` as
 well, `/1a`; names joined by `/` make a name with a path
 [QSNAM#address]. A bare name in quotes declares that name, and a
 name in quotes that a step cannot call is refused by the parser at the
@@ -102,6 +105,9 @@ name under a noun, which its address calls.
 5
 
 > apply ~(:"foo" 5; foo)
+5
+
+> apply ~(:𐐀 5; 𐐀)
 5
 
 > ":true 5 | 7" | parse !| message
@@ -127,8 +133,8 @@ quote among values, the name alone reading its quote. Code under a bare
 name runs by `apply`, and a quote or a path under it goes bare into an
 input that takes code, held as its literal [QSQUO#held], a function to
 `apply` alone [QSQUO#modifier]. Written as a later step, a name that holds
-a value would drop the subject the steps before it answered, as a literal
-written there would, so it is refused as `::call/ValueAsALaterStepError`
+a value is refused, as a literal written there is, as
+`::call/ValueAsALaterStepError`
 with its `:name`, its value as `:found` and the `:addresses` of the verbs
 of its name, and a node of data read by its address is refused there
 alike. A name that holds a value, called with modifiers, is refused as
@@ -311,8 +317,9 @@ path names before its last name, a noun declared before it, else
 name as it was declared. A noun is the name an address names before its
 last name, a label, a verb or a name of data, as the value of its
 binding says. A label is a kind declared under a name, by the chain that
-builds it from `::kind` or by its page alone, which declares a kind of
-no commands: its verbs reside on it, its nodes lie under its address,
+builds it from `::kind`, by its page alone, which declares a kind of
+no commands, or by a name that holds a kind, `:Box |~~ A box. ~~| K;`, a
+label to the runtime [QSLSP#symbols]: its verbs reside on it, its nodes lie under its address,
 `::host | kinds` answers it where its name is of one segment [QSNAM#root], and a
 value goes under its tag through the kind [QSBLD#label]. A verb is a
 function named under a label, whatever recipe it holds, or a recipe
@@ -324,16 +331,18 @@ refusals and the facts they carry, its invariants and its laws, so what
 a verb is is the set of the nodes under its address, and a helper
 several verbs share is a node under their noun. Any other value is data.
 
-Written as a step, an address reads what it declared, a verb run on the
-subject its residence serves [QSDSP#residence] and any other value
-itself, whatever the subject; a
+Written as the first step, an address reads what it declared, a verb run
+on the subject its residence serves [QSDSP#residence] and any other value
+itself, whatever the subject, and as a later step a node of data is
+refused as a value is [QSNAM#value]; a
 node that holds data is read by its address alone, its last name no bare
 name. An address no declaration
 names, written as a step, is refused as `::call/UnknownAddressError`
 with its `:address` and the tag names near it as `:nearest`. A tag no
 declaration names and the tag of a verb lay themselves over a payload as
 it is, and the tag of a refusal, an invariant's among them, lays the kind
-of the refusal over an error at rest alone [QSERR#rest].
+of the refusal over an error at rest or the excerpt of its facts alone
+[QSERR#rest].
 
 The root holds the nodes of the language and of its hosts. A reader
 extends a noun of the root with nodes of its own and declares no name

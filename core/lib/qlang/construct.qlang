@@ -100,7 +100,7 @@
     | proves :LiteralComputesError/refusesAPayloadOfCode
         |~~ The step of a call as the payload computes, and is refused. ~~|
         ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ::Box~(x)`"])
+          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ~(x) | tag ::Box`"])
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))

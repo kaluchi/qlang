@@ -3,7 +3,7 @@
 import { registerPrimitive, runsAsCode } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
-import { isRegex, isErrorValue, beneathTags } from '../types.mjs';
+import { isRegex, isKeyword, isErrorValue, beneathTags } from '../types.mjs';
 import { engineOf } from '../regex-read.mjs';
 
 const engineFor = (regex, extra = '') => engineOf(regex.source, regex.flags, extra);
@@ -53,7 +53,8 @@ async function replacedByCode(text, engine, code) {
   return replaced + text.slice(from);
 }
 
-registerPrimitive('string/replace', runsAsCode(['with'], (text, needle, replacement) => {
+registerPrimitive('string/replace', runsAsCode(['with'], (text, needle, written) => {
+  const replacement = isKeyword(written) ? written.name : written;
   const engine = isRegex(needle) ? engineFor(needle, 'g') : engineOfText(needle);
   if (typeof replacement === 'function') return replacedByCode(text, engine, replacement);
   return text.replace(engine, isRegex(needle) ? withGroupsOf(needle, replacement) : () => replacement);

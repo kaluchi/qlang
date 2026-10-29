@@ -33,7 +33,6 @@
 {"name":"a-modifier-that-answers-an-error-answers-the-call","query":":any/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(x)); 5 | m (!{:k 1} | raise) !| get /k","expect":"1"}
 {"name":"a-gathered-modifier-that-answers-an-error-answers-the-call","query":":any/all (::fn | takes :xs |~~ The xs. ~~| ~(it) | impl ~(xs)); null | all 1 (!{:k 2} | raise) !| get /k","expect":"2"}
 {"name":"an-error-among-the-modifiers-answers-before-the-args-meet-the-arity","query":":number/s (::fn | takes :k |~~ The k. ~~| /0 ::number | impl ~(mul k)); 5 | s (!{:k 1} | raise) 2 !| tag","expect":"::error"}
-{"name":"a-step-computed-where-the-alternatives-take-any-value-answers-its-error","query":"{} | coalesce (get /a) ~(1) !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"a-step-computed-where-an-input-takes-a-number-answers-its-error","query":"[1 2] | take (1 | div 0) !| tag","expect":"::number/div/DivisorZeroError"}
 {"name":"a-step-computed-where-no-input-reads-answers-its-error","query":"[1 2] | query /0 5 (1 | div 0) !| tag","expect":"::number/div/DivisorZeroError"}
 {"name":"a-refusal-in-a-branch-of-if-answers-the-call","query":"5 | if (gt 0) ~(add \"x\") ~(0) !| tag","expect":"::number/add/AddendKindNotTakenError"}

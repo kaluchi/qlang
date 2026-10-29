@@ -162,6 +162,19 @@ export function problemsOfTestFile(path, text, { sections, heldByItsTests }) {
   return problems;
 }
 
+// titlesOfTestsAndGroups(text) → [{ line, title }]: the title of each test and
+// of each group the source states, by its parser.
+export function titlesOfTestsAndGroups(text) {
+  const { tests, groups } = testsOfSource(text);
+  return [...tests, ...groups.filter(({ title }) => title !== null)];
+}
+
+// titlesCitingARule(text) → [{ line, cited }]: each title of the source that
+// cites a rule, which a helper of the tests writes for the files that call it.
+export const titlesCitingARule = text => titlesOfTestsAndGroups(text)
+  .map(({ line, title }) => ({ line, cited: CITATION.exec(title)?.[0] }))
+  .filter(({ cited }) => cited !== undefined);
+
 // testFilesOfTree(repoRoot) → [{ path, text }]: every tracked test file of
 // the workspaces.
 export function testFilesOfTree(repoRoot) {

@@ -1,8 +1,9 @@
 // [QSCND#compare], [QSCND#boolean]
 
-import { tagOf, pairRefused } from '../types.mjs';
+import { ofTwoKinds, pairRefused, tagsOver, wiringOf } from '../types.mjs';
 import { compareValues } from '../ordering.mjs';
-import { registerPrimitive } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, asCombiner } from '../primitives.mjs';
+import { kindOfAValueOf } from '../nouns.mjs';
 import { walkToKinds } from '../dispatch.mjs';
 
 registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) === 0);
@@ -10,7 +11,7 @@ registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !
 
 // [QSCND#compare]
 const comparing = holds => (subject, value) => {
-  if (tagOf(subject).name !== tagOf(value).name) throw pairRefused(subject, value);
+  if (ofTwoKinds(subject, value)) throw pairRefused(subject, value);
   return holds(compareValues(subject, value));
 };
 
@@ -18,9 +19,19 @@ registerPrimitive('any/gt',  comparing(order => order > 0));
 registerPrimitive('any/lt',  comparing(order => order < 0));
 registerPrimitive('any/gte', comparing(order => order >= 0));
 registerPrimitive('any/lte', comparing(order => order <= 0));
-registerPrimitive('boolean/and', (subject, condition) => subject && condition);
-registerPrimitive('boolean/or',  (subject, condition) => subject || condition);
+registerPrimitive('boolean/and', asCombiner((subject, condition) => subject && condition));
+registerPrimitive('boolean/or',  asCombiner((subject, condition) => subject || condition));
 registerPrimitive('boolean/not', subject => !subject);
 
-// [QSDSP#walk]
-registerPrimitive('any/is', (subject, kinds) => walkToKinds(subject, kinds.map(kind => kind.name)) !== null);
+// [QSDSP#walk], [QSERR#site]
+function closedByOneOf(value, names, scope) {
+  const [outer] = tagsOver(value);
+  if (outer === undefined || wiringOf(value) === undefined) return false;
+  const closing = kindOfAValueOf(scope, outer);
+  return closing !== null && names.some(name => kindOfAValueOf(scope, name) === closing);
+}
+
+registerStateReader('any/is', (subject, kinds, state) => {
+  const names = kinds.map(kind => kind.name);
+  return walkToKinds(subject, names) !== null || closedByOneOf(subject, names, state.scope);
+});

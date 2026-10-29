@@ -24,3 +24,5 @@
 {"name":"an-empty-line-between-two-carriage-return-endings-stays-empty","query":"\"a\\r\\n\\r\\nb\" | lines","expect":"[\"a\" \"\" \"b\"]"}
 {"name":"a-final-newline-closes-the-last-line-and-a-lone-one-closes-an-empty-line","query":"get [~(\"a\\n\\n\" | lines) ~(\"\\n\" | lines)]","expect":"[[\"a\" \"\"] [\"\"]]"}
 {"name":"a-carriage-return-with-no-newline-stays-in-its-line","query":"\"a\\r\" | lines","expect":"[\"a\\r\"]"}
+{"name":"count-take-and-drop-read-a-character-past-the-first-plane-as-one","query":"get [~(\"😀x\" | count) ~(\"😀x\" | take 1) ~(\"😀x\" | drop 1)]","expect":"[2 \"😀\" \"x\"]"}
+{"name":"trim-cuts-the-whitespace-of-unicode-at-the-ends","query":"\"\\u00A0 a \\uFEFF\" | trim","expect":"\"a\""}

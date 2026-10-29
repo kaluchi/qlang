@@ -1,6 +1,6 @@
 // [QSBLD#fn], [QSDSP#walk], [QSORD#order], [QSDSP#residence], [QSCOL#map], [QSTXT#string], [QSERR#site]
 
-import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, tagOf, TagsInCommon, pairRefused } from '../types.mjs';
+import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, TagsInCommon, pairRefused, ofTwoKinds } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, asCombiner } from '../primitives.mjs';
@@ -15,6 +15,7 @@ const entriesOf = elements => [...elements.entries()];
 
 const failedAt = (code, error, segment) => atPath(code, error, makePath([String(segment)]));
 
+// [QSTXT#string]
 registerPrimitive('string/count', text => Array.from(text).length);
 registerPrimitive('vec/count', sequence => sequence.length);
 registerPrimitive('map/count', map => map.size);
@@ -118,7 +119,7 @@ async function extremeOf(entries, key, pick) {
   if (ranked.length === 0) return NULL;
   let best = ranked[0];
   for (const candidate of ranked.slice(1)) {
-    if (tagOf(ranked[0].sortKey).name !== tagOf(candidate.sortKey).name) throw refusingAPart(pairRefused(ranked[0].sortKey, candidate.sortKey), candidate.entry[0]);
+    if (ofTwoKinds(ranked[0].sortKey, candidate.sortKey)) throw refusingAPart(pairRefused(ranked[0].sortKey, candidate.sortKey), candidate.entry[0]);
     if (pick(compareValues(candidate.sortKey, best.sortKey))) best = candidate;
   }
   return best.entry[1];
@@ -166,56 +167,56 @@ registerPrimitive('map/map', runsAsCode(['code'], async (map, code) => {
 }));
 
 // [QSCND#boolean], [QSERR#trace]
-async function verdictOf(predicate, at, element, ConditionKindNotTakenError) {
+async function verdictOf(predicate, at, element, AnswerKindNotTakenError) {
   const verdict = await predicate(element);
   if (isErrorValue(verdict)) return failedAt(predicate, verdict, at);
   const beneath = beneathTags(verdict);
   if (typeof beneath === 'boolean') return beneath;
-  throw refusingAPart(new ConditionKindNotTakenError({ 'predicate/expected': kindsExpected('boolean'), 'predicate/answer': verdict }), at);
+  throw refusingAPart(new AnswerKindNotTakenError({ 'predicate/expected': kindsExpected('boolean'), 'predicate/answer': verdict }), at);
 }
 
-async function keptElements(sequence, predicate, ConditionKindNotTakenError) {
+async function keptElements(sequence, predicate, AnswerKindNotTakenError) {
   const kept = [];
   for (const [at, element] of entriesOf(sequence)) {
-    const verdict = await verdictOf(predicate, at, element, ConditionKindNotTakenError);
+    const verdict = await verdictOf(predicate, at, element, AnswerKindNotTakenError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.push(element);
   }
   return kept;
 }
 
-async function keptEntries(map, predicate, ConditionKindNotTakenError) {
+async function keptEntries(map, predicate, AnswerKindNotTakenError) {
   const kept = new Map();
   for (const [key, value] of map) {
-    const verdict = await verdictOf(predicate, key, value, ConditionKindNotTakenError);
+    const verdict = await verdictOf(predicate, key, value, AnswerKindNotTakenError);
     if (isErrorValue(verdict)) return verdict;
     if (verdict) kept.set(key, value);
   }
   return kept;
 }
 
-const VecFilterConditionKindNotTakenError = declareRefusal('vec/filter/ConditionKindNotTakenError');
-const MapFilterConditionKindNotTakenError = declareRefusal('map/filter/ConditionKindNotTakenError');
-registerPrimitive('vec/filter', runsAsCode(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterConditionKindNotTakenError)));
-registerPrimitive('map/filter', runsAsCode(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterConditionKindNotTakenError)));
+const VecFilterPredicateAnswerKindNotTakenError = declareRefusal('vec/filter/PredicateAnswerKindNotTakenError');
+const MapFilterPredicateAnswerKindNotTakenError = declareRefusal('map/filter/PredicateAnswerKindNotTakenError');
+registerPrimitive('vec/filter', runsAsCode(['predicate'], (vector, predicate) => keptElements(vector, predicate, VecFilterPredicateAnswerKindNotTakenError)));
+registerPrimitive('map/filter', runsAsCode(['predicate'], (map, predicate) => keptEntries(map, predicate, MapFilterPredicateAnswerKindNotTakenError)));
 
-async function firstVerdict(elements, predicate, decisive, ConditionKindNotTakenError) {
+async function firstVerdict(elements, predicate, decisive, AnswerKindNotTakenError) {
   for (const [at, element] of elements) {
-    const verdict = await verdictOf(predicate, at, element, ConditionKindNotTakenError);
+    const verdict = await verdictOf(predicate, at, element, AnswerKindNotTakenError);
     if (isErrorValue(verdict) || verdict === decisive) return verdict;
   }
   return !decisive;
 }
 
-const VecEveryConditionKindNotTakenError = declareRefusal('vec/every/ConditionKindNotTakenError');
-const MapEveryConditionKindNotTakenError = declareRefusal('map/every/ConditionKindNotTakenError');
-registerPrimitive('vec/every', runsAsCode(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, false, VecEveryConditionKindNotTakenError)));
-registerPrimitive('map/every', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, false, MapEveryConditionKindNotTakenError)));
+const VecEveryPredicateAnswerKindNotTakenError = declareRefusal('vec/every/PredicateAnswerKindNotTakenError');
+const MapEveryPredicateAnswerKindNotTakenError = declareRefusal('map/every/PredicateAnswerKindNotTakenError');
+registerPrimitive('vec/every', runsAsCode(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, false, VecEveryPredicateAnswerKindNotTakenError)));
+registerPrimitive('map/every', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, false, MapEveryPredicateAnswerKindNotTakenError)));
 
-const VecAnyConditionKindNotTakenError = declareRefusal('vec/any/ConditionKindNotTakenError');
-const MapAnyConditionKindNotTakenError = declareRefusal('map/any/ConditionKindNotTakenError');
-registerPrimitive('vec/any', runsAsCode(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyConditionKindNotTakenError)));
-registerPrimitive('map/any', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyConditionKindNotTakenError)));
+const VecAnyPredicateAnswerKindNotTakenError = declareRefusal('vec/any/PredicateAnswerKindNotTakenError');
+const MapAnyPredicateAnswerKindNotTakenError = declareRefusal('map/any/PredicateAnswerKindNotTakenError');
+registerPrimitive('vec/any', runsAsCode(['predicate'], (vector, predicate) => firstVerdict(entriesOf(vector), predicate, true, VecAnyPredicateAnswerKindNotTakenError)));
+registerPrimitive('map/any', runsAsCode(['predicate'], (map, predicate) => firstVerdict(entriesOf(map), predicate, true, MapAnyPredicateAnswerKindNotTakenError)));
 
 // [QSCOL#group]
 async function keywordOf(key, element, index, KeyAnswerKindNotTakenError, KeyTakenError, filed) {
@@ -266,7 +267,7 @@ const VecIndexByKeyAnswerKindNotTakenError = declareRefusal('vec/indexBy/KeyAnsw
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
 registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
 
-// [QSERR#site]
+// [QSTXT#string], [QSCOL#sequence]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
 registerPrimitive('vec/take', (sequence, count) => sequence.slice(0, Math.max(0, count)));
 registerPrimitive('map/take', (map, count) => new Map([...map].slice(0, Math.max(0, count))));
@@ -299,7 +300,7 @@ registerPrimitive('vec/append', (vector, element) => [...vector, element]);
 // [QSCOL#sequence]
 registerPrimitive('vec/concat', asCombiner((vector, vectors) => [...vector, ...vectors.flat()]));
 
-// [QSTXT#string], [QSCOL#sequence]
+// [QSTXT#split], [QSCOL#sequence]
 const VecJoinElementKindNotTakenError = declareRefusal('vec/join/ElementKindNotTakenError');
 
 registerStateReader('vec/join', (subject, separator, state) => {

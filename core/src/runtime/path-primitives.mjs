@@ -9,7 +9,7 @@ import { errorFromQlang } from '../error-convert.mjs';
 import { atPath } from '../eval-trace.mjs';
 import { isPath, makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
 
-const StringToPathNotPointerError = declareRefusal('string/toPath/NotPointerError');
+const StringToPathTextNotPathError = declareRefusal('string/toPath/TextNotPathError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
@@ -72,7 +72,7 @@ const AnySettleQuestionsKindNotTakenError = declareRefusal('any/settle/Questions
 
 registerStateReader('any/settle', runsWithinAsCode(['questions'], async (subject, questions, state) => {
   const parts = partsOfTemplate(questions);
-  if (parts === null) throw new AnySettleQuestionsKindNotTakenError({ 'questions/expected': kindsExpected('map', 'vec') });
+  if (parts === null) throw new AnySettleQuestionsKindNotTakenError({ 'questions/expected': kindsExpected('map', 'set', 'vec') });
   const outcomes = [];
   for (const question of parts) outcomes.push(await outcomeOf(subject, question, state));
   if (isMap(questions)) return new Map([...questions.keys()].map((key, at) => [key, outcomes[at]]));
@@ -157,6 +157,6 @@ registerPrimitive('path/toPath', path => path);
 
 registerPrimitive('string/toPath', text => {
   const pointer = text.startsWith('#') ? text.slice(1) : text;
-  if (!pointer.startsWith('/')) throw new StringToPathNotPointerError({});
+  if (!pointer.startsWith('/')) throw new StringToPathTextNotPathError({});
   return makePath(pointer.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~')));
 });

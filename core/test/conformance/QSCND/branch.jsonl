@@ -31,8 +31,8 @@
 {"name":"if-takes-a-condition-read-by-a-deep-path","query":"{:a {:b {:c true}}} | if (get /a/b/c) ~(\"deep-yes\") ~(\"deep-no\")","expect":"\"deep-yes\""}
 {"name":"cond-runs-the-branch-of-the-first-predicate-that-holds","query":"5 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"five\""}
 {"name":"cond-runs-the-branch-of-a-later-predicate-that-holds","query":"6 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"\"six\""}
-{"name":"no-pair-matches-no-default-yields-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
-{"name":"no-pair-matches-with-default-yields-default","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\") ~(\"other\")","expect":"\"other\""}
+{"decision":"D481","name":"no-pair-matches-no-default-answers-null","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\")","expect":"null"}
+{"decision":"D481","name":"no-pair-matches-with-default-answers-default","query":"7 | cond ~(eq 5) ~(\"five\") ~(eq 6) ~(\"six\") ~(\"other\")","expect":"\"other\""}
 {"name":"cond-answers-the-branch-of-a-predicate-that-holds-over-its-default","query":"5 | cond ~(eq 5) ~(\"five\") ~(\"other\")","expect":"\"five\""}
 {"name":"cond-answers-its-default-where-no-predicate-holds","query":"0 | cond ~(gt 10) ~(\"big\") ~(gt 5) ~(\"medium\") ~(\"small\")","expect":"\"small\""}
 {"name":"cond-runs-the-branch-of-its-last-predicate-where-it-alone-holds","query":"75 | cond ~(gte 90) ~(\"A\") ~(gte 80) ~(\"B\") ~(gte 70) ~(\"C\") ~(\"F\")","expect":"\"C\""}
@@ -50,5 +50,5 @@
 {"name":"a-branch-written-as-a-path-reads-the-subject","query":"{:active false :salary 100} | if (get /active) ~(get /salary | mul 11 | div 10) /salary","expect":"100"}
 {"name":"a-default-of-cond-written-as-a-path-reads-the-subject","query":"{:role :user :salary 100} | cond ~(get /role | eq :admin) ~(get /salary | mul 15 | div 10) /salary","expect":"100"}
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
-{"name":"a-condition-of-cond-is-named-by-its-index-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(tag) ~(clauses | index)]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(tag) ~(clauses | index)])]","expect":"[[::any/cond/ConditionKindNotTakenError 0] [::any/cond/ConditionKindNotTakenError 2]]"}
+{"decision":"D481","name":"a-condition-of-cond-is-named-by-its-index-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(tag) ~(clauses | index)]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(tag) ~(clauses | index)])]","expect":"[[::any/cond/ClausesAnswerKindNotTakenError 0] [::any/cond/ClausesAnswerKindNotTakenError 2]]"}
 {"name":"a-branch-that-is-no-code-is-refused","query":"5 | if true 1 2 !| tag","expect":"::any/if/ThenKindNotTakenError"}

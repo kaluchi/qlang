@@ -105,7 +105,8 @@ section, or a rule no case holds; and a pentimento and a drift
 scripts/sensors/run-probes.mjs` runs again on its report.
 
 The outside audit, `node scripts/outside-audit.mjs --for Dnn`, has one clean
-reader read the tree at HEAD and run `qplay`, the history out of its reach.
+reader read the tree at HEAD, the tree a closeout landed [QSWRK#closeout],
+and run `qplay`, the history out of its reach.
 
 The pentimento audit reads the whole tree, where a review reads a diff, a
 critique a record and a check a group of chapters: its readers read the

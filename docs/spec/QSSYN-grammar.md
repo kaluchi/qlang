@@ -9,7 +9,8 @@ of each section are the cases of its file under
 
 A text, a query of the command line, a line of the REPL, a source of the
 root and the code of a quote or of a group, is its declarations, each
-ended by `;`, the parser's token, and at most one query after them. A
+ended by `;`, the parser's token, the last one by the end of the text where
+no query follows, and at most one query after them. A
 declaration is told by its first word, a keyword followed by a page or by
 a word, and stands alone before its `;`, `:name |~~ page ~~| body;`: its
 body is one step, a literal, a quote, a name, a tagged literal, a tag
@@ -28,8 +29,9 @@ the group `(gt(1))`, a call written by habit that runs where its input
 takes a value and is refused where it takes code; every other word is
 set off from the one before it, and a comma inside the parentheses of a
 group or a quote is refused, naming the command form. A path written
-before a word is refused naming both its readings, the read of a part,
-`get /tags | count`, and the call of a verb by its name alone.
+before a word is refused naming the read of a part, `get /a/tags | count`,
+and a path of one name both its readings, `get /tags | count` and the call
+of a verb by its name alone, `tags count`.
 
 A step sees one value, the one the step before handed it, and
 everything inside the step, its modifiers among them, is computed from
@@ -89,6 +91,9 @@ declaration's name stands is refused.
 
 > get [~(":rate 2 | [1 2]" | parse !| message) ~("[1 2] | :x 1; x" | parse !| message | contains "at the head of its text")]
 ["a declaration ends with `;`, which joins it to the query after it: write `:name body; query`" true]
+
+> get [~(":rate 2" | parse | answer) ~("{:a {:tags [1]}} | /a/tags count" | parse !| message)]
+[#[::rate] "`/a/tags` is a path, a value: a part is read by `get`, `get /a/tags | count`"]
 ```
 
 ## combinator
@@ -96,8 +101,9 @@ declaration's name stands is refused.
 Steps are joined by a combinator: `|`, which carries the value and
 passes a failure by, and `!|`, which carries a failure and passes a
 value by [QSERR#catch]. A combinator is set off by whitespace on both
-sides, a line break counting as whitespace and an opening bracket or the
-start of the text standing for the space before it, so `|~`, `|~|`,
+sides, a line break counting as whitespace and an opening bracket, the
+start of the text or the `;` before its query standing for the space
+before it, so `|~`, `|~|`,
 `|~~` and `|~~|` written together open a comment or a doc. One
 combinator stands between two steps and at the head: a pipe written
 before `!|` stands for the combinator after it, and any other
@@ -125,6 +131,9 @@ true
 
 > "[1 2] | count ; count" | parse !| location
 ::span[14 1 15 15 1 16]
+
+> get [~("[1] | |~ note ~|" | parse !| message) ~(":x 1;| x" | parse | answer)]
+["`|` joins two steps, and the step after it is missing" 1]
 ```
 
 ## line
@@ -187,7 +196,8 @@ true
 
 The doc forms, `|~~| …` to the end of its line and `|~~ … ~~|`, which
 nests, are one literal, the doc, which reads a line break written as
-`\r\n` as one. A declaration's page is the doc literals in its slot,
+`\r\n` as one and a carriage return alone as a line break of its prose. A
+declaration's page is the doc literals in its slot,
 between its name and its body, joined in the order they are written
 with a line break between them; a comment among them is whitespace. A
 doc written before a declaration is refused, naming the slot; a doc that
@@ -207,7 +217,8 @@ with a leading zero among it, is refused as `::quote/ParseError` where its
 reading stopped, as the same code is anywhere; a prose shows code between
 backquotes. The quote of a line doc runs on across lines as any code, and
 the prose of a line doc ends at the line break of the line its last part
-ends on, a carriage return alone staying in it. A doc holds its prose with no whitespace at its edges
+ends on, a carriage return alone ending no line of it. A doc holds its
+prose with no whitespace at its edges
 and no indentation its lines after the first share [QSSLF#doc], so
 `|~~A box.~~|` and `|~~ A box. ~~|` are one doc.
 
@@ -277,9 +288,10 @@ closers at most complete it, names the innermost and where it opened, its
 `:message` naming the closers that complete the source, its `:expected`
 the one closer the next character must be and its `:location` the end of
 the source, while a refusal the grammar writes keeps its own words; one
-that ends with a combinator names the step
-it misses beside its continuations, where no refusal the grammar writes
-stood before the end. A refusal the grammar writes reads no further
+that ends with a combinator, comments after it read as whitespace, names
+the step it misses beside its continuations, a bracket it left open
+before it among them, where no refusal the grammar writes stood before
+the end. A refusal the grammar writes reads no further
 than the forms beside it until a look ahead found the form it refuses
 whole, so the continuations of another error stand as they are and a
 form left open is refused where its reading stopped. A form another

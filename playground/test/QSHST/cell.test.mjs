@@ -58,5 +58,5 @@ it('keeps one value of one query under one cell, named by the hash of the query 
 });
 
 it('refuses a cell it does not hold', async () => {
-  expect((await answerOf('::cell"000000000000" | answer !| tag')).name).toBe('cell/answer/NotHeldError');
+  expect((await answerOf('::cell"000000000000" | answer !| tag')).name).toBe('cell/answer/SubjectNotHeldError');
 });

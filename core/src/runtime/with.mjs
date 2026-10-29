@@ -8,12 +8,14 @@ import { readsAsName } from '../name-chars.mjs';
 import { isPath, isMap, isQuote, isErrorValue, makeKeyword } from '../types.mjs';
 import { readTemplate, readByPath } from './path-primitives.mjs';
 
+const AnyWithNamesKindNotTakenError = declareRefusal('any/with/NamesKindNotTakenError');
 const AnyWithNamesElementKindNotTakenError = declareRefusal('any/with/NamesElementKindNotTakenError');
 const AnyWithNamesSelectorKindNotTakenError = declareRefusal('any/with/NamesSelectorKindNotTakenError');
 const AnyWithNamesKeyNotNameError = declareRefusal('any/with/NamesKeyNotNameError');
 const AnyWithNamesNameWrittenTwiceError = declareRefusal('any/with/NamesNameWrittenTwiceError');
 
 function selectorsOf(names) {
+  if (isQuote(names)) throw new AnyWithNamesKindNotTakenError({ 'names/expected': kindsExpected('map', 'vec'), 'names/found': names });
   const selectors = new Map();
   const select = (name, selector) => {
     if (!readsAsName(name)) throw new AnyWithNamesKeyNotNameError({ name: makeKeyword(name) });

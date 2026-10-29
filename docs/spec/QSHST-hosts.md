@@ -72,8 +72,8 @@ noun in the host's source, the value its rule met as `:found` whether it
 is the subject or a part of it, and a refusal of a part of the subject
 through `refusingAPart` with the segments of the part's path, which the
 frame of the step names [QSERR#site],
-[QSERR#trace]; a failure of the host's own world is the error
-value `makeErrorValue` makes of a tag and a map of its facts, and a host
+[QSERR#trace]; a failure of the host's own world is the failure
+`makeErrorValue` makes of a tag and a map of its facts, and a host
 lays a tag over its answer through the language, by the kind its verb
 `returns`.
 
@@ -82,7 +82,9 @@ declared under it after, so a kind lives whole in the source of its
 noun, and a kind with no verb of its own has a source of its page and
 its laws; the source `qlang` holds the topic of the language. A host's
 source declares its own noun and its verbs under the labels of their
-subjects. A source is code as written: the text a host hands, the step
+subjects, a host's verbs under a noun of another source among them,
+`::cell/answer` of the streams beside `::cell` of the core, and the page
+of the host the root lays over `::host` of the core once [QSNAM#root]. A source is code as written: the text a host hands, the step
 that declared a binding, its `:source`, and every declaration under an
 address, which the axis `source` reads, null for a binding no
 declaration wrote, a node a chain lays among them. Where a text came from
@@ -213,7 +215,9 @@ scope?)` answers the value one cell of a notebook over the scope answers,
 booting the root where none is handed, a declaration it makes naming its
 origin as every cell's does, `:cell-1`, and raises a defect to its
 caller; and `langRuntime` answers the scope of the root. A host puts its
-names into the scope by its sources alone, and a reader by a declaration.
+names into the root by its sources alone, a reader into the scope by a
+declaration, and the scope a host hands a notebook or `evalQuery` is held
+where the core takes it, by the scan of the door [QSHST#door].
 
 The REPL of the site keeps one notebook across its cells, a word one cell
 declares staying for the cells after it, and its playground runs the text
@@ -231,8 +235,10 @@ source uri result defect scopeAfterCell quote/ParseError null cell-1
 
 A query reads, and writes only by a host's verbs for the streams of its
 process, each an explicit step performed when it runs, the words of
-`::stdio` a host on the command line installs, each called by its
-address: `::stdio | in` reads standard input when it is called, the
+`::stdio` a host on the command line installs, a verb of a stream called
+by its address and `in` asked of `::stdio` by its bare name, its `on`
+naming `::tag` [QSDSP#tagname]: `::stdio | in` reads standard input when
+it is called, the
 empty string in the REPL, whose prompt holds it; `stdio/out` writes a
 line of standard output and `stdio/err` one of standard error, each
 whole, the subject where it is a string or the text the call computes
@@ -248,12 +254,12 @@ its result a noun that queries read. A verb of a host has one output, a
 value under its tag, and the kinds of its refusals; what it answers is
 the data its inputs chose, filtered for the question. A tag may describe
 an effect a host is to perform, and such a value is performed by an
-explicit step at the boundary; a host that wants the provenance of a
-value seen tags the value. A constructor is pure, and reading or
+explicit step at the boundary, the provenance of a value a host shows
+being a tag over it. A constructor is pure, and reading or
 constructing a literal performs nothing. The forks of a sequence run in
 its order, so a verb of a host with an effect meets the elements in their
-order, and a host whose verb is better served by calls at once takes the
-whole vector and bounds its own calls.
+order, and a verb of a host that takes the whole vector bounds its calls
+itself.
 
 ```qlang
 > :any/quiet ~(stdio/out); 1
@@ -286,8 +292,8 @@ none [QSDSP#residence].
 ## cell
 
 A cell is the interface a host gives for the work with state inside the
-language: `::cell`, a kind of the core over its identity, letters, digits
-and hyphens, whose literal reads back as itself in any later query, and its
+language: `::cell`, a kind of the core over its identity, the Latin
+letters, digits and hyphens, whose literal reads back as itself in any later query, and its
 word `answer`, which its host declares and which reads at the call what the
 host keeps under it. A host of the streams, the playground and its REPL
 among them, keeps so an answer and a subject at a `stdio/tap` past the
@@ -298,14 +304,15 @@ identity of what it keeps, twelve digits of hexadecimal of the hash of the
 query, the words it declared and the print of the value, so one value of
 one query is one cell, and keeps under `<tmp>/qlang/<root>/cells/<id>/`,
 `<root>` the identity of the sources and the code it booted, the query,
-`source.qlang`, the words the query declared, each with its value as the
-core prints it, each ended by its `;`, `names.qlang`, and the answer as
+`source.qlang`, the declarations of the query that hold a source, each
+with its value as the core prints it, a kind and a verb among them, each
+ended by its `;`, `names.qlang`, and the answer as
 the core prints it, `answer.qlang`; a cell older than a day leaves when
 it keeps another, and one kept again stays a day more.
-`answer` reads the answer back over the root and those words, a value
+`answer` reads the answer back over the root and those declarations, a value
 under a kind the query declared answering its names where the reading
 query declares that kind again and `payload` in any, and refuses a cell
-it does not hold as `::cell/answer/NotHeldError`. A host that keeps no
+it does not hold as `::cell/answer/SubjectNotHeldError`. A host that keeps no
 cell names none.
 
 ```qlang
@@ -321,7 +328,7 @@ $ qplay "$(qplay '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '
 3000
 
 $ qplay '::cell"000000000000" | answer !| tag' < /dev/null
-::cell/answer/NotHeldError
+::cell/answer/SubjectNotHeldError
 
 $ for i in 1 2; do qplay '1 | add (3410 | range)' < /dev/null | grep -o '::cell"[0-9a-f]*"'; done | sort -u | wc -l
 1

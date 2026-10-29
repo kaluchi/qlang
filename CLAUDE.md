@@ -110,12 +110,13 @@ next-step pitches. Verify before asserting: any claim about behaviour is run
 in the playground, `qplay '…'` in script mode or `qplay -i`; in Git Bash a
 query that begins with `/` arrives as a path, which the playground reads back
 [QSCLI#shell]. A long tool output is persisted with a short preview; filter
-it instead of reading it back whole. Commit on request, push only on an
-explicit invitation, never amend [QSWRK#stint].
+it instead of reading it back whole. A commit lands on the branch of the
+stint, a push waits for an explicit invitation, and a commit is never
+amended [QSWRK#stint].
 
 ## Commands
 
-- `npm test`: every workspace's suite, the inner loop [QSREQ#rigor].
+- `npm test`: every workspace's suite, the run a commit makes [QSREQ#rigor].
 - `npm run ci`: the gate for anything meant to be pushed, judged by its real
   exit code, captured to a file, never through a pipe; while it runs, run
   nothing that boots the language [QSGAT#gate].

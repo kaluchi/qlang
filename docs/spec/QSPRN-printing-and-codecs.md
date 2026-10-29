@@ -17,8 +17,9 @@ a value of the language reads back as it by `parse | answer`. A string
 prints as JSON writes it: `"` and `\` escaped, a line break, a tab, a
 carriage return, a backspace and a form feed as `\n`, `\t`, `\r`, `\b` and
 `\f`, and any other character below U+0020 and a lone surrogate as `\u`
-and their four digits, so the print shows a control character and holds no
-code unit a text in UTF-8 cannot carry. A vector and
+and their four digits, so the print shows a control character below
+U+0020 and holds no code unit a text in UTF-8 cannot carry, while DEL and
+the controls of U+0080 to U+009F stand raw, as JSON writes them. A vector and
 a set stand on one line unless a part takes several, and then each part
 stands on a line of its own; a map of two entries or fewer, none a
 container, stands on one line, and any other puts each entry on a line
@@ -26,20 +27,22 @@ of its own, indented by two. A doc prints as `|~~`, its prose and `~~|`,
 a space between them, each line of its prose after the first at the
 indentation of the line it opens on and two more and a blank line empty,
 so it reads back as itself [QSSLF#doc]. A step of a quote whose line, its
-pipe among it, passes eighty characters is laid on lines as a source of
-the catalog writes it, but where a value stands on one line: a command
+pipe among it, passes eighty characters is laid on lines by the printer,
+but where a value stands on one line: a command
 writes its name on its line and each modifier on a line of its own,
-indented by four, a keyword on the line before it, as the catalog writes
-the name a command of a chain gives, `| takes :digits`; a declaration
+indented by four, a keyword on the line before it, the name a command of
+a chain gives, `| takes :digits`; a declaration
 with a page writes its name on its line and each doc of its slot on a
 line of its own, indented by two, its body on the line of its last doc,
 each of which reads back as written, a line break being whitespace
 [QSSYN#line]. A value of
-`::frame` stands on one line whatever it holds, a value of `::trace` of
-two frames or more putting each frame on a line of its own. On one line every part stands on one line, every part of
-a quote among it, the modifiers of its calls, the docs and the body of
-its declarations and the parts of its literals, which read back as the
-same steps, so a frame lays the quote it holds on one line; a host that
+`::frame` stands on one line whatever it holds but a line break of the
+prose of a doc, a value of `::trace` of two frames or more putting each
+frame on a line of its own. On one line every part stands on one line,
+every part of a quote among it, the modifiers of its calls, the docs and
+the body of its declarations and the parts of its literals, which read
+back as the same steps, a line break of the prose of a doc standing as it
+is, which the literal of a doc writes no other way [QSSLF#doc], so a frame lays the quote it holds on one line; a host that
 writes a value on one line, a cell of the `table` of the streams among
 them, whose view writes the prose of a doc with each line break as a
 space, asks the printer for that form and lays no print on one line by a
@@ -47,7 +50,9 @@ regex over its text.
 
 The literal of a value is the language's, whatever its kind: a `print`
 declared under a label, a kind of a reader, of a host or of the root, is
-refused, `::bind/PrintDeclaredError`, `:name` naming it, and a view of a
+refused, `::bind/PrintDeclaredError`, `:name` naming it, and one under
+`::any`, whose `print` it is, as a name declared twice,
+`::bind/NameDeclaredTwiceError`, and a view of a
 value for reading is a verb of its own name, `legend` among them. What a
 host prints of an answer is drawn over that literal by one layer of the
 core, `printAnswer` and `boundAnswer`: the line
@@ -61,9 +66,10 @@ glosses of a legend laid over the parts of the value it tells as
 comments, which read back as whitespace [QSPRN#legend]. `print` answers
 that drawing whole and its painting is the medium's; the printer of the
 literal knows no legend, a part drawn ahead of it standing on lines of
-its own. Every host prints an answer through that layer, within the
-budget of every answer, the playground a string as its text and its REPL
-and the site an answer as its literal.
+its own. Every host prints an answer through that layer, the playground
+a string as its text and its REPL and the site an answer as its literal,
+and every host but the REPL within the budget of every answer
+[QSPRN#budget].
 
 ```qlang
 > {:tags [1 "new" :vip]} | eq (print | parse | answer)
@@ -145,7 +151,8 @@ page, so the print reads back as the legend of the tag and
 the parts of every kind before a value of it is held; beneath them stands a
 closed comment for each view the kind reveals [QSPRN#excerpt], its name,
 the kind its verb answers and the gloss of the page of that answer, a view
-that names no verb of the kind standing by its name. A legend is an
+whose verb names no answer standing with the gloss of the page of the verb
+and a view that names no verb of the kind by its name. A legend is an
 answer, printed within the budget of every answer as any answer is
 [QSPRN#budget], every part of it whole.
 
@@ -213,7 +220,7 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 
 ## excerpt
 
-A host prints no value cut to a room: a fact of a failure past the room of
+A host prints the whole of a value: a fact of a failure past the room of
 a fact, three hundred characters, stands as the cell its host keeps it in
 [QSHST#cell], beside its tag, the first of its views, and the views the
 kind of the fact reveals whose answers fit that room, each flat under the
@@ -244,8 +251,8 @@ level by level, `subject`, the subject the step that failed met, and
 a tag name reads each view so. An excerpt is a map read by its keys, a view
 by its key under the tag of a refusal, `payload | get /:addend/found/count`,
 and prints and reads back as itself;
-no verb cuts a value to a room, and the whole is read live, a fact of a
-failure by `!|` and a cell by `answer`.
+the whole is read live, a fact of a failure by `!|` and a cell by
+`answer`.
 
 ```qlang
 > [1 "x" 3] | map ~(mul 2) !| trace | get [~(failed) ~(subject) ~(paths)]
@@ -285,8 +292,7 @@ and `:answer`, the answer, which its alert shows as any fact past the
 room of a fact, the cell its host keeps it in, where it keeps one
 [QSHST#cell], beside the views its kind reveals and its parts
 [QSPRN#excerpt], so the alert of a legend past the budget shows the facts
-of the refusal it tells. The command line writes no flag that sets or
-cuts the budget [QSCLI#answer].
+of the refusal it tells.
 
 ```sh
 $ qplay '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
@@ -317,9 +323,11 @@ through the door of `::point`, three integers its kind wires as `offset`,
 of a parse is laid through the door of its span. A payload that is no
 vector is refused as `…/PayloadKindNotTakenError`, an element that is no
 number as `…/ElementKindNotTakenError` with its `:index`; a span of fewer
-numbers leaves its end unread, `::span/EndNotReadError`, the refusal of
-the point among its facts, and a point of another length or with a
-fraction is refused by the invariant of its kind,
+numbers leaves an end unread, its start where it holds fewer than three,
+`::span/StartNotReadError`, else its end, `::span/EndNotReadError`, the
+refusal of the point among its facts, a point of fewer numbers leaves its
+last part not given, `::point/ColumnNotGivenError`, and a point of more
+or with a fraction is refused by the invariant of its kind,
 `::point/PayloadNotOffsetLineAndColumnError`, which names the roles of its
 numbers.
 

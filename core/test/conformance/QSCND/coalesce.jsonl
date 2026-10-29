@@ -43,3 +43,4 @@
 {"name":"coalesce-answers-a-miss-in-the-code-a-verb-ran-on-a-part","query":"{:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| tag) ~(coalesce ~(get /items | first | get /cost) 0)]","expect":"[::path/KeyNotInMapError 0]"}
 {"name":"coalesce-reads-a-value-a-name-holds-by-a-quote","query":"apply ~(:e 7000; 9000 | coalesce ~(e) 8080)","expect":"7000"}
 {"name":"coalesce-passes-over-null-beneath-the-tags-an-alternative-answers","query":"{:a ::T#null} | coalesce /a 0","expect":"0"}
+{"decision":"D481","name":"a-quote-under-a-tag-is-an-alternative-of-code","query":"get [~(null | coalesce ::R~(7)) ~(null | coalesce ::R~(7) 8)]","expect":"[7 7]"}

@@ -104,7 +104,7 @@ export const RETIRED_WORDS = [
   { regex: /\bwalk\.mjs\b|\bwalkParts\b|\bwalkSourceTree\b|\bwalkRefusalScanRoots\b|\bwalks?[\s-]+of[\s-]+the[\s-]+door\b/, written: 'the parts the parser keeps, `core/src/parsed-parts.mjs` and `forEachPart`, the scan of the door, and the files a script lists, `sourceFilesUnder` and `refusalScanFiles`, walk naming the walk of the tags of a value alone', by: 'D436' },
   { regex: /::(?:fn|kind)\/[a-z]+\/objects\b|\bobjectNotTaken\b/, written: 'what a command of a chain takes, its modifiers as written, the input `modifiers` of its verb, `modifierNotTaken`', by: 'D440' },
   { regex: /\btypeOf\b/, written: 'the tag of a value, the tag `tag` answers, `tagOf`', by: 'D442' },
-  { regex: /\b(?:actual|left|right)Type\b/, written: 'the tag a fact of a refusal names, `:actualTag`, and the tags two values part at, `:leftTag` and `:rightTag`', by: 'D442' },
+  { regex: /\b(?:actual|left|right)Type\b/, written: 'the kind of the value the rule of a refusal met, `found | tag`, and the tags two values part at, `:leftTag` and `:rightTag`', by: 'D442' },
   { regex: /`wraps`|\|\s*wraps\b|\bkind\/wraps\b/, written: 'the payload a kind accepts, the command `accepts`', by: 'D450' },
   { regex: /`reads`|\|\s*reads\s+:|\bkind\/reads\b/, written: 'a part of a payload a kind wires, the command `wires`', by: 'D450' },
   { regex: /`explain`|\|\s*explain\b|\bany\/explain\b|::explanation\b/, written: 'the page of a value, of an error at rest the page of the refusal it carries, `doc`', by: 'D452' },

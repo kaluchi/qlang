@@ -46,3 +46,5 @@
 {"name":"the-parse-of-a-source-of-comments-alone-is-the-empty-quote","query":"\"|~ x ~|\" | parse | eq ~()","expect":"true"}
 {"name":"line-comments-before-and-after-the-steps-are-whitespace","query":"|~| compute the sum\n| [1 2 3]\n  | sum |~| final reduction","expect":"6"}
 {"name":"quote-comment-leaves-no-step","query":"~(|~ note ~| count) | count","expect":"1"}
+{"name":"a-semicolon-inside-a-comment-a-doc-a-string-or-a-regex-is-theirs","query":"get [~(5 |~ a; b ~| | add 1) ~(|~~ a; b ~~| | content) ~(\"a;b\" | count) ~(#\"a;b\" | print)]","expect":"[6 \"a; b\" 3 \"#\\\"a;b\\\"\"]"}
+{"name":"a-quote-unpaired-inside-a-block-comment-is-the-comment-s","query":"\"[|~ ~(x ~| 1]\" | parse | answer","expect":"[1]"}

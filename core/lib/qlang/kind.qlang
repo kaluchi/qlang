@@ -16,7 +16,8 @@
       its name, its page, its selector over the payload, `/width` the key
       `width` and `~(query /height 1)` the key `height` or one, and its
       kinds; `tells` a page of the kind on a name, a chapter of a topic
-      among them; `holds` an invariant of the value or of a field, its
+      among them; `reveals` a view of its values a host shows beside a fact
+      past the room of a fact; `holds` an invariant of the value or of a field, its
       refusal, its page and its condition; `throws` a refusal, its page and
       the kind of its facts, the quote of its own `wires` or the tag of the
       refusal whose kind it shares; `proves` a law, its page and its query;
@@ -503,8 +504,8 @@
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal, a
-            keyword read as a tag, under a field read before it where it is
-            written with a path; its page, a doc; and the kind of its facts, a
+            keyword of one segment read as a tag; its page, a doc; and the kind
+            of its facts, a
             quote of `wires` or the tag of the refusal whose kind it shares,
             none where it holds its trace alone.
         ~~|

@@ -21,3 +21,4 @@
 {"name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort ~(get [/e /a]) | map /a","expect":"[1 2]"}
 {"name":"a-value-that-is-no-container-answers-no-sort","query":"\"cab\" | sort !| tag","expect":"::call/KindAnswersNoVerbError"}
 {"name":"a-missing-value-is-taken-out-before-max-relates-the-rest","query":"get [~([1 null 3] | max !| get [~(leftTag) ~(rightTag)]) ~([1 null 3] | filter ~(ne null) | max) ~([{:age 30} {:age \"15\"}] | max /age !| tag)]","expect":"[[::number ::null] 3 ::call/KindsMismatchedError]"}
+{"decision":"D481","name":"max-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | max /n | get /i","expect":"0"}

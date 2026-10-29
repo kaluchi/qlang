@@ -4,7 +4,8 @@ How the playground of the command line reads a query and writes its
 answer, and its REPL: `qplay`, the smallest host that embeds the language,
 `playground/`, which installs the streams of `stdio/` [QSHST#effect] and
 writes the page of `::host` there [QSSLF#page]. The tests of `playground/`
-and of `stdio/` hold its sections; the sources, the doors and the notebook
+hold its sections, and the tests of the core under `QSCLI/` the reads of
+the core it runs on, whether a query reads its subject among them; the sources, the doors and the notebook
 it runs a query in are [QSHST].
 
 ## answer
@@ -12,8 +13,8 @@ it runs a query in are [QSHST].
 The playground writes the answer of a query as the language prints it,
 whatever data standard input held, a string as its text, within the
 budget of every answer [QSPRN#budget] but in the REPL, which prints the
-answer of a cell whole [QSCLI#repl]. No flag sets or cuts the budget: a
-query reads an answer past the budget back from the cell its refusal names
+answer of a cell whole [QSCLI#repl]. A query reads an answer past the
+budget back from the cell its refusal names
 as its `:answer`, `::cell"…" | answer` [QSHST#cell], and writes it whole
 through the door it opens itself, `stdio/out` a text, `print | stdio/out`
 the literal of a value and `json | stdio/out` its JSON. A reader who wants
@@ -38,7 +39,9 @@ its refusal's page as line comments, the repair it tells and its links
 and snippets as the code they run, a refusal with no page of its own
 reading the page of what refused; an error of the kind of errors, which
 no site refused, and one whose tag no declaration names are written
-without a page, and the REPL prints its cells without it. A query that
+without a page, but for a tag whose last name ends in `Error` under an
+address a declaration names, written with the page of that address
+[QSSLF#axis], and the REPL prints its cells without it. A query that
 does not parse answers `::quote/ParseError`, its caret beneath the line
 the reading stopped in, `:marker` under `:source` [QSSYN#refusal], and
 nothing drawn below its alert but the page; a JSON text of standard
@@ -163,7 +166,8 @@ its page, painted whether or not standard output is a terminal
 value of its answer printed after it, while its failure prints; a defect
 raised past the fail track, as a cell ran or as its answer printed, it
 writes on standard error as `qplay:` and its message, and runs the next
-cell. It reads its cells by its line editor [QSCLI#line-editor].
+cell. A cell of `.help` lists the commands of the REPL, `.exit` closes it,
+and it reads its cells by its line editor [QSCLI#line-editor].
 
 ```sh
 $ printf '5000 | range\n' | qplay -i | grep -o '4999' | wc -l
@@ -196,7 +200,9 @@ plain
 ## line-editor
 
 The line editor of the REPL reads a chunk of one character, or one that
-begins with an escape, as keys, and any other chunk as text. Enter submits
+begins with an escape, as keys, a chunk of text whose one line feed ends
+it key by key, the line break staying in the cell, and any other chunk as
+text. Enter submits
 the cell, Ctrl+Enter writes a line break into it, and Alt+Enter submits a
 paste in both its spellings, ESC then CR and ESC then LF; Backspace and
 Delete erase the character before the cursor and the one under it, Left,
@@ -204,8 +210,9 @@ Right, Home and End move the cursor, Ctrl+A and Ctrl+E as Home and End,
 and Up and Down move it between the rows of a cell of several lines,
 keeping across a shorter row the column it was asked for, and past the first row and the last move
 through the cells submitted before, each keeping the
-edits made in it until a submit, an empty cell and one that repeats the
-cell before it never stored. Ctrl+C clears the cell, Ctrl+D closes the
+edits made in it until a submit or Ctrl+C, an empty cell and one that
+repeats the cell before it never stored. Ctrl+C clears the cell and the
+edits kept in the cells before, Ctrl+D closes the
 REPL on an empty cell and does nothing on another, and a character beyond
 the basic plane moves and is erased as one. A paste the terminal hands
 over in several chunks is gathered and lands at the cursor as one, its

@@ -87,7 +87,8 @@ keep the keys, `first`, `last`, `sum`, `avg`, `min`, `max`, `reduce`,
 `count`, `size` and `length` count its entries. `keys` answers the set of
 its keys, `vals` the vector of its values, `entries` the vector of its
 pairs `[key value]` in the order of its entries, the step that makes a
-key data, and `has` whether a key stands [QSPTH#has]. The verbs a vector
+key data, `empty` whether it holds none, by a verb of its own, and `has`
+whether a key stands [QSPTH#has]. The verbs a vector
 has beyond these, `distinct`, `groupBy`, `flat` and `contains` among
 them, a map does not answer, and a reader asks them of its values by
 `vals` first, `{:a 1} | vals | contains 1` answering `true`.
@@ -111,7 +112,8 @@ plain map of the answers under the same keys; over a set, which the
 `map` of vectors serves, the vector of the images in the one order, its
 answer naming `::any` [QSDSP#answer]. The first error its code answers
 is the answer of the call. A value computed at the call instead of the
-code is refused with the repair.
+code is refused with what it computed as `found`, its page naming the
+tilde [QSQUO#modifier].
 
 ```qlang
 > #[1 2 3] | map ~(mod 2)
@@ -260,9 +262,10 @@ keyword `toKeyword` answers for it [QSCND#convert]: a keyword as it is, a
 string or a number under the keyword of its text, a boolean or null
 under that of its literal, a tag name under that of its name, and without
 a key an element is its own. A key of another kind is refused at its
-element under the verb as `…/KeyKindNotTakenError`, its `:expected` the
-kinds a key files under, and two values that file under one keyword meet,
-the second refused as `KeyTakenError`, its `:key` the keyword and
+element under the verb as `…/KeyAnswerKindNotTakenError`, its `:expected`
+the kinds a key files under, a key that is no code refused under the input
+as `…/KeyKindNotTakenError`, and two values that file under one keyword
+meet, the second refused as `KeyTakenError`, `key | answer` the keyword and
 `:taken` the value that filed under it first, the path of the step's
 frame naming the element in each [QSERR#trace].
 

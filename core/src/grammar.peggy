@@ -393,6 +393,7 @@ Pipeline
     { return taken(); }
   / &(LeadingCombinator __ Combinator) first:LeadingCombinator __ second:Combinator
     { refuseCombinatorAfterCombinator(first, second); }
+  / c:LeadingCombinator _ !. &{ options.stepMissed = c; return false; }
 
 // The `!"~"` lookahead keeps the openers of a comment `|~`, `|~|`, `|~~`,
 // `|~~|` from reading as a pipe; a pipe written before `!|` stands for it
@@ -421,7 +422,14 @@ ContinuationUnit
   / __ DeclarationInTheQuery
   / __ c:Combinator __ step:PipelineStep { return { combinator: c, step }; }
   / __ c:PipedCombinator __ step:PipelineStep { return { combinator: c, step }; }
+  / StepMissedAtTheEnd
   / SpacingRefusal
+
+// A combinator the source ends with, comments after it read as whitespace,
+// misses its step: the parser keeps it for the refusal of the source, which
+// names it beside the continuations [QSSYN#refusal].
+StepMissedAtTheEnd
+  = __ c:(PipedCombinator / Combinator) _ !. &{ options.stepMissed = c; return false; }
 
 // A pipe written before `!|`, the habit of a pipe before every step,
 // stands for it [QSERR#catch].
@@ -593,10 +601,13 @@ DotAlone
 
 // A path written before a word, the method call of other languages,
 // `/ne ""`, or the read of a part before a word, `/tags count`: a part is
-// read by `get`, and a verb is called by its name alone.
+// read by `get`, and a verb is called by its name alone, which a path of
+// one name may have meant.
 PathBeforeWord
   = "/" name:KeywordName &(_h1 !Combinator !"!|" Word) _h1 next:$Word
     { error(`\`/${name}\` is a path, a value: a part is read by \`get\`, \`get /${name} | ${next}\`, and a verb is called by its name alone, \`${name} ${next}\``); }
+  / path:$("/" KeySegment)+ &(_h1 !Combinator !"!|" Word) _h1 next:$Word
+    { error(`\`${path}\` is a path, a value: a part is read by \`get\`, \`get ${path} | ${next}\``); }
 
 // A command's modifiers are words; the first may touch the name when
 // it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
@@ -931,9 +942,9 @@ ErrorLit
 // read as the keywords of their strings; where its entries end, the other
 // spelling is refused, and so is an entry of two values [QSLIT#json], [QSLIT#closed].
 MapLit
-  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &("," _ Keyword) { refuseMixedSpellings(); })
+  = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &(("," _)? Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
-  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
     { return entriesRead(map => map, [head, ...tail]); }
   / "{" _ "}"
     { return part(new Map()); }
@@ -1075,7 +1086,8 @@ BooleanLit
 NullLit
   = "null" !IdentTail { return part(null); }
 
-// `:name` and `:"any text"` read as the same keyword.
+// A keyword is a name or any text in quotes after `:`, a bare name in
+// quotes that name, `:"name"` the keyword `:name` [QSLIT#keyword].
 Keyword
   = ":" name:QuotedKeywordName  { return part(makeKeyword(name)); }
   / ":" name:NamespacedName     { return part(makeKeyword(name)); }
@@ -1102,9 +1114,15 @@ ReservedWord
 
 // The letters of a name, `core/src/name-chars.mjs` [QSNAM#letters].
 IdentStart "name"
-  = c:. &{ return isNameStart(c); } { return c; }
+  = c:CodePoint &{ return isNameStart(c); } { return c; }
 IdentTail  "letters of a name"
-  = c:. &{ return isNameContinue(c); } { return c; }
+  = c:CodePoint &{ return isNameContinue(c); } { return c; }
+
+// A character of a name is a code point, a letter past the first plane of
+// Unicode two code units [QSNAM#letters].
+CodePoint
+  = $([\uD800-\uDBFF] [\uDC00-\uDFFF])
+  / .
 
 // ── Whitespace ─────────────────────────────────────────────────────
 //

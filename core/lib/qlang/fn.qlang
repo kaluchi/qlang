@@ -413,8 +413,10 @@
         ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the input, a
-            keyword its recipe reads as a step, of one segment, neither `answer`
-            nor `subject`, which the chain lays itself, nor a word of a literal;
+            keyword its recipe reads as a step, of one segment, none of the
+            names every verdict holds, `subject`, `surplus`, `answer`, `repair`
+            and `trace`, nor `args` where the recipe is code, nor a word of a
+            literal;
             its page, a doc; its selector over the args, a path or a quote;
             and its kinds, a tag or a set of one tag or more, or a vector of one
             of them for the kinds of each element, any value where none is
@@ -581,8 +583,8 @@
 :fn/throws
   |~~ Names a refusal of a function, its page and its own facts,
       `::fn | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number)`,
-      under the subject, an input or the answer where it is written with a
-      path, the page of the refusal the kinds of an input name among them;
+      by a name of one segment, a path in it refused as a command not
+      taken, the page of the refusal the kinds of an input name among them;
       under a label it is a refusal of the verb. A refusal of a verb is the
       verdict of the verb, an `::error` whose kind wires each slot of the
       verb, the subject, each input, the args past the inputs as
@@ -605,8 +607,7 @@
         ::tag
     | takes :modifiers
         |~~ The modifiers of the command as written: the name of the refusal, a
-            keyword read as a tag, under the subject, an input or the answer
-            where it is written with a path; its page, a doc; and the kind of
+            keyword of one segment read as a tag; its page, a doc; and the kind of
             its facts, a quote of `wires` or the tag of the refusal whose kind
             it shares, none where it holds its trace alone.
         ~~|

@@ -35,7 +35,7 @@ function literalWritten(text, isOfKind) {
   return start.offset === 0 && end.offset === text.length ? quote[0] : null;
 }
 
-const numberWritten = text => literalWritten(text, step => typeof step === 'number');
+export const numberWritten = text => literalWritten(text, step => typeof step === 'number');
 
 const StringToNumberTextNotNumberError = declareRefusal('string/toNumber/TextNotNumberError');
 const KeywordToNumberNameNotNumberError = declareRefusal('keyword/toNumber/NameNotNumberError');

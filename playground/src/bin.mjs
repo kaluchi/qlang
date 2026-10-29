@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // [QSGAT#hosts]
 
 import { main } from './main.mjs';

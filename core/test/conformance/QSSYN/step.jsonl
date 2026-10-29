@@ -1,8 +1,8 @@
-{"name":"a-path-written-as-a-later-step-is-refused","query":"\"{:a 1} | /a\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-literal-written-as-a-later-step-is-refused","query":"\"5 | [1 2]\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-tag-written-as-a-later-step-is-refused","query":"\"[7 8] | ::Inner\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-quote-written-as-a-later-step-is-refused","query":"\"5 | ~(add 1)\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-doc-written-as-a-later-step-is-refused","query":"\"5 | |~~ note ~~|\" | parse !| tag","expect":"::quote/ParseError"}
+{"name":"a-path-written-as-a-later-step-is-refused","query":"\"{:a 1} | /a\" | parse !| message","expect":"\"a path is a value, which the verb that takes it reads: write `get /a`\""}
+{"name":"a-literal-written-as-a-later-step-is-refused","query":"\"5 | [1 2]\" | parse !| message","expect":"\"a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`\""}
+{"name":"a-tag-written-as-a-later-step-is-refused","query":"\"[7 8] | ::Inner\" | parse !| message","expect":"\"a tag goes over the value in the pipe by `tag`: write `tag ::Inner`\""}
+{"name":"a-quote-written-as-a-later-step-is-refused","query":"\"5 | ~(add 1)\" | parse !| message","expect":"\"code runs on the value in the pipe by `apply`: write `apply ~(…)`\""}
+{"name":"a-doc-written-as-a-later-step-is-refused","query":"\"5 | |~~ note ~~|\" | parse !| message","expect":"\"a step is a command: a value stands at the head, where it is the subject, or as what a verb takes\""}
 {"name":"the-quote-of-a-lone-path-is-refused","query":"\"[{:n 1}] | map ~(/n)\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"the-short-quote-of-a-path-is-refused","query":"\"[{:n 1}] | map ~/n\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-path-written-after-the-catch-is-refused","query":"\"!{:k 1} | raise !| /k\" | parse !| tag","expect":"::quote/ParseError"}
@@ -31,3 +31,6 @@
 {"name":"a-pipe-after-a-declaration-is-refused-naming-the-semicolon","query":"\":double ~(mul 2) | 5 | double\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-declaration-after-the-first-step-of-the-query-is-refused","query":"\"[1 2] | :x 1 | x\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-declaration-after-a-chain-no-semicolon-ended-is-refused-naming-it","query":"\":Box |~~ B ~~| ::kind | accepts |~~ x ~~|\\n:Box/w |~~ W ~~| ~(1)\" | parse !| tag","expect":"::quote/ParseError"}
+{"name":"a-catch-among-the-declarations-of-a-text-is-refused","query":"\":a 1 !| :b 2\" | parse !| message","expect":"\"a failure of a declaration is the failure of its text, which no `!|` of the text catches: a declaration ends with `;`, and a failure of the text is caught where the text is read, `~(…) | answer !| …`\""}
+{"name":"a-tagged-literal-written-as-a-later-step-names-get","query":"\"5 | ::Box#5\" | parse !| message","expect":"\"a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`\""}
+{"name":"a-path-of-several-segments-before-a-word-names-the-read-of-its-part","query":"[\"{:a {:tags [1]}} | /a/tags count\" \"{:a 1} | /\\\"a\\\" count\"] | map ~(parse !| message)","expect":"[\"`/a/tags` is a path, a value: a part is read by `get`, `get /a/tags | count`\" \"`/\\\"a\\\"` is a path, a value: a part is read by `get`, `get /\\\"a\\\" | count`\"]"}

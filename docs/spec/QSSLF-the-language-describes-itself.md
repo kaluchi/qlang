@@ -43,7 +43,9 @@ the laws of the name its subject reads, takes no anchor, refusing one as
 
 A tag nothing declares whose last name ends in `Error` reads the record
 of the address before it, the call of a function, `::fn/call`, among them
-[QSBLD#fn]; any other name nothing declares is refused
+[QSBLD#fn]; the tag of a role of a verb, which closes the slot of its
+verdict, reads the record of its role, its input or the role every verb
+holds, `::fn/subject` [QSERR#site]; any other name nothing declares is refused
 under the axis that read it, `::any/doc/UnknownNameError`, named by the
 tag asked, with the addresses where the verbs of its last name live and
 the names near it, and so is an anchor no node answers, named by the
@@ -55,8 +57,11 @@ of the kinds of an input, a field or a payload the page of that part, and every 
 its page with its repair. The page of a refusal says what failed, which
 fact or which path of the frame names the culprit and how the call is
 repaired, and the laws of a refusal a query can meet hold the recovery
-through `!|`, a defect of the runtime and a failure inside a primitive a
-host hands, which no query of the language raises, holding none. A map is
+through `!|`, a defect of the runtime, a failure inside a primitive a
+host hands and the refusal of an answer past the budget, which no query
+of the language raises, holding none, as the kind the refusals of the
+axes share and a refusal no query meets, the kinds of the parts of a
+point and of a span its elements guard first. A map is
 read by its kind whatever its fields hold, `{:kind ::set} | doc` the
 page of maps, and a label may declare a `doc` of its own, which its
 values answer before the verb of every value. A reader adds an axis of
@@ -320,7 +325,7 @@ true
 
 ## catalog
 
-A verb enters the catalog when it expresses what was inexpressible over the
+The catalog holds a verb that expresses what was inexpressible over the
 values the language has, or shortens what every host would otherwise write;
 the verbs and the nouns of a domain belong to its host. The core carries the
 working set a shell would supply to every host, one with no shell around
@@ -336,8 +341,8 @@ verb that answers what the habit expects, as `distinct` stands beside
 `length` beside `count`: a function under the same label whose recipe calls
 the verb, its page naming the verb, so the fact keeps one spelling and the
 name is another road to it. Where the habit expects another answer or
-another call, the name is a verb of its own, as `concat` is, or none, since
-a name that answers otherwise than the habit expects fails in silence.
+another call, the name is a verb of its own, as `concat` is, or none, no
+name answering otherwise than the habit expects.
 
 The catalog is the reference of the language, and its pages follow one
 form. A page is prose about the name it is declared with: what the name

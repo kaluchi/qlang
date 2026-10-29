@@ -23,7 +23,7 @@
 {"name":"a-json-array-holds-values-of-several-kinds","query":"[1, \"two\", true, null, 3.14]","expect":"[1 \"two\" true null 3.14]"}
 {"name":"json-object-reads-as-a-map","query":"{\"a\": 1} | tag","expect":"::map"}
 {"name":"json-object-keys-are-keywords","query":"{\"a\": 1, \"b\": 2} | keys","expect":"#[:a :b]"}
-{"name":"json-object-key-that-is-no-identifier-reads-quoted","query":"{\"a b\": 1} | keys","expect":"#[:\"a b\"]"}
+{"decision":"D481","name":"json-object-key-that-is-no-bare-name-reads-quoted","query":"{\"a b\": 1} | keys","expect":"#[:\"a b\"]"}
 {"name":"json-literal-prints-as-the-map-it-is","query":"{\"a\": [1, 2]} | eq {:a [1 2]}","expect":"true"}
 {"name":"a-map-with-a-key-named-type-is-a-map","query":"{\"type\": \"quote\", \"source\": \"hi\"} | tag","expect":"::map"}
 {"name":"a-map-with-a-key-named-error-is-no-failure","query":"{\"type\": \"error\"} | ok !| false","expect":"true"}
@@ -31,3 +31,4 @@
 {"name":"a-map-that-writes-its-keys-both-ways-names-the-two","query":"\"{:a 1 \\\"b\\\": 2}\" | parse !| message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}
 {"name":"a-comma-written-twice-or-last-or-missing-is-refused","query":"[\"[1,,2]\" \"[1,]\" \"{\\\"a\\\": 1 \\\"b\\\": 2}\" \"{:a 1, :b 2}\" \"#[1, 2]\"] | map ~(parse !| tag)","expect":"[::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError ::quote/ParseError]"}
 {"name":"a-json-map-that-goes-on-with-a-keyword-key-names-the-two-spellings","query":"\"{\\\"a\\\": 1, :b 2}\" | parse !| message","expect":"\"a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\\\"a\\\": 1, \\\"b\\\": 2}`\""}
+{"decision":"D481","name":"a-map-that-writes-its-keys-both-ways-is-refused-in-every-order","query":"[\"{\\\"a\\\": 1 :b 2}\" \"{:a 1, \\\"b\\\": 2}\" \"{:a 1 \\\"b\\\": 2}\" \"{\\\"a\\\": 1, :b 2}\"] | map ~(parse !| message | startsWith \"a map writes its keys one way\")","expect":"[true true true true]"}

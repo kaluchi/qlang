@@ -166,3 +166,10 @@ it('refuses the names the cut of a value to a budget once had', () => {
 it('leaves the excerpt, the concentrate of a failure and the words beside the cut', () => {
   for (const text of ['excerpt', '::excerpt', 'x | excerpt 4000', 'the concentrate of a failure', 'an ellipsis on each side', 'delight', 'the alert of a failure']) expect(refused(text), text).toBe(false);
 });
+it('refuses the names the tag of a value, the facts of a refusal and the page of a value once had', () => {
+  for (const text of ['typeOf(value)', ':actualType', 'leftType', 'rightType', '`explain`', 'x | explain', 'any/explain', '::explanation', ':actualTag', 'actualValue', 'refusingTheSubject']) expect(refused(text), text).toBe(true);
+});
+
+it('leaves the tag of a value, the tags two values part at, the page and the value a rule met', () => {
+  for (const text of ['tagOf(value)', ':leftTag', ':rightTag', 'x | doc', 'found | tag', 'the subject refused']) expect(refused(text), text).toBe(false);
+});

@@ -176,7 +176,7 @@ describe('assembling steps by hand', () => {
     expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
     expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
     expect(await messageOf('get [~(~(count) | tag ::group)]')).toContain('write `get [~(count)]`');
-    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get {:a ~(count)} | tag ::Foo | raise`');
+    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a ~(count)} | tag ::Foo | raise`');
   });
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {

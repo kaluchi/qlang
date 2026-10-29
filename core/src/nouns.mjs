@@ -350,6 +350,13 @@ export function ruleRefusalsOf(scope, address) {
 }
 
 // [QSBLD#fn]
+export function invariantNamedByARule(fn, address, labelName) {
+  const chain = chainOfFn(fn);
+  const rules = functionRulesOf(chain, address, labelName);
+  return chain.invariants.find(({ name }) => rules.has(`${address}/${name}`))?.name ?? null;
+}
+
+// [QSBLD#fn]
 export function kindsSharedBy(scope, address) {
   const value = bindingValueOf(nodeOf(scope, address));
   return [...(isKind(value) ? chainOfKind(value) : chainOfFn(isFn(value) ? value : functionOfRecipe(value))).kindsShared.values()];
@@ -456,6 +463,11 @@ function closingKindAt(scope, tagName) {
 
 // [QSERR#site]
 const SLOTS_OF_EVERY_VERB = new Set([SUBJECT_NAME, SURPLUS_NAME, ANSWER_NAME]);
+
+// [QSERR#site], [QSSLF#axis]
+export const nodeOfARole = (scope, address) => (isSlotOfAVerb(scope, address) ? nodeOf(scope, `fn/${splitAddress(address)[1]}`) ?? nodeOf(scope, SLOT_KIND_ADDRESS) : null);
+
+export const refusalsAddressOf = (scope, tagName) => (isSlotOfAVerb(scope, tagName) ? SLOT_KIND_ADDRESS : tagName);
 
 function isSlotOfAVerb(scope, address) {
   const [holder, name] = splitAddress(address);

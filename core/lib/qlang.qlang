@@ -105,8 +105,9 @@
       is gone. `with` names the parts of its subject for the code of one
       step, which reads each by its bare word:
       `{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)`
-      answers `6`. A text is its declarations, each ended by `;`, and the
-      query after them: a declaration, `:name body;`, adds a word to the
+      answers `6`. A text is its declarations, each ended by `;`, the last
+      one by the end of a text that holds no query, and the query after
+      them: a declaration, `:name body;`, adds a name to the
       scope of the text, its body computed with no subject, and the query
       reads it. Code declared under the label of the values it serves is
       a verb the name calls, `:number/double ~(mul 2); 5 | double`
@@ -158,7 +159,7 @@
       holds a failure, so a template whose quote fails answers the
       failure, while an error at rest, written `!{:code 404}`, sits anywhere
       and `raise` raises it. A failure carries its facts and its trace,
-      a frame for each step it passed, the subject the step met and the
+      a frame for each step that raised it or handed it on, the subject the step met and the
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
       as an alert, the concentrate of its facts: each fact whole within
       three hundred characters and past them as the ::cell its host keeps
@@ -506,7 +507,8 @@
             one step, and steps in parentheses run on the value in the
             pipe and answer what their last step answers. A text, a query,
             a source, a cell and the code of a quote or of a group, is its
-            declarations, each ended by `;`, and one query after them,
+            declarations, each ended by `;`, the last one by the end of a
+            text that holds no query, and one query after them,
             `:rate 2; [1 2] | map ~(mul rate)`: the declarations run
             first, each with no subject, and the query asks for the
             answer, so one query asks several things by a template,
@@ -782,7 +784,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | answer | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| get [~(tag) ~(predicate | expected)] | eq [::vec/filter/ConditionKindNotTakenError #[::boolean]])
+        ~([1 2] | filter ~(1) !| get [~(tag) ~(predicate | expected)] | eq [::vec/filter/PredicateAnswerKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)
@@ -806,11 +808,10 @@
         |~~ A value put under a kind keeps the kind's invariants. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#-3 !| tag | eq ::Pos/NotPositiveError)
     | tells :errors
-        |~~ Errors. A failure does not throw: a step that fails answers an
-            error, a value that carries the facts of the failure, the trace
-            it left and the tag of the site that refused, which names the
-            page of its procedure. A reader learning a tool fails often,
-            and the failure is where what it needs is cheapest to give.
+        |~~ Errors. A step that fails answers an error, a value that
+            carries the facts of the failure, the trace it left and the tag
+            of the site that refused, which names the page of its
+            procedure and the repair the failure gives where it is met.
             Rests on values, the pipeline and verbs; the hypertext holds
             the pages the sites name.
             ::link~(::error) ::link~(::fail)
@@ -823,9 +824,9 @@
             failure where it is read. No value holds a failure: a template
             whose quote fails, a literal whose constructor refuses its
             payload and a name whose body fails answer the failure. The
-            facts name what refused and hold the value refused, but where
-            the step refused its subject, which the first frame of the
-            trace holds, and `doc` reads the page of the site. The trace is
+            facts name what refused and hold the value refused, the subject
+            a step refused among them under `subject`, and `doc` reads the
+            page of the site. The trace is
             written as the failure flies: a frame for each level it left,
             the subject its step met and the steps from the one that
             failed, the last frame holding the steps skipped at the level

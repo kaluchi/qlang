@@ -4,7 +4,7 @@
 {"name":"a-fold-by-union-from-the-empty-set-unites-the-sets","query":"[#[1] #[2 3]] | reduce #[] ~(union)","expect":"#[1 2 3]"}
 {"name":"a-reducer-lays-a-tag-per-element","query":"[::Foo ::Bar] | reduce 1 ~(tag) | get [~(tag) ~(payload | tag)]","expect":"[::Bar ::Foo]"}
 {"name":"the-short-form-folds-by-a-verb-the-reader-declares","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) ~(it) ~(x))); [3 1 4 1 5] | reduce 0 ~max2","expect":"5"}
-{"name":"reduce-empty-returns-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
+{"decision":"D481","name":"reduce-empty-answers-seed","query":"[] | reduce 42 ~(add)","expect":"42"}
 {"name":"reduce-folds-the-elements-of-a-set","query":"#[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 ~(add)","expect":"6"}
 {"name":"a-fold-runs-a-verb-declared-for-it","query":":number/step (::fn | takes :el |~~ The el. ~~| /0 ::number | impl ~(mul 2 | add el)); [1 2 3] | reduce 0 ~(step)","expect":"11"}

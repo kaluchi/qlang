@@ -80,5 +80,20 @@
         ~(::binding{:name :rate} !| tag | eq ::binding/DocsNotGivenError)
     | proves :NameKindNotTakenError/refusesANameThatIsNoKeyword
         |~~ The name of a binding is a keyword. ~~|
-        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/NameKindNotTakenError);
+        ~(::binding{:name "x" :docs [] :value 1 :source null :origin null} !| tag | eq ::binding/NameKindNotTakenError)
+    | proves :PayloadKindNotTakenError/refusesAVector
+        |~~ The record of a name is a map. ~~|
+        ~(::binding[1] !| tag | eq ::binding/PayloadKindNotTakenError)
+    | proves :DocsKindNotTakenError/refusesANumber
+        |~~ The docs of a binding are a vector. ~~|
+        ~(::binding{:name :a :docs 5 :value 1 :source null :origin null} !| tag | eq ::binding/DocsKindNotTakenError)
+    | proves :DocsElementKindNotTakenError/refusesANumber
+        |~~ Each of the docs of a binding is a doc. ~~|
+        ~(::binding{:name :a :docs [5] :value 1 :source null :origin null} !| tag | eq ::binding/DocsElementKindNotTakenError)
+    | proves :SourceKindNotTakenError/refusesANumber
+        |~~ The source of a binding is a quote or null. ~~|
+        ~(::binding{:name :a :docs [] :value 1 :source 5 :origin null} !| tag | eq ::binding/SourceKindNotTakenError)
+    | proves :OriginKindNotTakenError/refusesANumber
+        |~~ The origin of a binding is a keyword or null. ~~|
+        ~(::binding{:name :a :docs [] :value 1 :source null :origin 5} !| tag | eq ::binding/OriginKindNotTakenError);
 

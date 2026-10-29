@@ -447,7 +447,7 @@
             tags of the map.
         ~~|
         ::map
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for the value of
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
@@ -469,10 +469,10 @@
     | proves :PredicateKindNotTakenError/refusesAPredicateComputedAtTheCall
         |~~ A predicate written without its quote is refused. ~~|
         ~({:tea 4} | filter (gt 3) !| tag | eq ::map/filter/PredicateKindNotTakenError)
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | filter ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/filter/ConditionKindNotTakenError /tea ::number #[::boolean]])
+          |  eq [::map/filter/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
     | impl ::builtin{};
 
 :map/every
@@ -498,7 +498,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `every` answers a boolean for the value of
             each entry; the path of its frame names the entry whose
             predicate answered another kind.
@@ -514,10 +514,10 @@
     | proves :holdsOfTheEmptyMap
         |~~ The empty map holds no value to fail. ~~|
         ~({} | every ~(gt 0))
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | every ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/every/ConditionKindNotTakenError /tea ::number #[::boolean]])
+          |  eq [::map/every/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
     | proves :PredicateKindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.
@@ -548,7 +548,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `any` answers a boolean for the value of each
             entry; the path of its frame names the entry whose predicate
             answered another kind.
@@ -559,10 +559,10 @@
     | proves :failsOfTheEmptyMap
         |~~ The empty map holds no value to pass. ~~|
         ~({} | any ~(gt 0) | not)
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
         ~({:tea 4} | any ~(sub 3) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::map/any/ConditionKindNotTakenError /tea ::number #[::boolean]])
+          |  eq [::map/any/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
     | proves :PredicateKindNotTakenError/refusesCodeComputedAtTheCall
         |~~ A predicate written without its quote is computed at the call
             and refused.

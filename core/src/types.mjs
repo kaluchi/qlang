@@ -321,6 +321,21 @@ export class TagsInCommon {
   }
 }
 
+// [QSCND#compare], [QSORD#desc]
+const kindBeneath = value => {
+  const beneath = beneathTags(value);
+  return isMap(beneath) ? CORE_KIND.map.name : isVec(beneath) && !isVecOfOwnKind(beneath) ? CORE_KIND.vec.name : tagOf(beneath).name;
+};
+
+export function ofTwoKinds(left, right) {
+  const [lefts, rights] = [tagsOver(left), tagsOver(right)];
+  for (let depth = 0; depth < Math.max(lefts.length, rights.length); depth++) {
+    if (lefts[depth] !== rights[depth]) return true;
+    if (lefts[depth] === DESC_TAG.name) return false;
+  }
+  return kindBeneath(left) !== kindBeneath(right);
+}
+
 // [QSDSP#answer], [QSCND#compare]
 export function pairRefused(left, right) {
   const [lefts, rights] = [tagsOver(left), tagsOver(right)];

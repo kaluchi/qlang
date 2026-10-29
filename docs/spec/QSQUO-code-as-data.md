@@ -51,7 +51,7 @@ stands as the value it writes, a regex, the error at rest `!{…}` writes
 and a doc, the quotes of its roles under the tags written before them,
 among them. A declaration stands at the head of its text, before its
 query, and `::fail` in a pipeline alone, so inside a container, a field
-or a payload a step is an element step. The parser reads a text into these
+or a payload a step is a part of a literal. The parser reads a text into these
 records, building each through its constructor, and keeps beside them
 the span of every part it read, which a refusal and the tools
 read.
@@ -60,8 +60,9 @@ Each rule a step holds stands once, in the constructor of the record or
 of `::quote` that holds the step, which `tag ::quote` and the parser both
 go through, refusing under its holder: a value written as a later step on
 the success track as `::quote/StepNotCommandError`, its message naming
-the verb that takes the value, `get` a path and a container, `tag` a tag
-name, `apply` a quote, and any other value 'a step is a command'
+the verb that takes the value, `get` a path, a container and a tagged
+literal, `tag` a tag name, `apply` a quote, and any other value 'a step
+is a command'
 [QSSYN#step], and a declaration after the first step of the query or on
 the fail track so, its message naming the head of the text; a part that
 computes inside a literal [QSLIT#closed], the
@@ -151,7 +152,8 @@ are all declarations, or of several steps one of which takes several
 lines, writes a step a line, each declaration ended by its `;` and each
 step of the query after the first led by its pipe, a step that takes
 several lines written on them, and any other quote
-writes its steps on one line; on one line, as a frame of a trace and a
+writes its steps on one line, a step past eighty characters laid on lines
+as [QSPRN#print] lays it; on one line, as a frame of a trace and a
 cell of a table print it, every quote writes each step and each part of
 it on one line [QSPRN#print]. Every text a quote prints reads back as
 the same quote.
@@ -221,9 +223,11 @@ A verb that runs a part per element, in its own order, or only when the
 part is chosen takes a quote or a path there: `filter ~(gt 1)`,
 `reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
 the condition of `if`, which always runs, is a value. An input that
-takes code takes a quote or a path, a group that computes a quote among
-them, `apply` a function too, and refuses a value computed at the call
-that none of its kinds takes, a failure among it, one level under the
+takes code, one its function runs as code whatever kinds it names among
+them, the alternatives of `coalesce`, takes a quote or a path, beneath
+the tags over it, a group that computes a quote among them, `apply` a
+function too, and refuses a value computed at the call that none of its
+kinds takes, a failure among it, one level under the
 verb by the input's name raised, the value the input's `found`, but for a
 name withheld from held code, whose refusal passes as it is; the page of
 that refusal names the tilde. An input of a value hands the failure of

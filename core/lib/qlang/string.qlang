@@ -478,9 +478,11 @@
     | impl ::builtin{};
 
 :string/trim
-  |~~ Answers the string without the whitespace at its two ends, spaces,
-      tabs, line breaks and the no-break space, so a field cut out of a
-      line compares as the text it holds; the whitespace inside stays. A
+  |~~ Answers the string without the whitespace of Unicode at its two
+      ends, spaces, tabs, line breaks, the no-break space and the byte
+      order mark among it, wider than the whitespace the grammar reads, so
+      a field cut out of a line compares as the text it holds; the
+      whitespace inside stays. A
       string under a tag answers under the tag. A vector of strings trims
       by `map`, `split "," | map ~trim`.
       ::link~(::string/split)
@@ -1082,9 +1084,6 @@
         /0 ::regex
     | throws :RegexKindNotTakenError
         |~~ The regex is a `#"…"` that names its groups, `(?<name>…)`. ~~|
-    | proves :RegexKindNotTakenError/refusesANumber
-        |~~ A number is no regex. ~~|
-        ~("a" | capture 5 !| tag | eq ::string/capture/RegexKindNotTakenError)
     | returns
         |~~ The named groups of the first match, or `null`. ~~|
         #[::map ::null]
@@ -1093,6 +1092,9 @@
             and this regex names none: `match` answers its groups by
             their indices, `match #"(\w+)" | get /1`.
         ~~|
+    | proves :RegexKindNotTakenError/refusesANumber
+        |~~ A number is no regex. ~~|
+        ~("a" | capture 5 !| tag | eq ::string/capture/RegexKindNotTakenError)
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
         ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
@@ -1121,10 +1123,10 @@
         /0 ::regex
     | throws :RegexKindNotTakenError
         |~~ The regex is a `#"…"`; text becomes one by `toRegex`. ~~|
+    | returns |~~ The text of every match, in order. ~~| ::vec
     | proves :RegexKindNotTakenError/refusesANumber
         |~~ A number is no regex. ~~|
         ~("a" | scan 5 !| tag | eq ::string/scan/RegexKindNotTakenError)
-    | returns |~~ The text of every match, in order. ~~| ::vec
     | proves :readsEveryMatch
         |~~ Every match comes, in order. ~~|
         ~("took 12ms, then 7ms" | scan #"\d+" | map ~toNumber | eq [12 7])
@@ -1157,29 +1159,33 @@
         |~~ What is looked for is a `#"…"` or a text; a keyword gives its
             name by `toString`.
         ~~|
-    | proves :NeedleKindNotTakenError/refusesANumber
-        |~~ A needle that is no regex and no string is refused. ~~|
-        ~("a" | replace 5 "b" !| tag | eq ::string/replace/NeedleKindNotTakenError)
     | takes :with
-        |~~ What replaces each match: a string, or code that
-            answers one from the match, a quote or a path.
+        |~~ What replaces each match: a string, a keyword written as its
+            name, or code that answers one from the match, a quote or a
+            path.
         ~~|
-        /1 #[::path ::quote ::string]
+        /1 #[::keyword ::path ::quote ::string]
     | throws :WithKindNotTakenError
-        |~~ The replacement is a string, `replace #"\s+" " "`, or code
+        |~~ The replacement is a string, `replace #"\s+" " "`, a keyword
+            written as its name, or code
             that answers one from the vector of the match,
             `replace #"\d+" ~(get /0 | toNumber | mul 2 | toString)`, a
             path reading a group of it, `replace #"(\d)x" /1`.
         ~~|
-    | proves :WithKindNotTakenError/refusesANumber
-        |~~ A replacement that is no string and no quote is refused. ~~|
-        ~("a" | replace "a" 5 !| tag | eq ::string/replace/WithKindNotTakenError)
     | throws :WithAnswerKindNotTakenError
         |~~ The code of `replace` answers the text that replaces
             a match: a number becomes text by `toString`,
             `~(get /0 | toNumber | mul 2 | toString)`.
         ~~|
     | returns |~~ The text with every match replaced. ~~| ::string
+    | proves :NeedleKindNotTakenError/refusesANumber
+        |~~ A needle that is no regex and no string is refused. ~~|
+        ~("a" | replace 5 "b" !| tag | eq ::string/replace/NeedleKindNotTakenError)
+    | proves :WithKindNotTakenError/refusesANumber
+        |~~ A replacement that is no string, no keyword and no code is
+            refused.
+        ~~|
+        ~("a" | replace "a" 5 !| tag | eq ::string/replace/WithKindNotTakenError)
     | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|
         ~("a  b   c" | replace #"\s+" " " | eq "a b c")
@@ -1238,9 +1244,6 @@
         ~(query /0 null) #[::null ::string]
     | throws :FlagsKindNotTakenError
         |~~ The flags are written in a string, `toRegex "i"`. ~~|
-    | proves :FlagsKindNotTakenError/refusesANumber
-        |~~ Flags that are no string are refused. ~~|
-        ~("a" | toRegex 5 !| tag | eq ::string/toRegex/FlagsKindNotTakenError)
     | throws :FlagsNotFlagsError
         |~~ The flags are `i` to ignore case, `m` for `^` and `$` at every
             line and `s` for a dot that matches a line break, each written
@@ -1263,6 +1266,9 @@
             regex: the literal reads back by `parse | answer`, its flags
             among it.
         ~~|
+    | proves :FlagsKindNotTakenError/refusesANumber
+        |~~ Flags that are no string are refused. ~~|
+        ~("a" | toRegex 5 !| tag | eq ::string/toRegex/FlagsKindNotTakenError)
     | proves :readsTheSource
         |~~ A string reads as the regex whose source it holds. ~~|
         ~("a1" | contains ("\\d" | toRegex))
@@ -1302,7 +1308,7 @@
   ~~|
   ::fn
     | returns |~~ The path the text writes. ~~| ::path
-    | throws :NotPointerError
+    | throws :TextNotPathError
         |~~ The text writes a path in JSON Pointer's form, a slash before
             each segment, `"/user/name"`, or a fragment of one,
             `"#/user/name"`.
@@ -1313,8 +1319,8 @@
     | proves :readsAFragment
         |~~ The `#` of a fragment before the path is read too. ~~|
         ~("#/components/schemas" | toPath | print | eq "/components/schemas")
-    | proves :NotPointerError/refusesAName
+    | proves :TextNotPathError/refusesAName
         |~~ A text with no slash before it writes no path. ~~|
-        ~("name" | toPath !| tag | eq ::string/toPath/NotPointerError)
+        ~("name" | toPath !| tag | eq ::string/toPath/TextNotPathError)
     | impl ::builtin{};
 

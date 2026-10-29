@@ -112,6 +112,11 @@
         ~~|
         ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
           | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+    | proves :TagClosedError/refusesAPathBeneathAWiredTag
+        |~~ No path reads beneath the tag of a value whose kind wires its
+            parts, which its names read.
+        ~~|
+        ~("x" | add 1 !| trace | first | get [~(get /subject !| tag) ~(subject)] | eq [::path/TagClosedError "x"])
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | tag | eq ::path)

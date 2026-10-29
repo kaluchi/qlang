@@ -585,7 +585,7 @@
             it is computed once at the call and refused.
         ~~|
     | returns |~~ The elements the predicate accepted, in order. ~~| ::vec
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `filter` answers a boolean for each element;
             the path of its frame names the element whose predicate
             answered another kind.
@@ -638,17 +638,17 @@
         ~([{:active true}] | filter (get /active)
           !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/filter/PredicateKindNotTakenError ::path/IndexNotIntegerError])
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | filter ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::vec/filter/ConditionKindNotTakenError /0 ::number #[::boolean]])
-    | proves :ConditionKindNotTakenError/namesTheIndexInTheOneOrderOfASet
+          |  eq [::vec/filter/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
+    | proves :PredicateAnswerKindNotTakenError/namesTheIndexInTheOneOrderOfASet
         |~~ The index a set is refused at counts its one order, not where
             the element was written.
         ~~|
         ~(["two" 1] | toSet | filter ~(if (eq 1) ~(true) ~(it))
           !| get [~(tag) ~(trace | last | path)]
-          |  eq [::vec/filter/ConditionKindNotTakenError /1])
+          |  eq [::vec/filter/PredicateAnswerKindNotTakenError /1])
     | proves :ArgsBeyondInputsError/refusesTwoPredicates
         |~~ Two predicates are refused under the verb. ~~|
         ~([1 2] | filter ~(gt 1) ~(gt 0) !| tag | eq ::vec/filter/ArgsBeyondInputsError)
@@ -682,7 +682,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `every` answers a boolean for each element;
             the path of its frame names the element whose predicate
             answered another kind.
@@ -713,10 +713,10 @@
         ~([1 2 3] | every (count | gt 1)
           !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/every/PredicateKindNotTakenError ::boolean])
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | every ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::vec/every/ConditionKindNotTakenError /0 ::number #[::boolean]])
+          |  eq [::vec/every/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
     | proves :asksASetInItsOneOrder
         |~~ A set asks its number before its string, and the number that
             fails decides, where the vector asks the string first.
@@ -751,7 +751,7 @@
             otherwise.
         ~~|
         ::boolean
-    | throws :ConditionKindNotTakenError
+    | throws :PredicateAnswerKindNotTakenError
         |~~ The predicate of `any` answers a boolean for each element;
             the path of its frame names the element whose predicate
             answered another kind.
@@ -777,10 +777,10 @@
         ~([1 2 3] | any (count | gt 1)
           !| get [~(tag) ~(predicate | found | tag)]
           |  eq [::vec/any/PredicateKindNotTakenError ::boolean])
-    | proves :ConditionKindNotTakenError/refusesANumberAnswer
+    | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
         ~([1 2] | any ~(1) !| get [~(tag) ~(trace | last | path) ~(predicate | answer | tag) ~(predicate | expected)]
-          |  eq [::vec/any/ConditionKindNotTakenError /0 ::number #[::boolean]])
+          |  eq [::vec/any/PredicateAnswerKindNotTakenError /0 ::number #[::boolean]])
     | proves :asksASetInItsOneOrder
         |~~ A set asks its number before its string, and the number that
             holds decides, where the vector asks the string first.
@@ -945,7 +945,7 @@
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds the elements of one
-            value under a key: the second is refused, `:key` naming the
+            value under a key: the second is refused, `key | answer` the
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,
@@ -1058,7 +1058,7 @@
     | throws :KeyTakenError
         |~~ Two values the key answers file under one keyword, `1` and
             `"1"` both under `:"1"`, and a map holds one element of one
-            value under a key: the second is refused, `:key` naming the
+            value under a key: the second is refused, `key | answer` the
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,

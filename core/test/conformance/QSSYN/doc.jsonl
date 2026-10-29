@@ -52,3 +52,4 @@
 {"name":"a-line-a-quote-opens-counts-in-the-indentation-the-lines-share","query":"|~~ a\n      ~(x) b\n    c ~~| | content","expect":"\"a\\n  ~(x) b\\nc\""}
 {"name":"the-line-of-a-closer-counts-in-no-indentation-of-the-prose","query":"|~~ a\n    b\n  ~~| | content","expect":"\"a\\nb\""}
 {"name":"a-doc-built-from-strings-holds-the-prose-a-literal-would","query":"[\" a\n   b \"] | tag ::doc | content","expect":"\"a\\nb\""}
+{"name":"a-doc-written-before-a-declaration-names-the-slot-of-the-declaration","query":"\"|~~ note ~~| :x 42\" | parse !| message","expect":"\"a doc stands in the slot of the declaration it documents: write `:name |~~ … ~~| body`\""}

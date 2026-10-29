@@ -92,9 +92,10 @@
             beneath `:source` under the character where the reading
             stopped, `:location` names that span, its line and column read
             by `line` and `column` of its `start`, `:message` names the habit a form of
-            another language wrote, and where none does `:expected` lists
-            what could stand there and a source cut short names the bracket
-            it left open.
+            another language wrote, the step a combinator misses and what a
+            source cut short left open, a bracket, a string, a quote, a doc
+            or a comment, and beside it `:expected` lists what could stand
+            there where the reading went no further.
             ::link~(::quote) ::link~(::span)
         ~~|
         ~(wires :source

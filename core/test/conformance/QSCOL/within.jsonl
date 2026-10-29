@@ -1,6 +1,6 @@
 {"name":"within-runs-a-verb-under-the-tag","query":"::Box[1 2] | within ~(append 3)","expect":"::Box[1 2 3]"}
 {"name":"within-edits-under-a-tag-and-lays-the-tag-back","query":"#[1 2] | within ~(get [/0 /0 /1])","expect":"#[1 2]"}
 {"name":"a-set-normalizes-an-element-appended-within-it","query":"#[1 2] | within ~(append 1)","expect":"#[1 2]"}
-{"name":"within-returns-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | tag","expect":"::Box"}
+{"decision":"D481","name":"within-answers-the-kind-of-its-subject","query":"::Box[1 2] | within ~(reverse) | tag","expect":"::Box"}
 {"name":"within-runs-on-a-value-under-a-tag","query":"5 | within ~(add 1) !| tag","expect":"::tagged/within/SubjectNotTaggedError"}
 {"name":"within-applies-a-path-beneath-the-tags","query":"::Box{:a 1} | within /a","expect":"::Box#1"}

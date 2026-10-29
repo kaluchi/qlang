@@ -99,6 +99,10 @@ describe('whether the command line paints: the flag, FORCE_COLOR, NO_COLOR and a
     expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '1' })).toBe(true);
   });
 
+  it('FORCE_COLOR set to the empty text forces paint, as it holds anything but 0', () => {
+    expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '' })).toBe(true);
+  });
+
   it('FORCE_COLOR=0 falls through to TTY check (not truthy as a flag)', () => {
     expect(resolveShouldColorize('auto', pipeOut, { FORCE_COLOR: '0' })).toBe(false);
     expect(resolveShouldColorize('auto', ttyOut, { FORCE_COLOR: '0' })).toBe(true);

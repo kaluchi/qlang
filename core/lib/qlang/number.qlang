@@ -73,11 +73,7 @@
       `append`; and text that holds a number is read first by
       `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
-      of one record add by `sumOf /price /tax`. Two numbers add beneath the
-      tags they share, a bare one sharing any, `::Width#2 | add 3`
-      answering `::Width#5`, and two under different tags are refused,
-      `::call/KindsMismatchedError`; a sum past the doubles is refused as
-      no number.
+      of one record add by `sumOf /price /tax`.
       ::link~(::number/sub) ::link~(::any/sumOf)
   ~~|
   ::fn

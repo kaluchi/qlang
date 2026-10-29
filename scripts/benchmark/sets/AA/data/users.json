@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@x.com",
+        "active": true,
+        "role": "Admin",
+        "profile": {
+          "country": "DE",
+          "age": 34
+        }
+      },
+      {
+        "id": 2,
+        "name": "Bob",
+        "email": null,
+        "active": true,
+        "role": "editor",
+        "profile": {
+          "country": "de",
+          "age": 28
+        }
+      },
+      {
+        "id": 3,
+        "name": "Carol",
+        "email": "c@x.com",
+        "active": false,
+        "role": "ADMIN",
+        "profile": {
+          "country": "FR",
+          "age": 41
+        }
+      },
+      {
+        "id": 4,
+        "name": "Dan",
+        "email": "d@x.com",
+        "active": true,
+        "role": "viewer"
+      },
+      {
+        "id": 5,
+        "name": "Eve",
+        "email": "e@x.com",
+        "active": true,
+        "role": "Editor",
+        "profile": {
+          "country": null,
+          "age": 23
+        }
+      },
+      {
+        "id": 6,
+        "name": "Frank",
+        "email": "f@x.com",
+        "active": true,
+        "role": "viewer",
+        "profile": {
+          "country": "us",
+          "age": null
+        }
+      },
+      {
+        "id": 7,
+        "name": "Grace",
+        "email": "g@x.com",
+        "active": false,
+        "role": "editor",
+        "profile": {
+          "country": "US",
+          "age": 30
+        }
+      },
+      {
+        "id": 8,
+        "name": "Heidi",
+        "email": "h@x.com",
+        "active": true,
+        "role": "admin",
+        "profile": {
+          "country": "Fr",
+          "age": 52
+        }
+      },
+      {
+        "id": 9,
+        "name": "Ivan",
+        "email": null,
+        "active": false,
+        "role": "viewer",
+        "profile": {
+          "country": "PL"
+        }
+      },
+      {
+        "id": 10,
+        "name": "Judy",
+        "email": "j@x.com",
+        "active": true,
+        "role": "Viewer",
+        "profile": {
+          "country": "pl",
+          "age": 37
+        }
+      }
+    ]
+  }
+}

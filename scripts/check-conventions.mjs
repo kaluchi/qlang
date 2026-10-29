@@ -124,9 +124,10 @@
 //       groups or more; a section a record in transit brings is one a test
 //       file stands at until its closeout [QSREQ#marks].
 //
-//   (22) A comment of the sources and the tests of the core, the streams,
-//       the playground and the language server is a mark alone, one line of the
-//       citations its block holds, or a directive of a tool [QSLEX#code].
+//   (22) A comment of the sources and the tests of the core, its grammar
+//       among them, the streams, the playground and the language server is a
+//       mark alone, one line of the citations its block holds, or a directive
+//       of a tool [QSLEX#code].
 //
 //   (23) No two modules of the project, its `.mjs`, `.js`, `.qlang` and
 //       `.peggy` files, bear one name, a test file and a configuration of
@@ -907,8 +908,9 @@ function testsOffTheirSection() {
 // ── (22) A comment of the code is a mark ───────────────────────
 //
 // A comment of the sources and the tests of the core, the streams, the
-// playground and the language server, read by acorn, is a mark alone, one line of the
-// citations its block holds, or a directive of a tool [QSLEX#code].
+// playground and the language server, read by acorn, and of the grammar,
+// read by peggy, is a mark alone, one line of the citations its block holds,
+// or a directive of a tool [QSLEX#code].
 
 const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'stdio/src', 'playground/src', 'playground/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;
@@ -916,7 +918,7 @@ const MARKS_ALONE = new RegExp(String.raw`^\s*${CITED}(?:,\s*${CITED})*\s*$`);
 const TOOL_DIRECTIVE = /^\s*(?:eslint|global\s|@ts-|istanbul|c8\s|v8 ignore)/;
 
 function commentsThatAreNoMarks() {
-  const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`])], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
+  const files = execFileSync('git', ['ls-files', ...MARKED_SOURCES.flatMap(dir => [`${dir}/*.mjs`, `${dir}/**/*.mjs`]), 'core/src/*.peggy'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean);
   return files.flatMap(file => {
     const text = readText(join(repoRoot, file));
     const shebang = text.startsWith('#!');

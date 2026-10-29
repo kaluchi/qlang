@@ -171,8 +171,11 @@ whitespace wherever whitespace stands: between declarations, between
 steps, between the modifiers of a command, inside a literal and inside a
 quote, and a `;` inside a comment, a doc, a string or a regex is theirs. A `~(`
 inside a block comment reads to the `)` that pairs it, where the source
-holds one, so a closer inside the pair closes nothing. A pipe is
-written beside a comment. A source of whitespace and comments alone is
+holds one, so a closer inside the pair closes nothing. A block comment
+holds the opener of a line comment and the closer of a block doc as its
+text, a block of either form nesting in it, and a block doc holds the
+openers and the closers of a comment as its prose. A pipe is written beside
+a comment. A source of whitespace and comments alone is
 the empty pipeline, which answers the value it is handed and reads as
 the empty quote. Comments live beside the steps and the spans the parser
 keeps, where the tools paint them, so none stands among the steps a
@@ -190,6 +193,9 @@ trace skipped.
 
 > "|~ only a note ~|" | parse | eq ~()
 true
+
+> get [~(5 | |~ x |~| y ~| add 3) ~(5 | |~ x ~~| y ~| add 3) ~(5 | |~ a |~~ b ~~| c ~| add 3) ~(|~~ a ~| b ~~| | content) ~(|~~ a |~| b ~~| | content) ~(|~~ a |~ b ~~| | content)]
+[8 8 8 "a ~| b" "a |~| b" "a |~ b"]
 ```
 
 ## doc

@@ -1,9 +1,0 @@
-id,customer,item,qty,price,status
-1,Acme,widget,10,2.50,paid
-2,Beta,gadget,3,19.99,PAID
-3,Acme,gizmo,1,100.00,cancelled
-4,Cyan,widget,7,2.50,pending
-5,Beta,widget,20,2.45,Paid
-6,Cyan,gizmo,2,99.90,paid
-7,Acme,gadget,5,19.99,pending
-8,Dune,widget,4,2.50,cancelled

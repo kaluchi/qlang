@@ -15,7 +15,7 @@ const commandLine = join(benchDir, '..', '..', 'playground', 'src', 'bin.mjs');
 // The first screen, the pages of the language and of the playground as the
 // tree prints them, trimmed [QSMSR#benchmark].
 export function firstScreen() {
-  return execFileSync(process.execPath, [commandLine, '[::qlang ::host] | map ~(get [~(it) ~(doc)])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
+  return execFileSync(process.execPath, [commandLine, '[::qlang ::host] | map ~(get [~it ~doc])'], { input: '', encoding: 'utf8', env: pipeEnv }).trim();
 }
 
 // A saved screen as the tree printed it, its line breaks those of the print

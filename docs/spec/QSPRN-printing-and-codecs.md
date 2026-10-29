@@ -284,7 +284,7 @@ $ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::ce
 Every host but the REPL prints an answer within one budget,
 `ANSWER_BUDGET` of the core, the characters of the print counted as
 `count` counts a string, which is never smaller than the first screen,
-`[::qlang ::host] | map ~(get [~(it) ~(doc)])`: an answer that fits
+`[::qlang ::host] | map ~(get [~it ~doc])`: an answer that fits
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` instead, under the line of the raise,
 whose facts are `:characters`, the characters of the print, `:budget`,

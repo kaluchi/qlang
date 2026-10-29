@@ -1,0 +1,137 @@
+[
+  {
+    "id": "AA1",
+    "data": "users.json",
+    "text": "In users.json, count the users in data.users who are active (active is true) and whose role equals \"admin\" or \"editor\", compared case-insensitively. Return a single number.",
+    "expected": 4
+  },
+  {
+    "id": "AA2",
+    "data": "users.json",
+    "text": "In users.json, take profile.country of every user in data.users. Skip users with no profile or a null country. Lowercase the values, remove duplicates and return an array of strings sorted alphabetically (ascending).",
+    "expected": [
+      "de",
+      "fr",
+      "pl",
+      "us"
+    ]
+  },
+  {
+    "id": "AA3",
+    "data": "users.json",
+    "text": "In users.json, compute the average of profile.age over users in data.users that are active (active is true) and have a numeric profile.age (ignore users with missing profile, missing age or null age). Round to 1 decimal place. Return a single number.",
+    "expected": 34.8
+  },
+  {
+    "id": "AA4",
+    "data": "orders.json",
+    "text": "In orders.json, for orders whose status equals \"paid\" (case-insensitive), sum qty * price over all their items. Orders with an empty items list contribute 0. Round the total to 2 decimal places. Return a single number.",
+    "expected": 225.74
+  },
+  {
+    "id": "AA5",
+    "data": "orders.json",
+    "text": "In orders.json, ignore orders whose status is \"cancelled\" (case-insensitive). Count the remaining orders per customer. Return an object whose keys are customer values exactly as given and whose values are the order counts.",
+    "expected": {
+      "acme": 2,
+      "globex": 2,
+      "initech": 2
+    }
+  },
+  {
+    "id": "AA6",
+    "data": "orders.json",
+    "text": "In orders.json, ignore orders whose status is \"cancelled\" (case-insensitive). For each customer sum qty * price over all items of their remaining orders, rounded to 2 decimal places. Return the top 2 customers as an array of objects {\"customer\": string, \"total\": number}, sorted by total descending.",
+    "expected": [
+      {
+        "customer": "initech",
+        "total": 117.09
+      },
+      {
+        "customer": "acme",
+        "total": 104.25
+      }
+    ]
+  },
+  {
+    "id": "AA7",
+    "data": "package.json",
+    "text": "In package.json, consider both \"dependencies\" and \"devDependencies\" together. Return the names of the packages whose version string starts with \"^\", as an array of strings sorted alphabetically (ascending).",
+    "expected": [
+      "axios",
+      "chalk",
+      "eslint",
+      "express",
+      "jest"
+    ]
+  },
+  {
+    "id": "AA8",
+    "data": null,
+    "text": "Given the string \"Red, green ,BLUE,green, red ,yellow, Blue\": split it on commas, trim whitespace from each part, lowercase each part, remove duplicates keeping the first occurrence order, and join the result with \"|\". Return a single string.",
+    "expected": "red|green|blue|yellow"
+  },
+  {
+    "id": "AA9",
+    "data": "issues.json",
+    "text": "In issues.json, consider only issues with state \"open\". Count them by assignee.login; issues whose assignee is null go under the key \"unassigned\". Return an object mapping each key to its count.",
+    "expected": {
+      "ann": 2,
+      "unassigned": 2,
+      "bo": 1,
+      "cy": 1
+    }
+  },
+  {
+    "id": "AA10",
+    "data": "issues.json",
+    "text": "In issues.json, consider only issues with state \"open\". Return the titles of the 3 issues with the most comments, as an array of strings ordered by comments descending.",
+    "expected": [
+      "Memory leak",
+      "Crash on start",
+      "Export CSV"
+    ]
+  },
+  {
+    "id": "AA11",
+    "data": "issues.json",
+    "text": "In issues.json, return true if every open issue that has the label \"bug\" (case-insensitive match against the strings in labels) has a non-null assignee, otherwise false. Return a single boolean.",
+    "expected": false
+  },
+  {
+    "id": "AA12",
+    "data": "config.json",
+    "text": "In config.json, look at the entries of \"services\". A service is enabled unless its \"enabled\" field is exactly false (a missing or null \"enabled\" counts as enabled). Skip services that have no \"port\". Return an array of strings of the form \"name:port\" for the enabled services, sorted by port ascending.",
+    "expected": [
+      "api:3000",
+      "db:5432",
+      "web:8080",
+      "metrics:9100"
+    ]
+  },
+  {
+    "id": "AA13",
+    "data": "access.log",
+    "text": "access.log has one request per line: timestamp, method, path, status, duration (e.g. \"120ms\"), separated by single spaces. Count requests per path (all methods and statuses). Return the top 2 paths as an array of objects {\"path\": string, \"count\": number}, sorted by count descending, ties broken by path ascending.",
+    "expected": [
+      {
+        "path": "/api/orders",
+        "count": 4
+      },
+      {
+        "path": "/api/users",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "id": "AA14",
+    "data": "sales.csv",
+    "text": "sales.csv is comma-separated text with a header row (region,product,units,price). Skip rows where units or price is empty or units is 0. For the remaining rows, trim the region and lowercase it, and sum units * price per region. Return an object mapping region to its total rounded to 2 decimal places.",
+    "expected": {
+      "north": 44.9,
+      "south": 52.3,
+      "east": 10
+    }
+  }
+]

@@ -13,9 +13,8 @@ export const LITERAL_WORDS = new Set(['true', 'false', 'null']);
 export const isNameStart = character => NAME_START.test(character);
 export const isNameContinue = character => NAME_CONTINUE.test(character);
 
-export function readsAsBareKeyword(name) {
-  return name.split('/').map(segment => [...segment]).every(characters =>
-    characters.length > 0 && isNameStart(characters[0]) && characters.slice(1).every(isNameContinue));
-}
+const BARE_KEYWORD = new RegExp(`^${START}${CONTINUE}*(?:/${START}${CONTINUE}*)*$`, 'u');
+
+export const readsAsBareKeyword = name => BARE_KEYWORD.test(name);
 
 export const readsAsName = name => readsAsBareKeyword(name) && !name.includes('/') && !LITERAL_WORDS.has(name);

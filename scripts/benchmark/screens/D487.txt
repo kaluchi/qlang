@@ -1,0 +1,253 @@
+[
+  [
+    ::qlang
+    |~~ qlang is a pipeline query language over values. A query starts
+      from a subject, the value it is given, and passes it through steps:
+      each step takes the value the step before answered and answers a
+      new one, and the last answer is the answer of the query. No value
+      ever changes. Everything the language handles is a value with
+      a literal that prints and reads back as itself, data, code, prose
+      and failures alike, so the language describes itself in its own
+      values: every name has a page, the pages grow from ::qlang, and a
+      query reads them as it reads any data.
+
+      1. The pipe. `a | b` runs b on the value a answered, its subject:
+      `[3 1 2] | sort | first` answers `1`. Each step is a command, a
+      verb and what it takes, and a value stands where it is the
+      subject, at the head of the query, or as what a verb takes:
+      `get /users | filter /active | sort /age | map /name` reads the
+      users, keeps the active ones, ranks them by age and answers their
+      names. A value written as a later step is refused.
+
+      2. Values. Every value has a kind, named by its tag, which `tag`
+      answers: `[1 2] | tag` answers `::vec`. A value is written as its
+      literal, which opens with the sign of its kind and closes with its
+      pair, and everything between is literal: a literal reads no name and
+      no subject, so it is the value it writes. Numbers, ::number, are
+      finite doubles: `42`, `-1.5`. Strings, ::string: `"text"`.
+      Keywords, ::keyword, are names that stand for themselves: `:name`.
+      Booleans and null: `true`, `false`, `null`. Vectors, ::vec:
+      `[1 2 3]`. Maps, ::map, have keyword keys: `{:id 7 :qty 2}`. Sets,
+      ::set, hold no duplicates and keep one order: `#[3 1 3]` answers
+      `#[1 3]`. A tag written before a literal puts the value under it,
+      `::Box{:width 2}`, a number, a boolean, null or a path touching it
+      by `#`, `::Width#5`: a value is a pair of its tag and its payload,
+      which `payload` reads, `::Box{:width 2} | payload` answering
+      `{:width 2}`, and a tag the value already answers changes nothing,
+      `::number#5` being `5`. JSON is a literal too and pastes into a
+      query as it is, its keys read as keywords: `{"tags": [1, 2]}`
+      answers `{:tags [1 2]}`. A keyword is not its string:
+      `:id | eq "id"` answers `false`, and `toString` and `toKeyword` turn
+      one into the other, `:id | toString` answering `"id"`.
+
+      3. Reading parts. A path, ::path, names a part of a value: `/id` a
+      key, `/0` an element, `/-1` the last, `/user/tags/0` a part at
+      depth. A path is a value and does nothing by itself; the verb that
+      takes it reads it. `get` reads it and refuses a part that is not
+      there: `{:scores [10 20]} | get /scores/-1` answers `20`. `query`
+      reads it softly and answers null where the part is missing, or the
+      default it is given: `{:id 7} | query /age 0` answers `0`.
+      `has /age` asks whether the part is there, and `it` is the value
+      itself.
+
+      4. Commands. A command is a verb and what it takes, separated by
+      spaces: `add 1`, `split ","`, `take 2`, `get /price`. The verb is
+      found through the kind of the subject: `count` counts the elements
+      of a vector and the characters of a string. Every modifier is
+      computed once, at the call, against the subject of the step, and
+      the verb receives the values: `10 | add 3` answers `13`. The
+      subject of a step is what the step before it answered, so in
+      `{:price 4 :qty 3} | get /price | mul (get /qty)` the `/qty` is
+      read from the price, a number with no parts, and the call is
+      refused, `::path/SubjectHasNoPartsError`: two values of one
+      record are read in one step, `get [/price /qty]`, or combined by a
+      verb that reads them, `{:price 4 :qty 3} | mulOf /price /qty`
+      answering `12`. A modifier of more than one word stands in
+      parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
+
+      5. Code. A quote, `~(…)`, is code, and a quote computes to itself,
+      so the verb receives it unrun and runs it where it needs. `map`
+      runs its code on each element, that element its subject:
+      `[1 2 3] | map ~(mul 2)` answers `[2 4 6]`. A path is code too, the
+      code that reads it from each element: `[{:name "Ann"}] | map /name`
+      answers `["Ann"]`. `filter` keeps the elements its code
+      holds of, `[1 2 3] | filter ~(gt 1)` answering `[2 3]`; `groupBy`
+      files the elements under what its code answers, or under
+      themselves, `["yes" "no" "yes"] | groupBy | map ~(count)` answering
+      `{:yes 2 :no 1}`; `reduce` folds the elements into a seed, calling
+      its verb with the value so far as the subject and the element as
+      its first arg, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
+      running any other code on the pair of the two,
+      `[{:qty 1} {:qty 2}] | reduce 0 ~(sumOf /0 /1/qty)` answering `3`.
+      Several steps stand in one quote,
+      `[{:price 3}] | map ~(get /price | mul 2)` answering `[6]`, and
+      `apply` runs its code on the subject itself,
+      `5 | apply ~(add 1 | mul 2)` answering `12`. Without the quote, a
+      group is a modifier computed at the call: in
+      `[{:qty 1}] | map (get /qty)` the `/qty` is read from the vector
+      itself, not from each element, and `map` refuses what it is handed,
+      `::vec/map/CodeKindNotTakenError`.
+
+      6. Building answers. An answer of a new shape is built by `get`
+      over a template, a literal of paths and quotes, each path read and
+      each quote run against the subject:
+      `{:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}`
+      answers `{:who "Ann" :next 31}`, and `{:id 7 :qty 2} | get [/qty /id]`
+      answers `[2 7]`; `query` reads the paths of a template softly. A
+      group or a name written inside a literal is refused, and a value
+      computed goes under a tag by `tag`, `1 | add 2 | tag ::Box`.
+
+      7. Names. A step sees only the value handed to it: after
+      `get /qty |` the subject is a number, and the record it came from
+      is gone. `with` names the parts of its subject for the code of one
+      step, which reads each by its bare word:
+      `{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)`
+      answers `6`. A text is its declarations, each ended by `;`, and the
+      query after them: a declaration, `:name body;`, adds a name to the
+      scope of the text, its body computed with no subject, and the query
+      reads it. Code declared under the label of the values it serves is
+      a verb the name calls, `:number/double ~(mul 2); 5 | double`
+      answering `10`, and `~double` hands it on as code; in the reader's
+      own queries the verb shadows a verb of that name on a broader label,
+      `::any` among them. A value under a bare name is read where a value stands,
+      `:rate 2; [1 2] | map ~(mul rate)` answering `[2 4]`. A name is
+      declared once in a scope, and the names a group or a quote declares
+      stay in it.
+
+      8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
+      `first` and `last` read the elements of a vector, a set or a map.
+      A map's elements are its values, the keys travelling with them:
+      `{:tea 1 :jam 5} | filter ~(gt 2)` answers `{:jam 5}`, and
+      `{:tea 1 :jam 5} | map ~(add 1)` answers `{:tea 2 :jam 6}`. `keys`
+      answers its keys, and `entries` the pairs `[key value]`, which
+      `toMap` builds back into a map. One order ranks every value, so
+      anything sorts: null, then booleans, numbers, strings, keywords,
+      vectors, sets, maps. `desc` turns a key to descend:
+      `sort ~(get [~(get /age | desc) /name])` ranks by age descending,
+      then by name.
+
+      9. Conditions. A condition is a boolean, and nothing else is
+      truthy: `filter` and `if` refuse any other value. `if` takes the
+      condition as a modifier and its two branches as code:
+      `5 | if (gt 0) ~("pos") ~("neg")` answers `"pos"`. Conditions of
+      one value hold together by `allOf` and `anyOf`, whose modifiers
+      are computed at the call, every one of them, so a condition that
+      may fail where an earlier one does not hold is written as a quote
+      that answers it in its turn:
+      `filter ~(allOf (get /email | ne null) ~(get /email | endsWith ".org"))`.
+
+      10. Text. A string splits into a vector and joins back,
+      `"a,b,c" | split "," | join "-"` answering `"a-b-c"`; `lines`
+      breaks text into its lines, and `trim`, `lower`, `upper`,
+      `contains`, `startsWith` and `endsWith` read it. A string is never
+      read as a number behind the reader's back: `toNumber` reads one,
+      `"42" | toNumber | add 1` answering `43`. A regex, `#"…"`, is
+      written as the engine reads it, no backslash doubled, and reads
+      text: `"took 12ms" | match #"(\d+)ms" | get /1` answers `"12"`,
+      and `capture` answers the groups it names as a record.
+
+      11. Failures. A step that fails answers a failure, a value under
+      the tag of what refused: `"x" | add 1 !| tag` answers
+      `::number/add/SubjectNotNumberError`. `|` passes a failure by, and
+      `!|` alone catches it, its step running on the error at rest, a
+      value like any other: `"x" | add 1 !| 0` answers `0`. No value
+      holds a failure, so a template whose quote fails answers the
+      failure, while an error at rest, written `!{:code 404}`, sits anywhere
+      and `raise` raises it. A failure carries its facts and its trace,
+      a frame for each step that raised it or handed it on, the subject the step met and the
+      steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
+      as an alert: a fact past three hundred characters stands as the
+      ::cell its host keeps it in, while `!|` reads each fact
+      whole, `!| subject | found | take 3`. `!| doc` answers the page of what refused, the page saying how to
+      repair the call.
+
+      12. Asking. `::vec | manifest` answers what lies under a kind, its
+      verbs and its refusals, and `map` asks
+      several kinds at once, each beside its own:
+      ::snippet~([::vec ::map ::string ::number ::any] | map ~(get [~(it) ~(manifest)]))
+      lists the verbs most queries use. `::vec/sort | doc` answers the
+      page of a verb, and `::vec/sort | laws` the laws of a verb by
+      name, each a page and a query that answers true; `tag | doc`
+      answers the page of the kind of any value, and `legend` its print
+      with a gloss beside each part. An answer past the budget of its host
+      prints as ::qlang/AnswerBeyondBudgetError, its ::cell read back whole
+      by `answer`; `::host | doc` says where a host prints one whole.
+
+      13. A task. Over
+      `{"users": [{"name": "Ann", "age": 30, "tags": ["new", "vip"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
+      `get /users | filter ~(get /age | gte 18) | map ~(get {:name /name :count ~(get /tags | count)})`
+      answers `[{:name "Ann" :count 2}]`. Look at the data before shaping
+      it, `shape` its structure, the kind at each of its parts, `keys`,
+      `get /0`, `tag`, `count`, and build the query a step at a time,
+      running each.
+
+      14. The chapters, in the order they rest on each other:
+      ::link~(::qlang/values) values, kinds and tags;
+      ::link~(::qlang/pipeline) the steps of a query;
+      ::link~(::qlang/names) names and their records;
+      ::link~(::qlang/verbs) the verbs that live on kinds;
+      ::link~(::qlang/errors) the failure as a value;
+      ::link~(::qlang/code) code as a value;
+      ::link~(::qlang/hypertext) the pages and how to move through
+      them;
+      ::link~(::qlang/hosts) the tool the language runs in and the
+      budget of an answer. ~~|
+  ]
+  [
+    ::host
+    |~~ qplay — a demo command-line app for playing with qlang and checking
+      that its core answers: vanilla qlang-core + qlang-stdio, queried from
+      the shell or in its REPL; the smallest host that embeds the language.
+
+      Usage: `qplay [--color=MODE] [--fail] '<query>'` runs a query,
+      `qplay -i ['<query>']` opens a notebook of cells, the query its first,
+      `qplay -h` prints this page and `qplay -V` the version. The flags
+      stand before the query, one argument the shell quotes whole.
+      `--color=auto`, the default, paints where stdout is a terminal,
+      `always` and `never` whatever it is, and `NO_COLOR=1` and
+      `FORCE_COLOR=1` turn `auto` to never and to always.
+
+      A query runs on what stdin holds. JSON is read as values, an object
+      a map whose keys are keywords, `{"name": "Ann"}` arriving as
+      `{:name "Ann"}`; any other text is one string. A query headed by
+      `::stdio | in` reads the text as it came, JSON text among it, and
+      `::stdio | in | parseJson` reads it as JSON alone. A query that reads no
+      subject, `qplay '::vec | doc'` or `qplay '[1 2] | sum'`, runs at once
+      and reads no stdin. One that reads it with nothing piped, a terminal
+      or `< /dev/null`, runs on the noun of the language, `::qlang`, so
+      `qplay 'doc'` reads the first page; where a shell leaves stdin open,
+      it waits for the end, as every reader of a pipe does.
+
+      The answer is printed as the language prints it, whatever the data
+      was: a map as `{:name "Ann" :tags #["a"]}`, a kind as `::map`. A
+      string goes out as its text, so a query that ends in a conversion
+      writes what the conversion made: `| json` the JSON text of the
+      answer, `| table` a vector of maps drawn as a table, `| print` the
+      literal of the answer, a string in its quotes. A failure prints as
+      its alert, the error at rest `::Tag!{…}`, each fact whole within
+      three hundred characters and past them as the cell the playground
+      keeps it in, beside its tag, its views and its parts,
+      `::Tag::excerpt{…}`, under the line
+      `|~| raised, and no !| caught it` and above the prose of its
+      refusal's page as line comments `|~| …`, which tells how to repair
+      the call, a refused text holding a caret beneath its line, `:marker`
+      under `:source`; `!| json` writes a failure as JSON. Every answer
+      goes to stdout with the exit code 0, a failure among them, a query
+      that does not parse answering `::quote/ParseError`, so calls run side
+      by side never stop each other. A script that tests the code writes
+      `--fail` before the query, `qplay --fail 'get /id' < a.json && next`:
+      a failure exits with 1, written as without it. A defect raised past
+      the fail track goes to stderr as `qplay:` and its message with the
+      code 1, and a call that names no query or a flag the playground takes
+      not goes there with its usage and the code 2.
+
+      Every answer prints within one budget of characters, but in the
+      REPL, which prints it whole, and one past it prints as
+      `::qlang/AnswerBeyondBudgetError`, whose `:budget` names the budget
+      and `:answer` the cell whose `answer` reads the whole later;
+      `print | stdio/out` or `json | stdio/out` writes the whole, through
+      the streams of `::stdio`; `::host | status` shows its screen.
+      ::link~(::stdio) ::link~(::any/json) ::link~(::vec/table)
+      ::link~(::qlang/errors) ::link~(::cell) ::link~(::qlang/hosts) ~~|
+  ]
+]

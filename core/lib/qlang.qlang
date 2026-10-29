@@ -105,16 +105,14 @@
       is gone. `with` names the parts of its subject for the code of one
       step, which reads each by its bare word:
       `{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)`
-      answers `6`. A text is its declarations, each ended by `;`, the last
-      one by the end of a text that holds no query, and the query after
-      them: a declaration, `:name body;`, adds a name to the
+      answers `6`. A text is its declarations, each ended by `;`, and the
+      query after them: a declaration, `:name body;`, adds a name to the
       scope of the text, its body computed with no subject, and the query
       reads it. Code declared under the label of the values it serves is
       a verb the name calls, `:number/double ~(mul 2); 5 | double`
       answering `10`, and `~double` hands it on as code; in the reader's
       own queries the verb shadows a verb of that name on a broader label,
-      `::any` among them, and no verb of the root sees it under a label of
-      the root. A value under a bare name is read where a value stands,
+      `::any` among them. A value under a bare name is read where a value stands,
       `:rate 2; [1 2] | map ~(mul rate)` answering `[2 4]`. A name is
       declared once in a scope, and the names a group or a quote declares
       stay in it.
@@ -161,26 +159,22 @@
       and `raise` raises it. A failure carries its facts and its trace,
       a frame for each step that raised it or handed it on, the subject the step met and the
       steps from the one that failed, `::frame["x" ~(add 1)]`, and prints
-      as an alert, the concentrate of its facts: each fact whole within
-      three hundred characters and past them as the ::cell its host keeps
-      it in, beside its tag, its views and its parts, while `!|` reads each fact
+      as an alert: a fact past three hundred characters stands as the
+      ::cell its host keeps it in, while `!|` reads each fact
       whole, `!| subject | found | take 3`. `!| doc` answers the page of what refused, the page saying how to
       repair the call.
 
       12. Asking. `::vec | manifest` answers what lies under a kind, its
-      verbs, its refusals and the roles of its chain, and `map` asks
+      verbs and its refusals, and `map` asks
       several kinds at once, each beside its own:
-      ::snippet~([::vec ::map ::string ::number ::any] | map ~(get [~(it) ~(manifest)]))
+      ::snippet~([::vec ::map ::string ::number ::any] | map ~(get [~it ~manifest]))
       lists the verbs most queries use. `::vec/sort | doc` answers the
       page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `tag | doc`
       answers the page of the kind of any value, and `legend` its print
-      with the gloss of each part, a tag name the parts of its kind.
-      An answer prints within the budget of every answer, but where the
-      page of the host, `::host | doc`, says it prints one whole; one past
-      it prints as
-      ::qlang/AnswerBeyondBudgetError, its answer the ::cell that keeps
-      it, whose `answer` reads it back whole.
+      with a gloss beside each part. An answer past the budget of its host
+      prints as ::qlang/AnswerBeyondBudgetError, its ::cell read back whole
+      by `answer`; `::host | doc` says where a host prints one whole.
 
       13. A task. Over
       `{"users": [{"name": "Ann", "age": 30, "tags": ["new", "vip"]}, {"name": "Bo", "age": 15, "tags": []}]}`,

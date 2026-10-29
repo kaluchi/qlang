@@ -1,0 +1,227 @@
+{
+ "set": "AA",
+ "decision": "D487",
+ "screen": "D487",
+ "screenHash": "52bc17b04c35",
+ "mode": "cli",
+ "model": "sonnet",
+ "run": 2,
+ "date": "2026-10-29",
+ "commit": "e44d7c8d",
+ "reason": null,
+ "environment": {
+  "MSYS_NO_PATHCONV": "1",
+  "CLAUDE_CODE_EFFORT_LEVEL": "medium"
+ },
+ "modelId": "claude-sonnet-5-5",
+ "result": "I ran all 14 queries against the data files, and each gave a plausible answer. I didn't check every answer against the raw files, apart from AA11 (false, since issue 108 is an open bug with no assignee).\n\n- **AA6:** the customers print as strings.\n- **AA5, AA9 and AA14:** the object keys print as keywords, because qlang maps only take keyword keys.\n- **AA12:** the answer is `[\"api:3000\" \"db:5432\" \"web:8080\" \"metrics:9100\"]`.\n- **AA13:** `/api/orders` and `/api/users` tie at 4 requests each.\n\nAA1: get /data/users | filter ~(allOf (get /active | eq true) ~(get /role | lower | anyOf (eq \"admin\") (eq \"editor\"))) | count\nAA2: get /data/users | map ~(query /profile/country null) | filter ~(ne null) | map ~(lower) | toSet | sort\nAA3: get /data/users | filter ~(get /active | eq true) | map ~(query /profile/age null) | filter ~(ne null) | avg | round 1\nAA4: filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2\nAA5: filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(count)\nAA6: filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get /total | desc) | take 2\nAA7: get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort\nAA8: \"Red, green ,BLUE,green, red ,yellow, Blue\" | split \",\" | map ~(trim | lower) | distinct | join \"|\"\nAA9: filter ~(get /state | eq \"open\") | groupBy ~(query /assignee/login \"unassigned\") | map ~(count)\nAA10: filter ~(get /state | eq \"open\") | sort ~(get /comments | desc) | take 3 | map /title\nAA11: filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(lower) | contains \"bug\")) | every ~(get /assignee | ne null)\nAA12: get /services | entries | filter ~(allOf (get /1 | has /port) ~(get /1/port | ne null) ~(get /1 | query /enabled null | ne false)) | sort ~(get /1/port) | map ~(get [~(get /0 | toString) ~(get /1/port | toString)] | join \":\")\nAA13: lines | map ~(split \" \") | groupBy /2 | map ~(count) | entries | map ~(get {:path ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /path]) | take 2\nAA14: lines | drop 1 | map ~(split \",\") | filter ~(allOf (get /2 | ne \"\") ~(get /3 | ne \"\") ~(get /2 | toNumber | ne 0)) | groupBy ~(get /0 | trim | lower) | map ~(map ~(mulOf (get /2 | toNumber) (get /3 | toNumber)) | sum | round 2)",
+ "failed": false,
+ "requests": 12,
+ "turns": 14,
+ "inputTokens": 184666,
+ "outputTokens": 3952,
+ "calls": [
+  {
+   "command": "ls; for f in users.json orders.json package.json issues.json config.json; do echo \"== $f\"; head -c 1500 $f; done; echo; head -5 access.log; head -5 sales.csv",
+   "answered": "value",
+   "head": "A variable in this command can't be checked before it runs"
+  },
+  {
+   "command": "ls; head -c 1500 users.json; echo; head -c 1500 orders.json; echo; head -c 1000 package.json",
+   "answered": "value",
+   "head": "access.log config.json issues.json orders.json package.json sales.csv users.json { \"status\": \"ok\", \"data\": { \"users\": [ { \"id\": 1, \"name\": \"Alice\", \"email\": \"alice@x.com\", \"active\": true, \"role\": \"Admin\", \"profile\": { \"country\": \"DE\", \"age\""
+  },
+  {
+   "command": "head -c 1500 issues.json; echo; head -c 1200 config.json; echo; head -5 access.log; head -5 sales.csv",
+   "answered": "value",
+   "head": "[ { \"number\": 101, \"title\": \"Crash on start\", \"state\": \"open\", \"labels\": [ \"bug\", \"P1\" ], \"assignee\": { \"login\": \"ann\" }, \"comments\": 12 }, { \"number\": 102, \"title\": \"Add dark mode\", \"state\": \"open\", \"labels\": [ \"feature\" ], \"assignee\": nul"
+  },
+  {
+   "command": "qplay 'get /data/users | filter ~(allOf (get /active | eq true) ~(get /role | lower | anyOf (eq \"admin\") (eq \"editor\"))) | count' < users.json\nqplay 'get /data/users | map ~(query /profile/country null) | filter ~(ne null) | map ~(lower) | toSet | sort' < users.json\nqplay 'get /data/users | filter ~(get /active | eq true) | map ~(query /profile/age null) | filter ~(ne null) | avg' < users.json\nqplay '::vec | manifest' ",
+   "answered": "value",
+   "head": "4 [\"de\" \"fr\" \"pl\" \"us\"] 34.8 #[::vec/PayloadKindNotTakenError ::vec/any ::vec/append ::vec/avg ::vec/concat ::vec/contains ::vec/count ::vec/distinct ::vec/drop ::vec/empty ::vec/every ::vec/filter ::vec/first ::vec/flat ::vec/flatten ::vec"
+  },
+  {
+   "command": "qplay '::number | manifest'; qplay '::any | manifest'; qplay '::map | manifest'; qplay '::string | manifest'; qplay 'get /data/users | map ~(query /profile/age null) ' < users.json",
+   "answered": "value",
+   "head": "#[::number/NotFiniteError ::number/PayloadKindNotTakenError ::number/abs ::number/add ::number/ceil ::number/div ::number/floor ::number/mod ::number/mul ::number/payload ::number/range ::number/round ::number/sub ::number/toKeyword ::numbe"
+  },
+  {
+   "command": "qplay '::number/round | doc'; qplay '::vec/groupBy | doc'; qplay '::vec/table | doc' | head -5",
+   "answered": "value",
+   "head": "|~~ Answers the subject rounded to the digits after the point the call gives, none when it gives none: `3.14159 | round 2` answers `3.14` and `2.5 | round` answers `3`. A half rounds away from zero, as the digits are written, `1.005 | round"
+  },
+  {
+   "command": "qplay 'get /data/users | filter ~(get /active | eq true) | map ~(query /profile/age null) | filter ~(ne null) | avg | round 1' < users.json\nqplay 'filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2' < orders.json\nqplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(count)' < orders.json\nqplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2) | entries | map ~(get {:customer /0 :total /1}) | sort ~(get /total | des",
+   "answered": "value",
+   "head": "34.8 225.74 { :acme 2 :globex 2 :initech 2 } [{:customer :initech :total 117.09} {:customer :acme :total 104.25}] Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\AA-D487-cli-sonnet-2"
+  },
+  {
+   "command": "qplay 'filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get /total | desc) | take 2' < orders.json\nqplay 'get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort' < package.json\nqplay '\"Red, green ,BLUE,green, red ,yellow, Blue\" | split \",\" | map ~(trim | lower) | distinct | join \"|\"'\nqplay 'filter ~(get /state | eq \"open\") | groupBy ~(query /assignee/lo",
+   "answered": "value",
+   "head": "[{:customer \"initech\" :total 117.09} {:customer \"acme\" :total 104.25}] [\"axios\" \"chalk\" \"eslint\" \"express\" \"jest\"] red|green|blue|yellow { :ann 2 :unassigned 2 :bo 1 :cy 1 } [\"Memory leak\" \"Crash on start\" \"Export CSV\"] false Shell cwd was "
+  },
+  {
+   "command": "cat access.log | tail -n +6; cat sales.csv",
+   "answered": "value",
+   "head": "2026-10-01T10:02:00Z GET /api/orders 500 1200ms 2026-10-01T10:02:30Z GET /api/users 304 12ms 2026-10-01T10:03:00Z GET /health 200 3ms 2026-10-01T10:03:01Z GET /api/orders 200 310ms 2026-10-01T10:03:20Z DELETE /api/users 403 8ms 2026-10-01T1"
+  },
+  {
+   "command": "qplay 'get /services | entries | filter ~(allOf (get /1 | has /port) ~(get /1/port | ne null) ~(get /1 | query /enabled null | ne false)) | sort ~(get /1/port) | map ~(get /0 | toString | append \":\" | append (get /1/port | toString))' < config.json",
+   "answered": "value",
+   "head": "|~| raised, and no !| caught it ::path/SubjectHasNoPartsError::excerpt{ :found \"api:\" :segment 1 :path /1/port :trace ::cell\"b07941f2f587\" :trace/tag ::trace :trace/failed [~(get /1/port) ~(append (get /1/port | toString)) ~(map ~(get /0 | "
+  },
+  {
+   "command": "qplay 'get /services | entries | filter ~(allOf (get /1 | has /port) ~(get /1/port | ne null) ~(get /1 | query /enabled null | ne false)) | sort ~(get /1/port) | map ~(get [~(get /0 | toString) ~(get /1/port | toString)] | join \":\")' < config.json\nqplay 'lines | map ~(split \" \") | groupBy /2 | map ~(count) | entries | map ~(get {:path ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /path]) | take 2' < access.log",
+   "answered": "value",
+   "head": "[\"api:3000\" \"db:5432\" \"web:8080\" \"metrics:9100\"] [{:path \"/api/orders\" :count 4} {:path \"/api/users\" :count 4}] Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\AA-D487-cli-sonnet-2"
+  },
+  {
+   "command": "qplay 'lines | drop 1 | map ~(split \",\") | filter ~(allOf (get /2 | ne \"\") ~(get /3 | ne \"\") ~(get /2 | toNumber | ne 0)) | groupBy ~(get /0 | trim | lower) | map ~(map ~(mulOf /2 /3) | sum | round 2)' < sales.csv",
+   "answered": "value",
+   "head": "|~| raised, and no !| caught it ::any/mulOf/FactorsAnswerKindNotTakenError::excerpt{ :subject/found [\"North\" \"Widget\" \"10\" \"2.50\"] :factors/expected #[::number] :factors/found ::any/mulOf[/2 /3] :factors/answer \"10\" :factors/index 0 :trace "
+  },
+  {
+   "command": "qplay 'lines | drop 1 | map ~(split \",\") | filter ~(allOf (get /2 | ne \"\") ~(get /3 | ne \"\") ~(get /2 | toNumber | ne 0)) | groupBy ~(get /0 | trim | lower) | map ~(map ~(mulOf (get /2 | toNumber) (get /3 | toNumber)) | sum | round 2)' < sales.csv",
+   "answered": "value",
+   "head": "{ :north 44.9 :south 52.3 :east 10 } Shell cwd was reset to C:\\Users\\EugenPC\\AppData\\Local\\Temp\\qlang-benchmark\\children\\AA-D487-cli-sonnet-2"
+  }
+ ],
+ "score": [
+  {
+   "task": "AA1",
+   "query": "get /data/users | filter ~(allOf (get /active | eq true) ~(get /role | lower | anyOf (eq \"admin\") (eq \"editor\"))) | count",
+   "answer": 4,
+   "solved": true
+  },
+  {
+   "task": "AA2",
+   "query": "get /data/users | map ~(query /profile/country null) | filter ~(ne null) | map ~(lower) | toSet | sort",
+   "answer": [
+    "de",
+    "fr",
+    "pl",
+    "us"
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA3",
+   "query": "get /data/users | filter ~(get /active | eq true) | map ~(query /profile/age null) | filter ~(ne null) | avg | round 1",
+   "answer": 34.8,
+   "solved": true
+  },
+  {
+   "task": "AA4",
+   "query": "filter ~(get /status | lower | eq \"paid\") | map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2",
+   "answer": 225.74,
+   "solved": true
+  },
+  {
+   "task": "AA5",
+   "query": "filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(count)",
+   "answer": {
+    "acme": 2,
+    "globex": 2,
+    "initech": 2
+   },
+   "solved": true
+  },
+  {
+   "task": "AA6",
+   "query": "filter ~(get /status | lower | ne \"cancelled\") | groupBy /customer | map ~(map ~(get /items | map ~(mulOf /qty /price) | sum) | sum | round 2) | entries | map ~(get {:customer ~(get /0 | toString) :total /1}) | sort ~(get /total | desc) | take 2",
+   "answer": [
+    {
+     "customer": "initech",
+     "total": 117.09
+    },
+    {
+     "customer": "acme",
+     "total": 104.25
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA7",
+   "query": "get [/dependencies /devDependencies] | map ~(entries) | flat | filter ~(get /1 | startsWith \"^\") | map ~(get /0 | toString) | sort",
+   "answer": [
+    "axios",
+    "chalk",
+    "eslint",
+    "express",
+    "jest"
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA8",
+   "query": "\"Red, green ,BLUE,green, red ,yellow, Blue\" | split \",\" | map ~(trim | lower) | distinct | join \"|\"",
+   "answer": "red|green|blue|yellow",
+   "solved": true
+  },
+  {
+   "task": "AA9",
+   "query": "filter ~(get /state | eq \"open\") | groupBy ~(query /assignee/login \"unassigned\") | map ~(count)",
+   "answer": {
+    "ann": 2,
+    "unassigned": 2,
+    "bo": 1,
+    "cy": 1
+   },
+   "solved": true
+  },
+  {
+   "task": "AA10",
+   "query": "filter ~(get /state | eq \"open\") | sort ~(get /comments | desc) | take 3 | map /title",
+   "answer": [
+    "Memory leak",
+    "Crash on start",
+    "Export CSV"
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA11",
+   "query": "filter ~(allOf (get /state | eq \"open\") ~(get /labels | map ~(lower) | contains \"bug\")) | every ~(get /assignee | ne null)",
+   "answer": false,
+   "solved": true
+  },
+  {
+   "task": "AA12",
+   "query": "get /services | entries | filter ~(allOf (get /1 | has /port) ~(get /1/port | ne null) ~(get /1 | query /enabled null | ne false)) | sort ~(get /1/port) | map ~(get [~(get /0 | toString) ~(get /1/port | toString)] | join \":\")",
+   "answer": [
+    "api:3000",
+    "db:5432",
+    "web:8080",
+    "metrics:9100"
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA13",
+   "query": "lines | map ~(split \" \") | groupBy /2 | map ~(count) | entries | map ~(get {:path ~(get /0 | toString) :count /1}) | sort ~(get [~(get /count | desc) /path]) | take 2",
+   "answer": [
+    {
+     "path": "/api/orders",
+     "count": 4
+    },
+    {
+     "path": "/api/users",
+     "count": 4
+    }
+   ],
+   "solved": true
+  },
+  {
+   "task": "AA14",
+   "query": "lines | drop 1 | map ~(split \",\") | filter ~(allOf (get /2 | ne \"\") ~(get /3 | ne \"\") ~(get /2 | toNumber | ne 0)) | groupBy ~(get /0 | trim | lower) | map ~(map ~(mulOf (get /2 | toNumber) (get /3 | toNumber)) | sum | round 2)",
+   "answer": {
+    "north": 44.9,
+    "south": 52.3,
+    "east": 10
+   },
+   "solved": true
+  }
+ ]
+}

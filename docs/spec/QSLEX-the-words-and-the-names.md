@@ -84,13 +84,13 @@ $ node -e "import('./scripts/grep-ergonomics.mjs').then(m => console.log(m.names
 The code names each thing as the language names it: a tag is a tag,
 `makeTag`, `isTag`, `TagLit`, a step a step, a modifier a modifier. A
 comment of the modules of JavaScript of the core, the streams, the
-playground and the language server, their sources and their tests, is a
-mark alone, the grammar keeping its prose over its rules, one line of the citations of the sections
+playground and the language server, their sources and their tests, and of
+the grammar is a mark alone, one line of the citations of the sections
 and the records its block holds, `// [QSNAM#reach], [QSDSP#walk]`, or a
 directive of a tool, `/* global fetch */`. What the code does is read from
 the code and its names, the rule from its section and the reason from its
 record, so no comment says again what a section states or the code shows,
 and a mark that repeats the one before it in its file stands once, the block
 of that one reaching to the next [QSREQ#marks]. `check:conventions` refuses
-any other comment of them, each read by acorn, a comment after code on its
-line among them.
+any other comment of them, each read by acorn and the grammar by peggy, a
+comment after code on its line among them.

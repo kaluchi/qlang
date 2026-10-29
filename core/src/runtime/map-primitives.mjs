@@ -1,12 +1,11 @@
 // [QSCOL#map]
 
 import { makeKeyword, isPath } from '../types.mjs';
-import { makeSet } from '../ordering.mjs';
 import { keyNameOf } from '../path-read.mjs';
 import { pathReads } from './path-primitives.mjs';
 import { registerPrimitive } from '../primitives.mjs';
 
-registerPrimitive('map/keys', map => makeSet([...map.keys()].map(makeKeyword)));
+registerPrimitive('map/keys', map => [...map.keys()].map(makeKeyword));
 registerPrimitive('map/vals', map => [...map.values()]);
 registerPrimitive('map/entries', map => [...map].map(([entryKey, entryValue]) => Object.freeze([makeKeyword(entryKey), entryValue])));
 

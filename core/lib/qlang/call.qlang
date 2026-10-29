@@ -362,7 +362,7 @@
         |~~ `:nearest` names the verbs the pages of the verbs lead to that
             the subject answers.
         ~~|
-        ~({:id 7} | toVec !| nearest | eq [:entries :vals])
+        ~({:id 7} | toVec !| nearest | eq [:entries :keys :vals])
     | proves :KindAnswersNoVerbError/turnsTheSubjectFirst
         |~~ A soft read that answered null is given its fallback first. ~~|
         ~({} | query /items | coalesce [] | count | eq 0)

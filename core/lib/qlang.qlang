@@ -310,9 +310,9 @@
     | proves :answersASetByToSet
         |~~ `toSet` answers a set. ~~|
         ~([2 3 2 1] | toSet | eq #[1 2 3])
-    | proves :answersASetByKeys
-        |~~ `keys` answers a set. ~~|
-        ~({:name "Ann" :age 30} | keys | eq #[:age :name])
+    | proves :answersTheKeysInTheOrderOfTheEntries
+        |~~ `keys` answers the keys in the order of the entries. ~~|
+        ~({:name "Ann" :age 30} | keys | eq [:name :age])
     | proves :reversesASetIntoAVector
         |~~ `reverse` of a set answers a vector. ~~|
         ~(#[:tea :cake :jam] | reverse | eq [:tea :jam :cake])
@@ -388,7 +388,7 @@
         ~(|~~ a ~(eq 1) b ~~| | segments | count | eq 3)
     | proves :looksAtTheKeysOfTheData
         |~~ The keys of the first element show the shape of the data. ~~|
-        ~([{:id 1 :tags ["a"]}] | get /0 | keys | eq #[:id :tags])
+        ~([{:id 1 :tags ["a"]}] | get /0 | keys | eq [:id :tags])
     | proves :looksAtTheShapeOfTheData
         |~~ The shape of the data shows the kinds its records hold. ~~|
         ~({:users [{:age 30} {:age "x"}]} | shape | eq ::shape{:users [{:age #[::number ::string]}]})

@@ -6,7 +6,7 @@
 {"name":"a-declaration-names-a-kind","query":"apply ~(:s ::vec; ::host | env | get /s | value)","expect":"::vec"}
 {"name":"a-declaration-names-a-keyword","query":"apply ~(:status :active; ::host | env | get /status | value)","expect":":active"}
 {"name":"a-word-after-the-body-of-a-declaration-is-refused-naming-the-semicolon","query":"\":s ::vec it\" | parse !| message","expect":"\"a declaration ends with `;` before what follows it: write `:name body; …`\""}
-{"name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~|; :number/double ~(mul 2); :Box/side |~~ The side of a box. ~~|; :Box/fits |~~ A box fits. ~~| ::law~(true); 5 | double | get [~(it) ~(::Box/side | doc | content) ~(::Box | laws | keys)]","expect":"[10 \"The side of a box.\" #[:fits]]"}
+{"decision":"D485","name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~|; :number/double ~(mul 2); :Box/side |~~ The side of a box. ~~|; :Box/fits |~~ A box fits. ~~| ::law~(true); 5 | double | get [~(it) ~(::Box/side | doc | content) ~(::Box | laws | keys)]","expect":"[10 \"The side of a box.\" [:fits]]"}
 {"name":"a-modifier-declares-a-value-in-its-own-group","query":"5 | add (:k 2; k)","expect":"7"}
 {"name":"a-text-of-declarations-alone-answers-the-addresses-it-declared","query":":Box |~~ A box. ~~|","expect":"#[::Box]"}
 {"name":"a-constant-at-the-top-is-read-by-the-query-after-it","query":":rate 2; 5 | mul rate","expect":"10"}

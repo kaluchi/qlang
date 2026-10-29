@@ -10,8 +10,8 @@ describe('a recipe of the root reads its verbs and its inputs by name', () => {
   it('a name of habit answers as its verb on a value of a kind the reader declared, a verb of the reader under it among them', async () => {
     const post = ':Post |~~ A post. ~~|; :Post/tag ~(get /tag); ::Post{:tag "a"}';
     expect(await evalQuery(`${post} | get [~(desc !| tag) ~(tag ::desc !| tag)] | eq [::Post/tag/ArgsBeyondInputsError ::Post/tag/ArgsBeyondInputsError]`)).toBe(true);
-    const box = ':Box |~~ A box. ~~|; :Box/toSet ~(#[9]); ::Box[2 1 2]';
-    expect(await evalQuery(`${box} | get [~(distinct) ~(toSet)] | eq [#[9] #[9]]`)).toBe(true);
+    const box = ':Box |~~ A box. ~~|; :Box/count ~(9); ::Box[2 1 2]';
+    expect(await evalQuery(`${box} | get [~(size) ~(count)] | eq [9 9]`)).toBe(true);
   });
 
   it('a name of habit answers as its verb under a verb a later source declares', async () => {

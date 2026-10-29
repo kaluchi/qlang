@@ -1,9 +1,9 @@
-{"name":"keys-answers-the-set-of-the-keys-of-a-map","query":"{:name \"Alice\" :age 30} | keys","expect":"#[:age :name]"}
+{"decision":"D485","name":"keys-answers-the-keys-of-a-map-in-the-order-of-its-entries","query":"{:name \"Alice\" :age 30} | keys","expect":"[:name :age]"}
 {"name":"vals-answers-the-vector-of-the-values-of-a-map","query":"{:name \"Alice\" :age 30} | vals","expect":"[\"Alice\" 30]"}
 {"name":"vals-map-answers-vec","query":"{:a 1 :b 2} | vals | tag","expect":"::vec"}
-{"name":"keys-map-answers-set","query":"{:a 1 :b 2} | keys | tag","expect":"::set"}
+{"decision":"D485","name":"keys-of-a-map-answers-a-vector","query":"{:a 1 :b 2} | keys | tag","expect":"::vec"}
 {"name":"keys-map-elements-are-keywords","query":"{:a 1 :b 2} | keys | first | tag","expect":"::keyword"}
-{"name":"the-keys-of-a-map-equal-a-set-of-them-written-in-another-order","query":"{:a 1 :b 2} | keys | eq #[:b :a]","expect":"true"}
+{"decision":"D485","name":"the-set-of-the-keys-of-a-map-equals-a-set-of-them-written-in-another-order","query":"{:a 1 :b 2} | keys | toSet | eq #[:b :a]","expect":"true"}
 {"name":"sort-orders-the-entries-by-value","query":"{:a 3 :b 1 :c 2} | sort | vals","expect":"[1 2 3]"}
 {"name":"sort-keeps-the-key-of-each-value","query":"{:a 3 :b 1} | sort | take 1","expect":"{:b 1}"}
 {"name":"take-cuts-the-first-entries","query":"{:a 1 :b 2 :c 3} | take 2","expect":"{:a 1 :b 2}"}
@@ -14,10 +14,10 @@
 {"name":"max-reads-the-values","query":"{:a 3 :b 1} | max","expect":"3"}
 {"name":"first-reads-the-first-value","query":"{:a 1 :b 2} | first","expect":"1"}
 {"name":"last-reads-the-last-value","query":"{:a 1 :b 2} | last","expect":"2"}
-{"name":"keys-answers-the-sorted-set-of-keys","query":"{:b 1 :a 2} | keys | first","expect":":a"}
+{"decision":"D485","name":"keys-answers-first-the-key-of-the-first-entry","query":"{:b 1 :a 2} | keys | first","expect":":b"}
 {"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
 {"name":"entries-answers-the-pairs-of-a-map","query":"{:a 1 :b 2} | entries","expect":"[[:a 1] [:b 2]]"}
 {"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
-{"name":"keys-of-the-empty-map-answers-the-empty-set","query":"{} | keys","expect":"#[]"}
+{"decision":"D485","name":"keys-of-the-empty-map-answers-no-key","query":"{} | keys","expect":"[]"}
 {"name":"vals-of-the-empty-map-answers-the-empty-vector","query":"{} | vals","expect":"[]"}
 {"name":"size-and-length-answer-as-count-over-a-map","query":"{:a 1 :b 2} | get [~(size) ~(length) ~(count)]","expect":"[2 2 2]"}

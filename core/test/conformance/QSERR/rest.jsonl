@@ -13,7 +13,7 @@
 {"name":"an-error-literal-under-the-address-of-a-refusal-keeps-it","query":"::number/add/SubjectNotNumberError!{:subject/found \"x\"} | raise !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"an-error-at-rest-prints-its-facts-as-it-holds-them","query":"::error{:a 1} | print","expect":"\"!{:a 1}\""}
 {"name":"an-error-at-rest-in-a-container-prints-as-it-is","query":"[::error{:a 1}] | print","expect":"\"[!{:a 1}]\""}
-{"name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"#[:a]"}
+{"decision":"D485","name":"an-error-at-rest-holds-its-facts-alone","query":"::error{:a 1} | keys","expect":"[:a]"}
 {"name":"a-read-of-an-error-at-rest-raises-nothing","query":"[::error{:a 1}] | get /0 | get /a","expect":"1"}
 {"name":"the-step-of-an-error-literal-is-the-error-at-rest-it-spells","query":"~(!{:a 1}) | first","expect":"!{:a 1}"}
 {"name":"the-bang-writes-an-error-at-rest-a-container-holds","query":"[!{:a 1}] | get /0","expect":"!{:a 1}"}

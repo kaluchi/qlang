@@ -3,9 +3,9 @@ import { evalQuery } from '../../../src/notebook.mjs';
 import { isSet } from '../../../src/types.mjs';
 import { makeSet } from '../../../src/ordering.mjs';
 
-describe('distinct — structural equality', () => {
+describe('toSet — structural equality', () => {
   it('holds each keyword once', async () => {
-    const result = await evalQuery('[:a :b :a :c] | distinct');
+    const result = await evalQuery('[:a :b :a :c] | toSet');
     expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
@@ -14,7 +14,7 @@ describe('distinct — structural equality', () => {
 
   it('holds structural duplicates once, in the one order', async () => {
     const result = await evalQuery(
-      '[{:id 2} {:id 1} {:id 2} {:id 3} {:id 1}] | distinct');
+      '[{:id 2} {:id 1} {:id 2} {:id 3} {:id 1}] | toSet');
     expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);
@@ -22,11 +22,11 @@ describe('distinct — structural equality', () => {
   });
 
   it('holds two maps of the same entries once, whatever the order of their entries', async () => {
-    expect(await evalQuery('[{:a 1 :b 2} {:b 2 :a 1}] | distinct | count')).toBe(1);
+    expect(await evalQuery('[{:a 1 :b 2} {:b 2 :a 1}] | toSet | count')).toBe(1);
   });
 
   it('holds each of mixed atoms and containers once', async () => {
-    const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | distinct');
+    const result = await evalQuery('[1 {:a 1} 1 {:a 1} "x" "x"] | toSet');
     expect(isSet(result)).toBe(true);
     const items = [...result];
     expect(items).toHaveLength(3);

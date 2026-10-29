@@ -771,41 +771,45 @@
     | impl ::builtin{};
 
 :map/keys
-  |~~ Answers the set of the keys, each a keyword, in the order of their
-      names and not of the entries: `{:name "Ann" :age 30} | keys` answers
-      `#[:age :name]`, while `first` and `entries` follow the entries. It
-      takes no value. A key written in JSON or read by `parseJson` is a
-      keyword too, `{"first name": "Ann"} | keys` answering
-      `#[:"first name"]`, and a map under a tag answers the keys beneath
-      it. The keys come with their values by `entries`, and one key is
-      asked for by `has`.
+  |~~ Answers the vector of the keys, each a keyword, in the order the map
+      holds its entries, as `vals`, `entries` and its print read it:
+      `{:name "Ann" :age 30} | keys` answers `[:name :age]`, so the keys
+      and the values of one map pair. It takes no value. A key written in
+      JSON or read by `parseJson` is a keyword too,
+      `{"first name": "Ann"} | keys` answering `[:"first name"]`, and a map
+      under a tag answers the keys beneath it. The keys come with their
+      values by `entries`, one key is asked for by `has`, and the set of
+      them, in the one order, is `keys | toSet`.
       ::link~(::map/vals) ::link~(::map/entries)
-      ::link~(::map/has)
+      ::link~(::map/has) ::link~(::vec/toSet)
   ~~|
   ::fn
     | returns
-        |~~ The keys of the map, a set in the order of their names. ~~|
-        ::set
+        |~~ The keys of the map, in the order of its entries. ~~|
+        ::vec
     | throws :SubjectNotMapError
         |~~ `keys` reads a map: a vector of maps answers its keys element
             by element, `map ~keys`, and a vector reads its elements by
             their indices, `/0`.
         ~~|
-    | proves :answersASetOfKeys
-        |~~ The keys are a set. ~~|
-        ~({:name "Alice" :age 30} | keys | eq #[:age :name])
-    | proves :ordersByName
-        |~~ The keys sort by name, whatever the order of the entries. ~~|
-        ~({:name "Alice" :age 30} | keys | first | eq :age)
+    | proves :answersTheKeysInTheOrderOfTheEntries
+        |~~ The keys follow the entries. ~~|
+        ~({:name "Alice" :age 30} | keys | eq [:name :age])
+    | proves :pairsWithTheValues
+        |~~ The keys and the values of one map pair. ~~|
+        ~({:b 1 :a 2} | get [~(keys) ~(vals)] | zip | eq [[:b 1] [:a 2]])
+    | proves :answersTheSetByToSet
+        |~~ The set of the keys, in the one order, is `toSet`. ~~|
+        ~({:name "Alice" :age 30} | keys | toSet | eq #[:age :name])
     | proves :readsAKeyWrittenInJson
         |~~ A key written in JSON is a keyword. ~~|
-        ~({"first name": "Ann"} | keys | eq #[:"first name"])
-    | proves :answersTheEmptySetForTheEmptyMap
+        ~({"first name": "Ann"} | keys | eq [:"first name"])
+    | proves :answersNoKeyForTheEmptyMap
         |~~ The empty map has no keys. ~~|
-        ~({} | keys | eq #[])
+        ~({} | keys | eq [])
     | proves :readsTheKeysOfEachMapByMap
         |~~ A vector of maps answers their keys by `map`. ~~|
-        ~([{:name "Ann"} {:age 30}] | map ~keys | eq [#[:name] #[:age]])
+        ~([{:name "Ann"} {:age 30}] | map ~keys | eq [[:name] [:age]])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
         ~(42 | keys !| get [~(tag) ~(subject | found | tag)] | eq [::map/keys/SubjectNotMapError ::number])

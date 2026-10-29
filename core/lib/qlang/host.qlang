@@ -135,12 +135,12 @@
         ~(:number/double ~(mul 2); ::host | env | get /:number/double | value | eq ~(mul 2))
     | proves :holdsANameWithAPath
         |~~ A name with a path is held by its address. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/area ~(1); ::host | env | keys | eq #[:Box :Box/area])
+        ~(:Box |~~ A box. ~~|; :Box/area ~(1); ::host | env | keys | eq [:Box :Box/area])
     | proves :holdsTheNamesOfAForkAndKeepsThemInside
         |~~ Inside a fork the names before it and its own are held, and
             the fork's stay inside it.
         ~~|
-        ~(:Box |~~ A box. ~~|; get [~(:Crate |~~ A crate. ~~|; ::host | env | keys) ~(::host | env | keys)] | eq [#[:Box :Crate] #[:Box]])
+        ~(:Box |~~ A box. ~~|; get [~(:Crate |~~ A crate. ~~|; ::host | env | keys) ~(::host | env | keys)] | eq [[:Box :Crate] [:Box]])
     | proves :isEmptyAtTheStart
         |~~ Nothing is declared at the start. ~~|
         ~(::host | env | eq {})

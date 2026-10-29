@@ -3,7 +3,7 @@ import { evalQuery } from '../../../src/notebook.mjs';
 import { parseSource } from '../../../src/parse.mjs';
 
 it('every kind of the root is built by the chain of a kind', async () => {
-  expect(await evalQuery('::host | kinds | map ~(binding | value | tag) | distinct')).toEqual(await evalQuery('#[::kind]'));
+  expect(await evalQuery('::host | kinds | map ~(binding | value | tag) | toSet')).toEqual(await evalQuery('#[::kind]'));
 });
 
 it('declares a word of a literal by the chain of a kind, and refuses it any other body', () => {

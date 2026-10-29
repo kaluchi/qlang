@@ -217,13 +217,13 @@
         ~(#[:tea :cake] | groupBy | eq {:cake #[:cake] :tea #[:tea]})
     | proves :filesANumberUnderItsText
         |~~ A number files under the keyword of its text. ~~|
-        ~(#[1 2] | groupBy | keys | eq #[:"1" :"2"])
+        ~(#[1 2] | groupBy | keys | eq [:"1" :"2"])
     | proves :filesABooleanUnderItsLiteral
         |~~ A boolean files under the keyword of its literal. ~~|
         ~(#[true false] | groupBy | eq {:false #[false] :true #[true]})
     | proves :filesNullUnderItsLiteral
         |~~ A null files under `:null`. ~~|
-        ~(#[null 1] | groupBy | keys | eq #[:"1" :null])
+        ~(#[null 1] | groupBy | keys | eq [:null :"1"])
     | proves :filesATagUnderItsName
         |~~ A tag name key files under the keyword of its name. ~~|
         ~(#[1 "a"] | groupBy ~(tag) | eq {:number #[1] :string #["a"]})
@@ -259,7 +259,7 @@
         |~~ A map is led to its pairs and its values, the verbs that
             answer a vector, and a string to `split`.
         ~~|
-        ~(get [~({:id 7} | toVec !| nearest) ~("tea" | toVec !| nearest)] | eq [[:entries :vals] [:split]])
+        ~(get [~({:id 7} | toVec !| nearest) ~("tea" | toVec !| nearest)] | eq [[:entries :keys :vals] [:split]])
     | proves :keepsTheVerbsOfVectorsOnAVector
         |~~ The vector of a set takes as a vector, the set as a set. ~~|
         ~(#[3 1 2] | get [~(toVec | take 2) ~(take 2)] | eq [[1 2] #[1 2]])

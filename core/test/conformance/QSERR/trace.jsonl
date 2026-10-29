@@ -23,9 +23,9 @@
 {"name":"an-error-literal-under-a-tag-that-writes-an-empty-trace-starts-a-trace-at-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| get /trace | map ~failed","expect":"[~(raise)]"}
 {"name":"the-trace-of-the-error-of-a-refusal-that-flew-no-step-is-null","query":"::number/add/SubjectNotNumberError!{:subject/found \"x\"} | trace","expect":"null"}
 {"name":"the-trace-of-an-error-at-rest-that-flew-no-step-is-no-key-of-it","query":"::error{:a 1} | get /trace !| get [~(tag) ~(key)]","expect":"[::path/KeyNotInMapError :trace]"}
-{"name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| payload | keys","expect":"#[:subject/expected :subject/found :trace]"}
-{"name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
-{"name":"a-map-raised-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"{:a 1 :trace []} | raise !| keys","expect":"#[:a :trace]"}
+{"decision":"D485","name":"a-raised-error-holds-its-trace","query":"\"x\" | add 1 !| payload | keys","expect":"[:subject/expected :subject/found :trace]"}
+{"decision":"D485","name":"an-error-literal-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"::Oops!{:a 1 :trace []} | raise !| keys","expect":"[:a :trace]"}
+{"decision":"D485","name":"a-map-raised-that-writes-an-empty-trace-holds-the-trace-of-its-raise","query":"{:a 1 :trace []} | raise !| keys","expect":"[:a :trace]"}
 {"name":"an-error-at-rest-from-an-empty-written-trace-raised-again-is-itself","query":"{:a 1 :trace []} | raise !| with {:e ~it} ~(e | raise !| eq e)","expect":"true"}
 {"name":"a-failure-a-verb-resumes-flies-on-through-its-literal","query":"get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)] !| get /trace | map ~failed","expect":"[~(pre) ~(get [~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | raise)])]"}
 {"name":"a-failure-raised-on-an-empty-written-trace-inside-a-verb-arises-at-its-raise","query":"get [~(!{:a 1 :trace []} | raise)] !| get /trace | map ~failed","expect":"[~(raise) ~(get [~(!{:a 1 :trace []} | raise)])]"}

@@ -19,6 +19,6 @@
 {"name":"a-value-under-a-tag-reads-back-from-json-as-the-plain-map","query":"::Box#1 | json | parseJson","expect":"{:\"$tag\" \"Box\" :payload 1}"}
 {"name":"a-number-past-the-doubles-is-refused-with-its-path","query":"\"{\\\"a\\\": {\\\"b c\\\": [1, 1e400]}}\" | parseJson !| path","expect":"/a/\"b c\"/1"}
 {"name":"json-writes-a-quote-as-its-print-a-quote-of-a-path-among-them","query":"get [~([/age] | tag ::quote | json) ~(~(get /a) | json)]","expect":"[\"\\\"::quote[/age]\\\"\" \"\\\"~(get /a)\\\"\"]"}
-{"name":"a-number-that-is-the-whole-text-is-refused-with-no-path","query":"\"1e400\" | parseJson !| payload | keys","expect":"#[:subject/found :trace]"}
+{"name":"a-number-that-is-the-whole-text-is-refused-with-no-path","query":"\"1e400\" | parseJson !| payload | keys","expect":"[:subject/found :trace]"}
 {"name":"json-writes-an-error-at-rest-in-a-vector-as-the-value-under-its-tags","query":"get [11 ~(\"x\" | add 10 !| it) 13] | json","expect":"\"[11,{\\\"$tag\\\":\\\"number/add/SubjectNotNumberError\\\",\\\"payload\\\":{\\\"$tag\\\":\\\"error\\\",\\\"payload\\\":{\\\"subject/expected\\\":[\\\"::number\\\"],\\\"subject/found\\\":\\\"x\\\",\\\"trace\\\":{\\\"$tag\\\":\\\"trace\\\",\\\"payload\\\":[{\\\"$tag\\\":\\\"frame\\\",\\\"payload\\\":[\\\"x\\\",\\\"~(add 10)\\\"]}]}}}},13]\""}
 {"name":"json-writes-a-key-in-quotes-as-the-name-it-spells","query":"{:\"foo bar\" 1 :\"$ref\" \"x\"} | json","expect":"\"{\\\"foo bar\\\":1,\\\"$ref\\\":\\\"x\\\"}\""}

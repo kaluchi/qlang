@@ -33,7 +33,7 @@ describe('the laws of the catalog, run by runLaws', () => {
 
   it('the laws of every name answer true and nothing else', async () => {
     const readers = await catalogReaders();
-    const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map ~(runLaws | map /ok) | flat | distinct`);
+    const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map ~(runLaws | map /ok) | flat | toSet`);
     expect(isErrorValue(distinctOkValues)).toBe(false);
     expect(isSet(distinctOkValues)).toBe(true);
     expect([...distinctOkValues]).toEqual([true]);

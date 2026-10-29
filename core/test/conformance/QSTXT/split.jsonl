@@ -16,7 +16,7 @@
 {"name":"count-counts-the-pieces-split-answers","query":"\"a,b,c,d\" | split \",\" | count","expect":"4"}
 {"name":"first-reads-the-first-piece-split-answers","query":"\"a,b,c\" | split \",\" | first","expect":"\"a\""}
 {"name":"last-reads-the-last-piece-split-answers","query":"\"a,b,c\" | split \",\" | last","expect":"\"c\""}
-{"name":"distinct-answers-the-set-of-the-pieces-split-answers","query":"\"a,b,a,c,b\" | split \",\" | distinct","expect":"#[\"a\" \"b\" \"c\"]"}
+{"name":"distinct-answers-each-piece-split-answers-once","query":"\"a,b,a,c,b\" | split \",\" | distinct","expect":"[\"a\" \"b\" \"c\"]"}
 {"name":"map-runs-on-each-piece-split-answers","query":"\"1,2,3\" | split \",\" | map ~(append \"!\")","expect":"[\"1!\" \"2!\" \"3!\"]"}
 {"name":"join-by-the-separator-split-cut-at-gives-the-string-back","query":"\"a,b,c\" | split \",\" | join \",\"","expect":"\"a,b,c\""}
 {"name":"join-by-another-separator-writes-the-pieces-anew","query":"\"a,b,c\" | split \",\" | join \";\"","expect":"\"a;b;c\""}

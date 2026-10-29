@@ -336,9 +336,8 @@ them all, the vector, a string reading in pieces by `split`, `lines`,
 `count`, `take` and `drop`.
 
 A name a reader trained on other languages reaches for enters beside the
-verb that answers what the habit expects, as `distinct` stands beside
-`toSet`, `flatten` beside `flat`, `merge` beside `union` and `size` and
-`length` beside `count`: a function under the same label whose recipe calls
+verb that answers what the habit expects, as `flatten` stands beside
+`flat`, `merge` beside `union` and `size` and `length` beside `count`: a function under the same label whose recipe calls
 the verb, its page naming the verb, so the fact keeps one spelling and the
 name is another road to it. Where the habit expects another answer or
 another call, the name is a verb of its own, as `concat` is, or none, no
@@ -377,5 +376,5 @@ and its value after them.
 
 ```qlang
 > [::number ::string ::vec ::map ::set] | map ~(binding | value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct
-#[[:accepts :proves]]
+[[:accepts :proves]]
 ```

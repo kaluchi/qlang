@@ -453,7 +453,7 @@
         ~([:tea :cake] | json | eq "[\"tea\",\"cake\"]")
     | proves :writesAnErrorAtRestUnderItsTag
         |~~ An error at rest is written as a value under its tag. ~~|
-        ~(::error{:reason "late"} | json | parseJson | keys | eq #[:"$tag" :payload])
+        ~(::error{:reason "late"} | json | parseJson | keys | eq [:"$tag" :payload])
     | proves :writesASetAsAnArray
         |~~ A set is written as an array. ~~|
         ~(#[1 2 3] | json | eq "[1,2,3]")
@@ -1409,7 +1409,7 @@
         ::any/UnknownNameError
     | proves :answersEachLawByItsName
         |~~ A law declared under a name is answered under its own name. ~~|
-        ~(:Price |~~ A price. ~~|; :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0); ::Price | laws | keys | eq #[:isPositive])
+        ~(:Price |~~ A price. ~~|; :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0); ::Price | laws | keys | eq [:isPositive])
     | proves :pairsThePageWithTheQuery
         |~~ Each law is the pair of its page and its query. ~~|
         ~(:Price |~~ A price. ~~|; :Price/isPositive |~~ A price is above zero. ~~| ::law~(::Price#5 | payload | gt 0); ::Price | laws | get /isPositive | get [~(get /0 | content) /1] | eq ["A price is above zero." ~(::Price#5 | payload | gt 0)])
@@ -2857,10 +2857,11 @@
 
 
 :any/paths
-  |~~ Answers the leaves of a value, a set of pairs, each the path `get`
-      reads a leaf by and its kind:
+  |~~ Answers the leaves of a value, a vector of pairs in the order the
+      value holds its parts, its keys as written and its elements by their
+      indices, each the path `get` reads a leaf by and its kind:
       `{:user {:age 30 :tags [7 "new"]}} | paths` answers
-      `#[[/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string]]`.
+      `[[/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string]]`.
       A part under a tag is a leaf of its kind, which tells of itself on
       its page, a quote and a doc among them; a set opens as a vector
       does, its elements read by their indices; an empty vector or map is
@@ -2870,26 +2871,28 @@
       ::link~(::path)
   ~~|
   ::fn
-    | returns |~~ The pairs of the path and the kind of each leaf. ~~| ::set
+    | returns |~~ The pairs of the path and the kind of each leaf, in the order the value holds them. ~~| ::vec
     | proves :answersTheLeaves
-        |~~ The pairs hold the path and the kind of every leaf. ~~|
-        ~({:user {:age 30 :tags [7 "new"]} :notes []} | paths | eq #[[/notes ::vec] [/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string]])
+        |~~ The pairs hold the path and the kind of every leaf, in the order
+            the value holds its parts.
+        ~~|
+        ~({:user {:age 30 :tags [7 "new"]} :notes []} | paths | eq [[/user/age ::number] [/user/tags/0 ::number] [/user/tags/1 ::string] [/notes ::vec]])
     | proves :answersNoPathOfAValueWithoutParts
         |~~ A value that has no parts has no path in it. ~~|
-        ~(5 | paths | eq #[])
+        ~(5 | paths | eq [])
     | proves :readsBeneathTheTags
         |~~ The leaves are read beneath the tags stacked over the subject.
         ~~|
-        ~(::Gift::Box{:width 2} | paths | eq #[[/width ::number]])
+        ~(::Gift::Box{:width 2} | paths | eq [[/width ::number]])
     | proves :standsAtATag
         |~~ A part under a tag is a leaf of its kind. ~~|
-        ~({:rule ~(add 1) :note |~~ A note. ~~| :box ::Box{:width 1}} | paths | eq #[[/box ::Box] [/note ::doc] [/rule ::quote]])
+        ~({:rule ~(add 1) :note |~~ A note. ~~| :box ::Box{:width 1}} | paths | eq [[/rule ::quote] [/note ::doc] [/box ::Box]])
     | proves :readsASetAsItsVector
         |~~ A set is read as its vector, its elements by their indices. ~~|
-        ~({:sizes #[1 2]} | paths | eq #[[/sizes/0 ::number] [/sizes/1 ::number]])
+        ~({:sizes #[1 2]} | paths | eq [[/sizes/0 ::number] [/sizes/1 ::number]])
     | proves :eachReadsByGet
         |~~ The paths `paths` answers read their leaves back by `get`. ~~|
-        ~({:user {:name "Ann" :age 30}} | with {:found ~(paths | map ~(get /0))} ~(get found) | eq [30 "Ann"])
+        ~({:user {:name "Ann" :age 30}} | with {:found ~(paths | map ~(get /0))} ~(get found) | eq ["Ann" 30])
     | impl ::builtin{};
 
 :any/shape

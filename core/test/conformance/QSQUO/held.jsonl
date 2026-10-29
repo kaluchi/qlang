@@ -18,7 +18,7 @@
 {"name":"a-step-in-held-code-reads-no-value-of-the-reader-named-after-a-root-label","query":"apply ~(:vec 5; :f ~(vec); apply f !| get [~(tag) ~(name)])","expect":"[::call/ValueWithheldError :vec]"}
 {"name":"a-name-withheld-as-the-code-of-a-verb-is-refused-under-its-name","query":"apply ~(:f ~(add 1); :g ~([1 2] | map f); apply g !| query [~(tag) ~(name)])","expect":"[::call/ValueWithheldError :f]"}
 {"name":"a-held-quote-that-applies-itself-by-its-name-is-refused-under-it","query":"apply ~(:q ~(apply q); apply q !| query [~(tag) ~(name)])","expect":"[::call/ValueWithheldError :q]"}
-{"name":"a-law-of-the-root-runs-over-the-root","query":"apply ~(:first 5; ::vec/first | runLaws | map /ok | distinct)","expect":"#[true]"}
+{"name":"a-law-of-the-root-runs-over-the-root","query":"apply ~(:first 5; ::vec/first | runLaws | map /ok | distinct)","expect":"[true]"}
 {"name":"code-a-verb-holds-reads-no-value-of-its-reader","query":":vec/w ~(:q ~(first); apply q); apply ~(:first 5; [1 2 3] | w !| tag)","expect":"1"}
 {"name":"code-a-verb-holds-is-refused-under-a-value-of-its-own","query":":vec/w ~(:count 7; :q ~(count); apply q); [1 2 3] | w !| query [~(tag) ~(name)]","expect":"[::call/ValueWithheldError :count]"}
 {"name":"a-quote-a-verb-opens-reads-no-value-of-its-reader","query":":vec/w ~(~([4 5] | first) | answer); apply ~(:first 5; [1] | w !| tag)","expect":"4"}
@@ -31,7 +31,7 @@
 {"name":"an-invariant-of-an-input-runs-the-quote-in-the-step-that-wrote-it","query":":any/w (::fn | takes :q |~~ Q. ~~| /0 ::quote | holds :QNotPositiveError |~~ Positive on one. ~~| ~(q | with {:c ~it} ~(1 | apply c | gt 0)) | impl ~(1 | apply q)); apply ~(:k 10; 0 | w ~(add k))","expect":"11"}
 {"name":"a-quote-a-group-computes-is-held","query":"apply ~(:k 10; [1 2] | map (~(add k)) !| query [~(tag) ~(name)])","expect":"[::call/ValueWithheldError :k]"}
 {"name":"a-verb-that-hands-itself-its-own-quote-reads-the-step-that-wrote-it-last","query":":number/r (::fn | takes :q |~~ Q. ~~| /0 ::quote | takes :k |~~ K. ~~| /1 ::number | impl ~(if (k | eq 0) ~(apply q) ~(r ~(add k) (k | sub 1)))); 10 | r ~(add 1) 2","expect":"11"}
-{"name":"a-law-the-reader-declares-under-a-name-of-the-root-runs-in-the-readers-lane","query":":vec/second ~(get /1); :vec/first/mine |~~ Mine. ~~| ::law~([1 2] | second | eq 2); ::vec/first | runLaws | map /ok | distinct","expect":"#[true]"}
+{"name":"a-law-the-reader-declares-under-a-name-of-the-root-runs-in-the-readers-lane","query":":vec/second ~(get /1); :vec/first/mine |~~ Mine. ~~| ::law~([1 2] | second | eq 2); ::vec/first | runLaws | map /ok | distinct","expect":"[true]"}
 {"name":"a-quote-a-verb-of-the-language-opens-reads-the-step-that-wrote-it","query":":vec/o (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q | answer)); apply ~(:k 10; [1] | o ~(k))","expect":"10"}
 {"name":"a-held-quote-a-verb-of-the-language-opens-reads-no-value-of-the-reader","query":":vec/o (::fn | takes :q |~~ Q. ~~| /0 ::quote | impl ~(q | answer)); apply ~(:k 10; :f ~(k); [1] | o f !| query [~(tag) ~(name)])","expect":"[::call/ValueWithheldError :k]"}
 {"name":"an-input-of-code-closes-over-its-call","query":"apply ~(:k :b; [{:b 2} {:b 1}] | sort ~(query k))","expect":"[{:b 1} {:b 2}]"}

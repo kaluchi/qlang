@@ -27,7 +27,7 @@ registerPrimitive('any/paths', subject => {
     for (const [segment, part] of parts) walk(part, [...segments, segment]);
   };
   walk(subject, []);
-  return makeSet(found);
+  return found;
 });
 
 function shapeOf(current, top) {

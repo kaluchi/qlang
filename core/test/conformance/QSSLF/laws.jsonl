@@ -1,21 +1,21 @@
 {"name":"run-laws-fails-a-law-that-answers-no-boolean","query":":x |~~ The x. ~~|; :x/one ::law~(1); ::x | runLaws | first | get /ok","expect":"false"}
 {"name":"run-laws-passes-a-law-that-answers-true","query":":x |~~ The x. ~~|; :x/holds ::law~(true); ::x | runLaws | first | get /ok","expect":"true"}
 {"name":"the-laws-of-a-name-applied-by-the-reader-hold","query":"::qlang/pipeline | laws | map ~(get /1 | apply it) | every ~(it)","expect":"true"}
-{"name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws | map /ok | distinct","expect":"#[true]"}
+{"name":"a-value-runs-the-laws-of-its-kind","query":"42 | runLaws | map /ok | distinct","expect":"[true]"}
 {"name":"a-law-that-answers-a-refusal-holds-it-at-rest-under-its-address","query":":d |~~ The d. ~~|; :d/addsToAString ::law~(\"x\" | add 1); ::d | runLaws | first | get /error | tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"runLaws-holds-the-error-of-a-law-at-rest","query":":d |~~ The d. ~~|; :d/addsToAString ::law~(\"x\" | add 1); ::d | runLaws | first | entries | filter ~(first | eq :error) | first | last | tag","expect":"::number/add/SubjectNotNumberError"}
-{"name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":Box |~~ A box. ~~|; :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5); ::Box | laws | keys","expect":"#[:addsUp]"}
+{"name":"the-laws-of-a-name-are-the-laws-declared-under-it-by-their-names","query":":Box |~~ A box. ~~|; :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5); ::Box | laws | keys","expect":"[:addsUp]"}
 {"name":"run-laws-names-each-law-by-its-address-and-its-claim-by-its-page","query":":Box |~~ A box. ~~|; :Box/addsUp |~~ Two and three is five. ~~| ::law~(2 | add 3 | eq 5); ::Box | runLaws | first | get [/law /says /ok]","expect":"[::Box/addsUp |~~ Two and three is five. ~~| true]"}
 {"name":"a-law-without-a-page-claims-nothing-it-says","query":":Box |~~ A box. ~~|; :Box/addsUp ::law~(2 | add 3 | eq 5); ::Box | runLaws | first | get [/says /ok]","expect":"[null true]"}
 {"name":"a-law-that-answers-false-fails","query":":Box |~~ A box. ~~|; :Box/wrong |~~ One is two. ~~| ::law~(1 | eq 2); ::Box | runLaws | first | get /ok","expect":"false"}
 {"name":"a-name-with-no-laws-has-none","query":":k |~~ The k. ~~|; ::k | laws","expect":"{}"}
 {"name":"the-manifest-of-a-name-leaves-its-laws-to-laws","query":":k |~~ The k. ~~|; :k/answersFive ::law~(k | eq 5); :k/n ~(get /0); ::k | manifest","expect":"#[::k/n]"}
 {"name":"a-law-reads-as-the-pair-of-its-page-and-its-query","query":":k |~~ The k. ~~|; :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5); ::k | laws | get /answersFive | get [~(get /0 | content) /1]","expect":"[\"k answers five.\" ~(k | eq 5)]"}
-{"name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":k |~~ Answers five. ~~|; :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5); ::k | tutorial | get [~(get /0 | content) ~(get /1 | keys)]","expect":"[\"Answers five.\" #[:answersFive]]"}
+{"name":"the-tutorial-of-a-name-is-its-page-and-its-laws","query":":k |~~ Answers five. ~~|; :k/answersFive |~~ k answers five. ~~| ::law~(k | eq 5); ::k | tutorial | get [~(get /0 | content) ~(get /1 | keys)]","expect":"[\"Answers five.\" [:answersFive]]"}
 {"name":"the-tutorial-of-a-name-nothing-declares-is-refused-as-doc-refuses-it","query":"::nothere | tutorial !| tag","expect":"::any/doc/UnknownNameError"}
 {"name":"run-laws-answers-an-outcome-for-each-law","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | first | get /ok","expect":"true"}
 {"name":"each-outcome-names-its-law","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | first | get /law","expect":"::three/isThree"}
-{"name":"each-outcome-says-whether-its-law-held","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | map /ok | distinct","expect":"#[true]"}
+{"name":"each-outcome-says-whether-its-law-held","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | map /ok | distinct","expect":"[true]"}
 {"name":"a-law-that-holds-carries-no-error","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | first | get /error","expect":"null"}
 {"name":"a-law-that-holds-answers-true","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | first | get /actual","expect":"true"}
 {"name":"one-outcome-for-each-law","query":":three |~~ Three. ~~|; :three/isThree ::law~(3 | eq 3); :three/exceedsTwo ::law~(3 | gt 2); ::three | runLaws | count | eq (::three | laws | count)","expect":"true"}

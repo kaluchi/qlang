@@ -101,7 +101,7 @@ parser, which gives the path bare.
 [|~~ The rate. ~~|]
 
 > [~(:rate 1;) ~(:rate |~~ The rate. ~~| 1;) ~(:Box |~~ A box. ~~|;)] | map ~(first | keys)
-[#[:body :name] #[:body :docs :name] #[:docs :name]]
+[[:name :body] [:name :docs :body] [:name :docs]]
 
 > ~(::Box[1 2]) | first | get [~(tag) /tag /payload]
 [::construct ::Box [1 2]]

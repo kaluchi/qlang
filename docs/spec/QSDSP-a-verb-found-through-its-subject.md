@@ -207,10 +207,10 @@ its own giving way, so an edit that breaks an invariant of a tag is
 refused under it and a set under a tag keeps it, `::Box#[2 1] | distinct`
 answering `::Box#[1 2]`, and it stands as it is where no tag is laid;
 and an answer of another kind leaves the tags the walk passed behind and
-stands as it is, so `distinct`, whose answer names `::set`,
+stands as it is, so `toSet`, whose answer names `::set`,
 answers a set under no tag over a vector under one,
-`::Box[2 1 2] | distinct` answering `#[1 2]`, and the distinct elements
-beneath the tag of a vector stay under it by `within ~(distinct)`. An answer the rule brings to none of the kinds is
+`::Box[2 1 2] | toSet` answering `#[1 2]`, and the set of the elements
+beneath the tag of a vector stays under it by `within ~(toSet)`. An answer the rule brings to none of the kinds is
 refused as `…/AnswerKindNotTakenError`. A verb whose answer names
 `::any`, or that names none, hands on what it computed, `map` among
 them, and no chain of the catalog names a kind its verb does not answer
@@ -226,10 +226,10 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 > :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)); [1] | n !| tag
 ::vec/n/AnswerKindNotTakenError
 
-> get [~([2 1 2] | distinct | tag) ~(::vec/distinct/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
+> get [~([2 1 2] | toSet | tag) ~(::vec/toSet/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
 [::set ::set ::any ::any]
 
-> get [~(::Box[2 1 2] | distinct) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(distinct)) ~(~(a | a) | distinct)]
+> get [~(::Box[2 1 2] | toSet) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(toSet)) ~(~(a | a) | toSet)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
 
 > get [~(::Ok#true | and false) ~(::Ok#true | and ::No#true !| tag) ~(::A[1] | append ::B[2])]

@@ -356,7 +356,7 @@ wires no part stays open, its tag passing the words of its payload,
 [::Box ::Box/WNotGivenError ::Box/WKindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)); ::Box[-1] !| payload | keys
-#[:found :trace]
+[:found :trace]
 
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))); get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| found)]
 [[1 2] [2 1]]

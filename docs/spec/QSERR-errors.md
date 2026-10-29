@@ -268,7 +268,7 @@ trace over at that raise.
 
 ```qlang
 > "x" | add 1 !| payload | keys
-#[:subject/expected :subject/found :trace]
+[:subject/expected :subject/found :trace]
 
 > [1 "x" 3] | map ~(mul 2) | count !| trace
 ::trace[
@@ -286,7 +286,7 @@ trace over at that raise.
 [~(sub "1") ~(take (count | sub "1"))]
 
 > {:a 1 :trace []} | raise !| keys
-#[:a :trace]
+[:a :trace]
 
 > {:a 1 :trace []} | raise | count !| get /trace
 ::trace[::frame[{:a 1 :trace []} ~(raise | count)]]
@@ -481,10 +481,10 @@ a segment a path read as an index numbers.
 [:subject/found :addend/found :surplus/found :trace]
 
 > get [~("zz" | toRegex "zz" !| flags | found) ~(::W"x" | toNumber !| get [~(payload | keys) ~(subject | found)])]
-["zz" [#[:subject/found :trace] ::W"x"]]
+["zz" [[:subject/found :trace] ::W"x"]]
 
 > [1 "x"] | sum !| get [~(payload | keys) ~(trace | first | path)]
-[#[:subject/expected :subject/found :trace] /1]
+[[:subject/expected :subject/found :trace] /1]
 
 > ::number/add/AddendKindNotTakenError | manifest
 #[::number/add/AddendKindNotTakenError/addend ::number/add/AddendKindNotTakenError/answer ::number/add/AddendKindNotTakenError/repair ::number/add/AddendKindNotTakenError/subject ::number/add/AddendKindNotTakenError/surplus ::number/add/AddendKindNotTakenError/trace]
@@ -499,7 +499,7 @@ a segment a path read as an index numbers.
 #[::qlang/AnswerBeyondBudgetError/answer ::qlang/AnswerBeyondBudgetError/budget ::qlang/AnswerBeyondBudgetError/characters ::qlang/AnswerBeyondBudgetError/expected ::qlang/AnswerBeyondBudgetError/found ::qlang/AnswerBeyondBudgetError/index ::qlang/AnswerBeyondBudgetError/trace]
 
 > ::nope | doc !| payload | keys
-#[:addresses :anchor/found :name :nearest :subject/found :trace]
+[:subject/found :anchor/found :name :addresses :nearest :trace]
 
 > "x" | add 1 !| subject | get [~(is ::fn/slot) ~(doc | eq (::fn/subject | doc)) ~(found)]
 [true true "x"]
@@ -529,7 +529,7 @@ any failure.
 
 ```qlang
 > !{:code 404} | raise !| print | parse | answer | raise !| keys
-#[:code :trace]
+[:code :trace]
 
 > "x" | add 1 !| print | parse | answer | raise | count !| trace | map ~(get [~(subject) ~(failed) ~(skipped)])
 [["x" ~(add 1) ~(count)]]

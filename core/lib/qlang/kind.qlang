@@ -123,7 +123,7 @@
         ~(:Box |~~ A box. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number | proves :readsItsWidth |~~ A parcel reads its width by name. ~~| ~(::Box{:width 2} | width | eq 2));
           ::Box
           | get [~(manifest) ~(laws | keys)]
-          | eq [#[::Box/WidthKindNotTakenError ::Box/width] #[:readsItsWidth]])
+          | eq [#[::Box/WidthKindNotTakenError ::Box/width] [:readsItsWidth]])
     | proves :laysTheTagOfALabelOfItsPageAlone
         |~~ A label declared by its page alone lays its tag. ~~|
         ~(:Shop |~~ A shop. ~~|; ::Shop{:name "Corner"} | tag | eq ::Shop)

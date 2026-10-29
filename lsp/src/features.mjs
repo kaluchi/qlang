@@ -52,6 +52,25 @@ function markdownHardBreaks(text) {
   return text.split('\n').map(l => l + '  ').join('\n');
 }
 
+// [D493]
+const PUNCTUATION_OF_MARKDOWN = /[!-\/:-@\[-`{-~]/g;
+
+const SPAN_BETWEEN_BACKQUOTES = /(?<!`)(`+)[\s\S]*?(?<!`)\1(?!`)/g;
+
+const escapedForMarkdown = text => text.replace(PUNCTUATION_OF_MARKDOWN, '\\$&');
+
+function markdownOfProse(prose) {
+  let markdown = '';
+  let at = 0;
+  for (const span of prose.matchAll(SPAN_BETWEEN_BACKQUOTES)) {
+    markdown += escapedForMarkdown(prose.slice(at, span.index)) + span[0];
+    at = span.index + span[0].length;
+  }
+  return markdown + escapedForMarkdown(prose.slice(at));
+}
+
+const markdownOfThePage = async address => markdownOfProse(await contentOfThePage(address));
+
 // [QSLSP#server]
 const contentOfPages = new Map();
 async function contentOfThePage(address) {
@@ -145,7 +164,7 @@ async function nameCompletions() {
 async function verbCompletion(scope, name, kinds) {
   const shown = shownFor(scope, name, kinds);
   if (shown === undefined) return null;
-  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await contentOfThePage(shown.address.literal) };
+  return { label: name, role: 'verb', detail: callFormOf(shown), documentation: await markdownOfThePage(shown.address.literal) };
 }
 
 async function tagCompletions() {
@@ -154,7 +173,7 @@ async function tagCompletions() {
   _tagCompletions = [];
   for (const address of nodeAddresses(scope)) {
     const label = makeTag(address).literal;
-    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await contentOfThePage(label) });
+    _tagCompletions.push({ label, role: roleOfNode(scope, address), detail: 'a name of the root', documentation: await markdownOfThePage(label) });
   }
   return _tagCompletions;
 }
@@ -332,20 +351,36 @@ async function hoverForLiteral(read, kind, source) {
   const literal = makeTag(kind).literal;
   const written = isKeyword(read.value) ? read.value.literal : source.slice(read.span.start.offset, read.span.end.offset);
   const heading = written.length <= LONGEST_LITERAL_SHOWN && !written.includes('\n') ? `\`${written}\` — **${literal}**` : `**${literal}**`;
-  return { content: markdownHardBreaks([heading, '', await contentOfThePage(literal)].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([heading, '', await markdownOfThePage(literal)].join('\n')), ...spanOf(read) };
 }
 
 async function hoverForCall(read, root, source) {
   const name = read.value.get('name').name;
   const scope = await langRuntime();
-  const shown = shownFor(scope, name, await subjectKindsBefore(read, source));
+  const kinds = await subjectKindsBefore(read, source);
+  const verbs = verbsOfTheName(scope, name, kinds);
+  if (verbs !== null) return hoverForTheVerbsOfTheName(read, name, kinds, verbs, scope);
+  const shown = shownFor(scope, name, kinds);
   if (shown !== undefined) {
     const heading = `**${name}** — ${callFormOf(shown)}`;
-    return { content: markdownHardBreaks([heading, '', await contentOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
+    return { content: markdownHardBreaks([heading, '', await markdownOfThePage(shown.address.literal)].join('\n')), ...spanOf(read) };
   }
   const docs = await contentOfTheDocs(declarationOf(root, read, { name, spelling: CALL_SPELLING }, scope), source);
   if (docs.length === 0) return null;
-  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', tidyPage(docs.join('\n'))].join('\n')), ...spanOf(read) };
+  return { content: markdownHardBreaks([`**${name}** — a reader's name`, '', markdownOfProse(tidyPage(docs.join('\n')))].join('\n')), ...spanOf(read) };
+}
+
+// [D494]
+function verbsOfTheName(scope, name, kinds) {
+  if ((kinds !== null && verbsReaching(scope, kinds).has(name)) || bareNameReach(scope, name) !== null) return null;
+  const addresses = residencesOf(scope, name).map(([, record]) => record.get('name').name).sort();
+  return addresses.length > 1 ? addresses : null;
+}
+
+function hoverForTheVerbsOfTheName(read, name, kinds, addresses, scope) {
+  const heading = kinds === null ? `**${name}** — the kind of the subject unknown, the verbs of the name:` : `**${name}** — ${makeTag(kinds[0]).literal} answers none of the verbs of the name:`;
+  const forms = addresses.map(address => escapedForMarkdown(callFormOf(shownFor(scope, name, [splitAddress(address)[0]]))));
+  return { content: markdownHardBreaks([heading, '', ...forms].join('\n')), ...spanOf(read) };
 }
 
 // [QSLIT#closed], [QSLSP#server]
@@ -365,7 +400,7 @@ async function hoverForTag(tag, head) {
   const scope = await langRuntime();
   if (nodeOf(scope, tag) === null) return null;
   const literal = makeTag(tag).literal;
-  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await contentOfThePage(literal)].join('\n')), ...head };
+  return { content: markdownHardBreaks([`**${literal}** — a name of the root`, '', await markdownOfThePage(literal)].join('\n')), ...head };
 }
 
 function nameAt(read, offset) {
@@ -392,8 +427,11 @@ export async function definitionAtOffset(root, offset, catalogCtx, source = null
   if (!catalogCtx) return null;
   if (named.spelling === TAG_SPELLING) return catalogCtx.index.get(named.name) ?? null;
 
-  const shown = source === null ? undefined : shownFor(scope, named.name, await subjectKindsBefore(read, source));
-  return (shown === undefined ? undefined : catalogCtx.index.get(shown.address.name)) ?? catalogDeclarationOf(catalogCtx, named.name);
+  if (source === null) return catalogDeclarationOf(catalogCtx, named.name);
+  const kinds = await subjectKindsBefore(read, source);
+  const verbs = verbsOfTheName(scope, named.name, kinds);
+  if (verbs !== null) return verbs.flatMap(address => catalogCtx.index.get(address) ?? []);
+  return catalogCtx.index.get(shownFor(scope, named.name, kinds)?.address.name) ?? catalogDeclarationOf(catalogCtx, named.name);
 }
 
 // [QSBLD#kind]

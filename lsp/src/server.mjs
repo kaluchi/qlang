@@ -161,20 +161,11 @@ connection.onDefinition(async (params) => {
   const def = await definitionAtOffset(state.root, offset, catalogCtx, state.source);
   if (!def) return null;
 
-  if (def.fileUri) {
-    return {
-      uri: def.fileUri,
-      range: offsetRangeToLineCol(def.source, def.startOffset, def.endOffset)
-    };
-  }
-
-  return {
-    uri: params.textDocument.uri,
-    range: {
-      start: doc.positionAt(def.startOffset),
-      end: doc.positionAt(def.endOffset)
-    }
-  };
+  // [D494]
+  const locationOf = ({ fileUri, source, startOffset, endOffset }) => (fileUri
+    ? { uri: fileUri, range: offsetRangeToLineCol(source, startOffset, endOffset) }
+    : { uri: params.textDocument.uri, range: { start: doc.positionAt(startOffset), end: doc.positionAt(endOffset) } });
+  return Array.isArray(def) ? def.map(locationOf) : locationOf(def);
 });
 
 function offsetRangeToLineCol(source, startOffset, endOffset) {

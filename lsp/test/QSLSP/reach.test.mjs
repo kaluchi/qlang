@@ -7,6 +7,8 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os';
 import { answerOf, framedMessage, lspDir } from '../helpers/server-process.mjs';
 
+const asRead = markdown => markdown.replace(/\\([!-\/:-@\[-`{-~])/g, '$1');
+
 describe('the hover', () => {
   it('returns hover for a verb of the language', async () => {
     const src = '[1 2 3] | count';
@@ -119,7 +121,7 @@ describe('the hover', () => {
 
   it('shows the page of a verb called in its own body, which calls itself by its name, and none for a value its own body names', async () => {
     const src = ':map/walk\n  |~~ Walks a tree. ~~|\n  ~(get {:n /n :kids ~(get /kids | map ~walk)});\n{:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n';
-    expect((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.indexOf('~walk') + 1)).content).toBe("**walk** — a reader's name  \n  \nWalks a tree.  ");
+    expect(asRead((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.indexOf('~walk') + 1)).content)).toBe("**walk** — a reader's name  \n  \nWalks a tree.  ");
     const value = ':n |~~ A number. ~~| (n | add 1);';
     expect(await hoverAtOffset(parseDocument(value, 'test.qlang').root, value, value.indexOf('(n') + 1)).toBeNull();
   });
@@ -127,7 +129,7 @@ describe('the hover', () => {
   it('shows the content of each doc of a declaration of the document, its links written as the code they run', async () => {
     const src = ':x |~~ see ::link~(::vec | doc) here ~~| |~~| and a line\n  1;\nx';
     const { root } = parseDocument(src, 'test.qlang');
-    const { content } = await hoverAtOffset(root, src, src.lastIndexOf('x'));
+    const content = asRead((await hoverAtOffset(root, src, src.lastIndexOf('x'))).content);
     expect([content.includes('see ::link~(::vec | doc) here'), content.includes('and a line')]).toEqual([true, true]);
   });
 
@@ -144,9 +146,18 @@ describe('the hover', () => {
     const page = await evalQuery('::keyword | doc | content');
     const { content } = await hoverAtOffset(root, src, 2);
     expect(content.startsWith('`:"1"` — **::keyword**')).toBe(true);
-    expect(content).toContain(page.split('\n')[0]);
+    expect(asRead(content)).toContain(page.split('\n')[0]);
     const declared = ':rate 2; rate';
     expect((await hoverAtOffset(parseDocument(declared, 'test.qlang').root, declared, 1)).content).toBe('keyword `:rate`');
+  });
+
+  it('writes the prose of a page into the Markdown of a hover as it reads, each sign of Markdown escaped and a span between backquotes as written', async () => {
+    const src = '[1] | tag ::tagged';
+    const { root } = parseDocument(src, 'test.qlang');
+    const { content } = await hoverAtOffset(root, src, src.indexOf('::tagged') + 2);
+    expect(content).toContain('\\:\\:snippet\\~\\(\\:\\:tagged \\| manifest\\) lists its verbs\\.');
+    expect(content).toContain('`within ~(…)` edits the payload under the tag');
+    expect(content).toContain('`::Box[1 2]`\\, `::Box{:width 2}`');
   });
 
   it('shows nothing on the sign that joins a payload to its tag, past the head of the tag', async () => {
@@ -164,13 +175,12 @@ describe('the hover', () => {
     }
   });
 
-  it('shows a verb with no subject under the address whose page it shows', async () => {
-    const src = 'count';
-    const { root } = parseDocument(src, 'test.qlang');
-    const hover = await hoverAtOffset(root, src, 0);
-    const address = /— (::[A-Za-z/]+)/.exec(hover.content)[1];
-    const page = await evalQuery(`${address} | doc | content`);
-    expect(hover.content).toContain(page.trim().split('\n')[0].trim());
+  it('lists the verbs of a name where the kind of the subject is unknown or answers none of them, and shows the one verb that serves every value', async () => {
+    const hoverOf = async src => asRead((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.lastIndexOf(src.includes('count') ? 'count' : 'eq'))).content);
+    expect(await hoverOf('count')).toBe('**count** — the kind of the subject unknown, the verbs of the name:  \n  \n::map/count  \n::string/count  \n::vec/count  ');
+    expect((await hoverOf('5 | count')).split('\n')[0]).toBe('**count** — ::number answers none of the verbs of the name:  ');
+    expect((await hoverOf('[1 2] | map ~(add 1) | count')).split('\n')[0]).toBe('**count** — the kind of the subject unknown, the verbs of the name:  ');
+    expect((await hoverOf('eq')).split('\n')[0]).toBe('**eq** — ::any/eq value  ');
   });
 
   it('returns null for an offset outside any part', async () => {
@@ -182,7 +192,10 @@ describe('the hover', () => {
 });
 
 describe('the names a step reaches in the body of a verb, the verbs, the nodes and the labels around it wherever they stand and no value a reader named there', () => {
-  const hoverOf = async (src, offset) => (await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, offset))?.content ?? null;
+  const hoverOf = async (src, offset) => {
+    const hover = await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, offset);
+    return hover === null ? null : asRead(hover.content);
+  };
   const gotoOf = async (src, offset) => (await definitionAtOffset(parseDocument(src, 'test.qlang').root, offset))?.startOffset ?? null;
   const pageOf = (name, prose) => `**${name}** — a reader's name  \n  \n${prose}  `;
 
@@ -341,13 +354,16 @@ const languageCatalogCtx = await (async () => {
   return { index, scope: await langRuntime() };
 })();
 
-describe('a literal and its kind', () => {
+describe('the innermost part at a position', () => {
   const firstLineOfThePage = async kind => (await evalQuery(`::${kind} | doc | content`)).split('\n')[0];
 
   it('shows a literal by its text, its kind and the page of its kind, a container on its signs alone and nothing on what it holds between them', async () => {
     const src = '[#"\\d" 1.5 "s" #[:a] ~(add 1) !{:k 1}] | count';
     const { root } = parseDocument(src, 'test.qlang');
-    const hoverAt = async offset => (await hoverAtOffset(root, src, offset))?.content ?? null;
+    const hoverAt = async offset => {
+      const hover = await hoverAtOffset(root, src, offset);
+      return hover === null ? null : asRead(hover.content);
+    };
     const shown = [['#"', '#"\\d"', 'regex'], ['1.5', '1.5', 'number'], ['"s"', '"s"', 'string'], ['#[', '#[:a]', 'set'], ['~(', '~(add 1)', 'quote'], ['!{', '!{:k 1}', 'error'], ['] |', src.slice(0, src.indexOf(' |')), 'vec']];
     for (const [needle, written, kind] of shown) {
       const content = await hoverAt(src.indexOf(needle));
@@ -367,6 +383,16 @@ describe('a literal and its kind', () => {
     expect(await declaredAt('[::map] | count', 3)).toBe(':map');
     expect(await declaredAt('[1 2] | count', 8)).toBe(':vec/count');
     expect(await declaredAt('"ab" | count', 7)).toBe(':string/count');
+  });
+
+  it('jumps from a call to every verb of its name where the kind of the subject reaches none of them, and to the one verb that serves every value', async () => {
+    const declaredAt = async (src, needle) => {
+      const def = await definitionAtOffset(parseDocument(src, 'test.qlang').root, src.lastIndexOf(needle), languageCatalogCtx, src);
+      return (Array.isArray(def) ? def : [def]).map(({ source, startOffset }) => source.slice(startOffset).split(/\s/)[0]);
+    };
+    expect(await declaredAt('count', 'count')).toEqual([':map/count', ':string/count', ':vec/count']);
+    expect(await declaredAt('5 | count', 'count')).toEqual([':map/count', ':string/count', ':vec/count']);
+    expect(await declaredAt('1 | eq 1', 'eq')).toEqual([':any/eq']);
   });
 
   it('reads the subject of a call from the steps before it in its own pipeline, inside a quote and a group, the hover, the jump and the help of a signature showing the verb it reaches, and a group by its parentheses', async () => {

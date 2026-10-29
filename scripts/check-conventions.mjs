@@ -133,6 +133,10 @@
 //       `.peggy` files, bear one name, a test file and a configuration of
 //       a tool aside by their form [QSLEX#grep].
 //
+//   (24) A source of the catalog declares a noun before the names under it
+//       and the names under a noun together, in the one order of their
+//       addresses, which `manifest` lists them in [D490].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -146,6 +150,7 @@ import { marksOfTree } from './marks.mjs';
 import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
+import { declarationsOutOfOrder } from './catalog-order.mjs';
 import { kindsNamedOffTheirAddress, refusalsOfTheCatalog } from './refusal-kinds.mjs';
 import { verdictOf } from './conventions-verdict.mjs';
 import { execFileSync } from 'node:child_process';
@@ -933,6 +938,13 @@ function commentsThatAreNoMarks() {
 // test file and a configuration of a tool aside by their form,
 // `scripts/grep-ergonomics.mjs` [QSLEX#grep].
 
+// ── (24) The order of the declarations of a source ─────────────
+//
+// A reader finds a verb of the catalog where its name puts it: a source
+// declares a noun before the names under it and the names under a noun
+// together, in the one order of their addresses, `scripts/catalog-order.mjs`
+// [D490].
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -958,7 +970,8 @@ const { text, failed } = verdictOf({
   unreadExports: exportsNoHostReads(),
   testsOffTheirSection: testsOffTheirSection(),
   commentsNoMarks: commentsThatAreNoMarks(),
-  sharedNames: namesSharedInTree(repoRoot)
+  sharedNames: namesSharedInTree(repoRoot),
+  catalogOrder: declarationsOutOfOrder(catalogSources())
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

@@ -93,7 +93,8 @@ true
 Raising is an act, and `raise` alone performs it, a verb of every value:
 it puts its subject on the fail track, a map beneath the tags over it, a
 map as `::error{…}`, a map under a tag as the error of the outermost tag,
-laid through the kind of the tag as a catch lays it, and the error at rest
+laid through the kind the scope of its step declares for the tag as a
+catch lays it, and the error at rest
 of a refusal as the error of its refusal. A label whose kind takes no
 error at rest by its own tag, `::error`, one whose `accepts` names maps
 alone among them, or whose invariant the error at rest breaks, refuses the

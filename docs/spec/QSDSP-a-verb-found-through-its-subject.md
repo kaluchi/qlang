@@ -33,7 +33,8 @@ wherever it resolves, each kind that answers it implementing that act,
 and a verb on a label the walk reaches first stands over one of the same
 name it reaches later, a verb of `::tagged` over one of the payload's
 kind. `is` answers whether the walk of a value's tags reaches a value of
-one of the kinds it is given, or one of them closes the value, the slot of
+one of the kinds it is given, or one of them closes the value, each kind
+read in the scope of its step, the slot of
 a verdict a value of `::fn/slot` [QSERR#site], one kind at least, a call
 of none refused as `::any/is/KindsEmptyError`, `::any` among them; a tag
 name is a value of `::tag`, so `::vec | is ::vec` is false and

@@ -53,6 +53,11 @@ export function ownScopeOf(state) {
   return state.own ?? state.scope;
 }
 
+// [QSNAM#owner]
+export function ownStateOf(state) {
+  return state.own === null ? state : makeState(state.pipeValue, state.own, state.depth, state.written);
+}
+
 const NO_ROOT = new Map();
 
 export function rootOf(scope) {

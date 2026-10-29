@@ -67,10 +67,15 @@ gives more args than the inputs of its verb read is refused as
 Values of one subject are combined by the verbs of one subject on
 `::any`, each of the args a number or a path read against the subject:
 `sumOf` and `mulOf` combine one value or more, `subOf` and `divOf` two,
-under the tags the numbers share as the steps they run combine them
-[QSDSP#answer], a call of `sumOf` that gives none refused as
-`::any/sumOf/NumbersEmptyError` and one of `subOf` that gives one as
-`::any/subOf/SubtrahendNotGivenError`.
+under the tags the numbers share [QSDSP#answer], a call of `sumOf` that
+gives none refused as `::any/sumOf/NumbersEmptyError` and one of `subOf`
+that gives one as `::any/subOf/SubtrahendNotGivenError`. Each path is read
+at the call, and a part it reads that is no number is refused under the
+verb by the input's name, `…/<Input>AnswerKindNotTakenError`, the part its
+`:answer` and, where the input reads the args, its `:index`, as a value
+given that is none is refused by the kinds of the input; two numbers under
+different tags are refused as the pair, `::call/KindsMismatchedError`, and
+a divisor of zero under the verb, `::any/divOf/DivisorZeroError`.
 
 ```qlang
 > 1 | add 1 2 !| get [~(tag) ~(doc | content | contains "sumOf")]
@@ -84,4 +89,7 @@ under the tags the numbers share as the steps they run combine them
 
 > {:a ::Cents#5 :b ::Dollars#2} | get [~(sumOf (get /a) (get /b) !| tag) ~(mulOf (get /a) 3)]
 [::call/KindsMismatchedError ::Cents#15]
+
+> {:price "4" :qty 3} | mulOf /price /qty !| get [~(tag) ~(factors | index) ~(factors | answer)]
+[::any/mulOf/FactorsAnswerKindNotTakenError 0 "4"]
 ```

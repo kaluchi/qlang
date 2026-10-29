@@ -181,7 +181,8 @@ error at rest or the excerpt of its facts alone [QSERR#rest], a tag whose `accep
 payload, `5 | tag ::tagged` refused as
 `::tagged/PayloadKindNotTakenError`, and the tag of a name that holds
 data is refused as `::construct/TagNamesAValueError`. `tag` given a name
-lays it over the value in the pipe through the tag's kind,
+lays it over the value in the pipe through the kind the scope of its step
+declares for the tag, as the literal lays it,
 `5 | tag ::Foo`, a name that is no tag name refused as
 `::any/tag/NameKindNotTakenError`, and given none answers the tag of the
 value, a vector of a tag and a value the vector it is.

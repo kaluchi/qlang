@@ -5,6 +5,7 @@ import { compareValues } from '../ordering.mjs';
 import { registerPrimitive, registerStateReader, asCombiner } from '../primitives.mjs';
 import { kindOfAValueOf } from '../nouns.mjs';
 import { walkToKinds } from '../dispatch.mjs';
+import { ownScopeOf } from '../state.mjs';
 
 registerPrimitive('any/eq',  (subject, value) => compareValues(subject, value) === 0);
 registerPrimitive('any/ne',  (subject, value) => compareValues(subject, value) !== 0);
@@ -33,5 +34,5 @@ function closedByOneOf(value, names, scope) {
 
 registerStateReader('any/is', (subject, kinds, state) => {
   const names = kinds.map(kind => kind.name);
-  return walkToKinds(subject, names) !== null || closedByOneOf(subject, names, state.scope);
+  return walkToKinds(subject, names) !== null || closedByOneOf(subject, names, ownScopeOf(state));
 });

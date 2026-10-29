@@ -11,7 +11,7 @@ benchmark takes by its sets, `scripts/benchmark.mjs`. A child of the
 benchmark is a clean model with no settings, memory or server, at one effort
 no run changes; it runs the playground on the tasks of a set, handed one
 first screen, the pages of the language and of the playground as
-`[::qlang ::host] | map ~(get [~(it) ~(doc)])` prints them. A set is written
+`[::qlang ::host] | map ~(get [~it ~doc])` prints them. A set is written
 by a clean author who never sees the language: the data, the tasks and a
 script that computes the answers. A set measures once: reading what its
 children missed marks it seen, a set seen runs no more, and the next

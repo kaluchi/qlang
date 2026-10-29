@@ -127,7 +127,7 @@
 //   (22) A comment of the sources and the tests of the core, its grammar
 //       among them, the streams, the playground and the language server is a
 //       mark alone, one line of the citations its block holds, or a directive
-//       of a tool [D489].
+//       of a tool [QSLEX#code].
 //
 //   (23) No two modules of the project, its `.mjs`, `.js`, `.qlang` and
 //       `.peggy` files, bear one name, a test file and a configuration of
@@ -910,7 +910,7 @@ function testsOffTheirSection() {
 // A comment of the sources and the tests of the core, the streams, the
 // playground and the language server, read by acorn, and of the grammar,
 // read by peggy, is a mark alone, one line of the citations its block holds,
-// or a directive of a tool [D489].
+// or a directive of a tool [QSLEX#code].
 
 const MARKED_SOURCES = ['core/src', 'core/host', 'core/test', 'stdio/src', 'playground/src', 'playground/test', 'lsp/src', 'lsp/test'];
 const CITED = String.raw`\[(?:QS[A-Z]{3}(?:#[a-z-]+)?|D\d+)\]`;

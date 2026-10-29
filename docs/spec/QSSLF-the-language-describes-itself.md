@@ -295,8 +295,8 @@ with links to go deeper, and its value is the set of the kinds that are
 it, data, so a chapter is no label [QSNAM#root]. The first page tells
 the budget every answer prints within and the refusal of an answer past
 it, the cell that keeps the answer and `answer` that reads it back, the
-concentrate a failure prints as, a fact past its room the cell that keeps
-it beside its tag, its views and its parts. Every link of every page of the catalog opens a
+concentrate a failure prints as, a fact past its room the cell its host
+keeps it in. Every link of every page of the catalog opens a
 doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 
@@ -310,7 +310,7 @@ true
 > get [~(::host | kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
-> ::qlang | doc | content | get [~(contains "its views and its parts") ~(contains "the ::cell that") ~(contains "::qlang/AnswerBeyondBudgetError")]
+> ::qlang | doc | content | get [~(contains "::cell its host keeps it in") ~(contains "its ::cell read back whole") ~(contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
 > ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])))))

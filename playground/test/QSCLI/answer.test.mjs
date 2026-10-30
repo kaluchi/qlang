@@ -49,7 +49,7 @@ describe('the arguments of the command line', () => {
   it('refuses an argument after the query, a flag written there among them, which nothing would read', () => {
     expect(parseArgv(['1 | add 2', '--fail'])).toEqual({
       kind: 'usageError',
-      message: "qplay: '--fail' after the query is read by nothing: the flags stand before the query, which is one argument, `qplay [flags] '<query>'`\n"
+      message: "qplay: '--fail' after the query is read by nothing: the flags stand before the query, which is one argument, as `qplay --help` writes it\n"
     });
     expect(parseArgv(['-i', '1 | add 2', '2']).kind).toBe('usageError');
   });
@@ -281,7 +281,7 @@ describe('a defect raised as the answer is written, and a failure written as eve
   it('writes a defect raised past the fail track on stderr as `qplay:` and its message, with exit 1', async () => {
     const cellEntry = await makeCellEntry({ defect: new Error('the host broke') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('');
@@ -291,7 +291,7 @@ describe('a defect raised as the answer is written, and a failure written as eve
 
   it('writes a defect the printer raises on the answer on stderr as `qplay:` and its message, with exit 1', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: Infinity }), {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false
     });
     expect(cliOutcome).toEqual({ stdoutText: '', stderrText: 'qplay: the core met number Infinity, a value of no kind of the language\n', exitCode: 1 });
@@ -299,7 +299,7 @@ describe('a defect raised as the answer is written, and a failure written as eve
 
   it('writes a failure on stdout as every answer, exit 0', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toContain('::number/add/SubjectNotNumberError!{');
@@ -311,7 +311,7 @@ describe('a defect raised as the answer is written, and a failure written as eve
 describe('the code the caller asks a failure to exit with', () => {
   it('exits a failure with the code the caller asks for, written as without it', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false,
       failureExitCode: 1
     });
@@ -322,7 +322,7 @@ describe('the code the caller asks a failure to exit with', () => {
 
   it('exits a failure the query left unwritten by `out` with that code too', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: await refusalOfAdd() }), {
-      didExplicitStdoutEffect: true,
+      heldTheChannel: true,
       shouldColorize: false,
       failureExitCode: 1
     });
@@ -332,7 +332,7 @@ describe('the code the caller asks a failure to exit with', () => {
 
   it('exits a value with 0 whatever code a failure takes', async () => {
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result: 'hello' }), {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false,
       failureExitCode: 1
     });
@@ -345,7 +345,7 @@ describe('the answer as the language prints it, and none after `out`', () => {
   it('prints a non-String composite as its literal', async () => {
     const result = new Map([['k', 1]]);
     const cliOutcome = await renderCellOutcome(await makeCellEntry({ result }), {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: false
     });
     expect(cliOutcome.stdoutText).toBe('{:k 1}\n');
@@ -355,7 +355,7 @@ describe('the answer as the language prints it, and none after `out`', () => {
   it('writes no answer for a query that wrote by `out`, which holds the channel', async () => {
     const cliOutcome = await renderCellOutcome(
       await makeCellEntry({ result: 'hello' }),
-      { didExplicitStdoutEffect: true, shouldColorize: false }
+      { heldTheChannel: true, shouldColorize: false }
     );
     expect(cliOutcome.stdoutText).toBe('');
     expect(cliOutcome.exitCode).toBe(0);
@@ -365,7 +365,7 @@ describe('the answer as the language prints it, and none after `out`', () => {
 it('writes a string as its text where the caller asks for colour, which no colour paints as code', async () => {
   const cliOutcome = await renderCellOutcome(
     await makeCellEntry({ result: 'hello | world' }),
-    { didExplicitStdoutEffect: false, shouldColorize: true }
+    { heldTheChannel: false, shouldColorize: true }
   );
   expect(cliOutcome.stdoutText).toBe('hello | world\n');
 });
@@ -394,14 +394,14 @@ describe('an answer past the budget', () => {
   it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {
     const scope = await langRuntime();
     const cellEntry = await makeCellEntry({ result: await evalQuery(past, scope), scope });
-    expect((await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false })).exitCode).toBe(0);
-    const failing = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: false, failureExitCode: 1 });
+    expect((await renderCellOutcome(cellEntry, { heldTheChannel: false, shouldColorize: false })).exitCode).toBe(0);
+    const failing = await renderCellOutcome(cellEntry, { heldTheChannel: false, shouldColorize: false, failureExitCode: 1 });
     expect([failing.exitCode, failing.stdoutText.includes('::qlang/AnswerBeyondBudgetError')]).toEqual([1, true]);
   });
 
   it('paints a string past the budget as the alert of its refusal, which is code', async () => {
     const cellEntry = await makeCellEntry({ result: 'x'.repeat(16001) });
-    const painted = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: true });
+    const painted = await renderCellOutcome(cellEntry, { heldTheChannel: false, shouldColorize: true });
     // eslint-disable-next-line no-control-regex -- matches the literal ESC byte that ANSI escape sequences open with
     expect(painted.stdoutText).toMatch(/\x1b\[/);
   });
@@ -409,6 +409,6 @@ describe('an answer past the budget', () => {
   it('writes nothing and raises no refusal for a query that wrote by out, its code the one its answer exits with', async () => {
     const scope = await langRuntime();
     const cellEntry = await makeCellEntry({ result: await evalQuery(past, scope), scope });
-    expect(await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: true, shouldColorize: false, failureExitCode: 1 })).toEqual({ stdoutText: '', stderrText: '', exitCode: 0 });
+    expect(await renderCellOutcome(cellEntry, { heldTheChannel: true, shouldColorize: false, failureExitCode: 1 })).toEqual({ stdoutText: '', stderrText: '', exitCode: 0 });
   });
 });

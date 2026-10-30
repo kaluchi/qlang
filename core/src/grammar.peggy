@@ -406,17 +406,17 @@ DocAfterStep
 DocOpen
   = LineDocOpen / BlockDocOpen
 
-PlainComment
-  = LinePlainComment
-  / BlockPlainComment
+Comment
+  = LineComment
+  / BlockComment
 
-LinePlainComment
+LineComment
   = "|~|" content:LineCommentContent
-  { recordComment('LinePlainComment', content); }
+  { recordComment('LineComment', content); }
 
-BlockPlainComment
-  = "|~" ![|~] content:BlockPlainContent "~|"
-  { recordComment('BlockPlainComment', content); }
+BlockComment
+  = "|~" ![|~] content:BlockCommentContent "~|"
+  { recordComment('BlockComment', content); }
 
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
@@ -429,25 +429,25 @@ QuoteSpan
 NestedLineDocSpan
   = "|~~|"
     { return text(); }
-NestedLinePlainSpan
+NestedLineCommentSpan
   = "|~|"
     { return text(); }
 NestedBlockDocSpan
   = &{ return !knownToFail(nestedDocFailures); } "|~~" !"|" BlockDocContent "~~|"
     { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedDocFailures); } "|~~"
-NestedBlockPlainSpan
-  = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockPlainContent "~|"
+NestedBlockCommentSpan
+  = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockCommentContent "~|"
     { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedCommentFailures); } "|~"
 
-BlockPlainContent
+BlockCommentContent
   = chars:(
       QuoteSpan
       / NestedLineDocSpan
-      / NestedLinePlainSpan
+      / NestedLineCommentSpan
       / NestedBlockDocSpan
-      / NestedBlockPlainSpan
+      / NestedBlockCommentSpan
       / "~~|"
       / (!"~|" .)
     )*
@@ -457,9 +457,9 @@ BlockDocContent
   = chars:(
       QuoteSpan
       / NestedLineDocSpan
-      / NestedLinePlainSpan
+      / NestedLineCommentSpan
       / NestedBlockDocSpan
-      / NestedBlockPlainSpan
+      / NestedBlockCommentSpan
       / "~|"
       / (!"~~|" .)
     )*
@@ -572,7 +572,7 @@ Name
 
 // [QSDSP#walk]
 CallName
-  = head:Ident tail:("/" @KeywordName)*
+  = head:CallNameHead tail:("/" @KeywordName)*
     { return [head, ...tail].join('/'); }
 
 // [QSLIT#closed], [QSERR#rest], [D404]
@@ -664,9 +664,9 @@ QuotePart
   = NestedParenSpan
   / QuoteStringSpan
   / QuoteBlockDocSpan
-  / QuoteBlockPlainSpan
+  / QuoteBlockCommentSpan
   / QuoteLineDocSpan
-  / QuoteLinePlainSpan
+  / QuoteLineCommentSpan
   / QuoteChar
 
 NestedParenSpan
@@ -686,16 +686,16 @@ QuoteBlockDocSpan
 QuoteBlockDocChar
   = !"~~|" QuoteSpanChar
 
-QuoteBlockPlainSpan
-  = "|~" !"~" !"|" QuoteBlockPlainChar* "~|" { return text(); }
+QuoteBlockCommentSpan
+  = "|~" !"~" !"|" QuoteBlockCommentChar* "~|" { return text(); }
 
-QuoteBlockPlainChar
+QuoteBlockCommentChar
   = !"~|" QuoteSpanChar
 
 QuoteLineDocSpan
   = "|~~|" ProseOfALine* { return text(); }
 
-QuoteLinePlainSpan
+QuoteLineCommentSpan
   = "|~|" ProseOfALine* { return text(); }
 
 QuoteChar
@@ -740,9 +740,9 @@ BlockDocPart
   / open:$("`"+) &{ docsInASpan = 0; return true; } (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / DocInASpan / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / NestedLineDocSpan
-  / NestedLinePlainSpan
+  / NestedLineCommentSpan
   / NestedBlockDocSpan
-  / NestedBlockPlainSpan
+  / NestedBlockCommentSpan
   / "~|"
   / !"~~|" !DocQuoteOpens c:. { return c; }
 
@@ -868,7 +868,7 @@ KeySegment
   / RelaxedKeyName
 
 RelaxedKeyName
-  = chars:IdentTail+ { return chars.join(''); }
+  = chars:NameLetter+ { return chars.join(''); }
 
 AtomLit
   = StringLit
@@ -915,11 +915,11 @@ NumberLit "number within the finite double range"
       return part(Number(text())); }
 
 BooleanLit
-  = "true"  !IdentTail { return part(true); }
-  / "false" !IdentTail { return part(false); }
+  = "true"  !NameLetter { return part(true); }
+  / "false" !NameLetter { return part(false); }
 
 NullLit
-  = "null" !IdentTail { return part(null); }
+  = "null" !NameLetter { return part(null); }
 
 // [QSLIT#keyword]
 Keyword
@@ -935,20 +935,20 @@ QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
 KeywordName
-  = first:IdentStart rest:IdentTail*
+  = first:NameStart rest:NameLetter*
     { return first + rest.join(''); }
 
-Ident
-  = !ReservedWord first:IdentStart rest:IdentTail*
+CallNameHead
+  = !ReservedWord first:NameStart rest:NameLetter*
     { return first + rest.join(''); }
 
 ReservedWord
-  = ("true" / "false" / "null") !IdentTail
+  = ("true" / "false" / "null") !NameLetter
 
 // [QSNAM#letters]
-IdentStart "name"
+NameStart "name"
   = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameStart(c); } { return c; }
-IdentTail  "letters of a name"
+NameLetter  "letters of a name"
   = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameContinue(c); } { return c; }
 
 // [QSSYN#line], [QSSYN#comment]
@@ -957,8 +957,8 @@ _   = Whitespace*
 __  = Whitespace+
 _h1 = InlineSpace+
 
-Whitespace "whitespace" = [ \t\n\r] / &"|" @PlainComment
+Whitespace "whitespace" = [ \t\n\r] / &"|" @Comment
 
-InlineSpace "whitespace" = [ \t] / &"|" @PlainComment
+InlineSpace "whitespace" = [ \t] / &"|" @Comment
 
 NonSpace = [^ \t\n\r]

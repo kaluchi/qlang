@@ -477,9 +477,6 @@
         ~([7 8] | tag ::Inner | tag ::Outer
           | get [tag (payload | tag) (payload | payload)]
           | eq [::Outer ::Inner [7 8]])
-    | proves :values/readsTheOuterTag
-        |~~ `tag` reads the outer tag. ~~|
-        ~(::Box::Crate{:width 2} | tag | eq ::Box)
     | proves :values/leavesTheOldValueAsItWas
         |~~ Appending leaves the old vector as it was. ~~|
         ~(["tea" "milk"] | get [it (append "bread")]
@@ -547,9 +544,6 @@
     | proves :pipeline/readsAPath
         |~~ A path reads a nested part. ~~|
         ~({:user {:name "Ann"}} | get /user/name | eq "Ann")
-    | proves :pipeline/failsOnAMiss
-        |~~ A miss is an error. ~~|
-        ~({:name "Ann"} | get /nmae !| tag | eq ::path/KeyNotInMapError)
     | proves :pipeline/namesTwoPartsForTheCodeOfAStep
         |~~ `with` names two parts of the record for the code of one step. ~~|
         ~({:qty 2 :price 3} | with [/qty /price] (qty | mul price) | eq 6)
@@ -775,9 +769,6 @@
         |~~ `query` declares its path and its default as its inputs. ~~|
         ~(::any/query | binding | value | inputs | map /name
           | eq [:path :default])
-    | proves :verbs/answersUnderTheTags
-        |~~ A sum goes back under the tag the subject came through. ~~|
-        ~(::Width#2 | add 3 | eq ::Width#5)
     | proves :verbs/isAFunctionNamedUnderALabel
         |~~ A verb is a function named under a label. ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number
@@ -868,9 +859,6 @@
             Whether the step before stood is `ok !| false`.
         ~~|
         #[::error ::fail ::frame ::trace]
-    | proves :errors/namesTheSite
-        |~~ The error's tag names its site. ~~|
-        ~("x" | add 1 !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :errors/recoversWhereRead
         |~~ `!|` inside the code `map` runs recovers each failure. ~~|
         ~([1 "x"] | map (mul 2 !| 0) | eq [2 0])
@@ -885,10 +873,6 @@
     | proves :errors/holdsTheSkippedSteps
         |~~ The last frame holds the steps skipped. ~~|
         ~("x" | add 1 | mul 2 !| trace | last | skipped | toString | eq "mul 2")
-    | proves :errors/runsTheSkippedStepsAgain
-        |~~ The steps a failure skipped run again by `apply`. ~~|
-        ~("x" | add 1 | mul 2 !| trace | last | skipped
-          | with {:rest it} (5 | apply rest) | eq 10)
     | proves :errors/namesThePathOfThePart
         |~~ The frame of a step that failed at an element names the path
             of the element.

@@ -67,8 +67,8 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
 
   const stdinReader = memoiseStdinReader(() => (readsStdin ? Promise.resolve(stdinText) : readStdinToString(stdinStream)));
 
-  let didExplicitStdoutEffect = false;
-  const recordStdoutEffect = () => { didExplicitStdoutEffect = true; };
+  let heldTheChannel = false;
+  const recordStdoutEffect = () => { heldTheChannel = true; };
 
   const cellEntry = await runQuery(
     queryText,
@@ -77,7 +77,7 @@ export async function main(argvSlice, stdinStream, stdoutStream, stderrStream, e
   );
 
   const cliOutcome = await renderCellOutcome(cellEntry, {
-    didExplicitStdoutEffect,
+    heldTheChannel,
     shouldColorize: resolveShouldColorize(cliInvocation.colorMode, stdoutStream, env),
     failureExitCode: cliInvocation.failureExitCode
   });

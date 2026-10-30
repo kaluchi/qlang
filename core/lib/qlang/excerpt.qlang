@@ -19,9 +19,11 @@
       stand as their views. A key is the chain a reader types,
       `:answer/addend/found/count` read as
       `::cell"…" | answer | addend | found | count`. A host that keeps no
-      cell shows the tag, the views and the parts alone. Nothing is cut: a
-      fact stands whole, as a cell that gives it back whole, or as the
-      facts its kind reveals of it.
+      cell shows the tag, the views and the parts alone. No fact is cut: it
+      stands whole, as a cell that gives it back whole, or as the facts its
+      kind reveals of it. Where the alert passes its room, the entries laid
+      deepest and last drop until it fits, each whole in the failure `!|`
+      reads.
 
       An excerpt is a map under its tag, read by its keys, and the kind of
       the refusal over it reads its facts by their names, a cell standing

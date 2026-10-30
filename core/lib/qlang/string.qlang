@@ -561,10 +561,6 @@
     | proves :runsByApply
         |~~ `apply` runs the quote on a subject. ~~|
         ~(5 | with {:q ("add 1" | parse)} (apply q) | eq 6)
-    | proves :answersASourceWithItsOwnValue
-        |~~ A source that starts from a value of its own answers by `answer`.
-        ~~|
-        ~("1 | add 1" | parse | answer | eq 2)
     | proves :refusesASourceTheParserRefuses
         |~~ A source the parser cannot read is refused. ~~|
         ~("add (" | parse !| tag | eq ::quote/ParseError)

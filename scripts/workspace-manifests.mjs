@@ -1,6 +1,7 @@
-// The manifest surface the release rewrite and the convention check
-// share: which workspaces the repo declares, every manifest field where one
-// of them names a sibling, and the range that naming must carry.
+// The `package.json` of each workspace, which the release rewrite and the
+// convention check share: which workspaces the repo declares, every field of
+// a `package.json` where one of them names a sibling, and the range that
+// naming must carry.
 //
 // A workspace names a sibling by the range `^x.y.z` of the sibling's own
 // version in every map of its dependencies, the range a consumer of the

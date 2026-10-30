@@ -18,16 +18,16 @@ function legendOf(value, scope, printedOfParts, head) {
   const wiring = wiringOf(value);
   const fields = kind === null || wiring === undefined ? [] : chainOfKind(kind).fields;
   const laid = fields.length > 0 ? payloadLaidOut(value) : null;
-  const atPlaces = new Map(laid === null ? [] : fields.filter(({ place }) => place?.path.segments.length === 1).map(field => [field.place.path.segments[0], field]));
+  const byPaths = new Map(laid === null ? [] : fields.filter(({ pathRead }) => pathRead?.path.segments.length === 1).map(field => [field.pathRead.path.segments[0], field]));
   const printedOf = part => (part === value ? undefined : printedOfParts(part));
-  if (atPlaces.size === 0) return aligned([[head + printValue(value, 0, printedOf, true), ofTheHead]]);
+  if (byPaths.size === 0) return aligned([[head + printValue(value, 0, printedOf, true), ofTheHead]]);
   const lines = [[head + laid.open, ofTheHead]];
   const parts = new Map(laid.parts.map(([key, part]) => [String(key), part]));
   for (const [key, part] of laid.parts) {
-    const field = atPlaces.get(String(key));
+    const field = byPaths.get(String(key));
     const printed = printValue(part, 1, printedOf, true);
     const said = field !== undefined ? (laid.keyed ? glossOf(field.page, scope) : joined(glossOf(field.page, scope), field.name.name))
-      : glossOfAKeyBeneath(String(key), parts, kind, atPlaces, scope);
+      : glossOfAKeyBeneath(String(key), parts, kind, byPaths, scope);
     lines.push([`  ${laid.keyed ? `${canonicalKeywordLiteral(key)} ${printed}` : printed}`, said]);
   }
   lines.push([laid.close, null]);
@@ -55,9 +55,9 @@ function saidOfAView(scope, kindName, name) {
 }
 
 // [QSPRN#legend], [QSERR#site]
-function glossOfAKeyBeneath(key, parts, kind, atPlaces, scope) {
+function glossOfAKeyBeneath(key, parts, kind, byPaths, scope) {
   const segments = key.split('/');
-  if (!atPlaces.has(segments[0]) || segments.length === 1) return null;
+  if (!byPaths.has(segments[0]) || segments.length === 1) return null;
   for (let cut = segments.length - 1; cut >= 1; cut--) {
     const kindNames = kindsShownAt(segments.slice(0, cut).join('/'), parts);
     if (kindNames !== null) return glossOfTheRest(segments.slice(cut), kindNames, scope);
@@ -88,9 +88,9 @@ function glossOfTheRest(rest, kindNames, scope, ownKind = null) {
   return kindName === undefined && verbOfAView(scope, ANY_KIND_NAME, rest[0]) === null ? null : saidOfAView(scope, kindName ?? ANY_KIND_NAME, rest[0]);
 }
 
-const readsItsOwnKey = (name, place) => place.path.segments.length === 1 && place.path.segments[0] === name.name;
+const readsItsOwnKey = (name, pathRead) => pathRead.path.segments.length === 1 && pathRead.path.segments[0] === name.name;
 
-const partOfAKind = ({ name, place, written }) => [name.name, place === null || readsItsOwnKey(name, place) ? null : printValue(place.path), written === null ? null : printValue(written)].filter(piece => piece !== null).join(' ');
+const partOfAKind = ({ name, pathRead, written }) => [name.name, pathRead === null || readsItsOwnKey(name, pathRead) ? null : printValue(pathRead.path), written === null ? null : printValue(written)].filter(piece => piece !== null).join(' ');
 
 function payloadLaidOut(value) {
   const { literal } = value[TAG_HEADER_SYMBOL];

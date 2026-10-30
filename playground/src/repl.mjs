@@ -55,14 +55,14 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
-  let wroteByOut = false;
+  let heldTheChannel = false;
   let runningLine = '';
   const notebook = await createNotebook({
     sources: playgroundSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
       stderrWrite: writeDiagnostic,
-      recordStdoutEffect: () => { wroteByOut = true; },
+      recordStdoutEffect: () => { heldTheChannel = true; },
       get query() { return runningLine; }
     })
   });
@@ -108,18 +108,18 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
         return;
       }
 
-      wroteByOut = false;
+      heldTheChannel = false;
       runningLine = rawLine;
       const cellEntry = await notebook.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, heldTheChannel);
       lineEditor.prompt();
     }
   });
 }
 
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, heldTheChannel) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
-    if (wroteByOut && !isErrorValue(result)) return null;
+    if (heldTheChannel && !isErrorValue(result)) return null;
     const shown = isErrorValue(result) ? await boundAnswer(result, scope, null, value => keepCell({ query: cellEntry.source, scope, value })) : result;
     return await printAnswer(shown, scope);
   });

@@ -70,6 +70,8 @@
             source, or writes the name in steps, a quote, which runs
             without one.
         ~~|
+        ~(wires :origin |~~ The source that declares the name. ~~| ::keyword
+          | wires :name |~~ The name handed no primitive. ~~| ::keyword)
     | throws :TableSealedError
         |~~ The table of the language's primitives is sealed when the
             bootstrap completes, and one registered after it is refused, a
@@ -100,15 +102,19 @@
             maps the source where its package says the sources of the
             language stand, or hands the runtime a locator of its own.
         ~~|
+        ~(wires :origin |~~ The source that resolved to nothing. ~~| ::keyword)
     | throws :RootSourceNotDeclaredError
         |~~ A source of the root answered an error, or declared again a
             name the root holds, so its declarations stay out of the root;
-            `:origin` names the source and `:tagName` the refusal, for a
-            name declared again `::bind/NameDeclaredTwiceError` with `:name`
-            the name. The source is repaired by the page of that refusal,
-            and a name declared again takes a name of its own, the root's
-            left as they are.
+            `:origin` names the source and `:refusal` the tag of the
+            refusal, for a name declared again `::bind/NameDeclaredTwiceError`
+            with `:name` the name. The source is repaired by the page of that
+            refusal, and a name declared again takes a name of its own, the
+            root's left as they are.
         ~~|
+        ~(wires :origin |~~ The source refused. ~~| ::keyword | wires :refusal
+          |~~ The tag of the refusal the source answered. ~~| ::tag
+          | wires :name |~~ The name the source declared again. ~~| ::keyword)
     | throws :RootValueNotWordError
         |~~ A source of the root declared a value under a bare name, which
             serves the query of its own text and reaches no reader, so the
@@ -118,6 +124,8 @@
             under a noun, data under an address among them,
             `:Box/limit 10;`.
         ~~|
+        ~(wires :origin |~~ The source refused. ~~| ::keyword
+          | wires :name |~~ The bare name of the value. ~~| ::keyword)
     | throws :PrimitiveNamesNoBuiltinError
         |~~ A host handed a primitive beside a source of the root for a name the
             source declares neither as a `::builtin{}` under a label nor as a

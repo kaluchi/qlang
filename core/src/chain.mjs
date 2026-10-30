@@ -198,7 +198,7 @@ function readChainOfKind(quote) {
         names.named.add(notReadAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        kind.fields.push({ name: first, page: second, selector, place: placeOf(selector), kinds, each, written });
+        kind.fields.push({ name: first, page: second, selector, pathRead: pathReadOf(selector), kinds, each, written });
         break;
       }
       case 'tells':
@@ -265,17 +265,17 @@ export function chainOfKind(kind) {
 }
 
 // [QSHST#source]
-export function wiringAtPlaces(kind) {
+export function wiringByPaths(kind) {
   const { fields } = chainOfKind(kind);
-  if (fields.length === 0 || fields.some(({ place }) => place === null)) return null;
-  return payload => new Map(fields.map(({ name, place: { path, soft } }) => {
+  if (fields.length === 0 || fields.some(({ pathRead }) => pathRead === null)) return null;
+  return payload => new Map(fields.map(({ name, pathRead: { path, soft } }) => {
     const part = readPath(payload, path, soft);
     return [name.name, part === MISSED ? null : part];
   }));
 }
 
 // [QSBLD#value]
-function placeOf(selector) {
+function pathReadOf(selector) {
   if (isPath(selector)) return { path: selector, soft: false };
   const [step] = selector;
   if (selector.length !== 1 || !isCallStep(step)) return null;

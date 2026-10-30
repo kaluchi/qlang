@@ -31,11 +31,11 @@ export async function cellText(cellEntry, print) {
 }
 
 export async function renderCellOutcome(cellEntry, outcomeOpts) {
-  const { didExplicitStdoutEffect, shouldColorize, failureExitCode = 0 } = outcomeOpts;
+  const { heldTheChannel, shouldColorize, failureExitCode = 0 } = outcomeOpts;
   // [QSCLI#answer]
   let failed = isErrorValue(cellEntry.result);
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
-    if (didExplicitStdoutEffect) return null;
+    if (heldTheChannel) return null;
     const kept = value => keepCell({ query: cellEntry.source, scope, value });
     const shown = await boundAnswer(result, scope, typeof result === 'string' ? result : null, kept);
     failed = isErrorValue(shown);

@@ -7,7 +7,7 @@ import { renderCellOutcome } from '../../src/render.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
 
 const keptBy = async query => {
-  const outcome = await renderCellOutcome(await runQuery(query, captureIoContext()), { didExplicitStdoutEffect: false, shouldColorize: false });
+  const outcome = await renderCellOutcome(await runQuery(query, captureIoContext()), { heldTheChannel: false, shouldColorize: false });
   return outcome.stdoutText.match(/::cell"([0-9a-f]{12})"/);
 };
 

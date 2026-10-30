@@ -23,7 +23,7 @@ it('raises it on Node for a file the package maps that does not read, its origin
 
 it('raises it in a browser for a response that fails, its status the cause', async () => {
   vi.stubGlobal('fetch', async () => ({ ok: false, status: 404 }));
-  const { loadSource } = await import('../../../src/load-source-web.mjs');
+  const { loadSource } = await import('../../../host/load-source-web.mjs');
   const raised = await loadSource('qlang/vec').catch(error => error);
   expect(raised.address).toBe('builtin/SourceLoadError');
   expect(Object.keys(raised.facts)).toEqual(['origin', 'sourceLocation', 'cause']);
@@ -37,6 +37,6 @@ it('reads a source with a byte order mark at its head as the text after it, on N
   readFile.mockResolvedValueOnce(Buffer.from(marked));
   vi.stubGlobal('fetch', async () => new Response(marked));
   const { loadSource: onNode } = await import('../../../host/load-source-node.mjs');
-  const { loadSource: inABrowser } = await import('../../../src/load-source-web.mjs');
+  const { loadSource: inABrowser } = await import('../../../host/load-source-web.mjs');
   expect([await onNode('qlang/vec'), await inABrowser('qlang/vec')]).toEqual([':x 1', ':x 1']);
 });

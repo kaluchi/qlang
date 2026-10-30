@@ -29,46 +29,46 @@ function keyedPartsOf(value) {
   return isValueClass(value, 'underTag') && isMap(value.payload) ? [...value.payload] : [];
 }
 
-const placeOf = (name, value) => ({ name, value, entries: [], parts: [] });
+const factWaiting = (name, value) => ({ name, value, entries: [], parts: [] });
 
 // [QSERR#alert], [QSPRN#excerpt]
 export async function alertOf(error, { keep, viewsOf }, printedOf) {
-  const facts = [...error.facts].map(([name, value]) => placeOf(name, value));
+  const facts = [...error.facts].map(([name, value]) => factWaiting(name, value));
   const waiting = [...facts];
   let room = ROOM_OF_AN_ALERT;
   let rank = 0;
   while (waiting.length > 0 && room > 0) {
-    const place = waiting.shift();
+    const fact = waiting.shift();
     const show = (name, value, size = sizeOf(value, printedOf)) => {
-      place.entries.push({ name, value, rank: rank++ });
+      fact.entries.push({ name, value, rank: rank++ });
       room -= lengthOf(canonicalKeywordLiteral(name)) + size + 4;
     };
-    const size = sizeOf(place.value, printedOf);
+    const size = sizeOf(fact.value, printedOf);
     if (size <= ROOM_OF_A_FACT) {
-      show(place.name, place.value, size);
+      show(fact.name, fact.value, size);
       continue;
     }
-    if (keep !== null) show(place.name, await keep(place.value));
-    for (const [view, answered] of await viewsOf(place.value)) {
-      if (!isEmpty(answered) && sizeOf(answered, printedOf) <= ROOM_OF_A_FACT) show(`${place.name}/${view}`, answered);
+    if (keep !== null) show(fact.name, await keep(fact.value));
+    for (const [view, answered] of await viewsOf(fact.value)) {
+      if (!isEmpty(answered) && sizeOf(answered, printedOf) <= ROOM_OF_A_FACT) show(`${fact.name}/${view}`, answered);
     }
-    let beneath = place.value;
-    let under = place.name;
+    let beneath = fact.value;
+    let under = fact.name;
     while (isOpenTag(beneath)) {
       under = `${under}/${PAYLOAD_NAME}`;
       show(`${under}/${FIRST_VIEW}`, tagOf(beneath.payload));
       beneath = beneath.payload;
     }
     for (const [key, part] of keyedPartsOf(beneath)) {
-      const inner = placeOf(`${place.name}/${key}`, part);
-      place.parts.push(inner);
+      const inner = factWaiting(`${fact.name}/${key}`, part);
+      fact.parts.push(inner);
       waiting.push(inner);
     }
   }
   const laid = [];
-  const layOut = place => {
-    laid.push(...place.entries);
-    place.parts.forEach(layOut);
+  const layOut = fact => {
+    laid.push(...fact.entries);
+    fact.parts.forEach(layOut);
   };
   facts.forEach(layOut);
   const whole = laid.length === error.facts.size && laid.every(({ name, value }) => value === error.facts.get(name));

@@ -381,7 +381,7 @@
         ~(7 | mul 0.5 | eq 3.5)
     | proves :computesTheMultiplierAgainstTheSubject
         |~~ The multiplier is computed against the subject. ~~|
-        ~(5 | mul it | eq 25)
+        ~(5 | mul (add 1) | eq 30)
     | impl ::builtin{};
 
 :number/range

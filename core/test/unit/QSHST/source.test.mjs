@@ -264,7 +264,7 @@ describe('the sources a host hands', () => {
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin', async () => {
     for (const source of [':vec |~~ again ~~|;', ':vec/count ~(0);']) {
       await expect(createNotebook({ sources: [{ uri: 'tests/twice', source }] }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/twice'), tagName: '::bind/NameDeclaredTwiceError' } });
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword('tests/twice'), refusal: makeTag('bind/NameDeclaredTwiceError') } });
     }
   });
 
@@ -275,7 +275,7 @@ describe('the sources a host hands', () => {
     expect((await notebook.evalCell('::host | kinds | has ::host')).result).toBe(true);
     for (const [sources, uri] of [[[page, { uri: 'tests/again', source: ':host |~~ Again. ~~|;' }], 'tests/again'], [[{ uri: 'tests/kind', source: ':host |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map);' }], 'tests/kind']]) {
       await expect(createNotebook({ sources }))
-        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword(uri), tagName: '::bind/NameDeclaredTwiceError', name: makeKeyword('host') } });
+        .rejects.toMatchObject({ name: 'RootSourceNotDeclaredError', facts: { origin: makeKeyword(uri), refusal: makeTag('bind/NameDeclaredTwiceError'), name: makeKeyword('host') } });
     }
   });
 

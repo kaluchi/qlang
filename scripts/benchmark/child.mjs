@@ -14,9 +14,10 @@ import { delimiter, join } from 'node:path';
 const SYSTEM_PROMPT = 'You are a careful assistant.';
 const COMMAND_LINE_TOOLS = ['Bash(qplay:*)', 'Bash(MSYS_NO_PATHCONV=1 qplay:*)', 'Bash(cat:*)', 'Bash(head:*)'];
 
-// The environment a child runs in beside the session's [QSCLI#shell]: Git Bash
-// rewrites an argument that begins with `/` into a path of Windows, which
-// mangles a query that reads a part, and the conversion is off.
+// The environment a child runs in beside the session's [QSCLI#shell]: the
+// conversion of Git Bash is off, so a query whose first segment is one letter,
+// which the playground cannot read back from the path of Windows it would
+// become, arrives as written.
 export const CHILD_ENVIRONMENT = Object.freeze({ MSYS_NO_PATHCONV: '1' });
 
 // The effort a child and an author of the benchmark run at, `medium`, which

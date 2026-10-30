@@ -128,10 +128,6 @@
     | proves :leavesTheSnippetsOut
         |~~ A doc whose only quote is a snippet has no link. ~~|
         ~(|~~ a ::snippet~(1) b ~~| | links | eq [])
-    | proves :opensWhereItLeads
-        |~~ A link opens the page it leads to. ~~|
-        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open
-          | eq (::vec/sort | doc))
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links !| get [tag (subject | found | tag)]

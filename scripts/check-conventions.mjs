@@ -20,7 +20,7 @@
 //       `stdio/src`, `playground/src`, `lsp/src` [QSERR#site].
 //
 //   (3) Derivable tallies in markdown prose. A count that
-//       `npm test`, the manifest, or a grep already answers —
+//       `npm test`, `manifest`, or a grep already answers —
 //       the cases of the conformance suite, the tests, the
 //       primitives, the files — is false the moment the next commit
 //       lands. Prose states the invariant, the generator states
@@ -643,7 +643,7 @@ function specIntrusions() {
     const match = HISTORY_DATE.exec(line);
     if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
   });
-  ['CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'].forEach(datedLines);
+  CITING_DOCUMENTS.forEach(datedLines);
   for (const [root, ending] of TEXTS_THAT_STATE) {
     readdirSync(join(repoRoot, root), { recursive: true }).map(String).filter(name => ending.test(name))
       .forEach(name => datedLines(`${root}/${name.split(sep).join('/')}`));
@@ -867,10 +867,10 @@ function kindsOfCommands() {
 
 // ── (19) The exports of the root of the package ────────────────
 //
-// The root of the core, its manifest's `.`, exports what the workspaces beside
-// it read from the package by its name or its page, the README of the core,
-// writes, each by name from a module no other door of the manifest opens
-// [QSGAT#workspaces].
+// The root of the core, the `.` of its `package.json`, exports what the
+// workspaces beside it read from the package by its name or its page, the
+// README of the core, writes, each by name from a module no other door of
+// the package opens [QSGAT#workspaces].
 
 function exportsNoHostReads() {
   const workspaces = readWorkspaces(repoRoot);

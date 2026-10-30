@@ -7,10 +7,10 @@
 // query runs is reached by the text of the query, which no import tells.
 
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { parse } from 'acorn';
 import { readText } from './tree-reads.mjs';
+import { readWorkspaces } from './workspace-manifests.mjs';
 
 const MODULE = /\.(mjs|js)$/;
 const OUTSIDE = /^(docs|scripts\/benchmark\/sets)\//;
@@ -20,10 +20,7 @@ const OUTSIDE = /^(docs|scripts\/benchmark\/sets)\//;
 // a package by `#`, a module for Node chosen where the condition names one.
 function doorsOf(root) {
   const doors = new Map();
-  for (const workspace of ['core', 'stdio', 'playground', 'lsp', 'site', 'vscode']) {
-    const path = join(root, workspace, 'package.json');
-    if (!existsSync(path)) continue;
-    const { name, exports, imports } = JSON.parse(readText(path));
+  for (const { dir: workspace, manifest: { name, exports, imports } } of readWorkspaces(root)) {
     const leadTo = target => {
       const chosen = typeof target === 'string' ? target : target.import ?? target.node;
       return typeof chosen === 'string' && MODULE.test(chosen) ? posix.join(workspace, chosen) : null;

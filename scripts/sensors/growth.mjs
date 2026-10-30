@@ -9,9 +9,7 @@
 //   node scripts/sensors/growth.mjs [parse|eval|rereads] [words of a shape]
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { tmpdir } from 'node:os';
+import { unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -97,12 +95,9 @@ const LIMIT_MS = 15000;
 // own, and the most entries into one rule at one offset of each text, with
 // the rule and the offset.
 async function rereadsOf(texts) {
-  const peggy = createRequire(import.meta.url)('peggy');
-  const grammar = readFileSync(new URL('../../core/src/grammar.peggy', import.meta.url), 'utf8');
-  const parser = peggy.generate(grammar, { output: 'source', format: 'es', trace: true, allowedStartRules: ['Query'] })
-    .replaceAll("from '../src/", `from '${pathToFileURL(join(root, 'core/src'))}/`);
-  const traced = join(tmpdir(), `qlang-grammar-traced-${process.pid}.mjs`);
-  writeFileSync(traced, parser);
+  const { parserSourceOf } = await import('../../core/scripts/build-grammar.mjs');
+  const traced = join(root, 'core', 'gen', `grammar-traced-${process.pid}.mjs`);
+  writeFileSync(traced, parserSourceOf(true));
   const { parse } = await import(pathToFileURL(traced));
   unlinkSync(traced);
   return texts.map(text => {

@@ -6,6 +6,8 @@
 {"name":"an-input-of-a-value-refuses-a-path","query":"5 | mul /a !| tag","expect":"::number/mul/MultiplierKindNotTakenError"}
 {"name":"an-input-given-a-path-names-its-repair","query":"5 | mul /qty !| repair","expect":"~(mul (get /qty))"}
 {"name":"an-input-given-a-path-among-other-args-names-its-repair","query":"\"abc\" | replace /x \"y\" !| repair","expect":"~(replace (get /x) \"y\")"}
+{"name":"the-repair-of-a-path-rewrites-the-modifier-the-refused-input-read","query":":map/twice (::fn | takes :at |~~ The path. ~~| /0 | takes :n |~~ The factor. ~~| /1 ::number | impl ~(get at | mul n)); {:a 2} | twice /a /a !| repair","expect":"~(twice /a (get /a))"}
+{"name":"an-input-read-by-a-path-into-an-arg-names-no-repair-of-a-path","query":":number/plusBy (::fn | takes :by |~~ By. ~~| /0/by ::number | impl ~(add by)); 5 | plusBy {:by /x} !| get [tag repair]","expect":"[::number/plusBy/ByKindNotTakenError null]"}
 {"name":"the-verbs-that-combine-values-of-one-subject-read-the-paths-they-take","query":"{:total 10 :paid 3} | subOf /total /paid","expect":"7"}
 {"name":"map-reads-a-path-from-each-element-filter-kept","query":"[{:name \"Alice\" :age 25} {:name \"Bob\" :age 17}] | filter (get /age | gte 18) | map /name","expect":"[\"Alice\"]"}
 {"name":"any-takes-a-path-as-its-predicate","query":"[{:active false} {:active true}] | any /active","expect":"true"}

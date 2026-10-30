@@ -386,15 +386,19 @@ function repairOfPathSubject(path, call) {
 function repairOfRefusedPath(refused, call, subject) {
   const slot = slotRefusedIn(refused.facts);
   if (slot === null || slot === SUBJECT_NAME) return isPath(subject) ? repairOfPathSubject(subject, call) : null;
-  const found = refused.facts.get(`${slot}/found`);
-  const index = refused.facts.get(`${slot}/index`);
-  const value = isPath(found) ? found : isVec(found) && Number.isInteger(index) ? found[index] : null;
-  if (!isPath(value)) return null;
+  const written = MODIFIER_AN_INPUT_REFUSED.get(refused);
   const modifiers = call.get('modifiers') ?? [];
-  const written = modifiers.findIndex(modifier => isPath(modifier)
-    && modifier.segments.length === value.segments.length && modifier.segments.every((segment, at) => segment === value.segments[at]));
-  if (written === -1) return null;
+  if (written === undefined || !isPath(modifiers[written])) return null;
   return makeQuote([commandStep(call.get('name').name, modifiers.map((modifier, at) => (at === written ? groupStep([commandStep('get', [modifier])]) : modifier)))]);
+}
+
+// [QSERR#site], [QSREQ#rigor]
+const MODIFIER_AN_INPUT_REFUSED = new WeakMap();
+
+function refusalOfAnInput(refusal, { oneArg, readsArgs, index }, element) {
+  const written = readsArgs ? element : oneArg ? index : undefined;
+  if (Number.isInteger(written)) MODIFIER_AN_INPUT_REFUSED.set(refusal, written);
+  return refusal;
 }
 
 function withRepairOfPath(state, call, subject, scope) {
@@ -551,10 +555,10 @@ function selectedValue({ path, selector, index, oneArg, strict, fallback, readsA
 
 // [QSBLD#input], [QSPTH#get]
 function pathOfArgs(path, state) {
-  return partAtThePlace(state.pipeValue, { path, soft: false }, state.scope);
+  return partAtThePath(state.pipeValue, { path, soft: false }, state.scope);
 }
 
-function partAtThePlace(subject, { path, soft }, scope) {
+function partAtThePath(subject, { path, soft }, scope) {
   try {
     const part = readPath(subject, path, soft);
     return part === MISSED ? null : part;
@@ -1069,7 +1073,7 @@ async function inputsOfCall(chain, address, modifiersWritten, state, scope, reci
     if (read === MISSED_ARG || (isErrorValue(read) && isMissedPart(read))) return refusalUnder(notGivenAddress(inputAddress), slotsPoured(state.pipeValue, poured), scope);
     if (isErrorValue(read)) return read;
     given.push(read);
-    const refusalOf = (each, refused) => refusalUnder(refusalsUnder(inputAddress)(each), slotsPoured(state.pipeValue, poured, slotRefused(name.name, { ...refused, found: read })), scope);
+    const refusalOf = (each, refused) => refusalOfAnInput(refusalUnder(refusalsUnder(inputAddress)(each), slotsPoured(state.pipeValue, poured, slotRefused(name.name, { ...refused, found: read })), scope), input.reading, refused.index);
     const held = heldByItsKinds(input, read, refusalOf, recipeSteps !== null || asCode?.given?.has(name.name) === true);
     if (isErrorValue(held)) return held;
     poured.push([name.name, read]);
@@ -1225,7 +1229,7 @@ const factsOfAnError = held => (tagsOver(held)[0] === ERROR_TAG.name && isExcerp
 function fieldRead(tagName, field, payload, state, opened, ofFacts) {
   const slot = ofFacts?.slots?.get(field.name.name);
   if (slot !== undefined) return slotOfTheFacts(slot, field.name.name, payload, state);
-  if (field.place !== null) return fieldHeld(tagName, field, payload, partAtThePlace(payload, field.place, state.scope), state, ofFacts);
+  if (field.pathRead !== null) return fieldHeld(tagName, field, payload, partAtThePath(payload, field.pathRead, state.scope), state, ofFacts);
   return answerOfPipeline(field.selector, nestState(state, payload, opened())).then(read => fieldHeld(tagName, field, payload, read, state, ofFacts));
 }
 

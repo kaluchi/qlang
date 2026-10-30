@@ -57,14 +57,14 @@ const EVAL = {
   'a long pipeline': n => '1' + repeat(' | add 1', n),
   'a failure passing a long pipeline': n => '"x" | add 1' + repeat(' | add 1', n) + ' !| tag',
   'groups nested': n => repeat('(', n) + '1' + repeat(' | add 1)', n),
-  'quotes nested and applied': n => '5 | ' + repeat('apply (', n) + 'add 1' + repeat(')', n),
+  'code nested and applied': n => '5 | ' + repeat('apply (', n) + 'add 1' + repeat(')', n),
   'map over many elements': n => `${n} | range | map (add 1) | count`,
   'a failure in map at the last element': n => `${n} | range | map (if (eq ${n - 1}) raise it) !| tag`,
   'reduce over many elements': n => `${n} | range | reduce 0 add`,
   'sort of many elements': n => `${n} | range | map (mul -1) | sort | first`,
   'a run of declarations read at its end': n => 'apply (' + Array.from({ length: n }, (_, i) => `:a${i} ${i};`).join(' ') + ` a${n - 1})`,
   'a value nested, printed': n => repeat('[', n) + '1' + repeat(']', n) + ' | print | count',
-  'a template of many parts': n => 'get [' + repeat('~(add 1) ', n) + '] | count',
+  'a template of many parts': n => '1 | get [' + repeat('(add 1) ', n) + '] | count',
   'a failure caught at each of many steps': n => '"x"' + repeat(' | add 1 !| "x"', n) + ' | count',
   'equality of values nested': n => `${repeat('[', n)}1${repeat(']', n)} | with {:v it} (eq v)`
 };

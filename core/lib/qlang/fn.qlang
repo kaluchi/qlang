@@ -14,22 +14,21 @@
       on it, each a verb the function so far is the subject of, the recipe
       last:
       `::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)`.
-      `on` names the subject, its page and its kinds; `takes` an input, its
-      name, its page, its selector over the args, `/0` the first arg
-      and `~(query /0 1)` the first or one, and its kinds; `returns` the
-      answer, its page and its kinds; `throws` a refusal, its page and the
-      kind of its facts, the quote of its own `wires` or the tag of the
-      refusal whose kind it shares; `holds`
+      `on` names the subject, its page and its kinds. `takes` names an
+      input, its name, its page, its selector over the args and its kinds:
+      `/0` reads the first arg, and `~(query /0 1)` the first or one.
+      `returns` names the answer, its page and its kinds. `throws` names a
+      refusal, its page and the kind of its facts, the quote of its own
+      `wires` or the tag of the refusal whose kind it shares. `holds` writes
       an invariant of the subject, an input or the answer, its refusal, its
-      page and its condition; `proves` a law of the function, its page and
-      its query; and `impl` the recipe. Each command hands what it is
-      written with to the chain, which holds it as it holds the literal.
-      An input holds the value of its kind
-      the walk of its tags reaches, and a value of none is refused under
-      the input. A verb is a function named under a
-      label, and `apply` runs a function on
-      its subject with a vector of args, as a call holds its args,
-      `5 | apply f [3]`. A function holds no scope: its recipe reads its
+      page and its condition. `proves` writes a law of the function, its
+      page and its query, and `impl` the recipe. Each command hands what it
+      is written with to the chain, which holds it as it holds the literal.
+      An input holds the value of its kind the walk of its tags reaches,
+      and a value of none is refused under the input. A verb is a function
+      named under a label, and `apply` runs a function on its subject with a
+      vector of args, as a call holds its args, `5 | apply f [3]`. A
+      function holds no scope: its recipe reads its
       inputs, its subject and the verbs of the tree, and a value it needs
       beside them is an input or is written in its code, which `fill` does.
       It prints as its literal, the chain folded into data, its commands in
@@ -382,9 +381,9 @@
 
 :fn/fill
   |~~ Writes the args of a call into the head of the code of a
-      function, each input a declaration with its page of the value it
-      reads from them, as its call reads it, a quote among them written
-      as the data it is, and answers the code:
+      function and answers the code. Each input is a declaration with its
+      page of the value it reads from them, as its call reads it, a quote
+      among them written as the data it is:
       `::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by) | fill 3`
       answers `~(:by |~~ How much. ~~| 3; add by)`, as a quote takes
       the values of the names it reads, `~(add by) | fill {:by 3}`.
@@ -595,11 +594,11 @@
 :fn/proves
   |~~ Writes a law of a function, a quote under `::law`, the claim its
       name makes, its page and the query that proves it,
-      `| proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)`;
-      under a label it is a law of the verb, which `laws` and `runLaws`
-      read, and a name written with a path lays it under the subject, an
-      input, a refusal, a fact or the answer, the refusal an input's kinds
-      name among them.
+      `| proves :addsBy |~~ Five and three is eight. ~~| ~(5 | plus 3 | eq 8)`.
+      Under a label it is a law of the verb, which `laws` and `runLaws`
+      read. A name written with a path lays it under the subject, an input,
+      a refusal, a fact or the answer, the refusal an input's kinds name
+      among them.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -728,10 +727,10 @@
       none refused under the name of the input,
       `::fn | takes :by |~~ How much. ~~| /0 ::number`. The selector is a
       path into the args, read strictly, `/0` the first and `/0/by` the key
-      `by` of a map handed first; one of two forms, read as written and
-      never run, `~(query /0 1)` the first or, where the call gives none,
-      one, and `~(it)` the args whole, which no verb of those names reaches;
-      or any other quote, code that reads them.
+      `by` of a map handed first. Or it is one of two forms, read as written
+      and never run: `~(query /0 1)` the first or, where the call gives
+      none, one, and `~(it)` the args whole, which no verb of those names
+      reaches. Or it is any other quote, code that reads them.
   ~~|
   ::fn[~(on
         |~~ The noun itself, which starts the function, or a function. ~~|
@@ -850,15 +849,15 @@
       as a command not taken, the page of the refusal the kinds of an input name
       among them; under a label it is a refusal of the verb. A refusal of a verb
       is the verdict of the verb, an `::error` whose kind wires each slot of the
-      verb, the subject, each input, the args past the inputs as `surplus` and
+      verb: the subject, each input, the args past the inputs as `surplus` and
       the answer, each read by its name and its parts by theirs,
-      `!| addend | found`, then `repair`, then the facts the quote wires, each
-      `wires` a fact read by the key of its name, and `trace` last, so the error
-      at rest answers each by its name, `!| bound`. A refusal the rules of the
-      chain lay, of the kinds of an input, of an input left out, of args past
-      the inputs and of a subject of another label, is such a verdict, and its
-      `throws` writes its page alone. A refusal that shares the kind of another
-      names it by its tag instead of the quote,
+      `!| addend | found`. Then it wires `repair`, then the facts the quote
+      wires, each `wires` a fact read by the key of its name, and `trace` last,
+      so the error at rest answers each by its name, `!| bound`. A refusal the
+      rules of the chain lay, of the kinds of an input, of an input left out, of
+      args past the inputs and of a subject of another label, is such a verdict,
+      and its `throws` writes its page alone. A refusal that shares the kind of
+      another names it by its tag instead of the quote,
       `| throws :KeyTakenError |~~ … ~~| ::vec/groupBy/KeyTakenError`, its error
       at rest closed by the kind that closes the refusal the tag names.
       ::link~(::kind/wires) ::link~(::fn/slot)

@@ -72,5 +72,8 @@ const SECTIONS = {
     'the pages of the catalog speak of the language alone: write the runtime where a page means the language its runtime is written in [QSVOX#voices].'),
   // A line of the catalog runs eighty characters at most [QSSLF#catalog].
   catalogWidth: found => section('Lines of the catalog past eighty characters', found, ({ path, line, width }) => `  ${path}:${line}  ${width} characters\n`,
-    'a line of a source of the catalog runs eighty characters at most: pour the prose of a doc again and break a line of code at its whitespace, before a pipe where one stands [QSSLF#catalog].')
+    'a line of a source of the catalog runs eighty characters at most: pour the prose of a doc again and break a line of code at its whitespace, before a pipe where one stands [QSSLF#catalog].'),
+  // A sentence of a page runs sixty words at most [QSSLF#catalog].
+  pageSentences: found => section('Sentences of the pages past sixty words', found, ({ path, words, sentence }) => `  ${path}  ${words} words  ${sentence.slice(0, 80)}\n`,
+    'a sentence of a page runs sixty words at most: cut it at its claims, each its own sentence, the facts kept [QSSLF#catalog].')
 };

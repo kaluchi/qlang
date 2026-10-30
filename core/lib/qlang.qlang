@@ -708,53 +708,54 @@
             label, built from `::fn` by a chain of commands with its recipe
             last,
             `:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl
-            ~(add by));`: `on` names its subject, `takes` an input with its
-            page, its selector over the args and its kinds, `returns` its
+            ~(add by));`. `on` names its subject, and `takes` an input with its
+            page, its selector over the args and its kinds. `returns` names its
             answer, `throws` a refusal and the kind of its facts, `holds` an
-            invariant and `proves` a law, and its call reads them from the
+            invariant and `proves` a law. Its call reads them from the
             function, each input bound by its name in the recipe, a name the
-            recipe declares no second time; `manifest` answers them before a
-            call. A recipe written alone under a label, `:number/double mul 2;`,
-            is the function of no commands it is, which takes no args; an input,
-            an answer, a subject and an invariant are written in the chain
-            alone. An answer of the verb's own label goes back under the tags
-            the subject came through, and a verb that combines the subject with
-            a value of its kind, `add`, `append`, `concat` or `union`, answers
-            beneath the tags the two share, a bare one sharing any, two under
-            different tags combining in no step. A modifier an input of a value
-            takes is evaluated at the call against the subject, the value in the
-            pipe, which is always the subject of the call; a verb that combines
-            several values of one subject reads each from its args,
-            `mulOf /price /qty`; an input that runs code later takes it written
-            bare, a verb, `map toString`, or a group, `filter (gt 1)`, and a
-            condition is a boolean; the modifiers past the inputs are the
-            modifiers of the bare verb the last input takes, `map add 1`. A
-            label is a kind declared under a name, by the chain that builds it
-            from `::kind`,
+            recipe declares no second time, and `manifest` answers them before
+            a call. A recipe written alone under a label,
+            `:number/double mul 2;`, is the function of no commands it is,
+            which takes no args. An input, an answer, a subject and an
+            invariant are written in the chain alone. An answer of the verb's
+            own label goes back under the tags the subject came through. A verb
+            that combines the subject with a value of its kind, `add`,
+            `append`, `concat` or `union`, answers beneath the tags the two
+            share, a bare one sharing any, two under different tags combining
+            in no step. A modifier an input of a value takes is evaluated at
+            the call against the subject, the value in the pipe, which is
+            always the subject of the call. A verb that combines several values
+            of one subject reads each from its args, `mulOf /price /qty`. An
+            input that runs code later takes it written bare, a verb,
+            `map toString`, or a group, `filter (gt 1)`, and a condition is a
+            boolean. The modifiers past the inputs are the modifiers of the
+            bare verb the last input takes, `map add 1`. A label is a kind
+            declared under a name, by the chain that builds it from `::kind`,
             `:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~|
-            /width ::number);`, or by its page alone, a kind of no commands:
-            `accepts` names its payload and its kinds, `wires` a field the
-            payload holds, its selector and its kinds, `reveals` a view of its
-            values, a verb of the kind whose answer a host shows beside a fact
-            past its room, `holds` an invariant of the value or of a field,
-            `throws` a refusal and the kind of its facts, and `proves` a law,
-            and a kind of the core `impl` its constructor, which its host hands;
-            the kind attaches the tag to the payload or refuses it, and builds
-            no other value, so every value put under it keeps them. A tag no
-            declaration answers is a kind of identity, which checks nothing and
-            lays the tag on the value. A verb answers under the kind its
-            `returns` names. A verb of a noun itself, whose subject `on` names
-            `::tag`, takes the tag name as its subject, so a noun that stands
-            for a thing outside the language is addressed bare,
-            `::Desk | hours`, while a verb or a field of the noun's values
+            /width ::number);`, or by its page alone, a kind of no commands.
+            `accepts` names its payload and its kinds, and `wires` a field the
+            payload holds, its selector and its kinds. `reveals` names a view
+            of its values, a verb of the kind whose answer a host shows beside
+            a fact past its room. `holds` writes an invariant of the value or
+            of a field, `throws` a refusal and the kind of its facts, and
+            `proves` a law. A kind of the core gets by `impl` its constructor,
+            which its host hands. The kind attaches the tag to the payload or
+            refuses it, and builds no other value, so every value put under it
+            keeps them. A tag no declaration answers is a kind of identity,
+            which checks nothing and lays the tag on the value. A verb answers
+            under the kind its `returns` names. A verb of a noun itself, whose
+            subject `on` names `::tag`, takes the tag name as its subject, so a
+            noun that stands for a thing outside the language is addressed
+            bare, `::Desk | hours`. A verb or a field of the noun's values
             passes the tag name to the verb of its name on `::any`,
             `::Box | label` reading `:any/label` where `:Box/label` reads the
             values of `::Box`, and refuses it where none lives there. A verb is
             told as a story, in one order: the verb and its page, its inputs,
-            its answer, its refusals, its laws and its recipe, one chain; a kind
-            as its page, its payload, its fields, its views, its refusals, its
-            invariants, its laws and its constructor; and the refusal of a step
-            as its page, which repairs the step, its facts and its laws.
+            its answer, its refusals, its laws and its recipe, one chain. A
+            kind is told as its page, its payload, its fields, its views, its
+            refusals, its invariants, its laws and its constructor. The refusal
+            of a step is told as its page, which repairs the step, its facts
+            and its laws.
             `source` reads the story of a name as it is written,
             `::vec/sort | source`.
         ~~|

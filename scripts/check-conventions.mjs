@@ -144,6 +144,9 @@
 //   (26) A line of a source of the catalog runs eighty characters at most,
 //       its prose and its code alike [QSSLF#catalog].
 //
+//   (27) A sentence of a page of the catalog runs sixty words at most, as
+//       `scripts/sensors/sentence-lengths.mjs` cuts it [QSSLF#catalog].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -154,6 +157,7 @@ import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, waitsForTheCloseout, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
+import { sentencesOfPages } from './sensors/sentence-lengths.mjs';
 import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
@@ -971,6 +975,16 @@ function catalogLinesPastTheWidth() {
     .filter(({ width }) => width > CATALOG_WIDTH));
 }
 
+// ── (27) The length of a sentence of a page ────────────────────
+//
+// A sentence of a page runs sixty words at most, so a reader holds it at
+// once [QSSLF#catalog].
+const PAGE_SENTENCE_WORDS = 60;
+
+function pageSentencesPastTheBound() {
+  return sentencesOfPages(repoRoot).filter(({ words }) => words > PAGE_SENTENCE_WORDS);
+}
+
 function runtimeLanguagesNamed() {
   return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
     .map((line, index) => ({ path, line: index + 1, word: LANGUAGE_OF_THE_RUNTIME.exec(line)?.[0] }))
@@ -1005,7 +1019,8 @@ const { text, failed } = verdictOf({
   sharedNames: namesSharedInTree(repoRoot),
   catalogOrder: declarationsOutOfOrder(catalogSources()),
   runtimeLanguages: runtimeLanguagesNamed(),
-  catalogWidth: catalogLinesPastTheWidth()
+  catalogWidth: catalogLinesPastTheWidth(),
+  pageSentences: pageSentencesPastTheBound()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

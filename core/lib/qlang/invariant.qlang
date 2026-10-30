@@ -14,11 +14,11 @@
       `::Small/TooLargeError`.
 
       An invariant guards the value of a kind or a field of its payload,
-      and an input or the answer of a function, by the path of its name,
-      and runs when the value is built, read or answered, an invariant of
-      a kind's value on the payload beneath the tag, so a verb in it that
-      keeps its subject's kind runs over no tag, `~(eq (sort))`; the kinds
-      of an input are named where it is taken, `| takes :by … ::number`.
+      and an input or the answer of a function, by the path of its name.
+      It runs when the value is built, read or answered. An invariant of a
+      kind's value runs on the payload beneath the tag, so a verb in it
+      that keeps its subject's kind runs over no tag, `~(eq (sort))`. The
+      kinds of an input are named where it is taken, `| takes :by … ::number`.
       Declared by a name outside a chain, an invariant holds of nothing
       and is refused.
       ::link~(::kind/holds) ::link~(::fn/holds)

@@ -139,22 +139,19 @@
     | impl ::builtin{};
 
 :doc/segments
-  |~~ Answers the parts of the doc in their order, a vector: each run of
-      prose a string, and each `~(…)` a quote, bare or
-      under the tags of its role, a link under `::link` and a snippet
-      under `::snippet`, `|~~ a ~(add 1) b ~~| | segments` answering
-      `["a " ~(add 1) " b"]`, each tag laid over the quote through its
-      label as a tagged literal lays it, so a tag that takes no quote for
-      its payload refuses the doc, `::number~(…)` answering
-      `::number/PayloadKindNotTakenError`. A doc of prose alone answers a
-      vector of one string.
-      A quote that reads as no code is refused where the doc is written,
-      and code a prose shows stands between backquotes. The segments are the
-      payload the doc was built from, so `segments | tag ::doc` answers
-      the doc again, and `content` writes them as one text. The subject
-      is a doc, the page of a name read by `doc` first.
-      ::link~(::doc/content) ::link~(::doc/links)
-      ::link~(::doc/snippets)
+  |~~ Answers the parts of the doc in their order, a vector: each run of prose a
+      string, and each `~(…)` a quote, bare or under the tags of its role, a
+      link under `::link` and a snippet under `::snippet`.
+      `|~~ a ~(add 1) b ~~| | segments` answers `["a " ~(add 1) " b"]`. Each tag
+      is laid over the quote through its label as a tagged literal lays it, so a
+      tag that takes no quote for its payload refuses the doc, `::number~(…)`
+      answering `::number/PayloadKindNotTakenError`. A doc of prose alone
+      answers a vector of one string. A quote that reads as no code is refused
+      where the doc is written, and code a prose shows stands between
+      backquotes. The segments are the payload the doc was built from, so
+      `segments | tag ::doc` answers the doc again, and `content` writes them as
+      one text. The subject is a doc, the page of a name read by `doc` first.
+      ::link~(::doc/content) ::link~(::doc/links) ::link~(::doc/snippets)
   ~~|
   ::fn
     | returns

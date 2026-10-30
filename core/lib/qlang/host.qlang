@@ -35,10 +35,10 @@
       record of `:Box`, and `::host | env | get /Box` hands it to the next
       step. A name with a path is held by its address. Inside a fork it
       holds the names before the fork and the fork's own, and the fork's
-      stay inside it; code a step wrote holds its own names and the nodes
-      and the labels of the step it runs in, and code held as data
-      holds its own and the nodes and the labels of the step that runs it,
-      a value the reader named withheld from it. What the language and the
+      stay inside it. Code a step wrote holds its own names and the nodes
+      and the labels of the step it runs in. Code held as data holds its
+      own and the nodes and the labels of the step that runs it, a value the
+      reader named withheld from it. What the language and the
       host declared stands apart, so at the start of a query it answers
       `{}`: `::host | kinds` lists their kinds, and `manifest` what lies
       under a noun. It is asked of `::host` and takes no name.

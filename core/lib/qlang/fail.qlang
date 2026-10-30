@@ -64,8 +64,8 @@
           | eq ~(!| (get /kind | print)))
     | proves :StepNotCommandError/refusesAPath
         |~~ A path after `!|` is refused, naming the verb that reads it. ~~|
-        ~([/kind] | tag ::quote | tag ::fail
-          !| get [tag (message | contains "write `get /kind`")]
+        ~([/kind] | tag ::quote
+          | tag ::fail !| get [tag (message | contains "write `get /kind`")]
           | eq [::fail/StepNotCommandError true])
     | impl ::builtin{};
 

@@ -11,28 +11,29 @@
       which its host hands. It is built from the noun by a chain, the commands
       written on it, each a verb the kind so far is the subject of:
       `::kind | accepts |~~ The sizes. ~~| ::map | wires :width |~~ The width.
-      ~~| /width ::number`. `accepts` names the payload, its page and its kinds;
-      `wires` a field, its name, its page, its selector over the payload,
-      `/width` the key `width` and `~(query /height 1)` the key `height` or one,
-      and its kinds; `tells` a page of the kind on a name, a chapter of a topic
-      among them; `reveals` a view of its values a host shows beside a fact past
-      the room of a fact; `holds` an invariant of the value or of a field, its
-      refusal, its page and its condition; `throws` a refusal, its page and the
-      kind of its facts, the quote of its own `wires` or the tag of the refusal
-      whose kind it shares; `proves` a law, its page and its query; and
-      `impl ::builtin{}` the constructor of a kind of the core. Each command
-      hands what it is written with to the chain, which holds it as it holds the
-      literal. A value put under a kind holds the value of the kinds of its
-      payload, each field read and held, and the invariants of the value, each
-      refusal named under the kind, `::Box/WidthKindNotTakenError`: the kind
-      attaches the tag to the payload or refuses it, and builds no other value,
-      but for a kind of the core, whose constructor reads its payload as a value
-      of its own, `::set[2 1]` answering `#[1 2]`. A label is a kind declared
-      under a name, by its chain or by its page alone, its verbs functions named
-      under it: the payload, each field, each refusal, fact, invariant and law
-      lie under it for `doc`, and `manifest` lists them but the laws, which
-      `laws` reads; a label declared by its page alone holds its page and is a
-      kind of no commands, which lays its tag over a payload as it is. It prints
+      ~~| /width ::number`. `accepts` names the payload, its page and its
+      kinds. `wires` names a field, its name, its page, its selector over the
+      payload and its kinds: `/width` reads the key `width`, and
+      `~(query /height 1)` the key `height` or one. `tells` writes a page of
+      the kind on a name, a chapter of a topic among them. `reveals` names a
+      view of its values a host shows beside a fact past the room of a fact.
+      `holds` writes an invariant of the value or of a field, its refusal, its
+      page and its condition. `throws` names a refusal, its page and the kind
+      of its facts, the quote of its own `wires` or the tag of the refusal
+      whose kind it shares. `proves` writes a law, its page and its query, and
+      `impl ::builtin{}` gives the constructor of a kind of the core. Each
+      command hands what it is written with to the chain, which holds it as it
+      holds the literal. A value put under a kind holds the value of the kinds
+      of its payload, each field read and held, and the invariants of the
+      value, each refusal named under the kind, `::Box/WidthKindNotTakenError`.
+      The kind attaches the tag to the payload or refuses it, and builds no
+      other value. A kind of the core reads its payload as a value of its own,
+      `::set[2 1]` answering `#[1 2]`. A label is a kind declared under a name,
+      by its chain or by its page alone, its verbs functions named under it.
+      The payload, each field, each refusal, fact, invariant and law lie under
+      it for `doc`, and `manifest` lists them but the laws, which `laws` reads.
+      A label declared by its page alone holds its page and is a kind of no
+      commands, which lays its tag over a payload as it is. It prints
       as its literal, its commands in a quote and its constructor or null after
       it, and reads back from it. ::link~(::fn) ::link~(::tag)
       ::link~(::qlang/verbs)
@@ -298,11 +299,11 @@
 
 :kind/accepts
   |~~ Names the payload of a kind, its page and its kinds,
-      `::kind | accepts |~~ The sizes. ~~| ::map`: a payload whose own tag
+      `::kind | accepts |~~ The sizes. ~~| ::map`. A payload whose own tag
       names none of them is refused under the kind, a payload under another
-      tag among them, and an `accepts` that writes no kinds takes any payload;
-      a vector of kinds names the kinds of each element, each read through
-      its tags, and a payload that is no vector is refused. A set of no
+      tag among them, and an `accepts` that writes no kinds takes any payload.
+      A vector of kinds names the kinds of each element, each read through its
+      tags, and a payload that is no vector is refused. A set of no
       kinds, `#[]`, takes no payload, as a tag that names verbs or pages
       alone writes it, `::tagged`.
   ~~|
@@ -536,10 +537,10 @@
       `:WidthKindNotTakenError`; a refusal a primitive of the kind raises is
       paged so. A refusal that names no facts is the verdict of the kind, the
       part refused under `found` beside `expected` and `index`, as the refusal
-      of a payload and of a part a rule lays is; the facts a quote names are the
-      commands of the kind of the refusal, which `throws` builds into the kind
-      as `::fn/throws` does, and one that shares the kind of another names it by
-      its tag, as `::fn/throws` does. ::link~(::fn/throws) ::link~(::fn/slot)
+      of a payload and of a part a rule lays is. The facts a quote names are
+      the commands of the kind of the refusal, which `throws` builds into the
+      kind as `::fn/throws` does. One that shares the kind of another names it
+      by its tag, as `::fn/throws` does. ::link~(::fn/throws) ::link~(::fn/slot)
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag
     | takes :modifiers

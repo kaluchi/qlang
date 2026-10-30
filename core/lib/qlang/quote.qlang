@@ -190,8 +190,8 @@
         |~~ A vector that holds a name is refused, naming the page of
             `get`, since the name reads the subject.
         ~~|
-        ~([[::call{:name :count}]] | tag ::quote
-          !| get [tag (message | contains "::any/get | doc")]
+        ~([[::call{:name :count}]]
+          | tag ::quote !| get [tag (message | contains "::any/get | doc")]
           | eq [::quote/LiteralComputesError true])
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|

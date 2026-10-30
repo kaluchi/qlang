@@ -246,7 +246,7 @@ async function evalBind(bind, state, at) {
     throw new BindBodyQuotedError({ name: makeKeyword(name), found: bind.get('body') });
   }
   const body = !bind.has('body') ? null
-    : program ? withPipeValue(state, codeOfAStep(bind.get('body')))
+    : program ? withPipeValue(state, filled(codeOfAStep(bind.get('body')), valuesAProgramCarries(name, state)))
       : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
@@ -266,6 +266,16 @@ async function evalBind(bind, state, at) {
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
+}
+
+// [D500], [QSBLD#recipe]
+function valuesAProgramCarries(name, state) {
+  const values = valuesNamedIn(ownScopeOf(state));
+  const ownName = splitAddress(name)[1];
+  if (!values.has(ownName)) return values;
+  const carried = new Map(values);
+  carried.delete(ownName);
+  return carried;
 }
 
 // [QSNAM#declare]

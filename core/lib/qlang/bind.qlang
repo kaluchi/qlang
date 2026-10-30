@@ -12,14 +12,16 @@
       `:rate 2; [1 2] | map (mul rate)` answering `[2 4]`. A body whose
       head is a verb, or a group whose head is one, declares a program,
       which runs on the subject wherever its name stands,
-      `:adult (get /age | gte 18); [{:age 20}] | filter adult`; any other
-      body reads no subject and is computed once: a literal, a quote, a
-      name, a tag name, a doc, a group,
-      or a chain, a tag name and the commands joined to it up to the `;`,
-      which builds a word; a value of the subject is named for the steps
-      after it by `with`,
-      `{:price 4 :qty 3} | with [/price /qty] (price | mul qty)`
-      answering `12`. The declarations of a text share its scope, a group
+      `:adult (get /age | gte 18); [{:age 20}] | filter adult`. A program
+      carries the values of its text it reads, written at its head where
+      it is declared, `:limit 4; :big (gt limit); [1 5 10] | filter big`
+      answering `[5 10]`. Any other body reads no subject and is computed
+      once: a literal, a quote, a name, a tag name, a doc, a group, or a
+      chain, a tag name and the commands joined to it up to the `;`, which
+      builds a word. A quote stays as it is written, its values given by
+      `fill`. A value of the subject is named for the steps after it by
+      `with`, `{:price 4 :qty 3} | with [/price /qty] (price | mul qty)`
+      answering `12`. The declarations of a text share its scope. A group
       and a quote a verb runs each close the names declared inside, the
       groups of a template `get` runs are forks of their own, and a name is
       declared once in its scope. A failure of a declaration is the

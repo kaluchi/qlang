@@ -361,7 +361,7 @@
         |~~ `parse` turns text into a quote. ~~|
         ~("add 1" | parse | eq ~(add 1))
     | proves :declaresAKindOfYourOwn
-        |~~ A kind of your own takes a verb and an input held to its
+        |~~ A reader's kind takes a verb and an input held to its
             kinds.
         ~~|
         ~(:Box |~~ A parcel. ~~|; :Box/put (::fn | takes :weight
@@ -464,9 +464,9 @@
         |~~ A string, a keyword, a tag, a vector, a set, a regex, a map,
             a quote and an error at rest each print as their kind opens.
         ~~|
-        ~(["tea" :tea ::Tea [1] #[1] #"tea" {:tea 1} ~(tea) !{:tea 1}] | map tag
-          | eq
-          [::string ::keyword ::tag ::vec ::set ::regex ::map ::quote ::error])
+        ~(["tea" :tea ::Tea [1] #[1] #"tea" {:tea 1} ~(tea) !{:tea 1}]
+          | map (print | take 2)
+          | eq ["\"t" ":t" "::" "[1" "#[" "#\"" "{:" "~(" "!{"])
     | proves :values/readsAKindOfTheCoreUnderItsTag
         |~~ A kind of the core reads its payload under its tag as the
             value itself.
@@ -596,7 +596,7 @@
             inside `(…)` or a quote a verb runs writes a scope that closes with
             it. Under every scope lies the root, which the host's sources
             declared as cells before the first step of a reader, the language's
-            first; a query, a cell of a session and a source of the root are
+            first; a query, a cell of a notebook and a source of the root are
             written alike. Rests on values and the pipeline; the verbs are names
             that run. ::link~(::binding) ::link~(::bind) ::link~(::qlang/verbs)
 
@@ -859,12 +859,12 @@
             frame for each level it left. A frame holds the subject its
             step met and the steps from the one that failed. The last frame
             holds the steps skipped at the level that reads it, a quote
-            that runs again as held code runs. The frame of a verb that ran
-            its code on a part of its subject holds the path of that part,
+            that runs again as held code runs. The frame of a step that
+            failed at a part of its subject holds the path of that part,
             `[1 "x" 3] | map (mul 2) !| trace | last | path` answering
-            `/1`. An error
-            at rest raised again resumes the trace it holds, and one that
-            holds none, an empty `:trace` among them, starts it over.
+            `/1`. An error at rest raised again resumes the trace it holds,
+            and one that holds none, an empty `:trace` among them, starts it
+            over.
             Whether the step before stood is `ok !| false`.
         ~~|
         #[::error ::fail ::frame ::trace]
@@ -890,8 +890,8 @@
         ~("x" | add 1 | mul 2 !| trace | last | skipped
           | with {:rest it} (5 | apply rest) | eq 10)
     | proves :errors/namesThePathOfThePart
-        |~~ The frame of a verb that ran its code on an element names the
-            path of the element.
+        |~~ The frame of a step that failed at an element names the path
+            of the element.
         ~~|
         ~([1 "x" 3] | map (mul 2) !| trace | last | path | eq /1)
     | proves :errors/resumesItsTrace
@@ -1003,8 +1003,8 @@
     | tells :hosts
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is
-            `::builtin{}`; the playground of the command line, `qplay`, is
-            one. `::host` names the host a session is in, in every host. Its
+            `::builtin{}`. `::host` names the host a session is in, in every
+            host. Its
             page is the page of the program, which a source of the host
             writes. `::host | status` answers its screen, the sections of
             its state the host declares under it as snippets, each with the

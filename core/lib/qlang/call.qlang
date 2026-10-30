@@ -45,12 +45,11 @@
           :field |~~ The field of the record of the step that does not fit. ~~|
           ::keyword)
     | throws :NameNotCallableError
-        |~~ The name of a call is one a step calls, names joined by `/`,
-            each a letter or `_` and the letters, digits, `_` and `-` after
-            it, the first no word of a literal: `:"a b"` writes two words
-            and `:"1"` a number. `:name` holds the name, and `:message`
-            what the rule says of it.
-            ::link~(::call) ::link~(::qlang/names)
+        |~~ The name of a call is one a step calls, names joined by `/`, each a
+            letter of any script or `_` and the letters of a name and `-` after
+            it, the first no word of a literal: `:"a b"` writes two words and
+            `:"1"` a number. `:name` holds the name, and `:message` what the
+            rule says of it. ::link~(::call) ::link~(::qlang/names)
         ~~|
         ~(wires :message |~~ What the rule of a name says of the name. ~~|
           ::string | wires :name
@@ -162,8 +161,9 @@
           |~~ The addresses where a verb of that name lives: one for each
                   kind that answers it.
               ~~| ::set | wires :nearest
-              |~~ The names the step could have meant: nearest in spelling, `[]`
-                  where none is near.
+              |~~ The verbs the pages of those verbs lead to that the
+                  subject answers and that answer a kind they answer, where
+                  a page leads to one.
               ~~| ::vec | wires :repair
               |~~ The step the call was likely meant as: where a path stands
                   instead of the value it names.
@@ -207,8 +207,9 @@
         ~~|
         ~(wires :name |~~ The name the step called. ~~| ::keyword
           | wires :addresses
-          |~~ The addresses where a verb of that name lives: one for each
-                  kind that answers it.
+          |~~ The addresses where a verb of that name lives, none here: a
+                  name the verbs of other kinds answer is refused by
+                  `::call/KindAnswersNoVerbError`.
               ~~| ::set | wires :nearest
               |~~ The names a step could have meant where it missed. For a
                   name, a key or a tag nothing declares, they are those
@@ -217,13 +218,10 @@
                   substitution or a swap of two neighbours, up to a third of
                   its length and one at least. Beside them stands a name that
                   begins it or that it begins, three letters at least,
-                  `multiply` for `mul`. Beside them stand too the verbs the
+                  `mul` for `multiply`. Beside them stand too the verbs the
                   page of a verb it begins with links whose names end as it
-                  goes on, `sumOf` for `addOf`. For a name whose verbs the
-                  kind of the subject lacks, the verbs their pages lead to
-                  that the subject answers and that answer a kind they answer,
-                  `print` and `json` for the `toString` of a vector. In the
-                  order of their spelling, and `[]` where none is near.
+                  goes on, `sumOf` for `addOf`. In the order of their
+                  spelling, and `[]` where none is near.
               ~~| ::vec)
     | throws :UnknownAddressError
         |~~ A name with a path names nothing: no declaration wrote that

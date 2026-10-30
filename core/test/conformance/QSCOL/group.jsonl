@@ -15,7 +15,7 @@
 {"name":"groupBy-files-a-boolean-and-null","query":"[true 2 null] | groupBy | keys","expect":"[:true :\"2\" :null]"}
 {"name":"two-values-filed-under-one-keyword-meet-aloud","query":"[1 \"1\"] | groupBy !| tag","expect":"::vec/groupBy/KeyTakenError"}
 {"name":"indexBy-files-one-element-under-its-key","query":"[{:id :a :name \"alice\"}] | indexBy /id | get /a/name","expect":"\"alice\""}
-{"name":"unique-keys-form-a-lookup-map","query":"[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy /id | get /b/name","expect":"\"bob\""}
+{"name":"indexBy-files-each-record-under-its-key","query":"[{:id :a :name \"alice\"} {:id :b :name \"bob\"}] | indexBy /id | get /b/name","expect":"\"bob\""}
 {"name":"duplicate-keys-last-wins","query":"[{:id :a :v 1} {:id :a :v 2}] | indexBy /id | get /a/v","expect":"2"}
 {"name":"indexBy-empty-vec-answers-empty-map","query":"[] | indexBy /k | empty","expect":"true"}
 {"name":"indexBy-key-of-another-kind-is-refused","query":"[{:k [1]}] | indexBy /k","raises":"::vec/indexBy/KeyAnswerKindNotTakenError!{:subject/found [{:k [1]}] :key/expected #[::boolean ::keyword ::null ::number ::string ::tag] :key/found /k :key/answer [1] :trace ::trace[::frame[[{:k [1]}] ~(indexBy /k) /0]]}"}

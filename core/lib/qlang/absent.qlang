@@ -4,14 +4,16 @@
 
 :absent
   |~~ An absent marks in a shape a part some of the data lacks. It marks
-      a key some of the records merged there lack, and each key of the
-      records and folds an empty map stands beside,
-      `[{:age 30} {:score 7} {}] | shape` answering
+      a key some of the records merged there lack,
+      `[{:age 30} {:age 25 :name "Bob"}] | shape` answering
+      `::shape[{:age ::number :name ::absent::string}]`, and each key of the
+      records an empty map stands beside, `[{:age 30} {:score 7} {}] | shape`
+      answering
       `::shape[#[{:age ::absent::number} {:score ::absent::number}]]`. It
       marks the element of a vector or a set empty in some, over the shape
       of the rest and outside `::nullable`:
-      `[{:age 30} {:age 25 :name "Bob"}] | shape` answers
-      `::shape[{:age ::number :name ::absent::string}]`.
+      `[{:labels [{:name "bug"}]} {:labels []}] | shape` answers
+      `::shape[{:labels [::absent{:name ::string}]}]`.
       ::link~(::shape)
   ~~|
   ::kind

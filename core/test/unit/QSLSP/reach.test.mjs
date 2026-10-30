@@ -4,7 +4,7 @@ import { shownFor, answerKindsOf, nodeOf } from '../../../src/nouns.mjs';
 import { createNotebook } from '../../../src/notebook.mjs';
 import { forEachPart, tagWrittenBy, tagHeadEnd, findNameOccurrences, bindingNamesVisibleAt, TAG_SPELLING } from '../../../src/parsed-parts.mjs';
 import { isTag, makeBinding, makeKeyword } from '../../../src/types.mjs';
-import { rootOf, kindOf } from '../../helpers/read-text.mjs';
+import { rootOf, formOfAStep } from '../../helpers/read-text.mjs';
 
 describe('a verb as the tooling reads it', () => {
   it('shows a name under a label by its address and the inputs of its function', async () => {
@@ -101,12 +101,12 @@ it('names the tag a tagged literal writes, a tag written before an error literal
 describe('the occurrences of a name', () => {
   it('finds the calls of a name', () => {
     const refs = findNameOccurrences(rootOf('count | add count'), 'count');
-    expect(refs.map(kindOf)).toEqual(['call', 'call']);
+    expect(refs.map(formOfAStep)).toEqual(['call', 'call']);
   });
 
   it('finds the declaration of a name beside its calls', () => {
-    expect(findNameOccurrences(rootOf(':double mul 2; double'), 'double').map(kindOf)).toEqual(['bind', 'call']);
-    expect(findNameOccurrences(rootOf(':snapshot 42; snapshot'), 'snapshot').map(kindOf)).toEqual(['bind', 'call']);
+    expect(findNameOccurrences(rootOf(':double mul 2; double'), 'double').map(formOfAStep)).toEqual(['bind', 'call']);
+    expect(findNameOccurrences(rootOf(':snapshot 42; snapshot'), 'snapshot').map(formOfAStep)).toEqual(['bind', 'call']);
   });
 
   it('finds the tag an error literal writes before its bang beside a tagged literal', () => {
@@ -118,7 +118,7 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds the segments of a path by name', () => {
-    expect(findNameOccurrences(rootOf('get /foo/bar | count'), 'foo').map(kindOf)).toEqual(['path']);
+    expect(findNameOccurrences(rootOf('get /foo/bar | count'), 'foo').map(formOfAStep)).toEqual(['path']);
   });
 
   it('does not include keyword literals', () => {
@@ -127,12 +127,12 @@ describe('the occurrences of a name', () => {
 
   it('finds a tagged literal written as a tag', () => {
     const refs = findNameOccurrences(rootOf('::invariant~(count)'), 'invariant', TAG_SPELLING);
-    expect(refs.map(kindOf)).toEqual(['construct']);
+    expect(refs.map(formOfAStep)).toEqual(['construct']);
   });
 
   it('finds a name with a path by the name a step calls it by', () => {
     const refs = findNameOccurrences(rootOf(':any/double mul 2; [1 2] | map double | any/double'), 'double');
-    expect(refs.map(kindOf)).toEqual(['bind', 'call', 'call']);
+    expect(refs.map(formOfAStep)).toEqual(['bind', 'call', 'call']);
   });
 
   it('finds a tag written alone', () => {
@@ -141,7 +141,7 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds the declaration of a kind written as a tag, and no declaration of a value of that name', () => {
-    expect(findNameOccurrences(rootOf(':Box |~~ Box. ~~|;'), 'Box', TAG_SPELLING).map(kindOf)).toEqual(['bind']);
+    expect(findNameOccurrences(rootOf(':Box |~~ Box. ~~|;'), 'Box', TAG_SPELLING).map(formOfAStep)).toEqual(['bind']);
     expect(findNameOccurrences(rootOf(':Box 1;'), 'Box', TAG_SPELLING)).toEqual([]);
   });
 });

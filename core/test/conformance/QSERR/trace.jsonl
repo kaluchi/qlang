@@ -46,7 +46,7 @@
 {"name":"a-trace-under-another-tag-or-an-element-that-is-no-frame-is-refused","query":"get [({:trace ::T[]} | raise !| tag) ({:trace [::T{:skipped ~()}]} | raise !| tag)]","expect":"[::trace/PayloadKindNotTakenError ::trace/ElementKindNotTakenError]"}
 {"name":"trace-is-a-name-of-the-error-of-a-refusal-alone","query":"get [(\"x\" | add 1 !| trace | count) (42 | trace !| tag)]","expect":"[1 ::call/UnknownNameError]"}
 {"name":"a-trace-holds-a-frame-for-each-step-the-failure-passed","query":"[1 \"x\" 3] | map (mul 2) | count !| trace","expect":"::trace[::frame[\"x\" ~(mul 2)] ::frame[[1 \"x\" 3] ~(map (mul 2) | count) /1]]"}
-{"name":"the-frame-of-a-step-that-ran-no-code-on-a-part-names-no-path","query":"\"x\" | add 1 !| trace | first | path","expect":"null"}
+{"name":"the-frame-of-a-step-that-failed-at-no-part-names-no-path","query":"\"x\" | add 1 !| trace | first | path","expect":"null"}
 {"name":"the-frame-of-map-names-the-index-of-the-element-its-code-failed-on","query":"[1 \"x\" 3] | map (mul 2) !| trace | last | path","expect":"/1"}
 {"name":"the-frame-of-map-over-a-set-names-the-index-in-its-one-order","query":"#[1 \"x\"] | map (mul 2) !| trace | last | path","expect":"/1"}
 {"name":"the-frame-of-map-over-a-map-names-the-key","query":"{:a 1 :b \"x\"} | map (add 1) !| trace | last | path","expect":"/b"}

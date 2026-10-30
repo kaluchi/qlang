@@ -6,28 +6,29 @@
 :cell
   |~~ A cell is the interface a host gives for the work with state inside
       the language: an identity under its tag, `::cell"a3f9c2d1e04b"`,
-      letters, digits and hyphens, whose literal reads back as itself in any
-      later query, and its word `answer`, which its host declares and which
-      reads at the call what the host keeps under it. A host of the streams
-      keeps so an answer past the budget of every answer and a fact of a
-      failure past the room of a fact, which the alert names instead of them,
-      `:answer ::cell"…"`, under the identity of the query and what it keeps.
-      So one value of one query is one cell, and
+      Latin letters, digits and hyphens, whose literal reads back as itself
+      in any later query, and its word `answer`, which its host declares and
+      which reads at the call what the host keeps under it. A host of the
+      streams keeps so an answer past the budget of every answer and a fact
+      of a failure past the room of a fact, which the alert names instead of
+      them, `:answer ::cell"…"`, under the identity of the query and what it
+      keeps. So one value of one query is one cell, and
       `::cell"a3f9c2d1e04b" | answer | take 3` reads the first three
-      elements of the whole. A host that keeps no cell names
-      none, and its `answer` refuses a cell it does not hold.
+      elements of the whole. A host that keeps no cell names none, and its
+      `answer` refuses a cell it does not hold.
       ::link~(::qlang/AnswerBeyondBudgetError) ::link~(::qlang/hosts)
   ~~|
   ::kind
-    | accepts |~~ The identity of the cell, letters, digits and hyphens. ~~|
+    | accepts
+        |~~ The identity of the cell, Latin letters, digits and hyphens. ~~|
         ::string
     | throws :PayloadKindNotTakenError
         |~~ A cell is named by its identity, a string,
             `::cell"a3f9c2d1e04b"`.
         ~~|
     | holds :PayloadNotIdentityError
-        |~~ The identity of a cell is letters, digits and hyphens, so it
-            names no folder past the store its host keeps.
+        |~~ The identity of a cell is Latin letters, digits and hyphens, so
+            it names no folder past the store its host keeps.
         ~~|
         ~(contains #"^[A-Za-z0-9-]+$")
     | proves :readsBackAsItself

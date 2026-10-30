@@ -226,14 +226,14 @@
       cell; a string cell prints bare, null as an empty cell, and every
       other value as its literal on one line, a doc with each line break
       of its prose written as a space. The empty vector draws as
-      `(empty)`. A single map goes in a vector first, `get [~(it)] | table`, and
+      `(empty)`. A single map goes in a vector first, `get [it] | table`, and
       the call takes no value.
   ~~|
   ::fn
     | returns |~~ The rows drawn as text, a line each. ~~| ::string
     | throws :SubjectNotVecError
         |~~ `table` draws a vector of maps; a single map goes in a vector
-            first, `{:name "alice"} | get [~(it)] | table`.
+            first, `{:name "alice"} | get [it] | table`.
         ~~|
     | throws :RowKindNotTakenError
         |~~ Every row of `table` is a map, its keys the columns; the path

@@ -38,7 +38,7 @@
 {"name":"cond-runs-the-branch-of-its-last-predicate-where-it-alone-holds","query":"75 | cond (gte 90) (\"A\") (gte 80) (\"B\") (gte 70) (\"C\") (\"F\")","expect":"\"C\""}
 {"name":"cond-answers-its-default-where-none-of-several-predicates-holds","query":"55 | cond (gte 90) (\"A\") (gte 80) (\"B\") (gte 70) (\"C\") (\"F\")","expect":"\"F\""}
 {"name":"cond-answers-the-first-branch-where-several-predicates-hold","query":"95 | cond (gte 90) (\"A\") (gte 80) (\"B\") (gte 70) (\"C\") (\"F\")","expect":"\"A\""}
-{"name":"cond-only-evaluates-matching-branch","query":"5 | cond (eq 5) (\"safe\") (\"never\" | div 0)","expect":"\"safe\""}
+{"name":"cond-runs-only-the-branch-whose-predicate-holds","query":"5 | cond (eq 5) (\"safe\") (\"never\" | div 0)","expect":"\"safe\""}
 {"name":"a-predicate-of-cond-reads-the-subject-by-a-path","query":"{:role :admin :salary 100} | cond (get /role | eq :admin) (get /salary | mul 15 | div 10) /salary","expect":"150"}
 {"name":"cond-with-no-clauses-is-refused","query":"5 | cond","raises":"::any/cond/ClausesNoBranchesError!{:subject/found 5 :clauses/found ::any/cond[] :trace ::trace[::frame[5 ~(cond)]]}"}
 {"name":"cond-with-one-clause-is-refused","query":"5 | cond (eq 5)","raises":"::any/cond/ClausesNoBranchesError!{:subject/found 5 :clauses/found ::any/cond[~(eq 5)] :trace ::trace[::frame[5 ~(cond (eq 5))]]}"}

@@ -54,6 +54,12 @@
         |~~ Each part of a span is a whole number, an offset from zero or a
             line or a column from one.
         ~~|
+    | throws :StartNotReadError
+        |~~ A span holds six numbers, the point of its start and the point
+            after its end, three numbers each: `:found` holds the
+            refusal of the point its first numbers make.
+            ::link~(::point)
+        ~~|
     | throws :EndNotReadError
         |~~ A span holds six numbers, the point of its start and the point
             after its end, three numbers each: `:found` holds the
@@ -76,6 +82,10 @@
             parse stopped.
         ~~|
         ~("[1\n2" | parse !| location | start | line | eq 2)
+    | proves :StartNotReadError/refusesTwoNumbers
+        |~~ Two numbers make no point. ~~|
+        ~(::span[0 1] !| get [tag (found | tag)]
+          | eq [::span/StartNotReadError ::point/ColumnNotGivenError])
     | proves :EndNotReadError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
         ~(::span[0 1 1] !| get [tag (found | tag)]

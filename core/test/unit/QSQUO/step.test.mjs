@@ -10,7 +10,7 @@ import { parseSource } from '../../../src/parse.mjs';
 import { partOf, keepParts } from '../../../src/parsed-parts.mjs';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
-import { refusalOf, rootOf, kindOf } from '../../helpers/read-text.mjs';
+import { refusalOf, rootOf, formOfAStep } from '../../helpers/read-text.mjs';
 
 it('runs the verb a call record names, a step no text wrote', async () => {
   const quote = makeQuote([callOf(new Map([['name', makeKeyword('count')]]), asPrinted)]);
@@ -247,8 +247,8 @@ describe('the parts of a text', () => {
 
   it('holds the name and the body of a declaration, and the modifiers of a call', () => {
     const [bind] = rootOf(':double mul 2;').parts;
-    expect(kindOf(bind)).toBe('bind');
-    expect(bind.parts.map(kindOf)).toEqual(['literal', 'call']);
+    expect(formOfAStep(bind)).toBe('bind');
+    expect(bind.parts.map(formOfAStep)).toEqual(['literal', 'call']);
     expect([bind.parts[0].value.name, bind.parts[1].value.get('name').name]).toEqual(['double', 'mul']);
     expect(valuesOf(bind.parts[1].parts)).toEqual([2]);
   });
@@ -257,7 +257,7 @@ describe('the parts of a text', () => {
     const source = '(mul 2 | add 1)';
     const [group] = rootOf(source).parts;
     expect(isGroupStep(group.value)).toBe(true);
-    expect(group.parts.map(kindOf)).toEqual(['call', 'call']);
+    expect(group.parts.map(formOfAStep)).toEqual(['call', 'call']);
     expect(source.slice(group.content.start.offset, group.content.end.offset)).toBe('mul 2 | add 1');
   });
 

@@ -58,7 +58,7 @@
             command as written, `:index` the index of the modifier refused,
             from zero, or of the first left out, and `:found` the modifier.
             ::link~(::kind/accepts) ::link~(::kind/wires)
-            ::link~(::kind/tells)
+            ::link~(::kind/tells) ::link~(::kind/reveals)
             ::link~(::kind/holds) ::link~(::kind/throws)
             ::link~(::kind/proves)
         ~~|
@@ -68,8 +68,8 @@
           | wires :found |~~ The modifier refused. ~~| ~(query /found))
     | throws :NameDeclaredTwiceError
         |~~ A name of a kind is declared once: the payload, each field,
-            refusal, fact, invariant and law by its name, and an invariant
-            names no refusal the kinds of a field name,
+            page, view, refusal, fact, invariant and law by its name, and
+            an invariant names no refusal the kinds of a field name,
             `:WidthKindNotTakenError`.
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~|
@@ -376,7 +376,7 @@
       of the literal of the kind, `::number | binding | value | get /1`.
       The one a host hands with a kind of the core attaches the tag to a
       payload or refuses it. One no host handed with the kind constructs
-      nothing, a kind of yours laying its tag by its commands. Code that
+      nothing, a reader's kind laying its tag by its commands. Code that
       would build another value from the payload is refused.
   ~~|
   ::fn[~(on |~~ The noun itself, which starts the kind, or a kind. ~~| ::tag

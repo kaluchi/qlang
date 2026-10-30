@@ -8,8 +8,8 @@
 {"name":"json-writes-null-as-null","query":"null | json","expect":"\"null\""}
 {"name":"json-writes-a-keyword-as-the-string-of-its-name","query":":foo | json","expect":"\"\\\"foo\\\"\""}
 {"name":"json-writes-a-tag-name-as-the-string-of-its-print","query":"::quote/ParseError | json","expect":"\"\\\"::quote/ParseError\\\"\""}
-{"name":"json-quote-renders-as-source","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}
-{"name":"json-doc-renders-as-source","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
+{"name":"json-writes-a-quote-as-its-print","query":"~(count) | json","expect":"\"\\\"~(count)\\\"\""}
+{"name":"json-writes-a-doc-as-its-print","query":"|~~ hello ~~| | json","expect":"\"\\\"|~~ hello ~~|\\\"\""}
 {"name":"json-writes-a-set-as-the-array-of-its-elements","query":"#[3 1] | json","expect":"\"[1,3]\""}
 {"name":"json-writes-a-value-under-a-tag-beside-its-payload","query":"::Box#1 | json","expect":"\"{\\\"$tag\\\":\\\"Box\\\",\\\"payload\\\":1}\""}
 {"name":"json-answers-a-string","query":"{:a 1} | json | tag","expect":"::string"}

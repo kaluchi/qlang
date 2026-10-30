@@ -7,8 +7,8 @@
 :frame
   |~~ A frame is one level of the trace a failure leaves, the step that
       failed there with the value it met: the subject of the step, the
-      steps of its level from the one that failed, and, where the step ran
-      its code on a part of its subject, the path of that part.
+      steps of its level from the one that failed, and, where the step
+      failed at a part of its subject, the path of that part.
       `::frame["x" ~(add 1 | mul 2)]` is `add 1`, which failed on `"x"`,
       and `mul 2`, which did not run; `::frame[[1 "x" 3] ~(map (mul 2)) /1]`
       is `map`, which failed where its code ran on the element at `/1`.
@@ -29,9 +29,9 @@
     | wires :subject
         |~~ The value the step that failed there met, `"x"` for
             `"x" | add 1`: the first frame of a trace holds the subject the
-            step that failed met, and the frame of a verb that ran its code
-            on a part of its subject the whole subject, its `path` naming
-            the part.
+            step that failed met, and the frame of a step that failed at a
+            part of its subject the whole subject, its `path` naming the
+            part.
         ~~|
         /0
     | wires :unfinished
@@ -67,7 +67,7 @@
     | holds :PayloadNotSubjectAndStepsError
         |~~ A frame holds one step at least, the step that failed, and after
             its steps, where it holds one, the path of the part of the
-            subject the step ran its code on, and nothing past it:
+            subject the step failed at, and nothing past it:
             `::frame["x" ~(add 1)]`, `::frame[[1 "x"] ~(map (mul 2)) /1]`.
         ~~|
         ~(allOf (get /1 | count | gt 0) (count

@@ -17,7 +17,6 @@ describe('the diagnostics of a document', () => {
     const { root, diagnostics } = parseDocument('[1 2 3', 'test.qlang');
     expect(root).toBeNull();
     expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0].severity).toBe('error');
     expect(diagnostics[0].message).toBeTruthy();
   });
 

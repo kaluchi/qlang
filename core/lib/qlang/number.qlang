@@ -551,8 +551,8 @@
   |~~ Answers the keyword a number files under as a key, `1 | toKeyword`
       answering `:"1"`, as `groupBy` and `indexBy` file it, so a record a
       number names is read from the map they build,
-      `byId | query (get /uid | toKeyword)`. `toNumber` turns the keyword back
-      into the number.
+      `[{:id 1 :name "Ann"}] | indexBy /id | at (1 | toKeyword) | get /name`
+      answering `"Ann"`. `toNumber` turns the keyword back into the number.
       ::link~(::keyword/toNumber) ::link~(::vec/indexBy)
   ~~|
   ::fn

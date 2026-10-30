@@ -32,8 +32,8 @@
 
       In a quote the step is a record, `~(:rate 2;) | first` answering
       `::bind{:name :rate :body 2}`: `:name` the keyword it binds,
-      `:docs` its pages and `:body` its body, the step after its name and
-      its pages, which runs once where the declaration stands.
+      `:docs` the docs of its page and `:body` its body, the step after its
+      name and its page, which runs once where the declaration stands.
       ::link~(::binding) ::link~(::qlang/names)
   ~~|
   ::kind
@@ -204,11 +204,12 @@
         ~~|
         ~(~(:x (!| 0);) | answer !| get [tag name]
           | eq [::bind/SubjectNotGivenError :x])
-    | proves :SubjectNotGivenError/takesAValueOfTheSubjectByWith
-        |~~ A value of the subject is named for the code of one step by
-            `with`.
+    | proves :SubjectNotGivenError/refusesAVerbCalledWithNoValue
+        |~~ A verb called where no value is in the pipe is refused, naming
+            the verb.
         ~~|
-        ~([1 2 3] | with {:n count} (map (add n)) | eq [4 5 6])
+        ~(~(:x (!| 1 | count);) | answer !| get [tag name]
+          | eq [::bind/SubjectNotGivenError :count])
     | proves :ChainAnswersNoWordError/refusesAChainOfAValue
         |~~ A chain that answers a value and no word is refused, naming what
             it answered.

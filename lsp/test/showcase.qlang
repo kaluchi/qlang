@@ -56,9 +56,9 @@
 
 
 |~| ── 2. Code ──────────────────────────────────────────────
-|~| A quote, `~(…)`, is code: `apply` runs it on the value in the
-|~| pipe, `map` on each element, `filter` to keep the elements it
-|~| holds of.
+|~| Code is written bare where a verb takes it: `apply` runs it on
+|~| the value in the pipe, `map` on each element, `filter` to keep
+|~| the elements it holds of.
 
 | (5 | apply (add 1 | mul 2))
 
@@ -95,9 +95,9 @@
 
 
 |~| ── 5. A fold ─────────────────────────────────────────────
-|~| A quote of one word names the verb the fold calls with the
-|~| element as its first arg; code of several steps runs on the
-|~| pair of the value so far and the element.
+|~| A verb written alone is called with the value so far as its
+|~| subject and the element as its first arg; any other code runs
+|~| on the pair of the value so far and the element.
 
 | ([1 2 3] | reduce 0 add)
 

@@ -1,10 +1,7 @@
 // ESLint flat config for the qlang monorepo.
 //
-// Scope: correctness-only. No stylistic rules (semicolons, quotes,
-// trailing commas, line length). Author formatting is preserved —
-// qlang source frequently uses hand-aligned columns inside comment
-// tables and deliberately wide signatures. Prettier is intentionally
-// absent; this config refuses to fight it.
+// It holds the correctness of the code and no rule of its layout
+// [QSGAT#gate].
 //
 // Enforces:
 //   * `eslint:recommended` — unused vars, unreachable code, empty
@@ -21,7 +18,6 @@
 //   * node_modules — every workspace's own
 //   * core/gen/**  — the generated parser
 //   * site/dist/** — astro build output
-//   * site/coverage/** — vitest coverage HTML artefacts
 //   * vscode/**    — the editor's extension, outside this lint
 
 import js from '@eslint/js';
@@ -32,7 +28,6 @@ export default [
       '**/node_modules/**',
       'core/gen/**',
       'site/dist/**',
-      'site/coverage/**',
       'site/public/**',    // esbuild browser bundle produced by bundle-qlang.mjs
       'scripts/benchmark/sets/**',  // the data and the generators clean authors wrote [QSMSR#benchmark]
       'vscode/**'

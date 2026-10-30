@@ -11,7 +11,7 @@ import { parseSource } from '../parse.mjs';
 import { partOf } from '../parsed-parts.mjs';
 
 const textOf = value => (isKeyword(value) || isTag(value) ? value.name : String(value));
-registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString'], textOf);
+registerPrimitive(['string/toString', 'number/toString', 'keyword/toString', 'tag/toString', 'boolean/toString', 'null/toString'], textOf);
 
 const TO_KEYWORD_ADDRESSES = ['keyword/toKeyword', 'string/toKeyword', 'number/toKeyword', 'boolean/toKeyword', 'null/toKeyword', 'tag/toKeyword'];
 export const KINDS_A_KEY_FILES_UNDER = kindsExpected(...TO_KEYWORD_ADDRESSES.map(address => splitAddress(address)[0]));

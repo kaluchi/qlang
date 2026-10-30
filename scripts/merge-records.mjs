@@ -11,10 +11,11 @@
 // Usage: node scripts/merge-records.mjs <survivor> <merged>...
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { FATE, LINK_DEFINITION, recordPathOf, statementsOf, JOURNAL } from './decision-records.mjs';
 import { CITATION_IN_WORDS, CITING_DOCUMENTS, citedOnce } from './reconciliation.mjs';
+import { rewrite as rewriteFile } from './tree-reads.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const [survivor, ...merged] = process.argv.slice(2);
@@ -40,14 +41,7 @@ if (!decides(survivor) && merged.some(decides)) {
 }
 const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', maxBuffer: 1 << 26 });
 const tracked = git('ls-files').split('\n').filter(Boolean);
-const rewrite = (path, change) => {
-  const raw = readFileSync(join(repoRoot, path), 'utf8');
-  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
-  const text = raw.split('\r\n').join('\n');
-  const written = change(text);
-  if (written !== text) writeFileSync(join(repoRoot, path), written.split('\n').join(eol));
-  return written !== text;
-};
+const rewrite = (path, change) => rewriteFile(join(repoRoot, path), change);
 const order = name => (name.startsWith('E') ? 100000 : 0) + Number(name.slice(1));
 const earlier = merged.filter(name => order(name) < order(survivor));
 if (earlier.length > 0) {

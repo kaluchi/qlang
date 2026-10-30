@@ -112,13 +112,12 @@
     | impl ~(map failed);
 
 :trace/paths
-  |~~ Answers the paths of the parts the verbs of its levels ran their code
-      on, from the level where the failure arose outward, a level that ran
-      none naming none, `[1 "x" 3] | map (mul 2) !| trace | paths`
-      answering `[/1]`, so a failure inside the code a verb ran on an
-      element tells which element. A host shows it beside a trace past the
-      room of a fact, `:trace/paths`.
-      ::link~(::frame/path) ::link~(::kind/reveals)
+  |~~ Answers the paths of the parts its levels failed at, from the level where
+      the failure arose outward, a level that failed at no part naming none,
+      `[1 "x" 3] | map (mul 2) !| trace | paths` answering `[/1]`, so a failure
+      at an element tells which element. A host shows it beside a trace past the
+      room of a fact, `:trace/paths`. ::link~(::frame/path)
+      ::link~(::kind/reveals)
   ~~|
   ::fn
     | returns |~~ The paths of the parts, level by level. ~~| ::vec

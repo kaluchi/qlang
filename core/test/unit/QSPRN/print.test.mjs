@@ -115,18 +115,18 @@ it('reads every value back from its print as itself', async () => {
 });
 
 describe('a binding record and a vector under a tag', () => {
-  it('renders a binding record as the tagged Map it is', () => {
+  it('prints a binding as the record under its tag it is', () => {
     const record = makeBinding({ name: makeKeyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
       '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :origin null\n}');
   });
 
-  it('renders a vector under a tag as ::Tag[payload…]', () => {
+  it('prints a vector under a tag as ::Tag[payload…]', () => {
     const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     expect(printValue(tagged)).toBe('::Box[42 "inner"]');
   });
 
-  it('renders a tag over an empty vector as ::Tag[]', () => {
+  it('prints a tag over an empty vector as ::Tag[]', () => {
     const tagged = makeTagged(makeTag('Marker'), []);
     expect(printValue(tagged)).toBe('::Marker[]');
   });

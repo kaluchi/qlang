@@ -480,15 +480,13 @@
 
 :vec/every
   |~~ Answers whether the predicate answers `true` for every element,
-      the question a law asks of a listing, `[2 4 6] | every (gt 0)`
-      answering `true`. It stops at the first element that answers
-      `false`, so the elements after it are not run, and the empty
-      vector answers `true`. The predicate is code run on each element,
-      written bare or a path, as `filter` takes it: a value given there
-      is refused, the predicate answers a boolean,
-      and an error it answers for an element answers the call. A set is
-      asked in its one order, and a map of its values by an `every` of its
-      own; `any` asks whether some element holds.
+      `[2 4 6] | every (gt 0)` answering `true`. It stops at the first element
+      that answers `false`, so the elements after it are not run, and the empty
+      vector answers `true`. The predicate is code run on each element, written
+      bare or a path, as `filter` takes it: a value given there is refused, the
+      predicate answers a boolean, and an error it answers for an element
+      answers the call. A set is asked in its one order, and a map of its values
+      by an `every` of its own; `any` asks whether some element holds.
       ::link~(::vec/any) ::link~(::vec/filter)
   ~~|
   ::fn
@@ -1779,7 +1777,7 @@
       answering `["A" "b" "c"]`, or a vector template built on each element as
       `map` builds one; null gives no key, and any other value is refused. A
       vector key ranks index by index, and `desc` turns the key, or one index of
-      it, to descend, as `ORDER BY score DESC, name` reads:
+      it, to descend:
       `[{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] |
       sort [(get /score | desc) /name] | map /name` answers
       `["Ann" "Eve" "Bob"]`. `eq null` at the first index puts null last,

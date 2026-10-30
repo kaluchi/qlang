@@ -19,9 +19,7 @@
    The rules it holds: [QSLIT#atoms]. ~|
 
 :any/atomKinds
-  |~~ The kinds of the atoms, a verb, since a recipe reads no value a
-      text names.
-  ~~|
+  |~~ The kinds of the atoms. ~~|
   ~(#[::null ::boolean ::number ::string ::regex ::keyword ::tag ::path]);
 
 :any/gluedBy

@@ -9,7 +9,7 @@
       `|` passes a failure by. `"x" | add 1 !| 0` answers `0`.
 
       In a quote the step is a record that holds the quote of the step it
-      stands for, `~(!| get /kind) | first` answering `::fail~(get /kind)`.
+      stands for, `~(!| message) | first` answering `::fail~(message)`.
       ::link~(::error) ::link~(::qlang/errors)
   ~~|
   ::kind
@@ -17,37 +17,37 @@
         ::quote
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::fail` is the quote of the step it stands for, so
-            `~(get /kind) | tag ::fail` is the step `!| get /kind`.
+            `~(message) | tag ::fail` is the step `!| message`.
             ::link~(::fail)
         ~~|
     | throws :PayloadNotOneStepError
         |~~ The quote `::fail` holds is one step, the step `!|` runs, and
             no step of the fail track: a pipeline under `!|` is written as
-            a group, `~((get /kind | print)) | tag ::fail` the step
-            `!| (get /kind | print)`.
+            a group, `~((message | print)) | tag ::fail` the step
+            `!| (message | print)`.
             ::link~(::fail)
         ~~|
     | throws :StepNotCommandError
         |~~ A value after `!|` is the recovery the catch answers, but for a
-            path, which the verb that takes it reads: `:message` names that
-            verb, `get`.
+            path, a literal that holds a path and a quote, which a verb
+            takes: `:message` names that verb, `get` for a path and the
+            template, `apply` for a quote.
             ::link~(::fail) ::link~(::qlang/pipeline)
         ~~|
         ~(wires
           :message
-          |~~ What the rule says of the path, the verb that takes it. ~~|
+          |~~ What the rule says of the value, the verb that takes it. ~~|
           ::string | wires :found |~~ The value written after `!|`. ~~|)
     | proves :holdsItsStep
         |~~ The fail track holds its step as a quote. ~~|
-        ~(~(!| get /kind) | first | payload | eq ~(get /kind))
+        ~(~(!| message) | first | payload | eq ~(message))
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
         ~(42 | tag ::fail !| get [tag (found | tag)]
           | eq [::fail/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/buildsTheStepOfAStep
         |~~ The quote of a step builds the step the fail track runs. ~~|
-        ~(~(get /kind) | tag ::fail | get [it] | tag ::quote
-          | eq ~(!| get /kind))
+        ~(~(message) | tag ::fail | get [it] | tag ::quote | eq ~(!| message))
     | proves :PayloadNotOneStepError/refusesAPipelineOutsideAGroup
         |~~ A pipeline the fail track holds without a group is refused. ~~|
         ~(~(a | b) | tag ::fail !| tag | eq ::fail/PayloadNotOneStepError)
@@ -56,16 +56,15 @@
         ~(~() | tag ::fail !| tag | eq ::fail/PayloadNotOneStepError)
     | proves :PayloadNotOneStepError/refusesAStepOfTheFailTrack
         |~~ A step of the fail track is no step the fail track runs. ~~|
-        ~(~(!| get /kind) | tag ::fail !| tag
-          | eq ::fail/PayloadNotOneStepError)
+        ~(~(!| message) | tag ::fail !| tag | eq ::fail/PayloadNotOneStepError)
     | proves :PayloadNotOneStepError/holdsAPipelineInAGroup
         |~~ A pipeline in a group is the one step the fail track runs. ~~|
-        ~(~((get /kind | print)) | tag ::fail | get [it] | tag ::quote
-          | eq ~(!| (get /kind | print)))
+        ~(~((message | print)) | tag ::fail | get [it] | tag ::quote
+          | eq ~(!| (message | print)))
     | proves :StepNotCommandError/refusesAPath
         |~~ A path after `!|` is refused, naming the verb that reads it. ~~|
-        ~([/kind] | tag ::quote
-          | tag ::fail !| get [tag (message | contains "write `get /kind`")]
+        ~([/reason] | tag ::quote
+          | tag ::fail !| get [tag (message | contains "write `get /reason`")]
           | eq [::fail/StepNotCommandError true])
     | impl ::builtin{};
 

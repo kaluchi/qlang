@@ -1,6 +1,6 @@
 {"name":"ok-asks-whether-the-step-before-stood","query":"get [(5 | ok !| false) (!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
 {"name":"the-catch-reads-a-fact-by-get","query":"!{:k 1} | raise !| get /k","expect":"1"}
-{"name":"error-test-in-a-template","query":"get [(!{:kind :oops} | raise | ok !| false) (42 | ok !| false)]","expect":"[false true]"}
+{"name":"ok-asks-in-a-template-whether-the-step-before-stood","query":"get [(!{:kind :oops} | raise | ok !| false) (42 | ok !| false)]","expect":"[false true]"}
 {"name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
 {"name":"a-catch-reads-the-kind-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}

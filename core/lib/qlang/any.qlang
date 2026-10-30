@@ -96,9 +96,13 @@
         |~~ Code that fails answers its error. ~~|
         ~({:active true} | allOf (get /verified | eq true) !| get [tag key]
           | eq [::path/KeyNotInMapError :verified])
-    | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
+    | proves :readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:active true} | allOf (query /verified | eq true) | not)
+    | proves :ConditionsElementKindNotTakenError/refusesAValueOfAnotherKind
+        |~~ A value that is no boolean and no code is refused at its index. ~~|
+        ~({:active true} | allOf null !| get [tag (conditions | index)]
+          | eq [::any/allOf/ConditionsElementKindNotTakenError 0])
     | proves :ConditionsAnswerKindNotTakenError/refusesAPathThatAnswersAString
         |~~ A path that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"}
@@ -165,9 +169,13 @@
         |~~ Code that fails answers its error. ~~|
         ~({:vip false} | anyOf (get /vip) (get /score | gt 95) !| get [tag key]
           | eq [::path/KeyNotInMapError :score])
-    | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
+    | proves :readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:score 99} | anyOf (query /vip | eq true) (get /score | gt 95))
+    | proves :ConditionsElementKindNotTakenError/refusesAValueOfAnotherKind
+        |~~ A value that is no boolean and no code is refused at its index. ~~|
+        ~({:score 99} | anyOf null !| get [tag (conditions | index)]
+          | eq [::any/anyOf/ConditionsElementKindNotTakenError 0])
     | proves :ConditionsAnswerKindNotTakenError/refusesAPathThatAnswersANumber
         |~~ A path that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score !| get [tag (conditions
@@ -277,7 +285,7 @@
     | proves :passesAValueByALeadingFailStep
         |~~ A leading `!|` passes a value on. ~~|
         ~(5 | apply (!| 0) | eq 5)
-    | proves :runsARecordedSuffixAgain
+    | proves :runsTheSkippedStepsAgain
         |~~ The steps a trace skipped run again on a value. ~~|
         ~(1 | add "x" | mul 2
           | add 3 !| with {:rest (trace | first | skipped)} (5 | apply rest)
@@ -1866,9 +1874,9 @@
 
 :any/print
   |~~ Answers the text that reads back as the subject, `42 | print`
-      answering `"42"`, the text a host shows for an answer other than a
-      string, whole or, past the budget of every answer, as the alert that
-      keeps it in a cell. An atom prints as its literal, a string inside
+      answering `"42"`. How a host writes an answer, whole or, past the
+      budget of every answer, as the alert that keeps it in a cell, its
+      page tells, `::host | doc`. An atom prints as its literal, a string inside
       its quotes. A vector and a map print by their brackets around the
       print of each part, and a set, a quote, a doc and an error by
       brackets of their own. A legend prints laid out with the gloss of
@@ -2120,7 +2128,7 @@
   |~~ Answers the results of the laws under the name the subject reads,
       as `doc` reads it, a verb by its address among them: one
       `{:law :says :actual :error :ok}` per law, in their order,
-      `::vec/sort | runLaws | count` answering `15`. `:law` is its
+      `::vec/sort | runLaws | every /ok` answering `true`. `:law` is its
       address and `:says` its page, the claim it proves. `:actual` is what
       its query answered, null where it answered an error, which `:error`
       holds as the error at rest. `:ok` tells whether the answer is true,
@@ -2201,8 +2209,8 @@
     | impl ::builtin{};
 
 :any/self
-  |~~ Answers the subject of the step that writes the code it stands in,
-      the S of that step: a verb runs code on the parts of its subject,
+  |~~ Answers the subject of the step that writes the code it stands in:
+      a verb runs code on the parts of its subject,
       each its `it`, and `self` in that code is the whole subject, which
       the step writes at the head of the code with the values it reads.
       So each element is divided by the sum of them all,
@@ -2969,7 +2977,7 @@
         |~~ The template answered, as `get` takes it: code, a path, or a
             vector, a map or a set of them.
         ~~|
-        /1 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
+        /1 #[::map ::path ::quote ::tagged ::vec]
     | throws :BodyKindNotTakenError
         |~~ The body is a template as `get` takes it, code, a path or a
             shape of them, `with [/qty] (qty | add 1)`.

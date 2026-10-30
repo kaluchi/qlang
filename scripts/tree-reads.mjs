@@ -4,7 +4,7 @@
 // changes, its paths listed by one call of git and its files read by one batch
 // [QSWRK#reconciliation].
 
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const READ = new Map();
@@ -17,6 +17,17 @@ export function readText(path) {
   const text = readFileSync(path, 'utf8');
   READ.set(path, { size, mtimeMs, text });
   return text;
+}
+
+// rewrite(path, change) → whether `change`, given the text of the file with
+// its lines ended by `\n`, wrote it anew, the ends of its lines kept.
+export function rewrite(path, change) {
+  const raw = readFileSync(path, 'utf8');
+  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
+  const text = raw.split('\r\n').join('\n');
+  const written = change(text);
+  if (written !== text) writeFileSync(path, written.split('\n').join(eol));
+  return written !== text;
 }
 
 const git = (repoRoot, args, input) => execFileSync('git', args, { cwd: repoRoot, input, maxBuffer: 1 << 30, stdio: ['pipe', 'pipe', 'ignore'] });

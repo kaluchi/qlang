@@ -87,9 +87,7 @@ function validateDocument(textDocument) {
       start: { line: d.startLine, character: d.startChar },
       end: { line: d.endLine, character: d.endChar }
     },
-    severity: d.severity === 'error'
-      ? DiagnosticSeverity.Error
-      : DiagnosticSeverity.Warning,
+    severity: DiagnosticSeverity.Error,
     source: 'qlang',
     message: d.message
   }));

@@ -81,7 +81,7 @@
         |~~ A host handed the core a value of none of the kinds of the
             language where the core takes it, at any depth: as the subject
             of a cell, or as what a name holds in the scope it hands a
-            session or a query. Such a value is a function, an object of
+            notebook or a query. Such a value is a function, an object of
             the runtime, a map whose key is no string, a failure whose facts
             are no map, a value under a tag that is no tag, a vector or a map
             that holds itself, or a number past the finite doubles; a value
@@ -92,9 +92,7 @@
             The printer and the codec of JSON raise it too for a value of no
             kind a host hands a cell.
             The answer of a primitive a host hands beside its source is held
-            to the kinds at its call and refused as `::call/HostFailureError`,
-            and a host builds a value of the language from the data it holds
-            parsed by `fromPlain`.
+            to the kinds at its call and refused as `::call/HostFailureError`.
         ~~|
     | throws :BootstrapSourceMissingError
         |~~ A source of the language resolved to nothing, so the root

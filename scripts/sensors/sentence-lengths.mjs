@@ -11,16 +11,19 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { commentRanges } from '../comments.mjs';
 
 // The prose of a chapter, its fenced blocks left out, and of the docs of a
-// source of the catalog, `|~~ … ~~|`, each doc apart, a span of code one
-// word before the docs are read, so a doc written inside a span is none,
-// and a link and a snippet left out.
+// source of the catalog, each doc apart as the parser of the core reads it
+// [QSREQ#rigor], its opener and its closer left out, a span of code one
+// word and a link and a snippet left out.
 const proseOfChapter = text => text.split(/^```[\s\S]*?^```/m).join('\n').replace(/^#.*$/gm, '');
 const CODE_SPAN = /`[^`\n]*(?:\n[^`\n]*)?`/g;
 const LINK_OR_SNIPPET = /(?:::[A-Za-z][\w/]*)+~\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g;
-const docsOfSource = text => [...text.replace(CODE_SPAN, 'Code').matchAll(/\|~~(?!\|)([\s\S]*?)~~\|/g)]
-  .map(match => match[1].replace(LINK_OR_SNIPPET, ' '));
+const docsOfSource = (path, text) => commentRanges(path, text, { docs: true })
+  .filter(range => range.value === undefined)
+  .map(({ start, end }) => text.slice(start, end).replace(/^\|~~\|?/, '').replace(/~~\|$/, '')
+    .replace(CODE_SPAN, 'Code').replace(LINK_OR_SNIPPET, ' '));
 
 // The sentences of prose, each cut at a full stop that ends a word before a
 // space and a capital, a span of code or the end, a span of code one word,
@@ -35,7 +38,7 @@ const catalogFiles = (root, dir) => readdirSync(join(root, dir), { withFileTypes
 export function sentencesOfPages(root) {
   return ['core/lib', 'stdio/lib', 'playground/lib'].flatMap(dir => catalogFiles(root, dir)).flatMap(file => {
     const path = file.split('\\').join('/');
-    return docsOfSource(readFileSync(join(root, file), 'utf8')).flatMap(sentencesOf).map(sentence => ({ path, sentence, words: wordsOf(sentence) }));
+    return docsOfSource(path, readFileSync(join(root, file), 'utf8')).flatMap(sentencesOf).map(sentence => ({ path, sentence, words: wordsOf(sentence) }));
   });
 }
 

@@ -7,7 +7,7 @@ beforeAll(async () => {
   await evalQuery('1');
 });
 
-it('folds by the one call of a quote faster than by a call with modifiers over the same elements', async () => {
+it('folds by a verb written alone faster than by a call with modifiers over the same elements', async () => {
   const millisecondsOf = async (count, code) => {
     const started = Date.now();
     expect(await evalQuery(`${count} | range | map ([1 2] | reduce 0 (${code})) | sum`)).toBe(3 * count);

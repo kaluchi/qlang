@@ -1,4 +1,4 @@
-// [QSBLD#fn], [QSQUO#literal], [QSDSP#walk], [QSCND#boolean]
+// [QSCND#branch], [QSCND#boolean]
 
 import { isNull, isErrorValue, beneathTags, NULL } from '../types.mjs';
 import { declareRefusal } from '../errors.mjs';
@@ -11,6 +11,7 @@ const AnyCondClausesAnswerKindNotTakenError = declareRefusal('any/cond/ClausesAn
 const AnyAllOfConditionsAnswerKindNotTakenError = declareRefusal('any/allOf/ConditionsAnswerKindNotTakenError');
 const AnyAnyOfConditionsAnswerKindNotTakenError = declareRefusal('any/anyOf/ConditionsAnswerKindNotTakenError');
 
+// [QSCND#branch]
 registerPrimitive('any/if', runsAsCode(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
 

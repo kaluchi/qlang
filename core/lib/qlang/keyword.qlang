@@ -4,23 +4,21 @@
    The rules it holds: [QSDSP#residence]. ~|
 
 :keyword
-  |~~ A keyword is a name that stands for itself, `:name`. It is apart
-      from the string so that no name is read by its look: every key of
-      a map is a keyword, `/name` reads the field a keyword names, and a
-      keyword names a declaration, `:Box |~~ A box. ~~|;` declaring `Box`.
+  |~~ A keyword is a name that stands for itself, `:name`. It is apart from the
+      string so that no name is read by its look: every key of a map is a
+      keyword, `/name` reads the field a keyword names, and a keyword names a
+      declaration, `:Box |~~ A box. ~~|;` declaring `Box`.
 
-      A bare keyword is a colon and a name that begins with a letter of
-      any script or `_` and goes on with letters, digits, `_` and `-`,
-      `:id`, `:first-name`; a slash joins names into a path,
-      `:domain/user`; any other text is quoted, `:"first name"`, and
-      quotes around a bare name change nothing. A keyword is no string,
-      `:draft | eq "draft"` answering `false`, and `toKeyword` and
-      `toString` turn one into the other, `"draft" | toKeyword` answering
-      `:draft`. JSON writes a keyword as its name, `"draft"`, and keywords
-      rank after regexes and before tags.
-      ::snippet~(::keyword | manifest) lists its verbs.
-      ::link~(::map) ::link~(::string)
-      ::link~(::qlang/values)
+      A bare keyword is a colon and a name that begins with a letter of any
+      script or `_` and goes on with the letters of a name, marks, digits and
+      connectors among them, and `-`, `:id`, `:first-name`; a slash joins names
+      into a path, `:domain/user`; any other text is quoted, `:"first name"`,
+      and quotes around a bare name change nothing. A keyword is no string,
+      `:draft | eq "draft"` answering `false`, and `toKeyword` and `toString`
+      turn one into the other, `"draft" | toKeyword` answering `:draft`. JSON
+      writes a keyword as its name, `"draft"`, and keywords rank after regexes
+      and before tags. ::snippet~(::keyword | manifest) lists its verbs.
+      ::link~(::map) ::link~(::string) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A keyword, read as itself. ~~| ::keyword
@@ -69,7 +67,7 @@
   |~~ Answers the number the name of the keyword writes,
       `:"1" | toNumber` answering `1`, so a key that `groupBy` filed a
       number under turns back into the number,
-      `groupBy /year | keys | toVec | map toNumber`. A name that
+      `groupBy /year | keys | map toNumber`. A name that
       writes no number is refused.
       ::link~(::number/toKeyword) ::link~(::string/toNumber)
   ~~|
@@ -82,8 +80,8 @@
         ~~|
     | proves :readsTheNumberOfAKey
         |~~ A key filed from a number turns back into it. ~~|
-        ~([{:year 2020} {:year 2021}] | groupBy /year | keys | toVec
-          | map toNumber | eq [2020 2021])
+        ~([{:year 2020} {:year 2021}] | groupBy /year | keys | map toNumber
+          | eq [2020 2021])
     | proves :NameNotNumberError/refusesAName
         |~~ A name that writes no number is refused. ~~|
         ~(:id | toNumber !| tag | eq ::keyword/toNumber/NameNotNumberError)

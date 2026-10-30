@@ -12,11 +12,12 @@
 // Usage: node scripts/dissolve-records.mjs <Dnn>...
 
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { CITING_DOCUMENTS, citedOnce, isCitingCode, recordsInTransit } from './reconciliation.mjs';
 import { commentRanges } from './comments.mjs';
 import { JOURNAL } from './decision-records.mjs';
+import { rewrite as rewriteFile } from './tree-reads.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '..');
 const names = process.argv.slice(2);
@@ -25,14 +26,7 @@ const git = (...args) => execFileSync('git', args, { cwd: repoRoot, encoding: 'u
 const tracked = git('ls-files').split('\n').filter(Boolean);
 const transit = recordsInTransit(repoRoot);
 const specOf = chapter => readdirSync(join(repoRoot, 'docs', 'spec')).find(name => name.startsWith(`${chapter}-`));
-const rewrite = (path, change) => {
-  const raw = readFileSync(join(repoRoot, path), 'utf8');
-  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
-  const text = raw.split('\r\n').join('\n');
-  const written = change(text);
-  if (written !== text) writeFileSync(join(repoRoot, path), written.split('\n').join(eol));
-  return written !== text;
-};
+const rewrite = (path, change) => rewriteFile(join(repoRoot, path), change);
 
 // The definition of the link to a section from the document at a path.
 function sectionLink(fromPath, section) {

@@ -1,6 +1,6 @@
 {"name":"map-answers-its-first-failure","query":"[1 \"x\" 3] | map (add 10) !| get [tag (subject | found | tag)]","expect":"[::number/add/SubjectNotNumberError ::string]"}
 {"name":"code-that-recovers-keeps-every-element","query":"[1 \"x\" 3] | map (add 10 !| 0)","expect":"[11 0 13]"}
-{"name":"code-that-answers-the-kind-lets-the-consumer-count-failures","query":"[1 \"x\" 3 \"y\"] | map (add 10 !| tag) | filter (eq ::number/add/SubjectNotNumberError) | count","expect":"2"}
+{"name":"code-that-answers-the-tag-of-a-failure-lets-the-failures-be-counted","query":"[1 \"x\" 3 \"y\"] | map (add 10 !| tag) | filter (eq ::number/add/SubjectNotNumberError) | count","expect":"2"}
 {"name":"an-input-of-any-hands-an-error-on","query":"[1] | append (!{:k 1} | raise) !| tag","expect":"::error"}
 {"name":"an-input-of-any-in-a-verb-hands-an-error-on-to-its-call","query":":any/f (::fn | takes :x |~~ The x. ~~| /0 | impl ~(get [x])); 1 | f (!{:k 1} | raise) !| get /trace | map failed","expect":"[~(raise) ~(f (!{:k 1} | raise))]"}
 {"name":"a-template-answers-the-failure-a-quote-answers","query":"get [1 (\"x\" | add 1)] | count !| tag","expect":"::number/add/SubjectNotNumberError"}

@@ -1,6 +1,5 @@
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { declareDefect, CallKindsMismatchedError } from './errors.mjs';
-import { TAG_SIGIL } from './scope-keys.mjs';
 import { splitAddress } from './address.mjs';
 
 export const NULL = null;
@@ -55,8 +54,10 @@ export function makeKeyword(name) {
   return Object.freeze(brandValueClass({ name, literal: canonicalKeywordLiteral(name) }, 'keyword'));
 }
 
+const SIGN_OF_A_TAG = '::';
+
 export function makeTag(name) {
-  return Object.freeze(brandValueClass({ name, literal: TAG_SIGIL + name }, 'tag'));
+  return Object.freeze(brandValueClass({ name, literal: SIGN_OF_A_TAG + name }, 'tag'));
 }
 
 export function isTag(v) {
@@ -238,16 +239,16 @@ export function beneathOpenTags(value) {
   return beneath;
 }
 
-export const BINDING_TAG     = makeTag(BINDING_TAG_NAME);
-export const BUILTIN_TAG     = makeTag(BUILTIN_TAG_NAME);
-export const DESC_TAG        = makeTag('desc');
-export const DOC_TAG         = makeTag(DOC_TAG_NAME);
-export const EXCERPT_TAG     = makeTag('excerpt');
-export const CELL_TAG        = makeTag('cell');
-export const LEGEND_TAG      = makeTag('legend');
-export const ERROR_TAG       = makeTag('error');
-export const QUOTE_TAG       = makeTag(QUOTE_TAG_NAME);
-export const SET_TAG         = makeTag(SET_TAG_NAME);
+export const BINDING_TAG = makeTag(BINDING_TAG_NAME);
+export const BUILTIN_TAG = makeTag(BUILTIN_TAG_NAME);
+export const DESC_TAG    = makeTag('desc');
+export const DOC_TAG     = makeTag(DOC_TAG_NAME);
+export const EXCERPT_TAG = makeTag('excerpt');
+export const CELL_TAG    = makeTag('cell');
+export const LEGEND_TAG  = makeTag('legend');
+export const ERROR_TAG   = makeTag('error');
+export const QUOTE_TAG   = makeTag(QUOTE_TAG_NAME);
+export const SET_TAG     = makeTag(SET_TAG_NAME);
 
 // [QSLIT#kind]
 export const CORE_KIND = Object.freeze({

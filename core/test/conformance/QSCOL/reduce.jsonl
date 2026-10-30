@@ -6,7 +6,7 @@
 {"name":"the-short-form-folds-by-a-verb-the-reader-declares","query":":number/max2 (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(if (gt x) it (x))); [3 1 4 1 5] | reduce 0 max2","expect":"5"}
 {"name":"reduce-empty-answers-seed","query":"[] | reduce 42 add","expect":"42"}
 {"name":"reduce-folds-the-elements-of-a-set","query":"#[1 2 3] | reduce 0 add","expect":"6"}
-{"name":"reduce-folds-with-the-quote-of-a-bare-word","query":"[1 2 3] | reduce 0 add","expect":"6"}
+{"name":"reduce-calls-a-verb-written-alone-with-the-element","query":"[1 2 3] | reduce 0 add","expect":"6"}
 {"name":"a-fold-runs-a-verb-declared-for-it","query":":number/step (::fn | takes :el |~~ The el. ~~| /0 ::number | impl ~(mul 2 | add el)); [1 2 3] | reduce 0 step","expect":"11"}
 {"name":"a-reducer-of-several-steps-runs-on-the-pair","query":"[1 2 3] | reduce 0 (get [(get /0 | mul 10) /1] | sum)","expect":"123"}
 {"name":"a-reducer-names-its-verb-by-its-address","query":"[1 2 3] | reduce 0 number/add","expect":"6"}
@@ -25,7 +25,7 @@
 {"name":"a-reducer-with-a-second-input-left-out-is-refused-by-the-input","query":":number/bad2 (::fn | takes :a |~~ The a. ~~| /0 | takes :b |~~ The b. ~~| /1 | impl ~(a)); [1 2 3] | reduce 0 bad2 !| tag","expect":"::number/bad2/BNotGivenError"}
 {"name":"a-verb-the-reader-declares-with-an-input-folds-a-vector-by-the-short-form","query":":number/plus (::fn | takes :elem |~~ The elem. ~~| /0 ::number | impl ~(add elem)); [1 2 3] | reduce 0 plus","expect":"6"}
 {"name":"reduce-takes-a-reducer-as-code","query":"[1] | reduce 0 !| tag","expect":"::vec/reduce/ReducerNotGivenError"}
-{"name":"a-quote-of-one-word-after-a-leading-pipe-is-the-short-form","query":"[1 2 3] | reduce 0 (| add)","expect":"6"}
+{"name":"a-verb-written-alone-after-a-leading-pipe-is-called-with-the-element","query":"[1 2 3] | reduce 0 (| add)","expect":"6"}
 {"name":"a-reducer-assembled-from-data-folds-by-the-short-form","query":"[1 2 3] | with {:r ([::call{:name :add}] | tag ::quote)} (reduce 0 r)","expect":"6"}
 {"name":"a-reducer-of-a-call-and-a-step-after-it-runs-on-the-pair","query":"[1 2 3] | reduce 0 (add | it) !| tag","expect":"::number/add/SubjectNotNumberError"}
 {"name":"the-one-word-of-a-fold-passes-a-frame-at-the-step-that-failed","query":"[1 2] | reduce \"x\" add !| trace | map (get [subject failed path])","expect":"[[\"x\" ~(add) null] [[1 2] ~(reduce \"x\" add) /0]]"}

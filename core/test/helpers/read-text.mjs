@@ -11,4 +11,4 @@ export const refusalOf = source => { try { parseSource(source); } catch (e) { re
 
 export const rootOf = (source, opts) => partOf(parseSource(source, opts));
 
-export const kindOf = ({ value }) => (isBindStep(value) ? 'bind' : isCallStep(value) ? 'call' : isConstructStep(value) ? 'construct' : isPath(value) ? 'path' : 'literal');
+export const formOfAStep = ({ value }) => (isBindStep(value) ? 'bind' : isCallStep(value) ? 'call' : isConstructStep(value) ? 'construct' : isPath(value) ? 'path' : 'literal');

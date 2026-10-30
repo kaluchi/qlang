@@ -438,9 +438,9 @@
   |~~ Answers the value of the first entry, in the order the map holds its
       entries, the order they were written, or null for the empty map; it
       takes no value. The entry itself, key and value, is
-      `entries | first`, while `keys | first` answers the key first by
-      name. The first entries of a map are `take 2`. A vector answers its
-      first element and a set its least by the `first` of vectors.
+      `entries | first`, and its key `keys | first`. The first entries of a
+      map are `take 2`. A vector answers its first element and a set its
+      least by the `first` of vectors.
       ::link~(::map/last) ::link~(::map/entries)
       ::link~(::vec/first)
   ~~|

@@ -10,7 +10,7 @@ export function resolveShouldColorize(colorMode, stdoutStream, env) {
   if (colorMode === 'always') return true;
   if (colorMode === 'never')  return false;
   if (env.FORCE_COLOR !== undefined && env.FORCE_COLOR !== '0') return true;
-  if (env.NO_COLOR    && env.NO_COLOR    !== '') return false;
+  if (env.NO_COLOR) return false;
   return Boolean(stdoutStream.isTTY);
 }
 

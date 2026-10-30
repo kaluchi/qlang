@@ -183,13 +183,13 @@ const FailPayloadNotOneStepError = declareRefusal('fail/PayloadNotOneStepError')
 const FailStepNotCommandError = declareRefusal('fail/StepNotCommandError');
 const GroupPayloadEmptyError = declareRefusal('group/PayloadEmptyError');
 
-const isWord = value => holdsALiteral(value) || isGroupStep(value) || (isCallStep(value) && !value.has('modifiers'));
+const isModifier = value => holdsALiteral(value) || isGroupStep(value) || (isCallStep(value) && !value.has('modifiers'));
 const isBody = value => (holdsALiteral(value) && !isDoc(value)) || isGroupStep(value) || isCallStep(value);
 const vecOfOneAtLeast = isElement => value => isBareVec(value) && value.length > 0 && value.every(isElement);
 
 const CALL = {
   tag: CALL_TAG, PayloadNotSchemaError: CallPayloadNotSchemaError,
-  fields: { name: isKeyword, modifiers: vecOfOneAtLeast(isWord) }, required: ['name']
+  fields: { name: isKeyword, modifiers: vecOfOneAtLeast(isModifier) }, required: ['name']
 };
 const BIND = {
   tag: BIND_TAG, PayloadNotSchemaError: BindPayloadNotSchemaError,

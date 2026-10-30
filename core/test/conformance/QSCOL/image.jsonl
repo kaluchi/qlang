@@ -14,3 +14,5 @@
 {"name":"a-sum-over-a-listing-of-the-catalog-counts-every-element","query":"::vec | manifest | map ~(laws | count) | sum | eq (::vec | manifest | sort | map ~(laws | count) | sum)","expect":"true"}
 {"decision":"D496","name":"map-builds-a-template-on-each-element","query":"[{:name \"Ann\" :tags [1 2]}] | map {:name /name :count (get /tags | count)}","expect":"[{:name \"Ann\" :count 2}]","target":true,"now":"::quote/ParseError"}
 {"decision":"D496","name":"map-refuses-code-quoted-where-it-takes-it-bare","query":"[1 2] | map ~(mul 2) !| tag","expect":"::vec/map/CodeQuotedError","target":true,"now":"[2 4]"}
+{"decision":"D496","name":"map-refuses-a-quote-under-a-tag-written-in-the-step","query":"[1 2] | map ::quote~(add 1) !| tag","expect":"::vec/map/CodeQuotedError","target":true,"now":"[2 3]"}
+{"decision":"D496","name":"map-refuses-the-identity-quoted-naming-it","query":"[1 2] | map ~() !| tag","expect":"::vec/map/CodeQuotedError","target":true,"now":"[1 2]"}

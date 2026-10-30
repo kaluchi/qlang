@@ -1,1 +1,3 @@
 {"name":"it-answers-the-value-in-the-pipe","query":"5 | mul it","expect":"25"}
+{"decision":"D496","name":"it-names-each-value-the-code-runs-on","query":"[true false true] | filter it","expect":"[true true]","target":true,"now":"::vec/filter/PredicateKindNotTakenError"}
+{"decision":"D496","name":"self-names-the-subject-of-the-step-that-writes-it","query":"~(1 | add 1) | apply self","expect":"2","target":true,"now":"::any/apply/CodeKindNotTakenError"}

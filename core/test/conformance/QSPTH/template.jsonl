@@ -48,3 +48,5 @@
 {"name":"settle-refuses-a-question-alone-that-no-brackets-hold","query":"5 | settle ~(add 1) !| get [~(tag) ~(questions | found)]","expect":"[::any/settle/QuestionsKindNotTakenError ~(add 1)]"}
 {"name":"a-quote-where-the-names-of-with-or-the-questions-of-settle-stand-is-refused","query":"get [~({:a 1} | with ~(get /a) ~(1) !| get [~(tag) ~(names | found | tag)]) ~(5 | settle ~(add 1) !| get [~(tag) ~(questions | expected)])]","expect":"[[::any/with/NamesKindNotTakenError ::quote] [::any/settle/QuestionsKindNotTakenError #[::map ::set ::vec]]]"}
 {"decision":"D496","name":"with-runs-its-body-written-bare-as-a-program","query":"{:qty 2 :price 3} | with [/qty /price] (qty | mul price)","expect":"6","target":true,"now":"::call/UnknownNameError"}
+{"decision":"D496","name":"with-takes-a-selector-written-bare","query":"[::Box 5] | with {:t first} (t)","expect":"::Box","target":true,"now":"::quote/ParseError"}
+{"decision":"D496","name":"get-refuses-a-template-part-written-as-a-quote","query":"{:a 1} | get [~(count)] !| tag","expect":"::any/get/PathQuotedError","target":true,"now":"[1]"}

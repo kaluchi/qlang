@@ -1688,31 +1688,35 @@
     | impl ~(count);
 
 :vec/sort
-  |~~ Answers the elements in the one order of values, the order every
-      value takes against every other, the way a reader ranks what a query
-      found, `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Kinds come
-      first, null, boolean, number, string, regex, keyword, tag name,
-      path, vector, set, map, quote and doc, then every value under
-      another tag by the name of its tag, a desc, an excerpt and an error
-      at rest among them; strings order by their characters, an upper
-      letter before a lower one.
+  |~~ Answers the elements in the one order of values,
+      `[3 1 4 1 5] | sort` answering `[1 1 3 4 5]`. Values of two kinds
+      rank by their kinds, in this order: null, boolean, number, string,
+      regex, keyword, tag name, path, vector, set, map, quote and doc, and
+      after them every value under another tag, by the name of its tag,
+      `[3 null "x" 1] | sort` answering `[null 1 3 "x"]`. Strings order by
+      their characters, an upper letter before a lower one,
+      `["b" "B" "a"] | sort` answering `["B" "a" "b"]`.
 
-      With a key the call gives the elements rank by what the key answers
-      for each, a vector key index by index, so
-      `sort (get [(get /count | desc) (get /name)])` reads as
-      `ORDER BY count DESC, name`, and `eq null` at the first index puts
-      null last; elements the key leaves alike keep the order of the
-      subject, and `desc` turns the key, or one index of it, to descend.
-      The key is code run on each element, a path, `/age`, or code
-      written bare, `(get /name | lower)`; a value given there other than
-      null, which gives no key, is refused, one key is
-      given, and a key that misses its field answers the error of the
-      read, so a field an element may lack is read softly, `(query /age)`.
+      With a key, the elements rank by what the key answers for each:
+      `[{:age 30} {:age 20}] | sort /age` answers `[{:age 20} {:age 30}]`.
+      Elements the key leaves alike keep their order. The key is code run
+      on each element, a path or code written bare,
+      `["b" "A" "c"] | sort lower` answering `["A" "b" "c"]`; null gives
+      no key, and any other value is refused. A vector key ranks index by
+      index, and `desc` turns the key, or one index of it, to descend, as
+      `ORDER BY score DESC, name` reads:
+      `[{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort (get [(get /score | desc) /name]) | map /name`
+      answers `["Ann" "Eve" "Bob"]`. `eq null` at the first index puts
+      null last, `[3 null 1] | sort (get [(eq null) it])` answering
+      `[1 3 null]`. A key that misses its field answers the error of the
+      read, so a field an element may lack is read softly,
+      `[{:age 30} {:name "Bob"}] | sort (query /age)` answering
+      `[{:name "Bob"} {:age 30}]`.
 
-      The answer keeps the kind of the subject, a vector under a tag and a
-      quote among them; a set sorts into a vector, and a map by its
-      values, its keys kept, by verbs of their own.
-      ::link~(::vec/min) ::link~(::desc)
+      A vector under a tag sorts under it, and a quote sorts its steps. A
+      set and a map sort by verbs of their own.
+      ::link~(::vec/min) ::link~(::desc) ::link~(::set/sort)
+      ::link~(::map/sort)
   ~~|
   ::fn
     | takes :key

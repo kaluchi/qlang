@@ -78,14 +78,14 @@
       `[1 2 3] | map (mul 2)` answers `[2 4 6]`, and
       `[1 2] | map toString` answers `["1" "2"]`. A path is code too, the
       code that reads it from each element: `[{:name "Ann"}] | map /name`
-      answers `["Ann"]`. `filter` keeps the elements its code
-      holds of, `[1 2 3] | filter (gt 1)` answering `[2 3]`; `groupBy`
-      files the elements under what its code answers, or under
-      themselves, `["yes" "no" "yes"] | groupBy | map count` answering
-      `{:yes 2 :no 1}`; `reduce` folds the elements into a seed, calling
-      its verb with the value so far as the subject and the element as
-      its first arg, `[1 2 3] | reduce 0 add` answering `6`, and
-      running any other code on the pair of the two,
+      answers `["Ann"]`. `filter` keeps the elements its code holds of,
+      `[1 2 3] | filter (gt 1)` answering `[2 3]`. `groupBy` files the
+      elements under what its code answers, or under themselves,
+      `["yes" "no" "yes"] | groupBy | map count` answering
+      `{:yes 2 :no 1}`. `reduce` folds the elements into a seed. It calls
+      a verb with the value so far as the subject and the element as its
+      first arg, `[1 2 3] | reduce 0 add` answering `6`, and runs any
+      other code on the pair of the two,
       `[{:qty 1} {:qty 2}] | reduce 0 (sumOf /0 /1/qty)` answering `3`.
       Several steps stand in one group,
       `[{:price 3}] | map (get /price | mul 2)` answering `[6]`, and
@@ -211,16 +211,16 @@
     | throws :AnswerBeyondBudgetError
         |~~ A host printed an answer past the budget of every answer, the
             characters of its print `:budget` names, and prints this
-            instead of it: `:characters` tells the characters of the print
-            and `:answer` holds the answer, which the alert shows as the
-            cell where the host keeps it, whose `answer` reads it back
-            whole, `::cell"…" | answer | take 3`, beside its tag, the
-            views its kind reveals and its parts, `:answer/count` and
+            instead of it. `:characters` tells the characters of the
+            print. `:answer` holds the answer, which the alert shows as the
+            cell where the host keeps it; `answer` reads it back whole,
+            `::cell"…" | answer | take 3`. Beside the cell stand its tag,
+            the views its kind reveals and its parts, `:answer/count` and
             `:answer/addend/found`, each key the chain that reads it.
             Narrow the answer by `get`, `take`, `keys`, `count` or
             `shape`, or write it whole through the words of a stream the
-            host gives, which its page, `::host | doc`, names. No step raises it
-            and no `!|` reaches it.
+            host gives, which its page, `::host | doc`, names. No step
+            raises it and no `!|` reaches it.
             ::link~(::qlang/hosts) ::link~(::cell)
         ~~|
         ~(wires :characters |~~ The characters of the print of the answer. ~~| ::number
@@ -412,30 +412,28 @@
             kind and closes with its pair, and everything between is
             literal, so a literal reads neither the scope nor the value in
             the pipe, and a group or a name written inside one is refused.
-            A tag written before a literal puts the value under the tag,
-            the literal touching it by its own sign, `::Box{:width 2}`,
+            A tag written before a literal puts the value under the tag.
+            The literal touches the tag by its own sign, `::Box{:width 2}`,
             `::Point[1 2]`, `::Name"Ann"`, `::Status:active`,
-            `::Rule~(add 1)`, and a literal whose first character would
-            continue the tag's name, a number, `true`, `false`, `null` or
-            a path, by `#`, `::Width#5`, `::Field#/width`; the kind
-            attaches the tag to the payload or refuses it, saying why the
-            payload does not fit, and builds no other value, but for a
-            kind of the core, whose constructor reads its payload as a
-            value of its own, `::set[2 1]` answering `#[1 2]`. `tag` puts
-            the value in the pipe under a tag, a value computed among
-            them, `1 | add 2 | tag ::Box`; tags stack and read from the
-            outside in, `::Gift::Box[1]`, and `payload` takes one off. A
-            step answers a new value and the old one stays as it was. Every
+            `::Rule~(add 1)`. A literal whose first character would
+            continue the tag's name touches it by `#`: a number, `true`,
+            `false`, `null` or a path, `::Width#5`, `::Field#/width`. The
+            kind attaches the tag to the payload or refuses it, saying why
+            the payload does not fit, and builds no other value. A kind of
+            the core reads a payload of its own kind as the value itself,
+            `::set[2 1]` answering `#[1 2]`. `tag` puts the value in the
+            pipe under a tag, a value computed among them,
+            `1 | add 2 | tag ::Box`. Tags stack and read from the outside
+            in, `::Gift::Box[1]`, and `payload` takes one off. A step
+            answers a new value and the old one stays as it was. Every
             value prints as a literal that reads back as itself. A value is
-            told by how its print opens: `"` a string, `:` a keyword, `::`
-            and a name alone a tag and with a payload touching it a value
-            under that tag, `[` a vector, `#[` a set, `#"` a regex, `{` a
-            map, `/` a path, `~(` a quote, `|~~` a doc, `!{` an error at
-            rest, a digit or a minus a number, and `true`, `false` and
-            `null` themselves; a failure a host prints is its error at
-            rest under the line `|~| raised, and no !| caught it`. A kind
-            of the core reads a payload of its own kind under its tag as
-            the value itself, `::set[2 1]` printing `#[1 2]`.
+            told by how its print opens: `"` a string, `:` a keyword, `[`
+            a vector, `#[` a set, `#"` a regex, `{` a map, `/` a path, `~(`
+            a quote, `|~~` a doc, `!{` an error at rest, a digit or a minus
+            a number, and `true`, `false` and `null` themselves. `::` and a
+            name alone open a tag, and with a payload touching it a value
+            under that tag. A failure a host prints is its error at rest
+            under the line `|~| raised, and no !| caught it`.
         ~~|
         #[::tag ::null ::boolean ::number ::string ::regex ::keyword ::path ::vec ::map ::set ::desc ::tagged]
     | proves :values/impliesTheKinds
@@ -492,27 +490,27 @@
             ::link~(::vec/map) ::link~(::qlang/names)
 
             `|` runs the next step on the answer of the one before. A step
-            is a command, and a value stands at the head of a query, of a
-            group and of a quote, where it is the subject, or as what a verb
-            takes; a value written as a later
-            step is refused, and a value goes under a tag by `tag`. `map`
-            runs code, a path or a template on each element of a vector or
-            each value of a map. A pipe written before `!|` stands for it. A
-            path, `/name`, `/0`, `/-1`, `/user/name`, is read by `get`, and
-            a miss is an error there; `query` reads it softly, and `put`,
-            `update` and `delete` write it. A modifier an input of a value
-            takes is computed against the subject of its own step, the value
-            the step before it answered, and one an input of code takes runs
-            where the verb runs it, so two fields of one record are read in
-            one step, by the template of `get` or by the names `with` gives
-            the code of one step, and steps in parentheses run on the value
-            in the pipe and answer what their last step answers. A text, a query,
-            a source, a cell and the code of a quote or of a group, is its
-            declarations, each ended by `;`, the last one by the end of a
-            text that holds no query, and one query after them,
-            `:rate 2; [1 2] | map (mul rate)`: the declarations run
-            first, each with no subject, and the query asks for the
-            answer, so one query asks several things by a template,
+            is a command. A value stands at the head of a query, of a group
+            and of a quote, where it is the subject, or as what a verb
+            takes; a value written as a later step is refused, and a value
+            goes under a tag by `tag`. `map` runs code, a path or a template
+            on each element of a vector or each value of a map. A pipe
+            written before `!|` stands for it. A path, `/name`, `/0`, `/-1`,
+            `/user/name`, is read by `get`, and a miss is an error there;
+            `query` reads it softly, and `put`, `update` and `delete` write
+            it. A modifier an input of a value takes is computed against the
+            subject of its own step, the value the step before it answered.
+            A modifier an input of code takes runs where the verb runs it.
+            So two fields of one record are read in one step, by the
+            template of `get` or by the names `with` gives the code of one
+            step. Steps in parentheses run on the value in the pipe and
+            answer what their last step answers. A text is its
+            declarations, each ended by `;`, and one query after them,
+            `:rate 2; [1 2] | map (mul rate)`; a query, a source, a cell
+            and the code of a quote or of a group are texts. The last
+            declaration of a text that holds no query ends at its end. The
+            declarations run first, each with no subject, and the query asks
+            for the answer, so one query asks several things by a template,
             `get [(…) (…)]`, and a `;` after it is refused. A line break
             is a space, so a text folds into one line and back, and a step
             on the next line joins by `|`, written at the end of a line or
@@ -604,21 +602,21 @@
             through the walk of their tags, and refuses any other subject
             under its address; a quote taken from one label and declared
             under another resides on the second. A name is declared once
-            in a scope and again in a scope inside it, which shadows it
-            for the steps after; a name declared in the code stands over a
-            verb of its name, the verb called by its address there,
-            `[1 2] | vec/count`, and a name that holds a value is read where
-            a value stands, a later step refusing it as
-            `::call/ValueAsALaterStepError`; an
-            address the root holds is declared once at all, so a reader
-            extends a noun of the root and replaces none of its nodes. A
-            verb the reader declares under a label shadows a verb of its
-            name on a broader label in the reader's own calls, since the
-            walk of a subject's tags reaches the narrower first; under a
-            label of the root no verb of the root sees it, a verb of the
-            root running in the root's scope, where a name under a noun of
-            the root reads the root alone, while a verb under a label the
-            reader declared goes where the label's values go. A name
+            in a scope. A scope inside it may declare the name again, which
+            shadows it for the steps after. A name declared in the code
+            stands over a verb of its name, the verb called by its address
+            there, `[1 2] | vec/count`. A name that holds a value is read
+            where a value stands, and a later step refuses it as
+            `::call/ValueAsALaterStepError`. An address the root holds is
+            declared once at all, so a reader extends a noun of the root
+            and replaces none of its nodes. A verb the reader declares
+            under a label shadows a verb of its name on a broader label in
+            the reader's own calls, since the walk of a subject's tags
+            reaches the narrower first. No verb of the root sees it under a
+            label of the root: a verb of the root runs in the root's scope,
+            where a name under a noun of the root reads the root alone. A
+            verb under a label the reader declared goes where the label's
+            values go. A name
             begins with a letter of any script or `_`. The docs in the
             slot of a declaration, between its name and its body, are its
             page, one doc each. A name under a label resolves its names
@@ -830,13 +828,14 @@
             payload and a name whose body fails answer the failure. The
             facts name what refused and hold the value refused, the subject
             a step refused among them under `subject`, and `doc` reads the
-            page of the site. The trace is
-            written as the failure flies: a frame for each level it left,
-            the subject its step met and the steps from the one that
-            failed, the last frame holding the steps skipped at the level
-            that reads it, a quote that runs again as held code runs, and
-            the frame of a verb that ran its code on a part of its subject
-            the path of that part. An error
+            page of the site. The trace is written as the failure flies, a
+            frame for each level it left. A frame holds the subject its
+            step met and the steps from the one that failed. The last frame
+            holds the steps skipped at the level that reads it, a quote
+            that runs again as held code runs. The frame of a verb that ran
+            its code on a part of its subject holds the path of that part,
+            `[1 "x" 3] | map (mul 2) !| trace | last | path` answering
+            `/1`. An error
             at rest raised again resumes the trace it holds, and one that
             holds none, an empty `:trace` among them, starts it over.
             Whether the step before stood is `ok !| false`.
@@ -885,21 +884,21 @@
             ::link~(::call/ValueWithheldError)
 
             Code written in a step, what a verb takes or a part of a
-            template it takes, is code of that step: the step writes at its
+            template it takes, is code of that step. The step writes at its
             head the values of its scope the code reads, `self` the subject
-            of the step among them,
-            `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` handing `map`
-            the code `~(:bonus 10; add bonus)`, so it runs as it reads by whatever road the
-            call hands it on, a verb written in the language among them.
-            All code runs in a lane of its own: the verbs, the nodes and
-            the labels of the step that runs it and the names it declares
-            itself, a value that step names withheld from it and refused
-            under its name, `::call/ValueWithheldError`. Code held as
-            data, a quote in a name, a field or a page, a law and a snippet
-            among them, is handed on as it is written, so a value it needs
-            is an input of a function, `apply f [4]`, a name `with` gives
-            its body, or is written at its head by `fill`,
-            `~(gt lim) | fill {:lim 4}`.
+            of the step among them:
+            `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` hands
+            `map` the code `~(:bonus 10; add bonus)`. So the code runs as it
+            reads by whatever road the call hands it on, a verb written in
+            the language among them. All code runs in a lane of its own:
+            the verbs, the nodes and the labels of the step that runs it and
+            the names it declares itself. A value that step names is
+            withheld from it and refused under its name,
+            `::call/ValueWithheldError`. Code held as data, a quote in a
+            name, a field or a page, a law and a snippet among them, is
+            handed on as it is written. A value it needs is an input of a
+            function, `apply f [4]`, a name `with` gives its body, or is
+            written at its head by `fill`, `~(gt lim) | fill {:lim 4}`.
         ~~|
         #[::quote]
     | proves :code/runsByApply
@@ -968,33 +967,33 @@
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is
             `::builtin{}`; the playground of the command line, `qplay`, is
-            one. `::host` names the host a session is in, in every host:
-            its page is the page of the program, which a source of the
-            host writes, `::host | status` answers its screen, the sections
-            of its state the host declares under it as snippets, each with
-            the query that takes it again, `::host | kinds` the kinds that
-            lie on it and `::host | env` what the reader declared. A value is whole in
-            the language, and a host prints every answer within one
-            budget of characters of its print, but where its page says it
-            prints one whole: an answer that fits prints whole, and one
-            past it prints as the failure
-            `::qlang/AnswerBeyondBudgetError` instead, the answer the
-            `::cell` the host keeps it in, whose `answer` reads it back
-            whole. A failure the host
-            prints is an alert, the concentrate of its facts within two
-            thousand characters, each fact whole within three hundred and
-            past them as the cell the host keeps it in, beside its tag, the
-            views its kind reveals that fit and its parts, `:addend/found/count`, the last facts
-            dropped where the alert passes its room, a failure any fact of
-            which gave way told as an `::excerpt` under the tag of its
-            refusal, and a host may write below it the prose of its
-            refusal's page, as `!| doc` reads it, so the reader repairs the
-            call where it failed. A cell is the interface a host gives for
-            the work with state: a host keeps an answer past the budget and
-            a fact past the room of a fact under the identity of what it
-            keeps, and `answer` reads it in a later query. How the host a
-            session is in reads its input, writes its answer and its
-            streams and keeps its cells, its page, `::host | doc`, tells.
+            one. `::host` names the host a session is in, in every host. Its
+            page is the page of the program, which a source of the host
+            writes. `::host | status` answers its screen, the sections of
+            its state the host declares under it as snippets, each with the
+            query that takes it again. `::host | kinds` answers the kinds
+            that lie on it, and `::host | env` what the reader declared. A
+            value is whole in the language, and a host prints every answer
+            within one budget of characters of its print, but where its page
+            says it prints one whole. An answer that fits prints whole. One
+            past it prints as the failure `::qlang/AnswerBeyondBudgetError`
+            instead, the answer the `::cell` the host keeps it in, whose
+            `answer` reads it back whole. A failure the host prints is an
+            alert, the concentrate of its facts within two thousand
+            characters. Each fact stands whole within three hundred
+            characters, and past them as the cell the host keeps it in,
+            beside its tag, the views its kind reveals that fit and its
+            parts, `:addend/found/count`. The last facts drop where the
+            alert passes its room, and a failure any fact of which gave way
+            is told as an `::excerpt` under the tag of its refusal. A host
+            may write below the alert the prose of its refusal's page, as
+            `!| doc` reads it, so the reader repairs the call where it
+            failed. A cell is the interface a host gives for the work with
+            state: a host keeps an answer past the budget and a fact past
+            the room of a fact under the identity of what it keeps, and
+            `answer` reads it in a later query. How the host a session is
+            in reads its input, writes its answer and its streams and keeps
+            its cells, its page, `::host | doc`, tells.
             Rests on values and the hypertext.
             ::link~(::host) ::link~(::qlang/AnswerBeyondBudgetError)
             ::link~(::excerpt) ::link~(::cell)

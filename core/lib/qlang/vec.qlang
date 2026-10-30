@@ -739,20 +739,19 @@
       keeps its elements in their order, and the empty vector answers the
       empty map. A key of a map is a keyword, so a key that answers a
       string, the field of a JSON object, or a number files its element
-      under the keyword of its text, `:"1"` for `1`, a boolean or null
-      under the keyword of its literal, so a condition partitions,
-      `[1 2 3] | groupBy (gt 1)` answering `{:false [1] :true [2 3]}`, and
-      a tag name under the keyword of its name, so `groupBy tag` files
-      by kind, and two values whose text is one, `1` and `"1"`, meet and
-      are refused; a key of another kind, a vector or a map, is refused at
-      its element with the kinds a key files under.
-      Without a key an element files under itself, so
-      `groupBy | map count` counts the occurrences of each value. The key
-      is code run on each element, written bare, `(get /dept)`, or a
-      path; a value given there is refused, and a key that misses its
-      field answers the
-      error of the read. A set answers `groupBy` by a verb of its own, and
-      `indexBy` keeps one element under each key.
+      under the keyword of its text, `:"1"` for `1`. A boolean or null
+      files under the keyword of its literal, so a condition partitions,
+      `[1 2 3] | groupBy (gt 1)` answering `{:false [1] :true [2 3]}`. A
+      tag name files under the keyword of its name, so `groupBy tag` files
+      by kind. Two values whose text is one, `1` and `"1"`, meet and are
+      refused. A key of another kind, a vector or a map, is refused at its
+      element with the kinds a key files under. Without a key an element
+      files under itself, so `["a" "b" "a"] | groupBy | map count` answers
+      `{:a 2 :b 1}`. The key is code run on each element, written bare,
+      `(get /dept)`, or a path; a value given there is refused, and a key
+      that misses its field answers the error of the read. A set answers
+      `groupBy` by a verb of its own, and `indexBy` keeps one element under
+      each key.
       ::link~(::vec/indexBy) ::link~(::vec/avg)
   ~~|
   ::fn
@@ -919,15 +918,16 @@
       answering `{:ann {:id :ann :age 30} :bob {:id :bob :age 25}}`, so an
       entry is read by its key and then by a field, `/ann/age`. Of
       elements that share a key the last wins. A key files under a keyword
-      as `groupBy` files it, a string or a number under the keyword of its
+      as `groupBy` files it: a string or a number under the keyword of its
       text, a boolean or null under that of its literal and a tag name
-      under that of its name, and two values whose text is one, `1` and
-      `"1"`, meet and are refused; a key of another kind is refused at its
+      under that of its name. Two values whose text is one, `1` and `"1"`,
+      meet and are refused, and a key of another kind is refused at its
       element with the kinds a key files under. Without a key an element
-      files under itself, a string under its keyword. The key is code run on
-      each element, written bare, `(get /id)`, or a path, `/id`; a value
-      given there is refused. A set files its elements in its one order, the last of
-      alike keys staying, and `groupBy` keeps every element of a key.
+      files under itself, a string under its keyword. The key is code run
+      on each element, written bare, `(get /id)`, or a path, `/id`; a value
+      given there is refused. A set files its elements in its one order,
+      the last of alike keys staying, and `groupBy` keeps every element of
+      a key.
       ::link~(::vec/groupBy)
   ~~|
   ::fn
@@ -1023,17 +1023,17 @@
     | impl ::builtin{};
 
 :vec/inter
-  |~~ Answers what the values the vector holds share: a set keeps the
+  |~~ Answers what the values the vector holds share. A set keeps the
       elements every set after it holds,
-      `[#[:tea :cake :jam] #[:cake :pie]] | inter` answering `#[:cake]`, and
-      a map keeps the keys of the next, which is a map, a set or a vector
-      of keys, with its own values,
-      `[{:name "Ann" :tmp 3} {:name null}] | inter` answering
-      `{:name "Ann"}`, each key of a vector of keys a keyword, a number or a
-      string and a key of another kind refused at its element. The first
-      value is a set or a map, refused at its index when it is neither, a
-      value after it the algebra has no rule for is refused with the pair,
-      and the vector holds one value at least. The call takes no value, and
+      `[#[:tea :cake :jam] #[:cake :pie]] | inter` answering `#[:cake]`. A
+      map keeps the keys of the next, a map, a set or a vector of keys,
+      with its own values, `[{:name "Ann" :tmp 3} {:name null}] | inter`
+      answering `{:name "Ann"}`. Each key of a vector of keys is a keyword,
+      a number or a string, and a key of another kind is refused at its
+      element. The first value is a set or a map, refused at its index
+      when it is neither. A value after it the algebra has no rule for is
+      refused with the pair, and the vector holds one value at least. The
+      call takes no value, and
       of two values `#[:tea :cake] | inter #[:cake]` keeps what the first
       shares with the second; what the sets a set holds share is
       this verb called by its address, `#[#[1 2] #[2 3]] | vec/inter`.
@@ -1440,14 +1440,14 @@
     | impl ::builtin{};
 
 :vec/minus
-  |~~ Answers the first value the vector holds less each one after it: a
+  |~~ Answers the first value the vector holds less each one after it. A
       set loses the elements the next set holds,
-      `[#[:tea :cake :jam] #[:cake]] | minus` answering `#[:jam :tea]`, and
-      a map loses the keys of the next, which is a map, a set or a vector
-      of keys, each a keyword, a number or a string,
+      `[#[:tea :cake :jam] #[:cake]] | minus` answering `#[:jam :tea]`. A
+      map loses the keys of the next, a map, a set or a vector of keys,
+      each a keyword, a number or a string,
       `[{:name "Ann" :tmp 3} [:tmp]] | minus` answering `{:name "Ann"}`; a
       key of another kind is refused at its element. The first value is a
-      set or a map, refused at its index when it is neither, a value after
+      set or a map, refused at its index when it is neither. A value after
       it the algebra has no rule for is refused with the pair, and the
       vector holds one value at least. The call takes no value, and of two
       values `#[:tea :cake] | minus #[:cake]` takes the second from the

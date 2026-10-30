@@ -43,14 +43,14 @@
 :any/allOf
   |~~ Answers whether every condition the call gives holds of the subject:
       two conditions of one record hold together by
-      `allOf (get /active) (get /age | gte 18)`. Each modifier is code
-      that answers a condition, written bare or a path, run on the
-      subject in its turn once every condition before it held, or a
-      boolean: a condition that fails where an earlier one does not hold
-      stands after it,
-      `allOf (get /email | ne null) (get /email | endsWith ".org")`, and
-      the first condition that does not hold answers `false` with the
-      code after it unrun; code that fails answers its error. The call
+      `allOf (get /active) (get /age | gte 18)`. Each modifier is a
+      boolean or code that answers a condition, written bare or a path.
+      The code runs on the subject in its turn, once every condition
+      before it held, so a condition that fails where an earlier one does
+      not hold stands after it,
+      `allOf (get /email | ne null) (get /email | endsWith ".org")`. The
+      first condition that does not hold answers `false` with the code
+      after it unrun, and code that fails answers its error. The call
       gives one condition at least.
       ::link~(::any/anyOf) ::link~(::vec/every)
   ~~|
@@ -110,13 +110,13 @@
 :any/anyOf
   |~~ Answers whether some condition the call gives holds of the subject:
       a high score passes without the flag,
-      `anyOf /vip (get /score | gt 95)`. Each modifier is code that
-      answers a condition, written bare or a path, run on the subject in
-      its turn once no condition before it held, as for `allOf`, or a
-      boolean: the first that holds answers `true` with the code after it
-      unrun, so a flagged record passes without the field its code reads,
-      `anyOf /vip (get /score | gt 95)`, and code that fails answers its
-      error. The call gives one condition at least.
+      `anyOf /vip (get /score | gt 95)`. Each modifier is a boolean or
+      code that answers a condition, written bare or a path. The code runs
+      on the subject in its turn, once no condition before it held, as for
+      `allOf`. The first condition that holds answers `true` with the code
+      after it unrun, so a flagged record passes without the field its
+      code reads, and code that fails answers its error. The call gives
+      one condition at least.
       ::link~(::any/allOf) ::link~(::vec/any)
   ~~|
   ::fn
@@ -353,22 +353,21 @@
       holds code runs against the subject, and a value answers itself,
       `{:nickname null :name "alice"} | coalesce /nickname /name`
       answering `"alice"`. An alternative passes to the next where it
-      answers null, or the refusal of a read `query` answers null for met
-      on its own way, a key the map lacks, an index past the end or null on
-      the way, so `coalesce /key fallback` reads "the key where the map
-      holds it, else the fallback"; a miss in the code a verb ran on a part
-      of it, `map /price`, and any other failure of its code is the answer
-      of the call, a misspelled name among them, and every other value ends
-      the walk, false, `0` and `""` among them. When every alternative
-      passes the call answers null. A value alone stands after the subject,
-      `coalesce 30` reading "the subject, else 30", and several values
-      alone are refused, the subject first written by `it`,
-      `coalesce it port 8080`, and a field by a path,
-      `coalesce /timeout 30`. An
-      error the steps before answered passes over the call, as over every
-      step, so a field that may be missing is read inside an alternative,
-      `coalesce /key 0`, not before it. The call takes one alternative at
-      least.
+      answers null. It passes too where it meets on its own way the
+      refusal of a read `query` answers null for: a key the map lacks, an
+      index past the end or null on the way. So `coalesce /key fallback`
+      reads "the key where the map holds it, else the fallback". Any other
+      failure of its code is the answer of the call, a misspelled name
+      among it, and so is a miss in the code a verb ran on a part of it,
+      `map /price`. Every other value ends the walk, false, `0` and `""`
+      among them, and when every alternative passes the call answers null.
+      A value alone stands after the subject, `coalesce 30` reading "the
+      subject, else 30". Several values alone are refused: the subject
+      first is written by `it`, `coalesce it port 8080`, and a field by a
+      path, `coalesce /timeout 30`. An error the steps before answered
+      passes over the call, as over every step, so a field that may be
+      missing is read inside an alternative, `coalesce /key 0`, not before
+      it. The call takes one alternative at least.
       ::link~(::any/if) ::link~(::any/cond)
       ::link~(::any/query)
   ~~|
@@ -955,15 +954,16 @@
 
 :any/gt
   |~~ Answers whether the subject comes after the value the call gives in
-      the one order, the order `sort` ranks by, the two of one kind, as
-      `tag` answers it: numbers by their value, `10 | gt 5`, a decimal
-      against a whole number among them; strings by their characters,
-      `"b" | gt "a"`, an upper-case letter before every lower-case one and
-      digits as characters, `"10" | gt "9"` answering `false`; keywords
-      and tag names by their names; values under `::desc` the other way,
-      `1 | desc | gt (2 | desc)`; and vectors, sets, maps, booleans and
-      values under one tag as `sort` ranks them. So `gt` answers `true`
-      exactly where `sort` puts the value before the subject. A pair of two
+      the one order, the order `sort` ranks by, `10 | gt 5` answering
+      `true`. The two are of one kind, as `tag` answers it. Numbers compare
+      by their value, a decimal against a whole number among them. Strings
+      compare by their characters, an upper-case letter before every
+      lower-case one and digits as characters, `"10" | gt "9"` answering
+      `false`. Keywords and tag names compare by their names, and values
+      under `::desc` the other way, `1 | desc | gt (2 | desc)` answering
+      `true`. Vectors, sets, maps, booleans and values under one tag
+      compare as `sort` ranks them. So `gt` answers `true` exactly where
+      `sort` puts the value before the subject. A pair of two
       kinds is refused: a number under a tag is read by `payload`,
       `::Width#5 | payload | gt 3`, and text that holds a number by
       `toNumber`, `get /age | toNumber | gt 18`. The value is computed
@@ -1182,11 +1182,11 @@
       a tag of its own is a number, while `tag` answers the tag over
       it; a map under a tag is a map; and a set is a vector, as a quote
       and a doc are, while a vector is no set. A failure is asked once
-      `!|` catches it, an error at rest, a value of its refusal, whose kind
-      closes it, or of `::error` where no refusal declares it, and a value
-      of a kind that wires its parts is of that kind, of `::tagged` and of
-      every value alone, a slot of a verdict of `::fn/slot`, `payload`
-      answering what lies beneath its tag. Given
+      `!|` catches it: an error at rest is a value of its refusal, whose
+      kind closes it, or of `::error` where no refusal declares it. A
+      value of a kind that wires its parts is of that kind, of `::tagged`
+      and of every value alone, a slot of a verdict of `::fn/slot` among
+      them, and `payload` answers what lies beneath its tag. Given
       several kinds, it answers whether the subject is of one of them,
       and a call of none is refused. A kind no tag of the walk names is not
       reached, so a misspelt kind, `is ::Numbr`, answers false and is
@@ -1276,10 +1276,11 @@
   |~~ Answers the subject written as JSON text, for a reader that does
       not read qlang: `{:id 7 :paid true} | json` answers
       `{"id":7,"paid":true}`. Every value answers, and the kinds of qlang
-      alone give way at this boundary: a keyword writes as its bare name,
-      a key and a value alike; a set as an array; a value under a tag as
-      an object of its `$tag` and its `payload`, an error at rest among
-      them; a quote, a doc and a tag name as the string of their print. So
+      alone give way at this boundary. A keyword writes as its bare name,
+      a key and a value alike, and a set as an array. A value under a tag
+      writes as an object of its `$tag` and its `payload`, an error at
+      rest among them. A quote, a doc and a tag name write as the string
+      of their print. So
       `parseJson` reads a keyword back as its string and a set as a
       vector: the text that reads back as the value is `print`. The call
       takes no value, an indent among them.
@@ -1382,41 +1383,44 @@
 
 :any/legend
   |~~ Answers the legend of the subject, a `::legend`, which a host prints
-      as the print of the subject laid out by its kind, each part the kind
-      reads by a key or an index of its payload on a line of its own beside
-      the gloss of its page, and a part at an index beside its name too,
-      which its print does not write: `::point[0 1 2] | legend` lays the
-      line `1` out beside
+      as the print of the subject laid out by its kind. Each part the kind
+      reads by a key or an index of its payload stands on a line of its
+      own beside the gloss of its page, and a part at an index beside its
+      name too, which its print does not write: `::point[0 1 2] | legend`
+      lays the line `1` out beside
       `|~ The line of the point, counted from one · line ~|`. The gloss is
-      the words a page opens with, before the first colon, semicolon or
-      period its prose ends a clause with, on one line; the head stands
-      beside the gloss of the page `doc` reads of the subject; a part the
-      kind computes, by code or a longer path, stands in no legend,
-      `manifest` naming it and `doc` reading its page; and a part
-      read by its name answers its own legend in turn,
-      `"~{" | parse !| location | legend`. A key beneath a name the kind
-      wires reads by three rules, so a refusal and the excerpt its alert
-      prints gloss each key: its first segment the name, a slot where the
-      kind is the verdict of a verb; the next a part of the slot, glossed
-      beside it, `:addend/found`; and a name beneath a value a view of that
-      value, glossed by the verb of the view its tags walk to, or the tag the
-      alert shows first of a value past its room, `:addend/found/count`
-      beside `|~ count ::number · How many elements the vector holds ~|`.
-      A value of a kind that wires
-      nothing stands on one line beside its gloss, and a container that
-      holds legends lays each on a line of its own. A tag name lays out the
-      kind it names, beneath the tag a comment for each name the kind wires,
-      in its order: the name, the path it reads where it reads no key of its
-      own name, its kind and the gloss of its page, so `::point | legend`
-      tells the parts of a point before a point is held and
-      `::host | kinds | map legend` the parts of every kind, and beneath them a
-      comment for each view the kind reveals, its kind and the gloss of what
-      its verb answers. A legend is an answer, printed within the budget of
-      every answer as any answer is. It prints under its tag,
-      `::legend::point[`, a number, a boolean, null and a path touching it
-      by `#`, `::legend#5`, and every comment is closed, `|~ … ~|`, and
-      whitespace, so the text read back is the legend, `print` answering
-      the text and `payload` the subject.
+      the words a page opens with, on one line, before the first colon,
+      semicolon or period its prose ends a clause with. The head stands
+      beside the gloss of the page `doc` reads of the subject. A part the
+      kind computes, by code or a longer path, stands in no legend:
+      `manifest` names it and `doc` reads its page. A part read by its name
+      answers its own legend in turn, `"~{" | parse !| location | legend`.
+
+      A key beneath a name the kind wires reads by three rules, so a
+      refusal and the excerpt its alert prints gloss each key. Its first
+      segment is the name, a slot where the kind is the verdict of a verb.
+      The next is a part of the slot, glossed beside it, `:addend/found`.
+      A name beneath a value is a view of that value, glossed by the verb
+      of the view its tags walk to, or by the tag the alert shows first of
+      a value past its room: `:addend/found/count` stands beside
+      `|~ count ::number · How many elements the vector holds ~|`. A value
+      of a kind that wires nothing stands on one line beside its gloss,
+      and a container that holds legends lays each on a line of its own.
+
+      A tag name lays out the kind it names: beneath the tag stands a
+      comment for each name the kind wires, in its order, with the name,
+      the path it reads where it reads no key of its own name, its kind
+      and the gloss of its page. So `::point | legend` tells the parts of
+      a point before a point is held, and `::host | kinds | map legend`
+      the parts of every kind. Beneath them stands a comment for each view
+      the kind reveals, its kind and the gloss of what its verb answers.
+
+      A legend is an answer, printed within the budget of every answer as
+      any answer is. It prints under its tag, `::legend::point[`, a
+      number, a boolean, null and a path touching it by `#`,
+      `::legend#5`. Every comment is closed, `|~ … ~|`, and is whitespace,
+      so the text read back is the legend, `print` answering the text and
+      `payload` the subject.
       ::link~(::legend) ::link~(::kind/wires)
   ~~|
   ::fn
@@ -1526,12 +1530,12 @@
 
 :any/manifest
   |~~ Answers the set of the nodes declared one name under the name the
-      subject reads, as `doc` reads it, each by its address:
-      `::number | manifest` the verbs and the refusals of numbers,
-      `::vec/take | manifest` the inputs and the answer of `take`,
-      `::qlang | manifest` the chapters of the language and the refusal of
-      an answer past the budget, and a value the
-      names under the kind it shows, `5 | manifest` those of numbers. A
+      subject reads, as `doc` reads it, each by its address.
+      `::number | manifest` answers the verbs and the refusals of numbers,
+      and `::vec/take | manifest` the inputs and the answer of `take`.
+      `::qlang | manifest` answers the chapters of the language and the
+      refusal of an answer past the budget. A value answers the names
+      under the kind it shows, `5 | manifest` those of numbers. A
       name nothing declares is refused under the verb,
       `::any/manifest/UnknownNameError`. The laws of a
       name are no part of the answer, `laws` reads them; the kinds of the
@@ -1791,10 +1795,11 @@
       answering `"42"`, the text a host shows for an answer other than a
       string, whole or, past the budget of every answer, as the alert that
       keeps it in a cell. An atom prints as its literal, a string inside
-      its quotes; a vector and a map by their brackets around the print of
-      each part; a set, a quote, a doc and an error by brackets of their
-      own; a legend laid out with the gloss of each part; any other value
-      under a tag as its tag before the print of its payload. A set prints
+      its quotes. A vector and a map print by their brackets around the
+      print of each part, and a set, a quote, a doc and an error by
+      brackets of their own. A legend prints laid out with the gloss of
+      each part, and any other value under a tag as its tag before the
+      print of its payload. A set prints
       in its one order, and the text reads back as the value by `parse` and
       `answer`. The print is the language's, whatever the kind: a `print`
       declared under a label is refused, `::bind/PrintDeclaredError`, and a
@@ -1956,12 +1961,13 @@
         |~~ The error the value is raised as, on the fail track. ~~|
         ::error
     | throws :SubjectKindNotTakenError
-        |~~ `raise` raises a map, beneath the tags over it: a value of
-            another kind is put in one first, `get {:value it} | raise`,
-            or the error is written as its literal, `!{:reason :late} | raise`;
-            an excerpt, which a host prints of a failure past its rooms, tells
-            the failure and holds it not, its facts read by their names and
-            the failure raised again by the query that made it.
+        |~~ `raise` raises a map, beneath the tags over it. A value of
+            another kind is put in one first, `get {:value it} | raise`, or
+            the error is written as its literal, `!{:reason :late} | raise`.
+            An excerpt, which a host prints of a failure past its rooms,
+            tells the failure and holds it not: its facts are read by their
+            names, and the failure is raised again by the query that made
+            it.
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `raise` takes no value: what the error says is a fact of the
@@ -2026,11 +2032,12 @@
 
 :any/runLaws
   |~~ Answers the results of the laws under the name the subject reads,
-      as `doc` reads it, a verb by its address among them, one
-      `{:law :says :actual :error :ok}` per law in their order: `:law`
-      its address, `:says` its page, the claim it proves, `:actual` what
+      as `doc` reads it, a verb by its address among them: one
+      `{:law :says :actual :error :ok}` per law, in their order,
+      `::vec/sort | runLaws | count` answering `15`. `:law` is its
+      address and `:says` its page, the claim it proves. `:actual` is what
       its query answered, null where it answered an error, which `:error`
-      holds as the error at rest, and `:ok` whether the answer is true,
+      holds as the error at rest. `:ok` tells whether the answer is true,
       so a law that answers false or an error fails. A value runs the
       laws of its kind, and a name of the scope the laws declared under
       it. The anchor, a keyword after it, runs the laws of the node the
@@ -2461,11 +2468,12 @@
       of the value, whose other side `payload` answers, and lays the tag the
       call names over the subject where it gives one. Given no name it
       answers the kind of the subject, its outermost tag: `5 | tag`
-      answers `::number` and `::Box::Crate{:width 2} | tag` `::Box`; a
-      literal its kind, `"hi"`, `:active`, `[1 2]` and `#[1 2]` answering `::string`,
-      `::keyword`, `::vec` and `::set`; null `::null`; a quote, a doc and a
-      tag name `::quote`, `::doc` and `::tag`; and an error at rest the tag
-      of the refusal it carries, while `is` walks the tags to the kind
+      answers `::number` and `::Box::Crate{:width 2} | tag` `::Box`. A
+      literal answers its kind,
+      `["hi" :active [1 2] #[1 2] null] | map tag` answering
+      `[::string ::keyword ::vec ::set ::null]`. A quote, a doc and a tag
+      name answer `::quote`, `::doc` and `::tag`, and an error at rest the
+      tag of the refusal it carries. `is` walks the tags to the kind
       beneath. Given a tag name it lays the tag over the subject through
       its kind as the literal does where it is written: `5 | tag ::Box`
       answers `::Box#5`, its tag the name and its payload the subject, so
@@ -2770,9 +2778,9 @@
       parts it maps, `with [/id {:user /user/name :group /group/name}] …`. Each
       selector is read against the subject apart from the others, a path as
       `get` reads it and code run on the subject, so no selector sees the
-      name of another, and the code of the body runs on the subject as
-      the code of a template of `get` runs, the names beside the names of
-      its step; no name leaves the call. A key of the subject no name names
+      name of another. The code of the body runs on the subject as the
+      code of a template of `get` runs, the names beside the names of its
+      step, and no name leaves the call. A key of the subject no name names
       is read by its path, and a name stands over a verb of its name in the
       body, the verb called by its address there,
       `::order{:id 100 :item :bigmac :count 2} | with [/count] (get [count map/count])`

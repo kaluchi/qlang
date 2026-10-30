@@ -41,8 +41,7 @@ facts [QSERR#raise].
 
 Under `::error` alone, or under a tag no node declares, an error at rest
 is a map of facts no refusal declares: it holds the facts it is written
-with, a `:kind` entry a fact as any key is and a `:trace` that holds no
-frames among them, so `!{:trace 5}` stands as the value it writes, and the
+with, a `:trace` that holds no frames among them, so `!{:trace 5}` stands as the value it writes, and the
 walk of its tags passes `::error`, then the map, so a path reads its facts
 and a verb declared once on `::error` reaches it. A label of the reader
 takes an error at rest by its own tag, `::error`, so one whose `accepts`
@@ -57,22 +56,22 @@ are that error.
 > ::Oops!{:a 1} | eq ::Oops::error{:a 1}
 true
 
-> !{:kind ::Foo} | get [~(tag) /kind]
-[::error ::Foo]
+> !{:code 404} | get [tag /code]
+[::error 404]
 
-> !{:trace 5} | get [~(tag) /trace]
+> !{:trace 5} | get [tag /trace]
 [::error 5]
 
-> :error/twice ~(get /a | mul 2); ::Oops!{:a 3} | twice
+> :error/twice (get /a | mul 2); ::Oops!{:a 3} | twice
 6
 
 > !{:by 3} | tag ::error | eq !{:by 3}
 true
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); get [~(::map!{:a 1}) ~(::Late!{:by 3} !| get [~(tag) ~(found | tag)])]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); get [(::map!{:a 1}) (::Late!{:by 3} !| get [tag (found | tag)])]
 [!{:a 1} [::Late/PayloadKindNotTakenError ::error]]
 
-> "x" | add 1 !| get [~(subject | found) ~(get /subject !| tag) ~(payload | tag) ~(is ::error)]
+> "x" | add 1 !| get [(subject | found) (get /subject !| tag) (payload | tag) (is ::error)]
 ["x" ::path/TagClosedError ::error false]
 
 > ::number/add/SubjectNotNumberError!{:repair 5} !| tag
@@ -81,10 +80,10 @@ true
 > ::number/add/AddendKindNotTakenError!{:trace ::excerpt{:failed []}} !| tag
 ::number/add/AddendKindNotTakenError/TraceKindNotTakenError
 
-> ::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [~(tag) ~(addend | found | tag) ~(addend | expected) ~(payload | get /:addend/found/count)]
+> ::number/add/AddendKindNotTakenError::excerpt{:addend/expected #[::number] :addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [tag (addend | found | tag) (addend | expected) (payload | get /:addend/found/count)]
 [::number/add/AddendKindNotTakenError ::cell #[::number] 3410]
 
-> ::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [~(tag) ~(get /:rows/count)]
+> ::error::excerpt{:rows ::cell"f410f1df625c" :rows/count 5000} | get [tag (get /:rows/count)]
 [::error 5000]
 ```
 
@@ -118,16 +117,16 @@ error it was.
 > "x" | add 1 !| raise !| tag
 ::number/add/SubjectNotNumberError
 
-> ::number/add/SubjectNotNumberError::excerpt{:subject/found #[1] :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [~(tag) ~(subject | found | payload | tag)]
+> ::number/add/SubjectNotNumberError::excerpt{:subject/found #[1] :trace ::cell"093225005142" :trace/failed [~(add 1)]} | raise !| get [tag (subject | found | payload | tag)]
 [::any/raise/SubjectKindNotTakenError ::excerpt]
 
-> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| get [~(tag) ~(found | tag) ~(trace | first | failed)]
+> :Box |~~ A parcel. ~~| (::kind | holds :k |~~ k. ~~| ~(tag | eq ::map)); {:a 1} | tag ::Box | raise !| get [tag (found | tag) (trace | first | failed)]
 [::Box/k ::error ~(raise)]
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); ::Late{:by 3} | raise !| get [~(tag) ~(found | tag)]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| ::map); ::Late{:by 3} | raise !| get [tag (found | tag)]
 [::Late/PayloadKindNotTakenError ::error]
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| print | parse | answer | get [~(tag) ~(get /by)]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| print | parse | answer | get [tag (get /by)]
 [::Late 3]
 ```
 
@@ -139,7 +138,7 @@ on, while `coalesce` reads the miss of a read in an alternative as null,
 as `query` reads it [QSCND#coalesce]. `!|` passes a value by. A value written after `!|` is the recovery
 the catch answers, and the facts of the error are read from it by their
 names, of an error under `::error` alone by `get`, the parser refusing there a path, a quote and a literal that holds
-either [QSSYN#step], so a quote the recovery answers is computed by a
+a path [QSSYN#step], so a quote the recovery answers is computed by a
 group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, as `raise` laid it, none where
@@ -159,16 +158,16 @@ question it asks, `{:ok false :error …}` beside the answers of the others
 [QSPTH#template], and `runLaws` the outcome of each law [QSSLF#laws].
 
 ```qlang
-> get [~("x" | add 1 !| 0) ~("x" | add 1 !| (~(get /message)))]
+> get [("x" | add 1 !| 0) ("x" | add 1 !| (~(get /message)))]
 [0 ~(get /message)]
 
 > !{:k 1 :j 2} | raise !| get [/k /j]
 [1 2]
 
-> 42 !| get /kind
+> 42 !| message
 42
 
-> [1 "x"] | map ~(mul 2) | !| 0
+> [1 "x"] | map (mul 2) | !| 0
 0
 
 > 5 | ok !| false
@@ -177,13 +176,13 @@ true
 > !{:a 1} | raise !| payload | tag
 ::map
 
-> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [~(tag) /by]
+> :Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [tag /by]
 [::Late 3]
 
-> get [~({} | coalesce ~(get /missing) 30) ~({} | get /missing !| tag)]
+> get [({} | coalesce (get /missing) 30) ({} | get /missing !| tag)]
 [30 ::path/KeyNotInMapError]
 
-> {:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]
+> {:age null} | settle [(get /age | add 1)] | get /0/error | get [tag (subject | found)]
 [::number/add/SubjectNotNumberError null]
 ```
 
@@ -211,7 +210,7 @@ wiring the root hands it [QSHST#source].
 
 A step whose answer is a failure its subject was not passes a frame: a
 step that fails, `raise`, and a step that answers a failure from inside
-it, the call of a verb, a group, a verb running a quote and the one word
+it, the call of a verb, a group, a verb running code and the one word
 of a fold [QSCOL#reduce], while a modifier of a step, a raise written
 there among it, and a part of a literal, which is one step, answer within
 the frame of that step, and no step the reader did not write joins it.
@@ -270,19 +269,19 @@ trace over at that raise.
 > "x" | add 1 !| payload | keys
 [:subject/expected :subject/found :trace]
 
-> [1 "x" 3] | map ~(mul 2) | count !| trace
+> [1 "x" 3] | map (mul 2) | count !| trace
 ::trace[
   ::frame["x" ~(mul 2)]
-  ::frame[[1 "x" 3] ~(map ~(mul 2) | count) /1]
+  ::frame[[1 "x" 3] ~(map (mul 2) | count) /1]
 ]
 
-> "x" | add 1 | mul 2 !| trace | first | get [~(subject) ~(unfinished) ~(failed) ~(skipped)]
+> "x" | add 1 | mul 2 !| trace | first | get [subject unfinished failed skipped]
 ["x" ~(add 1 | mul 2) ~(add 1) ~(mul 2)]
 
-> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter ~(get /age | gt 18) !| trace | get /1 | subject | get /1
+> [{:name "Ann" :age 30} {:name "Bo" :age "15"}] | filter (get /age | gt 18) !| trace | get /1 | subject | get /1
 {:name "Bo" :age "15"}
 
-> [1 2 3] | take (count | sub "1") !| trace | map ~failed
+> [1 2 3] | take (count | sub "1") !| trace | map failed
 [~(sub "1") ~(take (count | sub "1"))]
 
 > {:a 1 :trace []} | raise !| keys
@@ -291,7 +290,7 @@ trace over at that raise.
 > {:a 1 :trace []} | raise | count !| get /trace
 ::trace[::frame[{:a 1 :trace []} ~(raise | count)]]
 
-> {:code 404 :trace []} | raise !| with {:caught ~it} ~(raise !| eq caught)
+> {:code 404 :trace []} | raise !| with {:caught it} (raise !| eq caught)
 true
 
 > !{:a 1} | raise | count !| raise | add 1 !| get /trace | last | skipped
@@ -300,16 +299,16 @@ true
 > !{:a 1} | raise | count !| minus #[:trace] | raise | add 1 !| get /trace | last | skipped
 ~(add 1)
 
-> get [~({:trace 5} | raise !| tag) ~({:trace [5]} | raise !| get [~(tag) ~(index)]) ~({:trace #[::frame[1 ~(a)]]} | raise !| tag) ~(::frame[1] !| tag)]
+> get [({:trace 5} | raise !| tag) ({:trace [5]} | raise !| get [tag index]) ({:trace #[::frame[1 ~(a)]]} | raise !| tag) (::frame[1] !| tag)]
 [::trace/PayloadKindNotTakenError [::trace/ElementKindNotTakenError 0] ::trace/PayloadKindNotTakenError ::frame/UnfinishedNotGivenError]
 
-> get [~(::frame::X[1 ~(a)] !| get [~(tag) ~(found | tag)]) ~(::frame#[1 ~(a)] !| get [~(tag) ~(found | tag)])]
+> get [(::frame::X[1 ~(a)] !| get [tag (found | tag)]) (::frame#[1 ~(a)] !| get [tag (found | tag)])]
 [[::frame/PayloadKindNotTakenError ::X] [::frame/PayloadKindNotTakenError ::set]]
 
 > ::number/add/SubjectNotNumberError!{:subject/found "x"} | trace
 null
 
-> get [~(::A[::number"x"] !| trace | map ~failed) ~(!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| get /trace | map ~failed)]
+> get [(::A[::number"x"] !| trace | map failed) (!{:a 1 :trace ::trace[::frame[1 ~(pre)]]} | eq raise !| get /trace | map failed)]
 [[~(::A[::number"x"])] [~(pre) ~(eq raise)]]
 
 > ::number/add/SubjectNotNumberError!{:subject/found "x" :trace 5} !| tag
@@ -318,7 +317,7 @@ null
 > ::number/add/SubjectNotNumberError!{:subject/found "x" :trace [::frame[1 ~(pre)]]} | trace | tag
 ::trace
 
-> get [~([1 "x"] | sum !| trace | first | path) ~([[1 "x"]] | map ~(sum) !| trace | map ~path) ~([1 "x"] | eq sum !| trace | map ~path) ~({:a 1} | filter ~(5) !| trace | last | path)]
+> get [([1 "x"] | sum !| trace | first | path) ([[1 "x"]] | map sum !| trace | map path) ([1 "x"] | eq sum !| trace | map path) ({:a 1} | filter (5) !| trace | last | path)]
 [/1 [/1 /0] [/1] /a]
 ```
 
@@ -329,7 +328,7 @@ failure answers the verb, the elements after it left unrun: `map`,
 `filter`, `every`, `any`, `reduce`, the branches of `if`, and the keys of
 `sort`, `groupBy` and `indexBy`, while code that recovers inside keeps
 every element. A literal whose part fails answers that failure, and so
-does a template of `get` whose quote answers one, the first in the order
+does a template of `get` whose code answers one, the first in the order
 the literal holds its parts, a set in its one order and a map with the
 last value of each key, a value a later entry of its key replaces
 running nowhere; the body of a declaration that fails fails its text,
@@ -340,29 +339,26 @@ declaration to the end of the text and no subject [QSERR#trace]; a tag
 over a payload that fails answers the
 failure, and so does a verb whose answer the kind of its subject refuses,
 under the tags its walk passed as under none, since no tag is laid over a
-failure; a modifier that answers a failure answers the call where its
-input takes a value, and is refused under the input where its function
-runs it as code, whatever kinds it names [QSQUO#modifier]. A refusal holds
-a failure computed at the call as the error at rest it is, so reading it
-raises nothing.
+failure; a modifier the call computes that answers a failure answers
+the call, at an input of code as at one of a value [QSQUO#modifier].
 
 ```qlang
-> get [1 ~("x" | add 1)] !| tag
+> get [1 ("x" | add 1)] !| tag
 ::number/add/SubjectNotNumberError
 
-> get [~(~(:rate (1 | div 0); rate) | answer !| trace | map ~failed) ~(::host | env | has :rate)]
+> get [(~(:rate (1 | div 0); rate) | answer !| trace | map failed) (::host | env | has :rate)]
 [[~(div 0) ~(:rate (1 | div 0);) ~(answer)] false]
 
-> [1 "x" 3] | map ~(add 10 !| 0)
+> [1 "x" 3] | map (add 10 !| 0)
 [11 0 13]
 
 > :Pair |~~ Two elements. ~~| (::kind | holds :NotPairError |~~ A pair holds two. ~~| ~(count | eq 2)); ::Box::Pair[1 2] | take 1 !| tag
 ::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| tag
-::vec/map/CodeKindNotTakenError
+::number/div/DivisorZeroError
 
-> get [~(#[::number"b" ::string#1] !| tag) ~({:k ::number"x" :k 1} | count)]
+> get [(#[::number"b" ::string#1] !| tag) ({:k ::number"x" :k 1} | count)]
 [::string/PayloadKindNotTakenError 1]
 ```
 
@@ -474,25 +470,25 @@ a segment a path read as an index numbers.
 > "hello" | add 1 !| tag
 ::number/add/SubjectNotNumberError
 
-> 1 | add "x" !| get [~(tag) ~(addend | expected) ~(addend | found | tag)]
+> 1 | add "x" !| get [tag (addend | expected) (addend | found | tag)]
 [::number/add/AddendKindNotTakenError #[::number] ::string]
 
-> 1 | add 1 2 !| payload | entries | map ~first
+> 1 | add 1 2 !| payload | entries | map first
 [:subject/found :addend/found :surplus/found :trace]
 
-> get [~("zz" | toRegex "zz" !| flags | found) ~(::W"x" | toNumber !| get [~(payload | keys) ~(subject | found)])]
+> get [("zz" | toRegex "zz" !| flags | found) (::W"x" | toNumber !| get [(payload | keys) (subject | found)])]
 ["zz" [[:subject/found :trace] ::W"x"]]
 
-> [1 "x"] | sum !| get [~(payload | keys) ~(trace | first | path)]
+> [1 "x"] | sum !| get [(payload | keys) (trace | first | path)]
 [[:subject/expected :subject/found :trace] /1]
 
 > ::number/add/AddendKindNotTakenError | manifest
 #[::number/add/AddendKindNotTakenError/addend ::number/add/AddendKindNotTakenError/answer ::number/add/AddendKindNotTakenError/repair ::number/add/AddendKindNotTakenError/subject ::number/add/AddendKindNotTakenError/surplus ::number/add/AddendKindNotTakenError/trace]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [~(::number/plus/ByKindNotTakenError | binding | name) ~(::number/plus/ByNotGivenError | binding | name)]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [(::number/plus/ByKindNotTakenError | binding | name) (::number/plus/ByNotGivenError | binding | name)]
 [:number/plus/ByKindNotTakenError :number/plus]
 
-> ::builtin | manifest | filter ~(binding | name | toString | endsWith "Error") | count
+> ::builtin | manifest | filter (binding | name | toString | endsWith "Error") | count
 13
 
 > ::qlang/AnswerBeyondBudgetError | manifest
@@ -501,13 +497,13 @@ a segment a path read as an index numbers.
 > ::nope | doc !| payload | keys
 [:subject/found :anchor/found :name :addresses :nearest :trace]
 
-> "x" | add 1 !| subject | get [~(is ::fn/slot) ~(doc | eq (::fn/subject | doc)) ~(found)]
+> "x" | add 1 !| subject | get [(is ::fn/slot) (doc | eq (::fn/subject | doc)) found]
 [true true "x"]
 
-> ::number/add/SubjectNotNumberError!{:subject/expected 5} !| get [~(tag) ~(found)]
+> ::number/add/SubjectNotNumberError!{:subject/expected 5} !| get [tag found]
 [::fn/slot/ExpectedKindNotTakenError 5]
 
-> get [~([1] | filter ~(1) !| tag) ~([1 "x"] | sum !| tag) ~({} | get /a !| tag)]
+> get [([1] | filter (1) !| tag) ([1 "x"] | sum !| tag) ({} | get /a !| tag)]
 [::vec/filter/PredicateAnswerKindNotTakenError ::vec/sum/ElementKindNotTakenError ::path/KeyNotInMapError]
 ```
 
@@ -531,7 +527,7 @@ any failure.
 > !{:code 404} | raise !| print | parse | answer | raise !| keys
 [:code :trace]
 
-> "x" | add 1 !| print | parse | answer | raise | count !| trace | map ~(get [~(subject) ~(failed) ~(skipped)])
+> "x" | add 1 !| print | parse | answer | raise | count !| trace | map (get [subject failed skipped])
 [["x" ~(add 1) ~(count)]]
 
 > !{:a 1}
@@ -585,22 +581,22 @@ fact within the room of a fact [QSSYN#refusal].
 $ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
 4
 
-$ qplay ':number/inf ~(add 1 | inf); 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
+$ qplay ':number/inf (add 1 | inf); 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
 :trace ::cell
 :trace/subject 999
 
 $ qplay '::host | kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
 2
 
-$ qplay 'get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
+$ qplay 'get {:record (get {:a 1 :rows (5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
   :record/a 1
   :record/rows/count 5000
 ```
 
 ```qlang
-> 1 | add (3410 | range) !| get [~(addend | found | count) ~(addend | found | take 3)]
+> 1 | add (3410 | range) !| get [(addend | found | count) (addend | found | take 3)]
 [3410 [0 1 2]]
 
-> get {:rows ~(5000 | range)} | raise !| get /rows | count
+> get {:rows (5000 | range)} | raise !| get /rows | count
 5000
 ```

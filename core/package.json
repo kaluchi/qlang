@@ -21,7 +21,7 @@
     "#qlang": "./lib/qlang.qlang",
     "#qlang/load-source": {
       "node": "./host/load-source-node.mjs",
-      "default": "./src/load-source-web.mjs"
+      "default": "./host/load-source-web.mjs"
     },
     "#qlang/*": "./lib/qlang/*.qlang"
   },

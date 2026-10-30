@@ -12,7 +12,7 @@ it('reads the tag of the value first, then the views of the first kind of the wa
 it('reads the views of a map, a string and a trace, each by the verb it names', async () => {
   expect(await viewsOf('{:b 2 :a 1}')).toEqual([['tag', await evalQuery('::map')], ['count', 2], ['shape', await evalQuery('::shape{:b ::number :a ::number}')]]);
   expect(await viewsOf('"abc"')).toEqual([['tag', await evalQuery('::string')], ['count', 3]]);
-  expect(await viewsOf('[1 "x" 3] | map ~(mul 2) !| trace')).toEqual([['tag', await evalQuery('::trace')], ['failed', await evalQuery('[~(mul 2) ~(map ~(mul 2))]')], ['subject', 'x'], ['paths', await evalQuery('[/1]')]]);
+  expect(await viewsOf('[1 "x" 3] | map (mul 2) !| trace')).toEqual([['tag', await evalQuery('::trace')], ['failed', await evalQuery('[~(mul 2) ~(map (mul 2))]')], ['subject', 'x'], ['paths', await evalQuery('[/1]')]]);
 });
 
 it('reads the tag alone of a value no kind of its walk reveals a view of', async () => {

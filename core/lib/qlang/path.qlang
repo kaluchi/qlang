@@ -3,28 +3,26 @@
    The rules it holds: [QSDSP#residence], [QSPTH#value]. ~|
 
 :path
-  |~~ A path, `/users/0/name`, is a value that names a part of another: a
-      key of a map or an index of a vector at each segment, a negative
-      index counted from the end. It does nothing by itself; the verb that
-      takes it reads it. `get /user/name` answers the part and refuses one
-      that is not there, so a misspelled field is found where it is read;
-      `query /user/name` answers null there; `has /user/name` answers
-      whether it is there; `put /user/age 30`, `update /user/age ~(add 1)`
-      and `delete /user/age` write it, followed as `get` follows it; and a
-      verb that runs code takes a path as the code
-      that reads it from each element, `map /name`, `sort /age`,
-      `filter /active`. A path prints in one spelling that reads back
-      as itself, `/"0"` printing `/0`, and stands as any value does,
-      `/items/1 | segments` answering `[:items 1]`.
+  |~~ A path, `/users/0/name`, is a value that names a part of another: a key of
+      a map or an index of a vector at each segment, a negative index counted
+      from the end. It does nothing by itself; the verb that takes it reads it.
+      `get /user/name` answers the part and refuses one that is not there, so a
+      misspelled field is found where it is read. `query /user/name` answers
+      null there, and `has /user/name` answers whether it is there.
+      `put /user/age 30`, `update /user/age (add 1)` and `delete /user/age`
+      write it, followed as `get` follows it. A verb that runs code takes a path
+      as the code that reads it from each element, `map /name`, `sort /age`,
+      `filter /active`. A path prints in one spelling that reads back as itself,
+      `/"0"` printing `/0`, and stands as any value does, `/items/1 | segments`
+      answering `[:items 1]`.
 
-      A key is written as a keyword is, bare, `/name`, quoted,
-      `/"first name"`, or with its colon when it holds a slash,
-      `/:qlang/error`, one key where `/qlang/error` is two. A segment is
-      text, as in JSON Pointer, so `/0` reads the index of a vector and
-      the key `"0"` of a map. The value itself is `it`, never a path.
+      A key is written as a keyword is, bare, `/name`, quoted, `/"first name"`,
+      or with its colon when it holds a slash, `/:qlang/error`, one key where
+      `/qlang/error` is two. A segment is text, as in JSON Pointer, so `/0`
+      reads the index of a vector and the key `"0"` of a map. The value itself
+      is `it`, never a path.
       ::snippet~({:user {:scores [5 6]}} | get /user/scores/-1) answers `6`.
-      ::link~(::any/get) ::link~(::any/query)
-      ::link~(::qlang/pipeline)
+      ::link~(::any/get) ::link~(::any/query) ::link~(::qlang/pipeline)
   ~~|
   ::kind
     | accepts
@@ -48,9 +46,12 @@
             refusing.
             ::link~(::path) ::link~(::any/query)
         ~~|
-        ~(wires :index |~~ The index the path read, counted from the end when negative. ~~| ::number
-          | wires :length |~~ How many elements the value holds. ~~| ::number
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+        ~(wires
+          :index
+          |~~ The index the path read, counted from the end when negative. ~~|
+          ::number | wires :length
+          |~~ How many elements the value holds. ~~| ::number | wires :path
+          |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :KeyNotInMapError
         |~~ A path names a key the map holds, so a misspelled field is
             found where `get` reads it; `:key` holds the key read, and
@@ -65,11 +66,12 @@
             `get [/dependencies /devDependencies]`.
             ::link~(::path) ::link~(::any/query)
         ~~|
-        ~(wires :key |~~ The key the path read, which the map does not hold. ~~| ::keyword
-          | wires :nearest
-              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
-              ::vec
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+        ~(wires :key |~~ The key the path read, which the map does not hold. ~~|
+          ::keyword | wires :nearest
+          |~~ The names the step could have meant: nearest in spelling, `[]`
+                  where none is near.
+              ~~| ::vec | wires :path
+              |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :TagClosedError
         |~~ A value under a kind that wires its parts is read by the names
             its kind wires, each bare, `card | took`, and no path reads or
@@ -82,10 +84,11 @@
             ::link~(::kind/wires) ::link~(::any/payload)
         ~~|
         ~(wires :names |~~ The names the kind of the value wires. ~~| ::set
-          | wires :repair
-              |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
-              ::quote
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+          | wires
+          :repair |~~ The step the call was likely meant as: where a path stands
+                  instead of the value it names.
+              ~~| ::quote | wires :path
+              |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :SubjectHasNoPartsError
         |~~ A path reads a part of a map, a vector or a set, one under a
             tag among them; a number, a string or null has no parts, and
@@ -98,31 +101,34 @@
             `query`, which answers null.
             ::link~(::path) ::link~(::any/mulOf)
         ~~|
-        ~(wires :segment
-              |~~ The segment the path read, a key or an index. ~~|
-              ~(query /segment) #[::keyword ::null ::number]
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+        ~(wires :segment |~~ The segment the path read, a key or an index. ~~|
+          ~(query /segment) #[::keyword ::null ::number] | wires :path
+            |~~ The path to the part the refusal stands at. ~~| ::path)
     | throws :IndexNotIntegerError
         |~~ A vector is read by an index, `/0`, and a set by the index of
             an element in its one order; `:segment` holds the segment read,
             which names no index. A field of each element is read by `map`,
             `map /name`, and the elements a field picks are found by
-            `filter`, `filter ~(get /age | gte 18)`.
+            `filter`, `filter (get /age | gte 18)`.
             ::link~(::path) ::link~(::vec/filter)
         ~~|
-        ~(wires :segment |~~ The segment the path read, which names no index. ~~| ::keyword
-          | wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+        ~(wires
+          :segment |~~ The segment the path read, which names no index. ~~|
+          ::keyword | wires :path
+          |~~ The path to the part the refusal stands at. ~~| ::path)
     | proves :TagClosedError/refusesAPathBeneathAWiredTag
         |~~ No path reads beneath the tag of a value whose kind wires its
             parts, which its names read.
         ~~|
-        ~("x" | add 1 !| trace | first | get [~(get /subject !| tag) ~(subject)] | eq [::path/TagClosedError "x"])
+        ~("x" | add 1 !| trace | first | get [(get /subject !| tag) subject]
+          | eq [::path/TagClosedError "x"])
     | proves :isAValue
         |~~ A path is a value of its own kind. ~~|
         ~(/items/0 | tag | eq ::path)
     | proves :printsInOneSpelling
         |~~ A path prints in one spelling that reads back as itself. ~~|
-        ~([/items/0/"first name" /"0" /:name] | map ~print | eq ["/items/0/\"first name\"" "/0" "/name"])
+        ~([/items/0/"first name" /"0" /:name] | map print
+          | eq ["/items/0/\"first name\"" "/0" "/name"])
     | proves :readsQuotedAndPathKeys
         |~~ Quoted keys and keys with a path read in a path. ~~|
         ~({:"foo bar" {:qlang/error 1}} | get /"foo bar"/:qlang/error | eq 1)
@@ -137,20 +143,24 @@
         ~({:"a b/c" 1} | paths | first | first | print | eq "/\"a b/c\"")
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused; `toPath` reads one as a path. ~~|
-        ~([:items 0] | tag ::path !| get [~(tag) ~(found | tag)] | eq [::path/PayloadKindNotTakenError ::vec])
+        ~([:items 0] | tag ::path !| get [tag (found | tag)]
+          | eq [::path/PayloadKindNotTakenError ::vec])
     | proves :IndexOutOfBoundsError/refusesAnIndexPastTheEnd
         |~~ An index past the end is refused with the length. ~~|
-        ~([10 20 30] | get /99 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError 99 3])
+        ~([10 20 30] | get /99 !| get [tag index length]
+          | eq [::path/IndexOutOfBoundsError 99 3])
     | proves :IndexOutOfBoundsError/refusesAnIndexBeforeTheStart
         |~~ A negative index past the start is refused as it was written.
         ~~|
-        ~([10 20 30] | get /-4 !| get [~(tag) ~(index) ~(length)] | eq [::path/IndexOutOfBoundsError -4 3])
+        ~([10 20 30] | get /-4 !| get [tag index length]
+          | eq [::path/IndexOutOfBoundsError -4 3])
     | proves :IndexOutOfBoundsError/readsTheLastFromTheEnd
         |~~ `/-1` reads the last element whatever the length. ~~|
         ~([10 20 30] | get /-1 | eq 30)
     | proves :KeyNotInMapError/refusesAKeyTheMapLacks
         |~~ A key the map lacks is refused. ~~|
-        ~({:name "Ann"} | get /nmae !| get [~(tag) ~(key)] | eq [::path/KeyNotInMapError :nmae])
+        ~({:name "Ann"} | get /nmae !| get [tag key]
+          | eq [::path/KeyNotInMapError :nmae])
     | proves :KeyNotInMapError/namesThePathItFollowed
         |~~ The refusal holds the path the read followed. ~~|
         ~({:user {:name "Ann"}} | get /user/age !| path | eq /user/age)
@@ -165,17 +175,20 @@
         ~({:qty 2 :price 3} | mulOf /qty /price | eq 6)
     | proves :SubjectHasNoPartsError/refusesANumber
         |~~ A number has no fields. ~~|
-        ~(42 | get /foo
-          !| get [~(tag) ~(segment) ~(found | tag)] | eq [::path/SubjectHasNoPartsError :foo ::number])
+        ~(42 | get /foo !| get [tag segment (found | tag)]
+          | eq [::path/SubjectHasNoPartsError :foo ::number])
     | proves :SubjectHasNoPartsError/refusesNull
         |~~ Null has no parts for `get`. ~~|
-        ~(null | get /name !| get [~(tag) ~(found)] | eq [::path/SubjectHasNoPartsError null])
+        ~(null | get /name !| get [tag found]
+          | eq [::path/SubjectHasNoPartsError null])
     | proves :IndexNotIntegerError/refusesAFieldOfAVector
         |~~ A vector is read by an index, not a field. ~~|
-        ~([10 20 30] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
+        ~([10 20 30] | get /name !| get [tag segment]
+          | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/refusesAFieldOfASet
         |~~ A set is read by an index, not a field. ~~|
-        ~(#[:tea :cake :jam] | get /name !| get [~(tag) ~(segment)] | eq [::path/IndexNotIntegerError :name])
+        ~(#[:tea :cake :jam] | get /name !| get [tag segment]
+          | eq [::path/IndexNotIntegerError :name])
     | proves :IndexNotIntegerError/readsAFieldOfEachElement
         |~~ A field of each element is read by `map`. ~~|
         ~([{:name "a"} {:name "b"}] | map /name | eq ["a" "b"]);
@@ -197,9 +210,9 @@
     | impl ::builtin{};
 
 :path/toPath
-  |~~ Answers the path itself, so `map ~toPath` turns paths, the vectors of
+  |~~ Answers the path itself, so `map toPath` turns paths, the vectors of
       their keys and the strings of JSON Pointer that write them into
-      paths, `[/name ["items" 0] "/age"] | map ~toPath` answering
+      paths, `[/name ["items" 0] "/age"] | map toPath` answering
       `[/name /items/0 /age]`.
       ::link~(::vec/toPath) ::link~(::string/toPath)
   ~~|
@@ -207,7 +220,7 @@
     | returns |~~ The path itself. ~~| ::path
     | proves :answersItself
         |~~ A path, its keys and its pointer turn into the path. ~~|
-        ~([/name ["items" 0] "/age"] | map ~toPath | eq [/name /items/0 /age])
+        ~([/name ["items" 0] "/age"] | map toPath | eq [/name /items/0 /age])
     | proves :answersUnderItsTags
         |~~ A path under a tag answers under the tag. ~~|
         ~(::Field#/age | toPath | eq ::Field#/age)

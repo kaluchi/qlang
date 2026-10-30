@@ -1,3 +1,3 @@
 {"name":"a-failure-prints-as-its-error-at-rest-raised","query":"\"hello\" | add 1","raises":"::number/add/SubjectNotNumberError!{:subject/expected #[::number] :subject/found \"hello\" :trace ::trace[::frame[\"hello\" ~(add 1)]]}"}
 {"name":"a-read-that-misses-prints-its-trace-among-its-facts","query":"{} | get /missing | tag | eq ::null","raises":"::path/KeyNotInMapError!{\n  :found {}\n  :key :missing\n  :nearest []\n  :path /missing\n  :trace ::trace[::frame[{} ~(get /missing | tag | eq ::null)]]\n}"}
-{"name":"the-print-of-a-failure-read-back-and-raised-resumes-its-trace","query":"\"x\" | add 1 !| print | parse | answer | raise | count !| trace | map ~(get [~(failed) ~(skipped)])","expect":"[[~(add 1) ~(count)]]"}
+{"name":"the-print-of-a-failure-read-back-and-raised-resumes-its-trace","query":"\"x\" | add 1 !| print | parse | answer | raise | count !| trace | map (get [failed skipped])","expect":"[[~(add 1) ~(count)]]"}

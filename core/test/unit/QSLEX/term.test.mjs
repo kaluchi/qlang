@@ -67,7 +67,7 @@ it('leaves the refusals written instead, the read of a part, the caret beneath a
   for (const text of [
     '::keyword/toTag/NameNotTagError', '::vec/toPath/SubjectEmptyError', ':repair/namesAWrittenPathAlone', '`:read` continues the query to it',
     'the `:marker` beneath the `:source`', 'carries :ParseError/marker', 'markedLineOf',
-    'a valid identifier', 'IdentStart', ':end-of-source', 'findNameOccurrences', '`[` opened at line 1, column 1 is never closed', 'the scope a call opens',
+    'a valid identifier', ':end-of-source', 'findNameOccurrences', '`[` opened at line 1, column 1 is never closed', 'the scope a call opens',
     '`answer` runs a quote, a link or a snippet', '`open` opens the page a link names', 'the error at rest a catch holds'
   ]) expect(refused(text), text).toBe(false);
 });
@@ -101,7 +101,7 @@ it('refuses the names the read of text into code, the template, the read of a pr
 
 it('leaves parse of a string, open of a link, the tuple of a shape and the names of the shape written instead', () => {
   for (const text of [
-    '"add 1" | parse', '"#[3 1 3]" | parse | answer', '::link/open', '5 | apply ~(add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
+    '"add 1" | parse', '"#[3 1 3]" | parse | answer', '::link/open', '5 | apply (add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
     'get-reads-two-fields-of-one-record-by-a-template', 'coreKindOf', 'foldersOfForm', 'intoTemplate', ':readsByTheKeyItShows'
   ]) expect(refused(text), text).toBe(false);
 });

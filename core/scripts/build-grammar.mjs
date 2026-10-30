@@ -17,16 +17,19 @@ const grammarPath = join(here, '..', 'src', 'grammar.peggy');
 const outputDir   = join(here, '..', 'gen');
 const outputPath  = join(outputDir, 'grammar.mjs');
 
-mkdirSync(outputDir, { recursive: true });
+// parserSourceOf(trace) → the parser of the grammar as a module of `gen/`, its
+// tracer kept where `trace` asks for it.
+export function parserSourceOf(trace = false) {
+  return peggy.generate(readFileSync(grammarPath, 'utf8'), {
+    output: 'source',
+    format: 'es',
+    trace,
+    allowedStartRules: ['Query']
+  });
+}
 
-const source = readFileSync(grammarPath, 'utf8');
-
-const parserSource = peggy.generate(source, {
-  output: 'source',
-  format: 'es',
-  trace: false,
-  allowedStartRules: ['Query']
-});
-
-writeFileSync(outputPath, parserSource);
-console.log(`grammar compiled → ${outputPath}`);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(outputPath, parserSourceOf());
+  console.log(`grammar compiled → ${outputPath}`);
+}

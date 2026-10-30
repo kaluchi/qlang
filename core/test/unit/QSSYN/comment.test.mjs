@@ -8,7 +8,7 @@ describe('a comment read as whitespace', () => {
     const source = `|~| this is a comment
       | [1 2 3] | count`;
     expect(rootOf(source).comments.map(comment => [comment.type, comment.content]))
-      .toEqual([['LinePlainComment', ' this is a comment']]);
+      .toEqual([['LineComment', ' this is a comment']]);
   });
 
   it('reads a comment where a word would touch another as no pipe', () => {
@@ -75,7 +75,7 @@ describe('a block comment that nests', () => {
       '| 42'
     ].join('\n');
     const step = blockStep(src);
-    expect(step.type).toBe('BlockPlainComment');
+    expect(step.type).toBe('BlockComment');
     expect(step.content).toContain('|~~ ~~|');
     expect(step.content).toContain('::AssertionFailedError | doc');
   });

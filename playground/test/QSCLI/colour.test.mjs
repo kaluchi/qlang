@@ -32,7 +32,7 @@ describe('the flag --color', () => {
 const ESCAPE = /\x1b\[[0-9;]*m/g;
 const RESET = '\x1b[0m';
 const VERBS = new Set(['filter', 'count', 'gt']);
-const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter ~(gt 1) !| count | (x) |~| c';
+const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter (gt 1) !| count | (x) |~| c';
 
 function paintedTokens(source, verbNames) {
   let rest = highlightAnsi(source, verbNames);
@@ -129,7 +129,7 @@ describe('the answer painted where the caller asks for colour', () => {
   it('paints the literal of an answer in ANSI where the caller asks for colour', async () => {
     const cliOutcome = await renderCellOutcome(
       await makeCellEntry({ result: new Map([['k', 1]]) }),
-      { didExplicitStdoutEffect: false, shouldColorize: true }
+      { heldTheChannel: false, shouldColorize: true }
     );
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);
     expect(cliOutcome.stdoutText.replace(/\x1b\[[0-9;]*m/g, '')).toContain('{:k 1}');
@@ -137,14 +137,14 @@ describe('the answer painted where the caller asks for colour', () => {
 
   it('paints a call an answer holds as a word of the root, a fact a refusal wires among them', async () => {
     const cellEntry = await makeCellEntry({ result: await evalQuery('~(count !| trace)') });
-    const { stdoutText } = await renderCellOutcome(cellEntry, { didExplicitStdoutEffect: false, shouldColorize: true });
+    const { stdoutText } = await renderCellOutcome(cellEntry, { heldTheChannel: false, shouldColorize: true });
     expect([stdoutText.includes('\x1b[3;94mcount'), stdoutText.includes('\x1b[3;94mtrace')]).toEqual([true, true]);
   });
 
   it('paints the failure of a query that does not parse in ANSI on stdout, exit 0', async () => {
     const cellEntry = await makeCellEntry({ result: await evalQuery('[1 2') });
     const cliOutcome = await renderCellOutcome(cellEntry, {
-      didExplicitStdoutEffect: false,
+      heldTheChannel: false,
       shouldColorize: true
     });
     expect(cliOutcome.stdoutText).toMatch(/\x1b\[/);

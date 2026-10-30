@@ -3,7 +3,7 @@ import { evalQuery } from '../../../src/notebook.mjs';
 import { makeTag } from '../../../src/types.mjs';
 
 it('an address reads the verb of the root whatever the reader binds under its last name', async () => {
-  expect(await evalQuery('apply ~(:count 5; get [~(::vec/count | binding | name) ~(::count | binding | value)])'))
+  expect(await evalQuery('apply (:count 5; get [(::vec/count | binding | name) (::count | binding | value)])'))
     .toEqual(await evalQuery('[:vec/count 5]'));
 });
 

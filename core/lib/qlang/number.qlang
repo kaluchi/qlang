@@ -52,17 +52,18 @@
         ~(1e308 | mul 10 !| tag | eq ::number/NotFiniteError)
     | proves :roundsAsADouble
         |~~ A tenth and two tenths add as doubles add. ~~|
-        ~(get [-1 2.5e-3 ~(0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
+        ~(get [-1 2.5e-3 (0.1 | add 0.2)] | eq [-1 0.0025 0.30000000000000004])
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toNumber` reads a number from
             text.
         ~~|
-        ~(::number"5" !| get [~(tag) ~(found | tag)] | eq [::number/PayloadKindNotTakenError ::string])
+        ~(::number"5" !| get [tag (found | tag)]
+          | eq [::number/PayloadKindNotTakenError ::string])
     | proves :NotFiniteError/refusesAProductPastTheRange
         |~~ A product past the range of doubles is refused at the step
             that made it.
         ~~|
-        ~(1e308 | mul 10 | add 1 !| get [~(tag) ~(trace | map ~failed)]
+        ~(1e308 | mul 10 | add 1 !| get [tag (trace | map failed)]
           | eq [::number/NotFiniteError [~(mul 10)]])
     | impl ::builtin{};
 
@@ -81,16 +82,17 @@
         ~~|
     | proves :dropsTheSign
         |~~ A negative number loses its sign, and a positive one stays. ~~|
-        ~([-3 3 -0.5] | map ~abs | eq [3 3 0.5])
+        ~([-3 3 -0.5] | map abs | eq [3 3 0.5])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("-3" | abs !| get [~(tag) ~(subject | found | tag)] | eq [::number/abs/SubjectNotNumberError ::string])
+        ~("-3" | abs !| get [tag (subject | found | tag)]
+          | eq [::number/abs/SubjectNotNumberError ::string])
     | impl ::builtin{};
 
 :number/add
   |~~ Answers the subject plus the number the call gives, `10 | add 3`.
       The subject is a number: a vector adds to each of its elements by
-      `map`, `map ~(add 1)`, and sums them by `sum`; a string joins by
+      `map`, `map (add 1)`, and sums them by `sum`; a string joins by
       `append`; and text that holds a number is read first by
       `toNumber`, `"5" | toNumber | add 1`. The addend is computed
       against the subject, so `5 | add (mul 2)` adds ten, and two fields
@@ -113,7 +115,7 @@
     | throws :SubjectNotNumberError
         |~~ `add` adds to a number: two fields of one record add by
             `sumOf /price /tax`, a vector adds to each element by `map`,
-            `map ~(add 1)`, a string joins by `append`, and text that
+            `map (add 1)`, a string joins by `append`, and text that
             holds a number is read first by `toNumber`.
         ~~|
     | throws :ArgsBeyondInputsError
@@ -132,10 +134,12 @@
         ~(1e308 | add 1e308 !| tag | eq ::number/NotFiniteError)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | add 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/add/SubjectNotNumberError ::string])
+        ~("hello" | add 1 !| get [tag (subject | found | tag)]
+          | eq [::number/add/SubjectNotNumberError ::string])
     | proves :AddendKindNotTakenError/refusesAString
         |~~ An addend that is no number is refused under the input. ~~|
-        ~(1 | add "x" !| get [~(tag) ~(addend | found | tag)] | eq [::number/add/AddendKindNotTakenError ::string])
+        ~(1 | add "x" !| get [tag (addend | found | tag)]
+          | eq [::number/add/AddendKindNotTakenError ::string])
     | proves :ArgsBeyondInputsError/refusesTwoNumbers
         |~~ Args of two numbers are refused under the verb. ~~|
         ~(1 | add 1 2 !| tag | eq ::number/add/ArgsBeyondInputsError)
@@ -163,10 +167,11 @@
         |~~ A number rounds up, a negative one toward zero, and prints no
             negative zero.
         ~~|
-        ~([2.1 -2.7 3 -0.5] | map ~ceil | eq [3 -2 3 0])
+        ~([2.1 -2.7 3 -0.5] | map ceil | eq [3 -2 3 0])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.1" | ceil !| get [~(tag) ~(subject | found | tag)] | eq [::number/ceil/SubjectNotNumberError ::string])
+        ~("2.1" | ceil !| get [tag (subject | found | tag)]
+          | eq [::number/ceil/SubjectNotNumberError ::string])
     | impl ::builtin{};
 
 :number/div
@@ -174,9 +179,9 @@
       gives, a fraction where the division leaves one, `7 | div 2`
       answering `3.5`. A divisor of zero is refused, so a divisor that
       may be zero is tested first,
-      `if (get /count | eq 0) ~(0) ~(divOf /sum /count)`. The subject is a
+      `if (get /count | eq 0) (0) (divOf /sum /count)`. The subject is a
       number: a vector divides each of its elements by `map`,
-      `map ~(div 2)`. The divisor is computed against the subject, and
+      `map (div 2)`. The divisor is computed against the subject, and
       two fields of one record divide by `divOf /sum /count`. A number
       under a tag answers under the tag.
       ::link~(::number/mul) ::link~(::any/divOf)
@@ -192,11 +197,11 @@
             `toNumber` first, `6 | div ("3" | toNumber)`.
         ~~|
     | holds :DivisorZeroError
-        |~~ The divisor is not zero: a division by zero has no finite
-            answer, and a divisor that may be zero is tested before the
-            call, as a record that counts its sum tests its count, which
-            answers `0`:
-            `{:sum 9 :count 0} | if (get /count | eq 0) ~(0) ~(divOf /sum /count)`.
+        |~~ The divisor is not zero: a division by zero has no finite answer,
+            and a divisor that may be zero is tested before the call, as a
+            record that counts its sum tests its count, which answers `0`:
+            `{:sum 9 :count 0} | if (get /count | eq 0) (0) (divOf /sum
+            /count)`.
         ~~|
         ~(divisor | ne 0)
     | returns
@@ -206,7 +211,7 @@
     | throws :SubjectNotNumberError
         |~~ `div` divides a number: two fields of one record divide by
             `divOf /sum /count`, a vector divides each element by `map`,
-            `map ~(div 2)`, and text that holds a number is read first by
+            `map (div 2)`, and text that holds a number is read first by
             `toNumber`.
         ~~|
     | proves :dividesByTheNumber
@@ -217,10 +222,12 @@
         ~(7 | div 2 | eq 3.5)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | div 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/div/SubjectNotNumberError ::string])
+        ~("hello" | div 2 !| get [tag (subject | found | tag)]
+          | eq [::number/div/SubjectNotNumberError ::string])
     | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(1 | div "x" !| get [~(tag) ~(divisor | found | tag)] | eq [::number/div/DivisorKindNotTakenError ::string])
+        ~(1 | div "x" !| get [tag (divisor | found | tag)]
+          | eq [::number/div/DivisorKindNotTakenError ::string])
     | proves :DivisorZeroError/refusesZero
         |~~ A division by zero is refused under the divisor. ~~|
         ~(10 | div 0 !| tag | eq ::number/div/DivisorZeroError)
@@ -248,10 +255,11 @@
         ~~|
     | proves :roundsDown
         |~~ A number rounds down, a negative one away from zero. ~~|
-        ~([2.7 -2.1 3] | map ~floor | eq [2 -3 3])
+        ~([2.7 -2.1 3] | map floor | eq [2 -3 3])
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("2.7" | floor !| get [~(tag) ~(subject | found | tag)] | eq [::number/floor/SubjectNotNumberError ::string])
+        ~("2.7" | floor !| get [tag (subject | found | tag)]
+          | eq [::number/floor/SubjectNotNumberError ::string])
     | impl ::builtin{};
 
 :number/mod
@@ -293,10 +301,10 @@
         ~(7 | mod 3 | eq 1)
     | proves :takesTheSignOfTheDivisor
         |~~ The remainder takes the sign of the divisor. ~~|
-        ~(get [~(-7 | mod 3) ~(7 | mod -3)] | eq [2 -2])
+        ~(get [(-7 | mod 3) (7 | mod -3)] | eq [2 -2])
     | proves :tellsAnEvenNumber
         |~~ `mod 2` answers zero for an even number. ~~|
-        ~([1 2 3 4] | filter ~(mod 2 | eq 0) | eq [2 4])
+        ~([1 2 3 4] | filter (mod 2 | eq 0) | eq [2 4])
     | proves :leavesAFraction
         |~~ A fraction leaves a fraction. ~~|
         ~(7.5 | mod 2 | eq 1.5)
@@ -305,10 +313,12 @@
         ~(::Width#7 | mod 3 | eq ::Width#1)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("7" | mod 3 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mod/SubjectNotNumberError ::string])
+        ~("7" | mod 3 !| get [tag (subject | found | tag)]
+          | eq [::number/mod/SubjectNotNumberError ::string])
     | proves :DivisorKindNotTakenError/refusesAString
         |~~ A divisor that is no number is refused under the input. ~~|
-        ~(7 | mod "3" !| get [~(tag) ~(divisor | found | tag)] | eq [::number/mod/DivisorKindNotTakenError ::string])
+        ~(7 | mod "3" !| get [tag (divisor | found | tag)]
+          | eq [::number/mod/DivisorKindNotTakenError ::string])
     | proves :DivisorZeroError/refusesZero
         |~~ A remainder of a division by zero is refused under the
             divisor.
@@ -320,7 +330,7 @@
   |~~ Answers the subject times the number the call gives, `10 | mul 3`,
       a fraction among them, `7 | mul 0.5` answering `3.5`. The subject
       is a number: a vector multiplies each of its elements by `map`,
-      `map ~(mul 2)`, and text that holds a number is read first by
+      `map (mul 2)`, and text that holds a number is read first by
       `toNumber`. The multiplier is computed against the subject, so
       `5 | mul it` squares it, and two fields of one record multiply by
       `mulOf /price /qty`. A number under a tag answers under the tag,
@@ -344,7 +354,7 @@
     | throws :SubjectNotNumberError
         |~~ `mul` multiplies a number: two fields of one record multiply
             by `mulOf /price /qty`, a vector multiplies each element by
-            `map`, `map ~(mul 2)`, and text that holds a number is read
+            `map`, `map (mul 2)`, and text that holds a number is read
             first by `toNumber`.
         ~~|
     | proves :multipliesByTheNumber
@@ -352,10 +362,12 @@
         ~(10 | mul 3 | eq 30)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | mul 2 !| get [~(tag) ~(subject | found | tag)] | eq [::number/mul/SubjectNotNumberError ::string])
+        ~("hello" | mul 2 !| get [tag (subject | found | tag)]
+          | eq [::number/mul/SubjectNotNumberError ::string])
     | proves :MultiplierKindNotTakenError/refusesAString
         |~~ A multiplier that is no number is refused under the input. ~~|
-        ~(1 | mul "x" !| get [~(tag) ~(multiplier | found | tag)] | eq [::number/mul/MultiplierKindNotTakenError ::string])
+        ~(1 | mul "x" !| get [tag (multiplier | found | tag)]
+          | eq [::number/mul/MultiplierKindNotTakenError ::string])
     | proves :MultiplierKindNotTakenError/namesTheRepairOfAPath
         |~~ A path given for the multiplier names the repair that reads its
             field.
@@ -369,14 +381,14 @@
         ~(7 | mul 0.5 | eq 3.5)
     | proves :computesTheMultiplierAgainstTheSubject
         |~~ The multiplier is computed against the subject. ~~|
-        ~(5 | mul it | eq 25)
+        ~(5 | mul (add 1) | eq 30)
     | impl ::builtin{};
 
 :number/range
   |~~ Answers the whole numbers from zero up to the subject, the subject
       left out: `5 | range` answers `[0 1 2 3 4]`, and zero or below
-      answers `[]`. A count from one is `range | map ~(add 1)`, and the
-      vector reads as any other, `5 | range | map ~(mul 2)`. The subject
+      answers `[]`. A count from one is `range | map (add 1)`, and the
+      vector reads as any other, `5 | range | map (mul 2)`. The subject
       is a whole number. It takes no value.
       ::link~(::vec/map)
   ~~|
@@ -394,11 +406,11 @@
             makes no vector, and the call has no repair but a count within
             it.
         ~~|
-        ~(wires :longest
-              |~~ The length a vector of the engine may have: the count past
+        ~(wires
+          :longest
+          |~~ The length a vector of the engine may have: the count past
                   which `range` makes none.
-              ~~|
-              ::number)
+              ~~| ::number)
     | throws :SubjectNotNumberError
         |~~ `range` counts up to a number: the count of a vector is read
             first, `[:tea :cake] | count | range`.
@@ -408,19 +420,22 @@
         ~(5 | range | eq [0 1 2 3 4])
     | proves :answersNothingBelowOne
         |~~ Zero and below answer the empty vector. ~~|
-        ~([0 -2] | map ~range | eq [[] []])
+        ~([0 -2] | map range | eq [[] []])
     | proves :countsFromOneByMap
         |~~ A count from one adds one to each. ~~|
-        ~(3 | range | map ~(add 1) | eq [1 2 3])
+        ~(3 | range | map (add 1) | eq [1 2 3])
     | proves :SubjectNotIntegerError/refusesAFraction
         |~~ A fraction is no count. ~~|
-        ~(2.5 | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotIntegerError ::number])
+        ~(2.5 | range !| get [tag (subject | found | tag)]
+          | eq [::number/range/SubjectNotIntegerError ::number])
     | proves :CountTooLargeError/refusesACountPastTheLongest
         |~~ A count past the length `:longest` names is refused. ~~|
-        ~(1e10 | range !| get [~(tag) ~(longest | lt 1e10)] | eq [::number/range/CountTooLargeError true])
+        ~(1e10 | range !| get [tag (longest | lt 1e10)]
+          | eq [::number/range/CountTooLargeError true])
     | proves :SubjectNotNumberError/refusesAVector
         |~~ A vector is counted first. ~~|
-        ~([:tea :cake] | range !| get [~(tag) ~(subject | found | tag)] | eq [::number/range/SubjectNotNumberError ::vec])
+        ~([:tea :cake] | range !| get [tag (subject | found | tag)]
+          | eq [::number/range/SubjectNotNumberError ::vec])
     | impl ::builtin{};
 
 :number/round
@@ -470,10 +485,12 @@
         ~(-0.4 | round | print | eq "0")
     | proves :SubjectNotNumberError/refusesAString
         |~~ A string is no number to round. ~~|
-        ~("2.5" | round !| get [~(tag) ~(subject | found | tag)] | eq [::number/round/SubjectNotNumberError ::string])
+        ~("2.5" | round !| get [tag (subject | found | tag)]
+          | eq [::number/round/SubjectNotNumberError ::string])
     | proves :DigitsNotIntegerError/refusesAFraction
         |~~ Half a digit is refused. ~~|
-        ~(2.5 | round 0.5 !| get [~(tag) ~(digits | found | tag)] | eq [::number/round/DigitsNotIntegerError ::number])
+        ~(2.5 | round 0.5 !| get [tag (digits | found | tag)]
+          | eq [::number/round/DigitsNotIntegerError ::number])
     | proves :DigitsKindNotTakenError/refusesAString
         |~~ A count of digits that is no number is refused under the
             input.
@@ -485,7 +502,7 @@
   |~~ Answers the subject, the minuend, less the number the call gives,
       `10 | sub 3`, which may fall below zero, `5 | sub 7` answering
       `-2`. The subject is a number: a vector subtracts from each of its
-      elements by `map`, `map ~(sub 1)`, and text that holds a number is
+      elements by `map`, `map (sub 1)`, and text that holds a number is
       read first by `toNumber`. The subtrahend is computed against the
       subject, and two fields of one record subtract by
       `subOf /total /paid`. A number under a tag answers under the tag.
@@ -508,7 +525,7 @@
     | throws :SubjectNotNumberError
         |~~ `sub` subtracts from a number: two fields of one record
             subtract by `subOf /total /paid`, a vector subtracts from each
-            element by `map`, `map ~(sub 1)`, and text that holds a number
+            element by `map`, `map (sub 1)`, and text that holds a number
             is read first by `toNumber`.
         ~~|
     | proves :subtractsTheNumber
@@ -519,10 +536,12 @@
         ~(5 | sub 7 | eq -2)
     | proves :SubjectNotNumberError/refusesAString
         |~~ A subject that is no number is refused under the verb. ~~|
-        ~("hello" | sub 1 !| get [~(tag) ~(subject | found | tag)] | eq [::number/sub/SubjectNotNumberError ::string])
+        ~("hello" | sub 1 !| get [tag (subject | found | tag)]
+          | eq [::number/sub/SubjectNotNumberError ::string])
     | proves :SubtrahendKindNotTakenError/refusesAString
         |~~ A subtrahend that is no number is refused under the input. ~~|
-        ~(1 | sub "x" !| get [~(tag) ~(subtrahend | found | tag)] | eq [::number/sub/SubtrahendKindNotTakenError ::string])
+        ~(1 | sub "x" !| get [tag (subtrahend | found | tag)]
+          | eq [::number/sub/SubtrahendKindNotTakenError ::string])
     | proves :answersUnderTheTag
         |~~ A number under a tag answers under the tag. ~~|
         ~(::Width#5 | sub 3 | eq ::Width#2)
@@ -532,23 +551,24 @@
   |~~ Answers the keyword a number files under as a key, `1 | toKeyword`
       answering `:"1"`, as `groupBy` and `indexBy` file it, so a record a
       number names is read from the map they build,
-      `byId | query (get /uid | toKeyword)`. `toNumber` turns the keyword back
-      into the number.
+      `[{:id 1 :name "Ann"}] | indexBy /id | at (1 | toKeyword) | get /name`
+      answering `"Ann"`. `toNumber` turns the keyword back into the number.
       ::link~(::keyword/toNumber) ::link~(::vec/indexBy)
   ~~|
   ::fn
     | returns |~~ The keyword of the number's text. ~~| ::keyword
     | proves :readsTheKeyIndexByFiledItUnder
         |~~ A number turns into the key `indexBy` files it under. ~~|
-        ~([{:id 1 :name "Ann"}] | indexBy /id | query (1 | toKeyword) | get /name | eq "Ann")
+        ~([{:id 1 :name "Ann"}] | indexBy /id | at (1 | toKeyword) | get /name
+          | eq "Ann")
     | proves :readsBack
         |~~ A number turned into its keyword turns back into itself. ~~|
         ~(1 | toKeyword | toNumber | eq 1)
     | impl ::builtin{};
 
 :number/toNumber
-  |~~ Answers the number itself, so `map ~toNumber` turns numbers and the
-      strings that write numbers into numbers, `[1 "2"] | map ~toNumber`
+  |~~ Answers the number itself, so `map toNumber` turns numbers and the
+      strings that write numbers into numbers, `[1 "2"] | map toNumber`
       answering `[1 2]`.
       ::link~(::string/toNumber)
   ~~|
@@ -558,13 +578,13 @@
         |~~ A number answers itself, so numbers and their strings turn
             into numbers.
         ~~|
-        ~([1 "2"] | map ~toNumber | eq [1 2])
+        ~([1 "2"] | map toNumber | eq [1 2])
     | impl ::builtin{};
 
 :number/toString
   |~~ Answers the number written as text, as a query and JSON write it,
       `42 | toString` answering `"42"` and `0.5` answering `"0.5"`, so a
-      number joins text, `get [~(5 | toString) "px"] | join ""`. `toNumber`
+      number joins text, `get [(5 | toString) "px"] | join ""`. `toNumber`
       turns the text back into the number.
       ::link~(::string/toNumber)
   ~~|
@@ -572,7 +592,7 @@
     | returns |~~ The text that writes the number. ~~| ::string
     | proves :writesTheNumber
         |~~ A number answers the text that writes it. ~~|
-        ~([42 -1.5 1e21] | map ~toString | eq ["42" "-1.5" "1e+21"])
+        ~([42 -1.5 1e21] | map toString | eq ["42" "-1.5" "1e+21"])
     | proves :readsBack
         |~~ A number turned into its string turns back into itself. ~~|
         ~(0.1 | add 0.2 | eq (toString | toNumber))

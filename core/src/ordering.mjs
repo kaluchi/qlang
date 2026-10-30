@@ -25,7 +25,7 @@ const TAGGED_KIND   = 13;
 const RAISED_KIND   = 14;
 
 // [QSHST#door]
-function kindOf(value) {
+function rankOf(value) {
   if (value === null || value === undefined) return NULL_KIND;
   if (typeof value === 'boolean') return BOOLEAN_KIND;
   if (typeof value === 'number') return NUMBER_KIND;
@@ -78,7 +78,7 @@ function compareSegments(left, right) {
 }
 
 export function compareValues(a, b) {
-  return compareKinded(kindOf(a), a, kindOf(b), b);
+  return compareKinded(rankOf(a), a, rankOf(b), b);
 }
 
 // [QSORD#set]
@@ -171,6 +171,6 @@ function comparePayloads(leftTagged, rightTagged) {
 }
 
 function payloadOf(tagged) {
-  if (isValueClass(tagged, 'underTag')) return [tagged.payload, kindOf(tagged.payload)];
+  if (isValueClass(tagged, 'underTag')) return [tagged.payload, rankOf(tagged.payload)];
   return [tagged, coreKindOf(tagged)];
 }

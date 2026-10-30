@@ -37,19 +37,19 @@ vector may have as `::number/range/CountTooLargeError`.
 > 10 | add 5 | mul 2 | sub 10
 20
 
-> get [~(7 | mod 3) ~(-7 | mod 3) ~(7 | mod -3)]
+> get [(7 | mod 3) (-7 | mod 3) (7 | mod -3)]
 [1 2 -2]
 
-> get [~(2.7 | floor) ~(2.1 | ceil) ~(-3 | abs) ~(2.567 | round 2)]
+> get [(2.7 | floor) (2.1 | ceil) (-3 | abs) (2.567 | round 2)]
 [2 3 3 2.57]
 
-> get [~(::W#2.7 | floor) ~(5 | add ::W#2) ~(::Cents#1 | add ::Dollars#1 !| tag)]
+> get [(::W#2.7 | floor) (5 | add ::W#2) (::Cents#1 | add ::Dollars#1 !| tag)]
 [::W#2 ::W#7 ::call/KindsMismatchedError]
 
-> 1e308 | mul 10 | add 1 !| get [~(tag) ~(trace | map ~failed) ~(trace | first | subject)]
+> 1e308 | mul 10 | add 1 !| get [tag (trace | map failed) (trace | first | subject)]
 [::number/NotFiniteError [~(mul 10)] 1e+308]
 
-> get [~(1 | round 400) ~(1 | round -400)]
+> get [(1 | round 400) (1 | round -400)]
 [1 0]
 
 > 10 | div 0 !| tag
@@ -78,18 +78,18 @@ different tags are refused as the pair, `::call/KindsMismatchedError`, and
 a divisor of zero under the verb, `::any/divOf/DivisorZeroError`.
 
 ```qlang
-> 1 | add 1 2 !| get [~(tag) ~(doc | content | contains "sumOf")]
+> 1 | add 1 2 !| get [tag (doc | content | contains "sumOf")]
 [::number/add/ArgsBeyondInputsError true]
 
 > {:price 4 :qty 3} | mulOf /price /qty
 12
 
-> {:a 1} | get [~(sumOf !| tag) ~(subOf /a !| tag)]
+> {:a 1} | get [(sumOf !| tag) (subOf /a !| tag)]
 [::any/sumOf/NumbersEmptyError ::any/subOf/SubtrahendNotGivenError]
 
-> {:a ::Cents#5 :b ::Dollars#2} | get [~(sumOf (get /a) (get /b) !| tag) ~(mulOf (get /a) 3)]
+> {:a ::Cents#5 :b ::Dollars#2} | get [(sumOf (get /a) (get /b) !| tag) (mulOf (get /a) 3)]
 [::call/KindsMismatchedError ::Cents#15]
 
-> {:price "4" :qty 3} | mulOf /price /qty !| get [~(tag) ~(factors | index) ~(factors | answer)]
+> {:price "4" :qty 3} | mulOf /price /qty !| get [tag (factors | index) (factors | answer)]
 [::any/mulOf/FactorsAnswerKindNotTakenError 0 "4"]
 ```

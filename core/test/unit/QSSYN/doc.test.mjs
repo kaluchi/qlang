@@ -21,8 +21,8 @@ describe('a quote of a doc is code', () => {
     for (const text of [
       '| | f', '|f', '::Box f', '::Box |~~ d ~~|', 'f |~ c', 'f | ', 'f | !| | g', 'f | | g', 'f| g', 'f |g', 'f(a)(b)', 'f a, b', '5 f', '5\nf',
       '5 |~~ d ~~|', '/ne ""', '::T(1)', '::T([1])', '::T(add 1)', '(f a, b)', '~(/a)', '~(f a, b)', '~/a', '~[1]',
-      '{:a 1 "b": 2}', '{"a": 1, :b 2}', '{:k f x}', '#"("', '#{1}', '[1[2]]', 'get /a?', 'get /', 'f 01', 'f [x]', ':x [y]', ':true 1', '5 | 6', '[x]',
-      'f !| /a', 'f\n:x [y]', '::Box[x]', '!{:k x}', '::E!{:k x}', '.a', 'get .a', '.', 'f; g',
+      '{:a 1 "b": 2}', '{"a": 1, :b 2}', '{:k f x}', '#"("', '#{1}', '[1[2]]', 'get /a?', 'get /', 'f 01', ':x [y]', ':true 1', '5 | 6', '[x]',
+      'f !| /a', '::Box[x]', '!{:k x}', '::E!{:k x}', '.a', 'get .a', '.', 'f; g',
       '/ne :x 1', '::Box :x 1', '|~~ note ~~| :x 1', ':true :x 1'
     ]) {
       expect(refusalOf(text), text).toBeInstanceOf(SourceParseError);

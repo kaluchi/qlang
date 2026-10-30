@@ -1,20 +1,17 @@
-{"name":"get-reads-a-key-the-query-computes","query":"{:k \"b\" :b 7} | get (get /k)","expect":"7"}
-{"name":"a-key-with-a-slash-is-read-by-its-keyword","query":"{:a/b 1} | get :a/b","expect":"1"}
+{"name":"a-key-with-a-slash-is-read-by-its-keyword","query":"{:a/b 1} | at :a/b","expect":"1"}
 {"name":"a-path-parts-its-segments-at-each-slash","query":"{:a/b 1} | get /a/b !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"query-map-string-key","query":"{:a 1 :b 2 :c 3} | query \"b\"","expect":"2"}
-{"name":"query-map-dynamic-keyword-key","query":"{:x 42} | with {:k ~(:x)} ~(query k)","expect":"42"}
-{"name":"query-map-dynamic-string-key","query":"{:x 42} | with {:k ~(\"x\")} ~(query k)","expect":"42"}
-{"name":"query-json-object-string-key","query":"::json{:a 1 :b 2 :c 3} | query \"b\"","expect":"2"}
-{"name":"keys-then-query-roundtrip-map","query":"{:a 1 :b 2} | with {:k ~(keys | first)} ~(query k)","expect":"1"}
 {"name":"minus-reads-a-string-as-a-key","query":"{:a 1 :b 2} | minus [\"a\"]","expect":"{:b 2}"}
 {"name":"inter-reads-a-string-as-a-key","query":"{:a 1 :b 2 :c 3} | inter #[\"a\" :c]","expect":"{:a 1 :c 3}"}
-{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a true] !| get [~(tag) ~(keys | index)]","expect":"[::map/minus/KeysElementKindNotTakenError 1]"}
-{"name":"query-index-not-integer-error","query":"[1 2 3] | query 0.5 !| tag","expect":"::path/IndexNotIntegerError"}
+{"name":"minus-refuses-an-element-that-names-no-key","query":"{:a 1} | minus [:a true] !| get [tag (keys | index)]","expect":"[::map/minus/KeysElementKindNotTakenError 1]"}
 {"name":"a-value-given-as-a-key-that-is-no-key-is-a-template","query":"{:email {:home \"a@b\"}} | query (get /email)","expect":"{:home \"a@b\"}"}
-{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [~({:a 1} | inter :a !| tag) ~({:a 1} | inter [true] !| tag)]","expect":"[::map/inter/KeysKindNotTakenError ::map/inter/KeysElementKindNotTakenError]"}
-{"name":"a-number-names-the-key-of-its-text-in-minus-and-inter","query":"{:\"1\" 5 :b 2} | get [~(minus [1]) ~(inter [1]) ~([{:\"1\" 5 :b 2} [1]] | minus)]","expect":"[{:b 2} {:\"1\" 5} {:b 2}]"}
-{"name":"get-and-query-refuse-a-value-that-names-no-part","query":"{:true 1 :k null :f true} | get [~(get (get /k) !| tag) ~(get (get /f) !| tag) ~(query #\"a\" !| tag) ~(get ::a !| tag)]","expect":"[::any/get/PathKindNotTakenError ::any/get/PathKindNotTakenError ::any/query/PathKindNotTakenError ::any/get/PathKindNotTakenError]"}
-{"name":"get-reads-a-set-a-value-under-a-tag-and-a-quote-as-templates","query":"{:a 1} | get [~(get #[/a]) ~(get ::Box[/a]) ~(get ~(get /a)) ~(get !{:x /a})]","expect":"[#[1] ::Box[1] 1 !{:x 1}]"}
+{"name":"inter-refuses-a-single-key-and-a-key-of-another-kind","query":"get [({:a 1} | inter :a !| tag) ({:a 1} | inter [true] !| tag)]","expect":"[::map/inter/KeysKindNotTakenError ::map/inter/KeysElementKindNotTakenError]"}
+{"name":"a-number-names-the-key-of-its-text-in-minus-and-inter","query":"{:\"1\" 5 :b 2} | get [(minus [1]) (inter [1]) ([{:\"1\" 5 :b 2} [1]] | minus)]","expect":"[{:b 2} {:\"1\" 5} {:b 2}]"}
+{"name":"get-and-query-refuse-a-value-that-names-no-part","query":"{:k null} | get [(query #\"a\" !| tag) (get ::a !| tag)]","expect":"[::any/query/PathKindNotTakenError ::any/get/PathKindNotTakenError]"}
+{"name":"get-reads-a-set-a-value-under-a-tag-and-a-quote-as-templates","query":"{:a 1} | get [(get #[/a]) (get ::Box[/a]) (get (get /a)) (get !{:x /a})]","expect":"[#[1] ::Box[1] 1 !{:x 1}]"}
 {"name":"a-key-a-modifier-failed-to-compute-answers-its-failure","query":"{} | get (get /k) !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]","expect":"[::any/get/PathKindNotTakenError [2 3]]"}
-{"name":"get-and-query-read-a-key-beneath-its-tags-and-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [~(get ::K:a) ~(query ::K:b 7) ~(has ::K:a) ~(get ::T#/a)]","expect":"[1 7 true ::T#1]"}
+{"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy (gt 1) | get [(at true !| tag) (at :true)]","expect":"[::map/at/KeyKindNotTakenError [2 3]]"}
+{"name":"at-reads-a-key-beneath-its-tags-and-get-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [(at ::K:a) (has ::K:a) (get ::T#/a)]","expect":"[1 true ::T#1]"}
+{"name":"a-program-given-to-get-answers-the-key-it-computes","query":"{:k \"a\" :a 5} | get (get /k)","expect":"\"a\""}
+{"name":"put-refuses-a-key-alone-naming-its-path","query":"{:a 1} | put :a 2 !| tag","expect":"::any/put/PathKindNotTakenError"}
+{"name":"at-reads-a-vector-by-its-index","query":"[10 20] | at -1","expect":"20"}
+{"name":"at-reads-a-map-by-a-key-the-query-computes","query":"{:k \"b\" :b 7} | at (get /k)","expect":"7"}

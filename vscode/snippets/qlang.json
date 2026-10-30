@@ -2,7 +2,7 @@
   "declare a name": {
     "prefix": "bind",
     "body": [":${1:name} ${2:body};"],
-    "description": "Declare a word at the head of the text, its body computed with no subject, the `;` ending it"
+    "description": "Declare a word at the head of the text, a program where its body asks for a subject and a value computed once otherwise, the `;` ending it"
   },
   "declare a verb": {
     "prefix": "bindv",
@@ -16,12 +16,12 @@
   },
   "name the subject": {
     "prefix": "name",
-    "body": ["with {:${1:name} ~it} ~(${2:steps})"],
+    "body": ["with {:${1:name} it} (${2:steps})"],
     "description": "Name the value in the pipe for the code of one step"
   },
   "filter": {
     "prefix": "filter",
-    "body": ["filter ~(${1:predicate})"],
+    "body": ["filter (${1:predicate})"],
     "description": "Keep elements matching predicate"
   },
   "map literal": {
@@ -41,12 +41,12 @@
   },
   "if": {
     "prefix": "if",
-    "body": ["if (${1:cond}) ~(${2:then}) ~(${3:else})"],
+    "body": ["if (${1:cond}) (${2:then}) (${3:else})"],
     "description": "Conditional — only selected branch executes"
   },
   "cond": {
     "prefix": "cond",
-    "body": ["cond ~(${1:pred1}) ~(${2:val1}) ~(${3:pred2}) ~(${4:val2})"],
+    "body": ["cond (${1:pred1}) (${2:val1}) (${3:pred2}) (${4:val2})"],
     "description": "Multi-way dispatch over predicate/branch pairs"
   },
   "groupBy": {
@@ -81,7 +81,7 @@
   },
   "coalesce": {
     "prefix": "coalesce",
-    "body": ["coalesce ~(${1:alt1}) ~(${2:alt2}) ~(${3:default})"],
+    "body": ["coalesce (${1:alt1}) (${2:alt2}) (${3:default})"],
     "description": "First non-null result among alternatives"
   },
   "sort by key": {
@@ -91,7 +91,7 @@
   },
   "union an entry": {
     "prefix": "union",
-    "body": ["union (get {${1::key} ~(${2:code})})"],
+    "body": ["union (get {${1::key} (${2:code})})"],
     "description": "Join to the map in the pipe an entry the template of get computes"
   },
   "minus keys": {

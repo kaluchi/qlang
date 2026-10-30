@@ -42,7 +42,7 @@ import {
 } from '@kaluchi/qlang-core';
 import { tokenize } from '@kaluchi/qlang-core/highlight';
 
-const kindOf = value => tagOf(value).name;
+const kindNameOf = value => tagOf(value).name;
 
 function tidyPage(content) {
   return content.replace(/\n{3,}/g, '\n\n');
@@ -95,15 +95,13 @@ export function parseDocument(source, uri) {
         startChar: e.location.start.column - 1,
         endLine: e.location.end ? e.location.end.line - 1 : e.location.start.line - 1,
         endChar: e.location.end ? e.location.end.column - 1 : e.location.start.column,
-        message: e.message,
-        severity: 'error'
+        message: e.message
       });
     } else {
       diagnostics.push({
         startLine: 0, startChar: 0,
         endLine: 0, endChar: 0,
-        message: e.message ?? String(e),
-        severity: 'error'
+        message: e.message ?? String(e)
       });
     }
   }
@@ -115,7 +113,7 @@ export function buildCatalogIndex(catalogRoot) {
   const index = new Map();
   if (!catalogRoot) return index;
   forEachPart(catalogRoot, (read) => {
-    if (kindOf(read.value) === 'doc') return false;
+    if (kindNameOf(read.value) === 'doc') return false;
     if (isBindStep(read.value)) index.set(read.value.get('name').name, spanOf(read));
   });
   return index;
@@ -339,7 +337,7 @@ function namesADeclaration(read) {
 
 function literalKindAt(read, offset, source) {
   if (read.parent === undefined || read.parent === null) return null;
-  const kind = kindOf(read.value);
+  const kind = kindNameOf(read.value);
   if (!KINDS_A_PART_SHOWS.has(kind)) return null;
   const signs = SIGNS_OF_A_FORM[kind];
   if (signs === undefined) return kind;
@@ -497,14 +495,14 @@ export function documentSymbols(root, scope) {
 
   const labels = new Set();
   forEachPart(root, (read) => {
-    if (kindOf(read.value) === 'doc') return false;
+    if (kindNameOf(read.value) === 'doc') return false;
     if (declaredNameOf(read)?.spelling === TAG_SPELLING) labels.add(read.value.get('name').name);
   });
   const isLabelName = name => labels.has(name) || isLabel(scope, name);
 
   const symbols = [];
   forEachPart(root, (read) => {
-    if (kindOf(read.value) === 'doc') return false;
+    if (kindNameOf(read.value) === 'doc') return false;
     const declared = declaredNameOf(read);
     if (declared === null) return;
     symbols.push({
@@ -516,7 +514,7 @@ export function documentSymbols(root, scope) {
   return symbols;
 }
 
-const folds = read => isBindStep(read.value) || kindOf(read.value) === 'doc' || (kindOf(read.value) === 'quote' && read.content !== undefined);
+const folds = read => isBindStep(read.value) || kindNameOf(read.value) === 'doc' || (kindNameOf(read.value) === 'quote' && read.content !== undefined);
 
 const lastLineOf = read => (read.text ?? read.span).end.line - 1;
 
@@ -526,8 +524,8 @@ export function foldingRangesOf(root) {
   forEachPart(root, (read) => {
     if (!folds(read)) return;
     const startLine = read.span.start.line - 1;
-    const endLine = kindOf(read.value) === 'doc' ? lastLineOf(read) : read.parts.length === 0 ? startLine : lastLineOf(read.parts.at(-1));
-    if (endLine > startLine) ranges.push({ startLine, endLine, kind: kindOf(read.value) === 'doc' ? 'comment' : 'region' });
+    const endLine = kindNameOf(read.value) === 'doc' ? lastLineOf(read) : read.parts.length === 0 ? startLine : lastLineOf(read.parts.at(-1));
+    if (endLine > startLine) ranges.push({ startLine, endLine, kind: kindNameOf(read.value) === 'doc' ? 'comment' : 'region' });
   });
   return ranges;
 }

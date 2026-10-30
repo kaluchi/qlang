@@ -58,7 +58,7 @@ it('writes a doc of several lines on one line, each line break as a space, the v
 
 it('writes every part of a quote on one line, the modifiers of a call, the docs and the body of a declaration, a chain with its pages, the step after !| and the parts of a literal', async () => {
   const declarations = '~(:a 1;\n:b 2;)';
-  const cellEntry = await runQuery(`get [{:s ~(::vec/sort | source) :q ~(~(map ~(:x |~~ one\n  two ~~| 1;\n:b 2))) :f ~(~(get /a !| map ${declarations})) :v ~(~([${declarations}] | count)) :e ~(~(#[${declarations}] | count)) :m ~(~({:k ${declarations}} | count)) :t ~(~(::T[${declarations}] | count))}] | table | lines | count`, silentStreams);
+  const cellEntry = await runQuery(`get [{:s (::vec/sort | source) :q (~(map (:x |~~ one\n  two ~~| 1;\n:b 2))) :f (~(get /a !| map ${declarations})) :v (~([${declarations}] | count)) :e (~(#[${declarations}] | count)) :m (~({:k ${declarations}} | count)) :t (~(::T[${declarations}] | count))}] | table | lines | count`, silentStreams);
   expect(cellEntry.result).toBe(5);
 });
 

@@ -7,12 +7,12 @@ import { isBindStep } from '../../../src/steps.mjs';
 import { rootOf } from '../../helpers/read-text.mjs';
 
 it('a recipe declares none of the inputs its call binds whatever a reader names so, and shadows every other', async () => {
-  const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3; n));\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map ~(mul n)));\n:vec/padded ~(:n 3; count | add n);' };
+  const shop = { uri: 'shop', source: ':vec/sized (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 3; n));\n:vec/scaled (::fn | takes :n |~~ N. ~~| /0 | impl ~(map (mul n)));\n:vec/padded (:n 3; count | add n);' };
   const notebook = await createNotebook({ sources: [shop] });
-  const answers = 'apply ~(:n 7; get [~([1] | sized 2 !| get [~(tag) ~(name)]) ~([1 2] | scaled 2) ~([1 2] | padded)])';
+  const answers = 'apply (:n 7; get [([1] | sized 2 !| get [tag name]) ([1 2] | scaled 2) ([1 2] | padded)])';
   expect((await notebook.evalCell(`${answers} | eq [[::bind/NameDeclaredTwiceError :n] [2 4] 5]`)).result).toBe(true);
-  const reader = ':vec/twice ~(:n 2; map ~(mul n)); :vec/sum2 (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 2; sum | add n));';
-  expect((await notebook.evalCell(`${reader} apply ~(:n 7; get [~([1 2] | twice) ~([1 2] | sum2 5 !| get [~(tag) ~(name)])]) | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
+  const reader = ':vec/twice (:n 2; map (mul n)); :vec/sum2 (::fn | takes :n |~~ N. ~~| /0 | impl ~(:n 2; sum | add n));';
+  expect((await notebook.evalCell(`${reader} apply (:n 7; get [([1 2] | twice) ([1 2] | sum2 5 !| get [tag name])]) | eq [[2 4] [::bind/NameDeclaredTwiceError :n]]`)).result).toBe(true);
 });
 
 it('a cell opens a scope of its own, where a later cell declares a name again', async () => {
@@ -40,7 +40,7 @@ describe('where a declaration is visible', () => {
   };
 
   it('sees a declaration inside a quote within the pipeline the quote holds, its end included', () => {
-    const source = 'get [~(:x 1; x) 5]';
+    const source = 'get [(:x 1; x) 5]';
     const declaration = declarationIn(source);
     expect(visibleAt(declaration, source.indexOf('; x') + 2)).toBe(true);
     expect(visibleAt(declaration, source.indexOf(')'))).toBe(true);
@@ -49,7 +49,7 @@ describe('where a declaration is visible', () => {
   });
 
   it('sees a declaration of the query everywhere after it', () => {
-    const source = ':x 1; (get [~(x)])';
+    const source = ':x 1; (get [(x)])';
     expect(visibleAt(declarationIn(source), source.lastIndexOf('x'))).toBe(true);
   });
 });

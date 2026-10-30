@@ -1,12 +1,12 @@
 // [QSPTH#template], [QSNAM#letters]
 
-import { registerStateReader } from '../primitives.mjs';
+import { registerStateReader, holdsAsCode } from '../primitives.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
-import { templateClosedIn } from '../eval.mjs';
+import { templateClosedIn, readTemplate } from '../eval.mjs';
 import { readsAsName } from '../name-chars.mjs';
 import { isPath, isMap, isQuote, isErrorValue, makeKeyword } from '../types.mjs';
-import { readTemplate, readByPath } from './path-primitives.mjs';
+import { isComputingStep } from '../steps.mjs';
 
 const AnyWithNamesKindNotTakenError = declareRefusal('any/with/NamesKindNotTakenError');
 const AnyWithNamesElementKindNotTakenError = declareRefusal('any/with/NamesElementKindNotTakenError');
@@ -24,16 +24,16 @@ function selectorsOf(names) {
   };
   for (const [index, part] of (isMap(names) ? [names] : names).entries()) {
     if (isPath(part)) select(part.segments[part.segments.length - 1], part);
-    else if (!isMap(part)) throw new AnyWithNamesElementKindNotTakenError({ 'names/expected': kindsExpected('map', 'path'), 'names/index': index });
+    else if (!isMap(part) || isComputingStep(part)) throw new AnyWithNamesElementKindNotTakenError({ 'names/expected': kindsExpected('map', 'path'), 'names/index': index });
     else for (const [name, selector] of part) {
-      if (!isPath(selector) && !isQuote(selector)) throw new AnyWithNamesSelectorKindNotTakenError({ name: makeKeyword(name), selector });
+      if (!isPath(selector) && !isQuote(selector) && !isComputingStep(selector)) throw new AnyWithNamesSelectorKindNotTakenError({ name: makeKeyword(name), selector });
       select(name, selector);
     }
   }
   return selectors;
 }
 
-registerStateReader('any/with', async (subject, names, body, state) => {
+registerStateReader('any/with', holdsAsCode(['names', 'body'], async (subject, names, body, state) => {
   const read = await readTemplate(subject, templateClosedIn(selectorsOf(names), state), false, null, state);
-  return isErrorValue(read) ? read : await readByPath(subject, templateClosedIn(body, state, read), false, null, state);
-});
+  return isErrorValue(read) ? read : await readTemplate(subject, templateClosedIn(body, state, read), false, null, state);
+}));

@@ -10,8 +10,8 @@ it('`coalesce` leaves the alternatives after the first value unrun', async () =>
       primitives: { 'any/counted': subject => { runs++; return subject; } }
     }]
   });
-  expect((await counting.evalCell('{:a 1} | coalesce /a ~(counted)')).result).toBe(1);
+  expect((await counting.evalCell('{:a 1} | coalesce /a counted')).result).toBe(1);
   expect(runs).toBe(0);
-  await counting.evalCell('{:a 1} | coalesce /b ~(counted)');
+  await counting.evalCell('{:a 1} | coalesce /b counted');
   expect(runs).toBe(1);
 });

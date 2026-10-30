@@ -19,7 +19,7 @@ it('shows a failure as its alert under the line that says it was raised', async 
 });
 
 it('shows the refusal instead of an answer past the budget', async () => {
-  const shown = await cellShown(await notebook.evalCell('3000 | range | map ~(get {:id ~(it) :name "user"})'));
+  const shown = await cellShown(await notebook.evalCell('3000 | range | map (get {:id it :name "user"})'));
   expect(shown.failed).toBe(true);
   expect(shown.text).toContain('::qlang/AnswerBeyondBudgetError::excerpt{');
 });

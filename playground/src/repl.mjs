@@ -31,17 +31,14 @@ Editing:
   Left / Right        move the cursor by one character
   Home / Ctrl+A       jump to the start of the buffer
   End  / Ctrl+E       jump to the end of the buffer
-  Up   / Down         step one logical row inside a multi-line
-                      cell; at the top / bottom of the cell walk
-                      through the in-memory history, falling back
-                      to start / end of buffer once history runs
-                      out
-  Ctrl+C              discard the current buffer and reprompt
+  Up   / Down         step one row inside a cell of several
+                      rows; past its first and its last row move
+                      through the cells submitted before
+  Ctrl+C              clear the cell and the edits kept in the
+                      cells before
 
-Pasting multi-line text from the clipboard arrives as one cell
-with its structure preserved — the editor redraws the pasted
-block across as many rows as the content needs, so an appended
-step like \`| get /key\` can land on the same cell as the paste.
+Pasting text of several lines from the clipboard lands at the
+cursor as one cell, its lines kept.
 
 Names a cell declares, \`:name body;\`, persist across the cells of
 one run of the REPL; a value of the subject is named by \`with\`.
@@ -58,14 +55,14 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
     ? (text) => stderrWrite(text.replace(/(?<!\r)\n/g, '\r\n'))
     : stderrWrite;
 
-  let wroteByOut = false;
+  let heldTheChannel = false;
   let runningLine = '';
   const notebook = await createNotebook({
     sources: playgroundSources({
       stdinReader: () => Promise.resolve(''),
       stdoutWrite: writeOutput,
       stderrWrite: writeDiagnostic,
-      recordStdoutEffect: () => { wroteByOut = true; },
+      recordStdoutEffect: () => { heldTheChannel = true; },
       get query() { return runningLine; }
     })
   });
@@ -111,18 +108,18 @@ export async function runRepl(stdinStream, stdoutWrite, stderrWrite, { initialQu
         return;
       }
 
-      wroteByOut = false;
+      heldTheChannel = false;
       runningLine = rawLine;
       const cellEntry = await notebook.evalCell(rawLine, { initialPipeValue: DEFAULT_SUBJECT });
-      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, wroteByOut);
+      await writeCellOutcome(cellEntry, rootVerbNames, writeOutput, writeDiagnostic, heldTheChannel);
       lineEditor.prompt();
     }
   });
 }
 
-async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, wroteByOut) {
+async function writeCellOutcome(cellEntry, rootVerbNames, stdoutWrite, stderrWrite, heldTheChannel) {
   const { stdoutText, stderrText } = await cellText(cellEntry, async (result, scope) => {
-    if (wroteByOut && !isErrorValue(result)) return null;
+    if (heldTheChannel && !isErrorValue(result)) return null;
     const shown = isErrorValue(result) ? await boundAnswer(result, scope, null, value => keepCell({ query: cellEntry.source, scope, value })) : result;
     return await printAnswer(shown, scope);
   });

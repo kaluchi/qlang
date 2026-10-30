@@ -9,7 +9,7 @@ describe('the names of the scope', () => {
   });
 
   it('a verb of a source reads a bare name as a reader reads it, the one verb of its name a later source declares among them', async () => {
-    const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|;\n:shop/capped ~(limit);' };
+    const shop = { uri: 'shop', source: ':shop |~~ A shop. ~~|;\n:shop/capped limit;' };
     const later = { uri: 'stock', source: ':stock |~~ A stock. ~~|;\n:stock/limit ~(7);' };
     const alone = await createNotebook({ sources: [shop] });
     expect((await alone.evalCell('::shop{} | capped !| tag')).result).toEqual(makeTag('call/UnknownNameError'));
@@ -23,26 +23,26 @@ describe('the names of the scope', () => {
   });
 
   it('a verb of a source reads a verb its source declares after it, a node of the root', async () => {
-    const notebook = await createNotebook({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|;\n:shop/capped ~(limit);\n:shop/limit ~(5);' }] });
+    const notebook = await createNotebook({ sources: [{ uri: 'shop', source: ':shop |~~ A shop. ~~|;\n:shop/capped limit;\n:shop/limit ~(5);' }] });
     expect((await notebook.evalCell('::shop{} | capped')).result).toBe(5);
   });
 
   it('a value of the reader stands over a verb a later source declares, which its address calls, a later step refusing the name', async () => {
-    const later = { uri: 'stock', source: ':vec/tally ~(count);' };
+    const later = { uri: 'stock', source: ':vec/tally count;' };
     const beside = await createNotebook({ sources: [later] });
-    const read = '[1 2] | with {:tally ~(5)} ~(get [~(tally) ~(vec/tally) ~(reverse | tally !| get [~(tag) ~(addresses)])])';
+    const read = '[1 2] | with {:tally (5)} (get [tally vec/tally (reverse | tally !| get [tag addresses])])';
     expect((await beside.evalCell(`${read} | eq [5 2 [::call/ValueAsALaterStepError #[::vec/tally]]]`)).result).toBe(true);
   });
 
   it('a value of the reader stands over a verb of a later source whatever the subject, a verb of its tag name among them', async () => {
     const later = { uri: 'shop', source: ':Shop |~~ A shop. ~~|;\n:Shop/f ~(1);\n:Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5"));' };
     const notebook = await createNotebook({ sources: [later] });
-    const read = 'get [~(::Shop | with {:f ~(7)} ~(f)) ~(::Shop{} | with {:f ~(7)} ~(f)) ~(::Shop | with {:hours ~(3)} ~(hours))]';
+    const read = 'get [(::Shop | with {:f (7)} f) (::Shop{} | with {:f (7)} f) (::Shop | with {:hours (3)} hours)]';
     expect((await notebook.evalCell(`${read} | eq [7 7 3]`)).result).toBe(true);
   });
 
   it('a value of the reader stands over a reader\'s verb on a label whatever the subject, the verb called by its address', async () => {
-    const reader = ':Shop |~~ A shop. ~~|; :Shop/f ~(1); get [~(::Shop | with {:f ~(7)} ~(f)) ~(::Shop{} | with {:f ~(7)} ~(get [~(f) ~(Shop/f)])) ~(5 | with {:f ~(7)} ~(f))]';
+    const reader = ':Shop |~~ A shop. ~~|; :Shop/f ~(1); get [(::Shop | with {:f (7)} f) (::Shop{} | with {:f (7)} (get [f Shop/f])) (5 | with {:f (7)} f)]';
     expect(await evalQuery(`${reader} | eq [7 [7 1] 7]`)).toBe(true);
   });
 });

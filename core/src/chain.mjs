@@ -7,7 +7,7 @@ import {
   FN_TAG_NAME, KIND_TAG_NAME, BUILTIN_TAG, ERROR_TAG, EXCERPT_TAG, TRACE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
-import { isCallStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
+import { isCallStep, isGroupStep, isBindStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
 import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
@@ -23,6 +23,7 @@ export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
 export const SURPLUS_NAME = 'surplus';
 export const REPAIR_NAME = 'repair';
+export const ARGS_NAME = 'args';
 
 const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isKeyword(value) && readsAsName(value.name);
@@ -60,9 +61,17 @@ export const FN_COMMAND_NAMES = Object.freeze([...COMMANDS.keys()]);
 export const KIND_COMMAND_NAMES = Object.freeze([...KIND_COMMANDS.keys()]);
 export const COMMAND_NAMES = Object.freeze([...new Set([...FN_COMMAND_NAMES, ...KIND_COMMAND_NAMES, 'impl'])]);
 
-// [QSNAM#address], [QSLSP#server]
+// [QSNAM#address], [QSLSP#server], [QSNAM#declare]
 export function isVerbBody(body) {
-  return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
+  return isQuote(body) || headsAProgram(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
+}
+
+// [QSNAM#declare]
+function headsAProgram(step) {
+  if (isCallStep(step)) return true;
+  if (!isGroupStep(step)) return false;
+  const head = step.payload.find(held => !isBindStep(held));
+  return head !== undefined && headsAProgram(head);
 }
 
 function modifierNotTaken(step, commands) {
@@ -190,7 +199,7 @@ function readChainOfKind(quote) {
         names.named.add(notReadAddress(first.name));
         if (each) names.named.add(kindsRefusalAddress(first.name));
         if (kinds !== null) names.named.add((each ? elementsRefusalAddress : kindsRefusalAddress)(first.name));
-        kind.fields.push({ name: first, page: second, selector, place: placeOf(selector), kinds, each, written });
+        kind.fields.push({ name: first, page: second, selector, pathRead: pathReadOf(selector), kinds, each, written });
         break;
       }
       case 'tells':
@@ -240,6 +249,14 @@ export function functionOfRecipe(recipe) {
   return fn;
 }
 
+// [QSQUO#modifier]
+const WAYS_OF_CODE = ['run', 'folded', 'within', 'held'];
+
+export function inputsTakingCode(chain, marks) {
+  if (marks !== undefined) return new Set(WAYS_OF_CODE.flatMap(way => [...(marks[way] ?? [])]));
+  return new Set(chain.inputs.filter(({ kinds }) => (kinds ?? []).some(kind => kind === 'quote' || kind === 'fn')).map(({ name }) => name.name));
+}
+
 const CHAINS_OF_KINDS = new WeakMap();
 
 export function chainOfKind(kind) {
@@ -249,17 +266,17 @@ export function chainOfKind(kind) {
 }
 
 // [QSHST#source]
-export function wiringAtPlaces(kind) {
+export function wiringByPaths(kind) {
   const { fields } = chainOfKind(kind);
-  if (fields.length === 0 || fields.some(({ place }) => place === null)) return null;
-  return payload => new Map(fields.map(({ name, place: { path, soft } }) => {
+  if (fields.length === 0 || fields.some(({ pathRead }) => pathRead === null)) return null;
+  return payload => new Map(fields.map(({ name, pathRead: { path, soft } }) => {
     const part = readPath(payload, path, soft);
     return [name.name, part === MISSED ? null : part];
   }));
 }
 
 // [QSBLD#value]
-function placeOf(selector) {
+function pathReadOf(selector) {
   if (isPath(selector)) return { path: selector, soft: false };
   const [step] = selector;
   if (selector.length !== 1 || !isCallStep(step)) return null;

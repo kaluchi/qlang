@@ -7,7 +7,7 @@ import { renderCellOutcome } from '../../src/render.mjs';
 import { captureIoContext } from '../helpers/captured-streams.mjs';
 
 const keptBy = async query => {
-  const outcome = await renderCellOutcome(await runQuery(query, captureIoContext()), { didExplicitStdoutEffect: false, shouldColorize: false });
+  const outcome = await renderCellOutcome(await runQuery(query, captureIoContext()), { heldTheChannel: false, shouldColorize: false });
   return outcome.stdoutText.match(/::cell"([0-9a-f]{12})"/);
 };
 
@@ -16,8 +16,8 @@ const answerOf = async query => (await runQuery(query, captureIoContext())).resu
 const folderOf = identity => readdirSync(join(tmpdir(), 'qlang')).map(root => join(tmpdir(), 'qlang', root, 'cells', identity)).find(existsSync);
 
 it('names the cell in the refusal it prints, and answer reads the whole back in a later query', async () => {
-  const [cell] = await keptBy('3000 | range | map ~(get {:id ~(it) :name "user"})');
-  expect(await answerOf(`${cell} | answer | get [~(count) ~(last | get /id)]`)).toEqual([3000, 2999]);
+  const [cell] = await keptBy('3000 | range | map (get {:id it :name "user"})');
+  expect(await answerOf(`${cell} | answer | get [count (last | get /id)]`)).toEqual([3000, 2999]);
 });
 
 it('keeps the query, the words it declared and the answer under the identity of its root', async () => {
@@ -28,7 +28,7 @@ it('keeps the query, the words it declared and the answer under the identity of 
 
 it('reads a value of a kind the query declared by its names where the reading query declares the kind again, and by payload in any', async () => {
   const box = ':Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number);';
-  const [cell] = await keptBy(`${box} | 3000 | range | map ~(get {:w ~(it)} | tag ::Box)`);
+  const [cell] = await keptBy(`${box} | 3000 | range | map (get {:w it} | tag ::Box)`);
   expect(await answerOf(`${box} | ${cell} | answer | last | w`)).toBe(2999);
   expect(await answerOf(`${cell} | answer | last | payload`)).toEqual(new Map([['w', 2999]]));
 });

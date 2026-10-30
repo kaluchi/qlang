@@ -121,9 +121,9 @@ it('every refusal of the runtime is one kind of error, its message its address',
     '42 | count',
     '[1 "two"] | sum',
     '42 | get /name',
-    '42 | map ~(add 1)',
-    'apply ~(:five 5; five 42)',
-    '42 | reduce 0 ~(add)'
+    '42 | map (add 1)',
+    'apply (:five 5; five 42)',
+    '42 | reduce 0 add'
   ];
   for (const q of queries) {
     const caughtErr = await catchOriginalError(q);
@@ -159,7 +159,7 @@ describe('the refusals a verb that is a function raises by rule', () => {
   });
 
   it('names the refusals whose kinds the refusals of a verb and of a kind share by their tags', async () => {
-    const { scopeAfterCell } = await notebook.evalCell(':number/twice ~(mul 2);');
+    const { scopeAfterCell } = await notebook.evalCell(':number/twice mul 2;');
     expect([kindsSharedBy(scopeAfterCell, 'set/groupBy'), kindsSharedBy(scopeAfterCell, 'bind'), kindsSharedBy(scopeAfterCell, 'number/pick'), kindsSharedBy(scopeAfterCell, 'number/twice')])
       .toEqual([['vec/groupBy/KeyTakenError'], ['call/PayloadNotSchemaError'], [], []]);
   });

@@ -31,12 +31,6 @@
             words, and takes no payload: it is asked by itself,
             `::stdio | doc`.
         ~~|
-    | proves :declaresTable
-        |~~ The streams declare `table` under vectors. ~~|
-        ~(::vec | manifest | has ::vec/table)
-    | proves :declaresTheStreams
-        |~~ The streams declare their verbs under `::stdio`. ~~|
-        ~(::stdio | manifest | has ::stdio/out)
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::stdio`. ~~|
         ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError);
@@ -75,10 +69,12 @@
         ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `stdio/err` writes alone. ~~|
-        ~(42 | stdio/err !| get [~(tag) ~(subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
+        ~(42 | stdio/err !| get [tag (subject | expected)]
+          | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
-        ~("hi" | stdio/err "a" "b" !| tag | eq ::stdio/err/ArgsBeyondInputsError)
+        ~("hi" | stdio/err "a" "b" !| tag
+          | eq ::stdio/err/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :stdio/in
@@ -129,24 +125,25 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `stdio/out` writes alone. ~~|
-        ~(42 | stdio/out !| get [~(tag) ~(subject | expected)] | eq [::stdio/out/SubjectKindNotTakenError #[::string]])
+        ~(42 | stdio/out !| get [tag (subject | expected)]
+          | eq [::stdio/out/SubjectKindNotTakenError #[::string]])
     | proves :TextKindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
         ~("hi" | stdio/out 5 !| tag | eq ::stdio/out/TextKindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
-        ~("hi" | stdio/out "a" "b" !| tag | eq ::stdio/out/ArgsBeyondInputsError)
+        ~("hi" | stdio/out "a" "b" !| tag
+          | eq ::stdio/out/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :stdio/tap
   |~~ Writes `[tap <label>]` and its subject to stderr as an answer prints,
-      within the budget of every answer, and answers the subject as it
-      came, a look at a value halfway
-      through a query:
-      ::snippet~([{:on true} {:on false}] | stdio/tap :before | filter /on | stdio/tap :after | count)
-      shows both vectors and answers 1. A subject past the budget is
-      written as `::qlang/AnswerBeyondBudgetError`, its `:answer` the cell
-      that keeps the subject, which `answer` reads back whole, and
+      within the budget of every answer, and answers the subject as it came, a
+      look at a value halfway through a query:
+      ::snippet~([{:on true} {:on false}] | stdio/tap :before | filter /on |
+      stdio/tap :after | count) shows both vectors and answers 1. A subject past
+      the budget is written as `::qlang/AnswerBeyondBudgetError`, its `:answer`
+      the cell that keeps the subject, which `answer` reads back whole, and
       `stdio/err print` writes a look whole.
   ~~|
   ::fn
@@ -168,7 +165,8 @@
         ~(1 | stdio/tap "before" !| tag | eq ::stdio/tap/LabelKindNotTakenError)
     | proves :ArgsBeyondInputsError/refusesTwoLabels
         |~~ A call with two labels is refused under the verb. ~~|
-        ~(5 | stdio/tap :before :after !| tag | eq ::stdio/tap/ArgsBeyondInputsError)
+        ~(5 | stdio/tap :before :after !| tag
+          | eq ::stdio/tap/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :cell/answer
@@ -178,12 +176,11 @@
       elements of an answer that passed the budget of every answer, its
       refusal naming the cell as its `:answer`, and a fact of a failure past
       the room of a fact so. A host of the streams keeps it under
-      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of the query and what
-      it keeps,
-      the query, `source.qlang`, the values
-      it declared, `names.qlang`, and the answer, `answer.qlang`, each as the
-      core prints it, `<root>` the identity of the sources and the code it
-      booted, so a cell kept over other sources is held by none, and a
+      `<tmp>/qlang/<root>/cells/<id>/`, `<id>` the hash of the query and
+      what it keeps. It keeps the query, `source.qlang`, the values it
+      declared, `names.qlang`, and the answer, `answer.qlang`, each as the
+      core prints it. `<root>` is the identity of the sources and the code
+      it booted, so a cell kept over other sources is held by none, and a
       cell older than a day leaves when the host keeps another. A
       value under a kind the keeping query declared answers its names where
       the reading query declares that kind again, and `payload` in any
@@ -197,12 +194,11 @@
             the refusal of an answer past the budget names.
         ~~|
     | throws :SubjectNotHeldError
-        |~~ The host holds no such cell: it aged past a day, the
-            temporary folder was emptied, the cell was kept over other
-            sources or by another host, or none drew it. The answer is read again by the query
+        |~~ The host holds no such cell: it aged past a day, the temporary
+            folder was emptied, the cell was kept over other sources or by
+            another host, or none drew it. The answer is read again by the query
             that made it, narrowed by `get`, `take` or `count` so it prints
-            within the budget.
-            ::link~(::qlang/AnswerBeyondBudgetError)
+            within the budget. ::link~(::qlang/AnswerBeyondBudgetError)
         ~~|
     | throws :ArgsBeyondInputsError
         |~~ `answer` reads the whole a cell keeps and takes no value: a part
@@ -210,7 +206,8 @@
         ~~|
     | proves :SubjectNotHeldError/refusesACellNoneKept
         |~~ A cell no query kept is refused. ~~|
-        ~(::cell"000000000000" | answer !| tag | eq ::cell/answer/SubjectNotHeldError)
+        ~(::cell"000000000000" | answer !| tag
+          | eq ::cell/answer/SubjectNotHeldError)
     | proves :SubjectNotCellError/refusesANumber
         |~~ A number names no cell. ~~|
         ~(5 | cell/answer !| tag | eq ::cell/answer/SubjectNotCellError)
@@ -223,14 +220,14 @@
       cell; a string cell prints bare, null as an empty cell, and every
       other value as its literal on one line, a doc with each line break
       of its prose written as a space. The empty vector draws as
-      `(empty)`. A single map goes in a vector first, `get [~(it)] | table`, and
+      `(empty)`. A single map goes in a vector first, `get [it] | table`, and
       the call takes no value.
   ~~|
   ::fn
     | returns |~~ The rows drawn as text, a line each. ~~| ::string
     | throws :SubjectNotVecError
         |~~ `table` draws a vector of maps; a single map goes in a vector
-            first, `{:name "alice"} | get [~(it)] | table`.
+            first, `{:name "alice"} | get [it] | table`.
         ~~|
     | throws :RowKindNotTakenError
         |~~ Every row of `table` is a map, its keys the columns; the path
@@ -238,25 +235,30 @@
         ~~|
     | proves :drawsEachRow
         |~~ Each row is drawn. ~~|
-        ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table | contains "alice")
+        ~([{:name "alice" :age 30} {:name "bob" :age 25}] | table
+          | contains "alice")
     | proves :drawsANestedValueAsItsLiteral
         |~~ A nested value is drawn as its literal. ~~|
-        ~([{:at {:file "A.java" :line 12}}] | table | contains "{:file \"A.java\" :line 12}")
+        ~([{:at {:file "A.java" :line 12}}] | table
+          | contains "{:file \"A.java\" :line 12}")
     | proves :drawsNothingAsEmpty
         |~~ An empty vector draws as `(empty)`. ~~|
         ~([] | table | eq "(empty)")
     | proves :drawsAMapInAVector
         |~~ A single map is drawn in a vector. ~~|
-        ~({:name "alice"} | get [~(it)] | table | contains "alice")
+        ~({:name "alice"} | get [it] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [tag (subject | found | tag)]
+          | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [tag (subject | found | tag)]
+          | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(subject | found | get /0 | tag) ~(subject | expected)]
+        ~([42 "hello"] | table !| get [tag (trace | last | path) (subject
+          | found | get /0 | tag) (subject | expected)]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{};
 

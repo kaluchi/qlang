@@ -17,10 +17,6 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary'],
       include: ['src/**/*.mjs'],
-      // The browser's loader, the `default` condition of
-      // `#qlang/load-source`, stands outside the coverage, which
-      // reads the loader of Node [QSGAT#gate].
-      exclude: ['src/load-source-web.mjs'],
       thresholds: {
         lines: 100,
         functions: 100,

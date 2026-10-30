@@ -6,7 +6,7 @@
   |~~ A link names a page for its reader to follow: written in the prose
       of a doc as a quote under this tag whose code answers the name the
       page is under, `::link~(::vec/sort)`, which `open` opens, so
-      `::vec | doc | links | map ~open` answers the pages the page of
+      `::vec | doc | links | map open` answers the pages the page of
       vectors names. Links make the pages a hypertext: a page names the
       pages that go deeper.
 
@@ -35,7 +35,7 @@
         ~(|~~ ::link~(::qlang/values) ~~| | links | first | tag | eq ::link)
     | proves :opensToPages
         |~~ The links of the first page open to pages. ~~|
-        ~(::qlang | doc | links | map ~open | every ~(tag | eq ::doc))
+        ~(::qlang | doc | links | map open | every (tag | eq ::doc))
     | proves :holdsUnderAStackOfTags
         |~~ A quote under a stack of tags holding `::link` is a link. ~~|
         ~(|~~ ::Host::link~(::vec) ~~| | links | count | eq 1)
@@ -44,12 +44,13 @@
         ~(::link#5 !| tag | eq ::link/PayloadKindNotTakenError)
     | proves :staysASnippetUnderIt
         |~~ A quote under a link and a snippet is both. ~~|
-        ~(|~~ a ::link::snippet~(::vec) b ~~| | get [~(links | count) ~(snippets | count)] | eq [1 1]);
+        ~(|~~ a ::link::snippet~(::vec) b ~~|
+          | get [(links | count) (snippets | count)] | eq [1 1]);
 
 :link/open
   |~~ Answers the page the link names, the doc of the name its code
       answers: `|~~ See ::link~(::vec/sort). ~~| | links | first | open`
-      answers the page of `::vec/sort`, and `links | map ~open` reads every
+      answers the page of `::vec/sort`, and `links | map open` reads every
       page a page names in one query. The code runs as `answer` runs it,
       and a link whose code answers a value that names no page opens the
       page of its kind, as `doc` reads one.
@@ -63,12 +64,14 @@
         ~~|
     | proves :opensThePageItNames
         |~~ A link opens the page of the name its code answers. ~~|
-        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open | eq (::vec/sort | doc))
+        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open
+          | eq (::vec/sort | doc))
     | proves :answersTheNameItHolds
         |~~ The code of a link answers the name it holds, beneath the page
             `open` reads there.
         ~~|
-        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | get [~(answer) ~(open | tag)] | eq [::vec/sort ::doc])
+        ~(|~~ See ::link~(::vec/sort). ~~| | links | first
+          | get [answer (open | tag)] | eq [::vec/sort ::doc])
     | proves :SubjectNotLinkError/refusesAQuote
         |~~ A quote that is no link names no page to open. ~~|
         ~(~(1 | add 1) | open !| tag | eq ::link/open/SubjectNotLinkError)

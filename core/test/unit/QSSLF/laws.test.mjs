@@ -25,7 +25,7 @@ describe('the laws of the catalog, run by runLaws', () => {
     // [QSQUO#parse]
     const unequal = [];
     for (const reader of await catalogReaders()) {
-      const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter ~(ne (toString | parse))`);
+      const changed = await evalQuery(`${reader} | laws | vals | map /1 | filter (ne (toString | parse))`);
       if (isErrorValue(changed) || changed.length > 0) unequal.push(reader);
     }
     expect(unequal).toEqual([]);
@@ -33,7 +33,7 @@ describe('the laws of the catalog, run by runLaws', () => {
 
   it('the laws of every name answer true and nothing else', async () => {
     const readers = await catalogReaders();
-    const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map ~(runLaws | map /ok) | flat | toSet`);
+    const distinctOkValues = await evalQuery(`[${readers.join(' ')}] | map (runLaws | map /ok) | flat | toSet`);
     expect(isErrorValue(distinctOkValues)).toBe(false);
     expect(isSet(distinctOkValues)).toBe(true);
     expect([...distinctOkValues]).toEqual([true]);

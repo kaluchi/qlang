@@ -20,7 +20,7 @@
 //       `stdio/src`, `playground/src`, `lsp/src` [QSERR#site].
 //
 //   (3) Derivable tallies in markdown prose. A count that
-//       `npm test`, the manifest, or a grep already answers —
+//       `npm test`, `manifest`, or a grep already answers —
 //       the cases of the conformance suite, the tests, the
 //       primitives, the files — is false the moment the next commit
 //       lands. Prose states the invariant, the generator states
@@ -137,6 +137,16 @@
 //       and the names under a noun together, in the one order of their
 //       addresses, which `manifest` lists them in [QSSLF#catalog].
 //
+//   (25) A source of the catalog names no language its runtime is written
+//       in, `JavaScript`, `ECMAScript` or `JS`: the pages speak of the
+//       language alone, the runtime standing for it [QSVOX#voices].
+//
+//   (26) A line of a source of the catalog runs eighty characters at most,
+//       its prose and its code alike [QSSLF#catalog].
+//
+//   (27) A sentence of a page of the catalog runs sixty words at most, as
+//       `scripts/sensors/sentence-lengths.mjs` cuts it [QSSLF#catalog].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -147,6 +157,7 @@ import { readWorkspaces, siblingDeclarations } from './workspace-manifests.mjs';
 import { codeOf, namesReadFrom, namesWrittenBy, unreadExports } from './root-exports.mjs';
 import { baselineOf, citableOf, isCitingCode, reconciliationOf, recordsInTransit, reportsWithoutReading, seriesPastTheirTwoLatest, waitsForTheCloseout, CITING_DOCUMENTS, WORK_CHAPTERS } from './reconciliation.mjs';
 import { marksOfTree } from './marks.mjs';
+import { sentencesOfPages } from './sensors/sentence-lengths.mjs';
 import { DECIDED_RECORD_FIELDS, FATES_NAMING_A_RECORD, FATES_OUT_OF_FORCE, OPEN_RECORD_FIELDS, lineOfFate, foldersOfForm, isOpenText, readDecisionRecords, replacedWhole, statementsOf, JOURNAL, REPLACED, RESEARCH } from './decision-records.mjs';
 import { RETIRED_WORDS } from './retired-words.mjs';
 import { kindsNamedForCommands, kindsDeclaredBy } from './catalog-kinds.mjs';
@@ -166,10 +177,9 @@ const repoRoot = join(here, '..');
 
 // ── (1) Forbidden temporal framing ─────────────────────────────
 
-// Files and directory roots that are outside the review remit —
-// generated code, vendored bundles, third-party modules, the doc
-// tree (quotes CLAUDE.md rules verbatim and can name the forbidden
-// words for pedagogy), and the ruleset files themselves.
+// The folders the scan of the words leaves: the modules of others,
+// generated code, coverage, the bundle of the site, the data of the
+// benchmark and `vscode/` [QSVOX#pentimento].
 const IGNORE_DIRS = new Set([
   'node_modules', '.git',
   'core/gen',
@@ -179,11 +189,9 @@ const IGNORE_DIRS = new Set([
   'scripts/benchmark/sets',  // the data and the generators clean authors wrote [QSMSR#benchmark]
   'vscode'
 ]);
-// A review of a branch, named by its date, stands as its reviewer wrote it,
-// and the README of its folder is checked [QSRVW#review].
-const VERBATIM_REPORT = new RegExp(`^${RESEARCH}/reviews/\\d{4}-\\d{2}-\\d{2}[^/]*\\.md$`);
-// Files that quote the forbidden list verbatim — exempt from the
-// forbidden-word scan, still in scope for every other check.
+// The instructions and this file, which quotes the words the scan seeks,
+// stand outside the scan of the words and inside every other check
+// [QSVOX#pentimento].
 const RULESET_FILES = new Set([
   'CLAUDE.md',
   'scripts/check-conventions.mjs'  // this file quotes the list
@@ -222,7 +230,7 @@ function* sourceFilesUnder(rootDir, sourceFile = SOURCE_FILE) {
       yield* sourceFilesUnder(entryPath, sourceFile);
       continue;
     }
-    if (!sourceFile.test(entry) || VERBATIM_REPORT.test(relPath)) continue;
+    if (!sourceFile.test(entry)) continue;
     yield entryPath;
   }
 }
@@ -233,9 +241,7 @@ function scanForbiddenWords() {
     const text = readText(filePath);
     const lines = text.split(/\r?\n/);
     const relFile = relative(repoRoot, filePath).split(sep).join('/');
-    // The docs/ tree names forbidden words for pedagogy, and the
-    // ruleset files quote the list itself — both are allowed to
-    // spell the words out.
+    // `docs/` stands outside the scan of the words [QSVOX#pentimento].
     if (RULESET_FILES.has(relFile)) continue;
     if (relFile.startsWith('docs/')) continue;
 
@@ -378,12 +384,11 @@ const TALLY_NOUNS = [
   'files?', 'entries', 'lines?', 'primitives?', 'catalogs?'
 ].join('|');
 
-// Up to two adjectives may sit between the digit and the noun
-// («1192 error-producing conformance cases»). A digit carrying a
-// section sign (`§3 rule`, `#4 case`) addresses a chapter rather
-// than counting one, and stays legal.
+// Up to two words may stand between the number and the noun, `12
+// failing conformance cases`, and a number after `#` names a part, `#4
+// case`, and counts none.
 const TALLY_RE = new RegExp(
-  String.raw`(?<![§#])\b\d[\d,]*\s+(?:[a-z][a-z-]*\s+){0,2}(?:` + TALLY_NOUNS + String.raw`)\b`,
+  String.raw`(?<!#)\b\d[\d,]*\s+(?:[a-z][a-z-]*\s+){0,2}(?:` + TALLY_NOUNS + String.raw`)\b`,
   'i');
 
 const FENCE_RE = /^\s*```/;
@@ -472,8 +477,10 @@ function catalogFiles(dir) {
 function decisionsInCatalog() {
   const violations = [];
   for (const file of CATALOG_ROOTS.flatMap(catalogFiles)) {
-    const lines = readText(join(repoRoot, file)).split(/\r?\n/);
-    const headEnd = lines[0]?.startsWith('|~') && !lines[0].startsWith('|~~') ? lines.findIndex(line => line.includes('~|')) : -1;
+    const text = readText(join(repoRoot, file));
+    const lines = text.split(/\r?\n/);
+    const [head] = commentRanges(file, text);
+    const headEnd = head !== undefined && text.slice(0, head.start).trim() === '' ? text.slice(0, head.end).split('\n').length - 1 : -1;
     lines.forEach((line, index) => {
       if (index <= headEnd) return;
       const reference = line.match(/\[D\d+\]/);
@@ -535,8 +542,8 @@ function baselineUnreconciled() {
 // ── (10) The links of the documents ────────────────────────────
 //
 // A link of a document to a file of markdown, its definition `[Dnn]:
-// Dnn.md` or its inline form, leads to a file the tree holds, so the graph
-// of the records walks from any document into the past [QSWRK#journal], [QSREQ#marks].
+// Dnn.md` or its inline form, leads to a file the tree holds, so the links
+// lead from any document into the past [QSWRK#journal], [QSREQ#marks].
 
 const MARKDOWN_LINK = /(?:\]:[ \t]*|\]\()([^)\s]+\.md)(?=[)\s#]|$)/gm;
 
@@ -636,7 +643,7 @@ function specIntrusions() {
     const match = HISTORY_DATE.exec(line);
     if (match) found.push({ file: path, line: index + 1, rule: 'a date of the history', text: match[0] });
   });
-  ['CLAUDE.md', 'README.md', 'core/README.md', 'playground/README.md'].forEach(datedLines);
+  CITING_DOCUMENTS.forEach(datedLines);
   for (const [root, ending] of TEXTS_THAT_STATE) {
     readdirSync(join(repoRoot, root), { recursive: true }).map(String).filter(name => ending.test(name))
       .forEach(name => datedLines(`${root}/${name.split(sep).join('/')}`));
@@ -860,10 +867,10 @@ function kindsOfCommands() {
 
 // ── (19) The exports of the root of the package ────────────────
 //
-// The root of the core, its manifest's `.`, exports what the workspaces beside
-// it read from the package by its name or its page, the README of the core,
-// writes, each by name from a module no other door of the manifest opens
-// [QSGAT#workspaces].
+// The root of the core, the `.` of its `package.json`, exports what the
+// workspaces beside it read from the package by its name or its page, the
+// README of the core, writes, each by name from a module no other door of
+// the package opens [QSGAT#workspaces].
 
 function exportsNoHostReads() {
   const workspaces = readWorkspaces(repoRoot);
@@ -945,6 +952,41 @@ function commentsThatAreNoMarks() {
 // together, in the one order of their addresses, `scripts/catalog-order.mjs`
 // [QSSLF#catalog].
 
+// ── (25) The catalog names no language of its runtime ──────────
+//
+// The pages of the catalog speak of the language alone, so a source of the
+// catalog names no language its runtime is written in, the runtime standing
+// for it [QSVOX#voices].
+const LANGUAGE_OF_THE_RUNTIME = /\b(?:JavaScript|ECMAScript|JS)\b/i;
+
+// ── (26) The width of a line of the catalog ────────────────────
+//
+// A line of a source of the catalog runs eighty characters at most, so a
+// page reads in a narrow pane as it is written [QSSLF#catalog].
+const CATALOG_WIDTH = 80;
+
+function catalogLinesPastTheWidth() {
+  return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
+    .map((line, index) => ({ path, line: index + 1, width: [...line].length }))
+    .filter(({ width }) => width > CATALOG_WIDTH));
+}
+
+// ── (27) The length of a sentence of a page ────────────────────
+//
+// A sentence of a page runs sixty words at most, so a reader holds it at
+// once [QSSLF#catalog].
+const PAGE_SENTENCE_WORDS = 60;
+
+function pageSentencesPastTheBound() {
+  return sentencesOfPages(repoRoot).filter(({ words }) => words > PAGE_SENTENCE_WORDS);
+}
+
+function runtimeLanguagesNamed() {
+  return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
+    .map((line, index) => ({ path, line: index + 1, word: LANGUAGE_OF_THE_RUNTIME.exec(line)?.[0] }))
+    .filter(({ word }) => word !== undefined));
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -971,7 +1013,10 @@ const { text, failed } = verdictOf({
   testsOffTheirSection: testsOffTheirSection(),
   commentsNoMarks: commentsThatAreNoMarks(),
   sharedNames: namesSharedInTree(repoRoot),
-  catalogOrder: declarationsOutOfOrder(catalogSources())
+  catalogOrder: declarationsOutOfOrder(catalogSources()),
+  runtimeLanguages: runtimeLanguagesNamed(),
+  catalogWidth: catalogLinesPastTheWidth(),
+  pageSentences: pageSentencesPastTheBound()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

@@ -8,4 +8,4 @@
 {"name":"a-string-is-written-with-the-escape-of-a-backspace","query":"\"\\b\" | eq \"\\u0008\"","expect":"true"}
 {"name":"a-string-is-written-with-the-escape-of-a-form-feed","query":"\"\\f\" | eq \"\\u000c\"","expect":"true"}
 {"name":"each-escape-of-a-string-writes-one-character-beside-one-written-raw","query":"\"\\\"\\\\\\/_\\n\\t\\r\\b\\f\" | count","expect":"9"}
-{"name":"a-string-holds-a-tab-and-a-line-break-written-raw","query":"get [~(\"a\tb\" | eq \"a\\tb\") ~(\"a\nb\" | eq \"a\\nb\")]","expect":"[true true]"}
+{"name":"a-string-holds-a-tab-and-a-line-break-written-raw","query":"get [(\"a\tb\" | eq \"a\\tb\") (\"a\nb\" | eq \"a\\nb\")]","expect":"[true true]"}

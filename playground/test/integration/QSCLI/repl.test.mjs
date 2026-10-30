@@ -17,7 +17,7 @@ it('evaluates a query in REPL mode and prints the result', async () => {
 
 it('REPL keeps the verbs a cell declares for the cells after it', async () => {
   const { stdout, exitCode } = await runCli(['-i'], {
-    stdin: ':any/double ~(mul 2)\n21 | double\n.exit\n'
+    stdin: ':any/double mul 2\n21 | double\n.exit\n'
   });
   expect(exitCode).toBe(0);
   expect(stdout).toMatch(/42/);

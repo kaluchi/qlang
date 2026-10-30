@@ -104,8 +104,8 @@ export function readDecisionRecords(root) {
     .sort(([left], [right]) => left[0].localeCompare(right[0]) || Number(left.slice(1)) - Number(right.slice(1)))
     .map(([name, path]) => {
       const recordText = readText(path);
-      // A walk files a principle and a rule of the tooling under their
-      // domain, which holds them where no case can, the record out of force
+      // A record filed under the principles or the tooling holds its rule
+      // in that domain, where no case can, the record out of force
       // [QSWRK#journal].
       const filedUnder = recordText.match(/^Filed under the (principles|tooling) by \[D\d+\]/m)?.[1];
       return [name, {

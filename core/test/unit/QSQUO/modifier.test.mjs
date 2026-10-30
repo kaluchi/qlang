@@ -22,10 +22,10 @@ async function sessionRecordingVisits(visits) {
 
 describe('the forks of a sequence run in its order', () => {
   for (const [label, query] of [
-    ['the elements under `map` over a vector', '[3 2 1] | map ~visit'],
-    ['the values under `map` over a map', '{:a 3 :b 2 :c 1} | map ~visit'],
-    ['the elements of a vector literal', 'get [~(3 | visit) ~(2 | visit) ~(1 | visit)]'],
-    ['the keys of `sort`', '[3 2 1] | sort ~(visit)'],
+    ['the elements under `map` over a vector', '[3 2 1] | map visit'],
+    ['the values under `map` over a map', '{:a 3 :b 2 :c 1} | map visit'],
+    ['the elements of a vector literal', 'get [(3 | visit) (2 | visit) (1 | visit)]'],
+    ['the keys of `sort`', '[3 2 1] | sort visit'],
   ]) {
     it(`${label}`, async () => {
       const visits = [];
@@ -46,7 +46,7 @@ it('computes the modifiers of a call up to the first that answers an error, and 
   const notebook = await createNotebook({
     sources: [{ uri: 'probe/note', source: ':any/note ::builtin{};', primitives: { 'any/note': subject => { noted += 1; return subject; } } }]
   });
-  expect((await notebook.evalCell('[1 2] | query (get /nope) ("ran" | note) !| tag')).result).toEqual(makeTag('path/IndexNotIntegerError'));
+  expect((await notebook.evalCell('{:a 1} | put (get /nope) ("ran" | note) !| tag')).result).toEqual(makeTag('path/KeyNotInMapError'));
   expect(noted).toBe(0);
 });
 
@@ -58,6 +58,6 @@ it('`tag` hands on an error its modifier answers', async () => {
 
 it('a tag a vector holds beside a value is read through the name `with` gives it', async () => {
   // [QSNUM#combine]
-  const r = await evalQuery('[42 ::Box] | with {:t ~(get /1)} ~(get /0 | tag t) | tag');
+  const r = await evalQuery('[42 ::Box] | with {:t (get /1)} (get /0 | tag t) | tag');
   expect(r).toEqual(makeTag('Box'));
 });

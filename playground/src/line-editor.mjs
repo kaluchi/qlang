@@ -32,9 +32,9 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   const utf8Decoder = new TextDecoder();
 
   // [QSCLI#line-editor]
-  const history = [];
-  let historyIndex = 0;
-  const historyDrafts = new Map();
+  const submitted = [];
+  let submittedAt = 0;
+  const editsKept = new Map();
 
   let desiredColumn = null;
 
@@ -126,43 +126,43 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     if (rowsDown > 0) stdoutWrite(ESC + `[${rowsDown}B`);
     stdoutWrite('\r\n');
 
-    pushHistoryEntry(lineText);
+    keepSubmitted(lineText);
     buffer = '';
     cursor = 0;
-    historyIndex = history.length;
-    historyDrafts.clear();
+    submittedAt = submitted.length;
+    editsKept.clear();
     desiredColumn = null;
     lastVisualRows = 0;
     lastCursorRow  = 0;
     emitter.emit('line', lineText);
   }
 
-  function pushHistoryEntry(lineText) {
+  function keepSubmitted(lineText) {
     if (lineText === '') return;
-    if (history[history.length - 1] === lineText) return;
-    history.push(lineText);
+    if (submitted[submitted.length - 1] === lineText) return;
+    submitted.push(lineText);
   }
 
-  function recallHistoryPrev() {
-    historyDrafts.set(historyIndex, buffer);
-    historyIndex -= 1;
-    buffer = bufferForHistoryIndex(historyIndex);
+  function recallTheCellBefore() {
+    editsKept.set(submittedAt, buffer);
+    submittedAt -= 1;
+    buffer = bufferOfTheCellAt(submittedAt);
     cursor = buffer.length;
     desiredColumn = null;
     redrawCurrentLine();
   }
 
-  function recallHistoryNext() {
-    historyDrafts.set(historyIndex, buffer);
-    historyIndex += 1;
-    buffer = bufferForHistoryIndex(historyIndex);
+  function recallTheCellAfter() {
+    editsKept.set(submittedAt, buffer);
+    submittedAt += 1;
+    buffer = bufferOfTheCellAt(submittedAt);
     cursor = buffer.length;
     desiredColumn = null;
     redrawCurrentLine();
   }
 
-  function bufferForHistoryIndex(i) {
-    return historyDrafts.has(i) ? historyDrafts.get(i) : history[i];
+  function bufferOfTheCellAt(i) {
+    return editsKept.has(i) ? editsKept.get(i) : submitted[i];
   }
 
   function getLogicalCursorPosition() {
@@ -217,8 +217,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       redrawCurrentLine();
       return;
     }
-    if (historyIndex > 0) {
-      recallHistoryPrev();
+    if (submittedAt > 0) {
+      recallTheCellBefore();
       return;
     }
     cursor = 0;
@@ -235,8 +235,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
       redrawCurrentLine();
       return;
     }
-    if (historyIndex < history.length) {
-      recallHistoryNext();
+    if (submittedAt < submitted.length) {
+      recallTheCellAfter();
       return;
     }
     cursor = buffer.length;
@@ -363,8 +363,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
     stdoutWrite('\r\n^C\r\n');
     buffer = '';
     cursor = 0;
-    historyIndex = history.length;
-    historyDrafts.clear();
+    submittedAt = submitted.length;
+    editsKept.clear();
     desiredColumn = null;
     lastVisualRows = 0;
     lastCursorRow  = 0;
@@ -463,8 +463,8 @@ function createTtyLineEditor(stdinStream, stdoutWrite, { prompt, render, columns
   emitter.prompt = redrawCurrentLine;
   emitter.submit = function submit(lineText) {
     stdoutWrite(prompt + render(lineText).replace(/(?<!\r)\n/g, '\r\n') + '\r\n');
-    pushHistoryEntry(lineText);
-    historyIndex = history.length;
+    keepSubmitted(lineText);
+    submittedAt = submitted.length;
     emitter.emit('line', lineText);
   };
   return emitter;

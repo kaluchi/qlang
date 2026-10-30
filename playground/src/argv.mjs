@@ -11,7 +11,7 @@ const COLOR_MODES = new Set(['auto', 'always', 'never']);
 
 const argumentAfterTheQuery = argument => ({
   kind: 'usageError',
-  message: `qplay: '${argument}' after the query is read by nothing: the flags stand before the query, which is one argument, \`qplay [flags] '<query>'\`\n`
+  message: `qplay: '${argument}' after the query is read by nothing: the flags stand before the query, which is one argument, as \`qplay --help\` writes it\n`
 });
 
 const noFlag = argument => ({

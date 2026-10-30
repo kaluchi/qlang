@@ -22,6 +22,9 @@ export const notGivenAddress = slotAddress => refusalOfASlot(slotAddress, 'NotGi
 export const notReadAddress = slotAddress => refusalOfASlot(slotAddress, 'NotReadError');
 export const kindsRefusalAddress = slotAddress => refusalOfASlot(slotAddress, 'KindNotTakenError');
 export const elementsRefusalAddress = slotAddress => refusalOfASlot(slotAddress, 'ElementKindNotTakenError');
+// [QSQUO#modifier]
+export const quotedRefusalAddress = slotAddress => refusalOfASlot(slotAddress, 'QuotedError');
+export const quotedTwiceRefusalAddress = slotAddress => refusalOfASlot(slotAddress, 'QuotedTwiceError');
 export const payloadRefusalName = each => `${each ? 'Element' : 'Payload'}KindNotTakenError`;
 
 const raised = word => word[0].toUpperCase() + word.slice(1);

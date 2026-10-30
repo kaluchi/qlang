@@ -2,18 +2,19 @@
 
 import {
   isBinding, isBuiltinDescriptor, isDoc, isMap, isQuote, isVec, isTag, isTagged,
-  isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf,
+  isValueClass, isFn, isKind, makeTag, makeTagged, wiringOf, builtinOf, handedFor,
   tagOf, bindingValueOf, makeBinding, makeKeyword, commandsOf, TAG_HEADER_SYMBOL, KINDS_OF_OWN_VECTORS, CORE_KIND, TRACE_TAG
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
 import { rootOf, isRootVerbScope } from './state.mjs';
 import {
   splitAddress, ANY_KIND_NAME, TAGGED_KIND_NAME, subjectRefusalAddress, argsBeyondInputsAddress, notGivenAddress, notReadAddress,
-  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName, SLOT_KIND_ADDRESS
+  kindsRefusalAddress, elementsRefusalAddress, payloadRefusalName, quotedRefusalAddress, quotedTwiceRefusalAddress, SLOT_KIND_ADDRESS
 } from './address.mjs';
+import { inputsAsCode } from './primitives.mjs';
 import { ROOT_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import { declareRefusal } from './errors.mjs';
-import { ANSWER_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, kindThrowsFinishes, kindOfAVerdict } from './chain.mjs';
+import { ANSWER_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, inputsTakingCode, kindThrowsFinishes, kindOfAVerdict } from './chain.mjs';
 
 function* bindingsOf(scope) {
   for (const [name, entry] of rootOf(scope)) if (!scope.has(name)) yield [name, entry];
@@ -39,6 +40,16 @@ export function refuseWithheld(scope, name, readByTag = false) {
   if (readByTag && declaresALabel(rootOf(scope).get(name))) return;
   throw new CallValueWithheldError({ name: makeKeyword(name) });
 }
+
+// [QSNAM#declare]
+const PROGRAMS = new WeakSet();
+
+export const markProgram = record => {
+  PROGRAMS.add(record);
+  return record;
+};
+
+export const isProgramRecord = record => PROGRAMS.has(record);
 
 // [QSNAM#address]
 export function declaresALabel(record) {
@@ -346,13 +357,13 @@ function kindsWalkedTo(kindNames, labelName) {
 export function ruleRefusalsOf(scope, address) {
   const value = bindingValueOf(nodeOf(scope, address));
   if (isKind(value)) return [...kindRulesOf(chainOfKind(value), address).keys()];
-  return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0]).keys()];
+  return [...functionRulesOf(chainOfFn(isFn(value) ? value : functionOfRecipe(value)), address, splitAddress(address)[0], codeInputsOf(value)).keys()];
 }
 
 // [QSBLD#fn]
 export function invariantNamedByARule(fn, address, labelName) {
   const chain = chainOfFn(fn);
-  const rules = functionRulesOf(chain, address, labelName);
+  const rules = functionRulesOf(chain, address, labelName, codeInputsOf(fn));
   return chain.invariants.find(({ name }) => rules.has(`${address}/${name}`))?.name ?? null;
 }
 
@@ -366,7 +377,15 @@ export function kindsSharedBy(scope, address) {
 const VERDICT_OF_A_VERB = Symbol('verdictOfAVerb');
 const VERDICT_OF_A_KIND = Symbol('verdictOfAKind');
 
-function functionRulesOf(chain, address, labelName) {
+// [QSQUO#modifier]
+function codeInputsOf(value) {
+  const fn = isFn(value) ? value : functionOfRecipe(value);
+  const descriptor = builtinOf(fn);
+  const handed = descriptor === null ? undefined : handedFor(descriptor, fn);
+  return inputsTakingCode(chainOfFn(fn), handed === undefined ? undefined : inputsAsCode(handed.primitive));
+}
+
+function functionRulesOf(chain, address, labelName, takingCode) {
   const rules = new Map([[subjectRefusalAddress(address, labelName), VERDICT_OF_A_VERB]]);
   if (chain.arity !== null) rules.set(argsBeyondInputsAddress(address), VERDICT_OF_A_VERB);
   for (const { name, kinds, each, reading } of chain.inputs) {
@@ -374,6 +393,7 @@ function functionRulesOf(chain, address, labelName) {
     if (!reading.readsArgs && (reading.strict || !reading.oneArg)) rules.set(notGivenAddress(inputAddress), VERDICT_OF_A_VERB);
     if (each && !reading.readsArgs) rules.set(kindsRefusalAddress(inputAddress), VERDICT_OF_A_VERB);
     if (kinds !== null) rules.set(each ? elementsRefusalAddress(inputAddress) : kindsRefusalAddress(inputAddress), VERDICT_OF_A_VERB);
+    if (takingCode.has(name.name)) rules.set(quotedRefusalAddress(inputAddress), VERDICT_OF_A_VERB).set(quotedTwiceRefusalAddress(inputAddress), VERDICT_OF_A_VERB);
   }
   const kinds = chain.answer?.kinds ?? null;
   if (kinds !== null && kinds.length > 1 && !returnsItsLabel(kinds, labelName)) rules.set(kindsRefusalAddress(`${address}/${ANSWER_NAME}`), VERDICT_OF_A_VERB);
@@ -417,7 +437,7 @@ function refusalsHeldAt(scope, holder) {
   if (isVerbValue(value)) {
     if (labelName === null || !isLabel(scope, labelName)) return null;
     const chain = chainOfFn(isFn(value) ? value : functionOfRecipe(value));
-    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName)), () => VERDICT_OF_A_VERB);
+    return refusalsOfAChain(chain, holder, address => answerRefusedOf(chain, address, functionRulesOf(chain, address, labelName, codeInputsOf(value))), () => VERDICT_OF_A_VERB);
   }
   if (isSlotOfAVerb(scope, holder)) return null;
   const kind = kindOfAValueOf(scope, holder);

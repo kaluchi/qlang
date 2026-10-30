@@ -10,7 +10,7 @@ const STRINGS = ['""', '"a b"', '"quote \\" inside"', '"back\\\\slash"', '"line\
 const KEYWORDS = [':a', ':ab-c', ':_x', ':e', ':"with space"', ':"1"', ':"a:b"', ':ns/name', ':qlang/error/guards', ':ñ', ':данные', ':true', ':null', ':""', ':"$ref"'];
 const JSON_KEYS = ['"k"', '"first name"', '"$ref"', '""'];
 const TAGS = ['::T', '::Box', '::a/b', '::number', '::vec', '::qlang', '::json'];
-const STEPS = ['count', 'get /k', 'map ~(mul 2)', 'filter ~(gt 1)', 'add 1 !| 0', ':x 1; x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter ~(gt 1)', ':n 3; take n', ':x ::number; mul x 2'];
+const STEPS = ['count', 'get /k', 'map (mul 2)', 'filter (gt 1)', 'add 1 !| 0', ':x 1; x', '{:a ~(b)}', '| count', '!| get /trace', '"text with spaces"', '42', '[1 2 3] | filter (gt 1)', ':n 3; take n', ':x ::number; mul x 2'];
 const PATHS = ['/k', '/a/0', '/"first name"/-1', '/:ns/k', '/"0"'];
 const DOCS = ['|~~~~|', '|~~ prose ~(eq 1) `code` ~~|', '|~~ one line\n    and another ~~|'];
 
@@ -38,7 +38,7 @@ const KIND_CONSTRUCTORS = ['impl ::builtin{}'];
 const written = text => ({ text, computed: false });
 const computed = text => ({ text, computed: true });
 
-const answering = part => `~(${!part.computed && part.text.startsWith('/') ? `::path#${part.text}` : part.text})`;
+const answering = part => `(${!part.computed && part.text.startsWith('/') ? `::path#${part.text}` : part.text})`;
 
 function container(open, parts, separator, close) {
   if (!parts.some(part => part.computed)) return written(`${open}${parts.map(part => part.text).join(separator)}${close}`);
@@ -92,7 +92,7 @@ function literalsOf(count, seed) {
       () => errorOf(['::E']),
       built,
       () => pick([written('[::error{}]'), written('[::number/add/SubjectNotNumberError::error{:subject/found "x"}]'),
-        computed('get [~("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
+        computed('get [("x" | add 1 !| it)]'), written('[::error{:k 1 :trace [{:failed ~(count) :subject 1 :skipped ~()}]}]')])
     ])();
   };
   const chain = (noun, groups, endings) => {
@@ -115,26 +115,26 @@ it('reads every value back from its print as itself', async () => {
 });
 
 describe('a binding record and a vector under a tag', () => {
-  it('renders a binding record as the tagged Map it is', () => {
+  it('prints a binding as the record under its tag it is', () => {
     const record = makeBinding({ name: makeKeyword('nums'), value: [1, 2, 3] });
     expect(printValue(record)).toBe(
       '::binding{\n  :name :nums\n  :docs []\n  :value [1 2 3]\n  :source null\n  :origin null\n}');
   });
 
-  it('renders a vector under a tag as ::Tag[payload…]', () => {
+  it('prints a vector under a tag as ::Tag[payload…]', () => {
     const tagged = makeTagged(makeTag('Box'), [42, 'inner']);
     expect(printValue(tagged)).toBe('::Box[42 "inner"]');
   });
 
-  it('renders a tag over an empty vector as ::Tag[]', () => {
+  it('prints a tag over an empty vector as ::Tag[]', () => {
     const tagged = makeTagged(makeTag('Marker'), []);
     expect(printValue(tagged)).toBe('::Marker[]');
   });
 });
 
 it('prints the records of the names a query declares as a literal that reads back as them', async () => {
-  expect(await evalQuery(':number/f ~(add 1); :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; ::host | env | eq (print | parse | answer)')).toBe(true);
-  expect(await evalQuery('apply ~(:T |~~ A kind. ~~|; :T/v 5; ::host | env | eq (print | parse | answer))')).toBe(true);
+  expect(await evalQuery(':number/f add 1; :T |~~ A kind. ~~|; :T/v |~~ The v of a T. ~~|; ::host | env | eq (print | parse | answer)')).toBe(true);
+  expect(await evalQuery('apply (:T |~~ A kind. ~~|; :T/v 5; ::host | env | eq (print | parse | answer))')).toBe(true);
 });
 
 describe('printing steps read from text', () => {

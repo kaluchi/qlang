@@ -3,7 +3,7 @@ import * as core from '../../../src/index.mjs';
 
 it('answers the refusal instead of an answer past the budget, the answer told by its tag and the views of its kind where its host keeps no cell', async () => {
   const scope = await core.langRuntime();
-  const answer = await core.evalQuery('3000 | range | map ~(get {:id ~(it) :name "user"})', scope);
+  const answer = await core.evalQuery('3000 | range | map (get {:id it :name "user"})', scope);
   const shown = await core.boundAnswer(answer, scope);
   expect(shown.tag).toEqual(core.makeTag('qlang/AnswerBeyondBudgetError'));
   expect([...shown.facts]).toEqual([['characters', (await core.printAnswer(answer, scope)).length], ['budget', core.ANSWER_BUDGET], ['answer/tag', core.makeTag('vec')], ['answer/count', 3000], ['answer/shape', await core.evalQuery('::shape[{:id ::number :name ::string}]', scope)], ['answer/first', answer[0]], ['answer/last', answer[2999]]]);

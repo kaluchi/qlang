@@ -92,7 +92,7 @@ it('a tag over a set writes its payload as the array of its elements in JSON', (
 it('writes a boolean as the boolean of JSON, which parseJson reads back', async () => {
   expect(await evalQuery('true | json')).toBe('true');
   expect(await evalQuery('false | json')).toBe('false');
-  expect(await evalQuery('[true false] | map ~(json | parseJson)')).toEqual([true, false]);
+  expect(await evalQuery('[true false] | map (json | parseJson)')).toEqual([true, false]);
 });
 
 it('writes the JSON of a tag name a host hands in a scope as its literal', async () => {

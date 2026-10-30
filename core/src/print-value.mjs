@@ -3,7 +3,7 @@
 import { regexLiteral } from './regex-read.mjs';
 import { readsAsBareKeyword } from './name-chars.mjs';
 import { segmentIndex } from './path-read.mjs';
-import { errorFieldsOf, isOfTheKindOfErrors, isPathAlone, isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, isComputingStep, computesWithin } from './steps.mjs';
+import { errorFieldsOf, isOfTheKindOfErrors, isPathAlone, isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, computesWithin } from './steps.mjs';
 import {
   isVec,
   isMap,
@@ -130,14 +130,14 @@ function printDoc(doc, indent) {
 }
 
 // [QSQUO#step]
-export const asPrinted = { of: value => printValue(value), quoting: literal => printStep(literal, true), computesWithin };
+export const asPrinted = { of: value => printValue(value), stepOf: literal => printStep(literal), computesWithin };
 
 // [QSQUO#parse], [QSPRN#print]
 const AS_WRITTEN = { oneLine: false, printedOf: nothingPrintedAhead };
 
 // [QSQUO#parse]
 export function printQuoteSource(steps, view = AS_WRITTEN) {
-  const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, false, view), source: step }));
+  const printed = steps.map(step => (isFailStep(step) ? { fail: printQuoteSource(step.payload, view) } : { step: printStep(step, view), source: step }));
   const lined = !view.oneLine && steps.length > 1 && (steps.every(isBindStep) || printed.some(({ fail, step }) => (fail ?? step).includes('\n')));
   const gap = lined ? '\n' : ' ';
   const firstOfTheQuery = steps.findIndex(step => !isBindStep(step));
@@ -157,41 +157,43 @@ const passesTheLine = printed => printed.split('\n').some(line => line.length > 
 
 function stepOnLines(step, view) {
   if (isCallStep(step) && step.has('modifiers')) {
-    const modifiers = step.get('modifiers').map(modifier => (isKeyword(modifier) ? ` ${printValue(modifier)}` : `\n    ${isDoc(modifier) ? printValue(modifier, 2, view.printedOf) : printStep(modifier, false, view)}`));
+    const modifiers = step.get('modifiers').map(modifier => (isKeyword(modifier) ? ` ${printValue(modifier)}` : `\n    ${isDoc(modifier) ? printValue(modifier, 2, view.printedOf) : printPart(modifier, view)}`));
     return step.get('name').name + modifiers.join('');
   }
   if (!isBindStep(step) || !step.has('docs')) return null;
   const docs = step.get('docs').map(doc => `\n  ${printValue(doc, 1, view.printedOf)}`);
-  return step.get('name').literal + docs.join('') + (step.has('body') ? ` ${printStep(step.get('body'), false, view)}` : '');
+  return step.get('name').literal + docs.join('') + (step.has('body') ? ` ${printStep(step.get('body'), view)}` : '');
 }
 
-function printStep(step, quoting = false, view = AS_WRITTEN) {
-  if (quoting && isComputingStep(step)) return `~(${isCallStep(step) ? printCall(step) : printQuoteSource(step.payload)})`;
+function printStep(step, view = AS_WRITTEN) {
   if (isCallStep(step)) return printCall(step, view);
   if (isGroupStep(step)) return `(${printQuoteSource(step.payload, view)})`;
   if (isBindStep(step)) return printBind(step, view);
-  if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), quoting, view));
+  if (isConstructStep(step)) return underTagLiteral(step.get('tag').literal, step.get('payload'), printStep(step.get('payload'), view));
   const errorFields = errorFieldsOf(step);
-  if (errorFields !== null) return `!{${printEntries([...errorFields], quoting, view)}}`;
+  if (errorFields !== null) return `!{${printEntries([...errorFields], view)}}`;
   if (isQuote(step)) return `~(${printQuoteSource(step, view)})`;
   if (isDoc(step)) return printValue(step, 0, view.printedOf, view.oneLine);
-  if (isSet(step)) return `#[${step.map(part => printStep(part, quoting, view)).join(' ')}]`;
-  if (isVec(step)) return `[${step.map(part => printStep(part, quoting, view)).join(' ')}]`;
-  if (isMap(step)) return `{${printEntries([...step], quoting, view)}}`;
+  if (isSet(step)) return `#[${step.map(part => printPart(part, view)).join(' ')}]`;
+  if (isVec(step)) return `[${step.map(part => printPart(part, view)).join(' ')}]`;
+  if (isMap(step)) return `{${printEntries([...step], view)}}`;
   return printValue(step);
 }
 
-function printEntries(entries, quoting, view = AS_WRITTEN) {
-  return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printStep(value, quoting, view)}`).join(' ');
+// [QSPRN#print]
+const printPart = (step, view) => (isCallStep(step) && step.has('modifiers') ? `(${printCall(step, view)})` : printStep(step, view));
+
+function printEntries(entries, view = AS_WRITTEN) {
+  return entries.map(([key, value]) => `${canonicalKeywordLiteral(key)} ${printPart(value, view)}`).join(' ');
 }
 
 function printCall(call, view = AS_WRITTEN) {
-  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(modifier => printStep(modifier, false, view))].join(' ');
+  return [call.get('name').name, ...(call.get('modifiers') ?? []).map(modifier => printPart(modifier, view))].join(' ');
 }
 
 function printBind(bind, view) {
   const parts = [bind.get('name').literal];
-  if (bind.has('docs')) parts.push(...bind.get('docs').map(doc => printStep(doc, false, view)));
-  if (bind.has('body')) parts.push(printStep(bind.get('body'), false, view));
+  if (bind.has('docs')) parts.push(...bind.get('docs').map(doc => printStep(doc, view)));
+  if (bind.has('body')) parts.push(printStep(bind.get('body'), view));
   return parts.join(' ');
 }

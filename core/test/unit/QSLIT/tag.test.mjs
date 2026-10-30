@@ -5,7 +5,7 @@ import { isMap, makeTag } from '../../../src/types.mjs';
 import { isConstructStep } from '../../../src/steps.mjs';
 
 it('a number payload touches its tag by `#`', async () => {
-  expect(await evalQuery('::construct{:tag ::T :payload 42} | get [~(it)] | tag ::quote | toString')).toBe('::T#42');
+  expect(await evalQuery('::construct{:tag ::T :payload 42} | get [it] | tag ::quote | toString')).toBe('::T#42');
 });
 
 it('the parser reads a map touching a tag as its payload', () => {

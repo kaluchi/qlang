@@ -66,16 +66,16 @@ part its kind names so.
 > :tagged/count ~(99); #[1 2] | count
 99
 
-> get [~(5 | is ::number) ~(::vec | is ::vec) ~(::vec | is ::tag) ~(#[1] | is ::vec)]
+> get [(5 | is ::number) (::vec | is ::vec) (::vec | is ::tag) (#[1] | is ::vec)]
 [true false true true]
 
-> get [~(5 | is !| tag) ~(!{} | get [~(is ::map) ~(tag ::map)])]
+> get [(5 | is !| tag) (!{} | get [(is ::map) (tag ::map)])]
 [::any/is/KindsEmptyError [true !{}]]
 
-> get [~([::A::T{:a 1} {:b 2}] | union) ~([::T"a" "b"] | join ",") ~([1 2] | filter ~(gt 1 | tag ::Ok)) ~([::W#1 ::W#1] | groupBy)]
+> get [([::A::T{:a 1} {:b 2}] | union) ([::T"a" "b"] | join ",") ([1 2] | filter (gt 1 | tag ::Ok)) ([::W#1 ::W#1] | groupBy)]
 [::A::T{:a 1 :b 2} ::T"a,b" [2] {:"1" [::W#1 ::W#1]}]
 
-> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | get [~(took) ~(count !| tag) ~(vec/count !| tag) ~(tag)]
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | get [took (count !| tag) (vec/count !| tag) tag]
 [312 ::call/KindAnswersNoVerbError ::vec/count/SubjectNotVecError ::Card]
 ```
 
@@ -121,7 +121,7 @@ of two kinds refused [QSCND#compare].
 > :Pos |~~ Pos. ~~|; :Pos/f ~(1); -1 | f !| tag
 ::Pos/f/SubjectNotPosError
 
-> :Shop |~~ A shop. ~~|; :Shop/double (::fn | on |~~ A number. ~~| ::number | impl ~(mul 2)); get [~(5 | Shop/double) ~(5 | double !| get [~(tag) ~(addresses)])]
+> :Shop |~~ A shop. ~~|; :Shop/double (::fn | on |~~ A number. ~~| ::number | impl ~(mul 2)); get [(5 | Shop/double) (5 | double !| get [tag addresses])]
 [10 [::call/KindAnswersNoVerbError #[::Shop/double]]]
 
 > 42 | keys !| tag
@@ -130,16 +130,16 @@ of two kinds refused [QSCND#compare].
 > #[1 2] | vec/count
 2
 
-> #[3 1 2] | get [~(binding :count | name) ~(filter ~(gt 1)) ~(take 2) ~(map ~(mul 2))]
+> #[3 1 2] | get [(binding :count | name) (filter (gt 1)) (take 2) (map (mul 2))]
 [:vec/count #[2 3] #[1 2] [2 4 6]]
 
 > ::set | manifest
 #[::set/PayloadKindNotTakenError ::set/distinct ::set/groupBy ::set/inter ::set/minus ::set/payload ::set/reverse ::set/sort ::set/toSet ::set/toVec ::set/union ::set/zip]
 
-> 42 | zip !| get [~(tag) ~(addresses)]
+> 42 | zip !| get [tag addresses]
 [::call/KindAnswersNoVerbError #[::set/zip ::vec/zip]]
 
-> get [~(#[1 "a"] | sum !| tag) ~(true | flat !| tag) ~(::set | count !| tag) ~(::set | manifest | has ::set/count)]
+> get [(#[1 "a"] | sum !| tag) (true | flat !| tag) (::set | count !| tag) (::set | manifest | has ::set/count)]
 [::vec/sum/ElementKindNotTakenError ::vec/flat/SubjectNotVecError ::call/KindAnswersNoVerbError false]
 
 > ~(a | b | c) | take 2
@@ -170,10 +170,10 @@ declares under a second noun makes the refusal of a name one verb of the
 root holds the call's, its address beside the root's.
 
 ```qlang
-> 5 | count !| get [~(tag) ~(found) ~(addresses)]
+> 5 | count !| get [tag found addresses]
 [::call/KindAnswersNoVerbError 5 #[::map/count ::string/count ::vec/count]]
 
-> :Box |~~ A box. ~~|; :Box/keys ~(1); 42 | keys !| get [~(tag) ~(addresses)]
+> :Box |~~ A box. ~~|; :Box/keys ~(1); 42 | keys !| get [tag addresses]
 [::call/KindAnswersNoVerbError #[::Box/keys ::map/keys]]
 
 > [1 2] | toString !| nearest
@@ -210,32 +210,32 @@ and an answer of another kind leaves the tags the walk passed behind and
 stands as it is, so `toSet`, whose answer names `::set`,
 answers a set under no tag over a vector under one,
 `::Box[2 1 2] | toSet` answering `#[1 2]`, and the set of the elements
-beneath the tag of a vector stays under it by `within ~(toSet)`. An answer the rule brings to none of the kinds is
+beneath the tag of a vector stays under it by `within toSet`. An answer the rule brings to none of the kinds is
 refused as `…/AnswerKindNotTakenError`. A verb whose answer names
 `::any`, or that names none, hands on what it computed, `map` among
 them, and no chain of the catalog names a kind its verb does not answer
 under the rule, which the laws of each verb hold [QSSLF#laws].
 
 ```qlang
-> ::T{:a 1 :b 2} | filter ~(eq 1) | tag
+> ::T{:a 1 :b 2} | filter (eq 1) | tag
 ::T
 
-> ::Box[1 2] | map ~(add 1)
+> ::Box[1 2] | map (add 1)
 [2 3]
 
 > :vec/n (::fn | returns |~~ The answer. ~~| ::string | impl ~(count)); [1] | n !| tag
 ::vec/n/AnswerKindNotTakenError
 
-> get [~([2 1 2] | toSet | tag) ~(::vec/toSet/answer | binding | value) ~(::vec/map/answer | binding | value) ~(::map/map/answer | binding | value)]
+> get [([2 1 2] | toSet | tag) (::vec/toSet/answer | binding | value) (::vec/map/answer | binding | value) (::map/map/answer | binding | value)]
 [::set ::set ::any ::any]
 
-> get [~(::Box[2 1 2] | toSet) ~(::Box#[2 1] | distinct) ~(::Box[2 1 2] | within ~(toSet)) ~(~(a | a) | toSet)]
+> get [(::Box[2 1 2] | toSet) (::Box#[2 1] | distinct) (::Box[2 1 2] | within toSet) (~(a | a) | toSet)]
 [#[1 2] ::Box#[1 2] ::Box#[1 2] #[::call{:name :a}]]
 
-> get [~(::Ok#true | and false) ~(::Ok#true | and ::No#true !| tag) ~(::A[1] | append ::B[2])]
+> get [(::Ok#true | and false) (::Ok#true | and ::No#true !| tag) (::A[1] | append ::B[2])]
 [::Ok#false ::call/KindsMismatchedError ::A[1 ::B[2]]]
 
-> get [~(100 | add ::Cents#1) ~(::Cents#100 | add ::Dollars#1 !| get [~(tag) ~(leftTag) ~(rightTag)]) ~(1.234 | round ::D#2)]
+> get [(100 | add ::Cents#1) (::Cents#100 | add ::Dollars#1 !| get [tag leftTag rightTag]) (1.234 | round ::D#2)]
 [::Cents#101 [::call/KindsMismatchedError ::Cents ::Dollars] 1.23]
 ```
 
@@ -244,7 +244,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 A tag name in the subject position walks the kind of tag names, then the
 noun the tag names, then `::any`, so a bare name after it finds the
 tag's own verbs first, then the noun's, each step resolving by its own
-subject; a fan-out over the noun is a template of `get` whose quotes run
+subject; a fan-out over the noun is a template of `get` whose code runs
 against the tag name. A verb of the noun itself, whose function names
 `::tag` by `on`, serves the noun's values and the noun's own tag name; a
 bare name after another tag name reaches it not, and called by its address
@@ -260,18 +260,18 @@ the bare name, `::call/KindAnswersNoVerbError`, and is refused by the
 command called by its address as by every verb.
 
 ```qlang
-> get [~(::number | toString) ~(::number | number/toString !| tag)]
+> get [(::number | toString) (::number | number/toString !| tag)]
 ["number" ::number/toString/SubjectNotNumberError]
 
 > ::vec | count !| tag
 ::vec/count/SubjectNotVecError
 
-> :Shop |~~ A shop. ~~|; :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")); get [~(::Shop | hours) ~(::Other | hours !| tag) ~(::Other | Shop/hours !| tag)]
+> :Shop |~~ A shop. ~~|; :Shop/hours (::fn | on |~~ The shop. ~~| ::tag | impl ~("9 to 5")); get [(::Shop | hours) (::Other | hours !| tag) (::Other | Shop/hours !| tag)]
 ["9 to 5" ::call/KindAnswersNoVerbError ::Shop/hours/SubjectNotShopError]
 
-> get [~(::number | takes :by |~~ b ~~| /0 !| tag) ~(::number | fn/takes :by |~~ b ~~| /0 !| tag)]
+> get [(::number | takes :by |~~ b ~~| /0 !| tag) (::number | fn/takes :by |~~ b ~~| /0 !| tag)]
 [::call/KindAnswersNoVerbError ::fn/takes/SubjectNotFnError]
 
-> :any/label ~("any"); :Box |~~ A box. ~~|; :Box/label ~("box"); get [~(::Box | label) ~(::Box[1] | label)]
+> :any/label ~("any"); :Box |~~ A box. ~~|; :Box/label ~("box"); get [(::Box | label) (::Box[1] | label)]
 ["any" "box"]
 ```

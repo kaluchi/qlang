@@ -1,5 +1,5 @@
 // The anchors of the texts that hold the work [QSREQ#probe], [QSVOX#chapter]: a path
-// the seed, the aim or a chapter names in backquotes is a file of the tree or
+// a seed, the aim or a chapter names in backquotes is a file of the tree or
 // of the sister project, and words they quote in “…” beside a path stand in
 // that file. A section of a chapter that a record in transit overrides waits
 // for its closeout, where a home its record brings or renames is written, as
@@ -8,14 +8,14 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { readText } from './tree-reads.mjs';
-import { recordsInTransit, sectionsOfChapter, waitsForTheCloseout } from './reconciliation.mjs';
+import { CITING_DOCUMENTS, recordsInTransit, sectionsOfChapter, waitsForTheCloseout } from './reconciliation.mjs';
 
-const ANCHOR_DOCUMENTS = ['CLAUDE.md', 'docs/journal/AIM.md'];
+const ANCHOR_DOCUMENTS = [...CITING_DOCUMENTS, 'docs/journal/AIM.md'];
 const SPEC_DIR = 'docs/spec';
 const ANCHOR_PATH_RE = /`((?:core|cli|stdio|playground|lsp|site|vscode|scripts|docs|\.claude|\.github)\/[\w./@~-]+\.(?:mjs|js|qlang|peggy|md|json|jsonl|yml|astro|txt))`/g;
 const TREE_QUOTE_RE = /“([^”]+)”\s*\(`([^`]+)`/g;
 
-// anchorTexts(repoRoot) → each `{ documentPath, text }`: the seed and the aim
+// anchorTexts(repoRoot) → each `{ documentPath, text }`: the seeds and the aim
 // whole, and a chapter by the sections whose text waits for no closeout.
 export function anchorTexts(repoRoot) {
   const overridden = [...recordsInTransit(repoRoot).values()].flat();

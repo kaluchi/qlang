@@ -12,5 +12,5 @@ it('a source of the root that declares nothing adds no node to the root', async 
 it('a notebook starts from the scope of the root', async () => {
   const sessionInstance = await createNotebook();
   expect(sessionInstance.scope).toBeInstanceOf(Map);
-  expect((await sessionInstance.evalCell('[1 2 3] | filter ~(gt 1) | count')).result).toBe(2);
+  expect((await sessionInstance.evalCell('[1 2 3] | filter (gt 1) | count')).result).toBe(2);
 });

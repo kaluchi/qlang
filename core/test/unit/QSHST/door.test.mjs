@@ -51,7 +51,7 @@ beforeAll(async () => {
 });
 
 const answerOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb}`)).result;
-const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [~(tag) ~(message)]`)).result;
+const refusalOf = async (value, verb = 'answer') => (await notebook.evalCell(`${answering(value)} | ${verb} !| get [tag message]`)).result;
 const doorRefusal = (address, path, account) =>
   [HOST_FAILURE, `the answer of ::${address} ${path === '' ? 'is' : `holds at ${path}`} ${account}, a value of no kind of the language`];
 
@@ -95,9 +95,9 @@ describe('the first door: the answer of a primitive a host hands beside its sour
     const index = answering(cached);
     expect((await notebook.evalCell(`${index} | answer | count`)).result).toBe(2);
     cached.push(function leaked() {});
-    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) ~(message)]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
+    expect((await notebook.evalCell(`${index} | answer !| get [tag message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'function leaked'));
     cached[2] = cached;
-    expect((await notebook.evalCell(`${index} | answer !| get [~(tag) ~(message)]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
+    expect((await notebook.evalCell(`${index} | answer !| get [tag message]`)).result).toEqual(doorRefusal('any/answer', '/2', 'a vector that holds itself'));
   });
 
   it('passes back unwalked a value the call handed in', async () => {
@@ -130,7 +130,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the facts of a refusal a host\'s primitive throws as its answer, a fact left undefined none', async () => {
-    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [~(tag) ~(value)]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
+    expect((await notebook.evalCell(`${answering('late')} | refuse !| get [tag value]`)).result).toEqual([makeTag('any/refuse/RefusedError'), 'late']);
     expect((await notebook.evalCell(`${answering(undefined)} | refuse !| tag`)).result).toEqual(makeTag('any/refuse/RefusedError'));
     expect(await refusalOf({ status: 404 }, 'refuse')).toEqual(doorRefusal('any/refuse', '/value', 'object Object'));
     expect(await refusalOf({ status: 404 }, 'refuseLater')).toEqual(doorRefusal('any/refuseLater', '/value', 'object Object'));
@@ -142,7 +142,7 @@ describe('the first door: the answer of a primitive a host hands beside its sour
   });
 
   it('holds the answer of the constructor a host hands a kind, which takes the payload alone and passes it back as it is', async () => {
-    expect((await notebook.evalCell('::Raw[1] !| get [~(tag) ~(message)]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
+    expect((await notebook.evalCell('::Raw[1] !| get [tag message]')).result).toEqual(doorRefusal('Raw', '', 'object Object'));
     expect((await notebook.evalCell('::Kept[1] | payload')).result).toEqual([1]);
     expect((await notebook.evalCell('::Counted[7] | payload')).result).toBe(1);
   });
@@ -153,13 +153,13 @@ describe('a primitive of the core runs within the function its host handed it wi
 
   it('refuses a function of the reader made from a primitive of the core as one that holds no recipe it runs, whatever its returns names', async () => {
     for (const returns of ['', ' | returns |~~ A sum. ~~| ::number', ' | returns |~~ A sum. ~~| #[::number ::string]']) {
-      expect((await notebook.evalCell(`1e308 | apply ${overAdd(returns)} [1e308] !| tag`)).result).toEqual(makeTag('fn/RecipeMissingError'));
+      expect((await notebook.evalCell(`:f ${overAdd(returns)}; 1e308 | apply f [1e308] !| tag`)).result).toEqual(makeTag('fn/RecipeMissingError'));
     }
   });
 
   it('brings an answer past the doubles under the kinds `returns` names, the function of a verb of the core and one written in steps alike', async () => {
     for (const fn of ['(::number/add | binding | value)', '(::fn | takes :x |~~ An x. ~~| /0 | returns |~~ A sum. ~~| ::number | impl ~(add x))']) {
-      expect((await notebook.evalCell(`1e308 | apply ${fn} [1e308] !| tag`)).result).toEqual(makeTag('number/NotFiniteError'));
+      expect((await notebook.evalCell(`:f ${fn}; 1e308 | apply f [1e308] !| tag`)).result).toEqual(makeTag('number/NotFiniteError'));
     }
   });
 });
@@ -194,8 +194,8 @@ describe('the second door: what a host hands where the core takes it', () => {
   });
 
   it('reads a value JavaScript leaves undefined as null wherever the language reads it', async () => {
-    expect((await notebook.evalCell('get [~(tag) ~(eq null) ~(print)]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
-    expect((await notebook.evalCell('get [~(eq [1 null 3]) ~(print) ~(print | parse | answer | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
+    expect((await notebook.evalCell('get [tag (eq null) print]', { initialPipeValue: undefined })).result).toEqual([makeTag('null'), true, 'null']);
+    expect((await notebook.evalCell('get [(eq [1 null 3]) print (print | parse | answer | eq [1 null 3])]', { initialPipeValue: [1, undefined, 3] })).result).toEqual([true, '[1 null 3]', true]);
   });
 
   it('leaves the keys of the runtime\'s own out of the walk of a scope', async () => {
@@ -295,7 +295,7 @@ describe('the answer of a primitive a host hands', () => {
         }
       }]
     });
-    expect((await s.evalCell('get [~(41 | later | add 1) ~(41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
+    expect((await s.evalCell('get [(41 | later | add 1) (41 | elsewhere | add 1)]')).result).toEqual([43, 43]);
   });
 
   it('refuses a number past the finite doubles a host\'s primitive answers at the door, under several kinds as under one', async () => {
@@ -306,7 +306,7 @@ describe('the answer of a primitive a host hands', () => {
         primitives: { 'any/past': () => Infinity, 'any/pastOne': () => Infinity }
       }]
     });
-    expect((await s.evalCell('1 | past !| get [~(tag) ~(message)]')).result)
+    expect((await s.evalCell('1 | past !| get [tag message]')).result)
       .toEqual(await evalQuery('[::call/HostFailureError "the answer of ::any/past is number Infinity, a value of no kind of the language"]'));
     expect((await s.evalCell('1 | pastOne !| tag')).result).toEqual(await evalQuery('::call/HostFailureError'));
   });
@@ -325,7 +325,7 @@ it('lifts an error of JavaScript and any other value a primitive throws to a fai
   expect(entry.result.tag.name).toBe('call/HostFailureError');
   expect([...entry.result.facts.keys()]).toEqual(['message', 'trace']);
   expect(entry.result.facts.get('message')).toBe('raw boom');
-  expect((await s.evalCell('42 | hollow !| get [~(tag) ~(message) ~(trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
+  expect((await s.evalCell('42 | hollow !| get [tag message (trace | first | path)]')).result).toEqual(await evalQuery('[::call/HostFailureError "undefined" null]'));
 });
 
 it('a parsed document lifts into the same map a literal reads into', async () => {

@@ -17,7 +17,7 @@
 {"name":"keys-answers-first-the-key-of-the-first-entry","query":"{:b 1 :a 2} | keys | first","expect":":b"}
 {"name":"first-of-an-empty-map-is-null","query":"{} | first","expect":"null"}
 {"name":"entries-answers-the-pairs-of-a-map","query":"{:a 1 :b 2} | entries","expect":"[[:a 1] [:b 2]]"}
-{"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
+{"name":"a-key-stands-beside-its-value-in-a-record","query":"{:auth {:port 3000} :db {:port 5432}} | entries | map (unionOf /1 (get {:name (get /0 | toString)})) | sort /port","expect":"[{:port 3000 :name \"auth\"} {:port 5432 :name \"db\"}]"}
 {"name":"keys-of-the-empty-map-answers-no-key","query":"{} | keys","expect":"[]"}
 {"name":"vals-of-the-empty-map-answers-the-empty-vector","query":"{} | vals","expect":"[]"}
-{"name":"size-and-length-answer-as-count-over-a-map","query":"{:a 1 :b 2} | get [~(size) ~(length) ~(count)]","expect":"[2 2 2]"}
+{"name":"size-and-length-answer-as-count-over-a-map","query":"{:a 1 :b 2} | get [size length count]","expect":"[2 2 2]"}

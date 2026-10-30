@@ -3,23 +3,13 @@
 import { registerPrimitive, registerStateReader, runsAsCode } from '../primitives.mjs';
 import { parseSource } from '../parse.mjs';
 import { printQuoteSource } from '../print-value.mjs';
-import { errorFromParse, spanOfLocation } from '../error-convert.mjs';
 import { declareRefusal } from '../errors.mjs';
 import { isFn, makeKeyword, makeQuote } from '../types.mjs';
-import { codeOf, applyFunction, layTag } from '../eval.mjs';
-import { rootState, rootOf } from '../state.mjs';
-import { ROOT_KEY } from '../scope-keys.mjs';
+import { codeOf, applyFunction, refusalOfAParse } from '../eval.mjs';
 import { declarationStep, namesAQuoteReads } from '../steps.mjs';
 import { nearestOf } from '../nearness.mjs';
 
 const AnyApplyArgsNotTakenError = declareRefusal('any/apply/ArgsNotTakenError');
-
-// [QSSYN#refusal], [QSPRN#span]
-export async function refusalOfAParse(parseError, scope, uri) {
-  const ofTheRoot = rootState(null, new Map([[ROOT_KEY, rootOf(scope)]]));
-  const location = parseError.location ? await layTag('span', spanOfLocation(parseError.location, parseError.source), ofTheRoot) : undefined;
-  return errorFromParse(parseError, scope, location, uri);
-}
 
 // [QSQUO#parse]
 registerStateReader('string/parse', async (source, state) => {

@@ -2,24 +2,22 @@
    The rules it holds: [QSDSP#residence], [QSSLF#laws]. ~|
 
 :law
-  |~~ A law is a claim about a name that runs: a query that answers
-      true, a quote under this tag laid under the name whose behaviour it
-      proves, its page the sentence of the claim. The chain of a function
-      or a kind writes it by `proves`,
-      `| proves :addsTheNumber |~~ Ten and three is thirteen. ~~| ~(10 | add 3 | eq 13)`,
-      as `holds` writes an invariant, a quote under `::invariant`, and a
-      law of any other name, a label among them, is declared under it,
-      `:Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1);`.
-      A law is code held as data: it reads the verbs of the tree and the names it
-      declares, and no value the reader named, and a law of a name the
-      language declares runs over the root alone.
+  |~~ A law is a claim about a name that runs: a query that answers true, a
+      quote under this tag laid under the name whose behaviour it proves, its
+      page the sentence of the claim. The chain of a function or a kind writes
+      it by `proves`,
+      `| proves :addsTheNumber |~~ Ten and three is thirteen. ~~| ~(10 | add 3 |
+      eq 13)`, as `holds` writes an invariant, a quote under `::invariant`, and
+      a law of any other name, a label among them, is declared under it,
+      `:Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1);`. A law
+      is code held as data: it reads the verbs of the tree and the names it
+      declares, and no value the reader named, and a law of a name the language
+      declares runs over the root alone.
 
-      `laws` answers the laws of a name, each its page and its query,
-      and `runLaws` runs them, so the examples of the catalog are its
-      tests.
-      ::link~(::any/laws) ::link~(::any/runLaws)
-      ::link~(::invariant) ::link~(::qlang/hypertext)
-      ::link~(::qlang/code)
+      `laws` answers the laws of a name, each its page and its query, and
+      `runLaws` runs them, so the examples of the catalog are its tests.
+      ::link~(::any/laws) ::link~(::any/runLaws) ::link~(::invariant)
+      ::link~(::qlang/hypertext) ::link~(::qlang/code)
   ~~|
   ::kind
     | accepts |~~ The query that proves the claim, a quote. ~~| ::quote
@@ -30,15 +28,20 @@
         ~~|
     | proves :provesItsClaim
         |~~ A law declared under a name proves its claim when it runs. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/holdsItsWidth |~~ A box holds its width. ~~| ::law~(::Box{:width 1} | get /width | eq 1); ::Box | runLaws | map /ok | eq [true])
+        ~(:Box |~~ A box. ~~|; :Box/holdsItsWidth
+          |~~ A box holds its width. ~~| ::law~(::Box{:width 1} | get /width
+          | eq 1); ::Box | runLaws | map /ok | eq [true])
     | proves :readsNoValueOfTheReader
         |~~ A law reads no value the reader named. ~~|
-        ~({:limit 5} | with [/limit] ~(:Box |~~ A box. ~~|; :Box/withinTheLimit |~~ The limit is five. ~~| ::law~(limit | eq 5); ::Box | runLaws | first | get /error | tag) | eq ::call/ValueWithheldError)
+        ~({:limit 5} | with [/limit] (:Box |~~ A box. ~~|; :Box/withinTheLimit
+          |~~ The limit is five. ~~| ::law~(limit | eq 5); ::Box | runLaws
+          | first | get /error | tag) | eq ::call/ValueWithheldError)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A law is a quote. ~~|
         ~(::law#3 !| tag | eq ::law/PayloadKindNotTakenError)
     | proves :holdsAQuoteByItsOwnTag
         |~~ The query of a law is a quote, a quote under another tag refused.
         ~~|
-        ~(::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)] | eq [::law/PayloadKindNotTakenError ::Foo]);
+        ~(::law::Foo~(3 | eq 3) !| get [tag (found | tag)]
+          | eq [::law/PayloadKindNotTakenError ::Foo]);
 

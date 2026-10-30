@@ -17,7 +17,6 @@ describe('the diagnostics of a document', () => {
     const { root, diagnostics } = parseDocument('[1 2 3', 'test.qlang');
     expect(root).toBeNull();
     expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0].severity).toBe('error');
     expect(diagnostics[0].message).toBeTruthy();
   });
 
@@ -30,7 +29,7 @@ describe('the diagnostics of a document', () => {
 });
 
 describe('the semantic tokens', () => {
-  const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter ~(gt 1) !| count | (x) |~| c';
+  const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter (gt 1) !| count | (x) |~| c';
   const UNCOATED = new Set(['vec', 'set', 'map', 'group', 'punctuation', 'whitespace', 'unparsed']);
 
   it('coats each kind of the core\'s tokens but a bracket and a gap by a type of its legend, which holds each type once', async () => {
@@ -65,7 +64,7 @@ describe('the semantic tokens', () => {
   });
 
   it('emits well-formed 5-int stream', async () => {
-    const { data } = await semanticTokensFor('[1 2 3] | filter ~(gt 1) | count');
+    const { data } = await semanticTokensFor('[1 2 3] | filter (gt 1) | count');
     expect(data.length % 5).toBe(0);
     for (let i = 2; i < data.length; i += 5) {
       expect(data[i]).toBeGreaterThan(0);

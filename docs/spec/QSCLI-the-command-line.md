@@ -25,8 +25,8 @@ the one its answer exits with. `-i` or `--repl` opens the REPL, a query
 after it its first cell, `-h` or `--help` prints the page of `::host`,
 what `qplay '::host | doc'` answers, its first line the mission of the
 playground, which tells the usage and names the budget by its refusal, and
-`-V` or `--version` the version. `playground/src/bin.mjs` is the one file
-of the playground that touches the process.
+`-V` or `--version` the version. The playground touches the process in one
+file [QSGAT#hosts].
 
 A failure is an answer, written to standard output with the exit code 0,
 so calls run side by side never stop each other; `--fail` before the
@@ -68,7 +68,7 @@ failed
 $ qplay '"x" | add 1' > /dev/null && echo answered
 answered
 
-$ qplay '3000 | range | map ~(get {:id ~(it) :name "user"}) | json | stdio/out' < /dev/null | wc -c
+$ qplay '3000 | range | map {:id it :name "user"} | json | stdio/out' < /dev/null | wc -c
 76892
 
 $ qplay --width=80 '1' < /dev/null 2>&1; echo "exit $?"
@@ -134,7 +134,7 @@ $ printf '[1e400]' | qplay '::stdio | in | count'
 $ printf '[1,2,3]' | qplay '!| 0 | count'
 3
 
-$ printf '[1,2,3]' | qplay ':vec/in ~(count); in'
+$ printf '[1,2,3]' | qplay ':vec/in count; in'
 3
 
 $ printf 'x' | qplay '::stdio | in | parseJson' | grep -o '::string/parseJson/TextNotJsonError'

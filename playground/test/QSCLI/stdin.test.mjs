@@ -43,13 +43,13 @@ describe('standard input read for a query that reads its subject', () => {
 
   it('lifts the subject for a query headed by a verb the reader named `in`', async () => {
     const s = captureStreams('[1,2,3]');
-    await main([':vec/in ~(count); in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main([':vec/in count; in'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('3\n');
   });
 
   it('reads stdin once for the subject and for `::stdio | in`', async () => {
     const s = captureStreams('hello world');
-    await main(['get [~(count) ~(::stdio | in)]'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
+    await main(['get [count (::stdio | in)]'], s.stdinStream, s.stdoutStream, s.stderrStream, {});
     expect(s.stdoutText()).toBe('[11 "hello world"]\n');
   });
 

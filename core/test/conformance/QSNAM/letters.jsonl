@@ -5,8 +5,8 @@
 {"name":"a-name-under-a-noun-may-end-in-the-word-of-a-literal","query":":number/null ~(1); 5 | number/null","expect":"1"}
 {"name":"a-label-named-by-the-word-of-a-literal-is-reached-by-its-tag","query":":true |~~ T. ~~|; ::true | doc | content","expect":"\"T.\""}
 {"name":"a-label-of-the-root-named-by-the-word-of-a-literal-stays-the-roots","query":":null |~~ A thing. ~~|; ::null | doc | content | contains \"A thing\"","expect":"false"}
-{"name":"a-name-begins-with-a-letter-of-any-script-or-an-underscore-and-goes-on-with-a-hyphen","query":"apply ~(:имя 1; :_x 2; :a-b 3; get [~(имя) ~(_x) ~(a-b)])","expect":"[1 2 3]"}
+{"name":"a-name-begins-with-a-letter-of-any-script-or-an-underscore-and-goes-on-with-a-hyphen","query":"apply (:имя 1; :_x 2; :a-b 3; get [(имя) (_x) (a-b)])","expect":"[1 2 3]"}
 {"name":"a-tag-begins-with-a-letter-as-a-name-does","query":"\"::1a[1]\" | parse !| tag","expect":"::quote/ParseError"}
 {"name":"a-key-of-a-path-may-begin-with-a-digit-or-a-hyphen","query":"{\"1a\": 1, \"-a\": 2} | get [/1a /-a]","expect":"[1 2]"}
 {"name":"a-step-written-as-a-word-of-a-literal-with-a-path-is-refused","query":"\"false/x\" | parse !| tag","expect":"::quote/ParseError"}
-{"name":"a-letter-past-the-first-plane-of-unicode-begins-and-goes-on-in-a-name","query":"get [~(\":𐐀 5; 𐐀\" | parse | answer) ~(:a𐐀b | print)]","expect":"[5 \":a𐐀b\"]"}
+{"name":"a-letter-past-the-first-plane-of-unicode-begins-and-goes-on-in-a-name","query":"get [(\":𐐀 5; 𐐀\" | parse | answer) (:a𐐀b | print)]","expect":"[5 \":a𐐀b\"]"}

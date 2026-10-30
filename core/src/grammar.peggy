@@ -6,7 +6,7 @@
   import { makeKeyword, isKeyword, isDoc, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
   import { makeSet } from '../src/ordering.mjs';
   import { QlangError } from '../src/errors.mjs';
-  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
+  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, isComputingStep, partsOfALiteral, isOfTheKindOfErrors } from '../src/steps.mjs';
   import { forEachPart } from '../src/parsed-parts.mjs';
 
   // [QSHST#tokens]
@@ -75,7 +75,7 @@
   }
   function recordComment(type, content) {
     const loc = span();
-    commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
+    commentTrivia.set(loc.start.offset, { type, content, location: loc });
   }
 
   // [QSSYN#refusal]
@@ -97,19 +97,9 @@
   // [QSLIT#closed]
   const asWritten = {
     of: value => sourceOf(reads.get(value)),
-    quoting: literal => quotedSource(reads.get(literal)),
+    stepOf: literal => sourceOf(reads.get(literal)),
     computesWithin: literal => reads.has(literal) && computingReadsOf(reads.get(literal)).length > 0
   };
-
-  function quotedSource(read) {
-    const start = read.span.start.offset;
-    let written = sourceOf(read);
-    for (const computing of computingReadsOf(read).reverse()) {
-      const inner = isGroupStep(computing.value) ? input.slice(computing.content.start.offset, computing.content.end.offset) : sourceOf(computing);
-      written = written.slice(0, computing.span.start.offset - start) + `~(${inner})` + written.slice(computing.span.end.offset - start);
-    }
-    return written;
-  }
 
   // [QSLIT#closed], [QSQUO#step]
   function computingReadsOf(read) {
@@ -252,6 +242,15 @@
     error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
   }
 
+  // [QSSYN#refusal]
+  function refuseInfix(operator) {
+    if (operator === '&&') error('`&&` is no operator of qlang: conditions of one value hold together by `allOf`, `allOf (gt 1) (lt 3)`');
+    if (operator === '=>') error('`=>` is no operator of qlang: code is written bare where a verb takes it, the value it runs on `it`, `map (add 1)`');
+    if (operator === '=') error('`=` is no operator of qlang: a name is declared by its keyword, `:x 1;`, and two values compare by `eq`, `eq 2`');
+    const verb = { '*': 'mul', '+': 'add', '-': 'sub', '%': 'mod', '==': 'eq', '!=': 'ne', '<': 'lt', '<=': 'lte', '>': 'gt', '>=': 'gte' }[operator];
+    error(`\`${operator}\` is no operator of qlang: a verb does its work on the value in the pipe, \`${verb} 2\``);
+  }
+
   // [QSSYN#doc]
   let docsInASpan = 0;
 
@@ -356,13 +355,19 @@ ContinuationUnit
 StepMissedAtTheEnd
   = __ c:(PipedCombinator / Combinator) _ !. &{ options.stepMissed = c; return false; }
 
+// [QSSYN#refusal]
+InfixOperator
+  = $("==" / "!=" / "<=" / ">=" / "&&" / "=>" / [*+%<>=])
+  / @"-" &[ \t\r\n]
+
 // [QSERR#catch]
 PipedCombinator
   = "|" __ "!|" { return '!|'; }
 
 // [QSSYN#combinator]
 SpacingRefusal
-  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`'); }
+  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply (…)`'); }
+    / _ &InfixOperator operator:InfixOperator { refuseInfix(operator); }
     / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
     / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
@@ -370,7 +375,7 @@ SpacingRefusal
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only a first modifier that opens with a parenthesis may touch the name of its command, `f(a) (b)`'); }
     / _ &"," "," { error('modifiers are separated by spaces, not by commas: `f a b`', lastOf(1)); }
-    / _ &";" ";" { error('`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [~(…) ~(…)]`', lastOf(1)); }
+    / _ &";" ";" { error('`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [(…) (…)]`', lastOf(1)); }
     / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
     / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
     )
@@ -401,17 +406,17 @@ DocAfterStep
 DocOpen
   = LineDocOpen / BlockDocOpen
 
-PlainComment
-  = LinePlainComment
-  / BlockPlainComment
+Comment
+  = LineComment
+  / BlockComment
 
-LinePlainComment
+LineComment
   = "|~|" content:LineCommentContent
-  { recordComment('LinePlainComment', content); }
+  { recordComment('LineComment', content); }
 
-BlockPlainComment
-  = "|~" ![|~] content:BlockPlainContent "~|"
-  { recordComment('BlockPlainComment', content); }
+BlockComment
+  = "|~" ![|~] content:BlockCommentContent "~|"
+  { recordComment('BlockComment', content); }
 
 LineCommentContent
   = chars:[^\n]* { return chars.join(''); }
@@ -424,25 +429,25 @@ QuoteSpan
 NestedLineDocSpan
   = "|~~|"
     { return text(); }
-NestedLinePlainSpan
+NestedLineCommentSpan
   = "|~|"
     { return text(); }
 NestedBlockDocSpan
   = &{ return !knownToFail(nestedDocFailures); } "|~~" !"|" BlockDocContent "~~|"
     { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedDocFailures); } "|~~"
-NestedBlockPlainSpan
-  = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockPlainContent "~|"
+NestedBlockCommentSpan
+  = &{ return !knownToFail(nestedCommentFailures); } "|~" ![|~] BlockCommentContent "~|"
     { keepNestedBlock(); return text(); }
   / &{ return failedHere(nestedCommentFailures); } "|~"
 
-BlockPlainContent
+BlockCommentContent
   = chars:(
       QuoteSpan
       / NestedLineDocSpan
-      / NestedLinePlainSpan
+      / NestedLineCommentSpan
       / NestedBlockDocSpan
-      / NestedBlockPlainSpan
+      / NestedBlockCommentSpan
       / "~~|"
       / (!"~|" .)
     )*
@@ -452,9 +457,9 @@ BlockDocContent
   = chars:(
       QuoteSpan
       / NestedLineDocSpan
-      / NestedLinePlainSpan
+      / NestedLineCommentSpan
       / NestedBlockDocSpan
-      / NestedBlockPlainSpan
+      / NestedBlockCommentSpan
       / "~|"
       / (!"~~|" .)
     )*
@@ -567,7 +572,7 @@ Name
 
 // [QSDSP#walk]
 CallName
-  = head:Ident tail:("/" @KeywordName)*
+  = head:CallNameHead tail:("/" @KeywordName)*
     { return [head, ...tail].join('/'); }
 
 // [QSLIT#closed], [QSERR#rest], [D404]
@@ -659,9 +664,9 @@ QuotePart
   = NestedParenSpan
   / QuoteStringSpan
   / QuoteBlockDocSpan
-  / QuoteBlockPlainSpan
+  / QuoteBlockCommentSpan
   / QuoteLineDocSpan
-  / QuoteLinePlainSpan
+  / QuoteLineCommentSpan
   / QuoteChar
 
 NestedParenSpan
@@ -681,16 +686,16 @@ QuoteBlockDocSpan
 QuoteBlockDocChar
   = !"~~|" QuoteSpanChar
 
-QuoteBlockPlainSpan
-  = "|~" !"~" !"|" QuoteBlockPlainChar* "~|" { return text(); }
+QuoteBlockCommentSpan
+  = "|~" !"~" !"|" QuoteBlockCommentChar* "~|" { return text(); }
 
-QuoteBlockPlainChar
+QuoteBlockCommentChar
   = !"~|" QuoteSpanChar
 
 QuoteLineDocSpan
   = "|~~|" ProseOfALine* { return text(); }
 
-QuoteLinePlainSpan
+QuoteLineCommentSpan
   = "|~|" ProseOfALine* { return text(); }
 
 QuoteChar
@@ -735,9 +740,9 @@ BlockDocPart
   / open:$("`"+) &{ docsInASpan = 0; return true; } (!(close:$("`"+) &{ return close.length === open.length; }) ($("`"+) / DocInASpan / !"~~|" ProseOfABlock))* close:$("`"+) &{ return close.length === open.length; } { return backquotedRead(open.length); }
   / "`"+ { return text(); }
   / NestedLineDocSpan
-  / NestedLinePlainSpan
+  / NestedLineCommentSpan
   / NestedBlockDocSpan
-  / NestedBlockPlainSpan
+  / NestedBlockCommentSpan
   / "~|"
   / !"~~|" !DocQuoteOpens c:. { return c; }
 
@@ -791,7 +796,7 @@ ErrorBraces
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &(("," _)? Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
-  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k (f x)}`'); })
     { return entriesRead(map => map, [head, ...tail]); }
   / "{" _ "}"
     { return part(new Map()); }
@@ -845,7 +850,7 @@ ElementList
 
 LiteralGap
   = __
-  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
+  / &(!"/" Element) Element { error('the elements of a literal are set off by whitespace: `[1 2]`'); }
 
 // [QSPTH#value], [QSSYN#step]
 Path
@@ -863,7 +868,7 @@ KeySegment
   / RelaxedKeyName
 
 RelaxedKeyName
-  = chars:IdentTail+ { return chars.join(''); }
+  = chars:NameLetter+ { return chars.join(''); }
 
 AtomLit
   = StringLit
@@ -910,11 +915,11 @@ NumberLit "number within the finite double range"
       return part(Number(text())); }
 
 BooleanLit
-  = "true"  !IdentTail { return part(true); }
-  / "false" !IdentTail { return part(false); }
+  = "true"  !NameLetter { return part(true); }
+  / "false" !NameLetter { return part(false); }
 
 NullLit
-  = "null" !IdentTail { return part(null); }
+  = "null" !NameLetter { return part(null); }
 
 // [QSLIT#keyword]
 Keyword
@@ -930,20 +935,20 @@ QuotedKeywordName
   = '"' chars:DoubleStringChar* '"' { return chars.join(''); }
 
 KeywordName
-  = first:IdentStart rest:IdentTail*
+  = first:NameStart rest:NameLetter*
     { return first + rest.join(''); }
 
-Ident
-  = !ReservedWord first:IdentStart rest:IdentTail*
+CallNameHead
+  = !ReservedWord first:NameStart rest:NameLetter*
     { return first + rest.join(''); }
 
 ReservedWord
-  = ("true" / "false" / "null") !IdentTail
+  = ("true" / "false" / "null") !NameLetter
 
 // [QSNAM#letters]
-IdentStart "name"
+NameStart "name"
   = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameStart(c); } { return c; }
-IdentTail  "letters of a name"
+NameLetter  "letters of a name"
   = c:$([\uD800-\uDBFF] [\uDC00-\uDFFF] / .) &{ return isNameContinue(c); } { return c; }
 
 // [QSSYN#line], [QSSYN#comment]
@@ -952,8 +957,8 @@ _   = Whitespace*
 __  = Whitespace+
 _h1 = InlineSpace+
 
-Whitespace "whitespace" = [ \t\n\r] / &"|" @PlainComment
+Whitespace "whitespace" = [ \t\n\r] / &"|" @Comment
 
-InlineSpace "whitespace" = [ \t] / &"|" @PlainComment
+InlineSpace "whitespace" = [ \t] / &"|" @Comment
 
 NonSpace = [^ \t\n\r]

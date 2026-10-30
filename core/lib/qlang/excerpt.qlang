@@ -5,22 +5,25 @@
 :excerpt
   |~~ An excerpt tells the facts of a failure a host prints past the room
       of a fact, under the tag of its refusal,
-      `::number/add/AddendKindNotTakenError::excerpt{…}`: each fact
-      whole within three hundred characters, and past them the cell the
-      host keeps it in, `:addend/found ::cell"…"`, beside its tag and the
-      views the kind of the fact reveals that fit the room, each under the
-      name of the fact and its own, `:addend/found/tag ::vec` and
-      `:addend/found/count 3410`, and beside its parts, each by the same
-      rule under the name of the fact and its own: a map by its keys, an
-      error at rest and an excerpt by their facts, and a value under a tag
-      its kind does not wire by the parts of what it holds, whose tag stands
-      under `payload/tag`, `:answer/payload/tag`; a vector, a set, a string,
-      a quote and a doc stand as their views. A key is the chain a reader
-      types, `:answer/addend/found/count` read as
-      `::cell"…" | answer | addend | found | count`, and a host that keeps
-      no cell shows the tag, the views and the parts alone. Nothing is cut:
-      a fact stands whole, as a cell that gives it back whole, or as the
-      facts its kind reveals of it.
+      `::number/add/AddendKindNotTakenError::excerpt{…}`. Each fact stands
+      whole within three hundred characters. Past them stands the cell the
+      host keeps it in, `:addend/found ::cell"…"`. Beside the cell stand
+      its tag and the views the kind of the fact reveals that fit the
+      room, each under the name of the fact and its own,
+      `:addend/found/tag ::vec` and `:addend/found/count 3410`. Beside them
+      stand its parts, each by the same rule under the name of the fact and
+      its own. A map stands by its keys, an error at rest and an excerpt by
+      their facts, and a value under a tag its kind does not wire by the
+      parts of what it holds, whose tag stands under `payload/tag`,
+      `:answer/payload/tag`. A vector, a set, a string, a quote and a doc
+      stand as their views. A key is the chain a reader types,
+      `:answer/addend/found/count` read as
+      `::cell"…" | answer | addend | found | count`. A host that keeps no
+      cell shows the tag, the views and the parts alone. No fact is cut: it
+      stands whole, as a cell that gives it back whole, or as the facts its
+      kind reveals of it. Where the alert passes its room, the entries laid
+      deepest and last drop until it fits, each whole in the failure `!|`
+      reads.
 
       An excerpt is a map under its tag, read by its keys, and the kind of
       the refusal over it reads its facts by their names, a cell standing
@@ -41,7 +44,9 @@
         ~(::excerpt[1] !| tag | eq ::excerpt/PayloadKindNotTakenError)
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
-        ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer))
+        ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410}
+          | eq (print | parse | answer))
     | proves :readsAViewByItsKey
         |~~ A view stands under the name of its fact and its own. ~~|
-        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count | eq 3410);
+        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count
+          | eq 3410);

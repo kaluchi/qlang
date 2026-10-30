@@ -33,7 +33,7 @@ reads the text as it came.
 curl -s api/users | qplay 'get /data | map /name'
 qplay 'get /users | filter /active | json' < data.json
 printf hi         | qplay '::stdio | in | append " world"'
-qplay '[1 2 3] | filter ~(gt 1) | count'
+qplay '[1 2 3] | filter (gt 1) | count'
 qplay -i '::qlang | doc :pipeline'
 ```
 

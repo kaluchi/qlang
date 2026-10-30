@@ -138,6 +138,7 @@ function planted(files, read) {
 
 const lines = (...written) => [...written, ''].join('\n');
 const TREE = {
+  'package.json': JSON.stringify({ workspaces: ['core'] }),
   'core/package.json': JSON.stringify({ name: '@kaluchi/qlang-core', exports: { '.': { import: './src/index.mjs' } }, imports: { '#load': { node: './src/node.mjs', default: './src/web.mjs' } } }),
   'core/src/index.mjs': lines('// The root [QSNAM#scope].', "export * from './a.mjs';", "export { tool as namedTool } from './b.mjs';"),
   'core/src/a.mjs': lines('// The reading of a part [QSNAM#scope].', 'export function reads() { return helper() + { unreadKey: 1 }.unreadKey + table[keyOfTable]; }',

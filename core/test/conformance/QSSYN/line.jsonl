@@ -1,13 +1,13 @@
 {"name":"the-elements-of-a-vector-run-on-across-lines","query":"[\n  1\n  2\n  3\n]","expect":"[1 2 3]"}
 {"name":"the-entries-of-a-map-run-on-across-lines","query":"{\n  :name \"Alice\"\n  :age 30\n}","expect":"{:name \"Alice\" :age 30}"}
-{"name":"a-pipe-at-the-start-of-a-line-joins-the-step-above","query":"[1 2 3 4 5]\n  | filter ~(gt 2)\n  | count","expect":"3"}
+{"name":"a-pipe-at-the-start-of-a-line-joins-the-step-above","query":"[1 2 3 4 5]\n  | filter (gt 2)\n  | count","expect":"3"}
 {"name":"literals-nested-across-lines-read-at-any-depth","query":"{\n  :team {\n    :lead {\n      :name \"Alice\"\n      :email \"alice@example.com\"\n    }\n  }\n} | get /team/lead/email","expect":"\"alice@example.com\""}
-{"name":"a-literal-across-lines-continues-its-pipeline","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  | map ~(mulOf /price /qty)","expect":"[300 500]"}
+{"name":"a-literal-across-lines-continues-its-pipeline","query":"[\n  {:price 100 :qty 3}\n  {:price 50 :qty 10}\n]\n  | map (mulOf /price /qty)","expect":"[300 500]"}
 {"name":"steps-a-line-alone-joins-do-not-parse","query":"\"[3 1 2]\nsort\" | parse | count !| tag","expect":"::quote/ParseError"}
-{"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\")\" | parse | answer !| tag","expect":"\"pos\""}
-{"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | apply (\"(if (gt 0)\n  ~(\\\"pos\\\")\n  ~(\\\"neg\\\"))\" | parse)","expect":"\"pos\""}
-{"name":"a-tag-name-on-a-later-line-is-the-body","query":"apply ~(:s\n::vec;\ns)","expect":"::vec"}
-{"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":"apply ~(:Box |~~ A box. ~~|; :Box/w\n  ::number; ::Box/w | binding | value)","expect":"::number"}
+{"name":"a-command-takes-its-modifiers-across-lines-at-the-top-level","query":"\"5 | if (gt 0)\n  (\\\"pos\\\")\n  (\\\"neg\\\")\" | parse | answer !| tag","expect":"\"pos\""}
+{"name":"a-command-takes-its-modifiers-across-lines-inside-brackets","query":"5 | with {:q (\"(if (gt 0)\n  (\\\"pos\\\")\n  (\\\"neg\\\"))\" | parse)} (apply q)","expect":"\"pos\""}
+{"name":"a-tag-name-on-a-later-line-is-the-body","query":"apply (:s\n::vec;\ns)","expect":"::vec"}
+{"name":"a-tag-name-on-a-later-line-is-the-body-of-its-declaration","query":"apply (:Box |~~ A box. ~~|; :Box/w\n  ::number; ::Box/w | binding | value)","expect":"::number"}
 {"name":"a-body-begun-on-a-later-line-is-the-body-of-the-declaration-above","query":":number/plus |~~ Adds by. ~~|\n  ::fn\n  | takes :by |~~ How much. ~~| /0\n  | impl ~(add by);\n5 | plus 3","expect":"8"}
 {"name":"the-chain-of-a-kind-is-the-body-of-a-bare-name-with-its-page","query":":Box\n  |~~ A box. ~~|\n  ::kind\n    | accepts |~~ The sizes. ~~| ::map;\n::Box\"x\" !| tag","expect":"::Box/PayloadKindNotTakenError"}
 {"name":"a-keyword-on-the-line-of-a-command-is-its-modifier","query":"5 | add 1 :y 2 | y !| tag","expect":"::number/add/ArgsBeyondInputsError"}

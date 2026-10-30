@@ -25,18 +25,18 @@ describe('the one order ranks a failure raised after every value, by its tag and
   });
 });
 
-describe('the one order tells an Array, a Map and a Set under a tag from one under none', () => {
-  it('rejects tagged Array vs untagged Array with same elements', () => {
+describe('the one order tells a vector, a map and a set under a tag from one under none', () => {
+  it('tells a vector under a tag from the bare vector of the same elements', () => {
     const tagged = makeTagged(makeTag('A'), [1, 2, 3]);
     expect(compareValues(tagged, [1, 2, 3]) === 0).toBe(false);
   });
 
-  it('rejects tagged Map vs untagged Map with same entries', () => {
+  it('tells a map under a tag from the bare map of the same entries', () => {
     const tagged = makeTagged(makeTag('U'), new Map([['k', 1]]));
     expect(compareValues(tagged, new Map([['k', 1]])) === 0).toBe(false);
   });
 
-  it('rejects a tag over a set vs the set of the same elements', () => {
+  it('tells a set under a tag from the set of the same elements', () => {
     const tagged = makeTagged(makeTag('S'), makeSet([1, 2]));
     expect(compareValues(tagged, makeSet([1, 2])) === 0).toBe(false);
   });

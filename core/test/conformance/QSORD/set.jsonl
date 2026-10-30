@@ -7,8 +7,8 @@
 {"name":"the-payload-of-a-set-is-its-vector","query":"#[2 1] | payload","expect":"[1 2]"}
 {"name":"the-set-tag-refuses-a-payload-other-than-a-vector","query":"::set{:a 1} !| tag","expect":"::set/PayloadKindNotTakenError"}
 {"name":"a-set-indexes-in-the-one-order","query":"#[:z :x :y] | query /1","expect":":y"}
-{"name":"filter-keeps-the-set","query":"#[3 1 2] | filter ~(gt 1)","expect":"#[2 3]"}
-{"name":"a-set-maps-into-the-vector-of-its-images","query":"#[-1 1] | map ~(mul 0)","expect":"[0 0]"}
+{"name":"filter-keeps-the-set","query":"#[3 1 2] | filter (gt 1)","expect":"#[2 3]"}
+{"name":"a-set-maps-into-the-vector-of-its-images","query":"#[-1 1] | map (mul 0)","expect":"[0 0]"}
 {"name":"sort-of-a-set-answers-a-vector","query":"#[3 1 2] | sort | tag","expect":"::vec"}
 {"name":"reverse-of-a-set-answers-a-vector","query":"#[3 1 2] | reverse","expect":"[3 2 1]"}
 {"name":"two-sets-are-equal-by-their-content","query":"#[1 2] | eq #[2 1]","expect":"true"}
@@ -16,8 +16,8 @@
 {"name":"distinct-answers-each-element-of-a-vector-once","query":"[1 2 1 3 2 4] | distinct","expect":"[1 2 3 4]"}
 {"name":"distinct-of-a-set-answers-the-set-itself","query":"#[1 2 3] | distinct","expect":"#[1 2 3]"}
 {"name":"a-set-literal-of-ordered-elements-reads-as-written","query":"#[1 2 3]","expect":"#[1 2 3]"}
-{"name":"toSet-turns-the-images-of-a-set-back-into-a-set","query":"#[1 2 3] | map ~(add 1) | toSet","expect":"#[2 3 4]"}
-{"name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter ~(gt 1)","expect":"#[2 3]"}
-{"name":"keys-answer-the-order-of-the-entries-and-their-set-the-one-order","query":"{:b 1 :a 2} | get [~(keys) ~(keys | toSet)]","expect":"[[:b :a] #[:a :b]]"}
-{"name":"a-set-answers-zip-by-its-own-the-vector-of-its-columns","query":"get [~(#[[1 1] [2 2]] | zip) ~(::Box#[[1 1] [2 2]] | zip) ~(#[3 1 2] | vec/sort) ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path)])]","expect":"[[[1 2] [1 2]] [[1 2] [1 2]] #[1 2 3] [::set/zip/ElementKindNotTakenError /0]]"}
-{"name":"a-word-of-vectors-a-set-reaches-answers-a-set-each-value-held-once","query":"get [~(#[[1 1] [2 2]] | flat) ~(#[[1 1] [2 2]] | vec/zip) ~(#[[1 1] [2 2]] | zip)]","expect":"[#[1 2] #[[1 2]] [[1 2] [1 2]]]"}
+{"name":"toSet-turns-the-images-of-a-set-back-into-a-set","query":"#[1 2 3] | map (add 1) | toSet","expect":"#[2 3 4]"}
+{"name":"a-set-answered-by-a-verb-that-keeps-its-subject-stays-a-set","query":"#[1 2 3] | filter (gt 1)","expect":"#[2 3]"}
+{"name":"keys-answer-the-order-of-the-entries-and-their-set-the-one-order","query":"{:b 1 :a 2} | get [keys (keys | toSet)]","expect":"[[:b :a] #[:a :b]]"}
+{"name":"a-set-answers-zip-by-its-own-the-vector-of-its-columns","query":"get [(#[[1 1] [2 2]] | zip) (::Box#[[1 1] [2 2]] | zip) (#[3 1 2] | vec/sort) (#[1 [2]] | zip !| get [tag (trace | last | path)])]","expect":"[[[1 2] [1 2]] [[1 2] [1 2]] #[1 2 3] [::set/zip/ElementKindNotTakenError /0]]"}
+{"name":"a-word-of-vectors-a-set-reaches-answers-a-set-each-value-held-once","query":"get [(#[[1 1] [2 2]] | flat) (#[[1 1] [2 2]] | vec/zip) (#[[1 1] [2 2]] | zip)]","expect":"[#[1 2] #[[1 2]] [[1 2] [1 2]]]"}

@@ -1,7 +1,7 @@
 // [QSHST#source], [QSGAT#workspaces]
 
-import { makeKeyword } from './types.mjs';
-import { BuiltinSourceLoadError } from './source-load-error.mjs';
+import { makeKeyword } from '../src/types.mjs';
+import { BuiltinSourceLoadError } from '../src/source-load-error.mjs';
 
 /* global fetch */
 export async function loadSource(uri) {

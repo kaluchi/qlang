@@ -9,9 +9,8 @@
       ::snippet~({:scores [5 6]} | get /scores/-1) shows a path read. `answer`
       runs it, and `snippets` reads the snippets of a doc.
 
-      A snippet answers whatever it shows, a failure among them, since
-      it reproduces a situation for its reader; a link opens a page, and
-      a law answers true.
+      A snippet answers what its code answers, a failure among them; a
+      link opens a page, and a law answers true.
       ::link~(::link) ::link~(::qlang/hypertext)
   ~~|
   ::kind
@@ -27,7 +26,8 @@
         ~~|
     | proves :answersWhatItShows
         |~~ A snippet answers what it shows. ~~|
-        ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | answer | has ::vec/count)
+        ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | answer
+          | has ::vec/count)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A snippet is a quote. ~~|
         ~(::snippet"x" !| tag | eq ::snippet/PayloadKindNotTakenError);

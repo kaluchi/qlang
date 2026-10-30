@@ -13,14 +13,17 @@
       ::link~(::span) ::link~(::qlang/errors)
   ~~|
   ::kind
-    | accepts |~~ The three numbers, the offset, the line and the column. ~~| [::number]
+    | accepts |~~ The three numbers, the offset, the line and the column. ~~|
+        [::number]
     | wires :offset
         |~~ The offset of the point from the start of the text, counted from
             zero.
         ~~|
         /0 ::number
     | wires :line |~~ The line of the point, counted from one. ~~| /1 ::number
-    | wires :column |~~ The column of the point in its line, counted from one. ~~| /2 ::number
+    | wires :column
+        |~~ The column of the point in its line, counted from one. ~~| /2
+            ::number
     | throws :PayloadKindNotTakenError
         |~~ A point is the vector of the offset, the line and the column of
             a character of a source, `::point[0 1 1]`, which the ends of a
@@ -34,12 +37,12 @@
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
         ~~|
-        ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
+        ~(allOf (count | eq 3) (every (eq (floor))))
     | proves :readsItsPartsByTheirNames
         |~~ The offset, the line and the column of a point are read by
             their names.
         ~~|
-        ~(::point[4 2 5] | get [~(offset) ~(line) ~(column)] | eq [4 2 5])
+        ~(::point[4 2 5] | get [offset line column] | eq [4 2 5])
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
         ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)
@@ -48,7 +51,9 @@
         ~(::point[0 1] !| tag | eq ::point/ColumnNotGivenError)
     | proves :PayloadNotOffsetLineAndColumnError/refusesSixNumbers
         |~~ Six numbers make a span, no point. ~~|
-        ~(::point[0 1 1 4 1 5] !| tag | eq ::point/PayloadNotOffsetLineAndColumnError)
+        ~(::point[0 1 1 4 1 5] !| tag
+          | eq ::point/PayloadNotOffsetLineAndColumnError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no vector of numbers. ~~|
-        ~(::point{:offset 0 :line 1 :column 1} !| tag | eq ::point/PayloadKindNotTakenError);
+        ~(::point{:offset 0 :line 1 :column 1} !| tag
+          | eq ::point/PayloadKindNotTakenError);

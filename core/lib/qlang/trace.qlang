@@ -6,15 +6,15 @@
 :trace
   |~~ A trace is what a failure leaves as it flies: a frame for each step
       that raised it or handed it on, from the step where it arose to the
-      step where it is read. `[1 "x" 3] | map ~(mul 2) !| trace` answers
+      step where it is read. `[1 "x" 3] | map (mul 2) !| trace` answers
       the frame of `mul 2`, which failed on `"x"`, then the frame of `map`,
       whose code failed on the element at `/1`; a step the failure skips
       joins the steps of the last frame.
 
       An error holds it under `:trace`, written as the failure flies, which
-      the kind of every refusal wires as `trace`, so the error at rest of a
+      the kind of every refusal wires as `trace`. So the error at rest of a
       refusal answers it by its name, `"x" | add 1 !| trace`, and one under
-      `::error` alone by its key, `get /trace`; the verbs of vectors read
+      `::error` alone by its key, `get /trace`. The verbs of vectors read
       it, `first` the frame where the failure arose and `last` the frame
       of the level that reads it. It prints a frame a line where it holds
       two or more, a frame standing on one line whatever its subject
@@ -23,7 +23,7 @@
       An error at rest written with frames under `:trace` resumes them
       when `raise` raises it, and an empty trace is none, the raise
       starting one at its own step.
-      ::snippet~([1 "x" 3] | map ~(mul 2) !| trace)
+      ::snippet~([1 "x" 3] | map (mul 2) !| trace)
       ::link~(::frame) ::link~(::kind/throws)
       ::link~(::qlang/errors)
   ~~|
@@ -52,17 +52,19 @@
         |~~ A failure inside the code of `map` holds the frame of the step
             that failed and the frame of `map`.
         ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | count | eq 2)
+        ~([1 "x" 3] | map (mul 2) !| trace | count | eq 2)
     | proves :joinsTheStepsSkippedToTheLastFrame
         |~~ A step the failure skips joins the steps of the last frame. ~~|
-        ~("x" | add 1 | mul 2 | count !| trace | last | skipped | eq ~(mul 2 | count))
+        ~("x" | add 1 | mul 2 | count !| trace | last | skipped
+          | eq ~(mul 2 | count))
     | proves :printsAFrameALine
         |~~ A trace of two frames prints a frame a line. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | print | lines | count | eq 4)
+        ~([1 "x" 3] | map (mul 2) !| trace | print | lines | count | eq 4)
     | proves :resumesWhenRaised
         |~~ An error at rest written with frames resumes them when raised.
         ~~|
-        ~(!{:code 404 :trace ::trace[::frame[1 ~(pre)]]} | raise | count !| get /trace | eq ::trace[::frame[1 ~(pre | count)]])
+        ~(!{:code 404 :trace ::trace[::frame[1 ~(pre)]]} | raise
+          | count !| get /trace | eq ::trace[::frame[1 ~(pre | count)]])
     | proves :takesAPlainVectorOfFrames
         |~~ A plain vector of frames is a trace. ~~|
         ~([::frame[1 ~(pre)]] | tag ::trace | eq ::trace[::frame[1 ~(pre)]])
@@ -71,26 +73,32 @@
         ~(::trace[::Step::frame[1 ~(pre)]] | eq ::trace[::frame[1 ~(pre)]])
     | proves :PayloadKindNotTakenError/refusesASet
         |~~ A set of frames is no trace, written or raised. ~~|
-        ~(get [~(::trace#[::frame[1 ~(add 1)]] !| tag) ~({:trace #[::frame[1 ~(add 1)]]} | raise !| tag)]
-          | eq [::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError])
+        ~(get
+          [(::trace#[::frame[1 ~(add 1)]] !| tag)
+          ({:trace #[::frame[1 ~(add 1)]]} | raise !| tag)]
+          | eq
+          [::trace/PayloadKindNotTakenError ::trace/PayloadKindNotTakenError])
     | proves :PayloadKindNotTakenError/refusesAVectorUnderAnotherTag
         |~~ A vector of frames under a tag of another kind is refused. ~~|
-        ~([::frame[1 ~(add 1)]] | tag ::Steps | tag ::trace !| tag | eq ::trace/PayloadKindNotTakenError)
+        ~([::frame[1 ~(add 1)]] | tag ::Steps | tag ::trace !| tag
+          | eq ::trace/PayloadKindNotTakenError)
     | proves :PayloadKindNotTakenError/refusesANumberARaiseLays
         |~~ A number a map writes as its trace is refused when it is
             raised.
         ~~|
-        ~({:code 404 :trace 5} | raise !| get [~(tag) ~(found | tag)] | eq [::trace/PayloadKindNotTakenError ::number])
+        ~({:code 404 :trace 5} | raise !| get [tag (found | tag)]
+          | eq [::trace/PayloadKindNotTakenError ::number])
     | proves :ElementKindNotTakenError/refusesAMap
         |~~ An element that is no frame is refused at its index. ~~|
-        ~(::trace[{:failed ~(add 1)}] !| get [~(tag) ~(index)] | eq [::trace/ElementKindNotTakenError 0])
+        ~(::trace[{:failed ~(add 1)}] !| get [tag index]
+          | eq [::trace/ElementKindNotTakenError 0])
     | impl ::builtin{};
 
 :trace/failed
   |~~ Answers the step that failed at each level of the trace, from the
       level where the failure arose to the level that reads it, each the
-      quote of its one step, `[1 "x" 3] | map ~(mul 2) !| trace | failed`
-      answering `[~(mul 2) ~(map ~(mul 2))]`, as `map ~failed` reads
+      quote of its one step, `[1 "x" 3] | map (mul 2) !| trace | failed`
+      answering `[~(mul 2) ~(map (mul 2))]`, as `map failed` reads
       them a frame at a time. A host shows it beside a trace past the room
       of a fact, `:trace/failed`.
       ::link~(::frame/failed) ::link~(::kind/reveals)
@@ -99,24 +107,24 @@
     | returns |~~ The steps that failed, level by level. ~~| ::vec
     | proves :readsTheStepThatFailedAtEachLevel
         |~~ The step of each level, from the one that refused. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | failed | eq [~(mul 2) ~(map ~(mul 2))])
-    | impl ~(map ~failed);
+        ~([1 "x" 3] | map (mul 2) !| trace | failed
+          | eq [~(mul 2) ~(map (mul 2))])
+    | impl ~(map failed);
 
 :trace/paths
-  |~~ Answers the paths of the parts the verbs of its levels ran their code
-      on, from the level where the failure arose outward, a level that ran
-      none naming none, `[1 "x" 3] | map ~(mul 2) !| trace | paths`
-      answering `[/1]`, so a failure inside the code a verb ran on an
-      element tells which element. A host shows it beside a trace past the
-      room of a fact, `:trace/paths`.
-      ::link~(::frame/path) ::link~(::kind/reveals)
+  |~~ Answers the paths of the parts its levels failed at, from the level where
+      the failure arose outward, a level that failed at no part naming none,
+      `[1 "x" 3] | map (mul 2) !| trace | paths` answering `[/1]`, so a failure
+      at an element tells which element. A host shows it beside a trace past the
+      room of a fact, `:trace/paths`. ::link~(::frame/path)
+      ::link~(::kind/reveals)
   ~~|
   ::fn
     | returns |~~ The paths of the parts, level by level. ~~| ::vec
     | proves :readsThePathsOfTheParts
         |~~ The path of the element `map` ran its code on. ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | paths | eq [/1])
-    | impl ~(map ~path | filter ~(ne null));
+        ~([1 "x" 3] | map (mul 2) !| trace | paths | eq [/1])
+    | impl ~(map path | filter (ne null));
 
 :trace/subject
   |~~ Answers the subject the step that failed met, the value the frame

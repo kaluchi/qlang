@@ -10,7 +10,7 @@ import { parseSource } from '../../../src/parse.mjs';
 import { partOf, keepParts } from '../../../src/parsed-parts.mjs';
 import { evalQuery } from '../../../src/notebook.mjs';
 import { rootVerbNames } from '../../helpers/root-verbs.mjs';
-import { refusalOf, rootOf, kindOf } from '../../helpers/read-text.mjs';
+import { refusalOf, rootOf, formOfAStep } from '../../helpers/read-text.mjs';
 
 it('runs the verb a call record names, a step no text wrote', async () => {
   const quote = makeQuote([callOf(new Map([['name', makeKeyword('count')]]), asPrinted)]);
@@ -39,14 +39,14 @@ describe('a rule of a step refused where the text writes it', () => {
 
   it('refuses a literal step that computes where it is read, before a fault later in its pipeline', () => {
     const refused = refusalOf('[x]e');
-    expect(refused.message).toContain('write `get [~(x)]`');
+    expect(refused.message).toContain('`::any/get | doc`');
     expect([refused.location.start.offset, refused.location.end.offset]).toEqual([0, 3]);
   });
 
   it('answers the first rule of the steps of a pipeline in the order written but the rules a step holds itself, a modifier\'s and a group\'s among them, when it is read', () => {
     for (const [source, column] of [
-      ['1 | [2] !| /a', 5], ['5 | /b !| /a', 5], ['5 | 6 | count', 5], ['5 !| /a | 6', 6], ['f 1 [x]', 5],
-      ['5 | 6 | f [x]', 11], ['5 | 6 | (7 | 8)', 14], ['5 | 6 | [x]', 9], ['5 | 6 | :true 1', 9]
+      ['1 | [2] !| /a', 5], ['5 | /b !| /a', 5], ['5 | 6 | count', 5], ['5 !| /a | 6', 6], ['1 | f ::P(x)', 7],
+      ['5 | 6 | f ::P(x)', 11], ['5 | 6 | (7 | 8)', 14], ['5 | 6 | [x]', 9], ['5 | 6 | :true 1', 9]
     ]) {
       expect(refusalOf(source).location.start.column, source).toBe(column);
     }
@@ -79,10 +79,10 @@ describe('the span of each part', () => {
   });
 
   it('spans the text each part read', () => {
-    const source = '[1 2] | filter ~(gt 0)';
+    const source = '[1 2] | filter (gt 0)';
     const root = rootOf(source);
     expect(source.substring(root.span.start.offset, root.span.end.offset)).toBe(source);
-    expect(root.parts[1].parts.map(modifier => source.slice(modifier.span.start.offset, modifier.span.end.offset))).toEqual(['~(gt 0)']);
+    expect(root.parts[1].parts.map(modifier => source.slice(modifier.span.start.offset, modifier.span.end.offset))).toEqual(['(gt 0)']);
   });
 });
 
@@ -129,7 +129,7 @@ describe('the steps a quote holds, each a record or a literal', () => {
   });
 
   it('refuses an error literal holding a fact with no reading as code', async () => {
-    expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [~(it)] | tag ::quote !| get [~(tag) ~(index)]'))
+    expect(await evalQuery('{:a ::Box[1]} | tag ::error | get [it] | tag ::quote !| get [tag index]'))
       .toEqual(await evalQuery('[::quote/ElementNotStepError 0]'));
   });
 });
@@ -139,7 +139,7 @@ describe('assembling steps by hand', () => {
   const tagNamed = name => evalQuery(name);
 
   it('a step of the fail track stands in the quote itself and in no container', async () => {
-    expect(await refusal('get [[~(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagNamed('::quote/ElementNotStepError'));
+    expect(await refusal('get [[(~(f) | tag ::fail)]] | tag ::quote')).toEqual(await tagNamed('::quote/ElementNotStepError'));
   });
 
   it('a declaration stands in a pipeline and in no container or modifier', async () => {
@@ -149,44 +149,44 @@ describe('assembling steps by hand', () => {
   });
 
   it('a value of another tag is no step', async () => {
-    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| get [~(tag) ~(field)]'))
+    expect(await evalQuery('::construct{:tag ::T :payload ::Box[1]} !| get [tag field]'))
       .toEqual(await evalQuery('[::construct/PayloadNotSchemaError :payload]'));
   });
 
   it('an error at rest under the tag of its site is a value under a tag, which no text writes as a step', async () => {
-    expect(await evalQuery('get [~("x" | add 1 !| payload | minus #[:trace] | tag ::number/add/SubjectNotNumberError)] | tag ::quote !| tag')).toEqual(await evalQuery('::quote/ElementNotStepError'));
-    expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ~("x" | add 1 !| payload | minus #[:trace])} | tag ::construct | get [~(it)] | tag ::quote | toString'))
+    expect(await evalQuery('get [("x" | add 1 !| payload | minus #[:trace] | tag ::number/add/SubjectNotNumberError)] | tag ::quote !| tag')).toEqual(await evalQuery('::quote/ElementNotStepError'));
+    expect(await evalQuery('get {:tag ::number/add/SubjectNotNumberError :payload ("x" | add 1 !| payload | minus #[:trace])} | tag ::construct | get [it] | tag ::quote | toString'))
       .toBe('::number/add/SubjectNotNumberError!{:subject/expected #[::number] :subject/found "x"}');
   });
 
   it('a required field left out does not fit the schema', async () => {
-    expect(await evalQuery('::call{:modifiers []} !| get [~(tag) ~(field) ~(found)]'))
+    expect(await evalQuery('::call{:modifiers []} !| get [tag field found]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :name null]'));
   });
 
   it('an index, a tag name and calls and paths inside a container are steps', async () => {
     expect(await evalQuery('[[/items/0]] | tag ::quote | toString')).toBe('[/items/0]');
     expect(await evalQuery('[[::T]] | tag ::quote | toString')).toBe('[::T]');
-    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [~(it)] | tag ::quote | toString')).toBe(':point {:x 0};');
-    expect(await evalQuery('~(get [~(count) /a]) | filter ~(true) | toString')).toBe('get [~(count) /a]');
+    expect(await evalQuery('::bind{:name :point :body {:x 0}} | get [it] | tag ::quote | toString')).toBe(':point {:x 0};');
+    expect(await evalQuery('~(get [count /a]) | filter (true) | toString')).toBe('get [count /a]');
   });
 
-  it('a literal that computes writes its template as the printer writes it, each part that computes as its quote', async () => {
-    const messageOf = async query => await evalQuery(`${query} | get [~(it)] | tag ::quote !| message`);
-    expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [~(add 1)]`');
-    expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 ~(x)]`');
-    expect(await messageOf('get [~(~(count) | tag ::group)]')).toContain('write `get [~(count)]`');
-    expect(await evalQuery('get {:tag ::Foo :payload ~({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a ~(count)} | tag ::Foo | raise`');
+  it('a literal that computes writes its template as the printer writes it, each part that computes as the code it is', async () => {
+    const messageOf = async query => await evalQuery(`${query} | get [it] | tag ::quote !| message`);
+    expect(await messageOf('get [(~(5 | add 1) | tag ::group)]')).toContain('write `get [(5 | add 1)]`');
+    expect(await messageOf('get #[(~(5 | count) | tag ::group) 1]')).toContain('write `get #[1 (5 | count)]`');
+    expect(await evalQuery('get {:tag ::Foo :payload (get {:a (~(5 | count) | tag ::group)} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a (5 | count)} | tag ::Foo | raise`');
+    expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('`::any/get | doc`');
   });
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {
     for (const literal of ['[|~~ ::group~(x) ~~|]', '{:k |~~ ::fail~(x) ~~|}', '#[|~~ ::group~(x) ~~|]', '::Box[|~~ ::group~(x) ~~|]', '!{:k |~~ ::group~(x) ~~|}']) {
-      expect(await evalQuery(`"${literal}" | parse | eq (first | get [~(it)] | tag ::quote)`), literal).toBe(true);
+      expect(await evalQuery(`"${literal}" | parse | eq (first | get [it] | tag ::quote)`), literal).toBe(true);
     }
   });
 
   it('holds a literal assembled from data to the rules of a step at any depth, its parts read by a stack of their own', async () => {
-    expect(await evalQuery('6000 | range | reduce [] ~(get [/0]) | get [~(it)] | tag ::quote | count')).toBe(1);
+    expect(await evalQuery('6000 | range | reduce [] (get [/0]) | get [it] | tag ::quote | count')).toBe(1);
   });
 
   it('each refusal of the constructors of the steps holds values whose print reads back, a payload of code refused as the map its record is built from', async () => {
@@ -194,32 +194,32 @@ describe('assembling steps by hand', () => {
       ['1 | tag ::quote', 'quote/PayloadKindNotTakenError'], ['[{:a ::Box[1]}] | tag ::quote', 'quote/ElementNotStepError'],
       ['[[1] [2]] | tag ::quote', 'quote/StepNotCommandError'], ['[[::call{:name :count}]] | tag ::quote', 'quote/LiteralComputesError'],
       ['[1] | tag ::call', 'call/PayloadKindNotTakenError'], ['{:name :f :extra 1} | tag ::call', 'call/PayloadNotSchemaError'],
-      ['{:name :"a b"} | tag ::call', 'call/NameNotCallableError'], ['{:name :take :modifiers [[::call{:name :x}]]} | tag ::call', 'call/LiteralComputesError'],
+      ['{:name :"a b"} | tag ::call', 'call/NameNotCallableError'],
       ['[1] | tag ::bind', 'bind/PayloadKindNotTakenError'], ['{:name :x} | tag ::bind', 'bind/PayloadNotSchemaError'],
       ['{:name :true :body 1} | tag ::bind', 'bind/NameNotCallableError'], ['{:name :x :body [::call{:name :y}]} | tag ::bind', 'bind/LiteralComputesError'],
       ['[1] | tag ::construct', 'construct/PayloadKindNotTakenError'], ['{:tag :Box :payload [1]} | tag ::construct', 'construct/PayloadNotSchemaError'],
-      ['get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct', 'construct/LiteralComputesError'],
+      ['get {:tag ::Box :payload (~(x) | first)} | tag ::construct', 'construct/LiteralComputesError'],
       ['[::construct{:tag ::Box :payload ::call{:name :count}}]', 'construct/LiteralComputesError'],
       ['1 | tag ::fail', 'fail/PayloadKindNotTakenError'], ['~(a | b) | tag ::fail', 'fail/PayloadNotOneStepError'],
       ['[/a] | tag ::quote | tag ::fail', 'fail/StepNotCommandError'], ['1 | tag ::group', 'group/PayloadKindNotTakenError'],
       ['~() | tag ::group', 'group/PayloadEmptyError']
     ];
     for (const [query, address] of refusals) {
-      expect(await evalQuery(`${query} !| get [~(tag) ~(eq (print | parse | answer))]`), query).toEqual([makeTag(address), true]);
+      expect(await evalQuery(`${query} !| get [tag (eq (print | parse | answer))]`), query).toEqual([makeTag(address), true]);
     }
     expect(await evalQuery('[::construct{:tag ::Box :payload ::call{:name :count}}] !| found | tag')).toEqual(makeTag('map'));
   });
 
   it('a call takes no field its record does not name, and a modifier that is a call takes no modifiers of its own', async () => {
-    expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [~(tag) ~(field)]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
-    expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [~(tag) ~(field)]'))
+    expect(await evalQuery('{:name :f :extra 1} | tag ::call !| get [tag field]')).toEqual(await evalQuery('[::call/PayloadNotSchemaError :extra]'));
+    expect(await evalQuery('{:name :f :modifiers [::call{:name :g :modifiers [1]}]} | tag ::call !| get [tag field]'))
       .toEqual(await evalQuery('[::call/PayloadNotSchemaError :modifiers]'));
   });
 });
 
 describe('the steps of a tagged literal and of a tag', () => {
   it('a tagged literal is a `::construct` step over the step of its payload', async () => {
-    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [~(tag) /tag /payload]'))
+    expect(await evalQuery('~(::invariant~(mul 2)) | first | get [tag /tag /payload]'))
       .toEqual(await evalQuery('[::construct ::invariant ~(mul 2)]'));
   });
 
@@ -247,8 +247,8 @@ describe('the parts of a text', () => {
 
   it('holds the name and the body of a declaration, and the modifiers of a call', () => {
     const [bind] = rootOf(':double mul 2;').parts;
-    expect(kindOf(bind)).toBe('bind');
-    expect(bind.parts.map(kindOf)).toEqual(['literal', 'call']);
+    expect(formOfAStep(bind)).toBe('bind');
+    expect(bind.parts.map(formOfAStep)).toEqual(['literal', 'call']);
     expect([bind.parts[0].value.name, bind.parts[1].value.get('name').name]).toEqual(['double', 'mul']);
     expect(valuesOf(bind.parts[1].parts)).toEqual([2]);
   });
@@ -257,7 +257,7 @@ describe('the parts of a text', () => {
     const source = '(mul 2 | add 1)';
     const [group] = rootOf(source).parts;
     expect(isGroupStep(group.value)).toBe(true);
-    expect(group.parts.map(kindOf)).toEqual(['call', 'call']);
+    expect(group.parts.map(formOfAStep)).toEqual(['call', 'call']);
     expect(source.slice(group.content.start.offset, group.content.end.offset)).toBe('mul 2 | add 1');
   });
 

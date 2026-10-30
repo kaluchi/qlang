@@ -40,7 +40,9 @@ by a probe, a case, a check or a reading of the tree, a refusal and a
 negation that is the condition of a rule among them. It names no moment and
 no reader, so it reads the same to a session that saw none of its history:
 the chapters of the specification, the pages of the catalog, the cases, the
-comments of the code and the seeds [QSVOX#seed]. A section keeps what its
+comments of the code and the seeds [QSVOX#seed]. A page of the catalog
+speaks of the language alone and names no language its runtime is written
+in, the runtime standing for it, which `check:conventions` holds. A section keeps what its
 rule does for its reader, a consequence a reading of the tree decides, as
 that calls run side by side never stop each other; why the rule changed,
 what it was and what it set aside leave with its record at the closeout.

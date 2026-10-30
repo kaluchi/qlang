@@ -1,26 +1,24 @@
 |~ `::keyword` and what is declared under it: the refusal of a
-   payload of another kind, and the verbs that turn a keyword into a string, a number
-   and a tag.
+   payload of another kind, and the verbs that turn a keyword into a
+   string, a number and a tag.
    The rules it holds: [QSDSP#residence]. ~|
 
 :keyword
-  |~~ A keyword is a name that stands for itself, `:name`. It is apart
-      from the string so that no name is read by its look: every key of
-      a map is a keyword, `/name` reads the field a keyword names, and a
-      keyword names a declaration, `:Box |~~ A box. ~~|;` declaring `Box`.
+  |~~ A keyword is a name that stands for itself, `:name`. It is apart from the
+      string so that no name is read by its look: every key of a map is a
+      keyword, `/name` reads the field a keyword names, and a keyword names a
+      declaration, `:Box |~~ A box. ~~|;` declaring `Box`.
 
-      A bare keyword is a colon and a name that begins with a letter of
-      any script or `_` and goes on with letters, digits, `_` and `-`,
-      `:id`, `:first-name`; a slash joins names into a path,
-      `:domain/user`; any other text is quoted, `:"first name"`, and
-      quotes around a bare name change nothing. A keyword is no string,
-      `:draft | eq "draft"` answering `false`, and `toKeyword` and
-      `toString` turn one into the other, `"draft" | toKeyword` answering
-      `:draft`. JSON writes a keyword as its name, `"draft"`, and keywords
-      rank after regexes and before tags.
-      ::snippet~(::keyword | manifest) lists its verbs.
-      ::link~(::map) ::link~(::string)
-      ::link~(::qlang/values)
+      A bare keyword is a colon and a name that begins with a letter of any
+      script or `_` and goes on with the letters of a name, marks, digits and
+      connectors among them, and `-`, `:id`, `:first-name`; a slash joins names
+      into a path, `:domain/user`; any other text is quoted, `:"first name"`,
+      and quotes around a bare name change nothing. A keyword is no string,
+      `:draft | eq "draft"` answering `false`, and `toKeyword` and `toString`
+      turn one into the other, `"draft" | toKeyword` answering `:draft`. JSON
+      writes a keyword as its name, `"draft"`, and keywords rank after regexes
+      and before tags. ::snippet~(::keyword | manifest) lists its verbs.
+      ::link~(::map) ::link~(::string) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ A keyword, read as itself. ~~| ::keyword
@@ -38,7 +36,8 @@
         |~~ A name of any script, a name with a path and a quoted name are
             keywords alike.
         ~~|
-        ~([:данные :domain/user :"$ref"] | map ~toString | eq ["данные" "domain/user" "$ref"])
+        ~([:данные :domain/user :"$ref"] | map toString
+          | eq ["данные" "domain/user" "$ref"])
     | proves :quotesABareName
         |~~ A bare name quoted is the same keyword. ~~|
         ~(:"foo" | eq :foo)
@@ -46,11 +45,12 @@
         |~~ A string payload is refused; `toKeyword` turns a string into
             one.
         ~~|
-        ~(::keyword"k" !| get [~(tag) ~(found | tag)] | eq [::keyword/PayloadKindNotTakenError ::string]);
+        ~(::keyword"k" !| get [tag (found | tag)]
+          | eq [::keyword/PayloadKindNotTakenError ::string]);
 
 :keyword/toKeyword
-  |~~ Answers the keyword itself, so `map ~toKeyword` turns names,
-      strings and numbers into keys, `["draft" :paid 1] | map ~toKeyword`
+  |~~ Answers the keyword itself, so `map toKeyword` turns names,
+      strings and numbers into keys, `["draft" :paid 1] | map toKeyword`
       answering `[:draft :paid :"1"]`.
       ::link~(::string/toKeyword) ::link~(::number/toKeyword)
   ~~|
@@ -60,14 +60,14 @@
         |~~ A keyword answers itself, so names, strings and numbers turn
             into keys.
         ~~|
-        ~(["draft" :paid 1] | map ~toKeyword | eq [:draft :paid :"1"])
+        ~(["draft" :paid 1] | map toKeyword | eq [:draft :paid :"1"])
     | impl ::builtin{};
 
 :keyword/toNumber
   |~~ Answers the number the name of the keyword writes,
       `:"1" | toNumber` answering `1`, so a key that `groupBy` filed a
       number under turns back into the number,
-      `groupBy /year | keys | toVec | map ~toNumber`. A name that
+      `groupBy /year | keys | map toNumber`. A name that
       writes no number is refused.
       ::link~(::number/toKeyword) ::link~(::string/toNumber)
   ~~|
@@ -80,26 +80,27 @@
         ~~|
     | proves :readsTheNumberOfAKey
         |~~ A key filed from a number turns back into it. ~~|
-        ~([{:year 2020} {:year 2021}] | groupBy /year | keys | toVec | map ~toNumber | eq [2020 2021])
+        ~([{:year 2020} {:year 2021}] | groupBy /year | keys | map toNumber
+          | eq [2020 2021])
     | proves :NameNotNumberError/refusesAName
         |~~ A name that writes no number is refused. ~~|
         ~(:id | toNumber !| tag | eq ::keyword/toNumber/NameNotNumberError)
     | impl ::builtin{};
 
 :keyword/toString
-  |~~ Answers the name of the keyword as a string, `:draft | toString`
-      answering `"draft"`, the text JSON writes for it, so a key joins text,
-      `{:host "db"} | entries | map ~(get [~(get /0 | toString) "=" /1] | join "")`.
-      A quoted name and a name with a path answer their text as written,
-      `:"first name"` the string `"first name"`. `toKeyword` turns the
-      string back into the keyword.
-      ::link~(::string/toKeyword) ::link~(::keyword)
+  |~~ Answers the name of the keyword as a string, `:draft | toString` answering
+      `"draft"`, the text JSON writes for it, so a key joins text,
+      `{:host "db"} | entries | map (get [(get /0 | toString) "=" /1] | join
+      "")`. A quoted name and a name with a path answer their text as written,
+      `:"first name"` the string `"first name"`. `toKeyword` turns the string
+      back into the keyword. ::link~(::string/toKeyword) ::link~(::keyword)
   ~~|
   ::fn
     | returns |~~ The name of the keyword, a string. ~~| ::string
     | proves :answersTheName
         |~~ A keyword answers its name as written. ~~|
-        ~([:foo :"foo bar" :domain/user] | map ~toString | eq ["foo" "foo bar" "domain/user"])
+        ~([:foo :"foo bar" :domain/user] | map toString
+          | eq ["foo" "foo bar" "domain/user"])
     | proves :readsBack
         |~~ A keyword turned into its name turns back into itself. ~~|
         ~(:pending | toString | toKeyword | eq :pending)

@@ -24,7 +24,7 @@ export class SourceParseError extends Error {
 export function parseSource(source, opts = {}) {
   if (typeof source !== 'string') {
     throw new SourceParseError(
-      'parse() expects a string source',
+      'a source is a string: the host handed a value of another kind',
       null,
       opts.uri ?? null
     );

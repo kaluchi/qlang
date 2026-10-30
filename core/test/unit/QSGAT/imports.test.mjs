@@ -47,7 +47,7 @@ it('the reading of the imports finds a cycle and a reach into the words where a 
 });
 
 it('the reading of the imports reads the loaders the imports of the package map through every condition', () => {
-  expect(imports.get('core/src/runtime/bootstrap.mjs')).toEqual(expect.arrayContaining(['core/host/load-source-node.mjs', 'core/src/load-source-web.mjs']));
+  expect(imports.get('core/src/runtime/bootstrap.mjs')).toEqual(expect.arrayContaining(['core/host/load-source-node.mjs', 'core/host/load-source-web.mjs']));
 });
 
 const importsWritten = sources => {

@@ -66,5 +66,14 @@ const SECTIONS = {
     'no two modules of the project bear one name, so a search of a name finds one file, a test file, which its section names, and a configuration of a tool aside by their form [QSLEX#grep].'),
   // The declarations of a source of the catalog in the order of their names [QSSLF#catalog].
   catalogOrder: found => section('Declarations of the catalog out of the order of their names', found, ({ path, line, name, problem }) => `  ${path}:${line}  ::${name} ${problem}\n`,
-    'a source of the catalog declares a noun before the names under it and the names under a noun together, in the one order of their addresses, which `manifest` lists them in, `::number/abs` before `::number/add`, so a reader finds a verb where its name puts it [QSSLF#catalog].')
+    'a source of the catalog declares a noun before the names under it and the names under a noun together, in the one order of their addresses, which `manifest` lists them in, `::number/abs` before `::number/add`, so a reader finds a verb where its name puts it [QSSLF#catalog].'),
+  // The catalog names no language of its runtime [QSVOX#voices].
+  runtimeLanguages: found => section('The language of the runtime named in the catalog', found, ({ path, line, word }) => `  ${path}:${line}  ${word}\n`,
+    'the pages of the catalog speak of the language alone: write the runtime where a page means the language its runtime is written in [QSVOX#voices].'),
+  // A line of the catalog runs eighty characters at most [QSSLF#catalog].
+  catalogWidth: found => section('Lines of the catalog past eighty characters', found, ({ path, line, width }) => `  ${path}:${line}  ${width} characters\n`,
+    'a line of a source of the catalog runs eighty characters at most: pour the prose of a doc again and break a line of code at its whitespace, before a pipe where one stands [QSSLF#catalog].'),
+  // A sentence of a page runs sixty words at most [QSSLF#catalog].
+  pageSentences: found => section('Sentences of the pages past sixty words', found, ({ path, words, sentence }) => `  ${path}  ${words} words  ${sentence.slice(0, 80)}\n`,
+    'a sentence of a page runs sixty words at most: cut it at its claims, each its own sentence, the facts kept [QSSLF#catalog].')
 };

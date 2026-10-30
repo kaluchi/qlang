@@ -31,7 +31,7 @@ it('keeps of the walk the kinds up to its label and the kind `::tagged` of the v
   const kindsAfter = (address, kinds) => answerKindsOf(scope, nodeOf(scope, address), kinds);
   expect([kindsAfter('tagged/within', ['Box', 'tagged', 'vec']), kindsAfter('Box/g', ['Box', 'tagged', 'vec']), kindsAfter('vec/h', ['vec'])])
     .toEqual([['Box', 'tagged'], ['Box', 'tagged'], ['vec', 'number']]);
-  const answers = await Promise.all(['::Box[1 2] | within ~(get /0) | tag', '::Box[1 2] | within ~(get /0) | payload | tag', '[1 2] | h | tag'].map(query => notebook.evalCell(query)));
+  const answers = await Promise.all(['::Box[1 2] | within (get /0) | tag', '::Box[1 2] | within (get /0) | payload | tag', '[1 2] | h | tag'].map(query => notebook.evalCell(query)));
   expect(answers.map(cell => cell.result.name)).toEqual(['Box', 'number', 'number']);
 });
 
@@ -47,7 +47,7 @@ it('reads a literal step, a tagged literal among them, apart from a step that co
 
 it('holds whether a verb serves a subject as its call does, a tag name served by a verb of its noun whose `on` names `::tag` alone', async () => {
   const notebook = await createNotebook();
-  await notebook.evalCell(':Desk |~~ A help desk. ~~|; :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~("9 to 5")); :Desk/size ~(count);');
+  await notebook.evalCell(':Desk |~~ A help desk. ~~|; :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~("9 to 5")); :Desk/size count;');
   const serves = (address, subject) => servesTheSubject(nodeOf(notebook.scope, address), subject);
   const [desk, vec] = [makeTag('Desk'), makeTag('vec')];
   expect([serves('vec/count', [1]), serves('vec/count', vec), serves('tag/toTag', vec), serves('Desk/hours', desk), serves('Desk/hours', vec), serves('Desk/size', desk)])

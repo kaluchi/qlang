@@ -33,7 +33,7 @@ describe('the selector of an input', () => {
       ['::Foo!{:a 1}', '::Foo!{:a 1}'], ['~(add 1)', '~(add 1)'], ['("/a" | parse)', '::quote[/a]'], ['|~~ d ~~|', '(|~~ d ~~|)'],
       ['[~(add 1) {:b #[2]}]', '[~(add 1) {:b #[2]}]']
     ]) {
-      const filled = await answerOf(`(::fn | takes :v |~~ V. ~~| /0 | impl ~(v)) | fill ${value} | get [~(toString) ~(with {:q ~it} ~(null | apply q | eq ${value}))]`);
+      const filled = await answerOf(`(::fn | takes :v |~~ V. ~~| /0 | impl ~(v)) | fill ${value} | get [toString (with {:q it} (null | apply q | eq ${value}))]`);
       expect(filled, value).toEqual([`:v |~~ V. ~~| ${written}; v`, true]);
     }
   });
@@ -43,7 +43,7 @@ describe('the selector of an input', () => {
   });
 
   it('runs a selector that reads a part deeper than one arg as code over the args', async () => {
-    expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)); 1 | get [~(deep {:a 7}) ~(deep {:b 1})]')).toEqual([7, 5]);
+    expect(await answerOf(':any/deep (::fn | takes :n |~~ N. ~~| ~(query /0/a 5) | impl ~(n)); 1 | get [(deep {:a 7}) (deep {:b 1})]')).toEqual([7, 5]);
   });
 
   it('runs a selector of `query` with more modifiers than it takes as code, which `query` refuses', async () => {
@@ -64,7 +64,7 @@ describe('the args of a call', () => {
   });
 
   it('reads an arg softly by a selector of query, and the values after the lead by any other step, under the tag of the call\'s args', async () => {
-    expect(await evalQuery(BOX + '::Box[4 2] | get [~(tally) ~(tally 1 2 3)]')).toEqual(await evalQuery('[[null ::Box/tally[]] [1 ::Box/tally[2 3]]]'));
+    expect(await evalQuery(BOX + '::Box[4 2] | get [tally (tally 1 2 3)]')).toEqual(await evalQuery('[[null ::Box/tally[]] [1 ::Box/tally[2 3]]]'));
   });
 });
 

@@ -9,9 +9,7 @@
 //   node scripts/sensors/growth.mjs [parse|eval|rereads] [words of a shape]
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { tmpdir } from 'node:os';
+import { unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -57,16 +55,16 @@ const EVAL = {
   'a long pipeline': n => '1' + repeat(' | add 1', n),
   'a failure passing a long pipeline': n => '"x" | add 1' + repeat(' | add 1', n) + ' !| tag',
   'groups nested': n => repeat('(', n) + '1' + repeat(' | add 1)', n),
-  'quotes nested and applied': n => '5 | ' + repeat('apply ~(', n) + 'add 1' + repeat(')', n),
-  'map over many elements': n => `${n} | range | map ~(add 1) | count`,
-  'a failure in map at the last element': n => `${n} | range | map ~(if (eq ${n - 1}) ~(raise) ~(it)) !| tag`,
-  'reduce over many elements': n => `${n} | range | reduce 0 ~(add)`,
-  'sort of many elements': n => `${n} | range | map ~(mul -1) | sort | first`,
-  'a run of declarations read at its end': n => 'apply ~(' + Array.from({ length: n }, (_, i) => `:a${i} ${i};`).join(' ') + ` a${n - 1})`,
+  'code nested and applied': n => '5 | ' + repeat('apply (', n) + 'add 1' + repeat(')', n),
+  'map over many elements': n => `${n} | range | map (add 1) | count`,
+  'a failure in map at the last element': n => `${n} | range | map (if (eq ${n - 1}) raise it) !| tag`,
+  'reduce over many elements': n => `${n} | range | reduce 0 add`,
+  'sort of many elements': n => `${n} | range | map (mul -1) | sort | first`,
+  'a run of declarations read at its end': n => 'apply (' + Array.from({ length: n }, (_, i) => `:a${i} ${i};`).join(' ') + ` a${n - 1})`,
   'a value nested, printed': n => repeat('[', n) + '1' + repeat(']', n) + ' | print | count',
-  'a template of many parts': n => 'get [' + repeat('~(add 1) ', n) + '] | count',
+  'a template of many parts': n => '1 | get [' + repeat('(add 1) ', n) + '] | count',
   'a failure caught at each of many steps': n => '"x"' + repeat(' | add 1 !| "x"', n) + ' | count',
-  'equality of values nested': n => `${repeat('[', n)}1${repeat(']', n)} | with {:v ~it} ~(eq v)`
+  'equality of values nested': n => `${repeat('[', n)}1${repeat(']', n)} | with {:v it} (eq v)`
 };
 
 // One run: the milliseconds of the median of up to five, the answer of a
@@ -97,12 +95,9 @@ const LIMIT_MS = 15000;
 // own, and the most entries into one rule at one offset of each text, with
 // the rule and the offset.
 async function rereadsOf(texts) {
-  const peggy = createRequire(import.meta.url)('peggy');
-  const grammar = readFileSync(new URL('../../core/src/grammar.peggy', import.meta.url), 'utf8');
-  const parser = peggy.generate(grammar, { output: 'source', format: 'es', trace: true, allowedStartRules: ['Query'] })
-    .replaceAll("from '../src/", `from '${pathToFileURL(join(root, 'core/src'))}/`);
-  const traced = join(tmpdir(), `qlang-grammar-traced-${process.pid}.mjs`);
-  writeFileSync(traced, parser);
+  const { parserSourceOf } = await import('../../core/scripts/build-grammar.mjs');
+  const traced = join(root, 'core', 'gen', `grammar-traced-${process.pid}.mjs`);
+  writeFileSync(traced, parserSourceOf(true));
   const { parse } = await import(pathToFileURL(traced));
   unlinkSync(traced);
   return texts.map(text => {

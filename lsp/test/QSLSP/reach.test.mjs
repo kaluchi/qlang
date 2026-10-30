@@ -21,7 +21,7 @@ describe('the hover', () => {
   });
 
   it('hover includes docs from manifest', async () => {
-    const src = '[1 2 3] | filter ~(gt 2)';
+    const src = '[1 2 3] | filter (gt 2)';
     const { root } = parseDocument(src, 'test.qlang');
     const filterOffset = src.indexOf('filter');
     const hover = await hoverAtOffset(root, src, filterOffset);
@@ -111,7 +111,7 @@ describe('the hover', () => {
   });
 
   it('returns the doc of a verb the document declares under a label, called by its name or its address', async () => {
-    const src = ':number/double |~~ Doubles a number. ~~| ~(mul 2); 10 | double | number/double';
+    const src = ':number/double |~~ Doubles a number. ~~| mul 2; 10 | double | number/double';
     const { root } = parseDocument(src, 'test.qlang');
     for (const offset of [src.indexOf('| double') + 2, src.lastIndexOf('number/double')]) {
       const hover = await hoverAtOffset(root, src, offset);
@@ -120,8 +120,8 @@ describe('the hover', () => {
   });
 
   it('shows the page of a verb called in its own body, which calls itself by its name, and none for a value its own body names', async () => {
-    const src = ':map/walk\n  |~~ Walks a tree. ~~|\n  ~(get {:n /n :kids ~(get /kids | map ~walk)});\n{:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n';
-    expect(asRead((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.indexOf('~walk') + 1)).content)).toBe("**walk** — a reader's name  \n  \nWalks a tree.  ");
+    const src = ':map/walk\n  |~~ Walks a tree. ~~|\n  (get {:n /n :kids (get /kids | map walk)});\n{:n 1 :kids [{:n 2 :kids []}]} | walk | get /kids/0/n';
+    expect(asRead((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.indexOf('map walk') + 4)).content)).toBe("**walk** — a reader's name  \n  \nWalks a tree.  ");
     const value = ':n |~~ A number. ~~| (n | add 1);';
     expect(await hoverAtOffset(parseDocument(value, 'test.qlang').root, value, value.indexOf('(n') + 1)).toBeNull();
   });
@@ -156,7 +156,7 @@ describe('the hover', () => {
     const { root } = parseDocument(src, 'test.qlang');
     const { content } = await hoverAtOffset(root, src, src.indexOf('::tagged') + 2);
     expect(content).toContain('\\:\\:snippet\\~\\(\\:\\:tagged \\| manifest\\) lists its verbs\\.');
-    expect(content).toContain('`within ~(…)` edits the payload under the tag');
+    expect(content).toContain('`within (…)` edits the payload under the tag');
     expect(content).toContain('`::Box[1 2]`\\, `::Box{:width 2}`');
   });
 
@@ -179,7 +179,7 @@ describe('the hover', () => {
     const hoverOf = async src => asRead((await hoverAtOffset(parseDocument(src, 'test.qlang').root, src, src.lastIndexOf(src.includes('count') ? 'count' : 'eq'))).content);
     expect(await hoverOf('count')).toBe('**count** — the kind of the subject unknown, the verbs of the name:  \n  \n::map/count  \n::string/count  \n::vec/count  ');
     expect((await hoverOf('5 | count')).split('\n')[0]).toBe('**count** — ::number answers none of the verbs of the name:  ');
-    expect((await hoverOf('[1 2] | map ~(add 1) | count')).split('\n')[0]).toBe('**count** — the kind of the subject unknown, the verbs of the name:  ');
+    expect((await hoverOf('[1 2] | map (add 1) | count')).split('\n')[0]).toBe('**count** — the kind of the subject unknown, the verbs of the name:  ');
     expect((await hoverOf('eq')).split('\n')[0]).toBe('**eq** — ::any/eq value  ');
   });
 
@@ -200,32 +200,32 @@ describe('the names a step reaches in the body of a verb, the verbs, the nodes a
   const pageOf = (name, prose) => `**${name}** — a reader's name  \n  \n${prose}  `;
 
   it('reaches a verb declared after the verb, one that calls it back among them, in the body of a verb under a label of the root and of the document alike', async () => {
-    const later = ':vec/f ~(g); :vec/g |~~ G. ~~| ~(7); [1] | f';
-    const mutual = ':vec/even |~~ E. ~~| ~(odd); :vec/odd |~~ O. ~~| ~(1); [1] | even';
-    const underALabel = ':Box |~~ B. ~~|; :Box/f ~(g); :vec/g |~~ G. ~~| ~(7); ::Box[1] | f';
-    expect([await hoverOf(later, later.indexOf('~(g)') + 2), await gotoOf(later, later.indexOf('~(g)') + 2), await hoverOf(mutual, mutual.indexOf('(odd)') + 1), await hoverOf(underALabel, underALabel.indexOf('~(g)') + 2)])
+    const later = ':vec/f g; :vec/g |~~ G. ~~| ~(7); [1] | f';
+    const mutual = ':vec/even |~~ E. ~~| odd; :vec/odd |~~ O. ~~| ~(1); [1] | even';
+    const underALabel = ':Box |~~ B. ~~|; :Box/f g; :vec/g |~~ G. ~~| ~(7); ::Box[1] | f';
+    expect([await hoverOf(later, later.indexOf(':vec/f g') + 7), await gotoOf(later, later.indexOf(':vec/f g') + 7), await hoverOf(mutual, mutual.indexOf('| odd') + 2), await hoverOf(underALabel, underALabel.indexOf(':Box/f g') + 7)])
       .toEqual([pageOf('g', 'G.'), later.indexOf(':vec/g'), pageOf('odd', 'O.'), pageOf('g', 'G.')]);
-    expect(await evalQuery(`get [~(${later}) ~(${mutual}) ~(${underALabel})]`)).toEqual([7, 1, 7]);
+    expect(await evalQuery(`get [(${later}) (${mutual}) (${underALabel})]`)).toEqual([7, 1, 7]);
   });
 
   it('reaches no value a reader named outside the body, which the language refuses there, and the verb where a value of its name stands outside it', async () => {
-    const value = 'apply ~(:k |~~ K. ~~| 1; :vec/f ~(k); [1] | f)';
+    const value = 'apply (:k |~~ K. ~~| 1; :vec/f ~(k); [1] | f)';
     expect([await hoverOf(value, value.indexOf('~(k)') + 2), await gotoOf(value, value.indexOf('~(k)') + 2)]).toEqual([null, null]);
-    expect(await evalQuery(`${value} !| get [~(tag) ~(name)]`)).toEqual(await evalQuery('[::call/UnknownNameError :k]'));
-    const shadowed = 'apply ~(:f |~~ F value. ~~| 1; :vec/f |~~ The verb. ~~| ~(if (count | gt 1) ~(drop 1 | f) ~(count)); [1 2] | vec/f)';
+    expect(await evalQuery(`${value} !| get [tag name]`)).toEqual(await evalQuery('[::call/ValueWithheldError :k]'));
+    const shadowed = 'apply (:f |~~ F value. ~~| 1; :vec/f |~~ The verb. ~~| (if (count | gt 1) (drop 1 | f) count); [1 2] | vec/f)';
     expect([await hoverOf(shadowed, shadowed.indexOf('| f)') + 2), await gotoOf(shadowed, shadowed.indexOf('| f)') + 2), await evalQuery(shadowed)])
       .toEqual([pageOf('f', 'The verb.'), shadowed.indexOf(':vec/f'), 1]);
   });
 
   it('reaches a declaration of the body before one outside it, and a name outside any verb\'s body as the declarations before it', async () => {
     const inner = ':vec/f |~~ The verb. ~~| ~(:k |~~ Inner. ~~| 1; k); :k |~~ Outer. ~~| 2; [1] | f';
-    const outside = ':k |~~ K. ~~| 1; get [~(k)]';
+    const outside = ':k |~~ K. ~~| 1; get [(k)]';
     expect([await hoverOf(inner, inner.indexOf('; k)') + 2), await gotoOf(inner, inner.indexOf('; k)') + 2), await hoverOf(outside, outside.lastIndexOf('k')), await gotoOf(outside, outside.lastIndexOf('k'))])
       .toEqual([pageOf('k', 'Inner.'), inner.indexOf(':k'), pageOf('k', 'K.'), 0]);
   });
 
   it('completes in the body of a verb the names it reaches by their roles, a verb under a label declared after it among them', async () => {
-    const src = ':k 1; :vec/f ~(here); :Late |~~ L. ~~|; :Late/g ~(1);';
+    const src = ':k 1; :vec/f here; :Late |~~ L. ~~|; :Late/g ~(1);';
     const roles = new Map((await completionsAtOffset(parseDocument(src, 'test.qlang').root, src.indexOf('here'), src)).map(item => [item.label, item.role]));
     expect(['f', 'g', 'Late', '::Late', 'k'].map(label => roles.get(label))).toEqual(['verb', 'verb', 'label', 'label', undefined]);
   });
@@ -245,7 +245,7 @@ const testCatalogCtx = { index: testCatalogIndex, scope: await langRuntime() };
 
 describe('the jump to a declaration', () => {
   it('jumps from the use site of a verb to its declaration under a label', async () => {
-    const src = ':number/double ~(mul 2); 10 | double';
+    const src = ':number/double mul 2; 10 | double';
     const { root } = parseDocument(src, 'test.qlang');
     const useOffset = src.lastIndexOf('double');
     const def = await definitionAtOffset(root, useOffset);
@@ -325,17 +325,17 @@ describe('the jump to a declaration', () => {
   });
 
   it('jumps from a call by address to the declaration of that address alone, a declaration of its last name aside', async () => {
-    const src = ':vec/x ~(1); :string/x ~(2); :count 5; [1] | get [~(vec/x) ~(vec/count)]';
+    const src = ':vec/x ~(1); :string/x ~(2); :count 5; [1] | get [vec/x vec/count]';
     const { root } = parseDocument(src, 'test.qlang');
-    expect((await definitionAtOffset(root, src.indexOf('vec/x)'))).startOffset).toBe(0);
+    expect((await definitionAtOffset(root, src.indexOf('vec/x vec'))).startOffset).toBe(0);
     expect(await definitionAtOffset(root, src.indexOf('vec/count'))).toBeNull();
     expect((await definitionAtOffset(root, src.indexOf('vec/count'), testCatalogCtx)).fileUri).toBe('file:///test/core.qlang');
   });
 
   it('jumps from a call of a verb in its own body to its declaration, by its name and by its address, and a value its own body names to none', async () => {
-    const src = ':map/walk ~(get {:n /n :kids ~(get /kids | map ~walk | map ~map/walk)}); :n (n | add 1);';
+    const src = ':map/walk (get {:n /n :kids (get /kids | map walk | map map/walk)}); :n (n | add 1);';
     const { root } = parseDocument(src, 'test.qlang');
-    for (const offset of [src.indexOf('~walk') + 1, src.indexOf('~map/walk') + 1]) expect((await definitionAtOffset(root, offset)).startOffset).toBe(0);
+    for (const offset of [src.indexOf('map walk') + 4, src.indexOf('map map/walk') + 4]) expect((await definitionAtOffset(root, offset)).startOffset).toBe(0);
     expect(await definitionAtOffset(root, src.indexOf('(n') + 1)).toBeNull();
   });
 
@@ -426,7 +426,7 @@ describe('the innermost part at a position', () => {
 
 describe('the references of a name', () => {
   it('finds all occurrences of a verb a reader declares', () => {
-    const src = ':number/double ~(mul 2); [1 2] | map ~double';
+    const src = ':number/double mul 2; [1 2] | map double';
     const { root } = parseDocument(src, 'test.qlang');
     const refs = referencesAtOffset(root, src.lastIndexOf('double'));
     expect(refs.length).toBe(2);

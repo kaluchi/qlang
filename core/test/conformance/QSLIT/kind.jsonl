@@ -22,8 +22,8 @@
 {"name":"a-set-has-the-kind-set","query":"#[1 2] | tag","expect":"::set"}
 {"name":"the-empty-set-has-the-kind-set","query":"#[] | tag","expect":"::set"}
 {"name":"the-tag-of-the-payload-reads-past-the-outer-tag","query":"::AutoBox[1 2 3] | payload | tag","expect":"::vec"}
-{"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [~(tag) ~(payload | tag)]","expect":"[::A ::B]"}
-{"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [~(tag) ~(payload)]","expect":"[::A 1]"}
+{"name":"tags-stack-over-a-payload-and-read-from-the-outside-in","query":"::A::B{} | get [tag (payload | tag)]","expect":"[::A ::B]"}
+{"name":"a-tag-stacks-over-an-atom-as-over-a-container","query":"::A#1 | get [tag payload]","expect":"[::A 1]"}
 {"name":"the-tag-a-value-answers-is-a-tag-name","query":"5 | tag | tag","expect":"::tag"}
-{"name":"payload-answers-what-the-literal-of-a-kind-of-the-core-writes-after-its-tag","query":"get [~(1 | payload) ~(\"s\" | payload) ~([1] | payload) ~({:a 1} | payload) ~(#[2 1] | payload) ~(~(add 1) | payload | tag) ~(|~~ a ~~| | payload)]","expect":"[1 \"s\" [1] {:a 1} [1 2] ::vec [\"a\"]]"}
-{"name":"type-reads-the-kind-as-tag-reads-it","query":"[5 ::Width#5 #[1] ::vec] | map ~(get [~(type) ~(tag)])","expect":"[[::number ::number] [::Width ::Width] [::set ::set] [::tag ::tag]]"}
+{"name":"payload-answers-what-the-literal-of-a-kind-of-the-core-writes-after-its-tag","query":"get [(1 | payload) (\"s\" | payload) ([1] | payload) ({:a 1} | payload) (#[2 1] | payload) (~(add 1) | payload | tag) (|~~ a ~~| | payload)]","expect":"[1 \"s\" [1] {:a 1} [1 2] ::vec [\"a\"]]"}
+{"name":"type-reads-the-kind-as-tag-reads-it","query":"[5 ::Width#5 #[1] ::vec] | map (get [type tag])","expect":"[[::number ::number] [::Width ::Width] [::set ::set] [::tag ::tag]]"}

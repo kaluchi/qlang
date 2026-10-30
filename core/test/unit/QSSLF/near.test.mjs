@@ -9,8 +9,8 @@ it('names at the same distance come all, in the order of their spelling', async 
 });
 
 it('a nearer name leaves the farther ones out, a name the typed one begins with standing beside them', async () => {
-  expect(await nearestOf('apply ~(:mapper 1; :mapped 2; mappe)')).toEqual([makeKeyword('map'), makeKeyword('mapped'), makeKeyword('mapper')]);
-  expect(await nearestOf('apply ~(:mapper 1; :mapperXY 2; mapper2)')).toEqual([makeKeyword('map'), makeKeyword('mapper')]);
+  expect(await nearestOf('apply (:mapper 1; :mapped 2; mappe)')).toEqual([makeKeyword('map'), makeKeyword('mapped'), makeKeyword('mapper')]);
+  expect(await nearestOf('apply (:mapper 1; :mapperXY 2; mapper2)')).toEqual([makeKeyword('map'), makeKeyword('mapper')]);
 });
 
 it('the names of the notebook count, a label of the root among them by its tag, and an address does not', async () => {
@@ -24,7 +24,7 @@ it('a part a kind wires on its values counts among the names a step reaches, a f
 });
 
 it('follows the links of a page alone, by the tag a link opens with, past a capitalised tail', async () => {
-  const twice = ':number/twice |~~ Doubles. ::snippet~(::any/sumOf | doc) ::link~(1) ::link~(::map/keys | doc) ::link~(::any/mulOf | doc) ~~| ~(mul 2); 5';
+  const twice = ':number/twice |~~ Doubles. ::snippet~(::any/sumOf | doc) ::link~(1) ::link~(::map/keys | doc) ::link~(::any/mulOf | doc) ~~| mul 2; 5';
   expect(await nearestOf(`${twice} | twiceOf`)).toEqual([makeKeyword('mulOf'), makeKeyword('twice')]);
   expect(await nearestOf(`${twice} | twices`)).toEqual([makeKeyword('twice')]);
   expect(await nearestOf(`${twice} | twic`)).toEqual([makeKeyword('twice')]);

@@ -124,7 +124,7 @@ bytes of a text it reads, a source or standard input, as UTF-8 by
 `TextDecoder`, the decode the text of a response runs: a byte order mark
 at the head of the text drops, one inside it stays the character U+FEFF,
 and a byte no character reads is U+FFFD, so a text reads alike on every
-host and no mark a host read reaches the core; the bundle of the site reads
+host and no byte order mark a host read reaches the core; the bundle of the site reads
 its sources by the loader `text` of esbuild, which drops the mark alike.
 A string that holds the mark holds the character, which the grammar reads
 as no whitespace. The language server
@@ -141,7 +141,7 @@ the failure.
 > ::vec | binding | origin
 :qlang/vec
 
-> get [~(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | apply it
+> get [(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | answer
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
@@ -150,21 +150,21 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | with {:counting ~it} ~(print | parse | answer | with {:back ~it} ~(get [~(eq counting) ~([1 2] | apply back) ~({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [~(tag) ~(of)])]))
+> ::vec/count | binding | value | with {:counting it} (print | parse | answer | with {:back it :own (::fn | impl (counting | get /1))} (get [(eq counting) ([1 2] | apply back) ({:id 7} | apply own [] !| get [tag of])]))
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}); ::B[1]
 ::B[1]
 
-> get [~({:id 7} | apply (::vec/first | binding | value) [] !| tag) ~(:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
+> get [({:id 7} | with {:f (::vec/first | binding | value)} (apply f []) !| tag) (:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
-> get [~("add (" | parse !| origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
+> get [("add (" | parse !| origin) (::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
 [:string/parse true]
 ```
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply ~(:rate 1; named)')).result)"
+$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply (:rate 1; named)')).result)"
 true
 ```
 
@@ -252,20 +252,17 @@ subject as it came, so the query goes on with it, and
 is a verb of its host, addressing the same names the queries read, and
 its result a noun that queries read. A verb of a host has one output, a
 value under its tag, and the kinds of its refusals; what it answers is
-the data its inputs chose, filtered for the question. A tag may describe
-an effect a host is to perform, and such a value is performed by an
-explicit step at the boundary, the provenance of a value a host shows
-being a tag over it. A constructor is pure, and reading or
+the data its inputs chose, filtered for the question. A constructor is pure, and reading or
 constructing a literal performs nothing. The forks of a sequence run in
 its order, so a verb of a host with an effect meets the elements in their
 order, and a verb of a host that takes the whole vector bounds its calls
 itself.
 
 ```qlang
-> :any/quiet ~(stdio/out); 1
+> :any/quiet stdio/out; 1
 1
 
-> "hi" | out !| get [~(tag) ~(addresses)]
+> "hi" | out !| get [tag addresses]
 [::call/KindAnswersNoVerbError #[::stdio/out]]
 ```
 
@@ -316,7 +313,7 @@ it does not hold as `::cell/answer/SubjectNotHeldError`. A host that keeps no
 cell names none.
 
 ```qlang
-> ::cell"a3f9c2d1e04b" | get [~(tag) ~(payload) ~(eq (print | parse | answer))]
+> ::cell"a3f9c2d1e04b" | get [tag payload (eq (print | parse | answer))]
 [::cell "a3f9c2d1e04b" true]
 
 > ::cell"../notes" !| tag
@@ -324,7 +321,7 @@ cell names none.
 ```
 
 ```sh
-$ qplay "$(qplay '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
+$ qplay "$(qplay '3000 | range | map {:id it}' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
 3000
 
 $ qplay '::cell"000000000000" | answer !| tag' < /dev/null

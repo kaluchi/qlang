@@ -78,6 +78,10 @@ const marking = way => (names, primitive) => {
 export const runsAsCode = marking('run');
 export const runsWithinAsCode = marking('within');
 export const foldsAsCode = marking('folded');
+// [QSCOL#image]
+export const buildsAsTemplate = marking('template');
+// [QSPTH#template]
+export const holdsAsCode = marking('held');
 // [QSNUM#combine]
 export const takesAsGiven = marking('given');
 export const inputsAsCode = primitive => INPUTS_AS_CODE.get(primitive);

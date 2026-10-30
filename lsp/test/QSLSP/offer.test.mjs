@@ -53,14 +53,14 @@ describe('the names offered at a position', () => {
   });
 
   it('names each name the document declares by the role of its declaration, a verb under its own label or a label of the root and a label by its name and its tag', async () => {
-    const src = ':Box |~~ A box. ~~|; :Box/area ~(1); :vec/second ~(get /1); :n 1; n';
+    const src = ':Box |~~ A box. ~~|; :Box/area ~(1); :vec/second get /1; :n 1; n';
     const { root } = parseDocument(src, 'test.qlang');
     const roles = new Map((await completionsAtOffset(root, src.length)).map(item => [item.label, item.role]));
     expect(['area', 'second', 'n', 'Box', '::Box'].map(label => roles.get(label))).toEqual(['verb', 'verb', 'value', 'label', 'label']);
   });
 
   it('offers each name the document declares once, by the name a step calls it by, a name with a path by its last name, after a subject and with none', async () => {
-    for (const typed of [':vec/second ~(get /1); [1 2] | ', ':vec/second ~(get /1); ']) {
+    for (const typed of [':vec/second get /1; [1 2] | ', ':vec/second get /1; ']) {
       const src = `${typed}it`;
       const labels = (await completionsAtOffset(parseDocument(src, 'test.qlang').root, typed.length, src)).map(item => item.label);
       expect([labels.filter(label => label === 'second').length, labels.includes('vec/second')], typed).toEqual([1, false]);
@@ -196,7 +196,7 @@ describe('the verbs offered after a value', () => {
   });
 
   it('keeps the kind of a subject a verb returns as its own', async () => {
-    const labels = await labelsAt('[1 2 3] | filter ~(gt 1) | ');
+    const labels = await labelsAt('[1 2 3] | filter (gt 1) | ');
     expect(labels).toContain('count');
     expect(labels).not.toContain('add');
   });
@@ -237,7 +237,7 @@ describe('the verbs offered after a value', () => {
   });
 
   it('offers every name where no declaration names the kind of the subject', async () => {
-    for (const src of [':x 1; x | ', '[1 2 3] | map ~(add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(', '"x" | add 1 !| ']) {
+    for (const src of [':x 1; x | ', '[1 2 3] | map (add 1) | ', '{:a 1} | /a | ', '1 | nosuch | ', 'count(', '"x" | add 1 !| ']) {
       const labels = await labelsAt(src);
       expect(labels).toContain('count');
       expect(labels).toContain('add');
@@ -247,7 +247,7 @@ describe('the verbs offered after a value', () => {
 
 describe('the help of the signature of a call', () => {
   it('returns the form of the call around the cursor', async () => {
-    const src = '[1 2 3] | filter ~(gt 2)';
+    const src = '[1 2 3] | filter (gt 2)';
     const { root } = parseDocument(src, 'test.qlang');
     const offset = src.indexOf('gt');
     const sig = await signatureHelpAtOffset(root, src, offset);

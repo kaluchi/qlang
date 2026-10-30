@@ -4,10 +4,10 @@ A pipeline query language over values: a query starts from a subject
 and passes it through steps, each answering a new value.
 
 ```qlang
-> [1 2 3 4 5] | filter ~(gt 3) | count
+> [1 2 3 4 5] | filter (gt 3) | count
 2
 
-> :number/double ~(mul 2); [10 20 30] | map ~double
+> :number/double mul 2; [10 20 30] | map double
 [20 40 60]
 
 > "10 | add 3" | parse | answer
@@ -17,10 +17,9 @@ and passes it through steps, each answering a new value.
 The language documents itself: every name has a page, a doc whose
 laws run. `::qlang | doc` opens the first page, `::host | env | keys`
 lists the names a query declared, `::host | kinds` the labels the scope
-reads,
-`::vec | manifest` the nodes under one, `::vec/sort | manifest` the
+reads, `::vec | manifest` the nodes under one, `::vec/sort | manifest` the
 nodes under the `sort` of vectors, its inputs, its answer and its
-refusals, and `::vec/sort | doc` the page of a name. The command line,
+refusals, and `::vec/sort | doc` the page of a name. The playground,
 `@kaluchi/qlang-playground`, `qplay`, runs a query from the shell.
 
 ## Embedding

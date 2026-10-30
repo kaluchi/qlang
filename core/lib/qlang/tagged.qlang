@@ -5,28 +5,26 @@
 
 :tagged
   |~~ A value under a tag is a payload read by the kind its tag names:
-      `::Box[1 2]`, `::Box{:width 2}`, `::Box#5`, `::Box"tea"`; the tag says
-      how to read the data beneath, and the data keeps its shape, so the
-      verbs of the payload's kind still serve it, `::Box[1 2] | count`
-      answering `2`. Tags stack and read from the outside in,
-      `::Box::Crate{:width 2} | tag` answering `::Box`.
+      `::Box[1 2]`, `::Box{:width 2}`, `::Box#5`, `::Box"tea"`; the tag says how
+      to read the data beneath, and the data keeps its shape, so the verbs of
+      the payload's kind still serve it, `::Box[1 2] | count` answering `2`.
+      Tags stack and read from the outside in, `::Box::Crate{:width 2} | tag`
+      answering `::Box`.
 
-      It is written as the tag touching its payload, whatever brackets
-      hold the payload, or made by `tag`, `[1 2] | tag ::Box` answering
-      `::Box[1 2]`. A tag declared as a kind runs over the payload its
-      constructor, where its slot holds one, and its invariants, and one
-      nothing declares lays itself as it is. `payload` takes the outer tag off, and
-      `within ~(…)` edits the payload under the tag, which checks it
-      again. JSON writes it as an object of its `$tag` and its
-      `payload`.
+      It is written as the tag touching its payload, whatever brackets hold the
+      payload, or made by `tag`, `[1 2] | tag ::Box` answering `::Box[1 2]`. A
+      tag declared as a kind runs over the payload its constructor, where its
+      slot holds one, and its invariants, and one nothing declares lays itself
+      as it is. `payload` takes the outer tag off, and
+      `within (…)` edits the payload under the tag, which checks it again.
+      JSON writes it as an object of its `$tag` and its `payload`.
 
-      A verb finds a value under a tag through its tags from the outside
-      in, then this kind, then the kind of its payload, so every value
-      under a tag reaches the verbs of this kind, a reader's kind adds
-      verbs over the core's, and a vector under a tag stays a vector.
-      ::snippet~(::tagged | manifest) lists its verbs.
-      ::link~(::tag) ::link~(::construct)
-      ::link~(::qlang/values)
+      A verb finds a value under a tag through its tags from the outside in,
+      then this kind, then the kind of its payload, so every value under a tag
+      reaches the verbs of this kind, a reader's kind adds verbs over the
+      core's, and a vector under a tag stays a vector.
+      ::snippet~(::tagged | manifest) lists its verbs. ::link~(::tag)
+      ::link~(::construct) ::link~(::qlang/values)
   ~~|
   ::kind
     | accepts |~~ No value: `::tagged` names verbs. ~~| #[]
@@ -38,44 +36,41 @@
     | proves :reachesPayload
         |~~ A box answers `payload`. ~~|
         ~(:Box |~~ A box. ~~|; ::Box[1 2] | payload | eq [1 2])
-    | proves :readsAsAConstructStep
-        |~~ The step `::Box[1 2]` is a `::construct`. ~~|
-        ~(~(::Box[1 2]) | first | tag | eq ::construct)
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::tagged`, and a value under a tag is of
             it already.
         ~~|
-        ~(get [~(5 | tag ::tagged !| tag) ~(::Box#5 | tag ::tagged)] | eq [::tagged/PayloadKindNotTakenError ::Box#5]);
+        ~(get [(5 | tag ::tagged !| tag) (::Box#5 | tag ::tagged)]
+          | eq [::tagged/PayloadKindNotTakenError ::Box#5]);
 
 :tagged/within
-  |~~ Answers the subject with code run beneath its tag: the quote the
+  |~~ Answers the subject with code run beneath its tag: the code the
       call gives runs against the payload, as `apply` runs it, and its answer
-      goes back under the tag, `::Box[1 2] | within ~(reverse)` answering
+      goes back under the tag, `::Box[1 2] | within reverse` answering
       `::Box[2 1]`. The tag is laid once through its kind, on the answer
       of the code, so the steps between may break what the tag holds of its
       payload: a set's constructor puts the vector the code answered in
-      order, `#[3 1] | within ~(get [/0 /1 /0])` answering `#[1 3]`, and a
+      order, `#[3 1] | within (get [/0 /1 /0])` answering `#[1 3]`, and a
       tag whose invariant the answer breaks refuses it. The names the
       code binds stay inside it. Under two tags the code runs beneath the
       outer one, and the value beneath both is reached by nesting
-      `within`, `within ~(within ~(reverse))`. The code is a quote or a
-      path, `within /items`: a value computed at the call,
-      `within (reverse)`, is refused under the input. A value under no
+      `within`, `within (within reverse)`. The code is written bare or a
+      path, `within /items`; a value given there is refused under
+      the input. A value under no
       tag runs its code by `apply`, and is refused here.
       ::link~(::any/apply) ::link~(::any/payload)
   ~~|
   ::fn
     | takes :code
-        |~~ The edit, a quote run against the payload. ~~|
+        |~~ The edit, code run against the payload. ~~|
         /0 #[::path ::quote]
     | throws :CodeKindNotTakenError
-        |~~ The edit `within` runs is a quote, `within ~(reverse)`; a
-            value computed at the call is refused, the error a step
-            answered there among them.
+        |~~ The edit `within` runs is code written bare, `within reverse`,
+            or a path; a value given there is refused.
         ~~|
     | throws :CodeNotGivenError
         |~~ `within` runs the code its call gives beneath the tag,
-            `::Box[1 2] | within ~(reverse)`; a call with no code is
+            `::Box[1 2] | within reverse`; a call with no code is
             refused.
         ~~|
     | returns
@@ -84,36 +79,41 @@
     | throws :SubjectNotTaggedError
         |~~ `within` edits a value beneath its tag; a value under no tag,
             a vector or a plain map, is edited by `apply`,
-            `[1 2] | apply ~(reverse)`.
+            `[1 2] | apply reverse`.
         ~~|
     | proves :keepsTheTag
         |~~ The edit returns under the tag. ~~|
-        ~(:Box |~~ A box. ~~|; ::Box[1 2] | within ~(reverse) | eq ::Box[2 1])
+        ~(:Box |~~ A box. ~~|; ::Box[1 2] | within reverse | eq ::Box[2 1])
     | proves :editsASetAsItsVector
         |~~ Code runs on a set as on its vector, and its answer comes back
             a set.
         ~~|
-        ~(#[3 1] | within ~(get [/0 /1 /0]) | eq #[1 3])
+        ~(#[3 1] | within (get [/0 /1 /0]) | eq #[1 3])
     | proves :laysItsTagAgainOverTheAnswer
         |~~ An answer the tag's invariant refuses is refused as it goes
             back under the tag.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3 | within ~(sub 5) !| tag | eq ::Pos/NotPositiveError)
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError
+          |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3 | within (sub 5) !| tag
+          | eq ::Pos/NotPositiveError)
     | proves :keepsItsNamesInside
         |~~ A name `with` gives the code stays inside it: the prices shift
             down by the lowest one, which names nothing after the call.
         ~~|
-        ~(::Prices[30 10 20] | within ~(with {:low ~min} ~(map ~(sub low))) | get [~(it) ~(::host | env | has :low)] | eq [::Prices[20 0 10] false])
+        ~(::Prices[30 10 20] | within (with {:low min} (map (sub low)))
+          | get [it (::host | env | has :low)] | eq [::Prices[20 0 10] false])
     | proves :reachesUnderTwoTags
         |~~ An edit under two tags reaches the innermost payload. ~~|
-        ~(:Box |~~ A box. ~~|; ::Box#[3 1] | within ~(within ~(get [/1 /0 2])) | eq ::Box#[1 2 3])
+        ~(:Box |~~ A box. ~~|; ::Box#[3 1] | within (within (get [/1 /0 2]))
+          | eq ::Box#[1 2 3])
     | proves :CodeKindNotTakenError/refusesANumber
-        |~~ A number computed at the call is refused. ~~|
-        ~(#[3 1] | within 1 !| get [~(tag) ~(code | found | tag)] | eq [::tagged/within/CodeKindNotTakenError ::number])
+        |~~ A number given as the code is refused. ~~|
+        ~(#[3 1] | within 1 !| get [tag (code | found | tag)]
+          | eq [::tagged/within/CodeKindNotTakenError ::number])
     | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|
-        ~([1 2] | within ~(reverse)
-          !| get [~(tag) ~(subject | found | tag)] | eq [::tagged/within/SubjectNotTaggedError ::vec])
+        ~([1 2] | within reverse !| get [tag (subject | found | tag)]
+          | eq [::tagged/within/SubjectNotTaggedError ::vec])
     | proves :CodeNotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
         ~(::Box[1] | within !| tag | eq ::tagged/within/CodeNotGivenError)
@@ -121,6 +121,8 @@
         |~~ The steps between may break the tag's invariant, and the
             answer alone is checked.
         ~~|
-        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3 | within ~(sub 5 | add 10) | eq ::Pos#8)
+        ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError
+          |~~ A number above zero. ~~| ~(gt 0)); ::Pos#3
+          | within (sub 5 | add 10) | eq ::Pos#8)
     | impl ::builtin{};
 

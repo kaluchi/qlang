@@ -3,7 +3,7 @@
 import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, TagsInCommon, pairRefused, ofTwoKinds } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
-import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, asCombiner } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, buildsAsTemplate, asCombiner } from '../primitives.mjs';
 import { underSharedTags } from '../eval.mjs';
 import { atPath } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
@@ -127,10 +127,13 @@ async function extremeOf(entries, key, pick) {
 
 const least = order => order < 0;
 const greatest = order => order > 0;
-registerPrimitive('vec/min', runsAsCode(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, least)));
-registerPrimitive('map/min', runsAsCode(['key'], (map, key) => extremeOf([...map], key, least)));
-registerPrimitive('vec/max', runsAsCode(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
-registerPrimitive('map/max', runsAsCode(['key'], (map, key) => extremeOf([...map], key, greatest)));
+// [QSORD#sort]
+const rankedByAKey = primitive => buildsAsTemplate(['key'], runsAsCode(['key'], primitive));
+
+registerPrimitive('vec/min', rankedByAKey((sequence, key) => extremeOf([...sequence.entries()], key, least)));
+registerPrimitive('map/min', rankedByAKey((map, key) => extremeOf([...map], key, least)));
+registerPrimitive('vec/max', rankedByAKey((sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
+registerPrimitive('map/max', rankedByAKey((map, key) => extremeOf([...map], key, greatest)));
 
 // [QSERR#flow], [QSORD#sort]
 async function sortedEntries(entries, key) {
@@ -140,11 +143,11 @@ async function sortedEntries(entries, key) {
   return ranked.map(({ entry }) => entry);
 }
 
-registerPrimitive(['vec/sort', 'set/sort'], runsAsCode(['key'], async (sequence, key) => {
+registerPrimitive(['vec/sort', 'set/sort'], rankedByAKey(async (sequence, key) => {
   const sorted = await sortedEntries([...sequence.entries()], key);
   return isErrorValue(sorted) ? sorted : sorted.map(([, element]) => element);
 }));
-registerPrimitive('map/sort', runsAsCode(['key'], async (map, key) => {
+registerPrimitive('map/sort', rankedByAKey(async (map, key) => {
   const sorted = await sortedEntries([...map], key);
   return isErrorValue(sorted) ? sorted : new Map(sorted);
 }));
@@ -160,11 +163,11 @@ async function answersOf(elements, code) {
   return answers;
 }
 
-registerPrimitive('vec/map', runsAsCode(['code'], (sequence, code) => answersOf(entriesOf(sequence), code)));
-registerPrimitive('map/map', runsAsCode(['code'], async (map, code) => {
+registerPrimitive('vec/map', buildsAsTemplate(['code'], runsAsCode(['code'], (sequence, code) => answersOf(entriesOf(sequence), code))));
+registerPrimitive('map/map', buildsAsTemplate(['code'], runsAsCode(['code'], async (map, code) => {
   const answers = await answersOf(entriesOf(map), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
-}));
+})));
 
 // [QSCND#boolean], [QSERR#trace]
 async function verdictOf(predicate, at, element, AnswerKindNotTakenError) {
@@ -252,7 +255,7 @@ registerPrimitive('set/groupBy', runsAsCode(['key'], async (set, key) => {
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
-async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
+async function indexedBy(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
   for (const [position, element] of sequence.entries()) {
@@ -265,7 +268,7 @@ async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError)
 
 const VecIndexByKeyAnswerKindNotTakenError = declareRefusal('vec/indexBy/KeyAnswerKindNotTakenError');
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
-registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
+registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexedBy(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
 
 // [QSTXT#string], [QSCOL#sequence]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
@@ -332,7 +335,7 @@ function firstOfEach(vector) {
 registerPrimitive('vec/distinct', firstOfEach);
 
 // [QSCOL#reduce]
-async function foldOf(entries, seed, reducer) {
+async function reducedFrom(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {
     acc = await reducer(acc, element);
@@ -341,5 +344,5 @@ async function foldOf(entries, seed, reducer) {
   return acc;
 }
 
-registerPrimitive('vec/reduce', foldsAsCode(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
-registerPrimitive('map/reduce', foldsAsCode(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));
+registerPrimitive('vec/reduce', foldsAsCode(['reducer'], (sequence, seed, reducer) => reducedFrom(sequence.entries(), seed, reducer)));
+registerPrimitive('map/reduce', foldsAsCode(['reducer'], (map, seed, reducer) => reducedFrom(map, seed, reducer)));

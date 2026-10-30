@@ -1,6 +1,6 @@
 |~ `::regex` and what is declared under it: the refusal of a
-   payload of another kind, and `toRegex`, which answers the regex itself. The verbs
-   that read text by a regex live under `::string`.
+   payload of another kind, and `toRegex`, which answers the regex
+   itself. The verbs that read text by a regex live under `::string`.
    The rules it holds: [QSTXT#regex]. ~|
 
 :regex
@@ -17,13 +17,13 @@
       every line and `s` for a dot that matches a line break,
       `#"^error"im`. A regex reads text by code points, as Unicode names
       characters, so `#"\p{L}+"` is a run of letters of any script.
-      The dialect is the one of JavaScript in its edition of 2018, which
-      the engine reads alike on every platform: a group of flags,
-      `(?i:…)`, and a group name written twice, past that edition, do not
-      parse, nor does a regex the engine cannot read, and
-      the refusal says why, naming the repair of a habit of another
-      dialect, flags written inside or a backslash before a character
-      that needs none, `\-`, `\:`.
+      The dialect is one, read alike on every platform: it holds
+      lookbehind, `(?<=…)`, named groups, `(?<name>…)`, and classes of
+      Unicode, `\p{L}`. A group of flags, `(?i:…)`, and a group name
+      written twice do not parse, nor does a regex the engine cannot read.
+      The refusal says why, naming the repair of a habit of another
+      dialect, flags written inside or a backslash before a character that
+      needs none, `\-`, `\:`.
 
       A regex is no string: `split "."` cuts a text at its dots, and
       `split #"[.,;]"` at any of three marks. Text becomes a regex by
@@ -48,12 +48,15 @@
         |~~ A backslash reaches the engine as written, and `\"` writes a
             quote.
         ~~|
-        ~(["12" "a.b" "say \"hi\""] | map ~(contains #"\d|\.|\"hi\"") | eq [true true true])
+        ~(["12" "a.b" "say \"hi\""] | map (contains #"\d|\.|\"hi\"")
+          | eq [true true true])
     | proves :takesItsFlagsAfterItsQuote
         |~~ The flags follow the closing quote and change how the engine
             reads.
         ~~|
-        ~(["ERROR here" "a\nerror"] | get [~(get /0 | contains #"error"i) ~(get /1 | contains #"^error"m)] | eq [true true])
+        ~(["ERROR here" "a\nerror"]
+          | get [(get /0 | contains #"error"i) (get /1 | contains #"^error"m)]
+          | eq [true true])
     | proves :readsLettersOfAnyScript
         |~~ A regex reads text by code points, a class of Unicode among
             it.
@@ -63,12 +66,14 @@
         |~~ A group of flags and a group name written twice do not parse,
             on every platform.
         ~~|
-        ~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map ~(parse !| tag) | eq [::quote/ParseError ::quote/ParseError])
+        ~(["#\"(?i:a)b\"" "#\"(?<y>a)|(?<y>b)\""] | map (parse !| tag)
+          | eq [::quote/ParseError ::quote/ParseError])
     | proves :namesTheRepairOfAHabit
         |~~ The refusal of a needless backslash names where a backslash
             stands.
         ~~|
-        ~("#\"a\\:b\"" | parse !| message | contains "a backslash stands before")
+        ~("#\"a\\:b\"" | parse !| message
+          | contains "a backslash stands before")
     | proves :readsBackFromJson
         |~~ JSON writes a regex as its literal, which `parse | answer` reads
             back.
@@ -81,19 +86,22 @@
         |~~ A regex is no string, so a text cuts at a dot and a regex at
             any mark.
         ~~|
-        ~("a.b,c" | get [~(split ".") ~(split #"[.,]")] | eq [["a" "b,c"] ["a" "b" "c"]])
+        ~("a.b,c" | get [(split ".") (split #"[.,]")]
+          | eq [["a" "b,c"] ["a" "b" "c"]])
     | proves :ranksAfterStrings
         |~~ Regexes rank after strings and before keywords, by their
             text.
         ~~|
-        ~([:tea #"[a-z]+" "cake" #"[0-9]+"] | sort | eq ["cake" #"[0-9]+" #"[a-z]+" :tea])
+        ~([:tea #"[a-z]+" "cake" #"[0-9]+"] | sort
+          | eq ["cake" #"[0-9]+" #"[a-z]+" :tea])
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused; `toRegex` reads text as a regex.
         ~~|
-        ~(::regex"a" !| get [~(tag) ~(found | tag)] | eq [::regex/PayloadKindNotTakenError ::string]);
+        ~(::regex"a" !| get [tag (found | tag)]
+          | eq [::regex/PayloadKindNotTakenError ::string]);
 
 :regex/toRegex
-  |~~ Answers the regex itself, so `map ~toRegex` turns regexes and the
+  |~~ Answers the regex itself, so `map toRegex` turns regexes and the
       strings that hold their sources into regexes; given flags, as
       `string/toRegex` takes them, it answers its source with those flags,
       `#"a" | toRegex "i"` answering `#"a"i`.
@@ -123,6 +131,6 @@
         |~~ A regex answers itself, so regexes and their sources turn into
             regexes.
         ~~|
-        ~([#"\d" "\\d"] | map ~toRegex | eq [#"\d" #"\d"])
+        ~([#"\d" "\\d"] | map toRegex | eq [#"\d" #"\d"])
     | impl ::builtin{};
 

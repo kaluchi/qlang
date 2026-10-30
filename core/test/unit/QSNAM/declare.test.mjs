@@ -11,6 +11,6 @@ it('reads `:name it` as a declaration over the word `it`', () => {
 });
 
 it('a keyword or a tag name is the body of its declaration', async () => {
-  expect(await evalQuery('::bind{:name :s :body :active} | get [~(it)] | tag ::quote | toString')).toBe(':s :active;');
-  expect(await evalQuery('::bind{:name :s :body ::vec} | get [~(it)] | tag ::quote | toString')).toBe(':s ::vec;');
+  expect(await evalQuery('::bind{:name :s :body :active} | get [it] | tag ::quote | toString')).toBe(':s :active;');
+  expect(await evalQuery('::bind{:name :s :body ::vec} | get [it] | tag ::quote | toString')).toBe(':s ::vec;');
 });

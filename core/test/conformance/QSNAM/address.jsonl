@@ -1,13 +1,13 @@
 {"name":"a-name-with-a-path-declares-a-node-under-its-noun","query":":Box |~~ Box. ~~|; :Box/area ~(1); ::Box | manifest","expect":"#[::Box/area]"}
-{"name":"a-reader-extends-a-kind-of-the-root","query":":vec/second ~(get /1); [7 8 9] | second","expect":"8"}
+{"name":"a-reader-extends-a-kind-of-the-root","query":":vec/second get /1; [7 8 9] | second","expect":"8"}
 {"name":"an-address-the-root-holds-is-declared-once","query":"~(:vec/count ~(0)) | answer !| tag","expect":"::bind/NameDeclaredTwiceError"}
 {"name":"the-address-of-a-name-is-the-name-as-declared","query":"::vec/count | source | toString | startsWith \":vec/count\"","expect":"true"}
-{"name":"an-address-reads-a-value","query":"apply ~(:Box |~~ Box. ~~|; :Box/side 3; Box/side)","expect":"3"}
-{"name":"a-path-names-a-noun-declared-before-it","query":"~(:Box/area ~(1)) | answer !| get [~(tag) ~(noun)]","expect":"[::bind/NounNotDeclaredError ::Box]"}
-{"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [~(tag) ~(address) ~(nearest)]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
+{"name":"an-address-reads-a-value","query":"apply (:Box |~~ Box. ~~|; :Box/side 3; Box/side)","expect":"3"}
+{"name":"a-path-names-a-noun-declared-before-it","query":"~(:Box/area ~(1)) | answer !| get [tag noun]","expect":"[::bind/NounNotDeclaredError ::Box]"}
+{"name":"an-address-no-declaration-names-is-refused-with-the-tags-near-it","query":"5 | vec/cout !| get [tag address nearest]","expect":"[::call/UnknownAddressError ::vec/cout [::vec/count]]"}
 {"name":"the-tag-of-a-verb-lays-itself-over-a-payload-as-it-is","query":":number/f ~(1); ::number/f[1] | tag","expect":"::number/f"}
 {"name":"a-tag-no-declaration-names-is-identity","query":"::code{:a 1} | tag","expect":"::code"}
 {"name":"the-tag-of-an-invariant-lays-its-refusal-over-an-error-at-rest-alone","query":"::vec/take/CountNotIntegerError#5 !| tag","expect":"::vec/take/CountNotIntegerError/PayloadKindNotTakenError"}
-{"name":"a-verb-is-what-its-declaration-wrote-a-function-or-a-quote","query":":number/a (::fn | impl ~(add 1)); :number/b ~(add 1); get [~(::number/a | binding | value | tag) ~(::number/b | binding | value | tag) ~(5 | a) ~(5 | b)]","expect":"[::fn ::quote 6 6]"}
-{"name":"code-reads-a-node-of-data-by-its-address","query":"apply ~(:Box |~~ A box. ~~|; :Box/side 3; :number/f ~(Box/side); 5 | f)","expect":"3"}
+{"name":"a-verb-is-what-its-declaration-wrote-a-function-or-a-quote","query":":number/a (::fn | impl ~(add 1)); :number/b add 1; get [(::number/a | binding | value | tag) (::number/b | binding | value | tag) (5 | a) (5 | b)]","expect":"[::fn ::quote 6 6]"}
+{"name":"code-reads-a-node-of-data-by-its-address","query":"apply (:Box |~~ A box. ~~|; :Box/side 3; :number/f ~(Box/side); 5 | f)","expect":"3"}
 {"name":"a-node-of-data-at-the-top-is-a-word-every-code-reads","query":":Box |~~ A box. ~~|; :Box/k 3; :number/f ~(Box/k); 5 | f","expect":"3"}

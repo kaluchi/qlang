@@ -17,7 +17,7 @@ set a vector and of a vector under a tag the vector under that tag,
 `flatten` as it does, `concat`, the vectors the call gives joined after
 the subject under the tags they share, a value given that is no vector
 refused as `::vec/concat/VectorsElementKindNotTakenError`, so
-`reduce [] ~(concat)` joins the vectors a vector holds, `join`, the texts
+`reduce [] concat` joins the vectors a vector holds, `join`, the texts
 of the elements under the tags its strings share, `sum`, the numbers the
 elements hold beneath their tags added under the tags they share, an
 element that is no number refused at its index, at its key over a map,
@@ -52,25 +52,25 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
 
-> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path)])]
+> get [(#[[1 1] [2 2]] | zip) (#[1 [2]] | zip !| get [tag (trace | last | path)])]
 [[[1 2] [1 2]] [::set/zip/ElementKindNotTakenError /0]]
 
-> get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
+> get [([1] | concat [2 3] [4]) ([[1] [2 3]] | reduce [] concat) ([[1 2] [3 [4]]] | flatten) (#[1 2] | size)]
 [[1 2 3 4] [1 2 3] [1 2 3 [4]] 2]
 
 > [1 2 3 4] | avg
 2.5
 
-> get [~([0 1 6 1] | avg) ~([1e308 1e308] | avg | eq 1e308) ~([1e308 -1e308] | avg)]
+> get [([0 1 6 1] | avg) ([1e308 1e308] | avg | eq 1e308) ([1e308 -1e308] | avg)]
 [2 true 0]
 
-> [1 "x"] | avg !| get [~(tag) ~(trace | last | path)]
+> [1 "x"] | avg !| get [tag (trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]
 
 > [::W#2 1] | sum
 ::W#3
 
-> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(tag) ~(trace | last | path)])]
+> get [([::T"a" ::T"b"] | join ",") ([::A[1] ::B[2]] | flat) ([::Cents#1 ::Dollars#2] | sum !| get [tag (trace | last | path)])]
 [::T"a,b" [1 2] [::call/KindsMismatchedError /1]]
 
 > [] | min
@@ -95,7 +95,7 @@ them, a map does not answer, and a reader asks them of its values by
 `vals` first, `{:a 1} | vals | contains 1` answering `true`.
 
 ```qlang
-> {:b 2 :a 1} | map ~(add 1)
+> {:b 2 :a 1} | map (add 1)
 {:b 3 :a 2}
 
 > {:a 3 :b 1} | sort | take 1
@@ -107,39 +107,44 @@ them, a map does not answer, and a reader asks them of its values by
 
 ## image
 
-`map` runs its code, a quote or a path, on each element in order: over
-a vector it answers a plain vector of what each answered; over a map a
+`map` runs its code, a path or a template on each element in order, code
+written bare, `map (add 1)`, a verb with the modifiers after it,
+`map add 1`, and a template that builds the shape of each element,
+`map {:id /id}`: over a vector it answers a plain vector of what each
+answered; over a map a
 plain map of the answers under the same keys; over a set, which the
 `map` of vectors serves, the vector of the images in the one order, its
 answer naming `::any` [QSDSP#answer]. The first error its code answers
-is the answer of the call. A value computed at the call instead of the
-code is refused with what it computed as `found`, its page naming the
-tilde [QSQUO#modifier].
+is the answer of the call. A value of none of the kinds it takes is
+refused with the value as `found` [QSQUO#modifier].
 
 ```qlang
-> #[1 2 3] | map ~(mod 2)
+> #[1 2 3] | map (mod 2)
 [1 0 1]
 
-> ::Box[1 2] | map ~(add 1)
+> [{:id 7 :tags [1 2]}] | map {:id /id :count (get /tags | count)}
+[{:id 7 :count 2}]
+
+> ::Box[1 2] | map (add 1)
 [2 3]
 
-> [1 2] | map (add 1) !| tag
-::vec/map/CodeKindNotTakenError
+> [1 2] | map (5 | add 1)
+[6 6]
 ```
 
 ## filter
 
-`filter` keeps the elements its predicate, a quote or a path, answers
+`filter` keeps the elements its predicate, code or a path, answers
 `true` for, in their order, a map keeping its keys and a set its kind;
 a predicate that answers no boolean is refused at its index, a map's at
 its key, and one that answers a failure hands it on, the path of the
 step's frame naming the element on either road [QSERR#trace].
 
 ```qlang
-> {:c 3 :a 1 :b 2} | filter ~(gt 1)
+> {:c 3 :a 1 :b 2} | filter (gt 1)
 {:c 3 :b 2}
 
-> get [~([1 2] | filter ~(add 1) !| trace | last | path) ~([1 "x"] | filter ~(add 1 | gt 1) !| trace | last | path)]
+> get [([1 2] | filter (add 1) !| trace | last | path) ([1 "x"] | filter (add 1 | gt 1) !| trace | last | path)]
 [/0 /1]
 ```
 
@@ -147,37 +152,37 @@ step's frame naming the element on either road [QSERR#trace].
 
 `reduce` folds a vector, a set or a map's values from a seed by code of
 any form, the seed first and the code after it, a call with one arg
-refused as `::vec/reduce/ReducerNotGivenError` and code computed at the
-call as `::vec/reduce/ReducerKindNotTakenError`. The fold reads the
-steps of its code: a quote of one step that is a call with no modifiers,
-by the name of a verb or its address, `~(add)` or `~(number/add)`,
-written or assembled from data alike, is the short form, which calls the
+refused as `::vec/reduce/ReducerNotGivenError` and a value given for the
+code as `::vec/reduce/ReducerKindNotTakenError`. The fold reads the
+steps of its code: code of one step that is a call with no modifiers,
+a verb by its name or its address, `add` or `number/add`, written or
+assembled from data alike, is the short form, which calls the
 verb as the pipe calls it, the value so far its subject and the element
-its first arg, and a value the step that wrote the quote names under the
+its first arg, and a value the step that wrote the code names under the
 name of the verb stands over the verb, so the call that hands it the
 element is refused as a value given modifiers,
 `::call/ValueTakesNoModifiersError` [QSNAM#value].
 Any other code runs on the pair of the value so far and the element, a
-path, a call with modifiers, a quote of more steps and a name that
+path, a call with modifiers, code of more steps and a name that
 reaches no verb among it. A failure the one word answers passes a frame
 at its step, the value so far the subject that frame holds, and the step
 of `reduce` names the path of the element [QSERR#trace].
 
 ```qlang
-> [1 2 3] | reduce 0 ~(add)
+> [1 2 3] | reduce 0 add
 6
 
-> [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
+> [1 2 3] | get [(with {:r ([::call{:name :add}] | tag ::quote)} (reduce 0 r)) (reduce 0 (add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
-> [1 2 3] | reduce 0 ~(with {:sofar /0 :digit /1} ~(sofar | mul 10 | add digit))
+> [1 2 3] | reduce 0 (with {:sofar /0 :digit /1} (sofar | mul 10 | add digit))
 123
 
-> apply ~(:add 5; [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
+> apply (:add 5; [1 2 3] | reduce 0 (add) !| get [tag addresses])
 [::call/ValueTakesNoModifiersError #[::number/add]]
 
-> [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
-[["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]
+> [1 2] | reduce "x" add !| trace | map (get [subject failed path])
+[["x" ~(add) null] [[1 2] ~(reduce "x" add) /0]]
 ```
 
 ## algebra
@@ -215,7 +220,7 @@ under the tags the values it combines share, a later value of a map's
 difference or common part naming keys and sharing none, each laid
 through its kind, and refuses at each value its kind, its pair and then
 its tags. `unionOf` unites the maps or the sets its call computes, each a
-map, a set, or a path or a quote that reads one against the subject, one
+map, a set, or a path or code that reads one against the subject, one
 part at least, `::any/unionOf/PartsEmptyError` refusing none, under the
 tags they share; one part answers itself, a part of another kind is
 refused at its index, `::any/unionOf/PartsElementKindNotTakenError` where
@@ -232,7 +237,7 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 > [#[:a :b] #[:b :d]] | inter
 #[:b]
 
-> get [~(#[#[1 2] #[1]] | vec/minus) ~([#[1 2] #[1]] | minus) ~(#[#[1] #[2]] | flat) ~(#[1] | union #[2])]
+> get [(#[#[1 2] #[1]] | vec/minus) ([#[1 2] #[1]] | minus) (#[#[1] #[2]] | flat) (#[1] | union #[2])]
 [#[] #[2] #[1 2] #[1 2]]
 
 > #[#[1] #[2]] | union
@@ -247,13 +252,13 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 > ::T{:a 1} | union {:b 2}
 ::T{:a 1 :b 2}
 
-> [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| tag)]
+> [{:a 1 :b 2} #[:a]] | get [minus inter (union !| tag)]
 [{:b 2} {:a 1} ::call/KindsMismatchedError]
 
-> get [~([#[1] #[2] {:a 1}] | union !| get [~(tag) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(tag) ~(trace | last | path)])]
+> get [([#[1] #[2] {:a 1}] | union !| get [tag (trace | last | path)]) ([{:a 1} [:a true]] | minus !| get [tag (trace | last | path)])]
 [[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
 
-> get [~([::A#[1] #[2]] | union) ~({:a 1} | union ::B{:b 2}) ~({:a 1 :b 2} | minus ::T[:a])]
+> get [([::A#[1] #[2]] | union) ({:a 1} | union ::B{:b 2}) ({:a 1 :b 2} | minus ::T[:a])]
 [::A#[1 2] ::B{:a 1 :b 2} {:b 2}]
 ```
 
@@ -262,7 +267,7 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 `groupBy` files the elements of a vector or a set into a map of
 buckets, a set's buckets sets, and `indexBy` into a map of one element a
 key, the last of one key standing, a set reaching the `indexBy` of
-vectors. The key, a quote, a path or none, files an element under the
+vectors. The key, code, a path or none, files an element under the
 keyword `toKeyword` answers for it [QSCND#convert]: a keyword as it is, a
 string or a number under the keyword of its text, a boolean or null
 under that of its literal, a tag name under that of its name, and without
@@ -275,10 +280,10 @@ meet, the second refused as `KeyTakenError`, `key | answer` the keyword and
 frame naming the element in each [QSERR#trace].
 
 ```qlang
-> [1 2 3] | groupBy ~(gt 1)
+> [1 2 3] | groupBy (gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(key | expected)]
+> [{:k [1]}] | indexBy /k !| get [tag (trace | last | path) (key | expected)]
 [::vec/indexBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| tag
@@ -290,19 +295,20 @@ frame naming the element in each [QSERR#trace].
 
 ## within
 
-`within` edits under one tag: it applies its code, a quote or a path, to
+`within` edits under one tag: it applies its code, written bare or a
+path, to
 the payload and lays the tag back through its kind, once, on its
 answer, so the steps between may break the invariant the result holds;
 a set is edited as its vector and laid back under `::set`. A subject
 under no tag is refused as `::tagged/within/SubjectNotTaggedError`.
 
 ```qlang
-> ::Box#[1 2] | within ~(append 1)
+> ::Box#[1 2] | within (append 1)
 ::Box#[1 2]
 
-> ::Box[1 2] | within ~(append 3)
+> ::Box[1 2] | within (append 3)
 ::Box[1 2 3]
 
-> #[1 2] | within ~(get [/0 /0 /1])
+> #[1 2] | within (get [/0 /0 /1])
 #[1 2]
 ```

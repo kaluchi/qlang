@@ -1,21 +1,20 @@
-{"name":"a-value-of-the-reader-named-as-a-verb-is-read-where-no-verb-answers-the-subject","query":"apply ~(:count 5; count)","expect":"5"}
-{"name":"a-value-of-the-reader-as-a-later-step-is-refused-over-a-verb-of-the-subject","query":"apply ~(:count 5; [1 2 3] | count !| tag)","expect":"::call/ValueAsALaterStepError"}
-{"name":"a-bare-name-of-the-reader-shadows-the-root","query":"apply ~(:vec 5; vec)","expect":"5"}
-{"name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [~(tag) ~(nearest)]","expect":"[::call/UnknownNameError [::qlang]]"}
-{"name":"the-name-of-a-kind-reads-no-page","query":"get [~(\"5\" | number !| tag) ~(5 | string !| tag)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
-{"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":"apply ~(:vec 5; get [~(vec) ~(::vec[1] | eq [1]) ~([1] | doc | tag)] | append (::host | env | get /vec | value))","expect":"[5 true ::doc 5]"}
-{"name":"a-bare-name-of-the-reader-as-a-later-step-names-the-verbs-of-its-name","query":"apply ~(:filter 5; [1 2] | filter !| get [~(tag) ~(addresses)])","expect":"[::call/ValueAsALaterStepError #[::map/filter ::vec/filter]]"}
-{"name":"a-value-of-the-reader-stands-over-a-verb-the-reader-declared","query":":vec/second ~(get /1); apply ~(:second 5; get [~(second) ~([7 8 9] | second !| addresses)])","expect":"[5 #[::vec/second]]"}
-{"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-is-read-past-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [~(count) ~(take count) ~(vec/count)])); [1 2 3] | firstN 2","expect":"[2 [1 2] 3]"}
-{"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":"apply ~(:sort 5; [3 1] | sort /a !| addresses)","expect":"#[::map/sort ::set/sort ::vec/sort]"}
-{"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":"apply ~(:page (::vec | doc); :vec 5; ::vec | doc | eq page)","expect":"true"}
+{"name":"a-value-of-the-reader-named-as-a-verb-is-read-where-no-verb-answers-the-subject","query":"apply (:count 5; count)","expect":"5"}
+{"name":"a-value-of-the-reader-as-a-later-step-is-refused-over-a-verb-of-the-subject","query":"apply (:count 5; [1 2 3] | count !| tag)","expect":"::call/ValueAsALaterStepError"}
+{"name":"a-bare-name-of-the-reader-shadows-the-root","query":"apply (:vec 5; vec)","expect":"5"}
+{"name":"a-kind-of-the-root-is-no-bare-name","query":"qlang !| get [tag nearest]","expect":"[::call/UnknownNameError [::qlang]]"}
+{"name":"the-name-of-a-kind-reads-no-page","query":"get [(\"5\" | number !| tag) (5 | string !| tag)]","expect":"[::call/UnknownNameError ::call/UnknownNameError]"}
+{"name":"a-reader-standing-over-a-root-noun-leaves-the-noun","query":"apply (:vec 5; get [(vec) (::vec[1] | eq [1]) ([1] | doc | tag)] | append (::host | env | get /vec | value))","expect":"[5 true ::doc 5]"}
+{"name":"a-bare-name-of-the-reader-as-a-later-step-names-the-verbs-of-its-name","query":"apply (:filter 5; [1 2] | filter !| get [tag addresses])","expect":"[::call/ValueAsALaterStepError #[::map/filter ::vec/filter]]"}
+{"name":"a-value-of-the-reader-stands-over-a-verb-the-reader-declared","query":":vec/second get /1; apply (:second 5; get [(second) ([7 8 9] | second !| addresses)])","expect":"[5 #[::vec/second]]"}
+{"name":"an-input-of-a-quote-under-a-label-named-as-a-verb-is-read-past-it-in-the-recipe","query":":vec/firstN (::fn | takes :count |~~ The count. ~~| /0 | impl ~(get [count (take count) vec/count])); [1 2 3] | firstN 2","expect":"[2 [1 2] 3]"}
+{"name":"a-call-on-a-shadowing-value-names-the-shadowed-verb","query":"apply (:sort 5; [3 1] | sort /a !| addresses)","expect":"#[::map/sort ::set/sort ::vec/sort]"}
+{"name":"a-label-of-the-root-stays-the-roots-under-a-name-of-the-reader","query":"apply (:page (::vec | doc); :vec 5; ::vec | doc | eq page)","expect":"true"}
 {"name":"an-unknown-name-is-refused","query":"thisIsNotDefined !| tag","expect":"::call/UnknownNameError"}
-{"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter ~(thisIsNotDefined) !| tag","expect":"::call/UnknownNameError"}
+{"name":"an-unknown-name-inside-filter-is-refused","query":"[1 2 3] | filter thisIsNotDefined !| tag","expect":"::call/UnknownNameError"}
 {"name":"a-node-under-a-noun-is-no-name-a-query-calls","query":"5 | pipeline !| tag","expect":"::call/UnknownNameError"}
-{"name":"a-value-stands-over-the-verb-of-its-name-whatever-the-subject","query":"::vec | with {:count ~(5)} ~(count)","expect":"5"}
-{"name":"a-value-stands-over-a-verb-of-a-label-on-its-tag-name","query":":Shop |~~ S ~~|; :Shop/f ~(1); ::Shop | with {:f ~(7)} ~(f)","expect":"7"}
-{"name":"a-value-as-a-later-step-on-a-tag-name-names-the-verb-of-the-noun-itself","query":":Desk |~~ D ~~|; :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")); apply ~(:hours 3; ::Desk | hours !| get [~(tag) ~(addresses)])","expect":"[::call/ValueAsALaterStepError #[::Desk/hours]]"}
-{"name":"a-value-named-as-a-verb-of-any-meets-the-verb-on-every-subject","query":"apply ~(:type 5; 1 | type !| addresses)","expect":"#[::any/type]"}
-{"name":"a-name-of-with-stands-over-the-verb-of-its-name-which-its-address-calls","query":"::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count)])","expect":"[2 3]"}
+{"name":"a-value-stands-over-the-verb-of-its-name-whatever-the-subject","query":"::vec | with {:count (5)} count","expect":"5"}
+{"name":"a-value-stands-over-a-verb-of-a-label-on-its-tag-name","query":":Shop |~~ S ~~|; :Shop/f ~(1); ::Shop | with {:f (7)} f","expect":"7"}
+{"name":"a-value-as-a-later-step-on-a-tag-name-names-the-verb-of-the-noun-itself","query":":Desk |~~ D ~~|; :Desk/hours (::fn | on |~~ The desk. ~~| ::tag | impl ~(\"9 to 5\")); apply (:hours 3; ::Desk | hours !| get [tag addresses])","expect":"[::call/ValueAsALaterStepError #[::Desk/hours]]"}
+{"name":"a-value-named-as-a-verb-of-any-meets-the-verb-on-every-subject","query":"apply (:type 5; 1 | type !| addresses)","expect":"#[::any/type]"}
+{"name":"a-name-of-with-stands-over-the-verb-of-its-name-which-its-address-calls","query":"::order{:id 100 :item :bigmac :count 2} | with [/count] (get [count map/count])","expect":"[2 3]"}
 {"name":"a-part-a-kind-wires-read-after-a-step-reads-the-subject","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card[\"a\" 312] | took","expect":"312"}
-{"name":"a-name-that-reaches-nothing-in-the-body-of-a-declaration-is-refused-with-the-names-near-it","query":"~(:x cout; 1) | answer !| get [~(tag) ~(nearest | contains :count)]","expect":"[::call/UnknownNameError true]"}

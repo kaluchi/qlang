@@ -5,7 +5,7 @@ import { declareRefusal, refusingAPart } from '../errors.mjs';
 import { kindsExpected } from '../ordering.mjs';
 import { commandStep, declarationStep } from '../steps.mjs';
 import { inputsOfFunction } from '../eval.mjs';
-import { chainOfFn, FN_COMMAND_NAMES, FnCommandNotTakenError } from '../chain.mjs';
+import { chainOfFn, FN_COMMAND_NAMES, ARGS_NAME, FnCommandNotTakenError } from '../chain.mjs';
 import {
   isQuote, isVec, isNull, isBuiltinDescriptor, isErrorValue, isFn, commandsOf, recipeOf,
   makeTag, makeTagged, makeQuote, holdsNoOtherTag, FN_TAG_NAME
@@ -27,8 +27,6 @@ function madeFn(commands, recipe) {
 }
 
 // [QSBLD#input]
-const ARGS_NAME = 'args';
-
 function refuseTheArgsShadowed(commands) {
   const takes = commands.find(step => step.get('name').name === 'takes' && step.get('modifiers')[0].name === ARGS_NAME);
   if (takes !== undefined) throw new FnCommandNotTakenError({ command: makeQuote([takes]), index: 0, found: takes.get('modifiers')[0] });

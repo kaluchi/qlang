@@ -67,7 +67,7 @@ async function breakOf(text) {
 // law reaches.
 const laws = [];
 for (const name of scope.get(ROOT_KEY).keys()) {
-  const quotes = await evalQuery(`::${name} | laws | entries | map ~(get /1 | get /1 | print)`, scope);
+  const quotes = await evalQuery(`::${name} | laws | entries | map (get /1 | get /1 | print)`, scope);
   if (Array.isArray(quotes)) for (const quote of quotes) laws.push(quote.slice(2, -1).replace(/\s+\|\s+eq\s[^|]*$/, ''));
 }
 

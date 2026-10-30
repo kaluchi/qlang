@@ -9,43 +9,43 @@ export const TASKS = [
   {
     id: 'T1', data: 'users.json',
     question: 'the names of the users whose role is "admin", oldest first. Expected shape: a JSON array of strings.',
-    reference: 'get /data | filter ~(get /role | eq "admin") | sort /age | reverse | map /name',
+    reference: 'get /data | filter (get /role | eq "admin") | sort /age | reverse | map /name',
     answer: '["Cid","Ann"]'
   },
   {
     id: 'T2', data: 'users.json',
     question: 'how many distinct email addresses there are when compared case-insensitively. Expected shape: a number.',
-    reference: 'get /data | map ~(get /email | lower) | distinct | count',
+    reference: 'get /data | map (get /email | lower) | distinct | count',
     answer: '4'
   },
   {
     id: 'T3', data: 'orders.json',
     question: 'the number of orders per status. Expected shape: a JSON object status → count.',
-    reference: 'groupBy ~(get /status | toKeyword) | map ~count',
+    reference: 'groupBy (get /status | toKeyword) | map count',
     answer: '{"paid":3,"pending":2,"cancelled":1}'
   },
   {
     id: 'T4', data: 'orders.json',
     question: 'the total amount of the "paid" orders per customer. Expected shape: a JSON object customer → sum.',
-    reference: 'filter ~(get /status | eq "paid") | groupBy ~(get /customer | toKeyword) | map ~(map /amount | sum)',
+    reference: 'filter (get /status | eq "paid") | groupBy (get /customer | toKeyword) | map (map /amount | sum)',
     answer: '{"acme":160.5,"globex":300}'
   },
   {
     id: 'T5', data: 'app.log',
     question: 'the distinct messages of the ERROR lines, where the message is the text after the level word. Expected shape: a JSON list of strings.',
-    reference: 'lines | filter ~(contains "ERROR") | map ~(split "ERROR " | last) | distinct | sort',
+    reference: 'lines | filter (contains "ERROR") | map (split "ERROR " | last) | distinct | sort',
     answer: '["db timeout"]'
   },
   {
     id: 'T6', data: 'users.json',
     question: 'for each user an object with its id and the number of its tags, keys "id" and "tagCount". Expected shape: array of objects.',
-    reference: 'get /data | map ~(get {:id /id :tagCount ~(get /tags | count)})',
+    reference: 'get /data | map (get {:id /id :tagCount (get /tags | count)})',
     answer: '[{"id":1,"tagCount":2},{"id":2,"tagCount":1},{"id":3,"tagCount":1},{"id":4,"tagCount":0},{"id":5,"tagCount":2}]'
   },
   {
     id: 'T7', data: 'users.json',
     question: 'the emails of the users having the tag "ops". Expected shape: array of strings.',
-    reference: 'get /data | filter ~(get /tags | any ~(eq "ops")) | map /email',
+    reference: 'get /data | filter (get /tags | any (eq "ops")) | map /email',
     answer: '["Ann@Example.com","eve@example.com"]'
   },
   // The language itself: its literals, its own verbs and tags, code as a
@@ -54,55 +54,55 @@ export const TASKS = [
   {
     id: 'L1',
     question: 'declare a verb of your own named triple that multiplies a number by three, and answer the vector [1 2 3] with every element tripled.',
-    reference: ":number/triple ~(mul 3); [1 2 3] | map ~triple",
+    reference: ":number/triple mul 3; [1 2 3] | map triple",
     answer: "[3 6 9]"
   },
   {
     id: 'L2',
     question: 'declare a kind ::Small whose values are numbers below 10, so that building one from 10 or more fails; answer a vector of the kind of ::Small built from 3, and whether building it from 12 fails.',
-    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)); get [~(::Small#3 | tag) ~(::Small#12 | ok | not !| true)]",
+    reference: ":Small |~~ A number below ten. ~~| (::kind | holds :TooLargeError |~~ The number is below ten. ~~| ~(lt 10)); get [(::Small#3 | tag) (::Small#12 | ok | not !| true)]",
     answer: "[::Small true]"
   },
   {
     id: 'L3',
     question: 'hold the code "subtract 3, then multiply by 4" as a value, and answer a vector of the number of its steps and what it answers when run on 10.',
-    reference: "~(sub 3 | mul 4) | with {:q ~it} [~(q | count) ~(10 | apply q)]",
+    reference: "~(sub 3 | mul 4) | with {:q it} [(q | count) (10 | apply q)]",
     answer: "[2 28]"
   },
   {
     id: 'L4',
     question: 'multiplying the string "a" by 2 fails; answer a vector of the name of that failure and the kind of the value it names as the culprit.',
-    reference: "\"a\" | mul 2 !| get [~(tag) ~(subject | found | tag)]",
+    reference: "\"a\" | mul 2 !| get [tag (subject | found | tag)]",
     answer: "[::number/mul/SubjectNotNumberError ::string]"
   },
   {
     id: 'L5',
     question: 'by searching the pages of the verbs that live on strings, find the verb whose page says it tells whether a string begins with a prefix, and answer its address.',
-    reference: "::string | manifest | filter ~(doc | content | contains \"begins\") | first",
+    reference: "::string | manifest | filter (doc | content | contains \"begins\") | first",
     answer: "::string/startsWith"
   },
   {
     id: 'L6',
     question: 'put the vector [7 8] under the tag ::Inner and that under the tag ::Outer, and answer a vector of the kind of the result and its second element.',
-    reference: "::Outer::Inner[7 8] | get [~(tag) /1]",
+    reference: "::Outer::Inner[7 8] | get [tag /1]",
     answer: "[::Outer 8]"
   },
   {
     id: 'L7',
     question: 'add 5 to every element of [10 -1 "y"], where an element that fails answers null.',
-    reference: "[10 -1 \"y\"] | map ~(add 5 !| null)",
+    reference: "[10 -1 \"y\"] | map (add 5 !| null)",
     answer: "[15 4 null]"
   },
   {
     id: 'L8',
     question: 'declare a name of your own holding 2 with two laws under it, the claims "eq 2" and "gt 1" of 2, and answer how many laws the name has.',
-    reference: 'apply ~(:two 2; :two/isTwo ::law~(2 | eq 2); :two/exceedsOne ::law~(2 | gt 1); ::two | laws | count)',
+    reference: 'apply (:two 2; :two/isTwo ::law~(2 | eq 2); :two/exceedsOne ::law~(2 | gt 1); ::two | laws | count)',
     answer: "2"
   },
   {
     id: 'L9',
     question: 'run the laws of the page of the verb that groups the elements of a vector by a key, and answer whether every one of them holds.',
-    reference: "::vec/groupBy | runLaws | map /ok | every ~(eq true)",
+    reference: "::vec/groupBy | runLaws | map /ok | every (eq true)",
     answer: "true"
   },
   {
@@ -116,25 +116,25 @@ export const TASKS = [
   {
     id: 'N1',
     question: 'in one query, the text of the page of every kind the language lists.',
-    reference: '::host | kinds | map ~(doc | content)',
-    answer: '::host | kinds | map ~doc | map ~content'
+    reference: '::host | kinds | map (doc | content)',
+    answer: '::host | kinds | map doc | map content'
   },
   {
     id: 'N2',
     question: 'in one query, a vector of pairs, the address of each verb of strings and the text of its page.',
-    reference: '::string | manifest | filter ~(binding | value | tag | eq ::fn) | sort | map ~(get [~(it) ~(doc | content)])',
-    answer: '::string | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(get [~(it) ~(doc | content)]) | sort'
+    reference: '::string | manifest | filter (binding | value | tag | eq ::fn) | sort | map (get [it (doc | content)])',
+    answer: '::string | manifest | filter (binding | value | tag | eq ::fn) | map (get [it (doc | content)]) | sort'
   },
   {
     id: 'N3',
     question: 'in one query, the kinds whose page links to the page of errors.',
-    reference: '::host | kinds | filter ~(doc | links | map ~answer | has ::error)',
+    reference: '::host | kinds | filter (doc | links | map answer | has ::error)',
     answer: '#[::fail]'
   },
   {
     id: 'N4',
     question: 'in one query, how many laws the pages of the verbs of vectors hold in all.',
-    reference: '::vec | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(laws | count) | sum',
-    answer: '::vec | manifest | filter ~(binding | value | tag | eq ::fn) | map ~(runLaws | count) | sum'
+    reference: '::vec | manifest | filter (binding | value | tag | eq ::fn) | map (laws | count) | sum',
+    answer: '::vec | manifest | filter (binding | value | tag | eq ::fn) | map (runLaws | count) | sum'
   }
 ];

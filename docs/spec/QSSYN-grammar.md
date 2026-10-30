@@ -304,7 +304,11 @@ form left open is refused where its reading stopped. A form another
 language writes is refused by the grammar with the form of this one: a
 set written with braces names `#[`, a quote written with braces names
 its parentheses, a comma between modifiers names the space, the path of
-jq names a slash, and a `;` after a query names a template.
+jq names a slash, and a `;` after a query names a template; an infix
+operator, `*`, `+`, `%`, `==`, `!=`, `<`, `<=`, `>`, `>=` and a minus
+before whitespace, names the verb that does its work on the value in the
+pipe, `*` naming `mul 2`, while `&&` names `allOf`, `=>` code written
+bare and `=` a declaration and `eq`.
 
 ```qlang
 > "[1 2 3] | eq ~(gt 1" | parse !| get [expected message]
@@ -315,6 +319,9 @@ jq names a slash, and a `;` after a query names a template.
 
 > "#{1}" | parse !| message | contains "#["
 true
+
+> ["[1 2] | map (it * 2)" "[1 2 3] | filter (gt 1 && lt 3)"] | map (parse !| message)
+["`*` is no operator of qlang: a verb does its work on the value in the pipe, `mul 2`" "`&&` is no operator of qlang: conditions of one value hold together by `allOf`, `allOf (gt 1) (lt 3)`"]
 
 > "[1 2" | parse !| get [source (location | start | column) origin]
 ["[1 2" 5 :string/parse]

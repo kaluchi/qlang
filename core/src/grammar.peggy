@@ -242,6 +242,15 @@
     error(`\`${second}\` written after \`${first}\`: a combinator stands once between two steps, write \`a ${second} b\``);
   }
 
+  // [QSSYN#refusal]
+  function refuseInfix(operator) {
+    if (operator === '&&') error('`&&` is no operator of qlang: conditions of one value hold together by `allOf`, `allOf (gt 1) (lt 3)`');
+    if (operator === '=>') error('`=>` is no operator of qlang: code is written bare where a verb takes it, the value it runs on `it`, `map (add 1)`');
+    if (operator === '=') error('`=` is no operator of qlang: a name is declared by its keyword, `:x 1;`, and two values compare by `eq`, `eq 2`');
+    const verb = { '*': 'mul', '+': 'add', '-': 'sub', '%': 'mod', '==': 'eq', '!=': 'ne', '<': 'lt', '<=': 'lte', '>': 'gt', '>=': 'gte' }[operator];
+    error(`\`${operator}\` is no operator of qlang: a verb does its work on the value in the pipe, \`${verb} 2\``);
+  }
+
   // [QSSYN#doc]
   let docsInASpan = 0;
 
@@ -346,6 +355,11 @@ ContinuationUnit
 StepMissedAtTheEnd
   = __ c:(PipedCombinator / Combinator) _ !. &{ options.stepMissed = c; return false; }
 
+// [QSSYN#refusal]
+InfixOperator
+  = $("==" / "!=" / "<=" / ">=" / "&&" / "=>" / [*+%<>=])
+  / @"-" &[ \t\r\n]
+
 // [QSERR#catch]
 PipedCombinator
   = "|" __ "!|" { return '!|'; }
@@ -353,6 +367,7 @@ PipedCombinator
 // [QSSYN#combinator]
 SpacingRefusal
   = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply (…)`'); }
+    / _ &InfixOperator operator:InfixOperator { refuseInfix(operator); }
     / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
     / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }

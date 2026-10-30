@@ -137,6 +137,10 @@
 //       and the names under a noun together, in the one order of their
 //       addresses, which `manifest` lists them in [QSSLF#catalog].
 //
+//   (25) A source of the catalog names no language its runtime is written
+//       in, `JavaScript`, `ECMAScript` or `JS`: the pages speak of the
+//       language alone, the runtime standing for it [QSVOX#voices].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -945,6 +949,19 @@ function commentsThatAreNoMarks() {
 // together, in the one order of their addresses, `scripts/catalog-order.mjs`
 // [QSSLF#catalog].
 
+// ── (25) The catalog names no language of its runtime ──────────
+//
+// The pages of the catalog speak of the language alone, so a source of the
+// catalog names no language its runtime is written in, the runtime standing
+// for it [QSVOX#voices].
+const LANGUAGE_OF_THE_RUNTIME = /\b(?:JavaScript|ECMAScript|JS)\b/i;
+
+function runtimeLanguagesNamed() {
+  return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
+    .map((line, index) => ({ path, line: index + 1, word: LANGUAGE_OF_THE_RUNTIME.exec(line)?.[0] }))
+    .filter(({ word }) => word !== undefined));
+}
+
 // ── Main ───────────────────────────────────────────────────────
 
 const { text, failed } = verdictOf({
@@ -971,7 +988,8 @@ const { text, failed } = verdictOf({
   testsOffTheirSection: testsOffTheirSection(),
   commentsNoMarks: commentsThatAreNoMarks(),
   sharedNames: namesSharedInTree(repoRoot),
-  catalogOrder: declarationsOutOfOrder(catalogSources())
+  catalogOrder: declarationsOutOfOrder(catalogSources()),
+  runtimeLanguages: runtimeLanguagesNamed()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

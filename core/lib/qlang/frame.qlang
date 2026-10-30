@@ -45,15 +45,16 @@
     | wires :path
         |~~ The path of the part of the subject the step failed at: null
             where it failed at no part:
-            `[1 "x" 3] | map (mul 2) !| trace | last | path` answers `/1`. A
-            verb names the part its code failed on, `map`, `filter`, `every`,
-            `any` and `reduce` and the keys of `sort`, `min`, `max`, `groupBy`
-            and `indexBy`, the part whose answer it refused, the verdict of a
-            predicate and the key of a partition, and the part it refused
-            itself, an element of `sum`, `avg`, `zip`, `join`, `toPath`,
-            `toMap` and a fold of the algebra, each by the path of its index
-            or of its key, `update` the path it wrote, and a step the part its
-            modifier failed at; the subject reads the part by it,
+            `[1 "x" 3] | map (mul 2) !| trace | last | path` answers `/1`.
+            Each part is named by the path of its index or of its key. A
+            verb names the part its code failed on: `map`, `filter`,
+            `every`, `any` and `reduce` and the keys of `sort`, `min`,
+            `max`, `groupBy` and `indexBy`. It names the part whose answer
+            it refused, the verdict of a predicate and the key of a
+            partition. It names the part it refused itself, an element of
+            `sum`, `avg`, `zip`, `join`, `toPath`, `toMap` and a fold of
+            the algebra. `update` names the path it wrote, and a step the
+            part its modifier failed at. The subject reads the part by it,
             `get (f | path)` with `f` the frame.
         ~~|
         ~(query /2) #[::null ::path]

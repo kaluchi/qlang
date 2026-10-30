@@ -5,12 +5,13 @@
 
 :legend
   |~~ A legend tells a value: it prints under its tag as the print of the
-      value laid out by its kind, `::legend::point[`, the head beside the
-      gloss of the page `doc` reads of the value, each part the kind reads
-      by a key or an index on a line of its own beside the gloss of its
-      page, a part at an index named beside it, and every comment closed
-      and whitespace, so a host prints it as it prints any answer, its
-      comments painted as comments, and the text read back is the legend.
+      value laid out by its kind, `::legend::point[`. The head stands beside
+      the gloss of the page `doc` reads of the value. Each part the kind
+      reads by a key or an index stands on a line of its own beside the
+      gloss of its page, a part at an index named beside it. Every comment
+      is closed and is whitespace, so a host prints the legend as it prints
+      any answer, its comments painted as comments, and the text read back
+      is the legend.
       `"~{" | parse !| legend` tells the error at rest of a parse, and
       `payload` answers the value told; a tag name tells the kind it names,
       a comment for each name the kind wires, `::span | legend`.

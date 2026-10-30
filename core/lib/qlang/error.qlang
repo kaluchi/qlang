@@ -26,13 +26,13 @@
       goes beneath its tag.
 
       Raised by `raise`, an error is a failure, which lives in the pipe
-      alone; a host prints it as its error at rest, the trace it left
-      among its facts, and as the excerpt of its facts under the tag of
-      its refusal, `::X::excerpt{…}`, `::error::excerpt{…}` for a failure of
-      no refusal, where a fact passes the room of a fact, under the line
-      `|~| raised, and no !| caught it`, which a reading passes over, so
-      the print raised flies on from that trace; a query that does not
-      parse flew no step and prints its facts alone.
+      alone. A host prints it as its error at rest, the trace it left
+      among its facts, under the line `|~| raised, and no !| caught it`.
+      Where a fact passes the room of a fact, the host prints the excerpt
+      of its facts under the tag of its refusal, `::X::excerpt{…}`, and
+      `::error::excerpt{…}` for a failure of no refusal. A reading passes
+      over the line, so the print raised flies on from that trace. A query
+      that does not parse flew no step and prints its facts alone.
       `|` passes a failure by, writing its trace, and `!|` alone catches
       it, its step running on the error at rest: `"x" | add 1 !| tag`
       answers the site, `::number/add/SubjectNotNumberError`, and

@@ -16,10 +16,10 @@
       which attaches the tag to a payload or refuses it.
 
       It is a map under its tag and runs nothing by itself: a name that
-      holds one reads it as data, and a call of the verb runs the
-      primitive its host handed, whose answer is a value of the language,
-      as a call of a function or a kind read back from its print does
-      where the root holds one equal to it at the address its `:of` names.
+      holds one reads it as data. A call of the verb runs the primitive
+      its host handed, whose answer is a value of the language. A call of
+      a function or a kind read back from its print runs it too, where the
+      root holds one equal to it at the address its `:of` names.
       ::link~(::qlang/hosts)
   ~~|
   ::kind[~(accepts
@@ -59,7 +59,7 @@
     | throws :AddressKindNotTakenError
         |~~ A module of the runtime registered a primitive under an address
             that is no string, a defect of the runtime found as it loads,
-            `:found` naming the address as JavaScript holds it. The
+            `:found` naming the address as the runtime holds it. The
             address is the text of the verb's address, `number/add`.
         ~~|
     | throws :PrimitiveNotHandedError
@@ -79,17 +79,18 @@
         ~~|
     | throws :ForeignValueError
         |~~ A host handed the core a value of none of the kinds of the
-            language where the core takes it, as the subject of a cell or as
-            what a name holds in the scope it hands a session or a query,
-            at any depth: a function, an object of JavaScript, a map whose
-            key is no string, a failure whose facts are no map, a value under
-            a tag that is no tag, a vector or a map that holds itself, or a
-            number past the finite doubles, a value JavaScript leaves
-            undefined reading as null. It is a defect of the host, raised past the fail track,
-            `:found` naming the value as JavaScript holds it, its type
-            and its name or its maker, `"function hello"`, or what makes a
-            vector or a map of no kind; the printer and the codec of JSON
-            raise it too for a value of no kind a host hands a cell.
+            language where the core takes it, at any depth: as the subject
+            of a cell, or as what a name holds in the scope it hands a
+            session or a query. Such a value is a function, an object of
+            the runtime, a map whose key is no string, a failure whose facts
+            are no map, a value under a tag that is no tag, a vector or a map
+            that holds itself, or a number past the finite doubles; a value
+            the runtime leaves undefined reads as null. It is a defect of the
+            host, raised past the fail track. `:found` names the value as
+            the runtime holds it, its type and its name or its maker,
+            `"function hello"`, or what makes a vector or a map of no kind.
+            The printer and the codec of JSON raise it too for a value of no
+            kind a host hands a cell.
             The answer of a primitive a host hands beside its source is held
             to the kinds at its call and refused as `::call/HostFailureError`,
             and a host builds a value of the language from the data it holds
@@ -126,11 +127,11 @@
             `::builtin{}` of another name; `:origin` names the source,
             `:name` the name and `:sharedWith` that other name. A verb
             written in steps runs them, a `::builtin{}` written among them
-            the value it is, a bare name reads its value, and a name that
-            holds the value of another name runs the primitive of that
-            name while a function of its own over the same `::builtin{}`
-            runs nothing, so a host declares its primitive as the recipe of
-            a verb under the label of its subject,
+            the value it is. A bare name reads its value. A name that holds
+            the value of another name runs the primitive of that name,
+            while a function of its own over the same `::builtin{}` runs
+            nothing. So a host declares its primitive as the recipe of a
+            verb under the label of its subject,
             `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});`.
             A `::builtin{}` the host hands nothing for is refused with
             `::builtin/PrimitiveNotHandedError`.

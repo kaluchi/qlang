@@ -4,19 +4,22 @@
 
 :shape
   |~~ A shape is the structure of a value beneath its tags, which `shape`
-      answers under `::shape`: the kind of each atom, as `tag` answers
-      it, a part under a tag standing as its tag, which tells of itself on
-      its page; each map with its keys, `{}` an empty one; each vector one
-      element whose shape holds of all of them, `[E]`, `[]` an empty one,
-      records that share a key merged into one; each set `#[E]`, `#[]` an
-      empty one; a tuple, `[A B]`, where vectors of one length part index
-      by index; the kinds where parts part, `#[::number ::string]`; and the
-      marks over a part, `::absent`, `::nullable` and `::each`. A shape is
-      read as every value is: a path reads it beneath the tags over each
-      part it meets, its marks among them, a list by its one element, a
-      tuple by its indices and a fold by the key it shows, so a part read
-      beneath a mark is answered without the mark, which stands over the
-      part above it,
+      answers under `::shape`,
+      `{:users [{:age 30} {:age "x"}]} | shape` answering
+      `::shape{:users [{:age #[::number ::string]}]}`. An atom stands as
+      its kind, as `tag` answers it, and a part under a tag as its tag,
+      which tells of itself on its page. A map stands with its keys, `{}`
+      an empty one. A vector stands as one element whose shape holds of all
+      of them, `[E]`, `[]` an empty one, records that share a key merged
+      into one. A set stands as `#[E]`, `#[]` an empty one, and vectors of
+      one length that part index by index as a tuple, `[A B]`. The kinds
+      where parts part stand as a set of them, `#[::number ::string]`, and
+      the marks over a part as `::absent`, `::nullable` and `::each`. A
+      shape is read as every value is. A path reads it beneath the tags
+      over each part it meets, its marks among them: a list by its one
+      element, a tuple by its indices and a fold by the key it shows. So a
+      part read beneath a mark is answered without the mark, which stands
+      over the part above it,
       `[{:author {:login "a"}} {:author null}] | shape | get /0/author/login`
       answering `::string` under a `::nullable` author. The shape of a part
       of the data is the shape of that part, `get /items | map /assignee | shape`,

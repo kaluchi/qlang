@@ -17,13 +17,13 @@
       every line and `s` for a dot that matches a line break,
       `#"^error"im`. A regex reads text by code points, as Unicode names
       characters, so `#"\p{L}+"` is a run of letters of any script.
-      The dialect is the one of JavaScript in its edition of 2018, which
-      the engine reads alike on every platform: a group of flags,
-      `(?i:…)`, and a group name written twice, past that edition, do not
-      parse, nor does a regex the engine cannot read, and
-      the refusal says why, naming the repair of a habit of another
-      dialect, flags written inside or a backslash before a character
-      that needs none, `\-`, `\:`.
+      The dialect is one, read alike on every platform: it holds
+      lookbehind, `(?<=…)`, named groups, `(?<name>…)`, and classes of
+      Unicode, `\p{L}`. A group of flags, `(?i:…)`, and a group name
+      written twice do not parse, nor does a regex the engine cannot read.
+      The refusal says why, naming the repair of a habit of another
+      dialect, flags written inside or a backslash before a character that
+      needs none, `\-`, `\:`.
 
       A regex is no string: `split "."` cuts a text at its dots, and
       `split #"[.,;]"` at any of three marks. Text becomes a regex by

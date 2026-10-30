@@ -137,7 +137,7 @@
       `toMap` builds back into a map. One order ranks every value, so
       anything sorts: null, then booleans, numbers, strings, keywords,
       vectors, sets, maps. `desc` turns a key to descend:
-      `sort (get [(get /age | desc) /name])` ranks by age descending,
+      `sort [(get /age | desc) /name]` ranks by age descending,
       then by name.
 
       9. Conditions. A condition is a boolean, and nothing else is

@@ -127,10 +127,13 @@ async function extremeOf(entries, key, pick) {
 
 const least = order => order < 0;
 const greatest = order => order > 0;
-registerPrimitive('vec/min', runsAsCode(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, least)));
-registerPrimitive('map/min', runsAsCode(['key'], (map, key) => extremeOf([...map], key, least)));
-registerPrimitive('vec/max', runsAsCode(['key'], (sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
-registerPrimitive('map/max', runsAsCode(['key'], (map, key) => extremeOf([...map], key, greatest)));
+// [QSORD#sort]
+const rankedByAKey = primitive => buildsAsTemplate(['key'], runsAsCode(['key'], primitive));
+
+registerPrimitive('vec/min', rankedByAKey((sequence, key) => extremeOf([...sequence.entries()], key, least)));
+registerPrimitive('map/min', rankedByAKey((map, key) => extremeOf([...map], key, least)));
+registerPrimitive('vec/max', rankedByAKey((sequence, key) => extremeOf([...sequence.entries()], key, greatest)));
+registerPrimitive('map/max', rankedByAKey((map, key) => extremeOf([...map], key, greatest)));
 
 // [QSERR#flow], [QSORD#sort]
 async function sortedEntries(entries, key) {
@@ -140,11 +143,11 @@ async function sortedEntries(entries, key) {
   return ranked.map(({ entry }) => entry);
 }
 
-registerPrimitive(['vec/sort', 'set/sort'], runsAsCode(['key'], async (sequence, key) => {
+registerPrimitive(['vec/sort', 'set/sort'], rankedByAKey(async (sequence, key) => {
   const sorted = await sortedEntries([...sequence.entries()], key);
   return isErrorValue(sorted) ? sorted : sorted.map(([, element]) => element);
 }));
-registerPrimitive('map/sort', runsAsCode(['key'], async (map, key) => {
+registerPrimitive('map/sort', rankedByAKey(async (map, key) => {
   const sorted = await sortedEntries([...map], key);
   return isErrorValue(sorted) ? sorted : new Map(sorted);
 }));

@@ -292,13 +292,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The code each element is ranked by, null when the call gives
-            none.
+        |~~ The code or the vector template each element is ranked by,
+            null when the call gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
-            or null; a value given there is refused.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`, a
+            vector template, `[/age /name]`, or null; a value of another
+            kind given there is refused.
         ~~|
     | returns
         |~~ The elements in the order the key ranks them, a vector. ~~|

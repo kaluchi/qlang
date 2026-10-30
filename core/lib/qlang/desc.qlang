@@ -9,7 +9,7 @@
       `desc` ranks the greater first, whatever the kind it ranks,
       `[{:score 7} {:score 9}] | sort (get /score | desc)` answering
       `[{:score 9} {:score 7}]`. One index of a vector key descends alone,
-      `sort (get [(get /score | desc) /name])` ranking by score
+      `sort [(get /score | desc) /name]` ranking by score
       descending, then by name.
 
       It is a value under its tag, `::desc#5`, which `desc` lays over

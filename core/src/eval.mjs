@@ -783,7 +783,7 @@ function handedTo(primitive, chain, { values, state: called }, state, flight) {
     if (asCode.within?.has(name.name)) return quotesClosedIn(value, close);
     if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, close, called));
     if (!asCode.run?.has(name.name)) return value;
-    if (asCode.template?.has(name.name) && walkToKinds(value, ['quote', 'path']) === null && !isFn(value)) return ofTheCall(templateCodeOf(value, close, called));
+    if (asCode.template?.has(name.name) && value !== null && walkToKinds(value, ['quote', 'path']) === null && !isFn(value)) return ofTheCall(templateCodeOf(value, close, called));
     return reading.readsArgs ? value.map(element => codeOfArg(element, close, state)) : ofTheCall(codeOfArg(value, close, state));
   });
 }

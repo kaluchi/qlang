@@ -1346,12 +1346,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The key the call gives, code run on each element, null when it
-            gives none.
+        |~~ The key the call gives, code run on each element or a vector
+            template built on it, null when it gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, a path or null, `max /age`, as for `min`. ~~|
+        |~~ The key is code written bare, a path, a vector template or
+            null, `max /age`, as for `min`.
+        ~~|
     | returns
         |~~ The greatest element, any value, null for the empty vector. ~~|
         ::any
@@ -1397,13 +1399,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The key the call gives, code run on each element, null when it
-            gives none.
+        |~~ The key the call gives, code run on each element or a vector
+            template built on it, null when it gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
-            or null; a value given there is refused.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`, a
+            vector template, `[/age /name]`, or null; a value of another
+            kind given there is refused.
         ~~|
     | returns
         |~~ The least element, any value, null for the empty vector. ~~|
@@ -1701,13 +1704,14 @@
       `[{:age 30} {:age 20}] | sort /age` answers `[{:age 20} {:age 30}]`.
       Elements the key leaves alike keep their order. The key is code run
       on each element, a path or code written bare,
-      `["b" "A" "c"] | sort lower` answering `["A" "b" "c"]`; null gives
-      no key, and any other value is refused. A vector key ranks index by
+      `["b" "A" "c"] | sort lower` answering `["A" "b" "c"]`, or a vector
+      template built on each element as `map` builds one; null gives no
+      key, and any other value is refused. A vector key ranks index by
       index, and `desc` turns the key, or one index of it, to descend, as
       `ORDER BY score DESC, name` reads:
-      `[{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort (get [(get /score | desc) /name]) | map /name`
+      `[{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort [(get /score | desc) /name] | map /name`
       answers `["Ann" "Eve" "Bob"]`. `eq null` at the first index puts
-      null last, `[3 null 1] | sort (get [(eq null) it])` answering
+      null last, `[3 null 1] | sort [(eq null) it]` answering
       `[1 3 null]`. A key that misses its field answers the error of the
       read, so a field an element may lack is read softly,
       `[{:age 30} {:name "Bob"}] | sort (query /age)` answering
@@ -1720,18 +1724,19 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The code that ranks each element, null when the call gives
-            none.
+        |~~ The code or the vector template that ranks each element, null
+            when the call gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
-            or null; a value given there is refused.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`, a
+            vector template, `[/age /name]`, or null; a value of another
+            kind given there is refused.
         ~~|
     | returns |~~ The elements in the order the key ranks them. ~~| ::vec
     | throws :ArgsBeyondInputsError
         |~~ `sort` takes one key; a key that ranks by several indices is a
-            vector, `sort (get [/last /first])`.
+            vector template, `sort [/last /first]`.
         ~~|
     | proves :ordersNumbers
         |~~ Numbers ascend, equal ones side by side. ~~|
@@ -1752,14 +1757,14 @@
         ~([{:age 30} {:age 20}] | sort /age | eq [{:age 20} {:age 30}])
     | proves :ranksByTheFirstIndex
         |~~ A vector key ranks by its first index. ~~|
-        ~([{:last "Lee" :first "Ann"} {:last "Kim" :first "Bob"}] | sort (get [/last /first]) | map /first | eq ["Bob" "Ann"])
+        ~([{:last "Lee" :first "Ann"} {:last "Kim" :first "Bob"}] | sort [/last /first] | map /first | eq ["Bob" "Ann"])
     | proves :breaksTiesByTheNextIndex
         |~~ A vector key breaks the ties of its first index by its next. ~~|
-        ~([{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort (get [(get /score | desc) /name]) | map /name
+        ~([{:score 7 :name "Bob"} {:score 9 :name "Eve"} {:score 9 :name "Ann"}] | sort [(get /score | desc) /name] | map /name
           |  eq ["Ann" "Eve" "Bob"])
     | proves :putsNullLast
         |~~ `eq null` at the first index puts null last. ~~|
-        ~([3 null 1] | sort (get [(eq null) it]) | eq [1 3 null])
+        ~([3 null 1] | sort [(eq null) it] | eq [1 3 null])
     | proves :keepsTheOrderOfAlikeElements
         |~~ Elements the key leaves alike keep the order of the subject. ~~|
         ~([{:score 9 :name "Bob"} {:score 7 :name "Eve"} {:score 9 :name "Ann"}] | sort /score | map /name | eq ["Eve" "Bob" "Ann"])
@@ -1768,7 +1773,7 @@
         ~([{:age 30} {:age 40}] | sort (get /age | desc) | first | get /age | eq 40)
     | proves :turnsTheKey
         |~~ `desc` turns one index of a vector key alone. ~~|
-        ~([{:dept :ops :age 30} {:dept :ops :age 41}] | sort (get [/dept (get /age | desc)]) | map /age | eq [41 30])
+        ~([{:dept :ops :age 30} {:dept :ops :age 41}] | sort [/dept (get /age | desc)] | map /age | eq [41 30])
     | proves :readsAFieldSoftly
         |~~ A field an element may lack is read softly. ~~|
         ~([{:age 30} {:name "Bob"}] | sort (query /age) | eq [{:name "Bob"} {:age 30}])
@@ -1782,7 +1787,7 @@
         |~~ A vector key whose read at an index misses its field answers
             the error alike.
         ~~|
-        ~([{:age 30} {:name "Bob"}] | sort (get [/age]) !| tag | eq ::path/KeyNotInMapError)
+        ~([{:age 30} {:name "Bob"}] | sort [/age] !| tag | eq ::path/KeyNotInMapError)
     | proves :KeyKindNotTakenError/refusesANumber
         |~~ A number given as the key is refused. ~~|
         ~([3 1 2] | sort 1 !| get [tag (key | found | tag)] | eq [::vec/sort/KeyKindNotTakenError ::number])

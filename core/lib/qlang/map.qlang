@@ -687,11 +687,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The code that ranks each value, null when the call gives none.
+        |~~ The code or the vector template that ranks each value, null
+            when the call gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, a path or null, `max /age`. ~~|
+        |~~ The key is code written bare, a path, a vector template or
+            null, `max /age`.
+        ~~|
     | returns |~~ The greatest value, null for the empty map. ~~| ::any
     | proves :answersTheGreatestValue
         |~~ The greatest value answers. ~~|
@@ -755,12 +758,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The code that ranks each value, null when the call gives none.
+        |~~ The code or the vector template that ranks each value, null
+            when the call gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
-            or null; a value given there is refused.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`, a
+            vector template, `[/age /name]`, or null; a value of another
+            kind given there is refused.
         ~~|
     | returns |~~ The least value, null for the empty map. ~~| ::any
     | proves :answersTheLeastValue
@@ -939,11 +944,14 @@
   ~~|
   ::fn
     | takes :key
-        |~~ The code that ranks each value, null when the call gives none.
+        |~~ The code or the vector template that ranks each value, null
+            when the call gives none.
         ~~|
-        ~(query /0) #[::null ::path ::quote]
+        ~(query /0) #[::null ::path ::quote ::vec]
     | throws :KeyKindNotTakenError
-        |~~ The key is code written bare, a path or null, `sort /age`. ~~|
+        |~~ The key is code written bare, a path, a vector template or
+            null, `sort /age`.
+        ~~|
     | returns
         |~~ The entries in the order the key ranks them, under the tags of
             the map.

@@ -99,8 +99,9 @@ values as `gt` relates two and answer the least and the greatest, null
 for an empty container, a pair of two kinds, null beside a number among
 them, refused where its second stands, a missing value taken out first,
 `filter (ne null) | max`, and a value that is no container answers none
-of them. Each takes a key, null,
-code or a path, another kind refused under its input `key`,
+of them. Each takes a key, null, code, a path or a vector template,
+which it builds on each element as `map` builds a template
+[QSCOL#image], another kind refused under its input `key`,
 `::vec/sort/KeyKindNotTakenError`, `::map/sort/KeyKindNotTakenError` and
 `::vec/min/KeyKindNotTakenError`,
 and ranks by what the key answers, a vector key ranking index by index,
@@ -112,7 +113,7 @@ the elements does where no key is given. `gt`, `gte`, `lt` and `lte`
 compare within one kind [QSCND#compare].
 
 ```qlang
-> [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort (get [/a /b]) | map /b
+> [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort [/a /b] | map /b
 [9 1 2]
 
 > [{:age 30} {:age 40}] | max /age
@@ -149,7 +150,7 @@ two kinds, which a comparison refuses [QSCND#compare].
 > ["b" "c" "a"] | sort desc
 ["c" "b" "a"]
 
-> [{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort (get [(get /n | desc) /s]) | map /s
+> [{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort [(get /n | desc) /s] | map /s
 ["a" "c" "b"]
 
 > 1 | desc | gt (2 | desc)

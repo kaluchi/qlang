@@ -569,7 +569,7 @@
       that answers it descends,
       `[1 3 2] | sort desc` answering `[3 2 1]`, and in a vector key it
       turns its own index alone,
-      `sort (get [(get /score | desc) /name])`. A value of every kind
+      `sort [(get /score | desc) /name]`. A value of every kind
       turns, a map among them, and `payload` reads it back. The key is
       code, so `sort desc` turns each element. A key turned in `max` finds
       the least. The call takes no value; a field turns by reading it
@@ -596,7 +596,7 @@
     | proves :turnsOneIndexOfAVectorKey
         |~~ In a vector key `desc` turns its own index alone. ~~|
         ~([{:score 7 :name "Bob"} {:score 7 :name "Ann"} {:score 9 :name "Eve"}]
-          | sort (get [(get /score | desc) /name]) | map /name | eq ["Eve" "Ann" "Bob"])
+          | sort [(get /score | desc) /name] | map /name | eq ["Eve" "Ann" "Bob"])
     | proves :readsBackByPayload
         |~~ A map turns, and `payload` reads it back. ~~|
         ~({:score 7} | desc | payload | eq {:score 7})

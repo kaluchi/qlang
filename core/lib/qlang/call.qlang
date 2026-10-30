@@ -124,11 +124,16 @@
     | throws :ValueWithheldError
         |~~ Code held as data, a quote in a name, a field or a page, runs
             in a lane of its own, the verbs of the tree and the names it
-            declares itself, and reads no value the reader named: `:name`
-            holds the name it read. The quote is written in the step that
-            hands it to a verb, `filter (gt lim)`, which writes into it the
-            values of that step it reads, `with` names them for its body,
-            the value goes to a function as an input, `apply f [4]`, or
+            declares itself, and reads no value the reader named. The recipe
+            of a verb and the conditions and the selectors of a verb or a
+            kind read no value of the text they were declared in, but the
+            name of the verb, which calls itself. `:name` holds the name
+            read, and a verb of that name is called by its address,
+            `vec/count`. A value reaches code by the step that hands it to a
+            verb, `filter (gt lim)`, which writes into it the values of that
+            step it reads, or by the names `with` gives its body. It goes to
+            a function as an input, `apply f [4]`, a program written bare
+            carries the values of its text it reads, `:big gt lim;`, and
             `fill` writes it at the head of the code,
             `~(gt lim) | fill {:lim 4}`.
             ::link~(::call) ::link~(::quote/fill)

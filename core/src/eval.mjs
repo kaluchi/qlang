@@ -262,6 +262,7 @@ async function evalBind(bind, state, at) {
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
   if (program && nounName === null) markProgram(record);
+  if (program || isKind(answered) || (nounName !== null && (isFn(answered) || isQuote(answered)))) withheldWhereDeclared(record, state.scope);
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
@@ -588,6 +589,27 @@ function scopeOpenedIn(scope, ofTheRoot) {
   return ofTheRoot ? markRootVerbScope(kept) : kept;
 }
 
+// [QSBLD#recipe], [QSQUO#held]
+const WITHHELD_WHERE_DECLARED = new WeakMap();
+
+function withheldWhereDeclared(record, scope) {
+  const withheld = new Set([...(scope.get(WITHHELD_KEY) ?? []), ...valuesNamedIn(scope).keys()]);
+  withheld.delete(splitAddress(record.get('name').name)[1]);
+  if (withheld.size > 0) WITHHELD_WHERE_DECLARED.set(record, withheld);
+}
+
+const SCOPES_WITHHOLDING = new WeakMap();
+
+function withholdingWhereDeclared(scope, record) {
+  const withheld = record === undefined ? undefined : WITHHELD_WHERE_DECLARED.get(record);
+  if (withheld === undefined) return scope;
+  let byWithheld = SCOPES_WITHHOLDING.get(scope);
+  if (byWithheld === undefined) SCOPES_WITHHOLDING.set(scope, byWithheld = new WeakMap());
+  let kept = byWithheld.get(withheld);
+  if (kept === undefined) byWithheld.set(withheld, kept = new Map(scope).set(WITHHELD_KEY, withheld));
+  return kept;
+}
+
 // [QSNAM#owner], [QSQUO#held]
 function nodesAndLabelsOf(scope) {
   const kept = new Map([[ROOT_KEY, rootOf(scope)]]);
@@ -680,7 +702,7 @@ async function applyFunctionVerb(record, fn, modifiers, state) {
   const address = record.get('name').name;
   const ofTheRoot = isQuote(recipeOf(fn)) ? rootOf(state.scope).get(address) === record : isRootVerbScope(state.scope);
   const flight = flightOfACall();
-  const answer = await callFunction(fn, { address, labelName: splitAddress(address)[0], ofTheRoot }, modifiers, state, flight);
+  const answer = await callFunction(fn, { address, labelName: splitAddress(address)[0], ofTheRoot, record }, modifiers, state, flight);
   return withFlight(withPipeValue(state, answer), flight);
 }
 
@@ -695,7 +717,7 @@ export async function inputsOfFunction(fn, args, state) {
   return isErrorValue(called) ? called : called.values;
 }
 
-async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, state, flight) {
+async function callFunction(fn, { address, labelName, ofTheRoot, record }, modifiers, state, flight) {
   const chain = chainOfFn(fn);
   const recipe = recipeOf(fn);
   const steps = isQuote(recipe) ? recipe : null;
@@ -709,7 +731,7 @@ async function callFunction(fn, { address, labelName, ofTheRoot }, modifiers, st
     walked = subjectOfCall(chain, handed.labelName, state.pipeValue);
     if (walked === null) return refusalUnder(subjectRefusalAddress(address, handed.labelName), subjectRefused(kindsServed(handed.labelName, chain)), state.scope);
   }
-  const scope = callScopeOf(state, ofTheRoot);
+  const scope = withholdingWhereDeclared(callScopeOf(state, ofTheRoot), record);
   const called = await inputsOfCall(chain, address, modifiers, state, scope, steps, flight, steps !== null && walked.byLabel ? wiringOf(walked.served) : undefined, handed === undefined ? undefined : inputsAsCode(handed.primitive));
   if (isErrorValue(called)) return called;
   const pour = refused => slotsPoured(state.pipeValue, chain.inputs.map(({ name }, at) => [name.name, called.given[at]]), refused);
@@ -1204,7 +1226,7 @@ async function underKind(tagName, kind, written, state, refusedUnder = tagName) 
   const held = payloadRole === null ? payload : payloadHeldByItsKinds(payloadRole, refusedUnder, payload, state.scope);
   if (isErrorValue(held)) return held;
   let scope;
-  const opened = () => scope ??= callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName));
+  const opened = () => scope ??= withholdingWhereDeclared(callScopeOf(state, rootOf(state.scope).get(tagName) === nodeOf(state.scope, tagName)), nodeOf(state.scope, tagName));
   const facts = ofAnError ? factsOfAnError(held) : held;
   const ofFacts = ofAnError ? { told: isExcerpt(facts), slots: slotsOfAVerdict(kind) } : null;
   const parts = new Map();
@@ -1359,10 +1381,15 @@ const LANES = new WeakMap();
 function laneOf(scope) {
   let lane = LANES.get(scope);
   if (lane !== undefined) return lane;
-  const { scope: kept, values } = nodesAndLabelsOf(scope);
-  lane = kept.set(WITHHELD_KEY, new Set([...(scope.get(WITHHELD_KEY) ?? []), ...values]));
+  lane = withheldIn(scope);
   if (scope.has(QUERY_KEY)) lane.set(QUERY_KEY, scope.get(QUERY_KEY));
   if (isRootVerbScope(scope)) markRootVerbScope(lane);
   LANES.set(scope, lane);
   return lane;
+}
+
+// [QSQUO#held], [QSBLD#recipe]
+function withheldIn(scope) {
+  const { scope: kept, values } = nodesAndLabelsOf(scope);
+  return kept.set(WITHHELD_KEY, new Set([...(scope.get(WITHHELD_KEY) ?? []), ...values]));
 }

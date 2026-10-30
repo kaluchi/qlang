@@ -58,3 +58,4 @@
 {"name":"held-code-withholds-a-constant-under-a-bare-name","query":":k 10; :q ~(add k); 5 | apply q !| get [tag name]","expect":"[::call/ValueWithheldError :k]"}
 {"name":"a-verb-refuses-code-quoted-twice-naming-the-bare-name","query":":mf ~manifest; [::vec] | map ~mf !| tag","expect":"::vec/map/CodeQuotedTwiceError"}
 {"name":"map-refuses-code-that-answers-a-quote-as-quoted-twice","query":"[1 2] | map (~(add 1)) !| tag","expect":"::vec/map/CodeQuotedTwiceError"}
+{"name":"a-verb-written-in-the-language-hands-on-a-template-its-call-writes-with-the-values-its-code-reads","query":":bonus 10; :vec/pluck (::fn | takes :shape |~~ The shape. ~~| /0 #[::map ::quote] | impl ~(map shape)); [{:a 1} {:a 5}] | pluck {:a (get /a | add bonus)}","expect":"[{:a 11} {:a 15}]"}

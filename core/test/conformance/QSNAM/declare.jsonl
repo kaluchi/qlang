@@ -15,3 +15,6 @@
 {"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [tag name]","expect":"[::bind/SubjectNotGivenError :x]"}
 {"name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]"}
 {"name":"a-verb-runs-a-program-its-text-declares","query":":isEven (mod 2 | eq 0); :vec/evens (filter isEven); [1 2 3 4] | evens","expect":"[2 4]"}
+{"name":"a-group-headed-by-a-program-it-declares-declares-a-program","query":":x (:y count; y); [1 2] | x","expect":"2"}
+{"name":"a-group-headed-by-a-value-it-declares-declares-a-value","query":":x (:z 1; :y z; y); x","expect":"1"}
+{"name":"a-verb-called-where-no-value-is-in-the-pipe-is-refused-naming-it","query":"get [(~(:x (!| 1 | count);) | answer !| get [tag name]) (~(:x (!| 1 | vec/count);) | answer !| get [tag name]) (~(:x (!| 1 | nosuch);) | answer !| tag)]","expect":"[[::bind/SubjectNotGivenError :count] [::bind/SubjectNotGivenError :vec/count] ::call/UnknownNameError]"}

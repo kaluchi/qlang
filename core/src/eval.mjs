@@ -242,7 +242,7 @@ async function evalBind(bind, state, at) {
     docs.push(doc);
   }
   const program = bind.has('body') && !VALUES_WRITTEN.has(bind) && asksForASubject(bind.get('body'), state.scope);
-  if (nounName !== null && bind.has('body') && isQuote(bind.get('body')) && bind.get('body').length > 0 && asksForASubject(headOfCode(bind.get('body')) ?? null, state.scope)) {
+  if (nounName !== null && bind.has('body') && isQuote(bind.get('body')) && asksForASubject(headOfCode(bind.get('body')), state.scope)) {
     throw new BindBodyQuotedError({ name: makeKeyword(name), found: bind.get('body') });
   }
   const body = !bind.has('body') ? null
@@ -1282,7 +1282,6 @@ function holdsAValueOf(scope, name) {
 }
 
 function namesAValue(step, scope) {
-  if (!isCallStep(step)) return true;
   const name = step.get('name').name;
   return name.includes('/') ? !isVerb(scope, name) : holdsAValueOf(scope, name);
 }
@@ -1292,14 +1291,19 @@ function restsAsCode(step, scope) {
 }
 
 // [QSNAM#declare]
-function asksForASubject(step, scope) {
+function asksForASubject(step, scope, declaredInside = new Map()) {
   if (isGroupStep(step)) {
+    const declared = new Map(declaredInside);
+    for (const held of step.payload) {
+      if (!isBindStep(held)) break;
+      declared.set(held.get('name').name, held.has('body') && asksForASubject(held.get('body'), scope, declared));
+    }
     const head = headOfCode(step.payload);
-    if (head === undefined) return false;
-    if (isCallStep(head) && step.payload.some(held => isBindStep(held) && held.get('name').name === head.get('name').name)) return false;
-    return isGroupStep(head) || asksForASubject(head, scope);
+    return isGroupStep(head) || asksForASubject(head, scope, declared);
   }
-  return isCallStep(step) && !namesAValue(step, scope);
+  if (!isCallStep(step)) return false;
+  const name = step.get('name').name;
+  return declaredInside.has(name) ? declaredInside.get(name) : !namesAValue(step, scope);
 }
 
 // [QSQUO#held]

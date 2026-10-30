@@ -55,8 +55,9 @@
     | throws :LiteralComputesError
         |~~ A modifier that is a literal computes nothing: the modifier at
             `:index` holds a name or a group, and `:message` writes the
-            template `get` builds the shape from, its parts paths and
-            code, `get [x]`.
+            template `get` builds the shape from where no part of it reads
+            the subject, `get [(5 | add 1)]`, and names the page of `get`
+            where a part does, a path, a name or a group whose head reads it.
             ::link~(::call) ::link~(::any/get)
         ~~|
         ~(wires :message

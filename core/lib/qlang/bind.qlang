@@ -69,9 +69,10 @@
     | throws :LiteralComputesError
         |~~ A body that is a literal computes nothing: a name or a group
             inside it is refused, and `:message` writes the template `get`
-            builds the shape from, its parts written as the code they are,
-            `:ends get [first last];`, a program that builds it on the
-            subject wherever its name stands.
+            builds the shape from where no part of it reads the subject,
+            `get [(5 | add 1)]`, and names the page of `get` where a part
+            does, `[first last]` among them, which a program builds on the
+            subject wherever its name stands, `:ends get [first last];`.
             ::link~(::bind) ::link~(::any/get)
         ~~|
         ~(wires :message

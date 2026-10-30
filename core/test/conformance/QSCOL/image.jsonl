@@ -15,3 +15,4 @@
 {"name":"map-refuses-code-quoted-where-it-takes-it-bare","query":"[1 2] | map ~(mul 2) !| tag","expect":"::vec/map/CodeQuotedError"}
 {"name":"map-refuses-a-quote-under-a-tag-written-in-the-step","query":"[1 2] | map ::quote~(add 1) !| tag","expect":"::vec/map/CodeQuotedError"}
 {"name":"map-refuses-the-identity-quoted-naming-it","query":"[1 2] | map ~() !| tag","expect":"::vec/map/CodeQuotedError"}
+{"name":"map-refuses-a-quote-written-at-any-depth-of-its-template","query":"[1] | get [(map [[~(count)]] !| tag) (map {:k [~(count)]} !| tag)]","expect":"[::vec/map/CodeQuotedError ::vec/map/CodeQuotedError]"}

@@ -125,10 +125,24 @@ const entriesCut = (entries, written) => runsCut([...entries].map(([key, part]) 
 
 const runsCut = pieces => pieces.filter((piece, at) => piece !== '…' || pieces[at - 1] !== '…').join(' ');
 
+// [QSLIT#closed]
+const readsTheSubject = part => isPath(part) || isCallStep(part) || (isGroupStep(part) && headReadsTheSubject(part.payload));
+
+function headReadsTheSubject(steps) {
+  const head = steps.find(step => !isBindStep(step));
+  return head !== undefined && (isFailStep(head) || readsTheSubject(head));
+}
+
 function literalMessage(literal, written) {
-  const template = templateOf(literal, written);
   const tagged = isConstructStep(literal) && errorFieldsOf(literal.get('payload')) !== null;
-  if (errorFieldsOf(literal) === null && !tagged) {
+  const ofAnError = tagged || errorFieldsOf(literal) !== null;
+  if (holdsWithin(literal, readsTheSubject)) {
+    return ofAnError
+      ? 'an error literal computes nothing: facts computed from the subject are built by `get` and `raise` makes them an error, `::any/raise | doc`'
+      : 'a literal computes nothing: a shape computed from the subject is built by `get`, `::any/get | doc`';
+  }
+  const template = templateOf(literal, written);
+  if (!ofAnError) {
     const shape = isConstructStep(literal) ? `${templateOf(literal.get('payload'), written)} | tag ${literal.get('tag').literal}` : template;
     return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and code, write \`get ${shape}\``;
   }

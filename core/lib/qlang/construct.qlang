@@ -45,8 +45,10 @@
     | throws :LiteralComputesError
         |~~ A payload computes nothing, as every part of a literal: a name
             or a group in it is refused, and `:message` writes the template
-            `get` builds the payload from, its parts paths and code, and
-            the tag laid after it by `tag`, `get [x] | tag ::Box`.
+            `get` builds the payload from and the tag laid after it by
+            `tag` where no part of it reads the subject,
+            `get [(5 | add 1)] | tag ::Box`, and names the page of `get`
+            where a part does.
             ::link~(::construct) ::link~(::any/get)
         ~~|
         ~(wires :message
@@ -98,7 +100,7 @@
         ~(::construct[1] !| get [tag expected] | eq [::construct/PayloadKindNotTakenError #[::map]])
     | proves :LiteralComputesError/refusesAPayloadOfCode
         |~~ The step of a call as the payload computes, and is refused. ~~|
-        ~(get {:tag ::Box :payload (~(x) | first)} | tag ::construct !| get [tag message] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and code, write `get x | tag ::Box`"])
+        ~(get {:tag ::Box :payload (~(x) | first)} | tag ::construct !| get [tag message] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed from the subject is built by `get`, `::any/get | doc`"])
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
         ~(::construct{:tag ::Box :payload 42} | get [it] | tag ::quote | eq ~(::Box#42))

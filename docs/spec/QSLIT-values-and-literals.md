@@ -220,17 +220,26 @@ name, its kind attaching the tag to the payload or refusing it
 holds a step at rest, which a verb that takes the literal as a template
 runs [QSPTH#template]; at the head of a query, as the body of a
 declaration and after `!|` the parser refuses it, and where a verb takes
-a value the call refuses it as `::call/LiteralComputesError`, each naming
-the literal as the template of `get`, its brackets and the tags of its
-parts kept, `[::Box[x] 1]` naming `get [::Box[x] 1]`, a quote it holds
-written in a group, where the quote stays the value it is, `[~(count) x]`
-naming `get [(~(count)) x]`, a literal under a tag its payload built so
-and the tag laid after it, through the kind of the tag, `::Box{:w (x)}`
-naming `get {:w (x)} | tag ::Box`, a template past a line,
-eighty characters, written by its parts that compute alone, each run of the
-rest cut to `…`, and inside an error literal names the facts built by `get`
-and made an error by `raise`, under its bang where a tag stands over it,
-`get !{:subject/found (…)} | tag ::number/add/SubjectNotNumberError | raise`; code in
+a value the call refuses it as `::call/LiteralComputesError`, each
+writing the repair where it answers alike whatever the subject and
+naming the page that tells the shape where it does not. Where no part of
+the literal reads the subject, a path, a name or a group whose head
+reads it, the refusal names the literal as the template of `get`, its
+brackets and the tags of its parts kept, `[::Box[(5 | add 1)] 1]` naming
+`get [::Box[(5 | add 1)] 1]`, a quote it holds written in a group, where
+the quote stays the value it is, `[~(count) (5 | add 1)]` naming
+`get [(~(count)) (5 | add 1)]`, a literal under a tag its payload built so
+and the tag laid after it, through the kind of the tag,
+`::Box{:w (5 | add 1)}` naming `get {:w (5 | add 1)} | tag ::Box`, a
+template past a line, eighty characters, written by its parts that
+compute alone, each run of the rest cut to `…`, and inside an error
+literal names the facts built by `get` and made an error by `raise`, under
+its bang where a tag stands over it,
+`get !{:subject/found (5 | add 1)} | tag ::number/add/SubjectNotNumberError | raise`;
+where a part reads the subject, `#[count]` among them, the shape it
+computes rests on a subject the refusal does not see, and the refusal
+names the page of `get`, `::any/get | doc`, and inside an error literal
+the page of `raise`, `::any/raise | doc`. Code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it
@@ -241,8 +250,11 @@ rules as any code does [QSSYN#doc].
 > "[(5 | add 1) 2]" | parse !| message
 "a literal computes nothing: a shape computed is built by `get`, its parts paths and code, write `get [(5 | add 1) 2]`"
 
-> "[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 (add 1) 27 28 29 30]" | parse !| message | contains "write `get [… (add 1) …]`"
+> "[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 (5 | add 1) 27 28 29 30]" | parse !| message | contains "write `get [… (5 | add 1) …]`"
 true
+
+> "#[count]" | parse !| message
+"a literal computes nothing: a shape computed from the subject is built by `get`, `::any/get | doc`"
 
 > "::Width(5)" | parse !| message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"

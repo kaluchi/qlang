@@ -79,8 +79,9 @@
     | throws :LiteralComputesError
         |~~ A literal computes nothing: the step at `:index` is a literal
             that holds a name or a group, which the shape `get` builds
-            computes, and `:message` writes that template, its parts
-            computed written as quotes, `get [count]`.
+            computes, and `:message` writes that template where no part of
+            it reads the subject, `get [(5 | add 1)]`, and names the page of
+            `get` where a part does, `[count]` among them.
             ::link~(::quote) ::link~(::any/get)
         ~~|
         ~(wires :message
@@ -191,10 +192,10 @@
         |~~ A declaration after the first step of the query is refused. ~~|
         ~(get [5 (~(:rate 2;) | first)] | tag ::quote !| get [tag index] | eq [::quote/StepNotCommandError 1])
     | proves :LiteralComputesError/refusesANameInAVector
-        |~~ A vector that holds a name is refused, naming the template
-            `get` builds.
+        |~~ A vector that holds a name is refused, naming the page of
+            `get`, since the name reads the subject.
         ~~|
-        ~([[::call{:name :count}]] | tag ::quote !| get [tag message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and code, write `get [count]`"])
+        ~([[::call{:name :count}]] | tag ::quote !| get [tag message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed from the subject is built by `get`, `::any/get | doc`"])
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| tag | eq ::quote/ParseError)

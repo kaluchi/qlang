@@ -36,3 +36,4 @@
 {"name":"a-page-declared-alone-past-the-width-of-a-line-writes-its-page-under-its-name","query":"~(:x |~~ a page long enough to pass the width of a line beside the name of its declaration ~~|;) | toString","expect":"\":x\\n  |~~ a page long enough to pass the width of a line beside the name of its declaration ~~|;\""}
 {"name":"a-word-longer-than-a-line-stays-on-its-line","query":"~(1 | aNameOfACallLongEnoughToPassTheWidthOfALineByItselfWithNoModifiersAtAllToBreak) | toString | lines | count","expect":"1"}
 {"name":"a-quote-prints-a-semicolon-after-each-declaration-at-its-head","query":"~(:rate 2; mul rate) | print","expect":"\"~(:rate 2; mul rate)\""}
+{"name":"a-call-with-modifiers-a-literal-holds-as-a-part-prints-in-a-group","query":"[::call{:name :map :modifiers [[::call{:name :add :modifiers [1]}]]}] | tag ::quote | toString","expect":"\"map [(add 1)]\""}

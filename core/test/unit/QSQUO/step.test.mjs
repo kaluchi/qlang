@@ -39,7 +39,7 @@ describe('a rule of a step refused where the text writes it', () => {
 
   it('refuses a literal step that computes where it is read, before a fault later in its pipeline', () => {
     const refused = refusalOf('[x]e');
-    expect(refused.message).toContain('write `get [x]`');
+    expect(refused.message).toContain('`::any/get | doc`');
     expect([refused.location.start.offset, refused.location.end.offset]).toEqual([0, 3]);
   });
 
@@ -173,10 +173,10 @@ describe('assembling steps by hand', () => {
 
   it('a literal that computes writes its template as the printer writes it, each part that computes as the code it is', async () => {
     const messageOf = async query => await evalQuery(`${query} | get [it] | tag ::quote !| message`);
-    expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('write `get [(add 1)]`');
-    expect(await messageOf('#[::call{:name :x} 1]')).toContain('write `get #[1 x]`');
-    expect(await messageOf('get [(~(count) | tag ::group)]')).toContain('write `get [(count)]`');
-    expect(await evalQuery('get {:tag ::Foo :payload ({:a ::call{:name :count}} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a count} | tag ::Foo | raise`');
+    expect(await messageOf('get [(~(5 | add 1) | tag ::group)]')).toContain('write `get [(5 | add 1)]`');
+    expect(await messageOf('get #[(~(5 | count) | tag ::group) 1]')).toContain('write `get #[1 (5 | count)]`');
+    expect(await evalQuery('get {:tag ::Foo :payload (get {:a (~(5 | count) | tag ::group)} | tag ::error)} | tag ::construct !| message')).toContain('write `get !{:a (5 | count)} | tag ::Foo | raise`');
+    expect(await messageOf('[::call{:name :add :modifiers [1]}]')).toContain('`::any/get | doc`');
   });
 
   it('searches a literal for a part that computes on the road of its text as on the road of data, the segments of a doc computing nothing', async () => {

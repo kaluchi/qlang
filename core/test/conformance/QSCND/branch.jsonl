@@ -52,3 +52,4 @@
 {"name":"a-verb-in-a-branch-of-if-runs-as-code","query":"5 | if true ~(add 1) ~(0)","expect":"6"}
 {"name":"a-condition-of-cond-is-named-by-its-index-from-zero","query":"get [~(5 | cond ~(1) ~(\"yes\") !| get [~(tag) ~(clauses | index)]) ~(5 | cond ~(false) ~(1) ~(2) ~(3) !| get [~(tag) ~(clauses | index)])]","expect":"[[::any/cond/ClausesAnswerKindNotTakenError 0] [::any/cond/ClausesAnswerKindNotTakenError 2]]"}
 {"name":"a-branch-that-is-no-code-is-refused","query":"5 | if true 1 2 !| tag","expect":"::any/if/ThenKindNotTakenError"}
+{"decision":"D496","name":"if-runs-the-branch-it-takes-written-bare","query":"-5 | if (gt 0) (add 100) (sub 1)","expect":"-6","target":true,"now":"::any/if/ThenKindNotTakenError"}

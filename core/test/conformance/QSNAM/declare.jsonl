@@ -16,3 +16,4 @@
 {"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :x]"}
 {"name":"a-verb-called-in-the-body-of-a-declaration-is-refused-for-no-subject","query":"~(:x count; 1) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :count]"}
 {"name":"a-verb-called-by-its-address-in-the-body-of-a-declaration-is-refused-for-no-subject","query":"~(:x vec/count; 1) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :vec/count]"}
+{"decision":"D496","name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]","target":true,"now":"::bind/SubjectNotGivenError"}

@@ -58,3 +58,4 @@
 {"name":"fill-refuses-names-that-are-no-map","query":"~(add bonus) | fill [10] !| tag","expect":"::quote/fill/NamesKindNotTakenError"}
 {"name":"a-subject-neither-a-quote-nor-a-function-meets-the-two-verbs-of-fill","query":"5 | fill 3 !| get [~(tag) ~(addresses)]","expect":"[::call/KindAnswersNoVerbError #[::fn/fill ::quote/fill]]"}
 {"name":"held-code-withholds-a-constant-under-a-bare-name","query":":k 10; :q ~(add k); 5 | apply q !| get [~(tag) ~(name)]","expect":"[::call/ValueWithheldError :k]"}
+{"decision":"D496","name":"a-verb-refuses-code-quoted-twice-naming-the-bare-name","query":":mf ~manifest; [::vec] | map ~mf !| tag","expect":"::vec/map/CodeQuotedTwiceError","target":true,"now":"[~(manifest)]"}

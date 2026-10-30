@@ -3,12 +3,13 @@
    The rules it holds: [QSDSP#residence], [QSPTH#shape]. ~|
 
 :absent
-  |~~ An absent marks in a shape a part some of the data lacks: a key some
-      of the records merged there lack, each key of the records and folds
-      an empty map stands beside, `[{:age 30} {:score 7} {}] | shape`
-      answering `::shape[#[{:age ::absent::number} {:score ::absent::number}]]`,
-      or the element of a vector or a set empty in some, over the shape of
-      the rest and outside `::nullable`:
+  |~~ An absent marks in a shape a part some of the data lacks. It marks
+      a key some of the records merged there lack, and each key of the
+      records and folds an empty map stands beside,
+      `[{:age 30} {:score 7} {}] | shape` answering
+      `::shape[#[{:age ::absent::number} {:score ::absent::number}]]`. It
+      marks the element of a vector or a set empty in some, over the shape
+      of the rest and outside `::nullable`:
       `[{:age 30} {:age 25 :name "Bob"}] | shape` answers
       `::shape[{:age ::number :name ::absent::string}]`.
       ::link~(::shape)
@@ -17,15 +18,19 @@
     | accepts |~~ The shape of the part where the data holds it. ~~|
     | proves :marksAKeySomeRecordsLack
         |~~ A key some records lack stands marked absent. ~~|
-        ~([{:age 30} {:age 25 :name "Bob"}] | shape | eq ::shape[{:age ::number :name ::absent::string}])
+        ~([{:age 30} {:age 25 :name "Bob"}] | shape
+          | eq ::shape[{:age ::number :name ::absent::string}])
     | proves :marksEachRecordBesideAnEmptyMap
         |~~ An empty map marks each key of the records beside it absent. ~~|
-        ~([{:age 30} {:score 7} {}] | shape | eq ::shape[#[{:age ::absent::number} {:score ::absent::number}]])
+        ~([{:age 30} {:score 7} {}] | shape
+          | eq ::shape[#[{:age ::absent::number} {:score ::absent::number}]])
     | proves :marksTheElementOfAVectorEmptyInSome
         |~~ The element of a vector empty in some of the data is absent. ~~|
-        ~([{:labels [{:name "bug"}]} {:labels []}] | shape | eq ::shape[{:labels [::absent{:name ::string}]}])
+        ~([{:labels [{:name "bug"}]} {:labels []}] | shape
+          | eq ::shape[{:labels [::absent{:name ::string}]}])
     | proves :standsOutsideTheNullMark
         |~~ A key missing from some records and null in others is absent
             outside and nullable within.
         ~~|
-        ~([{:age 30} {:age null} {}] | shape | eq ::shape[{:age ::absent::nullable::number}]);
+        ~([{:age 30} {:age null} {}] | shape
+          | eq ::shape[{:age ::absent::nullable::number}]);

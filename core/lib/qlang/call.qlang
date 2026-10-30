@@ -41,7 +41,9 @@
             `:modifiers`.
             ::link~(::call)
         ~~|
-        ~(wires :field |~~ The field of the record of the step that does not fit. ~~| ::keyword)
+        ~(wires
+          :field |~~ The field of the record of the step that does not fit. ~~|
+          ::keyword)
     | throws :NameNotCallableError
         |~~ The name of a call is one a step calls, names joined by `/`,
             each a letter or `_` and the letters, digits, `_` and `-` after
@@ -50,8 +52,9 @@
             what the rule says of it.
             ::link~(::call) ::link~(::qlang/names)
         ~~|
-        ~(wires :message |~~ What the rule of a name says of the name. ~~| ::string
-          | wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
+        ~(wires :message |~~ What the rule of a name says of the name. ~~|
+          ::string | wires :name
+          |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
     | throws :LiteralComputesError
         |~~ A modifier that is a literal computes nothing: the modifier at
             `:index` holds a name or a group, and `:message` writes the
@@ -60,11 +63,11 @@
             where a part does, a path, a name or a group whose head reads it.
             ::link~(::call) ::link~(::any/get)
         ~~|
-        ~(wires :message
-              |~~ What the rule says of the literal, the template `get` builds it
-                  from.
-              ~~|
-              ::string)
+        ~(wires
+          :message
+          |~~ What the rule says of the literal, the template `get` builds
+                  it from.
+              ~~| ::string)
     | throws :HostFailureError
         |~~ A failure inside a primitive: an error of the language the
             runtime is written in escaped a verb. Or the primitive a host
@@ -84,9 +87,10 @@
             ::link~(::call)
         ~~|
         ~(wires :message |~~ The host's account of the failure. ~~| ::string
-          | wires :causes
-              |~~ The accounts of the failures beneath it, outermost first. ~~|
-              ::vec)
+          | wires
+          :causes
+          |~~ The accounts of the failures beneath it, outermost first. ~~|
+          ::vec)
     | throws :ValueTakesNoModifiersError
         |~~ A name the scope binds to a value, and a part the kind of the
             subject wires, take no modifiers: the value is read bare,
@@ -96,12 +100,11 @@
             it, `string/five`.
             ::link~(::call)
         ~~|
-        ~(wires :name |~~ The name, which holds a value and no verb. ~~| ::keyword
-          | wires :addresses
-              |~~ The addresses where a verb of that name lives: one a
+        ~(wires :name |~~ The name, which holds a value and no verb. ~~|
+          ::keyword | wires :addresses
+          |~~ The addresses where a verb of that name lives: one a
                   declaration shadows among them.
-              ~~|
-              ::set)
+              ~~| ::set)
     | throws :ValueAsALaterStepError
         |~~ A step after the head of a query is a command, and the name
             holds a value, which `:found` holds: a value stands at the head
@@ -116,7 +119,9 @@
             ::link~(::call) ::link~(::bind) ::link~(::any/with)
         ~~|
         ~(wires :name |~~ The name, which holds a value. ~~| ::keyword
-          | wires :addresses |~~ The addresses where a verb of that name lives, which the name stands over. ~~| ::set)
+          | wires :addresses
+          |~~ The addresses where a verb of that name lives, which the name
+                  stands over. ~~| ::set)
     | throws :ValueWithheldError
         |~~ Code held as data, a quote in a name, a field or a page, runs
             in a lane of its own, the verbs of the tree and the names it
@@ -129,7 +134,8 @@
             `~(gt lim) | fill {:lim 4}`.
             ::link~(::call) ::link~(::quote/fill)
         ~~|
-        ~(wires :name |~~ The name of the reader's value the held code read. ~~| ::keyword)
+        ~(wires :name |~~ The name of the reader's value the held code read. ~~|
+          ::keyword)
     | throws :KindAnswersNoVerbError
         |~~ The kind of the subject has no verb of the name while other
             kinds have one. `:name` holds the name, `:found` the subject,
@@ -153,14 +159,15 @@
         ~~|
         ~(wires :name |~~ The name the step called. ~~| ::keyword
           | wires :addresses
-              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
-              ::set
-          | wires :nearest
-              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
-              ::vec
-          | wires :repair
-              |~~ The step the call was likely meant as: where a path stands instead of the value it names. ~~|
-              ::quote)
+          |~~ The addresses where a verb of that name lives: one for each
+                  kind that answers it.
+              ~~| ::set | wires :nearest
+              |~~ The names the step could have meant: nearest in spelling, `[]`
+                  where none is near.
+              ~~| ::vec | wires :repair
+              |~~ The step the call was likely meant as: where a path stands
+                  instead of the value it names.
+              ~~| ::quote)
     | throws :KindsMismatchedError
         |~~ A step met two values it cannot relate or combine:
             `:leftTag` and `:rightTag` name their kinds where their tags
@@ -200,9 +207,9 @@
         ~~|
         ~(wires :name |~~ The name the step called. ~~| ::keyword
           | wires :addresses
-              |~~ The addresses where a verb of that name lives: one for each kind that answers it. ~~|
-              ::set
-          | wires :nearest
+          |~~ The addresses where a verb of that name lives: one for each
+                  kind that answers it.
+              ~~| ::set | wires :nearest
               |~~ The names a step could have meant where it missed. For a
                   name, a key or a tag nothing declares, they are those
                   nearest in spelling, the nearest of them alone: within a
@@ -217,8 +224,7 @@
                   that the subject answers and that answer a kind they answer,
                   `print` and `json` for the `toString` of a vector. In the
                   order of their spelling, and `[]` where none is near.
-              ~~|
-              ::vec)
+              ~~| ::vec)
     | throws :UnknownAddressError
         |~~ A name with a path names nothing: no declaration wrote that
             address. `:address` holds the address as a tag name, which the
@@ -229,9 +235,11 @@
             ::link~(::call) ::link~(::any/manifest)
         ~~|
         ~(wires :address |~~ The address the step called. ~~| ::tag
-          | wires :nearest
-              |~~ The names the step could have meant: nearest in spelling, `[]` where none is near. ~~|
-              ::vec)
+          | wires
+          :nearest
+          |~~ The names the step could have meant: nearest in spelling, `[]`
+                  where none is near.
+              ~~| ::vec)
     | throws :EvaluationDepthExceededError
         |~~ A call too deep. The recipe of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the
@@ -249,52 +257,66 @@
             `:number/down (if (eq 0) (0) (sub 1 | down)); 5 | down`.
             ::link~(::call) ::link~(::any/if)
         ~~|
-        ~(wires :depth |~~ The evaluation depth refused, one past the limit. ~~| ::number
-          | wires :limit |~~ The limit, the deepest evaluation depth one evaluation goes. ~~| ::number)
+        ~(wires :depth |~~ The evaluation depth refused, one past the limit. ~~|
+          ::number | wires :limit
+          |~~ The limit, the deepest evaluation depth one evaluation goes.
+                  ~~| ::number)
     | proves :holdsTheNameAndTheModifiers
         |~~ A command is a call of its name and its modifiers. ~~|
-        ~(~(filter (gt 1)) | payload | eq [::call{:name :filter :modifiers [::group~(gt 1)]}])
+        ~(~(filter (gt 1)) | payload
+          | eq [::call{:name :filter :modifiers [::group~(gt 1)]}])
     | proves :readsTheName
         |~~ The name of the call is a keyword. ~~|
         ~(~(count) | first | get /name | eq :count)
     | proves :buildsAStep
         |~~ A map under `::call` builds the step. ~~|
-        ~({:name :filter :modifiers [::group~(gt 1)]} | tag ::call | get [it] | tag ::quote | eq ~(filter (gt 1)))
+        ~({:name :filter :modifiers [::group~(gt 1)]} | tag ::call | get [it]
+          | tag ::quote | eq ~(filter (gt 1)))
     | proves :KindsMismatchedError/refusesTwoTagsInAStep
         |~~ Values under two tags combine in no step, a sum among them, the
             frame naming the part.
         ~~|
-        ~(get [(::Cents#100 | add ::Dollars#1 !| get [tag leftTag rightTag]) ([::Cents#100 ::Dollars#1] | sum !| trace | last | path)]
+        ~(get [(::Cents#100
+          | add ::Dollars#1 !| get [tag leftTag rightTag])
+          ([::Cents#100 ::Dollars#1] | sum !| trace | last | path)]
           | eq [[::call/KindsMismatchedError ::Cents ::Dollars] /1])
     | proves :KindsMismatchedError/laysTheTagABareValueTakes
         |~~ A bare value takes the tag of the other, the answer under it. ~~|
-        ~(get [(::Cents#100 | add 1) (100 | add ::Cents#1) ([1 ::Cents#100] | sum)] | eq [::Cents#101 ::Cents#101 ::Cents#101])
+        ~(get [(::Cents#100 | add 1) (100 | add ::Cents#1) ([1 ::Cents#100]
+          | sum)] | eq [::Cents#101 ::Cents#101 ::Cents#101])
     | proves :KindsMismatchedError/takesAMissingValueOutOfAMaximum
         |~~ `max` relates values of one kind, a missing one taken out first.
         ~~|
-        ~(get [([1 null 3] | max !| tag) ([1 null 3] | filter (ne null) | max)] | eq [::call/KindsMismatchedError 3])
+        ~(get [([1 null 3] | max !| tag) ([1 null 3] | filter (ne null) | max)]
+          | eq [::call/KindsMismatchedError 3])
     | proves :KindsMismatchedError/namesTheKindsWhereTheTagsPart
         |~~ The facts name the kinds of the two where their tags part. ~~|
-        ~(get [(::Eur::Net#1 | add ::Eur::Gross#2 !| get [leftTag rightTag]) (::Eur#1 | add ::Eur::Net#2 !| get [leftTag rightTag])]
+        ~(get [(::Eur::Net#1
+          | add ::Eur::Gross#2 !| get [leftTag rightTag]) (::Eur#1
+          | add ::Eur::Net#2 !| get [leftTag rightTag])]
           | eq [[::Net ::Gross] [::number ::Net]])
     | proves :PayloadNotSchemaError/refusesANameThatIsNoKeyword
         |~~ A `:name` that is no keyword is refused, `:field` naming it. ~~|
-        ~(::call{:name 42} !| get [tag field] | eq [::call/PayloadNotSchemaError :name])
+        ~(::call{:name 42} !| get [tag field]
+          | eq [::call/PayloadNotSchemaError :name])
     | proves :PayloadNotSchemaError/buildsTheStepOfACall
         |~~ A keyword and a vector of steps build the step of the call. ~~|
-        ~({:name :take :modifiers [2]} | tag ::call | get [it] | tag ::quote | eq ~(take 2))
+        ~({:name :take :modifiers [2]} | tag ::call | get [it] | tag ::quote
+          | eq ~(take 2))
     | proves :PayloadNotSchemaError/refusesAnEmptyVectorOfModifiers
         |~~ An empty vector of modifiers is refused; a call that gives none
             holds no `:modifiers`.
         ~~|
-        ~(::call{:name :count :modifiers []}
-          !| get [tag field] | eq [::call/PayloadNotSchemaError :modifiers])
+        ~(::call{:name :count :modifiers []} !| get [tag field]
+          | eq [::call/PayloadNotSchemaError :modifiers])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a command. ~~|
-        ~(::call[1] !| get [tag expected] | eq [::call/PayloadKindNotTakenError #[::map]])
+        ~(::call[1] !| get [tag expected]
+          | eq [::call/PayloadKindNotTakenError #[::map]])
     | proves :NameNotCallableError/refusesANameOfTwoWords
         |~~ A name with a space is no name a step calls. ~~|
-        ~(::call{:name :"a b"} !| get [tag name] | eq [::call/NameNotCallableError :"a b"])
+        ~(::call{:name :"a b"} !| get [tag name]
+          | eq [::call/NameNotCallableError :"a b"])
     | proves :NameNotCallableError/refusesANameThatReadsAsANumber
         |~~ A name that reads as a number is no name a step calls. ~~|
         ~(::call{:name :"1"} !| tag | eq ::call/NameNotCallableError)
@@ -302,45 +324,58 @@
         |~~ A name whose first word is the word of a literal is no name a
             step calls.
         ~~|
-        ~(get [(::call{:name :null} !| tag) (::call{:name :true/count} !| tag)] | eq [::call/NameNotCallableError ::call/NameNotCallableError])
+        ~(get [(::call{:name :null} !| tag) (::call{:name :true/count} !| tag)]
+          | eq [::call/NameNotCallableError ::call/NameNotCallableError])
     | proves :LiteralComputesError/refusesANameInsideAModifier
         |~~ A vector of a name given as a modifier computes, and is
             refused.
         ~~|
-        ~([::call{:name :take :modifiers [[::call{:name :count}]]}] | tag ::quote | with {:q it} ([1 2] | apply q) !| get [tag index] | eq [::call/LiteralComputesError 0])
+        ~([::call{:name :take :modifiers [[::call{:name :count}]]}]
+          | tag ::quote | with {:q it} ([1 2] | apply q) !| get [tag index]
+          | eq [::call/LiteralComputesError 0])
     | proves :ValueAsALaterStepError/refusesTheNameAfterAStep
         |~~ The part `with` names `count` stands over the verb of its
             name: read at the head of the body it answers the part, after
             `keys |` it is refused, naming where the verb lives, and the
             verb is called by its address.
         ~~|
-        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] (get [count (keys | count !| addresses) (keys | vec/count)]) | eq [2 #[::map/count ::string/count ::vec/count] 3])
+        ~(::order{:id 100 :item :bigmac :count 2}
+          | with [/count] (get [count (keys | count !| addresses) (keys
+          | vec/count)]) | eq [2 #[::map/count ::string/count ::vec/count] 3])
     | proves :ValueAsALaterStepError/readsANameAfterTheFailTrack
         |~~ A value stands after `!|`, so a name read there is the
             recovery, the default of a field that reads as no number.
         ~~|
-        ~({:default 0 :input "ten"} | with [/default /input] (input | toNumber !| default) | eq 0)
+        ~({:default 0 :input "ten"}
+          | with [/default /input] (input | toNumber !| default) | eq 0)
     | proves :readsAnInputOverAVerbOfItsNameInTheRecipe
         |~~ An input named as a verb stands over the verb in the recipe of
             its verb, the verb called there by its address.
         ~~|
-        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0 | impl ~(get [count (take count) vec/count])); [1 2 3] | firstN 2 | eq [2 [1 2] 3])
+        ~(:vec/firstN (::fn | takes :count |~~ How many. ~~| /0
+          | impl ~(get [count (take count) vec/count])); [1 2 3] | firstN 2
+          | eq [2 [1 2] 3])
     | proves :ValueTakesNoModifiersError/refusesModifiersOnAValue
         |~~ A name that holds a value refuses the modifiers a call gives it. ~~|
-        ~({:limit 10} | with [/limit] (limit 3) !| get [tag name (found | tag)] | eq [::call/ValueTakesNoModifiersError :limit ::number])
+        ~({:limit 10} | with [/limit] (limit 3) !| get [tag name (found | tag)]
+          | eq [::call/ValueTakesNoModifiersError :limit ::number])
     | proves :ValueTakesNoModifiersError/namesWhereAVerbOfTheNameLives
         |~~ The refusal names where a verb of the name lives, which the name
             stands over.
         ~~|
-        ~(:string/limit count; {:limit 10} | with [/limit] (limit 3) !| get [tag addresses] | eq [::call/ValueTakesNoModifiersError #[::string/limit]])
+        ~(:string/limit count; {:limit 10}
+          | with [/limit] (limit 3) !| get [tag addresses]
+          | eq [::call/ValueTakesNoModifiersError #[::string/limit]])
     | proves :ValueTakesNoModifiersError/reachesTheVerbByItsAddress
         |~~ A call by its address reaches the verb of the name. ~~|
-        ~(:string/limit count; {:limit 10} | with [/limit] ("tea" | string/limit) | eq 3)
+        ~(:string/limit count; {:limit 10}
+          | with [/limit] ("tea" | string/limit) | eq 3)
     | proves :KindAnswersNoVerbError/namesTheKindAndTheVerbs
         |~~ The refusal names the kind of the subject and where the verbs
             of the name live.
         ~~|
-        ~(1 | count !| get [(found | tag) (addresses | has ::vec/count)] | eq [::number true])
+        ~(1 | count !| get [(found | tag) (addresses | has ::vec/count)]
+          | eq [::number true])
     | proves :KindAnswersNoVerbError/namesTheRepairOfAPath
         |~~ A name called on a path names the repair, the step the call was
             likely meant as.
@@ -348,17 +383,17 @@
         ~(/tags | count !| repair | eq ~(get /tags | count))
     | proves :KindAnswersNoVerbError/listsEveryKindTheNameServes
         |~~ `:addresses` lists every kind the name serves. ~~|
-        ~(5 | count
-          !| get [tag addresses]
-          |  eq [::call/KindAnswersNoVerbError #[::map/count ::string/count ::vec/count]])
+        ~(5 | count !| get [tag addresses]
+          |  eq
+          [::call/KindAnswersNoVerbError
+          #[::map/count ::string/count ::vec/count]])
     | proves :KindAnswersNoVerbError/namesTheVerbsOfAReadersNouns
         |~~ The verbs of the name under a reader's nouns are named by
             their addresses.
         ~~|
-        ~(:Box |~~ A box. ~~|; :Ring |~~ A ring. ~~|;
-          :Box/area ~(1); :Ring/area ~(2);
-          5 | area
-          !| get [tag addresses]
+        ~(:Box |~~ A box. ~~|; :Ring
+          |~~ A ring. ~~|; :Box/area ~(1); :Ring/area ~(2); 5
+          | area !| get [tag addresses]
           |  eq [::call/KindAnswersNoVerbError #[::Box/area ::Ring/area]])
     | proves :KindAnswersNoVerbError/namesTheVerbsItsPagesLeadTo
         |~~ `:nearest` names the verbs the pages of the verbs lead to that
@@ -373,7 +408,8 @@
         ~(:host | toString | append ":80" | eq "host:80")
     | proves :UnknownNameError/refusesANameNothingDeclares
         |~~ A name nothing declares is refused, with no addresses. ~~|
-        ~(thisIsNotDefined !| get [tag addresses] | eq [::call/UnknownNameError #[]])
+        ~(thisIsNotDefined !| get [tag addresses]
+          | eq [::call/UnknownNameError #[]])
     | proves :UnknownNameError/suggestsTheNearestName
         |~~ The names nearest in spelling are suggested. ~~|
         ~(fist !| nearest | eq [:first])
@@ -390,13 +426,16 @@
         ~(zzzzqqq !| nearest | eq [])
     | proves :UnknownNameError/pointsAKindToItsTag
         |~~ The name of a kind points to its tag. ~~|
-        ~(5 | string !| get [tag nearest] | eq [::call/UnknownNameError [::string]])
+        ~(5 | string !| get [tag nearest]
+          | eq [::call/UnknownNameError [::string]])
     | proves :UnknownNameError/readsNoFieldAsAVerb
         |~~ A field of a record called as a verb names nothing. ~~|
-        ~(~(take 2) | first | modifiers !| get [tag name] | eq [::call/UnknownNameError :modifiers])
+        ~(~(take 2) | first | modifiers !| get [tag name]
+          | eq [::call/UnknownNameError :modifiers])
     | proves :UnknownAddressError/refusesAnAddressNothingDeclares
         |~~ An address no declaration wrote is refused. ~~|
-        ~([1 2 3] | vec/nothing !| get [tag address] | eq [::call/UnknownAddressError ::vec/nothing])
+        ~([1 2 3] | vec/nothing !| get [tag address]
+          | eq [::call/UnknownAddressError ::vec/nothing])
     | proves :UnknownAddressError/suggestsTheNearestAddress
         |~~ The addresses nearest in spelling are suggested. ~~|
         ~([1] | vec/countt !| nearest | has ::vec/count)
@@ -405,15 +444,19 @@
         ~(:Box |~~ A box. ~~|; :Box/side 3; Box/side | eq 3)
     | proves :ValueWithheldError/refusesAValueOfTheReader
         |~~ A quote held in a name reads no value of the reader. ~~|
-        ~(apply (:limit 4; :big ~(gt limit); [1 5 10] | filter big !| get [tag name]) | eq [::call/ValueWithheldError :limit])
+        ~(apply (:limit 4; :big ~(gt limit); [1 5 10]
+          | filter big !| get [tag name])
+          | eq [::call/ValueWithheldError :limit])
     | proves :EvaluationDepthExceededError/refusesARunawayRecursion
         |~~ A verb that calls itself without end is refused past the
             limit of the evaluation depth.
         ~~|
-        ~(:number/inf (add 1 | inf); 0 | inf !| tag | eq ::call/EvaluationDepthExceededError)
+        ~(:number/inf (add 1 | inf); 0 | inf !| tag
+          | eq ::call/EvaluationDepthExceededError)
     | proves :EvaluationDepthExceededError/namesADepthPastTheLimit
         |~~ The depth refused lies past the limit. ~~|
-        ~(:any/forever forever; forever !| with {:limit (limit)} (depth | gt limit))
+        ~(:any/forever forever; forever !| with {:limit (limit)} (depth
+          | gt limit))
     | proves :EvaluationDepthExceededError/endsARecursionByItsBaseCase
         |~~ A recursion that tests its base case first ends. ~~|
         ~(:number/down (if (eq 0) (0) (sub 1 | down)); 5 | down | eq 0)

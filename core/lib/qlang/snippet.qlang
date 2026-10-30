@@ -27,7 +27,8 @@
         ~~|
     | proves :answersWhatItShows
         |~~ A snippet answers what it shows. ~~|
-        ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | answer | has ::vec/count)
+        ~(|~~ ::snippet~(::vec | manifest) ~~| | snippets | first | answer
+          | has ::vec/count)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A snippet is a quote. ~~|
         ~(::snippet"x" !| tag | eq ::snippet/PayloadKindNotTakenError);

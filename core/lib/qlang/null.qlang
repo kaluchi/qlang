@@ -31,7 +31,8 @@
         ~(::null#null | eq null)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::null#1 !| get [tag (found | tag)] | eq [::null/PayloadKindNotTakenError ::number]);
+        ~(::null#1 !| get [tag (found | tag)]
+          | eq [::null/PayloadKindNotTakenError ::number]);
 
 :null/toKeyword
   |~~ Answers `:null`, the key `groupBy` files an absent field under,
@@ -43,7 +44,8 @@
     | proves :readsTheKeyGroupByFiledItUnder
         |~~ Null turns into the key `groupBy` files an absent field under.
         ~~|
-        ~([{:country "US"} {}] | groupBy (query /country) | at (null | toKeyword) | eq [{}])
+        ~([{:country "US"} {}] | groupBy (query /country)
+          | at (null | toKeyword) | eq [{}])
     | impl ::builtin{};
 
 :null/toString

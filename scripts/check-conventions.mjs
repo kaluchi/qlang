@@ -141,6 +141,9 @@
 //       in, `JavaScript`, `ECMAScript` or `JS`: the pages speak of the
 //       language alone, the runtime standing for it [QSVOX#voices].
 //
+//   (26) A line of a source of the catalog runs eighty characters at most,
+//       its prose and its code alike [QSSLF#catalog].
+//
 // Exit 0 when every check passes, 1 when any violation surfaces.
 // Run via `npm run check:conventions` from the repo root.
 
@@ -956,6 +959,18 @@ function commentsThatAreNoMarks() {
 // for it [QSVOX#voices].
 const LANGUAGE_OF_THE_RUNTIME = /\b(?:JavaScript|ECMAScript|JS)\b/i;
 
+// ── (26) The width of a line of the catalog ────────────────────
+//
+// A line of a source of the catalog runs eighty characters at most, so a
+// page reads in a narrow pane as it is written [QSSLF#catalog].
+const CATALOG_WIDTH = 80;
+
+function catalogLinesPastTheWidth() {
+  return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
+    .map((line, index) => ({ path, line: index + 1, width: [...line].length }))
+    .filter(({ width }) => width > CATALOG_WIDTH));
+}
+
 function runtimeLanguagesNamed() {
   return catalogSources().flatMap(({ path, text }) => text.split(/\r?\n/)
     .map((line, index) => ({ path, line: index + 1, word: LANGUAGE_OF_THE_RUNTIME.exec(line)?.[0] }))
@@ -989,7 +1004,8 @@ const { text, failed } = verdictOf({
   commentsNoMarks: commentsThatAreNoMarks(),
   sharedNames: namesSharedInTree(repoRoot),
   catalogOrder: declarationsOutOfOrder(catalogSources()),
-  runtimeLanguages: runtimeLanguagesNamed()
+  runtimeLanguages: runtimeLanguagesNamed(),
+  catalogWidth: catalogLinesPastTheWidth()
 });
 process.stdout.write(text);
 process.exit(failed ? 1 : 0);

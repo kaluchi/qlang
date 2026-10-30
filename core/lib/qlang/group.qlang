@@ -17,7 +17,8 @@
   ~~|
   ::kind
     | accepts
-        |~~ The quote of a pipeline, built into the step `(pipeline)`. ~~| ::quote
+        |~~ The quote of a pipeline, built into the step `(pipeline)`.
+        ~~| ::quote
     | throws :PayloadKindNotTakenError
         |~~ The payload of `::group` is the quote of its pipeline, so
             `~(add 1 | mul 2) | tag ::group` is the step
@@ -34,10 +35,12 @@
         ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::group !| get [tag (found | tag)] | eq [::group/PayloadKindNotTakenError ::number])
+        ~(42 | tag ::group !| get [tag (found | tag)]
+          | eq [::group/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/buildsTheStepOfAPipeline
         |~~ The quote of a pipeline builds the group that runs it. ~~|
-        ~(~(add 1 | mul 2) | tag ::group | get [it] | tag ::quote | eq ~((add 1 | mul 2)))
+        ~(~(add 1 | mul 2) | tag ::group | get [it] | tag ::quote
+          | eq ~((add 1 | mul 2)))
     | proves :PayloadEmptyError/refusesAnEmptyGroup
         |~~ An empty group holds no step. ~~|
         ~(~() | tag ::group !| tag | eq ::group/PayloadEmptyError)

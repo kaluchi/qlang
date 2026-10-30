@@ -33,14 +33,14 @@
       writes what the conversion made: `| json` the JSON text of the
       answer, `| table` a vector of maps drawn as a table, `| print` the
       literal of the answer, a string in its quotes. A failure prints as
-      its alert, the error at rest `::Tag!{…}`, each fact whole within
-      three hundred characters and past them as the cell the playground
-      keeps it in, beside its tag, its views and its parts,
-      `::Tag::excerpt{…}`, under the line
-      `|~| raised, and no !| caught it` and above the prose of its
+      its alert, the error at rest `::Tag!{…}`, under the line
+      `|~| raised, and no !| caught it`. Each fact stands whole within
+      three hundred characters. Past them it stands as the cell the
+      playground keeps it in, beside its tag, its views and its parts,
+      `::Tag::excerpt{…}`. Below the alert stands the prose of its
       refusal's page as line comments `|~| …`, which tells how to repair
-      the call, a refused text holding a caret beneath its line, `:marker`
-      under `:source`; `!| json` writes a failure as JSON. Every answer
+      the call. A refused text holds a caret beneath its line, `:marker`
+      under `:source`, and `!| json` writes a failure as JSON. Every answer
       goes to stdout with the exit code 0, a failure among them, a query
       that does not parse answering `::quote/ParseError`, so calls run side
       by side never stop each other. A script that tests the code writes

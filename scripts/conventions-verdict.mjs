@@ -69,5 +69,8 @@ const SECTIONS = {
     'a source of the catalog declares a noun before the names under it and the names under a noun together, in the one order of their addresses, which `manifest` lists them in, `::number/abs` before `::number/add`, so a reader finds a verb where its name puts it [QSSLF#catalog].'),
   // The catalog names no language of its runtime [QSVOX#voices].
   runtimeLanguages: found => section('The language of the runtime named in the catalog', found, ({ path, line, word }) => `  ${path}:${line}  ${word}\n`,
-    'the pages of the catalog speak of the language alone: write the runtime where a page means the language its runtime is written in [QSVOX#voices].')
+    'the pages of the catalog speak of the language alone: write the runtime where a page means the language its runtime is written in [QSVOX#voices].'),
+  // A line of the catalog runs eighty characters at most [QSSLF#catalog].
+  catalogWidth: found => section('Lines of the catalog past eighty characters', found, ({ path, line, width }) => `  ${path}:${line}  ${width} characters\n`,
+    'a line of a source of the catalog runs eighty characters at most: pour the prose of a doc again and break a line of code at its whitespace, before a pipe where one stands [QSSLF#catalog].')
 };

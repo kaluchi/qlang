@@ -121,24 +121,24 @@
             `:Box/limit 10;`.
         ~~|
     | throws :PrimitiveNamesNoBuiltinError
-        |~~ A host handed a primitive beside a source of the root for a
-            name the source declares neither as a `::builtin{}` under a
-            label nor as a kind ending in one, or for a name that holds the
-            `::builtin{}` of another name; `:origin` names the source,
-            `:name` the name and `:sharedWith` that other name. A verb
-            written in steps runs them, a `::builtin{}` written among them
-            the value it is. A bare name reads its value. A name that holds
-            the value of another name runs the primitive of that name,
-            while a function of its own over the same `::builtin{}` runs
-            nothing. So a host declares its primitive as the recipe of a
-            verb under the label of its subject,
-            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});`.
-            A `::builtin{}` the host hands nothing for is refused with
-            `::builtin/PrimitiveNotHandedError`.
+        |~~ A host handed a primitive beside a source of the root for a name the
+            source declares neither as a `::builtin{}` under a label nor as a
+            kind ending in one, or for a name that holds the `::builtin{}` of
+            another name; `:origin` names the source, `:name` the name and
+            `:sharedWith` that other name. A verb written in steps runs them, a
+            `::builtin{}` written among them the value it is. A bare name reads
+            its value. A name that holds the value of another name runs the
+            primitive of that name, while a function of its own over the same
+            `::builtin{}` runs nothing. So a host declares its primitive as the
+            recipe of a verb under the label of its subject,
+            `:any/fetch (::fn | returns |~~ The text. ~~| ::string | impl
+            ::builtin{});`. A `::builtin{}` the host hands nothing for is
+            refused with `::builtin/PrimitiveNotHandedError`.
         ~~|
-        ~(wires :origin |~~ The source the primitive was handed beside. ~~| ::keyword
-          | wires :name |~~ The name handed a primitive. ~~| ::keyword
-          | wires :sharedWith |~~ The other name whose `::builtin{}` the name holds. ~~| ::keyword)
+        ~(wires :origin |~~ The source the primitive was handed beside. ~~|
+          ::keyword | wires :name |~~ The name handed a primitive. ~~| ::keyword
+          | wires :sharedWith
+          |~~ The other name whose `::builtin{}` the name holds. ~~| ::keyword)
     | throws :SourceLoadError
         |~~ A source of the language was found where its package maps it,
             and could not be read; `:origin` names the source,
@@ -148,8 +148,9 @@
             reads each where it keeps them.
         ~~|
         ~(wires :origin |~~ The source that could not be read. ~~| ::keyword
-          | wires :sourceLocation |~~ Where the platform looked for it. ~~| ::string
-          | wires :cause |~~ The host's account of the failure. ~~|)
+          | wires :sourceLocation
+          |~~ Where the platform looked for it. ~~| ::string | wires :cause
+          |~~ The host's account of the failure. ~~|)
     | proves :isAValueOfItsOwn
         |~~ An empty descriptor is a value like any other, which prints and
             reads back as itself.
@@ -159,14 +160,19 @@
         |~~ The recipe of a verb a host answers by a primitive is the
             descriptor of its address.
         ~~|
-        ~(::number/add | binding | value | get /1 | eq ::builtin{:of ::number/add})
+        ~(::number/add | binding | value | get /1
+          | eq ::builtin{:of ::number/add})
     | proves :readsBackAsItsPrimitive
-        |~~ A function of a host read back from its print runs its primitive. ~~|
-        ~(:f (::number/add | binding | value | print | parse | answer); 5 | apply f [1] | eq 6)
+        |~~ A function of a host read back from its print runs its primitive.
+        ~~|
+        ~(:f (::number/add | binding | value | print | parse | answer); 5
+          | apply f [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| get [tag (found | tag)] | eq [::builtin/PayloadKindNotTakenError ::string])
+        ~(::builtin"hello" !| get [tag (found | tag)]
+          | eq [::builtin/PayloadKindNotTakenError ::string])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| get [tag (found | tag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
+        ~(::builtin[1 2 3] !| get [tag (found | tag)]
+          | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}];

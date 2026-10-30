@@ -41,7 +41,8 @@
         |~~ A number, a keyword, a tag name and a boolean become text by
             `toString`.
         ~~|
-        ~([5 :active ::vec true] | map toString | eq ["5" "active" "vec" "true"])
+        ~([5 :active ::vec true] | map toString
+          | eq ["5" "active" "vec" "true"])
     | proves :printsTheLiteral
         |~~ `print` writes a value as its literal, a keyword with its
             colon.
@@ -63,7 +64,8 @@
         |~~ A number payload is refused; `toString` makes text of a
             number.
         ~~|
-        ~(::string#1 !| get [tag (found | tag)] | eq [::string/PayloadKindNotTakenError ::number]);
+        ~(::string#1 !| get [tag (found | tag)]
+          | eq [::string/PayloadKindNotTakenError ::number]);
 
 :string/append
   |~~ Answers the string with the suffix the call gives after it,
@@ -135,16 +137,20 @@
         ~("a" | capture 5 !| tag | eq ::string/capture/RegexKindNotTakenError)
     | proves :turnsALineIntoARecord
         |~~ The named groups of a line of a log are a record. ~~|
-        ~("2026-10-12 ERROR db down" | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)" | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
+        ~("2026-10-12 ERROR db down"
+          | capture #"(?<date>\S+) (?<level>\w+) (?<message>.*)"
+          | eq {:date "2026-10-12" :level "ERROR" :message "db down"})
     | proves :answersNullWhereNoneStands
         |~~ A text with no match answers null. ~~|
         ~("" | capture #"(?<n>\d+)" | eq null)
     | proves :answersNullForAGroupThatTookNoPart
         |~~ A named group that took no part is null. ~~|
-        ~("5" | capture #"(?<digit>\d)(?<unit>ms)?" | eq {:digit "5" :unit null})
+        ~("5" | capture #"(?<digit>\d)(?<unit>ms)?"
+          | eq {:digit "5" :unit null})
     | proves :RegexNamesNoGroupError/refusesARegexOfNumberedGroupsAlone
         |~~ A regex that names no group is refused. ~~|
-        ~("5" | capture #"(\d)" !| tag | eq ::string/capture/RegexNamesNoGroupError)
+        ~("5" | capture #"(\d)" !| tag
+          | eq ::string/capture/RegexNamesNoGroupError)
     | impl ::builtin{};
 
 :string/contains
@@ -205,25 +211,26 @@
         ~(["ab"] | contains "a" | not)
     | proves :NeedleKindNotTakenError/refusesAKeyword
         |~~ A keyword is no needle. ~~|
-        ~("tea time" | contains :tea !| tag | eq ::string/contains/NeedleKindNotTakenError)
+        ~("tea time" | contains :tea !| tag
+          | eq ::string/contains/NeedleKindNotTakenError)
     | proves :namesTheKindsThatAnswerIt
         |~~ A map answers no `contains`, and the refusal names the kinds
             that do.
         ~~|
-        ~({:tea 4} | contains "tea" !| addresses | eq #[::string/contains ::vec/contains])
+        ~({:tea 4} | contains "tea" !| addresses
+          | eq #[::string/contains ::vec/contains])
     | impl ::builtin{};
 
 :string/count
-  |~~ Answers how many characters the string holds, a letter of any
-      script one, `"привет" | count` answering `6`, and the empty string
-      none. A character is a code point: an emoji of one code point counts
-      one, while a skin tone, a flag or a joined emoji counts each of its
-      code points, and a letter written with a combining accent counts
-      two, the letter and the accent. The name `count` also counts the elements of a vector
-      or a set and the entries of a map, and a number or null answers no
-      `count`, which the refusal of the call names with the kinds that
-      do.
-      ::link~(::string/take) ::link~(::vec/count)
+  |~~ Answers how many characters the string holds, a letter of any script one,
+      `"привет" | count` answering `6`, and the empty string none. A character
+      is a code point: an emoji of one code point counts one, while a skin tone,
+      a flag or a joined emoji counts each of its code points, and a letter
+      written with a combining accent counts two, the letter and the accent. The
+      name `count` also counts the elements of a vector or a set and the entries
+      of a map, and a number or null answers no `count`, which the refusal of
+      the call names with the kinds that do. ::link~(::string/take)
+      ::link~(::vec/count)
   ~~|
   ::fn
     | returns |~~ How many characters the string holds. ~~| ::number
@@ -361,10 +368,12 @@
         ~(["ab" "ba"] | map (endsWith "a") | eq [false true])
     | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the end of. ~~|
-        ~(["a"] | endsWith "a" !| tag | eq ::string/endsWith/SubjectNotStringError)
+        ~(["a"] | endsWith "a" !| tag
+          | eq ::string/endsWith/SubjectNotStringError)
     | proves :SuffixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no suffix. ~~|
-        ~("tea time" | endsWith :time !| tag | eq ::string/endsWith/SuffixKindNotTakenError)
+        ~("tea time" | endsWith :time !| tag
+          | eq ::string/endsWith/SuffixKindNotTakenError)
     | impl ::builtin{};
 
 :string/length
@@ -435,7 +444,8 @@
         ~(["a\nb" "c"] | map lines | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text. ~~|
-        ~(42 | lines !| get [tag (subject | found | tag)] | eq [::string/lines/SubjectNotStringError ::number])
+        ~(42 | lines !| get [tag (subject | found | tag)]
+          | eq [::string/lines/SubjectNotStringError ::number])
     | proves :ArgsBeyondInputsError/refusesASeparator
         |~~ A separator given to `lines` is refused under the verb. ~~|
         ~("a;b" | lines ";" !| tag | eq ::string/lines/ArgsBeyondInputsError)
@@ -558,18 +568,17 @@
     | proves :refusesASourceTheParserRefuses
         |~~ A source the parser cannot read is refused. ~~|
         ~("add (" | parse !| tag | eq ::quote/ParseError)
-    | proves :namesTheTokenFound
-        |~~ The refusal names the token that stood where the parser
+          | proves :namesTheTokenFound
+          |~~ The refusal names the token that stood where the parser
             stopped.
-        ~~|
-        ~("add )" | parse !| found | eq ")")
+        ~~| ~("add )" | parse !| found | eq ")")
     | impl ::builtin{};
 
 :string/parseJson
   |~~ Answers the value the JSON text of the string spells, the reverse of
-      `json`: an object is a map whose keys are keywords, a key with a
+      `json`. An object is a map whose keys are keywords, a key with a
       space among them quoted, an array a vector, and a number, a string,
-      `true`, `false` and `null` themselves; whitespace around the text is
+      `true`, `false` and `null` themselves. Whitespace around the text is
       read past, and a key written twice keeps its last value. A string
       that holds a number reads as the number, `"42" | parseJson`, while
       `toNumber` reads a number alone. JSON has no form for a set, a
@@ -593,7 +602,8 @@
         |~~ `parseJson` could not read the subject as JSON. The message of
             the reader of JSON rides on `:message`.
         ~~|
-        ~(wires :message |~~ What the reader of JSON says of the text. ~~| ::string)
+        ~(wires :message |~~ What the reader of JSON says of the text. ~~|
+          ::string)
     | throws :NumberNotFiniteError
         |~~ JSON text may write a number past the range of the doubles a
             number of qlang is, `1e400`, which no number of the language
@@ -603,7 +613,8 @@
             none where the number is the whole text; a literal of qlang past
             the range is the parser's own refusal.
         ~~|
-        ~(wires :path |~~ The path to the part the refusal stands at. ~~| ::path)
+        ~(wires :path |~~ The path to the part the refusal stands at. ~~|
+          ::path)
     | proves :readsANumber
         |~~ A JSON number reads as a number. ~~|
         ~("42" | parseJson | eq 42)
@@ -627,7 +638,8 @@
         ~(" 42 " | parseJson | eq 42)
     | proves :keepsTheLastOfAKeyWrittenTwice
         |~~ A key written twice keeps its last value. ~~|
-        ~("{\"status\":\"new\",\"status\":\"paid\"}" | parseJson | eq {:status "paid"})
+        ~("{\"status\":\"new\",\"status\":\"paid\"}" | parseJson
+          | eq {:status "paid"})
     | proves :readsBackWhatJsonWrote
         |~~ What `json` wrote of a map of vectors reads back as it was. ~~|
         ~({:tags [1 "new"]} | json | parseJson | eq {:tags [1 "new"]})
@@ -643,20 +655,22 @@
         ~(::Box"a" | json | parseJson | eq {:"$tag" "Box" :payload "a"})
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no text to read. ~~|
-        ~(42 | parseJson
-          !| get [tag (subject | found | tag)]
+        ~(42 | parseJson !| get [tag (subject | found | tag)]
           |  eq [::string/parseJson/SubjectNotStringError ::number])
     | proves :TextNotJsonError/refusesBrokenText
         |~~ Text that is no JSON is refused. ~~|
-        ~("{not json" | parseJson !| tag | eq ::string/parseJson/TextNotJsonError)
+        ~("{not json" | parseJson !| tag | eq
+          ::string/parseJson/TextNotJsonError)
     | proves :NumberNotFiniteError/refusesANumberPastTheRange
         |~~ A number past the range of doubles is refused. ~~|
-        ~("1e400" | parseJson !| tag | eq ::string/parseJson/NumberNotFiniteError)
+        ~("1e400" | parseJson !| tag
+          | eq ::string/parseJson/NumberNotFiniteError)
     | proves :NumberNotFiniteError/namesThePathToTheNumber
         |~~ The refusal names the path to the number in the text, and none
             where the number is the whole text.
         ~~|
-        ~(get [("[1, 1e400]" | parseJson !| path) ("1e400" | parseJson !| payload | has :path)] | eq [/1 false])
+        ~(get [("[1, 1e400]" | parseJson !| path) ("1e400"
+          | parseJson !| payload | has :path)] | eq [/1 false])
     | impl ::builtin{};
 
 :string/prepend
@@ -705,15 +719,15 @@
   |~~ Answers the text with the replacement the call gives instead of
       every match of the needle: `"a-b-c" | replace "-" "+"` answers
       `"a+b+c"`. The needle is a regex, `#"…"`, or a text looked for as it
-      is. The replacement is a string, in which `$1`, `$<name>` and `$&`
-      name a group, a named group and the whole match of a regex,
-      `"2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"` answering
-      `"12.10.2026"`, a `$<name>` of a group the regex lacks standing as
-      written, while the replacement of a text stands as written; or code,
-      which runs on the vector `match` answers for each match and answers
+      is. The replacement is a string or code. In a string `$1`,
+      `$<name>` and `$&` name a group, a named group and the whole match of
+      a regex, `"2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"`
+      answering `"12.10.2026"`. A `$<name>` of a group the regex lacks
+      stands as written, and the replacement of a text stands as written.
+      Code runs on the vector `match` answers for each match and answers
       the text that replaces it,
       `replace #"\d+" (get /0 | toNumber | mul 2 | toString)` doubling
-      every number, a path among it, `replace #"(\d)x" /1` keeping the
+      every number. A path is code too, `replace #"(\d)x" /1` keeping the
       digit of each match.
       ::link~(::string/match) ::link~(::regex)
   ~~|
@@ -746,18 +760,21 @@
     | returns |~~ The text with every match replaced. ~~| ::string
     | proves :NeedleKindNotTakenError/refusesANumber
         |~~ A needle that is no regex and no string is refused. ~~|
-        ~("a" | replace 5 "b" !| tag | eq ::string/replace/NeedleKindNotTakenError)
+        ~("a" | replace 5 "b" !| tag
+          | eq ::string/replace/NeedleKindNotTakenError)
     | proves :WithKindNotTakenError/refusesANumber
         |~~ A replacement that is no string, no keyword and no code is
             refused.
         ~~|
-        ~("a" | replace "a" 5 !| tag | eq ::string/replace/WithKindNotTakenError)
+        ~("a" | replace "a" 5 !| tag
+          | eq ::string/replace/WithKindNotTakenError)
     | proves :replacesEveryMatch
         |~~ Every match is replaced. ~~|
         ~("a  b   c" | replace #"\s+" " " | eq "a b c")
     | proves :namesTheGroupsOfAMatch
         |~~ `$1` and its kin name the groups of a match. ~~|
-        ~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1" | eq "12.10.2026")
+        ~("2026-10-12" | replace #"(\d+)-(\d+)-(\d+)" "$3.$2.$1"
+          | eq "12.10.2026")
     | proves :replacesATextAsWritten
         |~~ A text is looked for and replaced as written, a dollar among
             it.
@@ -767,10 +784,12 @@
         |~~ The empty text stands between every two characters, an emoji
             whole among them.
         ~~|
-        ~("a😀" | get [(replace "" "-") (replace "" ("-"))] | eq ["-a-😀-" "-a-😀-"])
+        ~("a😀" | get [(replace "" "-") (replace "" ("-"))]
+          | eq ["-a-😀-" "-a-😀-"])
     | proves :runsCodeOnEachMatch
         |~~ Code answers the text that replaces each match. ~~|
-        ~("2 and 30" | replace #"\d+" (get /0 | toNumber | mul 2 | toString) | eq "4 and 60")
+        ~("2 and 30" | replace #"\d+" (get /0 | toNumber | mul 2 | toString)
+          | eq "4 and 60")
     | proves :readsAGroupByAPath
         |~~ A path reads the text that replaces each match from
             the vector of the match.
@@ -780,15 +799,18 @@
         |~~ `$<name>` names the group of that name, and `$$` writes a
             dollar.
         ~~|
-        ~("2026-10" | replace #"(?<y>\d+)-(?<m>\d+)" "$<m>.$<y> $$" | eq "10.2026 $")
+        ~("2026-10" | replace #"(?<y>\d+)-(?<m>\d+)" "$<m>.$<y> $$"
+          | eq "10.2026 $")
     | proves :keepsTheNameOfAGroupTheRegexLacks
         |~~ A `$<name>` of a group the regex lacks stands as written,
             whether the regex names other groups or none.
         ~~|
-        ~("abc" | get [(replace #"(?<n>b)" "$<zz>") (replace #"b" "$<zz>")] | eq ["a$<zz>c" "a$<zz>c"])
+        ~("abc" | get [(replace #"(?<n>b)" "$<zz>") (replace #"b" "$<zz>")]
+          | eq ["a$<zz>c" "a$<zz>c"])
     | proves :WithAnswerKindNotTakenError/refusesANumber
         |~~ Code that answers no string is refused. ~~|
-        ~("2" | replace #"\d" (get /0 | toNumber) !| get [tag (with | expected)] | eq [::string/replace/WithAnswerKindNotTakenError #[::string]])
+        ~("2" | replace #"\d" (get /0 | toNumber) !| get [tag (with | expected)]
+          | eq [::string/replace/WithAnswerKindNotTakenError #[::string]])
     | impl ::builtin{};
 
 :string/scan
@@ -874,7 +896,8 @@
         |~~ A regex cuts at every match, its groups left out of the
             pieces.
         ~~|
-        ~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")] | eq [["a" "b" "c"] ["a" "b" "c"]])
+        ~("a, b;c" | get [(split #"[,;]\s*") (split #"([,;])\s*")]
+          | eq [["a" "b" "c"] ["a" "b" "c"]])
     | proves :cutsAtTheSeparator
         |~~ The pieces between the commas. ~~|
         ~("a,b,c" | split "," | eq ["a" "b" "c"])
@@ -913,10 +936,12 @@
         ~(["a,b" "c"] | map (split ",") | eq [["a" "b"] ["c"]])
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number is no string to cut. ~~|
-        ~(42 | split "," !| get [tag (subject | found | tag)] | eq [::string/split/SubjectNotStringError ::number])
+        ~(42 | split "," !| get [tag (subject | found | tag)]
+          | eq [::string/split/SubjectNotStringError ::number])
     | proves :SeparatorKindNotTakenError/refusesAKeyword
         |~~ A keyword is no separator. ~~|
-        ~("tea,cake" | split :comma !| tag | eq ::string/split/SeparatorKindNotTakenError)
+        ~("tea,cake" | split :comma !| tag
+          | eq ::string/split/SeparatorKindNotTakenError)
     | proves :SeparatorNotGivenError/refusesACallWithNoSeparator
         |~~ A call with no separator is refused under the input. ~~|
         ~("abc" | split !| tag | eq ::string/split/SeparatorNotGivenError)
@@ -973,23 +998,23 @@
         ~(["ab" "ba"] | map (startsWith "a") | eq [true false])
     | proves :SubjectNotStringError/refusesAVector
         |~~ A vector is no string to read the beginning of. ~~|
-        ~(["a"] | startsWith "a" !| tag | eq ::string/startsWith/SubjectNotStringError)
+        ~(["a"] | startsWith "a" !| tag
+          | eq ::string/startsWith/SubjectNotStringError)
     | proves :PrefixKindNotTakenError/refusesAKeyword
         |~~ A keyword is no prefix. ~~|
-        ~("tea time" | startsWith :tea !| tag | eq ::string/startsWith/PrefixKindNotTakenError)
+        ~("tea time" | startsWith :tea !| tag
+          | eq ::string/startsWith/PrefixKindNotTakenError)
     | impl ::builtin{};
 
 :string/take
-  |~~ Answers the first characters of the string, as many as the count
-      the call gives, `"db_host" | take 2` answering `"db"`. A count past
-      the end takes the whole string, and a count of zero or below takes
-      none, the empty string. A character is a code point, as `count`
-      counts it, so an emoji of one code point is taken whole. The count is a whole number:
-      a fraction and a string are refused. A string under a tag answers
-      under the tag. The name `take` also takes the first elements of a
-      vector, a set or a map.
-      ::link~(::string/drop) ::link~(::string/count)
-      ::link~(::vec/take)
+  |~~ Answers the first characters of the string, as many as the count the call
+      gives, `"db_host" | take 2` answering `"db"`. A count past the end takes
+      the whole string, and a count of zero or below takes none, the empty
+      string. A character is a code point, as `count` counts it, so an emoji of
+      one code point is taken whole. The count is a whole number: a fraction and
+      a string are refused. A string under a tag answers under the tag. The name
+      `take` also takes the first elements of a vector, a set or a map.
+      ::link~(::string/drop) ::link~(::string/count) ::link~(::vec/take)
   ~~|
   ::fn
     | takes :count
@@ -1047,7 +1072,8 @@
         |~~ A string names the keyword of its text, a slash and a space
             kept.
         ~~|
-        ~(["foo" "qlang/error" "a b"] | map toKeyword | eq [:foo :qlang/error :"a b"])
+        ~(["foo" "qlang/error" "a b"] | map toKeyword
+          | eq [:foo :qlang/error :"a b"])
     | proves :readsBack
         |~~ A string turned into a keyword turns back into itself. ~~|
         ~("bar" | toKeyword | toString | eq "bar")
@@ -1086,7 +1112,11 @@
         |~~ Text that is no number, or a number with a space around it, is
             refused.
         ~~|
-        ~(["4x" "" " 42"] | map (toNumber !| tag) | eq [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError])
+        ~(["4x" "" " 42"] | map (toNumber !| tag)
+          | eq
+          [::string/toNumber/TextNotNumberError
+          ::string/toNumber/TextNotNumberError
+          ::string/toNumber/TextNotNumberError])
     | impl ::builtin{};
 
 :string/toPath
@@ -1147,10 +1177,10 @@
             source shows the habit of another dialect, flags written
             inside it or a backslash before a character that needs none.
         ~~|
-        ~(wires :message
-              |~~ Why the source is no regex, and its repair where one shows.
-              ~~|
-              ::string)
+        ~(wires
+          :message
+          |~~ Why the source is no regex, and its repair where one shows.
+              ~~| ::string)
     | throws :LiteralNotSourceError
         |~~ `toRegex` reads the source of a regex, and this text writes
             the literal of one whole, `#"\d+"i`, as `json` writes a
@@ -1185,7 +1215,8 @@
         |~~ The literal of a regex is refused, and `parse | answer` reads
             it.
         ~~|
-        ~(#"\d+"i | json | parseJson | get [(toRegex !| tag) (parse | answer)] | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
+        ~(#"\d+"i | json | parseJson | get [(toRegex !| tag) (parse | answer)]
+          | eq [::string/toRegex/LiteralNotSourceError #"\d+"i])
     | impl ::builtin{};
 
 :string/toString
@@ -1211,7 +1242,8 @@
         |~~ A vector is led to `print` and `json`, and a doc to `content`
             beside them.
         ~~|
-        ~(get [([1 2] | toString !| nearest) (|~~ a ~~| | toString !| nearest)] | eq [[:json :print] [:content :json :print]])
+        ~(get [([1 2] | toString !| nearest) (|~~ a ~~| | toString !| nearest)]
+          | eq [[:json :print] [:content :json :print]])
     | impl ::builtin{};
 
 :string/toTag
@@ -1281,7 +1313,8 @@
         ~(::Name" a " | trim | eq ::Name"a")
     | proves :SubjectNotStringError/refusesANumber
         |~~ A number has no whitespace to trim. ~~|
-        ~(42 | trim !| get [tag (subject | found | tag)] | eq [::string/trim/SubjectNotStringError ::number])
+        ~(42 | trim !| get [tag (subject | found | tag)]
+          | eq [::string/trim/SubjectNotStringError ::number])
     | impl ::builtin{};
 
 :string/upper

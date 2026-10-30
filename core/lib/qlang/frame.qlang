@@ -70,7 +70,8 @@
             subject the step ran its code on, and nothing past it:
             `::frame["x" ~(add 1)]`, `::frame[[1 "x"] ~(map (mul 2)) /1]`.
         ~~|
-        ~(allOf (get /1 | count | gt 0) (count | lte 3) (anyOf (count | eq 2) (get /2 | is ::path)))
+        ~(allOf (get /1 | count | gt 0) (count
+          | lte 3) (anyOf (count | eq 2) (get /2 | is ::path)))
     | proves :holdsTheStepThatFailedAndTheValueItMet
         |~~ The frame of `add 1` holds the value it met. ~~|
         ~("x" | add 1 !| trace | first | eq ::frame["x" ~(add 1)])
@@ -78,18 +79,23 @@
         |~~ The frame of `map` holds the path of the element its code
             failed on.
         ~~|
-        ~([1 "x" 3] | map (mul 2) !| trace | last | eq ::frame[[1 "x" 3] ~(map (mul 2)) /1])
+        ~([1 "x" 3] | map (mul 2) !| trace | last
+          | eq ::frame[[1 "x" 3] ~(map (mul 2)) /1])
     | proves :printsOnOneLine
         |~~ A frame prints on one line whatever its subject holds. ~~|
-        ~({:user {:tags [1 2]}} | get /group !| trace | first | print | lines | count | eq 1)
+        ~({:user {:tags [1 2]}} | get /group !| trace | first | print | lines
+          | count | eq 1)
     | proves :readsItsPartsByTheirNames
         |~~ The parts of a frame are read by the names its kind wires, bare. ~~|
-        ~("x" | add 1 | mul 2 !| trace | first | get [subject unfinished path] | eq ["x" ~(add 1 | mul 2) null])
+        ~("x" | add 1 | mul 2 !| trace | first | get [subject unfinished path]
+          | eq ["x" ~(add 1 | mul 2) null])
     | proves :refusesTheIndexOfAPart
         |~~ No path reads beneath the tag of a frame, by an index nor by a
             name.
         ~~|
-        ~("x" | add 1 !| trace | get [(get /0/0 !| tag) (get /0/subject !| repair)] | eq [::path/TagClosedError ~(get /0 | subject)])
+        ~("x" | add 1 !| trace
+          | get [(get /0/0 !| tag) (get /0/subject !| repair)]
+          | eq [::path/TagClosedError ~(get /0 | subject)])
     | proves :UnfinishedKindNotTakenError/refusesANumber
         |~~ The unfinished steps of a frame are a quote. ~~|
         ~(::frame[1 2] !| tag | eq ::frame/UnfinishedKindNotTakenError)
@@ -101,7 +107,8 @@
         ~({:tea 4 :cake "six"} | map (add 1) !| trace | last | path | eq /cake)
     | proves :path/namesThePathUpdateWrote
         |~~ `update` names the path it wrote. ~~|
-        ~({:page {:visits "one"}} | update /page/visits (add 1) !| trace | last | path | eq /page/visits)
+        ~({:page {:visits "one"}} | update /page/visits (add 1) !| trace | last
+          | path | eq /page/visits)
     | proves :path/namesTheElementAVerbRefused
         |~~ `sum` names the element it refused. ~~|
         ~([1 "x"] | sum !| trace | first | path | eq /1)
@@ -113,7 +120,8 @@
         ~("x" | add 1 !| trace | first | path | eq null)
     | proves :path/readsThePartFromTheSubject
         |~~ The subject of the frame reads the part by its path. ~~|
-        ~([1 "x" 3] | map (mul 2) !| trace | last | with {:at path} (subject | get at) | eq "x")
+        ~([1 "x" 3] | map (mul 2) !| trace | last
+          | with {:at path} (subject | get at) | eq "x")
     | proves :UnfinishedNotGivenError/refusesASubjectAlone
         |~~ A subject with no steps is no frame. ~~|
         ~(::frame["x"] !| tag | eq ::frame/UnfinishedNotGivenError)
@@ -125,13 +133,16 @@
         ~(::frame["x" ~()] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadNotSubjectAndStepsError/refusesANullPath
         |~~ A frame of a step that failed at no part writes no third part. ~~|
-        ~(::frame["x" ~(add 1) null] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
+        ~(::frame["x" ~(add 1) null] !| tag
+          | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadNotSubjectAndStepsError/refusesAPartPastThePath
         |~~ Nothing stands past the path. ~~|
-        ~(::frame["x" ~(add 1) /0 5] !| tag | eq ::frame/PayloadNotSubjectAndStepsError)
+        ~(::frame["x" ~(add 1) /0 5] !| tag
+          | eq ::frame/PayloadNotSubjectAndStepsError)
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map is no frame. ~~|
-        ~(::frame{:failed ~(add 1)} !| tag | eq ::frame/PayloadKindNotTakenError);
+        ~(::frame{:failed ~(add 1)} !| tag
+          | eq ::frame/PayloadKindNotTakenError);
 
 :frame/failed
   |~~ Answers the step that failed, the quote of its one step,
@@ -156,13 +167,15 @@
     | proves :readsATraceAStepAtATime
         |~~ The steps of a trace read from where the failure arose outward.
         ~~|
-        ~([1 "x" 3] | map (mul 2) !| trace | map failed | eq [~(mul 2) ~(map (mul 2))])
+        ~([1 "x" 3] | map (mul 2) !| trace | map failed
+          | eq [~(mul 2) ~(map (mul 2))])
     | proves :readsTheRecordOfItsStepByFirst
         |~~ The first of the quote is the record of the step, a call. ~~|
         ~("x" | add 1 !| trace | first | failed | first | tag | eq ::call)
     | proves :SubjectNotFrameError/refusesAQuote
         |~~ A quote is no frame. ~~|
-        ~(~(add 1) | frame/failed !| tag | eq ::frame/failed/SubjectNotFrameError)
+        ~(~(add 1) | frame/failed !| tag
+          | eq ::frame/failed/SubjectNotFrameError)
     | impl ~(unfinished | take 1);
 
 :frame/skipped
@@ -188,7 +201,8 @@
         ~("x" | add 1 !| trace | last | skipped | eq ~())
     | proves :runsAgainByApply
         |~~ The steps skipped run again on another value. ~~|
-        ~("x" | add 1 | mul 2 !| trace | last | skipped | with {:rest it} (5 | apply rest) | eq 10)
+        ~("x" | add 1 | mul 2 !| trace | last | skipped
+          | with {:rest it} (5 | apply rest) | eq 10)
     | proves :SubjectNotFrameError/refusesAVector
         |~~ A vector is no frame. ~~|
         ~([1 2] | skipped !| tag | eq ::frame/skipped/SubjectNotFrameError)

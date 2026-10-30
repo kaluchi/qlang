@@ -15,7 +15,8 @@
         ~([1 null 3] | shape | eq ::shape[::nullable::number])
     | proves :answersAPartBeneathItWithoutTheMark
         |~~ A part read beneath the mark is answered without the mark. ~~|
-        ~([{:author {:login "a"}} {:author null}] | shape | get /0/author/login | eq ::string)
+        ~([{:author {:login "a"}} {:author null}] | shape | get /0/author/login
+          | eq ::string)
     | proves :standsOverTheKindsThatPart
         |~~ Kinds that part stand under the mark, null not among them. ~~|
         ~([1 "a" null] | shape | eq ::shape[::nullable#[::number ::string]])

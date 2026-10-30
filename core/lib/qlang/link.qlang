@@ -44,7 +44,8 @@
         ~(::link#5 !| tag | eq ::link/PayloadKindNotTakenError)
     | proves :staysASnippetUnderIt
         |~~ A quote under a link and a snippet is both. ~~|
-        ~(|~~ a ::link::snippet~(::vec) b ~~| | get [(links | count) (snippets | count)] | eq [1 1]);
+        ~(|~~ a ::link::snippet~(::vec) b ~~|
+          | get [(links | count) (snippets | count)] | eq [1 1]);
 
 :link/open
   |~~ Answers the page the link names, the doc of the name its code
@@ -63,12 +64,14 @@
         ~~|
     | proves :opensThePageItNames
         |~~ A link opens the page of the name its code answers. ~~|
-        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open | eq (::vec/sort | doc))
+        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | open
+          | eq (::vec/sort | doc))
     | proves :answersTheNameItHolds
         |~~ The code of a link answers the name it holds, beneath the page
             `open` reads there.
         ~~|
-        ~(|~~ See ::link~(::vec/sort). ~~| | links | first | get [answer (open | tag)] | eq [::vec/sort ::doc])
+        ~(|~~ See ::link~(::vec/sort). ~~| | links | first
+          | get [answer (open | tag)] | eq [::vec/sort ::doc])
     | proves :SubjectNotLinkError/refusesAQuote
         |~~ A quote that is no link names no page to open. ~~|
         ~(~(1 | add 1) | open !| tag | eq ::link/open/SubjectNotLinkError)

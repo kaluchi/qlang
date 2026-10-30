@@ -1,6 +1,6 @@
 |~ `::boolean` and what is declared under it: the refusal of a
-   payload of another kind, and the verbs that run on a boolean, the negation and the
-   two that join booleans.
+   payload of another kind, and the verbs that run on a boolean, the
+   negation and the two that join booleans.
    The rules it holds: [QSDSP#residence]. ~|
 
 :boolean
@@ -32,7 +32,8 @@
         ~(::boolean#false | eq false)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number is no boolean and is refused. ~~|
-        ~(::boolean#1 !| get [tag (found | tag)] | eq [::boolean/PayloadKindNotTakenError ::number]);
+        ~(::boolean#1 !| get [tag (found | tag)]
+          | eq [::boolean/PayloadKindNotTakenError ::number]);
 
 :boolean/and
   |~~ Answers whether the subject and the condition the call gives both
@@ -84,10 +85,12 @@
         ~(true | and (eq true))
     | proves :ConditionKindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(true | and 1 !| get [tag (condition | found | tag)] | eq [::boolean/and/ConditionKindNotTakenError ::number])
+        ~(true | and 1 !| get [tag (condition | found | tag)]
+          | eq [::boolean/and/ConditionKindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
-        ~(1 | and true !| get [tag (subject | found | tag)] | eq [::boolean/and/SubjectNotBooleanError ::number])
+        ~(1 | and true !| get [tag (subject | found | tag)]
+          | eq [::boolean/and/SubjectNotBooleanError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoBooleans
         |~~ A third condition is refused under the verb. ~~|
         ~(true | and true true !| tag | eq ::boolean/and/ArgsBeyondInputsError)
@@ -95,7 +98,8 @@
         |~~ The condition is asked of the boolean the step before answered,
             so a comparison of the element there is refused.
         ~~|
-        ~([1 2 3] | filter (gt 1 | and (lt 3)) !| get [tag leftTag] | eq [::call/KindsMismatchedError ::boolean])
+        ~([1 2 3] | filter (gt 1 | and (lt 3)) !| get [tag leftTag]
+          | eq [::call/KindsMismatchedError ::boolean])
     | impl ::builtin{};
 
 :boolean/not
@@ -135,10 +139,12 @@
         ~([1 2] | filter (gt 1 | not) | eq [1])
     | proves :SubjectNotBooleanError/refusesNull
         |~~ Null is no boolean; it is asked for by `eq null`. ~~|
-        ~(null | not !| get [tag (subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::null])
+        ~(null | not !| get [tag (subject | found | tag)]
+          | eq [::boolean/not/SubjectNotBooleanError ::null])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A number is no boolean, and `not` refuses it. ~~|
-        ~(0 | not !| get [tag (subject | found | tag)] | eq [::boolean/not/SubjectNotBooleanError ::number])
+        ~(0 | not !| get [tag (subject | found | tag)]
+          | eq [::boolean/not/SubjectNotBooleanError ::number])
     | proves :SubjectNotBooleanError/refusesAConditionGivenAsAValue
         |~~ A condition given to `not` leaves it a subject that is no
             boolean.
@@ -202,10 +208,12 @@
         ~(false | or (not))
     | proves :ConditionKindNotTakenError/refusesANumber
         |~~ A condition that is no boolean is refused under the input. ~~|
-        ~(false | or 1 !| get [tag (condition | found | tag)] | eq [::boolean/or/ConditionKindNotTakenError ::number])
+        ~(false | or 1 !| get [tag (condition | found | tag)]
+          | eq [::boolean/or/ConditionKindNotTakenError ::number])
     | proves :SubjectNotBooleanError/refusesANumber
         |~~ A subject that is no boolean is refused under the verb. ~~|
-        ~(1 | or true !| get [tag (subject | found | tag)] | eq [::boolean/or/SubjectNotBooleanError ::number])
+        ~(1 | or true !| get [tag (subject | found | tag)]
+          | eq [::boolean/or/SubjectNotBooleanError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoBooleans
         |~~ A third condition is refused under the verb. ~~|
         ~(false | or true true !| tag | eq ::boolean/or/ArgsBeyondInputsError)
@@ -213,7 +221,8 @@
         |~~ The condition is asked of the boolean the step before answered,
             so a comparison of the element there is refused.
         ~~|
-        ~([1 2 3] | filter (gt 1 | or (lt 3)) !| get [tag leftTag] | eq [::call/KindsMismatchedError ::boolean])
+        ~([1 2 3] | filter (gt 1 | or (lt 3)) !| get [tag leftTag]
+          | eq [::call/KindsMismatchedError ::boolean])
     | impl ::builtin{};
 
 :boolean/toKeyword

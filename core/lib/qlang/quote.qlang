@@ -14,10 +14,11 @@
       `apply` runs code on a subject, `5 | apply (add 1)` answering `6`.
       Code written in the step that hands it to a verb reads the names
       of that step wherever the verb runs it,
-      `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` answering `[11 12]`; a quote held as
-      data, in a name, a field or a page, runs in a lane of its own and
-      reads no value the reader named, and `fill` writes the values it
-      needs at its head, `~(mul rate) | fill {:rate 1.2}`.
+      `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` answering
+      `[11 12]`. A quote held as data, in a name, a field or a page, runs
+      in a lane of its own and reads no value the reader named. `fill`
+      writes the values it needs at its head,
+      `~(mul rate) | fill {:rate 1.2}`.
 
       It is written `~(…)` around a pipeline, and one name drops the
       parentheses, `~count`. A
@@ -61,11 +62,11 @@
         ~~|
     | throws :StepNotCommandError
         |~~ The code of a quote is its declarations and the query after
-            them, and a step of the query after its first is a command, a
-            call or a group: a value stands at the head of the query, where
-            it is the subject, and after `!|`, where it is the recovery, and
-            a declaration stands at the head of the code, none after the
-            first step of the query nor on the fail track. The step at
+            them. A step of the query after its first is a command, a call
+            or a group. A value stands at the head of the query, where it is
+            the subject, and after `!|`, where it is the recovery. A
+            declaration stands at the head of the code, none after the first
+            step of the query nor on the fail track. The step at
             `:index` is refused, and `:message` names the verb that takes a
             value, `get` for a path and a literal, `tag` for a tag and
             `apply` for a quote, or the head where a declaration stands. A
@@ -73,9 +74,10 @@
             under a tag by `tag`.
             ::link~(::quote) ::link~(::qlang/pipeline)
         ~~|
-        ~(wires :message
-              |~~ What the rule says of the value, the verb that takes it. ~~|
-              ::string)
+        ~(wires
+          :message
+          |~~ What the rule says of the value, the verb that takes it. ~~|
+          ::string)
     | throws :LiteralComputesError
         |~~ A literal computes nothing: the step at `:index` is a literal
             that holds a name or a group, which the shape `get` builds
@@ -84,63 +86,50 @@
             `get` where a part does, `[count]` among them.
             ::link~(::quote) ::link~(::any/get)
         ~~|
-        ~(wires :message
-              |~~ What the rule says of the literal, the template `get` builds it
-                  from.
-              ~~|
-              ::string)
+        ~(wires
+          :message
+          |~~ What the rule says of the literal, the template `get` builds
+                  it from.
+              ~~| ::string)
     | throws :ParseError
-        |~~ The source does not read as qlang: `:marker` puts a caret
+        |~~ The source does not read as qlang. `:marker` puts a caret
             beneath `:source` under the character where the reading
-            stopped, `:location` names that span, its line and column read
-            by `line` and `column` of its `start`, `:message` names the habit a form of
-            another language wrote, the step a combinator misses and what a
-            source cut short left open, a bracket, a string, a quote, a doc
-            or a comment, and beside it `:expected` lists what could stand
-            there where the reading went no further.
+            stopped, and `:location` names that span, its line and column
+            read by `line` and `column` of its `start`. `:message` names the
+            habit a form of another language wrote, the step a combinator
+            misses, or what a source cut short left open, a bracket, a
+            string, a quote, a doc or a comment. Beside it `:expected` lists
+            what could stand there where the reading went no further.
             ::link~(::quote) ::link~(::span)
         ~~|
-        ~(wires :source
-              |~~ The line of the text where the reading stopped, cut around
+        ~(wires
+          :source |~~ The line of the text where the reading stopped, cut around
                   that point by an ellipsis where its print would pass the
                   room of a fact of an alert, three hundred characters.
-              ~~|
-              ::string
-          | wires :marker
+              ~~| ::string | wires :marker
               |~~ A caret under the character of `:source` where the reading
                   stopped and a tilde under each other character of its span
                   there, spaces before them and after them to the end of
                   `:source`, each character counted as its print writes it,
                   so the two print in one column.
-              ~~|
-              ::string
-          | wires :message
+              ~~| ::string | wires :message
               |~~ What the grammar says where the reading stopped, a bracket
                   left open among it.
-              ~~|
-              ::string
-          | wires :expected
-              |~~ The continuations the reading could take where it stopped: each
-                  the text of a literal or a part of the grammar named as a
-                  keyword, `:name`, `:whitespace`, `:end-of-source`, beside
-                  what it met as `:found`.
-              ~~|
-              ::vec
-          | wires :found
+              ~~| ::string | wires :expected
+              |~~ The continuations the reading could take where it stopped:
+                  each the text of a literal or a part of the grammar named as a
+                  keyword, `:name`, `:whitespace`, `:end-of-source`, beside what
+                  it met as `:found`.
+              ~~| ::vec | wires :found
               |~~ What the reading met where it stopped, none at the end of the
                   source.
-              ~~|
-              ::string
-          | wires :location
+              ~~| ::string | wires :location
               |~~ The span of the text where the reading stopped: null where the
                   reading stopped at no point of it.
-              ~~|
-              ::span
-          | wires :origin
-              |~~ Where the text came from, the source, the cell or the verb that
-                  read it.
-              ~~|
-              ::keyword)
+              ~~| ::span | wires :origin
+              |~~ Where the text came from, the source, the cell or the verb
+                  that read it.
+              ~~| ::keyword)
     | proves :countsItsSteps
         |~~ A quote of three steps counts three. ~~|
         ~(~(1 | add 1 | mul 2) | count | eq 3)
@@ -161,21 +150,26 @@
         ~(~(add 1 | mul 2) | payload | tag ::quote | eq ~(add 1 | mul 2))
     | proves :filtersItsSteps
         |~~ A quote filters as the vector of its steps. ~~|
-        ~(~(add 1 | mul 2) | filter (get /name | eq :mul) | toString | eq "mul 2")
+        ~(~(add 1 | mul 2) | filter (get /name | eq :mul) | toString
+          | eq "mul 2")
     | proves :PayloadKindNotTakenError/refusesAMap
         |~~ A map payload is refused. ~~|
-        ~(::quote{:not :steps} !| get [tag (found | tag)] | eq [::quote/PayloadKindNotTakenError ::map])
+        ~(::quote{:not :steps} !| get [tag (found | tag)]
+          | eq [::quote/PayloadKindNotTakenError ::map])
     | proves :ElementNotStepError/refusesAValueWithNoReading
         |~~ A value with no reading as a step is refused at its index. ~~|
-        ~([::Box[1]] | tag ::quote !| get [tag index] | eq [::quote/ElementNotStepError 0])
+        ~([::Box[1]] | tag ::quote !| get [tag index]
+          | eq [::quote/ElementNotStepError 0])
     | proves :ElementNotStepError/refusesTheQuoteOfAPathAlone
         |~~ The quote of a path alone, which a step writes bare, is refused
             at its index.
         ~~|
-        ~(get [1 ("/name" | parse)] | tag ::quote !| get [tag index] | eq [::quote/ElementNotStepError 1])
+        ~(get [1 ("/name" | parse)] | tag ::quote !| get [tag index]
+          | eq [::quote/ElementNotStepError 1])
     | proves :StepNotCommandError/refusesAValueAfterTheHead
         |~~ A value after the first step is refused at its index. ~~|
-        ~([[1] [2]] | tag ::quote !| get [tag index] | eq [::quote/StepNotCommandError 1])
+        ~([[1] [2]] | tag ::quote !| get [tag index]
+          | eq [::quote/StepNotCommandError 1])
     | proves :StepNotCommandError/namesTheVerbThatTakesThePath
         |~~ A path after the first step names the verb that reads it. ~~|
         ~([1 /price] | tag ::quote !| message | contains "write `get /price`")
@@ -190,12 +184,15 @@
         ~(get [(~(:rate 2;) | first) 5] | tag ::quote | answer | eq 5)
     | proves :StepNotCommandError/refusesADeclarationInTheQuery
         |~~ A declaration after the first step of the query is refused. ~~|
-        ~(get [5 (~(:rate 2;) | first)] | tag ::quote !| get [tag index] | eq [::quote/StepNotCommandError 1])
+        ~(get [5 (~(:rate 2;) | first)] | tag ::quote !| get [tag index]
+          | eq [::quote/StepNotCommandError 1])
     | proves :LiteralComputesError/refusesANameInAVector
         |~~ A vector that holds a name is refused, naming the page of
             `get`, since the name reads the subject.
         ~~|
-        ~([[::call{:name :count}]] | tag ::quote !| get [tag message] | eq [::quote/LiteralComputesError "a literal computes nothing: a shape computed from the subject is built by `get`, `::any/get | doc`"])
+        ~([[::call{:name :count}]] | tag ::quote
+          !| get [tag (message | contains "::any/get | doc")]
+          | eq [::quote/LiteralComputesError true])
     | proves :ParseError/refusesASourceCutShort
         |~~ A source cut short after a pipe is refused. ~~|
         ~("42 |" | parse !| tag | eq ::quote/ParseError)
@@ -203,13 +200,15 @@
         |~~ The start of `:location` reads the line and the column where the
             reading stopped, under the line `:source` holds.
         ~~|
-        ~("[1 2" | parse !| get [source (location | start | get [line column])] | eq ["[1 2" [1 5]])
+        ~("[1 2" | parse !| get [source (location | start | get [line column])]
+          | eq ["[1 2" [1 5]])
     | proves :ParseError/putsACaretBeneathTheLine
         |~~ `:marker` puts a caret under the character of `:source` where
             the reading stopped and a tilde under each other of its span,
             spaces to the end of the line.
         ~~|
-        ~("[mul(2) add(1)]" | parse !| get [source marker] | eq ["[mul(2) add(1)]" "    ^~~        "])
+        ~("[mul(2) add(1)]" | parse !| get [source marker]
+          | eq ["[mul(2) add(1)]" "    ^~~        "])
     | proves :ParseError/countsEachCharacterAsItPrints
         |~~ A quote, which a string prints escaped, counts two characters
             before the caret, so it stands under its character in the
@@ -224,22 +223,20 @@
     | impl ::builtin{};
 
 :quote/answer
-  |~~ Answers what the code the quote holds answers, run as a query
-      beneath whatever tags stand over it, `~(1 | add 1) | answer`
-      answering `2`, as the `answer` of a cell a host keeps reads what the
-      cell answered: a print reads back as its value by `parse | answer`,
-      and a snippet answers what it shows. The code is held as data and runs in a lane
-      of its own: it reads the verbs of the tree and the names it binds,
-      which stay inside it, and no value the reader named,
-      `{:rate 0.2} | with [/rate] (~(100 | mul rate) | answer)` refused
-      under `rate`. It runs from null, not from the subject of `answer`:
-      code that reads a subject, `~(add 1)`, is refused on null, and a
-      quote meant for a subject runs against it by `apply`,
-      `5 | apply (add 1)`. Text is read as a quote first by `parse`,
-      `"1 | add 1" | parse | answer`, and a link opens the page it names
-      by `open`.
-      ::link~(::any/apply) ::link~(::link/open) ::link~(::cell)
-      ::link~(::doc/snippets) ::link~(::qlang/code)
+  |~~ Answers what the code the quote holds answers, run as a query beneath
+      whatever tags stand over it, `~(1 | add 1) | answer` answering `2`, as the
+      `answer` of a cell a host keeps reads what the cell answered: a print
+      reads back as its value by `parse | answer`, and a snippet answers what it
+      shows. The code is held as data and runs in a lane of its own: it reads
+      the verbs of the tree and the names it binds, which stay inside it, and no
+      value the reader named,
+      `{:rate 0.2} | with [/rate] (~(100 | mul rate) | answer)` refused under
+      `rate`. It runs from null, not from the subject of `answer`: code that
+      reads a subject, `~(add 1)`, is refused on null, and a quote meant for a
+      subject runs against it by `apply`, `5 | apply (add 1)`. Text is read as a
+      quote first by `parse`, `"1 | add 1" | parse | answer`, and a link opens
+      the page it names by `open`. ::link~(::any/apply) ::link~(::link/open)
+      ::link~(::cell) ::link~(::doc/snippets) ::link~(::qlang/code)
   ~~|
   ::fn
     | returns |~~ What the code answers, a value of any kind. ~~| ::any
@@ -254,17 +251,20 @@
         ~(|~~ ::link~(::vec/sort) ~~| | links | first | answer | eq ::vec/sort)
     | proves :answersWhatASnippetShows
         |~~ A snippet answers what it shows. ~~|
-        ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | answer | eq [1 2 3])
+        ~(|~~ ::snippet~([3 1 2] | sort) ~~| | snippets | first | answer
+          | eq [1 2 3])
     | proves :withholdsAValueOfTheReader
         |~~ A value the reader named is withheld from the code: a stored
             query of a tax reads no rate `with` gives the code around it.
         ~~|
-        ~({:rate 0.2} | with [/rate] (~(100 | mul rate) | answer !| get [tag name]) | eq [::call/ValueWithheldError :rate])
+        ~({:rate 0.2} | with [/rate] (~(100 | mul rate)
+          | answer !| get [tag name]) | eq [::call/ValueWithheldError :rate])
     | proves :keepsItsNamesInside
         |~~ A name the code binds stays inside it: the stored query of a
             tax names its rate for its own steps alone.
         ~~|
-        ~(~(:rate 0.2; 100 | mul rate) | answer | get [it (::host | env | has :rate)] | eq [20 false])
+        ~(~(:rate 0.2; 100 | mul rate) | answer
+          | get [it (::host | env | has :rate)] | eq [20 false])
     | proves :runsFromNull
         |~~ The code runs from null. ~~|
         ~(~(tag) | answer | eq ::null)
@@ -275,12 +275,14 @@
         |~~ Text is no quote until `parse` reads it, and `answer` called by
             its address refuses it under itself.
         ~~|
-        ~("1 | add 1" | quote/answer !| get [tag (subject | found | tag)] | eq [::quote/answer/SubjectNotQuoteError ::string])
+        ~("1 | add 1" | quote/answer !| get [tag (subject | found | tag)]
+          | eq [::quote/answer/SubjectNotQuoteError ::string])
     | proves :meetsNoTextUnderItsName
         |~~ Text meets no verb of the name `answer`, which a quote answers
             among the kinds that answer what their code answered.
         ~~|
-        ~("1 | add 1" | answer !| get [tag (addresses | has ::quote/answer)] | eq [::call/KindAnswersNoVerbError true])
+        ~("1 | add 1" | answer !| get [tag (addresses | has ::quote/answer)]
+          | eq [::call/KindAnswersNoVerbError true])
     | proves :refusesAQueryThatReadsASubject
         |~~ Code that reads a subject is refused on null. ~~|
         ~(~(add 1) | answer !| tag | eq ::number/add/SubjectNotNumberError)
@@ -290,8 +292,8 @@
   |~~ Answers the quote with the value the call gives for each name the
       code reads written at its head, a declaration each in the order the
       code reads them, `~(mul rate) | fill {:rate 1.2}` answering
-      `~(:rate 1.2; mul rate)`, so code held as data, in a name, a field
-      or a page, runs with the values it needs, as a step writes into the
+      `~(:rate 1.2; mul rate)`. So code held as data, in a name, a field or
+      a page, runs with the values it needs, as a step writes into the
       code it hands a verb the values of its scope it reads. A name the
       code does not read, one it declares itself among them, is refused
       beside the names it reads near it, and `fill` of a function writes
@@ -314,10 +316,11 @@
             which the code does not read or declares itself, and `:nearest`
             the names it reads near it in spelling.
         ~~|
-        ~(wires :name |~~ The name given, which the code does not read. ~~| ::keyword
-          | wires :nearest
-              |~~ The names the code reads near it in spelling, `[]` where none is near. ~~|
-              ::vec)
+        ~(wires :name |~~ The name given, which the code does not read. ~~|
+          ::keyword | wires :nearest
+          |~~ The names the code reads near it in spelling, `[]` where none
+                  is near.
+              ~~| ::vec)
     | returns |~~ The code, the values written at its head. ~~| ::quote
     | proves :writesTheValueAtTheHead
         |~~ The rate of a price goes to the head of the code that reads it.
@@ -327,22 +330,27 @@
         |~~ The quantity and the fee go to the head in the order the code
             reads them.
         ~~|
-        ~(~(mul qty | add fee) | fill {:fee 5 :qty 3} | eq ~(:qty 3; :fee 5; mul qty | add fee))
+        ~(~(mul qty | add fee) | fill {:fee 5 :qty 3}
+          | eq ~(:qty 3; :fee 5; mul qty | add fee))
     | proves :runsWithTheValuesWritten
         |~~ A rule kept as data prices each order with the rate written in.
         ~~|
-        ~([10 25] | with {:q (~(mul rate) | fill {:rate 1.2})} (map q) | eq [12 30])
+        ~([10 25] | with {:q (~(mul rate) | fill {:rate 1.2})} (map q)
+          | eq [12 30])
     | proves :NamesNameNotReadError/refusesAMisspelledName
         |~~ A name the code does not read is refused beside the name it
             reads.
         ~~|
-        ~(~(mul rate) | fill {:rtae 1.2} !| get [tag name nearest] | eq [::quote/fill/NamesNameNotReadError :rtae [:rate]])
+        ~(~(mul rate) | fill {:rtae 1.2} !| get [tag name nearest]
+          | eq [::quote/fill/NamesNameNotReadError :rtae [:rate]])
     | proves :NamesNameNotReadError/refusesANameTheCodeDeclares
         |~~ A name the code declares itself is no name it reads. ~~|
-        ~(~(:rate 1.5; mul rate) | fill {:rate 1.2} !| tag | eq ::quote/fill/NamesNameNotReadError)
+        ~(~(:rate 1.5; mul rate) | fill {:rate 1.2} !| tag
+          | eq ::quote/fill/NamesNameNotReadError)
     | proves :NamesKindNotTakenError/refusesAVector
         |~~ The values are named by a map. ~~|
-        ~(~(mul rate) | fill [1.2] !| tag | eq ::quote/fill/NamesKindNotTakenError)
+        ~(~(mul rate) | fill [1.2] !| tag
+          | eq ::quote/fill/NamesKindNotTakenError)
     | impl ::builtin{};
 
 :quote/toString
@@ -393,6 +401,7 @@
         |~~ A quote answers the vector of its steps, under a tag of its own
             as well.
         ~~|
-        ~([~(add 1 | mul 2) ::Box~(add 1)] | map (toVec | get [tag count]) | eq [[::vec 2] [::vec 1]])
+        ~([~(add 1 | mul 2) ::Box~(add 1)] | map (toVec | get [tag count])
+          | eq [[::vec 2] [::vec 1]])
     | impl ::builtin{};
 

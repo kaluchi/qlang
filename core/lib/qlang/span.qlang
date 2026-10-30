@@ -32,12 +32,18 @@
             `::point[4 1 5]`.
         ~~|
         ~(drop 3 | tag ::point) ::point
-    | wires :startOffset |~~ The offset of the start, counted from zero. ~~| /0 ::number
-    | wires :startLine |~~ The line of the start, counted from one. ~~| /1 ::number
-    | wires :startColumn |~~ The column of the start, counted from one. ~~| /2 ::number
-    | wires :endOffset |~~ The offset past the end, counted from zero. ~~| /3 ::number
-    | wires :endLine |~~ The line past the end, counted from one. ~~| /4 ::number
-    | wires :endColumn |~~ The column past the end, counted from one. ~~| /5 ::number
+    | wires :startOffset |~~ The offset of the start, counted from zero. ~~| /0
+        ::number
+    | wires :startLine |~~ The line of the start, counted from one. ~~| /1
+        ::number
+    | wires :startColumn |~~ The column of the start, counted from one. ~~| /2
+        ::number
+    | wires :endOffset |~~ The offset past the end, counted from zero. ~~| /3
+        ::number
+    | wires :endLine |~~ The line past the end, counted from one. ~~| /4
+        ::number
+    | wires :endColumn |~~ The column past the end, counted from one. ~~| /5
+        ::number
     | throws :PayloadKindNotTakenError
         |~~ A span is the vector of six numbers, the offset, the line and
             the column of its start and of the point after its end,
@@ -58,10 +64,13 @@
         |~~ The ends of a span are the points of its first three numbers
             and of its last three.
         ~~|
-        ~(::span[0 1 1 4 1 5] | get [start end] | eq [::point[0 1 1] ::point[4 1 5]])
+        ~(::span[0 1 1 4 1 5] | get [start end]
+          | eq [::point[0 1 1] ::point[4 1 5]])
     | proves :namesEachNumberAtItsPlace
         |~~ Each of the six numbers of a span is read by its name. ~~|
-        ~(::span[0 1 1 4 1 5] | get [startOffset startLine startColumn endOffset endLine endColumn] | eq [0 1 1 4 1 5])
+        ~(::span[0 1 1 4 1 5]
+          | get [startOffset startLine startColumn endOffset endLine endColumn]
+          | eq [0 1 1 4 1 5])
     | proves :readsTheLineWhereAParseStopped
         |~~ The names of the span and of its point read the line where a
             parse stopped.
@@ -69,7 +78,8 @@
         ~("[1\n2" | parse !| location | start | line | eq 2)
     | proves :EndNotReadError/refusesThreeNumbers
         |~~ Three numbers make a point, no span. ~~|
-        ~(::span[0 1 1] !| get [tag (found | tag)] | eq [::span/EndNotReadError ::point/OffsetNotGivenError])
+        ~(::span[0 1 1] !| get [tag (found | tag)]
+          | eq [::span/EndNotReadError ::point/OffsetNotGivenError])
     | proves :PayloadKindNotTakenError/refusesText
         |~~ Text is no vector of numbers. ~~|
         ~(::span"abcdef" !| tag | eq ::span/PayloadKindNotTakenError)

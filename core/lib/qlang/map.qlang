@@ -55,7 +55,8 @@
         ~(::map{:id 7} | eq {:id 7})
     | proves :readsJson
         |~~ A JSON object is a map literal. ~~|
-        ~("{\"id\": 7, \"flags\": [true, null]}" | parse | answer | eq {:id 7 :flags [true null]})
+        ~("{\"id\": 7, \"flags\": [true, null]}" | parse | answer
+          | eq {:id 7 :flags [true null]})
     | proves :keepsTheLastOfAKey
         |~~ A key written twice keeps the last value. ~~|
         ~("{:status :new :status :paid}" | parse | answer | eq {:status :paid})
@@ -64,17 +65,20 @@
         ~({:apples 3 :pears 5} | entries | toMap | eq {:apples 3 :pears 5})
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(::map#1 !| get [tag (found | tag)] | eq [::map/PayloadKindNotTakenError ::number])
+        ~(::map#1 !| get [tag (found | tag)]
+          | eq [::map/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/refusesThePairsOfAVector
         |~~ The pairs of a vector are refused; `toMap` builds them into a
             map.
         ~~|
-        ~([[:apples 3]] | tag ::map !| get [tag (found | tag)] | eq [::map/PayloadKindNotTakenError ::vec])
+        ~([[:apples 3]] | tag ::map !| get [tag (found | tag)]
+          | eq [::map/PayloadKindNotTakenError ::vec])
     | proves :keepsAValueOfItsKind
         |~~ A value of `::map` already, a map under a tag of its own and an
             error at rest, stays as it is; `payload` reads the map beneath.
         ~~|
-        ~(get [(::map::Box{:id 7} | tag) (::map!{:id 7} | tag) (::Box{:id 7} | payload | tag)] | eq [::Box ::error ::map]);
+        ~(get [(::map::Box{:id 7} | tag) (::map!{:id 7} | tag) (::Box{:id 7}
+          | payload | tag)] | eq [::Box ::error ::map]);
 
 :map/any
   |~~ Answers whether the predicate answers true for some value,
@@ -112,8 +116,11 @@
         ~({} | any (gt 0) | not)
     | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:tea 4} | any (sub 3) !| get [tag (trace | last | path) (predicate | answer | tag) (predicate | expected)]
-          |  eq [::map/any/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
+        ~({:tea 4} | any (sub 3) !| get [tag (trace | last | path) (predicate
+          | answer | tag) (predicate | expected)]
+          |  eq
+          [::map/any/PredicateAnswerKindNotTakenError /tea ::number
+          #[::boolean]])
     | impl ::builtin{};
 
 :map/at
@@ -127,7 +134,8 @@
       ::link~(::vec/at) ::link~(::any/get)
   ~~|
   ::fn
-    | takes :key |~~ The key, a keyword, a string or a number. ~~| /0 #[::keyword ::number ::string]
+    | takes :key |~~ The key, a keyword, a string or a number. ~~| /0
+        #[::keyword ::number ::string]
     | throws :KeyKindNotTakenError
         |~~ The key is a keyword, a string or a number, `at :a`; a boolean
             and null are filed under the keyword `toKeyword` answers,
@@ -180,7 +188,9 @@
         ~({:high 1e308 :low -1e308} | avg | eq 0)
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
-        ~({:mon 12 :tue "15"} | avg !| get [tag (subject | found | get /tue | tag) (trace | last | path) (subject | expected)]
+        ~({:mon 12 :tue "15"}
+          | avg !| get [tag (subject | found | get /tue | tag) (trace | last
+          | path) (subject | expected)]
           |  eq [::map/avg/ElementKindNotTakenError ::string /tue #[::number]])
     | impl ::builtin{};
 
@@ -213,7 +223,8 @@
         |~~ A predicate given to `count` is refused; `filter` chooses
             first.
         ~~|
-        ~({:apples 3 :pears 5} | count ~(gt 4) !| tag | eq ::map/count/ArgsBeyondInputsError)
+        ~({:apples 3 :pears 5} | count ~(gt 4) !| tag
+          | eq ::map/count/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :map/drop
@@ -302,17 +313,21 @@
         ~~|
     | proves :pairsEachKeyWithItsValue
         |~~ Each entry is a pair of its key and its value. ~~|
-        ~({:auth {:port 3000} :db {:port 5432}} | entries | first | eq [:auth {:port 3000}])
+        ~({:auth {:port 3000} :db {:port 5432}} | entries | first
+          | eq [:auth {:port 3000}])
     | proves :spellsTheKeyWithTheValue
         |~~ The key and its value spell one string. ~~|
-        ~({:axios "^1.6.0"} | entries | map (get [(get /0 | toString) "@" /1] | join "")
+        ~({:axios "^1.6.0"} | entries
+          | map (get [(get /0 | toString) "@" /1] | join "")
           | eq ["axios@^1.6.0"])
     | proves :filtersByKeyAndBuildsBack
         |~~ Entries filtered by key build back into a map. ~~|
-        ~({:name "Ann" :tmp 2} | entries | filter (get /0 | ne :tmp) | toMap | eq {:name "Ann"})
+        ~({:name "Ann" :tmp 2} | entries | filter (get /0 | ne :tmp) | toMap
+          | eq {:name "Ann"})
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no entries. ~~|
-        ~([1 2] | entries !| get [tag (subject | found | tag)] | eq [::map/entries/SubjectNotMapError ::vec])
+        ~([1 2] | entries !| get [tag (subject | found | tag)]
+          | eq [::map/entries/SubjectNotMapError ::vec])
     | impl ::builtin{};
 
 :map/every
@@ -356,8 +371,11 @@
         ~({} | every (gt 0))
     | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:tea 4} | every (sub 3) !| get [tag (trace | last | path) (predicate | answer | tag) (predicate | expected)]
-          |  eq [::map/every/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
+        ~({:tea 4} | every (sub 3) !| get [tag (trace | last | path) (predicate
+          | answer | tag) (predicate | expected)]
+          |  eq
+          [::map/every/PredicateAnswerKindNotTakenError /tea ::number
+          #[::boolean]])
     | impl ::builtin{};
 
 :map/filter
@@ -409,8 +427,11 @@
         ~({:tea 4} | filter /0 !| tag | eq ::path/SubjectHasNoPartsError)
     | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused under the key. ~~|
-        ~({:tea 4} | filter (sub 3) !| get [tag (trace | last | path) (predicate | answer | tag) (predicate | expected)]
-          |  eq [::map/filter/PredicateAnswerKindNotTakenError /tea ::number #[::boolean]])
+        ~({:tea 4} | filter (sub 3) !| get [tag (trace | last | path) (predicate
+          | answer | tag) (predicate | expected)]
+          |  eq
+          [::map/filter/PredicateAnswerKindNotTakenError /tea ::number
+          #[::boolean]])
     | impl ::builtin{};
 
 :map/first
@@ -445,7 +466,8 @@
         ~({:tue 15 :mon 12} | entries | first | eq [:tue 15])
     | proves :ArgsBeyondInputsError/refusesACount
         |~~ A count given to `first` is refused; `take` takes it. ~~|
-        ~({:mon 12 :tue 15} | first 2 !| tag | eq ::map/first/ArgsBeyondInputsError)
+        ~({:mon 12 :tue 15} | first 2 !| tag
+          | eq ::map/first/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :map/has
@@ -496,8 +518,7 @@
         ~({:"1" 5} | has 1)
     | proves :KeyKindNotTakenError/refusesAVector
         |~~ A vector key is refused. ~~|
-        ~({:name "Ann"} | has [:name]
-          !| get [tag (key | found | tag)]
+        ~({:name "Ann"} | has [:name] !| get [tag (key | found | tag)]
           |  eq [::map/has/KeyKindNotTakenError ::vec])
     | impl ::builtin{};
 
@@ -533,10 +554,12 @@
         ::map
     | proves :keepsTheKeysOfASet
         |~~ The keys a set names stay. ~~|
-        ~({:name "Ann" :age 30 :tmp 3} | inter #[:age :name] | eq {:name "Ann" :age 30})
+        ~({:name "Ann" :age 30 :tmp 3} | inter #[:age :name]
+          | eq {:name "Ann" :age 30})
     | proves :keepsTheKeysOfAVector
         |~~ Strings and keywords in a vector name the keys to keep. ~~|
-        ~({:name "Ann" :age 30 :tmp 3} | inter ["name" :age] | eq {:name "Ann" :age 30})
+        ~({:name "Ann" :age 30 :tmp 3} | inter ["name" :age]
+          | eq {:name "Ann" :age 30})
     | proves :keepsTheKeysOfAMap
         |~~ The keys of a map stay, whatever their values. ~~|
         ~({:name "Ann" :age 30} | inter {:age null} | eq {:age 30})
@@ -547,8 +570,11 @@
         |~~ A vector among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
-        ~({:name "Ann"} | inter [[:name]] !| get [tag (keys | found | get /0 | tag) (keys | index) (keys | expected)]
-          |  eq [::map/inter/KeysElementKindNotTakenError ::vec 0 #[::keyword ::number ::string]])
+        ~({:name "Ann"} | inter [[:name]] !| get [tag (keys | found | get /0
+          | tag) (keys | index) (keys | expected)]
+          |  eq
+          [::map/inter/KeysElementKindNotTakenError ::vec 0
+          #[::keyword ::number ::string]])
     | proves :KeysKindNotTakenError/refusesANumber
         |~~ Keys that are no map, vector or set are refused under the
             input.
@@ -598,7 +624,8 @@
         ~([{:name "Ann"} {:age 30}] | map keys | eq [[:name] [:age]])
     | proves :SubjectNotMapError/refusesANumber
         |~~ A number has no keys. ~~|
-        ~(42 | keys !| get [tag (subject | found | tag)] | eq [::map/keys/SubjectNotMapError ::number])
+        ~(42 | keys !| get [tag (subject | found | tag)]
+          | eq [::map/keys/SubjectNotMapError ::number])
     | impl ::builtin{};
 
 :map/last
@@ -671,7 +698,8 @@
         ~({:tea 4 :cake 6} | entries | map /0 | eq [:tea :cake])
     | proves :answersTheFirstFailure
         |~~ The first error, in the order of the keys, answers the call. ~~|
-        ~({:tea "four" :cake "six"} | map (add 1) !| trace | first | subject | eq "four")
+        ~({:tea "four" :cake "six"} | map (add 1) !| trace | first | subject
+          | eq "four")
     | proves :answersUnderNoTag
         |~~ The answers stand under no tag of the subject. ~~|
         ~(::Prices{:tea 4} | map (add 1) | eq {:tea 5})
@@ -739,10 +767,12 @@
         |~~ `merge` answers as `union`, the other map winning a key both
             hold.
         ~~|
-        ~({:theme :dark :font 12} | get [(merge {:font 14}) (union {:font 14})] | eq [{:theme :dark :font 14} {:theme :dark :font 14}])
+        ~({:theme :dark :font 12} | get [(merge {:font 14}) (union {:font 14})]
+          | eq [{:theme :dark :font 14} {:theme :dark :font 14}])
     | proves :OtherKindNotTakenError/refusesASetOfKeys
         |~~ A set of keys merges with no map. ~~|
-        ~({:theme :dark} | merge #[:lang] !| tag | eq ::map/merge/OtherKindNotTakenError)
+        ~({:theme :dark} | merge #[:lang] !| tag
+          | eq ::map/merge/OtherKindNotTakenError)
     | impl ~(union other);
 
 :map/min
@@ -821,7 +851,8 @@
         ::map
     | proves :leavesTheKeysOfASet
         |~~ The keys a set names leave. ~~|
-        ~({:name "Ann" :age 30 :tmp 3} | minus #[:tmp] | eq {:name "Ann" :age 30})
+        ~({:name "Ann" :age 30 :tmp 3} | minus #[:tmp]
+          | eq {:name "Ann" :age 30})
     | proves :leavesTheKeysOfAVector
         |~~ A string in a vector names a key to leave. ~~|
         ~({:name "Ann" :age 30} | minus ["age"] | eq {:name "Ann"})
@@ -833,19 +864,24 @@
         ~({:name "Ann"} | minus [:phone] | eq {:name "Ann"})
     | proves :answersUnderTheTagOfTheMap
         |~~ A map under a tag answers under the tag. ~~|
-        ~(::Person{:name "Ann" :tmp 3} | minus [:tmp] | eq ::Person{:name "Ann"})
+        ~(::Person{:name "Ann" :tmp 3} | minus [:tmp]
+          | eq ::Person{:name "Ann"})
     | proves :leavesTheKeyOfANumber
         |~~ A number names the key of its text, as `get` reads it. ~~|
         ~({:"2024" 12 :"2025" 15} | minus [2024] | eq {:"2025" 15})
     | proves :KeysKindNotTakenError/refusesASingleKey
         |~~ A key written alone is refused; a set holds it. ~~|
-        ~({:name "Ann" :tmp 3} | minus "tmp" !| tag | eq ::map/minus/KeysKindNotTakenError)
+        ~({:name "Ann" :tmp 3} | minus "tmp" !| tag
+          | eq ::map/minus/KeysKindNotTakenError)
     | proves :KeysElementKindNotTakenError/refusesABoolean
         |~~ A boolean among the keys is refused under the input at its
             index, with the kinds of a key.
         ~~|
-        ~({:name "Ann"} | minus [:tmp true] !| get [tag (keys | found | get /1 | tag) (keys | index) (keys | expected)]
-          |  eq [::map/minus/KeysElementKindNotTakenError ::boolean 1 #[::keyword ::number ::string]])
+        ~({:name "Ann"} | minus [:tmp true] !| get [tag (keys | found | get /1
+          | tag) (keys | index) (keys | expected)]
+          |  eq
+          [::map/minus/KeysElementKindNotTakenError ::boolean 1
+          #[::keyword ::number ::string]])
     | impl ::builtin{};
 
 :map/reduce
@@ -889,8 +925,7 @@
         |~~ A reducer written before the seed is read as the seed, and
             the seed as the reducer.
         ~~|
-        ~({:rent 900} | reduce ~(add) 0
-          !| get [tag (reducer | found | tag)]
+        ~({:rent 900} | reduce ~(add) 0 !| get [tag (reducer | found | tag)]
           |  eq [::map/reduce/ReducerKindNotTakenError ::number])
     | proves :runsCodeOnThePair
         |~~ Code of more than one word runs on the pair of the value so
@@ -962,7 +997,8 @@
         ~({:cake 6 :tea 4 :jam 3} | sort | vals | eq [3 4 6])
     | proves :ordersByTheKey
         |~~ The key ranks each value, and each value keeps its key. ~~|
-        ~({:ann {:age 30} :bob {:age 25}} | sort /age | entries | map /0 | eq [:bob :ann])
+        ~({:ann {:age 30} :bob {:age 25}} | sort /age | entries | map /0
+          | eq [:bob :ann])
     | proves :descendsUnderDesc
         |~~ A key under `desc` descends. ~~|
         ~({:tea 4 :cake 6} | sort desc | vals | eq [6 4])
@@ -1004,17 +1040,22 @@
         ~({} | sum | eq 0)
     | proves :sumsAFieldReadFirst
         |~~ A field of each value is read by `map` before the sum. ~~|
-        ~({:rent {:amount 900} :food {:amount 300}} | map /amount | sum | eq 1200)
+        ~({:rent {:amount 900} :food {:amount 300}} | map /amount | sum
+          | eq 1200)
     | proves :ElementKindNotTakenError/refusesAString
         |~~ A string among the values is refused under its key. ~~|
-        ~({:rent 900 :food "300"} | sum !| get [tag (subject | found | get /food | tag) (trace | last | path) (subject | expected)]
+        ~({:rent 900 :food "300"}
+          | sum !| get [tag (subject | found | get /food | tag) (trace | last
+          | path) (subject | expected)]
           |  eq [::map/sum/ElementKindNotTakenError ::string /food #[::number]])
     | proves :ElementKindNotTakenError/refusesANull
         |~~ A null value is no number either. ~~|
-        ~({:rent null} | sum !| get [tag (trace | last | path)] | eq [::map/sum/ElementKindNotTakenError /rent])
+        ~({:rent null} | sum !| get [tag (trace | last | path)]
+          | eq [::map/sum/ElementKindNotTakenError /rent])
     | proves :ArgsBeyondInputsError/refusesAField
         |~~ A field given to `sum` is refused; `map` reads it first. ~~|
-        ~({:rent {:amount 900}} | sum /amount !| tag | eq ::map/sum/ArgsBeyondInputsError)
+        ~({:rent {:amount 900}} | sum /amount !| tag
+          | eq ::map/sum/ArgsBeyondInputsError)
     | impl ::builtin{};
 
 :map/take
@@ -1096,7 +1137,8 @@
         ::map
     | proves :letsTheOtherWin
         |~~ The other map's value wins a key both hold. ~~|
-        ~({:theme :dark :font 12} | union {:font 14 :lang :en} | eq {:theme :dark :font 14 :lang :en})
+        ~({:theme :dark :font 12} | union {:font 14 :lang :en}
+          | eq {:theme :dark :font 14 :lang :en})
     | proves :mergesTwoMaps
         |~~ The entries of both are merged. ~~|
         ~({:theme :dark} | union {:lang :en} | eq {:theme :dark :lang :en})
@@ -1104,13 +1146,16 @@
         |~~ A key both hold takes the other's value whole, not merged
             deeper.
         ~~|
-        ~({:font {:size 12}} | union {:font {:face "Mono"}} | eq {:font {:face "Mono"}})
+        ~({:font {:size 12}} | union {:font {:face "Mono"}}
+          | eq {:font {:face "Mono"}})
     | proves :answersUnderTheTagOfTheSubject
         |~~ A map under a tag answers under the tag. ~~|
-        ~(::Settings{:theme :dark} | union {:lang :en} | eq ::Settings{:theme :dark :lang :en})
+        ~(::Settings{:theme :dark} | union {:lang :en}
+          | eq ::Settings{:theme :dark :lang :en})
     | proves :OtherKindNotTakenError/refusesASetOfKeys
         |~~ A set of keys unites with no map. ~~|
-        ~({:theme :dark} | union #[:lang] !| tag | eq ::map/union/OtherKindNotTakenError)
+        ~({:theme :dark} | union #[:lang] !| tag
+          | eq ::map/union/OtherKindNotTakenError)
     | impl ::builtin{};
 
 :map/vals
@@ -1136,6 +1181,7 @@
         ~({} | vals | eq [])
     | proves :SubjectNotMapError/refusesAVector
         |~~ A vector has no values by key. ~~|
-        ~([1 2] | vals !| get [tag (subject | found | tag)] | eq [::map/vals/SubjectNotMapError ::vec])
+        ~([1 2] | vals !| get [tag (subject | found | tag)]
+          | eq [::map/vals/SubjectNotMapError ::vec])
     | impl ::builtin{};
 

@@ -11,14 +11,16 @@
       reads at the call what the host keeps under it. A host of the streams
       keeps so an answer past the budget of every answer and a fact of a
       failure past the room of a fact, which the alert names instead of them,
-      `:answer ::cell"…"`, under the identity of the query and what it keeps,
-      so one value of one query is one cell, and `::cell"a3f9c2d1e04b" | answer | take 3` reads the
-      first three elements of the whole. A host that keeps no cell names
+      `:answer ::cell"…"`, under the identity of the query and what it keeps.
+      So one value of one query is one cell, and
+      `::cell"a3f9c2d1e04b" | answer | take 3` reads the first three
+      elements of the whole. A host that keeps no cell names
       none, and its `answer` refuses a cell it does not hold.
       ::link~(::qlang/AnswerBeyondBudgetError) ::link~(::qlang/hosts)
   ~~|
   ::kind
-    | accepts |~~ The identity of the cell, letters, digits and hyphens. ~~| ::string
+    | accepts |~~ The identity of the cell, letters, digits and hyphens. ~~|
+        ::string
     | throws :PayloadKindNotTakenError
         |~~ A cell is named by its identity, a string,
             `::cell"a3f9c2d1e04b"`.

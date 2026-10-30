@@ -42,7 +42,9 @@
         ~(::excerpt[1] !| tag | eq ::excerpt/PayloadKindNotTakenError)
     | proves :readsBackAsItself
         |~~ An excerpt prints and reads back as itself. ~~|
-        ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer))
+        ~(::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410}
+          | eq (print | parse | answer))
     | proves :readsAViewByItsKey
         |~~ A view stands under the name of its fact and its own. ~~|
-        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count | eq 3410);
+        ~(::excerpt{:addend/found/count 3410} | get /:addend/found/count
+          | eq 3410);

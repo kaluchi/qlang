@@ -38,13 +38,15 @@
         ~(5 | tag | doc | tag | eq ::doc)
     | proves :namesNothingUndeclared
         |~~ A tag no declaration answers names no record. ~~|
-        ~(::Unbound[1] | tag | binding !| tag | eq ::any/binding/UnknownNameError)
+        ~(::Unbound[1] | tag | binding !| tag
+          | eq ::any/binding/UnknownNameError)
     | proves :readsATagNameAsItself
         |~~ `::tag` over a tag name is that name. ~~|
         ~(::tag::Box | eq ::Box)
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [(tag) (found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword]);
+        ~(::tag:k !| get [(tag) (found | tag)]
+          | eq [::tag/PayloadKindNotTakenError ::keyword]);
 
 :tag/toKeyword
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`

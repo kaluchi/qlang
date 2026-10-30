@@ -89,9 +89,8 @@
       `{:"1" #[1] :"2" #[2]}`, a boolean or null under the keyword of its
       literal and a tag name under that of its name, and two values whose
       text is one meet and are refused; a key of another kind is refused
-      at its element. The key is code, a quote run on each element, or
-      null: `groupBy /dept`, where `groupBy (get /dept)` is refused under the
-      input.
+      at its element. The key is code run on each element, written bare
+      or a path, `groupBy /dept`, or null.
       ::link~(::vec/groupBy) ::link~(::vec/indexBy)
   ~~|
   ::fn

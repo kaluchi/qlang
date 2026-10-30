@@ -152,18 +152,18 @@ step's frame naming the element on either road [QSERR#trace].
 
 `reduce` folds a vector, a set or a map's values from a seed by code of
 any form, the seed first and the code after it, a call with one arg
-refused as `::vec/reduce/ReducerNotGivenError` and code computed at the
-call as `::vec/reduce/ReducerKindNotTakenError`. The fold reads the
-steps of its code: a quote of one step that is a call with no modifiers,
-by the name of a verb or its address, `~(add)` or `~(number/add)`,
-written or assembled from data alike, is the short form, which calls the
+refused as `::vec/reduce/ReducerNotGivenError` and a value given for the
+code as `::vec/reduce/ReducerKindNotTakenError`. The fold reads the
+steps of its code: code of one step that is a call with no modifiers,
+a verb by its name or its address, `add` or `number/add`, written or
+assembled from data alike, is the short form, which calls the
 verb as the pipe calls it, the value so far its subject and the element
-its first arg, and a value the step that wrote the quote names under the
+its first arg, and a value the step that wrote the code names under the
 name of the verb stands over the verb, so the call that hands it the
 element is refused as a value given modifiers,
 `::call/ValueTakesNoModifiersError` [QSNAM#value].
 Any other code runs on the pair of the value so far and the element, a
-path, a call with modifiers, a quote of more steps and a name that
+path, a call with modifiers, code of more steps and a name that
 reaches no verb among it. A failure the one word answers passes a frame
 at its step, the value so far the subject that frame holds, and the step
 of `reduce` names the path of the element [QSERR#trace].
@@ -220,7 +220,7 @@ under the tags the values it combines share, a later value of a map's
 difference or common part naming keys and sharing none, each laid
 through its kind, and refuses at each value its kind, its pair and then
 its tags. `unionOf` unites the maps or the sets its call computes, each a
-map, a set, or a path or a quote that reads one against the subject, one
+map, a set, or a path or code that reads one against the subject, one
 part at least, `::any/unionOf/PartsEmptyError` refusing none, under the
 tags they share; one part answers itself, a part of another kind is
 refused at its index, `::any/unionOf/PartsElementKindNotTakenError` where

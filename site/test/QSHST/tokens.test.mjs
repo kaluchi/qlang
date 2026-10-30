@@ -94,7 +94,7 @@ describe('multi-line blocks', () => {
 });
 
 it('paints the example of the landing page without a throw', () => {
-  const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2';
+  const src = '|~| Vec → filter → count\n> [1 2 3 4 5] | filter (gt 3) | count\n2';
   expect(() => fmt(src)).not.toThrow();
   const out = fmt(src);
   expect(out).toContain('class="comment"');

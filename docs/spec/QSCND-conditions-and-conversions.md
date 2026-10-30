@@ -89,11 +89,11 @@ true
 ## branch
 
 `if` takes its `:condition` as a value, computed at the call, and its
-two branches, `:then` and `:else`, as quotes or paths, running one of
-them on the subject; an identity branch, `~()`, leaves the subject. A
+two branches, `:then` and `:else`, as code or paths, running one of
+them on the subject; a branch of `it` leaves the subject. A
 condition or a branch the call leaves out is refused,
 `::any/if/ElseNotGivenError`, and a branch of another kind,
-`::any/if/ThenKindNotTakenError`. `cond` takes its clauses as quotes or
+`::any/if/ThenKindNotTakenError`. `cond` takes its clauses as code or
 paths, pairs of a predicate and a branch run in order, an odd last
 clause the default, null where none matches and no default stands: a
 predicate that answers no boolean is refused as

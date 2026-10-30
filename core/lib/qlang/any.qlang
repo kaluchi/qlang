@@ -84,24 +84,23 @@
     | proves :failsWhenOneFails
         |~~ A minor fails the second. ~~|
         ~({:active true :age 15} | allOf (get /active) (get /age | gte 18) | not)
-    | proves :runsAQuoteInItsTurn
-        |~~ A quote runs once the conditions before it held. ~~|
+    | proves :runsCodeInItsTurn
+        |~~ Code runs once the conditions before it held. ~~|
         ~([{:email null} {:email "a@b.org"}]
           | map (allOf (get /email | ne null) (get /email | endsWith ".org"))
           | eq [false true])
-    | proves :answersTheFailureOfAQuote
-        |~~ A quote that fails answers its error. ~~|
+    | proves :answersTheFailureOfItsCode
+        |~~ Code that fails answers its error. ~~|
         ~({:active true} | allOf (get /verified | eq true) !| get [tag key] | eq [::path/KeyNotInMapError :verified])
     | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:active true} | allOf (query /verified | eq true) | not)
-    | proves :ConditionsAnswerKindNotTakenError/refusesAQuoteThatAnswersAString
-        |~~ A quote that answers a string is refused at its index. ~~|
+    | proves :ConditionsAnswerKindNotTakenError/refusesAPathThatAnswersAString
+        |~~ A path that answers a string is refused at its index. ~~|
         ~({:email "a@b.org"} | allOf true /email !| get [tag (conditions | index) (conditions | answer | tag) (conditions | expected)]
           |  eq [::any/allOf/ConditionsAnswerKindNotTakenError 1 ::string #[::boolean]])
-    | proves :ConditionsAnswerKindNotTakenError/holdsAQuoteThatCompares
-        |~~ A quote that compares the field it reads answers a condition.
-        ~~|
+    | proves :ConditionsAnswerKindNotTakenError/holdsCodeThatCompares
+        |~~ Code that compares the field it reads answers a condition. ~~|
         ~({:email "a@b.org"} | allOf true (get /email | ne null))
     | proves :ConditionsEmptyError/refusesNoCondition
         |~~ A call with no condition is refused under the input. ~~|
@@ -150,24 +149,23 @@
     | proves :failsWhenNoneHolds
         |~~ A low score without the flag fails. ~~|
         ~({:vip false :score 50} | anyOf (get /vip) (get /score | gt 95) | not)
-    | proves :runsAQuoteInItsTurn
-        |~~ A flagged record passes without the field the quote reads. ~~|
+    | proves :runsCodeInItsTurn
+        |~~ A flagged record passes without the field the code reads. ~~|
         ~([{:vip true} {:vip false :score 99}]
           | map (anyOf (get /vip) (get /score | gt 95))
           | eq [true true])
-    | proves :answersTheFailureOfAQuote
-        |~~ A quote that fails answers its error. ~~|
+    | proves :answersTheFailureOfItsCode
+        |~~ Code that fails answers its error. ~~|
         ~({:vip false} | anyOf (get /vip) (get /score | gt 95) !| get [tag key] | eq [::path/KeyNotInMapError :score])
     | proves :ConditionsElementKindNotTakenError/readsAMissingFieldSoftly
         |~~ A field the record may lack is read softly. ~~|
         ~({:score 99} | anyOf (query /vip | eq true) (get /score | gt 95))
-    | proves :ConditionsAnswerKindNotTakenError/refusesAQuoteThatAnswersANumber
-        |~~ A quote that answers a number is refused at its index. ~~|
+    | proves :ConditionsAnswerKindNotTakenError/refusesAPathThatAnswersANumber
+        |~~ A path that answers a number is refused at its index. ~~|
         ~({:score 99} | anyOf false /score !| get [tag (conditions | index) (conditions | answer | tag) (conditions | expected)]
           |  eq [::any/anyOf/ConditionsAnswerKindNotTakenError 1 ::number #[::boolean]])
-    | proves :ConditionsAnswerKindNotTakenError/holdsAQuoteThatCompares
-        |~~ A quote that compares the field it reads answers a condition.
-        ~~|
+    | proves :ConditionsAnswerKindNotTakenError/holdsCodeThatCompares
+        |~~ Code that compares the field it reads answers a condition. ~~|
         ~({:score 99} | anyOf false (get /score | gt 95))
     | proves :ConditionsEmptyError/refusesNoCondition
         |~~ A call with no condition is refused under the input. ~~|
@@ -252,8 +250,8 @@
             under the verb.
         ~~|
         ~(5 | apply (add 1) [] [] !| tag | eq ::any/apply/ArgsBeyondInputsError)
-    | proves :ArgsNotTakenError/refusesTheArgsOfAQuote
-        |~~ A second quote is no arg of the first. ~~|
+    | proves :ArgsNotTakenError/refusesTheArgsOfCode
+        |~~ Code takes no args. ~~|
         ~(5 | apply (add 1) ~(mul 2) !| tag | eq ::any/apply/ArgsNotTakenError)
     | proves :ArgsKindNotTakenError/refusesANumber
         |~~ A number is no vector of args. ~~|
@@ -430,9 +428,8 @@
             call.
         ~~|
         ~({:items [{:price 1} {:cost 2}]} | coalesce (get /items | map /price) [] !| tag | eq ::path/KeyNotInMapError)
-    | proves :readsTheSubjectFirstByAQuote
-        |~~ A quote of `it` stands the subject first among several values.
-        ~~|
+    | proves :readsTheSubjectFirstByIt
+        |~~ `it` stands the subject first among several values. ~~|
         ~(9000 | coalesce it 7000 8080 | eq 9000)
     | proves :fallsToTheLast
         |~~ The last alternative answers when the rest give nothing. ~~|
@@ -465,21 +462,21 @@
 
 :any/cond
   |~~ Answers the branch of the first predicate that holds of the subject,
-      the clauses alternating predicate and branch, each a quote run
+      the clauses alternating predicate and branch, each code run
       against the subject in its turn:
       `85 | cond (gte 90) ("A") (gte 80) ("B") ("F")` answers `"B"`,
       so a chain of nested `if` flattens into one call. A clause left over
       after the pairs is the default branch; without one, a walk that
       matches nothing answers null. Each predicate answers a boolean, and
       one that answers another kind is refused at its index. Unlike the
-      condition of `if`, a predicate is code, a quote, and one computed at
-      the call, `(gte 90)`, is refused at its index. The call takes one
-      pair at least.
+      condition of `if`, a predicate is code, written bare or a path, and a
+      value given there is refused at its index. The call takes one pair
+      at least.
       ::link~(::any/if) ::link~(::any/coalesce)
   ~~|
   ::fn
     | takes :clauses
-        |~~ The clauses, each a quote: predicates and their branches in
+        |~~ The clauses, each code: predicates and their branches in
             turn, a last one alone the default.
         ~~|
         ~(it) [#[::path ::quote]]
@@ -941,7 +938,7 @@
         |~~ Two fields of one record are read in one step. ~~|
         ~({:price 4 :qty 3} | get [/price /qty] | eq [4 3])
     | proves :buildsTheShapeOfItsTemplate
-        |~~ A template of paths and quotes builds the answer in its shape. ~~|
+        |~~ A template of paths and code builds the answer in its shape. ~~|
         ~({:first "Ann" :tags [:new :vip]} | get {:who /first :count (get /tags | count)} | eq {:who "Ann" :count 2})
     | proves :readsUnderATagOfTheTemplate
         |~~ A vector under a tag in a template is read and laid back under
@@ -1080,10 +1077,10 @@
       call, `if (get /age | gte 18)`; a branch is code written bare, so
       only the chosen branch runs, `it` leaving the subject as it is, and
       the else branch takes the modifiers past the inputs,
-      `if (gt 0) (add 100) sub 1`. So the condition is no quote, `if ~(gt 0)` being
-      refused, and null and a number are refused too, having no second
-      reading; a field the record lacks answers its error, which
-      `query /flag | eq true` asks around. Under `map` the subject is
+      `if (gt 0) (add 100) sub 1`. A condition of another kind is refused,
+      null and a number among it, having no second reading; a field the
+      record lacks answers its error, which `query /flag | eq true` asks
+      around. Under `map` the subject is
       each element, `map (if (gt 0) it (0))`. The call takes the
       condition and both branches, and a chain of conditions is `cond`.
       ::link~(::any/cond) ::link~(::any/coalesce)
@@ -1096,8 +1093,7 @@
         /0 ::boolean
     | throws :ConditionKindNotTakenError
         |~~ The condition is a boolean computed at the call, `if (gt 0)`:
-            a quote, `~(gt 0)`, is code and no boolean, and null or a
-            number has no second reading.
+            null or a number has no second reading.
         ~~|
     | takes :then
         |~~ The branch run when the condition holds, code. ~~|
@@ -1115,7 +1111,7 @@
         ~~|
     | throws :ElseNotGivenError
         |~~ `if` takes both branches: a branch that leaves the subject as
-            it is is the empty quote, `if (gt 0) (add 1) it`.
+            it is is `it`, `if (gt 0) (add 1) it`.
         ~~|
     | returns |~~ The answer of the branch the condition chose. ~~| ::any
     | throws :ArgsBeyondInputsError
@@ -1138,8 +1134,8 @@
     | proves :runsOnlyTheChosenBranch
         |~~ The branch not chosen does not run. ~~|
         ~(5 | if true (1) (add "x") | eq 1)
-    | proves :leavesTheSubjectByAnEmptyBranch
-        |~~ The empty quote leaves the subject as it is. ~~|
+    | proves :leavesTheSubjectByIt
+        |~~ `it` leaves the subject as it is. ~~|
         ~(-5 | if (gt 0) (add 100) it | eq -5)
     | proves :answersTheErrorOfAMissingField
         |~~ A condition that reads a field the record lacks answers its
@@ -1152,11 +1148,6 @@
     | proves :choosesForEachElement
         |~~ Under `map` the subject is each element. ~~|
         ~([1 -2 3] | map (if (gt 0) it (0)) | eq [1 0 3])
-    | proves :ConditionKindNotTakenError/refusesAQuote
-        |~~ A condition given as a quote is code and no boolean. ~~|
-        ~(5 | if ~(gt 0) (1) (2)
-          !| get [tag (condition | found | tag)]
-          |  eq [::any/if/ConditionKindNotTakenError ::quote])
     | proves :ConditionKindNotTakenError/refusesNull
         |~~ A null condition is refused. ~~|
         ~({:flag null} | if (get /flag) (1) (2)
@@ -2142,7 +2133,7 @@
       failure as `!|` hands it, so one round trip brings every answer it
       can, the failure of one beside the answers of the others:
       `{:users [{:age 30} {:age null}]} | settle [(get /users/0/age | add 1) (get /users/1/age | add 1)] | map /ok`
-      answers `[true false]`. A question is a quote, a path or any part of
+      answers `[true false]`. A question is code, a path or any part of
       a template, read as `get` reads that part, and the questions a
       vector, a set or a map, `settle {:count (get /users | count) :first /users/0}`
       answering a map of outcomes; `map /value` and `map /error` take a
@@ -2152,7 +2143,7 @@
   ~~|
   ::fn
     | takes :questions
-        |~~ The questions, a vector or a map of quotes, paths and parts of a
+        |~~ The questions, a vector or a map of code, paths and parts of a
             template, each asked of the subject.
         ~~|
         /0 #[::map ::vec]
@@ -2666,7 +2657,7 @@
   ::fn
     | takes :parts
         |~~ The maps or the sets, one at least, each a map, a set, or a path
-            or a quote that reads one from the subject.
+            or code that reads one from the subject.
         ~~|
         ~(it) [#[::map ::set ::path ::quote]]
     | holds :PartsEmptyError
@@ -2675,12 +2666,12 @@
         ~~|
         ~(parts | count | gt 0)
     | throws :PartsElementKindNotTakenError
-        |~~ Each of the parts is a map, a set, or a path or a quote that reads
+        |~~ Each of the parts is a map, a set, or a path or code that reads
             one: two numbers add by `sumOf`, `sumOf /a /b`.
         ~~|
     | returns |~~ The parts united, under the tags they share. ~~| ::any
     | throws :PartsAnswerKindNotTakenError
-        |~~ A path or a quote among the parts reads a map or a set from the
+        |~~ A path or code among the parts reads a map or a set from the
             subject; `:index` names, from zero, the part that read another
             kind, and a field that holds one value joins a map by `get`,
             `unionOf /1 (get {:name (get /0 | toString)})`.
@@ -2749,7 +2740,7 @@
         |~~ A key alone is refused. ~~|
         ~({:visits 1} | update :visits (add 1) !| tag | eq ::any/update/PathKindNotTakenError)
     | proves :CodeKindNotTakenError/refusesANumber
-        |~~ Code that is no quote and no path is refused. ~~|
+        |~~ A number given for the code is refused. ~~|
         ~({:visits 1} | update /visits 5 !| tag | eq ::any/update/CodeKindNotTakenError)
     | proves :runsTheCodeOnThePart
         |~~ The part at the path is laid anew by what the code answers. ~~|
@@ -2769,18 +2760,18 @@
 
 :any/with
   |~~ Answers its body, a template as `get` takes it, with the parts of the
-      subject its names read named in each quote of the body:
+      subject its names read named in the code of the body:
       `{:id 7 :user {:name "Ann"}} | with [/id /user/name] (name | append (id | toString))`
       answers `"Ann7"`. The names are a vector of paths, each part named by
       the last key of its path, or a map of names and their selectors,
-      each a path or a quote,
+      each a path or code,
       `[::Box 5] | with {:kind first :weight last} [kind weight (weight | tag kind)]`
       answering `[::Box 5 ::Box#5]`, and a map among the paths names the
       parts it maps, `with [/id {:user /user/name :group /group/name}] …`. Each
       selector is read against the subject apart from the others, a path as
-      `get` reads it and a quote run on the subject, so no selector sees the
-      name of another, and each quote of the body runs on the subject as
-      the quotes of a template of `get` run, the names beside the names of
+      `get` reads it and code run on the subject, so no selector sees the
+      name of another, and the code of the body runs on the subject as
+      the code of a template of `get` runs, the names beside the names of
       its step; no name leaves the call. A key of the subject no name names
       is read by its path, and a name stands over a verb of its name in the
       body, the verb called by its address there,
@@ -2797,16 +2788,16 @@
     | throws :NamesKindNotTakenError
         |~~ The names are a vector of paths and maps,
             `with [/id /user/name] …`, or a map of names and the paths and
-            quotes they read, `with {:kind /0 :size ~count} …`.
+            code they read, `with {:kind /0 :size count} …`.
         ~~|
     | throws :NamesElementKindNotTakenError
         |~~ Each element of the names is a path, which names its part by its
-            last key, or a map of names and their selectors; a quote alone
-            names no part, and a map gives it a name, `[{:kind ~first}]`.
+            last key, or a map of names and their selectors; code alone
+            names no part, and a map gives it a name, `[{:kind first}]`.
         ~~|
     | throws :NamesSelectorKindNotTakenError
-        |~~ A name reads its part by a path or a quote,
-            `{:kind /0 :size ~count}`; a value of the data reads no part, so
+        |~~ A name reads its part by a path or code,
+            `{:kind /0 :size count}`; a value of the data reads no part, so
             a map of the data names no parts, and its keys are named by
             their paths, `[/price /qty]`.
         ~~|
@@ -2826,27 +2817,27 @@
         ~~|
         ~(wires :name |~~ The name asked for, a keyword or a tag. ~~| #[::keyword ::tag])
     | takes :body
-        |~~ The template answered, as `get` takes it: a quote, a path, or a
+        |~~ The template answered, as `get` takes it: code, a path, or a
             vector, a map or a set of them.
         ~~|
         /1 #[::keyword ::map ::number ::path ::string ::tagged ::vec]
     | throws :BodyKindNotTakenError
-        |~~ The body is a template as `get` takes it, a quote, a path or a
+        |~~ The body is a template as `get` takes it, code, a path or a
             shape of them, `with [/qty] (qty | add 1)`.
         ~~|
     | proves :namesAPartByTheLastKeyOfItsPath
         |~~ A path names its part by its last key. ~~|
         ~({:id 7 :user {:name "Ann"}} | with [/id /user/name] (name | append (id | toString)) | eq "Ann7")
     | proves :namesThePartsAMapReadsForEachBranch
-        |~~ A map names the parts its paths and quotes read, in every
+        |~~ A map names the parts its paths and code read, in every
             branch of the body.
         ~~|
         ~([::Box 5] | with {:kind first :weight last} [kind weight (weight | tag kind)] | eq [::Box 5 ::Box#5])
     | proves :namesByAMapAmongThePaths
         |~~ A map among the paths names the parts it maps. ~~|
         ~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] (who | append (id | toString)) | eq "Ann7")
-    | proves :readsAPathStrictlyAndAQuoteAsItIsWritten
-        |~~ A path reads its part as `get` reads it, and a quote as it is
+    | proves :readsAPathStrictlyAndCodeAsItIsWritten
+        |~~ A path reads its part as `get` reads it, and code as it is
             written.
         ~~|
         ~({:id 7} | get [(with {:kind /type} kind !| tag) (with {:kind (query /type "none")} kind)] | eq [::path/KeyNotInMapError "none"])
@@ -2869,8 +2860,8 @@
     | proves :NamesKindNotTakenError/refusesAPath
         |~~ A path alone is no names. ~~|
         ~({:qty 1} | with /qty qty !| tag | eq ::any/with/NamesKindNotTakenError)
-    | proves :NamesElementKindNotTakenError/refusesAQuoteAlone
-        |~~ A quote alone among the names is refused at its index. ~~|
+    | proves :NamesElementKindNotTakenError/refusesCodeAlone
+        |~~ Code alone among the names is refused at its index. ~~|
         ~([::Box 5] | with [{:kind /0} last] kind !| get [tag (names | index)] | eq [::any/with/NamesElementKindNotTakenError 1])
     | proves :NamesKeyNotNameError/refusesAnIndex
         |~~ A path that ends in an index names no part. ~~|

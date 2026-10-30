@@ -10,7 +10,7 @@
 {"name":"get-reads-a-set-a-value-under-a-tag-and-a-quote-as-templates","query":"{:a 1} | get [(get #[/a]) (get ::Box[/a]) (get (get /a)) (get !{:x /a})]","expect":"[#[1] ::Box[1] 1 !{:x 1}]"}
 {"name":"a-key-a-modifier-failed-to-compute-answers-its-failure","query":"{} | get (get /k) !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy (gt 1) | get [(at true !| tag) (at :true)]","expect":"[::map/at/KeyKindNotTakenError [2 3]]"}
-{"name":"get-and-query-read-a-key-beneath-its-tags-and-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [(get ::K:a) (query ::K:b 7) (has ::K:a) (get ::T#/a)]","expect":"[1 7 true ::T#1]"}
+{"name":"at-reads-a-key-beneath-its-tags-and-get-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [(at ::K:a) (has ::K:a) (get ::T#/a)]","expect":"[1 true ::T#1]"}
 {"name":"a-program-given-to-get-answers-the-key-it-computes","query":"{:k \"a\" :a 5} | get (get /k)","expect":"\"a\""}
 {"name":"put-refuses-a-key-alone-naming-its-path","query":"{:a 1} | put :a 2 !| tag","expect":"::any/put/PathKindNotTakenError"}
 {"name":"at-reads-a-vector-by-its-index","query":"[10 20] | at -1","expect":"20"}

@@ -139,7 +139,7 @@ on, while `coalesce` reads the miss of a read in an alternative as null,
 as `query` reads it [QSCND#coalesce]. `!|` passes a value by. A value written after `!|` is the recovery
 the catch answers, and the facts of the error are read from it by their
 names, of an error under `::error` alone by `get`, the parser refusing there a path, a quote and a literal that holds
-either [QSSYN#step], so a quote the recovery answers is computed by a
+a path [QSSYN#step], so a quote the recovery answers is computed by a
 group, `!| (~(…))`. A pipe written before `!|`, `a | !| b`, stands for the
 combinator after it. The error at rest a catch holds is laid under the
 tag of its site through the tag's label, as `raise` laid it, none where
@@ -211,7 +211,7 @@ wiring the root hands it [QSHST#source].
 
 A step whose answer is a failure its subject was not passes a frame: a
 step that fails, `raise`, and a step that answers a failure from inside
-it, the call of a verb, a group, a verb running a quote and the one word
+it, the call of a verb, a group, a verb running code and the one word
 of a fold [QSCOL#reduce], while a modifier of a step, a raise written
 there among it, and a part of a literal, which is one step, answer within
 the frame of that step, and no step the reader did not write joins it.
@@ -329,7 +329,7 @@ failure answers the verb, the elements after it left unrun: `map`,
 `filter`, `every`, `any`, `reduce`, the branches of `if`, and the keys of
 `sort`, `groupBy` and `indexBy`, while code that recovers inside keeps
 every element. A literal whose part fails answers that failure, and so
-does a template of `get` whose quote answers one, the first in the order
+does a template of `get` whose code answers one, the first in the order
 the literal holds its parts, a set in its one order and a map with the
 last value of each key, a value a later entry of its key replaces
 running nowhere; the body of a declaration that fails fails its text,

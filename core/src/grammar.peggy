@@ -360,7 +360,7 @@ SpacingRefusal
     / __ &(Combinator NonSpace) c:Combinator { refuseCombinatorSpacing(c); }
     / &(!"/" Word) Word { error('words are set off by whitespace; only a first modifier that opens with a parenthesis may touch the name of its command, `f(a) (b)`'); }
     / _ &"," "," { error('modifiers are separated by spaces, not by commas: `f a b`', lastOf(1)); }
-    / _ &";" ";" { error('`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [~(…) ~(…)]`', lastOf(1)); }
+    / _ &";" ";" { error('`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [(…) (…)]`', lastOf(1)); }
     / _h1 &Word { error('steps are joined by `|`: write `a | b`', after()); }
     / __ &Word { error('steps are joined by `|`, at the end of a line or at the start of the next: a line break is a space', after()); }
     )

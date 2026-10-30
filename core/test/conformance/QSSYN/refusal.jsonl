@@ -9,9 +9,9 @@
 {"name":"a-colon-alone-lists-a-quote-and-a-name-as-its-continuations","query":":","raises":"::quote/ParseError!{\n  :source \":\"\n  :marker \" ^\"\n  :expected [\"\\\"\" :name]\n  :location ::span[1 1 2 1 1 2]\n}"}
 {"name":"an-escape-a-string-does-not-know-lists-the-escapes-it-knows","query":"\"\\q\"","raises":"::quote/ParseError!{\n  :source \"\\\"\\\\q\\\"\"\n  :marker \"    ^  \"\n  :expected [\"\\\"\" \"\\\\\" \"/\" \"n\" \"t\" \"r\" \"b\" \"f\" \"u\"]\n  :found \"q\"\n  :location ::span[2 1 3 3 1 4]\n}"}
 {"name":"a-unicode-escape-cut-short-lists-a-hexadecimal-digit","query":"\"\\u12\"","raises":"::quote/ParseError!{\n  :source \"\\\"\\\\u12\\\"\"\n  :marker \"       ^~\"\n  :expected [:\"hexadecimal digit\"]\n  :found \"\\\"\"\n  :location ::span[5 1 6 6 1 7]\n}"}
-{"name":"a-parse-error-names-no-opener-of-a-comment-among-its-continuations","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| expected | any (eq \"|~~|\")","expect":"false"}
-{"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| expected","expect":"[\")\"]"}
-{"name":"an-unclosed-bracket-names-where-it-opened","query":"\"[1 2 3] | filter ~(gt 1\" | parse !| message | contains \"line 1, column 18\"","expect":"true"}
+{"name":"a-parse-error-names-no-opener-of-a-comment-among-its-continuations","query":"\"[1 2 3] | eq ~(gt 1\" | parse !| expected | any (eq \"|~~|\")","expect":"false"}
+{"name":"an-unclosed-quote-names-its-closer","query":"\"[1 2 3] | eq ~(gt 1\" | parse !| expected","expect":"[\")\"]"}
+{"name":"an-unclosed-bracket-names-where-it-opened","query":"\"[1 2 3] | eq ~(gt 1\" | parse !| message | contains \"line 1, column 14\"","expect":"true"}
 {"name":"an-unclosed-map-names-its-closer","query":"\"{:a 1\" | parse !| expected","expect":"[\"}\"]"}
 {"name":"a-flush-combinator-is-no-continuation","query":"\"(1 | add(2\" | parse !| expected","expect":"[\")\"]"}
 {"name":"a-source-no-short-run-of-closers-completes-lists-the-continuations","query":"\"[[[[[ |~~ a\" | parse !| expected | has :\"character of prose\"","expect":"true"}

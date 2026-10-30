@@ -6,7 +6,7 @@
   |~~ A group, `(…)`, runs a pipeline as one word: its steps run on the
       value in the pipe, it answers what its last step answers, and the
       names it declares stay inside. A modifier of more than one word
-      stands in one, `take (count | sub 1)`, and the quotes of a template
+      stands in one, `take (count | sub 1)`, and the groups of a template
       `get` runs are forks of their own, `5 | get [(add 1) (mul 2)]`
       answering `[6 10]`.
 

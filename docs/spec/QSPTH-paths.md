@@ -444,7 +444,7 @@ vector, set or map a leaf of its kind and a set read as its vector, and
 
 `put` lays a value at a path, adding a key the last map lacks and
 replacing a key it holds or the element at an index a vector holds;
-`update` lays anew the part at a path by what its code, a quote or a
+`update` lays anew the part at a path by what its code, written bare or a
 path, answers for it, an error the code answers being the answer;
 `delete` takes the part out, the elements after it moving up. Each
 follows the path as `get` does, a key or an index missing on the way

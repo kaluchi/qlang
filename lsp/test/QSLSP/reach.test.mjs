@@ -156,7 +156,7 @@ describe('the hover', () => {
     const { root } = parseDocument(src, 'test.qlang');
     const { content } = await hoverAtOffset(root, src, src.indexOf('::tagged') + 2);
     expect(content).toContain('\\:\\:snippet\\~\\(\\:\\:tagged \\| manifest\\) lists its verbs\\.');
-    expect(content).toContain('`within ~(…)` edits the payload under the tag');
+    expect(content).toContain('`within (…)` edits the payload under the tag');
     expect(content).toContain('`::Box[1 2]`\\, `::Box{:width 2}`');
   });
 

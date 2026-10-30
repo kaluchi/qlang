@@ -53,7 +53,7 @@ export const RETIRED_WORDS = [
   { regex: /\bpaths?[\s-]+of[\s-]+anchors\b/i, written: 'anchors read in turn, a vector of anchors', by: 'D357' },
   { regex: /\b[Tt]rails?\b|(?<=[a-z])Trails?(?=[A-Z]|\b)|\bTRAILS?(?=_)|_TRAILS?\b/, written: 'the trace a failure leaves, the fact `:trace`, the kind `::trace`, the verb `trace` and the module `eval-trace`', by: 'D359' },
   { regex: /TrailNotFramesError/, written: 'the refusals of the kind of a trace, `::trace/PayloadKindNotTakenError` and `::trace/ElementKindNotTakenError`', by: 'D359' },
-  { regex: /::frame\/step\b/, written: 'the step that failed, `::frame/failed`, read by `map ~failed`', by: 'D359' },
+  { regex: /::frame\/step\b/, written: 'the step that failed, `::frame/failed`, read by `map failed`', by: 'D359' },
   { regex: /\bbrokeAt\b/, written: 'the step that failed, failed on or at, `failedAt`', by: 'D359' },
   { regex: /\bframeBelow\b/, written: 'the evaluation depth, one deeper than a call and its limit, `depthBelow`', by: 'D359' },
   { regex: /(?:NameNotName|TextNotName)Error\b/, written: 'the refusal of `toTag` by the part of its subject and the kind it does not become, `::keyword/toTag/NameNotTagError` and `::string/toTag/TextNotTagError`', by: 'D360' },

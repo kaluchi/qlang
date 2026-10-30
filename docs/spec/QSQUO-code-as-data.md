@@ -26,7 +26,7 @@ true
 > {:body ~(mul 2)} | get /body | toString
 "mul 2"
 
-> 5 | apply it
+> :same ~(); 5 | apply same
 5
 ```
 

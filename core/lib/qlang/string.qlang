@@ -727,7 +727,7 @@
         ~~|
     | takes :with
         |~~ What replaces each match: a string, a keyword written as its
-            name, or code that answers one from the match, a quote or a
+            name, or code that answers one from the match, written bare or a
             path.
         ~~|
         /1 #[::keyword ::path ::quote ::string]

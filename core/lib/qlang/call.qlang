@@ -55,8 +55,8 @@
     | throws :LiteralComputesError
         |~~ A modifier that is a literal computes nothing: the modifier at
             `:index` holds a name or a group, and `:message` writes the
-            template `get` builds the shape from, its parts computed
-            written as quotes, `get [x]`.
+            template `get` builds the shape from, its parts paths and
+            code, `get [x]`.
             ::link~(::call) ::link~(::any/get)
         ~~|
         ~(wires :message
@@ -233,7 +233,7 @@
     | throws :EvaluationDepthExceededError
         |~~ A call too deep: the recipe of a verb, a modifier computed at
             the call, `apply`, a constructor of a tag and each run of the
-            code a verb runs, `map ~(…)`, run one deeper in the evaluation
+            code a verb runs, `map (…)`, run one deeper in the evaluation
             depth than the step that called them, while the steps of one
             pipeline and a group run at its depth; an input read by its
             selector and a modifier of an atom meet the limit one deeper than

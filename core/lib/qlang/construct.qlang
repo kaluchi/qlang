@@ -45,9 +45,8 @@
     | throws :LiteralComputesError
         |~~ A payload computes nothing, as every part of a literal: a name
             or a group in it is refused, and `:message` writes the template
-            `get` builds the value from, its parts computed written as
-            quotes, `get ::Box[x]`, while a value computed goes under a
-            tag by `tag`, `x | tag ::Box`.
+            `get` builds the payload from, its parts paths and code, and
+            the tag laid after it by `tag`, `get [x] | tag ::Box`.
             ::link~(::construct) ::link~(::any/get)
         ~~|
         ~(wires :message

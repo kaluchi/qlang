@@ -99,8 +99,8 @@ values as `gt` relates two and answer the least and the greatest, null
 for an empty container, a pair of two kinds, null beside a number among
 them, refused where its second stands, a missing value taken out first,
 `filter (ne null) | max`, and a value that is no container answers none
-of them. Each takes a key, null, a
-quote or a path, another kind refused under its input `key`,
+of them. Each takes a key, null,
+code or a path, another kind refused under its input `key`,
 `::vec/sort/KeyKindNotTakenError`, `::map/sort/KeyKindNotTakenError` and
 `::vec/min/KeyKindNotTakenError`,
 and ranks by what the key answers, a vector key ranking index by index,

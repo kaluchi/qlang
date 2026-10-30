@@ -16,7 +16,7 @@
       `::Box[1 2]`. A tag declared as a kind runs over the payload its
       constructor, where its slot holds one, and its invariants, and one
       nothing declares lays itself as it is. `payload` takes the outer tag off, and
-      `within ~(…)` edits the payload under the tag, which checks it
+      `within (…)` edits the payload under the tag, which checks it
       again. JSON writes it as an object of its `$tag` and its
       `payload`.
 
@@ -48,7 +48,7 @@
         ~(get [(5 | tag ::tagged !| tag) (::Box#5 | tag ::tagged)] | eq [::tagged/PayloadKindNotTakenError ::Box#5]);
 
 :tagged/within
-  |~~ Answers the subject with code run beneath its tag: the quote the
+  |~~ Answers the subject with code run beneath its tag: the code the
       call gives runs against the payload, as `apply` runs it, and its answer
       goes back under the tag, `::Box[1 2] | within reverse` answering
       `::Box[2 1]`. The tag is laid once through its kind, on the answer
@@ -66,7 +66,7 @@
   ~~|
   ::fn
     | takes :code
-        |~~ The edit, a quote run against the payload. ~~|
+        |~~ The edit, code run against the payload. ~~|
         /0 #[::path ::quote]
     | throws :CodeKindNotTakenError
         |~~ The edit `within` runs is code written bare, `within reverse`,

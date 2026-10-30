@@ -244,7 +244,7 @@ under the rule, which the laws of each verb hold [QSSLF#laws].
 A tag name in the subject position walks the kind of tag names, then the
 noun the tag names, then `::any`, so a bare name after it finds the
 tag's own verbs first, then the noun's, each step resolving by its own
-subject; a fan-out over the noun is a template of `get` whose quotes run
+subject; a fan-out over the noun is a template of `get` whose code runs
 against the tag name. A verb of the noun itself, whose function names
 `::tag` by `on`, serves the noun's values and the noun's own tag name; a
 bare name after another tag name reaches it not, and called by its address

@@ -164,7 +164,7 @@
       `::number/add/SubjectNotNumberError`. `|` passes a failure by, and
       `!|` alone catches it, its step running on the error at rest, a
       value like any other: `"x" | add 1 !| 0` answers `0`. No value
-      holds a failure, so a template whose quote fails answers the
+      holds a failure, so a template whose code fails answers the
       failure, while an error at rest, written `!{:code 404}`, sits anywhere
       and `raise` raises it. A failure carries its facts and its trace,
       a frame for each step that raised it or handed it on, the subject the step met and the
@@ -776,9 +776,11 @@
             from its args.
         ~~|
         ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
-    | proves :verbs/takesAQuoteForLaterCode
-        |~~ Code run later is a quote. ~~|
-        ~([{:age 3} {:age 20}] | filter (get /age | gt 18) | count | eq 1)
+    | proves :verbs/takesCodeWrittenBare
+        |~~ An input that runs code later takes it written bare, a verb or
+            a group.
+        ~~|
+        ~([1 2] | get [(map toString) (filter (gt 1))] | eq [["1" "2"] [2]])
     | proves :verbs/takesAPathAsCode
         |~~ A path is the code that reads it from each element,
             `sort /age`.
@@ -824,7 +826,7 @@
             answers. `a !| b` alone catches a failure, running `b` on the
             error at rest, a value like any other, and recovers each
             failure where it is read. No value holds a failure: a template
-            whose quote fails, a literal whose constructor refuses its
+            whose code fails, a literal whose constructor refuses its
             payload and a name whose body fails answer the failure. The
             facts name what refused and hold the value refused, the subject
             a step refused among them under `subject`, and `doc` reads the
@@ -907,7 +909,7 @@
         |~~ A quote counts its steps. ~~|
         ~(~(add 1 | mul 2) | count | eq 2)
     | proves :code/readsTheStepThatWroteIt
-        |~~ A quote written in a step reads the names of that step. ~~|
+        |~~ Code written in a step reads the names of that step. ~~|
         ~({:bonus 10} | with [/bonus] (5 | apply (add bonus)) | eq 15)
     | proves :code/carriesTheValuesItReads
         |~~ The step writes at the head of its code the values it reads. ~~|
@@ -918,7 +920,7 @@
         ~~|
         ~(apply (:bonus 10; :rule ~(add bonus); 5 | apply rule !| get [tag name]) | eq [::call/ValueWithheldError :bonus])
     | proves :code/readsTheStepThroughAVerbOfTheLanguage
-        |~~ A verb written in the language hands a quote on from the step that
+        |~~ A verb written in the language hands code on from the step that
             wrote it.
         ~~|
         ~(:vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); {:bonus 10} | with [/bonus] ([1 2] | twice (add bonus)) | eq [21 22])

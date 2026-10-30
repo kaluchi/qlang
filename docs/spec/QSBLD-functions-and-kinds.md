@@ -212,8 +212,9 @@ it is.
 
 ## recipe
 
-A recipe is the code a function runs, which `impl` gives it, or a quote
-written alone under a label, the function of no commands it is. It runs
+A recipe is the code a function runs, which `impl` gives it, or the
+program or the quote written alone under a label, `:number/double mul 2;`,
+the function of no commands it is. It runs
 in the scope its call opens: the root, the nodes and the labels of the
 scope the call is made in, the verbs among them, the args as `args`,
 each input by its name, and the names its steps declare, and what it

@@ -18,6 +18,6 @@
 {"name":"a-value-that-is-no-quote-is-refused-by-the-address-of-answer","query":"5 | quote/answer !| tag","expect":"::quote/answer/SubjectNotQuoteError"}
 {"name":"answer-lives-on-the-kind-of-a-quote","query":"::quote | manifest | has ::quote/answer","expect":"true"}
 {"name":"a-print-reads-back-by-parse-and-answer","query":"{:price 4 :qty 3} | print | parse | answer","expect":"{:price 4 :qty 3}"}
-{"name":"the-args-of-apply-are-a-vector","query":"5 | apply it 7 !| tag","expect":"::any/apply/ArgsKindNotTakenError"}
+{"name":"the-args-of-apply-are-a-vector","query":"5 | apply (add 1) 7 !| tag","expect":"::any/apply/ArgsKindNotTakenError"}
 {"name":"a-path-applied-takes-no-args","query":"{:a 1} | apply /a [1] !| tag","expect":"::any/apply/ArgsNotTakenError"}
 {"name":"open-runs-a-quote-from-null","query":"~(it) | answer","expect":"null"}

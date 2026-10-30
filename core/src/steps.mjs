@@ -231,8 +231,8 @@ export function failOf(payload, written) {
   if (payload.length !== 1 || isFailStep(payload[0])) throw new FailPayloadNotOneStepError({ found: payload });
   const [step] = payload;
   if (isPath(step) || isQuote(step)) throw new FailStepNotCommandError({ message: laterStepMessage(step, written), found: step });
-  if (partsOfALiteral(step).some(part => holdsWithin(part, held => isPath(held) || isQuote(held)))) {
-    throw new FailStepNotCommandError({ message: `a literal that holds a path or a quote is the template \`get\` reads: write \`get ${written.stepOf(step)}\``, found: step });
+  if (partsOfALiteral(step).some(part => holdsWithin(part, isPath))) {
+    throw new FailStepNotCommandError({ message: `a literal that holds a path is the template \`get\` reads: write \`get ${written.stepOf(step)}\``, found: step });
   }
   return makeTagged(FAIL_TAG, payload);
 }

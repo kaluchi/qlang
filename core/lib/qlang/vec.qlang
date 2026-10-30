@@ -24,8 +24,8 @@
       paths and before sets, element by element.
 
       Its verbs count and cut, `count`, `first`, `last`, `take`, `drop`,
-      turn each element into another, `map ~(…)`, keep some,
-      `filter ~(…)`, rank them, `sort`, fold them, `reduce`, and sum
+      turn each element into another, `map (…)`, keep some,
+      `filter (…)`, rank them, `sort`, fold them, `reduce`, and sum
       their numbers, `sum`. A long answer is read in pieces,
       `drop 20 | take 20`, the rest of it the same query with a tail.
       ::snippet~(::vec | manifest) lists its verbs and refusals.
@@ -110,7 +110,7 @@
         |~~ An empty container answers false. ~~|
         ~([] | any (gt 0) | not)
     | proves :takesAVerbByItsName
-        |~~ A verb by its name stands where a quote would. ~~|
+        |~~ A verb by its name stands where a group would. ~~|
         ~(:number/big gt 2; [1 2 3] | any big)
     | proves :PredicateAnswerKindNotTakenError/refusesANumberAnswer
         |~~ A predicate that answers a number is refused at the element. ~~|
@@ -516,7 +516,7 @@
         |~~ An empty container answers true. ~~|
         ~([] | every (gt 0))
     | proves :takesAVerbByItsName
-        |~~ A verb by its name stands where a quote would. ~~|
+        |~~ A verb by its name stands where a group would. ~~|
         ~(:number/positive gt 0; [2 4 6] | every positive)
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
@@ -579,7 +579,7 @@
         |~~ The predicate reads each element as its subject. ~~|
         ~([{:age 25} {:age 15}] | filter (get /age | gte 18) | eq [{:age 25}])
     | proves :takesAVerbByItsName
-        |~~ A verb by its name stands where a quote would. ~~|
+        |~~ A verb by its name stands where a group would. ~~|
         ~(:number/positive gt 0; [1 -2 3] | filter positive | eq [1 3])
     | proves :answersTheErrorOfAnElement
         |~~ An error the predicate answers for an element answers the
@@ -1371,7 +1371,7 @@
         |~~ Of elements whose keys are equal the first answers. ~~|
         ~([{:age 40 :name "Ann"} {:age 40 :name "Bob"}] | max /age | get /name | eq "Ann")
     | proves :KeyKindNotTakenError/refusesANumber
-        |~~ A key that is no quote is refused under the input. ~~|
+        |~~ A number given for the key is refused under the input. ~~|
         ~([1 2] | max 1 !| tag | eq ::vec/max/KeyKindNotTakenError)
     | proves :answersTheLastOfASet
         |~~ A set answers its greatest element without a key, its last. ~~|
@@ -1603,9 +1603,6 @@
     | proves :unitesSets
         |~~ Uniting from the empty set merges. ~~|
         ~([#[1] #[2 3]] | reduce #[] union | eq #[1 2 3])
-    | proves :takesTheQuoteOfAName
-        |~~ The quote of a name alone is a reducer. ~~|
-        ~([1 2 3] | reduce 0 add | eq 6)
     | proves :takesTheAddressOfAVerb
         |~~ A verb named by its address is a reducer. ~~|
         ~([1 2 3] | reduce 0 number/add | eq 6)

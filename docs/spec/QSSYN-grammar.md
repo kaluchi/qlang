@@ -44,7 +44,7 @@ naming `get`, a tag name `tag` and a quote `apply`, and an atom, a
 regex, an error literal and a doc refused as a value standing where a
 command stands; after `!|` a value is the recovery the catch answers, a
 path and a quote are refused there as after `|`, and a literal that
-holds a path or a quote at any depth, the template `get` reads, naming
+holds a path at any depth, the template `get` reads, naming
 `get`. A question mark after a segment of a path is refused naming
 `query` and the path with its keys as written, and one inside a quoted
 key is a letter of the key. A quote whose code is a path alone, a
@@ -69,7 +69,7 @@ declaration's name stands is refused.
 "a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`"
 
 > "!{:k 1 :j 2} | raise !| [/k /j]" | parse !| message
-"a literal that holds a path or a quote is the template `get` reads: write `get [/k /j]`"
+"a literal that holds a path is the template `get` reads: write `get [/k /j]`"
 
 > "get /age?" | parse !| message
 "a part that may be missing is read by `query`, which answers null where it misses: write `query /age`"
@@ -112,9 +112,9 @@ as after `!|`, one written against its neighbour with a message that
 names the space; a combinator at the end of a pipeline, a group or a
 quote is refused naming the step it misses. An unclosed `|~` after a
 step is refused naming the verb that runs code on the value in the
-pipe, `| apply ~(…)`, and a `;` after a step of the query where it
+pipe, `| apply (…)`, and a `;` after a step of the query where it
 stands, naming the one query a text holds after its declarations and the
-template that asks several things in one query, `get [~(…) ~(…)]`. A
+template that asks several things in one query, `get [(…) (…)]`. A
 pipeline, a group and a quote may open with a
 combinator: a leading `|` is the head's combinator, and a leading `!|`
 opens a step of the fail track.
@@ -307,8 +307,8 @@ its parentheses, a comma between modifiers names the space, the path of
 jq names a slash, and a `;` after a query names a template.
 
 ```qlang
-> "[1 2 3] | filter ~(gt 1" | parse !| get [expected message]
-[[")"] "`~(` opened at line 1, column 18 is never closed; `)` completes the source"]
+> "[1 2 3] | eq ~(gt 1" | parse !| get [expected message]
+[[")"] "`~(` opened at line 1, column 14 is never closed; `)` completes the source"]
 
 > get [("[1 |~ a" | parse !| message) ("|~~ a |~~ e" | parse !| message) ("1 |~ a" | parse !| message | contains "apply")]
 ["`|~` opened at line 1, column 4 is never closed; `~|]` completes the source" "`|~~` opened at line 1, column 7 is never closed; `~~|~~|` completes the source" true]

@@ -10,7 +10,7 @@ beforeAll(async () => {
 it('folds by the one call of a quote faster than by a call with modifiers over the same elements', async () => {
   const millisecondsOf = async (count, code) => {
     const started = Date.now();
-    expect(await evalQuery(`${count} | range | map ~([1 2] | reduce 0 ~(${code})) | sum`)).toBe(3 * count);
+    expect(await evalQuery(`${count} | range | map ([1 2] | reduce 0 (${code})) | sum`)).toBe(3 * count);
     return Date.now() - started;
   };
   await millisecondsOf(500, 'add');
@@ -39,5 +39,5 @@ it('reads the declaration of an address of the root that a scope a host hands ho
   const { scope } = await createNotebook();
   const handed = new Map(scope).set('boolean/not', makeBinding({ name: makeKeyword('boolean/not'), value: parseSource('99') }));
   const notebook = await createNotebook({ scope: handed });
-  expect((await notebook.evalCell('get [~(true | not) ~(5 | not !| tag)] | eq [99 ::boolean/not/SubjectNotBooleanError]')).result).toBe(true);
+  expect((await notebook.evalCell('get [(true | not) (5 | not !| tag)] | eq [99 ::boolean/not/SubjectNotBooleanError]')).result).toBe(true);
 });

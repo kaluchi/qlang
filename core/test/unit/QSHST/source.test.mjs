@@ -77,8 +77,8 @@ describe('a host\'s verb written as the chain of its function', () => {
         'number/each': runsAsCode(['codes'], async (subject, codes) => await Promise.all(codes.map(code => code(subject))))
       }
     }] });
-    expect((await hosted.evalCell('5 | twice ~(add 1)')).result).toBe(7);
-    expect((await hosted.evalCell('5 | apply ~(:k 10; each ~(add k) ~(mul 2))')).result).toEqual([15, 10]);
+    expect((await hosted.evalCell('5 | twice (add 1)')).result).toBe(7);
+    expect((await hosted.evalCell('5 | apply (:k 10; each (add k) (mul 2))')).result).toEqual([15, 10]);
   });
 
   it('hands a host\'s verb an input it runs as code, a path among it, and an input it does not run as it is', async () => {
@@ -97,7 +97,7 @@ describe('a host\'s verb written as the chain of its function', () => {
     }] });
     expect((await hosted.evalCell('{:x 3} | both /x')).result).toEqual([3, 3]);
     expect((await hosted.evalCell('5 | pair 3')).result).toEqual([5, 3]);
-    expect((await hosted.evalCell('5 | each ~(add 1) 7')).result).toEqual([6, 7]);
+    expect((await hosted.evalCell('5 | each (add 1) 7')).result).toEqual([6, 7]);
   });
 });
 
@@ -105,13 +105,13 @@ it('hands a word of a host the state of its call where it marks its primitive as
   const primitive = core.readingState((subject, state) => state.scope.has('k'));
   const notebook = await core.createNotebook({ sources: [{ uri: 'probe', source: ':any/where (::fn | returns |~~ W. ~~| ::boolean | impl ::builtin{});', primitives: { 'any/where': primitive } }] });
   expect((await notebook.evalCell('1 | where')).result).toBe(false);
-  expect((await notebook.evalCell('apply ~(:k 5; 1 | where)')).result).toBe(true);
+  expect((await notebook.evalCell('apply (:k 5; 1 | where)')).result).toBe(true);
 });
 
 it('lays the tag of a kind over the payload as it is until its host hands the constructor, and runs the constructor after', async () => {
   const hosted = await createNotebook({ sources: [{
     uri: 'test/hosted-kind',
-    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}];\n:Hk/seen (~(seen) | fill (::Hk#1 | payload | get {:seen ~(it)}));',
+    source: ':Hk\n  |~~ A kind its host builds. ~~|\n  ::kind[~() ::builtin{}];\n:Hk/seen (~(seen) | fill (::Hk#1 | payload | get {:seen it}));',
     primitives: { 'Hk': payload => payload + 1 }
   }] });
   expect(printValue((await hosted.evalCell('::Hk#1 | Hk/seen')).result)).toBe('1');
@@ -145,7 +145,7 @@ describe('a host\'s primitive under a label', () => {
 
   it('runs over the served value and the values of its inputs, a quote closed at the call where the input is run', async () => {
     const notebook = await gaugeSession();
-    expect((await notebook.evalCell('::Gauge#5 | over ~(payload | gt 9)')).result).toBe(true);
+    expect((await notebook.evalCell('::Gauge#5 | over (payload | gt 9)')).result).toBe(true);
     expect((await notebook.evalCell('::Gauge#5 | shifted 3')).result).toBe(13);
   });
 
@@ -173,7 +173,7 @@ describe('the sources a host hands', () => {
     source: [
       ':number/less |~~ The subject less the input. ~~| (::fn | takes :by |~~ How much less. ~~| /0 ::number | throws :ByKindNotTakenError |~~ The amount is a number. ~~| | impl ::builtin{});',
       ':any/fetch |~~ The text fetched. ~~| (::fn | returns |~~ The text. ~~| ::string | impl ::builtin{});',
-      ':any/doubled ~(fetch | append fetch);'
+      ':any/doubled (fetch | append fetch);'
     ].join('\n'),
     primitives: { 'number/less': (subject, by) => subject - by, 'any/fetch': () => 'fetched' }
   }];
@@ -192,7 +192,7 @@ describe('the sources a host hands', () => {
 
   it('answers a host name as the function whose recipe is its descriptor, and refuses an answer of a kind it does not return', async () => {
     const sessionInstance = await createNotebook({ sources: HOST_SOURCES });
-    expect((await sessionInstance.evalCell('::any/fetch | binding | value | get [~(tag) ~(get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
+    expect((await sessionInstance.evalCell('::any/fetch | binding | value | get [tag (get /1 | tag)]')).result).toEqual(await evalQuery('[::fn ::builtin]'));
     const misanswering = await createNotebook({ sources: [{ ...HOST_SOURCES[0], primitives: { ...HOST_SOURCES[0].primitives, 'any/fetch': () => 5 } }] });
     expect((await misanswering.evalCell('fetch !| tag')).result).toEqual(makeTag('any/fetch/AnswerKindNotTakenError'));
   });
@@ -213,7 +213,7 @@ describe('the sources a host hands', () => {
       source: ':any/plus (::number/add | binding | value);\n:any/greet ::builtin{};\n:any/hail (::any/greet | binding | value);',
       primitives
     }] });
-    expect((await (await aliasing({ 'any/greet': () => 'hi' })).evalCell('get [~(5 | plus 1) ~(hail)]')).result).toEqual([6, 'hi']);
+    expect((await (await aliasing({ 'any/greet': () => 'hi' })).evalCell('get [(5 | plus 1) hail]')).result).toEqual([6, 'hi']);
     for (const [name, sharedWith] of [['any/plus', 'number/add'], ['any/hail', 'any/greet']]) {
       await expect(aliasing({ 'any/greet': () => 'hi', [name]: () => 0 })).rejects.toMatchObject({
         name: 'PrimitiveNamesNoBuiltinError',
@@ -231,15 +231,15 @@ describe('the sources a host hands', () => {
       primitives: { 'any/greet': () => word }
     }] });
     const [hello, hi] = [await greeting('hello'), await greeting('hi')];
-    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | value | get [~(it) ~(print | parse | answer)]')).result;
+    const [handed, readBack] = (await hello.evalCell('::any/greet | binding | value | get [it (print | parse | answer)]')).result;
     for (const [notebook, fn, word] of [[hello, readBack, 'hello'], [hi, readBack, 'hi'], [hello, readBack, 'hello'], [hi, handed, 'hello']]) {
-      expect((await notebook.evalCell('with {:g ~it} ~(null | apply g)', { initialPipeValue: fn })).result).toBe(word);
+      expect((await notebook.evalCell('with {:g it} (null | apply g)', { initialPipeValue: fn })).result).toBe(word);
     }
   });
 
   it('refuses a primitive handed for a verb of steps', async () => {
     await expect(createNotebook({ sources: [{
-      uri: 'tests/over', source: ':any/many ~(count);', primitives: { 'any/many': () => 0 }
+      uri: 'tests/over', source: ':any/many count;', primitives: { 'any/many': () => 0 }
     }] })).rejects.toMatchObject({ name: 'PrimitiveNamesNoBuiltinError', address: 'builtin/PrimitiveNamesNoBuiltinError' });
   });
 
@@ -258,7 +258,7 @@ describe('the sources a host hands', () => {
         .rejects.toMatchObject({ name: 'RootValueNotWordError', facts: { origin: makeKeyword('tests/value'), name: makeKeyword(name) } });
     }
     const notebook = await createNotebook({ sources: [{ uri: 'tests/data', source: ':Box |~~ A box. ~~|;\n:Box/limit 10;\n:Box/kind ::number;' }] });
-    expect((await notebook.evalCell('get [~(Box/limit) ~(Box/kind)]')).result).toEqual([10, makeTag('number')]);
+    expect((await notebook.evalCell('get [Box/limit Box/kind]')).result).toEqual([10, makeTag('number')]);
   });
 
   it('refuses a source that declares a name the root holds, bare or with a path, by one refusal naming the source as its origin', async () => {
@@ -298,7 +298,7 @@ describe('a kind whose constructor is a primitive of the host', () => {
     const sessionInstance = await createNotebook({
       sources: [{ uri: 'tests/kind', source: ':myType |~~ myType. ~~| (::kind | impl ::builtin{});', primitives: { 'myType': payload => payload * 2 } }]
     });
-    expect((await sessionInstance.evalCell('::myType#4 | get [~(tag) ~(payload)]')).result).toEqual([makeTag('myType'), 8]);
+    expect((await sessionInstance.evalCell('::myType#4 | get [tag payload]')).result).toEqual([makeTag('myType'), 8]);
   });
 
   it('a kind a reader declares with a constructor no host hands lays its tag over a quote', async () => {

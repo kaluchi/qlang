@@ -6,7 +6,7 @@
 {"name":"append-of-a-number-is-refused-with-the-kinds-that-answer-it","query":"42 | append \"x\"","raises":"::call/KindAnswersNoVerbError!{\n  :found 42\n  :name :append\n  :addresses #[::string/append ::vec/append]\n  :trace ::trace[::frame[42 ~(append \"x\")]]\n}"}
 {"name":"lower-folds-the-case-of-a-string","query":"\"Ann@Example.COM\" | lower","expect":"\"ann@example.com\""}
 {"name":"upper-raises-the-case-of-a-string","query":"\"ok, go\" | upper","expect":"\"OK, GO\""}
-{"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map ~lower | distinct | count","expect":"2"}
+{"name":"strings-that-differ-in-case-alone-meet-once-lowered","query":"[\"Ann\" \"ANN\" \"bob\"] | map lower | distinct | count","expect":"2"}
 {"name":"lower-refuses-a-subject-that-is-no-string","query":"42 | lower !| tag","expect":"::string/lower/SubjectNotStringError"}
 {"name":"a-string-counts-its-characters","query":"\"привет\" | count","expect":"6"}
 {"name":"a-string-takes-its-first-characters","query":"\"db_host\" | take 2","expect":"\"db\""}
@@ -17,12 +17,12 @@
 {"name":"append-refuses-a-suffix-that-is-no-string-or-keyword","query":"\"x\" | append 42","raises":"::string/append/SuffixKindNotTakenError!{:subject/found \"x\" :suffix/expected #[::keyword ::string] :suffix/found 42 :trace ::trace[::frame[\"x\" ~(append 42)]]}"}
 {"name":"lines-reads-a-carriage-return-and-drops-the-last-break","query":"\"a\\r\\nb\\r\\n\" | lines","expect":"[\"a\" \"b\"]"}
 {"name":"a-string-counts-its-code-points","query":"\"e\\u0301\" | count","expect":"2"}
-{"name":"case-folds-as-unicode-maps-the-text","query":"get [~(\"ΣΑΣ\" | lower) ~(\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
+{"name":"case-folds-as-unicode-maps-the-text","query":"get [(\"ΣΑΣ\" | lower) (\"straße\" | upper)]","expect":"[\"σας\" \"STRASSE\"]"}
 {"name":"an-empty-text-has-no-lines","query":"\"\" | lines","expect":"[]"}
-{"name":"append-and-prepend-write-a-keyword-as-its-name","query":"\"x\" | get [~(prepend :a) ~(append :a)]","expect":"[\"ax\" \"xa\"]"}
-{"name":"size-and-length-answer-as-count-over-a-string","query":"\"привет\" | get [~(size) ~(length) ~(count)]","expect":"[6 6 6]"}
+{"name":"append-and-prepend-write-a-keyword-as-its-name","query":"\"x\" | get [(prepend :a) (append :a)]","expect":"[\"ax\" \"xa\"]"}
+{"name":"size-and-length-answer-as-count-over-a-string","query":"\"привет\" | get [size length count]","expect":"[6 6 6]"}
 {"name":"an-empty-line-between-two-carriage-return-endings-stays-empty","query":"\"a\\r\\n\\r\\nb\" | lines","expect":"[\"a\" \"\" \"b\"]"}
-{"name":"a-final-newline-closes-the-last-line-and-a-lone-one-closes-an-empty-line","query":"get [~(\"a\\n\\n\" | lines) ~(\"\\n\" | lines)]","expect":"[[\"a\" \"\"] [\"\"]]"}
+{"name":"a-final-newline-closes-the-last-line-and-a-lone-one-closes-an-empty-line","query":"get [(\"a\\n\\n\" | lines) (\"\\n\" | lines)]","expect":"[[\"a\" \"\"] [\"\"]]"}
 {"name":"a-carriage-return-with-no-newline-stays-in-its-line","query":"\"a\\r\" | lines","expect":"[\"a\\r\"]"}
-{"name":"count-take-and-drop-read-a-character-past-the-first-plane-as-one","query":"get [~(\"😀x\" | count) ~(\"😀x\" | take 1) ~(\"😀x\" | drop 1)]","expect":"[2 \"😀\" \"x\"]"}
+{"name":"count-take-and-drop-read-a-character-past-the-first-plane-as-one","query":"get [(\"😀x\" | count) (\"😀x\" | take 1) (\"😀x\" | drop 1)]","expect":"[2 \"😀\" \"x\"]"}
 {"name":"trim-cuts-the-whitespace-of-unicode-at-the-ends","query":"\"\\u00A0 a \\uFEFF\" | trim","expect":"\"a\""}

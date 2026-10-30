@@ -6,7 +6,7 @@
   import { makeKeyword, isKeyword, isDoc, isPath, makeRegex, makePath, makeDoc, makeTag, makeTagged, errorAtRest, ERROR_TAG } from '../src/types.mjs';
   import { makeSet } from '../src/ordering.mjs';
   import { QlangError } from '../src/errors.mjs';
-  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, isComputingStep, partsOfALiteral, isOfTheKindOfErrors, isGroupStep } from '../src/steps.mjs';
+  import { quoteOf, callOf, bindOf, constructOf, failOf, groupOf, isComputingStep, partsOfALiteral, isOfTheKindOfErrors } from '../src/steps.mjs';
   import { forEachPart } from '../src/parsed-parts.mjs';
 
   // [QSHST#tokens]
@@ -97,19 +97,9 @@
   // [QSLIT#closed]
   const asWritten = {
     of: value => sourceOf(reads.get(value)),
-    quoting: literal => quotedSource(reads.get(literal)),
+    stepOf: literal => sourceOf(reads.get(literal)),
     computesWithin: literal => reads.has(literal) && computingReadsOf(reads.get(literal)).length > 0
   };
-
-  function quotedSource(read) {
-    const start = read.span.start.offset;
-    let written = sourceOf(read);
-    for (const computing of computingReadsOf(read).reverse()) {
-      const inner = isGroupStep(computing.value) ? input.slice(computing.content.start.offset, computing.content.end.offset) : sourceOf(computing);
-      written = written.slice(0, computing.span.start.offset - start) + `~(${inner})` + written.slice(computing.span.end.offset - start);
-    }
-    return written;
-  }
 
   // [QSLIT#closed], [QSQUO#step]
   function computingReadsOf(read) {
@@ -362,7 +352,7 @@ PipedCombinator
 
 // [QSSYN#combinator]
 SpacingRefusal
-  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`'); }
+  = ( _ &"|~" "|~" { error('`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply (…)`'); }
     / _ &(Combinator _ [)\]}]) c:Combinator { error(`\`${c}\` joins two steps, and the step after it is missing`, lastOf(c.length)); }
     / __ &(PipedCombinator __ Combinator) PipedCombinator __ second:Combinator { refuseCombinatorAfterCombinator('!|', second); }
     / __ !PipedCombinator &(Combinator __ Combinator) first:Combinator __ second:Combinator { refuseCombinatorAfterCombinator(first, second); }
@@ -791,7 +781,7 @@ ErrorBraces
 MapLit
   = "{" _ head:JsonMapEntry tail:(_ "," _ @JsonMapEntry)* _ ("}" / &(("," _)? Keyword) { refuseMixedSpellings(); })
     { return entriesRead(map => map, [head, ...tail]); }
-  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`'); })
+  / "{" _ head:QlangMapEntry tail:(LiteralGap @QlangMapEntry)* _ ("}" / &(("," _)? StringLit _ ":") { refuseMixedSpellings(); } / &(!Keyword Element) { error('a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k (f x)}`'); })
     { return entriesRead(map => map, [head, ...tail]); }
   / "{" _ "}"
     { return part(new Map()); }

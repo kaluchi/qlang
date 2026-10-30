@@ -27,7 +27,7 @@ describe('the cells of a notebook', () => {
 
   it('evalCell keeps the verbs a cell declares for the cells after it', async () => {
     const sessionInstance = await createNotebook();
-    await sessionInstance.evalCell(':any/double ~(mul 2);');
+    await sessionInstance.evalCell(':any/double mul 2;');
     const cellEntry = await sessionInstance.evalCell('5 | double');
     expect(cellEntry.result).toBe(10);
   });

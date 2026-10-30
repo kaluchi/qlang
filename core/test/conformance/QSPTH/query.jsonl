@@ -2,7 +2,7 @@
 {"name":"query-answers-null-for-a-missing-index","query":"[1] | query /5","expect":"null"}
 {"name":"query-answers-null-through-null","query":"{:a null} | query /a/b","expect":"null"}
 {"name":"query-refuses-another-kind-on-the-path","query":"{:a 5} | query /a/b !| tag","expect":"::path/SubjectHasNoPartsError"}
-{"name":"query-in-code-reads-softly","query":"[{:n 1} {:m 2}] | map ~(query /n)","expect":"[1 null]"}
+{"name":"query-in-code-reads-softly","query":"[{:n 1} {:m 2}] | map (query /n)","expect":"[1 null]"}
 {"name":"query-holds-a-default-for-a-missing-index","query":"[] | query /0 7","expect":"7"}
 {"name":"query-answers-a-null-that-stands-at-the-path","query":"[null] | query /0 7","expect":"null"}
 {"name":"query-reads-an-index-from-zero-as-get-does","query":"[10 20 30] | query /0","expect":"10"}
@@ -26,5 +26,5 @@
 {"name":"query-under-a-tag-answers-null-for-a-missing-key","query":"::json{:a 1} | query /42","expect":"null"}
 {"name":"query-of-a-key-the-map-holds-answers-its-value","query":"{:a 1 :b 2} | query /a","expect":"1"}
 {"name":"query-refuses-a-key-on-a-vector-as-get-does","query":"[1 2] | query /a !| tag","expect":"::path/IndexNotIntegerError"}
-{"name":"null-beneath-the-tags-a-path-meets-on-its-way-is-a-miss","query":"{:a ::T#null} | get [~(query /a/b) ~(coalesce /a/b 0)]","expect":"[null 0]"}
+{"name":"null-beneath-the-tags-a-path-meets-on-its-way-is-a-miss","query":"{:a ::T#null} | get [(query /a/b) (coalesce /a/b 0)]","expect":"[null 0]"}
 {"name":"query-beneath-a-closed-tag-is-refused-as-get-is","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card[\"a\" 312] | query /took !| tag","expect":"::path/TagClosedError"}

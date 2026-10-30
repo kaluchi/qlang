@@ -161,11 +161,11 @@
         ~(::number/add | binding | value | get /1 | eq ::builtin{:of ::number/add})
     | proves :readsBackAsItsPrimitive
         |~~ A function of a host read back from its print runs its primitive. ~~|
-        ~(5 | apply (::number/add | binding | value | print | parse | answer) [1] | eq 6)
+        ~(:f (::number/add | binding | value | print | parse | answer); 5 | apply f [1] | eq 6)
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::builtin"hello" !| get [~(tag) ~(found | tag)] | eq [::builtin/PayloadKindNotTakenError ::string])
+        ~(::builtin"hello" !| get [tag (found | tag)] | eq [::builtin/PayloadKindNotTakenError ::string])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector payload is refused. ~~|
-        ~(::builtin[1 2 3] !| get [~(tag) ~(found | tag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
+        ~(::builtin[1 2 3] !| get [tag (found | tag)] | eq [::builtin/PayloadKindNotTakenError ::vec]))
     ::builtin{}];

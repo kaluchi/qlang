@@ -30,7 +30,7 @@ describe('a cell run in one notebook', () => {
   });
 
   it('preserves bindings between cells within the same notebook', async () => {
-    const replHarness = captureRepl(':any/double ~(mul 2)\n10 | double\n.exit\n');
+    const replHarness = captureRepl(':any/double mul 2\n10 | double\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     expect(stripAnsi(replHarness.stdoutText())).toMatch(/20/);
   });
@@ -114,7 +114,7 @@ it('runs the query given on the command line before the typed cells, in the same
 
 describe('an answer printed whole and a failure as its alert', () => {
   it('prints an answer past the budget whole, its last element among it', async () => {
-    const replHarness = captureRepl('3000 | range | map ~(get {:id ~(it) :name "user"})\n.exit\n');
+    const replHarness = captureRepl('3000 | range | map {:id it :name "user"}\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const printed = stripAnsi(replHarness.stdoutText());
     expect(printed).toContain('{:id 2999 :name "user"}]');
@@ -140,13 +140,13 @@ describe('an answer printed whole and a failure as its alert', () => {
 
   it('prints a failure as its alert, a fact past the room of a fact the cell it keeps beside its tag and the views of its kind', async () => {
     const records = `[${Array.from({ length: 40 }, (_, index) => `{:n ${index}}`).join(' ')}]`;
-    const replHarness = captureRepl(`${records} | filter ~(nope)\n.exit\n`);
+    const replHarness = captureRepl(`${records} | filter nope\n.exit\n`);
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
-    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/failed \[~\(nope\) ~\(filter ~\(nope\)\)\]\n {2}:trace\/subject \{:n 0\}\n {2}:trace\/paths \[\/0\]\n\}/);
+    expect(stripAnsi(replHarness.stdoutText())).toMatch(/::call\/UnknownNameError::excerpt\{\n[^]*\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/failed \[~\(nope\) ~\(filter nope\)\]\n {2}:trace\/subject \{:n 0\}\n {2}:trace\/paths \[\/0\]\n\}/);
   });
 
   it('prints the alert of a runaway recursion within its room', async () => {
-    const replHarness = captureRepl(':number/inf ~(add 1 | inf); 0 | inf\n.exit\n');
+    const replHarness = captureRepl(':number/inf (add 1 | inf); 0 | inf\n.exit\n');
     await runRepl(replHarness.stdinStream, replHarness.stdoutWrite, replHarness.stderrWrite, { terminal: replHarness.stdinStream });
     const shown = stripAnsi(replHarness.stdoutText());
     expect(shown).toMatch(/\n {2}:depth 1001\n {2}:limit 1000\n {2}:trace ::cell"[0-9a-f]{12}"\n {2}:trace\/tag ::trace\n {2}:trace\/subject 999\n\}/);

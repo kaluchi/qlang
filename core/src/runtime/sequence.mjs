@@ -3,7 +3,7 @@
 import { beneathTags, isNumber, isKeyword, isPath, isSet, isErrorValue, isVec, NULL, makePath, TagsInCommon, pairRefused, ofTwoKinds } from '../types.mjs';
 import { compareValues, makeSet, kindsExpected } from '../ordering.mjs';
 import { declareRefusal, refusingAPart } from '../errors.mjs';
-import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, asCombiner } from '../primitives.mjs';
+import { registerPrimitive, registerStateReader, runsAsCode, foldsAsCode, buildsAsTemplate, asCombiner } from '../primitives.mjs';
 import { underSharedTags } from '../eval.mjs';
 import { atPath } from '../eval-trace.mjs';
 import { keywordFiledFor, KINDS_A_KEY_FILES_UNDER } from './convert.mjs';
@@ -160,11 +160,11 @@ async function answersOf(elements, code) {
   return answers;
 }
 
-registerPrimitive('vec/map', runsAsCode(['code'], (sequence, code) => answersOf(entriesOf(sequence), code)));
-registerPrimitive('map/map', runsAsCode(['code'], async (map, code) => {
+registerPrimitive('vec/map', buildsAsTemplate(['code'], runsAsCode(['code'], (sequence, code) => answersOf(entriesOf(sequence), code))));
+registerPrimitive('map/map', buildsAsTemplate(['code'], runsAsCode(['code'], async (map, code) => {
   const answers = await answersOf(entriesOf(map), code);
   return isErrorValue(answers) ? answers : new Map([...map.keys()].map((key, index) => [key, answers[index]]));
-}));
+})));
 
 // [QSCND#boolean], [QSERR#trace]
 async function verdictOf(predicate, at, element, AnswerKindNotTakenError) {

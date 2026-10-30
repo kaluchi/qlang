@@ -389,7 +389,7 @@ describe('the text written for an answer', () => {
 });
 
 describe('an answer past the budget', () => {
-  const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
+  const past = '3000 | range | map (get {:id it :name "user"})';
 
   it('exits an answer past the budget as every failure exits, with the code the caller asks for', async () => {
     const scope = await langRuntime();

@@ -56,9 +56,10 @@
       4. Commands. A command is a verb and what it takes, separated by
       spaces: `add 1`, `split ","`, `take 2`, `get /price`. The verb is
       found through the kind of the subject: `count` counts the elements
-      of a vector and the characters of a string. Every modifier is
-      computed once, at the call, against the subject of the step, and
-      the verb receives the values: `10 | add 3` answers `13`. The
+      of a vector and the characters of a string. The verb takes each
+      modifier as it is written, and its input decides what it is: an
+      input of a value computes it once, at the call, against the
+      subject of the step, `10 | add 3` answering `13`. The
       subject of a step is what the step before it answered, so in
       `{:price 4 :qty 3} | get /price | mul (get /qty)` the `/qty` is
       read from the price, a number with no parts, and the call is
@@ -68,76 +69,83 @@
       answering `12`. A modifier of more than one word stands in
       parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
 
-      5. Code. A quote, `~(…)`, is code, and a quote computes to itself,
-      so the verb receives it unrun and runs it where it needs. `map`
-      runs its code on each element, that element its subject:
-      `[1 2 3] | map ~(mul 2)` answers `[2 4 6]`. A path is code too, the
+      5. Code. An input of code takes a group or a bare name as code,
+      which the verb runs where it needs, `it` naming the value the code
+      runs on. `map` runs its code on each element:
+      `[1 2 3] | map (mul 2)` answers `[2 4 6]`, and
+      `[1 2] | map toString` answers `["1" "2"]`. A path is code too, the
       code that reads it from each element: `[{:name "Ann"}] | map /name`
       answers `["Ann"]`. `filter` keeps the elements its code
-      holds of, `[1 2 3] | filter ~(gt 1)` answering `[2 3]`; `groupBy`
+      holds of, `[1 2 3] | filter (gt 1)` answering `[2 3]`; `groupBy`
       files the elements under what its code answers, or under
-      themselves, `["yes" "no" "yes"] | groupBy | map ~(count)` answering
+      themselves, `["yes" "no" "yes"] | groupBy | map count` answering
       `{:yes 2 :no 1}`; `reduce` folds the elements into a seed, calling
       its verb with the value so far as the subject and the element as
-      its first arg, `[1 2 3] | reduce 0 ~(add)` answering `6`, and
+      its first arg, `[1 2 3] | reduce 0 add` answering `6`, and
       running any other code on the pair of the two,
-      `[{:qty 1} {:qty 2}] | reduce 0 ~(sumOf /0 /1/qty)` answering `3`.
-      Several steps stand in one quote,
-      `[{:price 3}] | map ~(get /price | mul 2)` answering `[6]`, and
+      `[{:qty 1} {:qty 2}] | reduce 0 (sumOf /0 /1/qty)` answering `3`.
+      Several steps stand in one group,
+      `[{:price 3}] | map (get /price | mul 2)` answering `[6]`, and
       `apply` runs its code on the subject itself,
-      `5 | apply ~(add 1 | mul 2)` answering `12`. Without the quote, a
-      group is a modifier computed at the call: in
-      `[{:qty 1}] | map (get /qty)` the `/qty` is read from the vector
-      itself, not from each element, and `map` refuses what it is handed,
-      `::vec/map/CodeKindNotTakenError`.
+      `5 | apply (add 1 | mul 2)` answering `12`. `self` names the
+      subject of the step that writes the code, so
+      `[1 2 3] | map (div (self | sum))` divides each element by the sum
+      of them all. A quote, `~(…)`, is code held as a value, which a name
+      hands to a verb that runs code, `:double ~(mul 2); [1 2] | map double`
+      answering `[2 4]`; written where a verb takes code it is refused,
+      `map ~(mul 2)` naming `map (mul 2)`.
 
       6. Building answers. An answer of a new shape is built by `get`
-      over a template, a literal of paths and quotes, each path read and
-      each quote run against the subject:
-      `{:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}`
+      over a template, a literal of paths and code, each path read and
+      each code run against the subject:
+      `{:first "Ann" :age 30} | get {:who /first :next (get /age | add 1)}`
       answers `{:who "Ann" :next 31}`, and `{:id 7 :qty 2} | get [/qty /id]`
-      answers `[2 7]`; `query` reads the paths of a template softly. A
-      group or a name written inside a literal is refused, and a value
-      computed goes under a tag by `tag`, `1 | add 2 | tag ::Box`.
+      answers `[2 7]`; `query` reads the paths of a template softly, and
+      `map` builds its template on each element,
+      `[{:id 7 :tags [1 2]}] | map {:id /id :count (get /tags | count)}`
+      answering `[{:id 7 :count 2}]`. A group or a name written inside a
+      literal anywhere else is refused, and a value computed goes under a
+      tag by `tag`, `1 | add 2 | tag ::Box`.
 
       7. Names. A step sees only the value handed to it: after
       `get /qty |` the subject is a number, and the record it came from
       is gone. `with` names the parts of its subject for the code of one
       step, which reads each by its bare word:
-      `{:qty 2 :price 3} | with [/qty /price] ~(qty | mul price)`
+      `{:qty 2 :price 3} | with [/qty /price] (qty | mul price)`
       answers `6`. A text is its declarations, each ended by `;`, and the
       query after them: a declaration, `:name body;`, adds a name to the
-      scope of the text, its body computed with no subject, and the query
-      reads it. Code declared under the label of the values it serves is
-      a verb the name calls, `:number/double ~(mul 2); 5 | double`
-      answering `10`, and `~double` hands it on as code; in the reader's
+      scope of the text, which the query reads, its body computed with no
+      subject or, where its head is a verb, a program the name runs on
+      its subject, `:adult (get /age | gte 18); [{:age 20}] | filter adult`.
+      Code declared under the label of the values it serves is
+      a verb the name calls, `:number/double mul 2; 5 | double`
+      answering `10`, and `map double` hands it on as code; in the reader's
       own queries the verb shadows a verb of that name on a broader label,
       `::any` among them. A value under a bare name is read where a value stands,
-      `:rate 2; [1 2] | map ~(mul rate)` answering `[2 4]`. A name is
+      `:rate 2; [1 2] | map (mul rate)` answering `[2 4]`. A name is
       declared once in a scope, and the names a group or a quote declares
       stay in it.
 
       8. Elements and order. `count`, `sum`, `avg`, `min`, `max`,
       `first` and `last` read the elements of a vector, a set or a map.
       A map's elements are its values, the keys travelling with them:
-      `{:tea 1 :jam 5} | filter ~(gt 2)` answers `{:jam 5}`, and
-      `{:tea 1 :jam 5} | map ~(add 1)` answers `{:tea 2 :jam 6}`. `keys`
+      `{:tea 1 :jam 5} | filter (gt 2)` answers `{:jam 5}`, and
+      `{:tea 1 :jam 5} | map (add 1)` answers `{:tea 2 :jam 6}`. `keys`
       answers its keys, and `entries` the pairs `[key value]`, which
       `toMap` builds back into a map. One order ranks every value, so
       anything sorts: null, then booleans, numbers, strings, keywords,
       vectors, sets, maps. `desc` turns a key to descend:
-      `sort ~(get [~(get /age | desc) /name])` ranks by age descending,
+      `sort (get [(get /age | desc) /name])` ranks by age descending,
       then by name.
 
       9. Conditions. A condition is a boolean, and nothing else is
       truthy: `filter` and `if` refuse any other value. `if` takes the
-      condition as a modifier and its two branches as code:
-      `5 | if (gt 0) ~("pos") ~("neg")` answers `"pos"`. Conditions of
-      one value hold together by `allOf` and `anyOf`, whose modifiers
-      are computed at the call, every one of them, so a condition that
-      may fail where an earlier one does not hold is written as a quote
-      that answers it in its turn:
-      `filter ~(allOf (get /email | ne null) ~(get /email | endsWith ".org"))`.
+      condition as a value and its two branches as code:
+      `5 | if (gt 0) ("pos") ("neg")` answers `"pos"`. Conditions of
+      one value hold together by `allOf` and `anyOf`, each run in its
+      turn, so a condition that may fail where an earlier one does not
+      hold stands after it:
+      `filter (allOf (get /email | ne null) (get /email | endsWith ".org"))`.
 
       10. Text. A string splits into a vector and joins back,
       `"a,b,c" | split "," | join "-"` answering `"a-b-c"`; `lines`
@@ -167,7 +175,7 @@
       12. Asking. `::vec | manifest` answers what lies under a kind, its
       verbs and its refusals, and `map` asks
       several kinds at once, each beside its own:
-      ::snippet~([::vec ::map ::string ::number ::any] | map ~(get [~it ~manifest]))
+      ::snippet~([::vec ::map ::string ::number ::any] | map [it manifest])
       lists the verbs most queries use. `::vec/sort | doc` answers the
       page of a verb, and `::vec/sort | laws` the laws of a verb by
       name, each a page and a query that answers true; `tag | doc`
@@ -178,7 +186,7 @@
 
       13. A task. Over
       `{"users": [{"name": "Ann", "age": 30, "tags": ["new", "vip"]}, {"name": "Bo", "age": 15, "tags": []}]}`,
-      `get /users | filter ~(get /age | gte 18) | map ~(get {:name /name :count ~(get /tags | count)})`
+      `get /users | filter (get /age | gte 18) | map {:name /name :count (get /tags | count)}`
       answers `[{:name "Ann" :count 2}]`. Look at the data before shaping
       it, `shape` its structure, the kind at each of its parts, `keys`,
       `get /0`, `tag`, `count`, and build the query a step at a time,
@@ -229,12 +237,12 @@
         ~(5 | (add 1 | mul 2) | eq 12)
     | proves :buildsAShapeByATemplate
         |~~ A template of `get` builds a shape from the value, its paths
-            read and its quotes run on it.
+            read and its code run on it.
         ~~|
-        ~({:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)} | eq {:who "Ann" :next 31})
+        ~({:first "Ann" :age 30} | get {:who /first :next (get /age | add 1)} | eq {:who "Ann" :next 31})
     | proves :buildsTheShapeOfEachElement
         |~~ Under `map` a template builds the shape of each element. ~~|
-        ~([{:id 1 :tags [:new :vip]}] | map ~(get {:id /id :count ~(get /tags | count)}) | eq [{:id 1 :count 2}])
+        ~([{:id 1 :tags [:new :vip]}] | map {:id /id :count (get /tags | count)} | eq [{:id 1 :count 2}])
     | proves :walksAPath
         |~~ A path walks keys and indices, `-1` from the end. ~~|
         ~({:user {:scores [10 20]}} | get /user/scores/-1 | eq 20)
@@ -243,7 +251,7 @@
         ~({"first name": "Ann"} | get /"first name" | eq "Ann")
     | proves :readsATemplateSoftly
         |~~ `query` reads the paths of a template softly. ~~|
-        ~({:name "Ann"} | query [~(get /name) /age] | eq ["Ann" null])
+        ~({:name "Ann"} | query [(get /name) /age] | eq ["Ann" null])
     | proves :readsSoftly
         |~~ `query` reads a missing key as null. ~~|
         ~({:name "Ann"} | query /age | eq null)
@@ -260,44 +268,40 @@
         |~~ Two fields of one record subtract by `subOf`. ~~|
         ~({:total 10 :paid 3} | subOf /total /paid | eq 7)
     | proves :runsAPipelineInATemplate
-        |~~ A pipeline in a template stands in a quote. ~~|
-        ~({:age 30} | get [~(get /age | add 1) /age] | eq [31 30])
+        |~~ A pipeline in a template stands in a group. ~~|
+        ~({:age 30} | get [(get /age | add 1) /age] | eq [31 30])
     | proves :losesTheRecordAfterAStep
         |~~ After `get /qty |` a modifier reads the number, not the record. ~~|
         ~({:qty 2 :price 3} | get /qty | mul (get /price) !| tag | eq ::path/SubjectHasNoPartsError)
-    | proves :takesCodeAsAQuote
-        |~~ Code a verb runs on each element is a quote. ~~|
-        ~([{:age 3} {:age 20}] | filter ~(get /age | gte 18) | count | eq 1)
+    | proves :runsCodeOnEachElement
+        |~~ A verb runs the code written bare on each element. ~~|
+        ~([{:age 3} {:age 20}] | filter (get /age | gte 18) | count | eq 1)
     | proves :quotesOneWord
         |~~ `~name` quotes one word. ~~|
-        ~("[3 1 2] | map ~toString | first" | parse | answer | eq "3")
-    | proves :refusesAValueForCode
-        |~~ A value computed at the call is refused where code is wanted.
-        ~~|
-        ~([1 2 3] | filter (gt 1) !| tag | eq ::vec/filter/PredicateKindNotTakenError)
+        ~(~toString | eq ~(toString))
     | proves :splitsAndJoins
         |~~ A string splits into a vector and joins back. ~~|
         ~("a,b,c" | split "," | join "-" | eq "a-b-c")
     | proves :cutsAString
         |~~ A string counts, drops and takes by characters. ~~|
-        ~("db_host" | get [~(count) ~(drop 3) ~(take 2)] | eq [7 "host" "db"])
+        ~("db_host" | get [count (drop 3) (take 2)] | eq [7 "host" "db"])
     | proves :countsOccurrences
-        |~~ `groupBy | map ~count` counts each value. ~~|
-        ~(["yes" "no" "yes"] | groupBy | map ~count | eq {:yes 2 :no 1})
+        |~~ `groupBy | map count` counts each value. ~~|
+        ~(["yes" "no" "yes"] | groupBy | map count | eq {:yes 2 :no 1})
     | proves :turnsKeysIntoData
         |~~ Entries turn the keys of a map into data. ~~|
-        ~({:auth {:port 3000}} | entries | map ~(unionOf /1 (get {:name ~(get /0 | toString)})) | eq [{:port 3000 :name "auth"}])
+        ~({:auth {:port 3000}} | entries | map (unionOf /1 (get {:name (get /0 | toString)})) | eq [{:port 3000 :name "auth"}])
     | proves :buildsAMapFromEntries
         |~~ Entries build back into the map. ~~|
         ~({:id 7} | entries | toMap | eq {:id 7})
     | proves :folds
         |~~ `reduce` folds the elements from a seed. ~~|
-        ~([3 1 2] | reduce 0 ~(add) | eq 6)
+        ~([3 1 2] | reduce 0 add | eq 6)
     | proves :foldsCodeOnThePair
         |~~ Any other code folds on the pair of the value so far and the
             element.
         ~~|
-        ~([{:qty 1} {:qty 2}] | reduce 0 ~(sumOf /0 /1/qty) | eq 3)
+        ~([{:qty 1} {:qty 2}] | reduce 0 (sumOf /0 /1/qty) | eq 3)
     | proves :ordersASet
         |~~ A set stands in the one order. ~~|
         ~("#[:tea :cake :jam] | first" | parse | answer | eq :cake)
@@ -314,13 +318,13 @@
         |~~ A map's elements are its values, its keys travelling with
             them.
         ~~|
-        ~({:tea 1 :jam 5} | filter ~(gt 2) | eq {:jam 5})
+        ~({:tea 1 :jam 5} | filter (gt 2) | eq {:jam 5})
     | proves :branchesOnABoolean
         |~~ `if` branches on a boolean. ~~|
-        ~(5 | if (gt 0) ~("pos") ~("neg") | eq "pos")
+        ~(5 | if (gt 0) ("pos") ("neg") | eq "pos")
     | proves :refusesTruthiness
         |~~ Nothing is truthy: a number is no condition. ~~|
-        ~(5 | if 1 ~("yes") ~("no") !| tag | eq ::any/if/ConditionKindNotTakenError)
+        ~(5 | if 1 ("yes") ("no") !| tag | eq ::any/if/ConditionKindNotTakenError)
     | proves :turnsAStringIntoAKeyword
         |~~ `toKeyword` turns a string into a keyword. ~~|
         ~("draft" | toKeyword | eq :draft)
@@ -345,19 +349,19 @@
         ~(!{:reason :late} | get /reason | eq :late)
     | proves :raisesAMap
         |~~ `raise` builds a failure from a map. ~~|
-        ~({:reason :late} | raise !| get [~(tag) /reason] | eq [::error :late])
+        ~({:reason :late} | raise !| get [tag /reason] | eq [::error :late])
     | proves :writesAnErrorOfItsOwnKind
         |~~ A tag before the bang names the kind of the error. ~~|
-        ~(::Late!{:by 3} | get [~(tag) /by] | eq [::Late 3])
+        ~(::Late!{:by 3} | get [tag /by] | eq [::Late 3])
     | proves :asksWhetherTheStepBeforeStood
         |~~ `ok !| false` asks whether the step before stood. ~~|
-        ~(get [~(!{:code 404} | raise | ok !| false) ~(5 | ok !| false)] | eq [false true])
+        ~(get [(!{:code 404} | raise | ok !| false) (5 | ok !| false)] | eq [false true])
     | proves :holdsTheTrace
         |~~ The trace holds the steps a failure skipped. ~~|
         ~("x" | add 1 | mul 2 !| trace | last | skipped | eq ~(mul 2))
-    | proves :runsAQuote
-        |~~ `apply` runs a quote on a subject. ~~|
-        ~(5 | apply ~(add 1 | mul 2) | eq 12)
+    | proves :runsCode
+        |~~ `apply` runs code on its subject. ~~|
+        ~(5 | apply (add 1 | mul 2) | eq 12)
     | proves :parsesText
         |~~ `parse` turns text into a quote. ~~|
         ~("add 1" | parse | eq ~(add 1))
@@ -365,18 +369,18 @@
         |~~ A kind of your own takes a verb and an input held to its
             kinds.
         ~~|
-        ~(:Box |~~ A parcel. ~~|; :Box/put (::fn | takes :weight |~~ A weight. ~~| /0 ::number | impl ~(within ~(append weight))); ::Box[1] | get [~(put 7) ~(put "x" !| tag)] | eq [::Box[1 7] ::Box/put/WeightKindNotTakenError])
+        ~(:Box |~~ A parcel. ~~|; :Box/put (::fn | takes :weight |~~ A weight. ~~| /0 ::number | impl ~(within (append weight))); ::Box[1] | get [(put 7) (put "x" !| tag)] | eq [::Box[1 7] ::Box/put/WeightKindNotTakenError])
     | proves :givesAnInputADefault
         |~~ An input read by `query` has a default. ~~|
-        ~(:number/plus (::fn | takes :by |~~ How much, one where none. ~~| ~(query /0 1) | impl ~(add by)); 5 | get [~(plus) ~(plus 2)] | eq [6 7])
+        ~(:number/plus (::fn | takes :by |~~ How much, one where none. ~~| ~(query /0 1) | impl ~(add by)); 5 | get [plus (plus 2)] | eq [6 7])
     | proves :runsANamedQuote
         |~~ A quote held in a record runs by `apply` under the name `with`
             gives it.
         ~~|
-        ~({:shipping ~(add 5)} | with [/shipping] ~(20 | apply shipping) | eq 25)
+        ~({:shipping ~(add 5)} | with [/shipping] (20 | apply shipping) | eq 25)
     | proves :readsAStepAsACall
         |~~ The step of `add 1` is a `::call` named `add`. ~~|
-        ~(~(add 1) | first | get [~(tag) /name] | eq [::call :add])
+        ~(~(add 1) | first | get [tag /name] | eq [::call :add])
     | proves :readsADoc
         |~~ A doc splits into its prose and the code it holds. ~~|
         ~(|~~ a ~(eq 1) b ~~| | segments | count | eq 3)
@@ -388,7 +392,7 @@
         ~({:users [{:age 30} {:age "x"}]} | shape | eq ::shape{:users [{:age #[::number ::string]}]})
     | proves :opensTheChapters
         |~~ The links of the first page open its chapters. ~~|
-        ~(::qlang | doc | links | map ~open | count | gt 5)
+        ~(::qlang | doc | links | map open | count | gt 5)
     | tells :values
         |~~ Values. Everything qlang handles is a value, data, code, prose
             and failures alike, so everything the language says about
@@ -434,30 +438,30 @@
         #[::tag ::null ::boolean ::number ::string ::regex ::keyword ::path ::vec ::map ::set ::desc ::tagged]
     | proves :values/impliesTheKinds
         |~~ Each literal answers its kind. ~~|
-        ~([42 "Ann" :active [1] {:id 7} #[1] true null] | map ~tag | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
+        ~([42 "Ann" :active [1] {:id 7} #[1] true null] | map tag | eq [::number ::string ::keyword ::vec ::map ::set ::boolean ::null])
     | proves :values/putsAnyPayloadUnderATag
         |~~ A literal touches its tag by its own sign, and a number, a
             boolean, null or a path by `#`.
         ~~|
         ~([::Box{:width 2} ::Box[1 2] ::Box"tea" ::Box:fragile ::Box#3 ::Box#true ::Box#null ::Box#/width]
-          | map ~payload
+          | map payload
           | eq [{:width 2} [1 2] "tea" :fragile 3 true null /width])
     | proves :values/attachesTheTagOrRefusesThePayload
         |~~ A kind attaches its tag to a payload or refuses it. ~~|
         ~(:Pos |~~ A number above zero. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0));
-          get [~(::Pos#3 | payload) ~(::Pos#-3 !| tag)]
+          get [(::Pos#3 | payload) (::Pos#-3 !| tag)]
           | eq [3 ::Pos/NotPositiveError])
     | proves :values/computesNothingInsideALiteral
         |~~ A group or a name inside a literal is refused, and a value
             computed goes under a tag by `tag`.
         ~~|
-        ~(get [~("[(1 | add 2)]" | parse !| tag) ~(":rate 2; [rate]" | parse !| tag) ~(1 | add 2 | tag ::Box | payload)]
+        ~(get [("[(1 | add 2)]" | parse !| tag) (":rate 2; [rate]" | parse !| tag) (1 | add 2 | tag ::Box | payload)]
           | eq [::quote/ParseError ::quote/ParseError 3])
     | proves :values/isToldByHowItsPrintOpens
         |~~ A string, a keyword, a tag, a vector, a set, a regex, a map,
             a quote and an error at rest each print as their kind opens.
         ~~|
-        ~(["tea" :tea ::Tea [1] #[1] #"tea" {:tea 1} ~(tea) !{:tea 1}] | map ~tag | eq [::string ::keyword ::tag ::vec ::set ::regex ::map ::quote ::error])
+        ~(["tea" :tea ::Tea [1] #[1] #"tea" {:tea 1} ~(tea) !{:tea 1}] | map tag | eq [::string ::keyword ::tag ::vec ::set ::regex ::map ::quote ::error])
     | proves :values/readsAKindOfTheCoreUnderItsTag
         |~~ A kind of the core reads its payload under its tag as the
             value itself.
@@ -465,13 +469,13 @@
         ~([::set[2 1] ::number#5 ::map{:id 7}] | eq [#[1 2] 5 {:id 7}])
     | proves :values/stacksTags
         |~~ Tags stack and read from the outside in. ~~|
-        ~([7 8] | tag ::Inner | tag ::Outer | get [~(tag) ~(payload | tag) ~(payload | payload)] | eq [::Outer ::Inner [7 8]])
+        ~([7 8] | tag ::Inner | tag ::Outer | get [tag (payload | tag) (payload | payload)] | eq [::Outer ::Inner [7 8]])
     | proves :values/readsTheOuterTag
         |~~ `tag` reads the outer tag. ~~|
         ~(::Box::Crate{:width 2} | tag | eq ::Box)
     | proves :values/leavesTheOldValueAsItWas
         |~~ Appending leaves the old vector as it was. ~~|
-        ~(["tea" "milk"] | get [~(it) ~(append "bread")] | eq [["tea" "milk"] ["tea" "milk" "bread"]])
+        ~(["tea" "milk"] | get [it (append "bread")] | eq [["tea" "milk"] ["tea" "milk" "bread"]])
     | proves :values/readsBackItsPrint
         |~~ A value reads back from its print. ~~|
         ~({:order 7 :items ["tea" "milk"] :flags #[:paid] :box ::Box[3]} | eq (print | parse | answer))
@@ -490,23 +494,24 @@
             group and of a quote, where it is the subject, or as what a verb
             takes; a value written as a later
             step is refused, and a value goes under a tag by `tag`. `map`
-            runs a quote or a path on each element of a vector or each
-            value of a map. A pipe written before `!|` stands for it. A
+            runs code, a path or a template on each element of a vector or
+            each value of a map. A pipe written before `!|` stands for it. A
             path, `/name`, `/0`, `/-1`, `/user/name`, is read by `get`, and
             a miss is an error there; `query` reads it softly, and `put`,
-            `update` and `delete` write it. A modifier is computed against
-            the subject of its own step, the value the step before it
-            answered, so two fields of one record are read in one step, by
-            the template of `get` or by the names `with` gives the code of
-            one step, and steps in parentheses run on the value in the
-            pipe and answer what their last step answers. A text, a query,
+            `update` and `delete` write it. A modifier an input of a value
+            takes is computed against the subject of its own step, the value
+            the step before it answered, and one an input of code takes runs
+            where the verb runs it, so two fields of one record are read in
+            one step, by the template of `get` or by the names `with` gives
+            the code of one step, and steps in parentheses run on the value
+            in the pipe and answer what their last step answers. A text, a query,
             a source, a cell and the code of a quote or of a group, is its
             declarations, each ended by `;`, the last one by the end of a
             text that holds no query, and one query after them,
-            `:rate 2; [1 2] | map ~(mul rate)`: the declarations run
+            `:rate 2; [1 2] | map (mul rate)`: the declarations run
             first, each with no subject, and the query asks for the
             answer, so one query asks several things by a template,
-            `get [~(…) ~(…)]`, and a `;` after it is refused. A line break
+            `get [(…) (…)]`, and a `;` after it is refused. A line break
             is a space, so a text folds into one line and back, and a step
             on the next line joins by `|`, written at the end of a line or
             at the start of the next. A comment, `|~ … ~|`, nesting, or
@@ -514,7 +519,7 @@
             bind alike, from left to right.
             A group is a fork: it starts from the value and the names
             outside it, and only its answer leaves it; a literal computes
-            nothing, and the quotes of a template `get` runs are forks of
+            nothing, and the groups of a template `get` runs are forks of
             their own, so they see nothing of each other.
         ~~|
         #[::path ::group ::bind ::call ::construct]
@@ -538,10 +543,10 @@
         ~({:name "Ann"} | get /nmae !| tag | eq ::path/KeyNotInMapError)
     | proves :pipeline/namesTwoPartsForTheCodeOfAStep
         |~~ `with` names two parts of the record for the code of one step. ~~|
-        ~({:qty 2 :price 3} | with [/qty /price] ~(qty | mul price) | eq 6)
+        ~({:qty 2 :price 3} | with [/qty /price] (qty | mul price) | eq 6)
     | proves :pipeline/holdsTheValueBesideWhatItComputes
-        |~~ A template holds the value beside what its quotes compute. ~~|
-        ~(5 | get [~(it) ~(add 1)] | eq [5 6])
+        |~~ A template holds the value beside what its code computes. ~~|
+        ~(5 | get [it (add 1)] | eq [5 6])
     | proves :pipeline/joinsLinesByAPipe
         |~~ Steps on several lines join by `|`, a comment between them. ~~|
         ~("[3 1 2]\n|~| the order\n| sort\n| first" | parse | answer | eq 1)
@@ -552,18 +557,18 @@
         |~~ A declaration ends with `;` wherever its line ends, and the
             query after it reads its word.
         ~~|
-        ~(":rate\n  2;\n[1 2]\n| map ~(mul rate)" | parse | answer | eq [2 4])
+        ~(":rate\n  2;\n[1 2]\n| map (mul rate)" | parse | answer | eq [2 4])
     | proves :pipeline/asksOneQueryAText
         |~~ A `;` after the query is refused: one query asks several things
             by a template.
         ~~|
-        ~(get [~("1 | add 1; 2" | parse !| tag) ~(get [~(1 | add 1) ~(2)])] | eq [::quote/ParseError [2 2]])
+        ~(get [("1 | add 1; 2" | parse !| tag) (get [(1 | add 1) (2)])] | eq [::quote/ParseError [2 2]])
     | proves :pipeline/nestsComments
         |~~ Comments nest and stand where spaces stand. ~~|
         ~("|~ outer |~ inner ~| ~| [1 2] |~ a note ~| | count" | parse | answer | eq 2)
     | proves :pipeline/seesNothingOfASibling
-        |~~ One quote of a template sees nothing of another. ~~|
-        ~(get [~(:bonus 1; bonus) ~(bonus)] !| tag | eq ::call/UnknownNameError)
+        |~~ One group of a template sees nothing of another. ~~|
+        ~(get [(:bonus 1; bonus) (bonus)] !| tag | eq ::call/UnknownNameError)
     | tells :names
         |~~ Names. A name holds what its declaration answered for the
             query of its text: `:rate 0.2;` declares it in the scope of the
@@ -625,21 +630,21 @@
         ~(::vec | manifest | has ::vec/count)
     | proves :names/closesWithItsGroup
         |~~ A name declared in a group closes with it. ~~|
-        ~((:Crate |~~ A crate. ~~|; ::Crate | doc | content) | get [~(it) ~(::host | env | has :Crate)] | eq ["A crate." false])
+        ~((:Crate |~~ A crate. ~~|; ::Crate | doc | content) | get [it (::host | env | has :Crate)] | eq ["A crate." false])
     | proves :names/servesTheValuesOfItsLabel
         |~~ A name under a label serves its values. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/area ~(mulOf /width /height); ::Box{:width 3 :height 2} | area | eq 6)
+        ~(:Box |~~ A box. ~~|; :Box/area mulOf /width /height; ::Box{:width 3 :height 2} | area | eq 6)
     | proves :names/extendsANounOfTheLanguage
         |~~ A reader's name under `vec` serves vectors. ~~|
-        ~(:vec/second ~(get /1); [7 8 9] | second | eq 8)
+        ~(:vec/second get /1; [7 8 9] | second | eq 8)
     | proves :names/refusesAnotherSubject
         |~~ Another subject is refused under the name's address. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/area ~(mulOf /width /height); {:width 3 :height 2} | Box/area !| tag | eq ::Box/area/SubjectNotBoxError)
+        ~(:Box |~~ A box. ~~|; :Box/area mulOf /width /height; {:width 3 :height 2} | Box/area !| tag | eq ::Box/area/SubjectNotBoxError)
     | proves :names/residesWhereDeclared
         |~~ A quote taken from one label resides on the one it is declared
             under.
         ~~|
-        ~(:Box |~~ A box. ~~|; :Box/label ~("box"); :Crate |~~ A crate. ~~|; :Crate/label (::Box/label | binding | value); get [~(::Crate{} | label) ~(::Box{} | Crate/label !| tag)] | eq ["box" ::Crate/label/SubjectNotCrateError])
+        ~(:Box |~~ A box. ~~|; :Box/label ~("box"); :Crate |~~ A crate. ~~|; :Crate/label (::Box/label | binding | value); get [(::Crate{} | label) (::Box{} | Crate/label !| tag)] | eq ["box" ::Crate/label/SubjectNotCrateError])
     | proves :names/needsItsNoun
         |~~ A name under no declared noun is refused. ~~|
         ~(~(:Box/area ~(1)) | answer !| tag | eq ::bind/NounNotDeclaredError)
@@ -650,21 +655,21 @@
         |~~ A name `with` gives stands over the verb of its name, which
             its address calls, and is refused as a later step.
         ~~|
-        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] ~(get [~(count) ~(map/count) ~(keys | count !| tag)]) | eq [2 3 ::call/ValueAsALaterStepError])
+        ~(::order{:id 100 :item :bigmac :count 2} | with [/count] (get [count map/count (keys | count !| tag)]) | eq [2 3 ::call/ValueAsALaterStepError])
     | proves :names/shadowsForTheReaderAlone
         |~~ A reader's verb shadows a broader one in the reader's call,
             and a verb of the root never sees it.
         ~~|
-        ~(:vec/doc ~("mine"); [1 2] | get [~(doc) ~(tutorial | first | tag)] | eq ["mine" ::doc])
+        ~(:vec/doc ~("mine"); [1 2] | get [doc (tutorial | first | tag)] | eq ["mine" ::doc])
     | proves :names/beginsWithALetter
         |~~ A name begins with a letter or `_`, and a digit begins none. ~~|
         ~("1x" | parse !| tag | eq ::quote/ParseError)
     | proves :names/holdsEachDocOfItsSlot
         |~~ Two docs in the slot are two parts of its page. ~~|
-        ~(:Box |~~ A box. ~~| |~~ It holds parcels. ~~|; ::Box | binding | docs | map ~content | eq ["A box." "It holds parcels."])
+        ~(:Box |~~ A box. ~~| |~~ It holds parcels. ~~|; ::Box | binding | docs | map content | eq ["A box." "It holds parcels."])
     | proves :names/recursesByName
         |~~ A name calls itself through the tree of names. ~~|
-        ~(:map/walk ~(get {:name /name :kids ~(get /kids | map ~walk)}); {:name "Ann" :kids [{:name "Bob" :kids []}]} | walk | get /kids/0/name | eq "Bob")
+        ~(:map/walk (get {:name /name :kids (get /kids | map walk)}); {:name "Ann" :kids [{:name "Bob" :kids []}]} | walk | get /kids/0/name | eq "Bob")
     | tells :verbs
         |~~ Verbs. A verb lives on a kind, the one whose values it serves,
             and has an address, `::vec/sort`; so what can be done with a
@@ -695,7 +700,7 @@
             them from the function, each input bound by its name in the
             recipe, a name the recipe declares no second time; `manifest`
             answers them before a call. A recipe written alone under a
-            label, `:number/double ~(mul 2);`, is the function of no
+            label, `:number/double mul 2;`, is the function of no
             commands it is, which takes no args; an input, an answer, a
             subject and an invariant are written in the chain alone. An
             answer of the verb's own label goes back under the tags the
@@ -750,7 +755,7 @@
         ~(::Box[3 1 2] | sort | eq ::Box[1 2 3])
     | proves :verbs/answersTheVerbsOfTheKindsItsWalkReaches
         |~~ A set answers a verb of vectors it does not declare. ~~|
-        ~(#[3 1 2] | get [~(count) ~(binding :count | name)] | eq [3 :vec/count])
+        ~(#[3 1 2] | get [count (binding :count | name)] | eq [3 :vec/count])
     | proves :verbs/declaresTheInputs
         |~~ `query` declares its path and its default as its inputs. ~~|
         ~(::any/query | binding | value | inputs | map /name | eq [:path :default])
@@ -762,7 +767,7 @@
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); 5 | plus 2 | eq 7)
     | proves :verbs/takesNoArgsForARecipeWrittenAlone
         |~~ A recipe written alone takes no args. ~~|
-        ~(:number/double ~(mul 2); 5 | get [~(double) ~(double 3 !| tag)] | eq [10 ::number/double/ArgsBeyondInputsError])
+        ~(:number/double mul 2; 5 | get [double (double 3 !| tag)] | eq [10 ::number/double/ArgsBeyondInputsError])
     | proves :verbs/combinesValuesOfOneSubject
         |~~ A verb that combines several values of one subject reads each
             from its args.
@@ -770,7 +775,7 @@
         ~({:price 100 :qty 3} | mulOf /price /qty | eq 300)
     | proves :verbs/takesAQuoteForLaterCode
         |~~ Code run later is a quote. ~~|
-        ~([{:age 3} {:age 20}] | filter ~(get /age | gt 18) | count | eq 1)
+        ~([{:age 3} {:age 20}] | filter (get /age | gt 18) | count | eq 1)
     | proves :verbs/takesAPathAsCode
         |~~ A path is the code that reads it from each element,
             `sort /age`.
@@ -778,7 +783,7 @@
         ~("[{:age 3}] | sort /age | first | get /age" | parse | answer | eq 3)
     | proves :verbs/needsABoolean
         |~~ A condition is a boolean. ~~|
-        ~([1 2] | filter ~(1) !| get [~(tag) ~(predicate | expected)] | eq [::vec/filter/PredicateAnswerKindNotTakenError #[::boolean]])
+        ~([1 2] | filter (1) !| get [tag (predicate | expected)] | eq [::vec/filter/PredicateAnswerKindNotTakenError #[::boolean]])
     | proves :verbs/laysAnUndeclaredTag
         |~~ A tag no declaration answers checks nothing. ~~|
         ~(::Small#12 | payload | eq 12)
@@ -792,12 +797,12 @@
         |~~ A verb of the noun's values refuses the tag name where no verb
             of its name lives on `::any`.
         ~~|
-        ~(:Desk |~~ A help desk. ~~|; :Desk/size ~(count); ::Desk | size !| tag | eq ::Desk/size/SubjectNotDeskError)
+        ~(:Desk |~~ A help desk. ~~|; :Desk/size count; ::Desk | size !| tag | eq ::Desk/size/SubjectNotDeskError)
     | proves :verbs/passesTheTagToTheVerbOfEveryValue
         |~~ A verb of the noun's values passes the tag name to the verb of
             its name on `::any`.
         ~~|
-        ~(:any/label ~("any"); :Box |~~ A box. ~~|; :Box/label ~("box"); get [~(::Box | label) ~(::Box[1] | label)] | eq ["any" "box"])
+        ~(:any/label ~("any"); :Box |~~ A box. ~~|; :Box/label ~("box"); get [(::Box | label) (::Box[1] | label)] | eq ["any" "box"])
     | proves :verbs/keepsTheInvariantsOfItsKind
         |~~ A value put under a kind keeps the kind's invariants. ~~|
         ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ A number above zero. ~~| ~(gt 0)); ::Pos#-3 !| tag | eq ::Pos/NotPositiveError)
@@ -837,30 +842,30 @@
         ~("x" | add 1 !| tag | eq ::number/add/SubjectNotNumberError)
     | proves :errors/recoversWhereRead
         |~~ `!|` inside the code `map` runs recovers each failure. ~~|
-        ~([1 "x"] | map ~(mul 2 !| 0) | eq [2 0])
+        ~([1 "x"] | map (mul 2 !| 0) | eq [2 0])
     | proves :errors/holdsTheRefusedSubject
         |~~ The first frame holds the subject the step refused. ~~|
-        ~("a" | mul 2 !| get [~(subject | found) ~(trace | first | subject)] | eq ["a" "a"])
+        ~("a" | mul 2 !| get [(subject | found) (trace | first | subject)] | eq ["a" "a"])
     | proves :errors/holdsAFrameForEachLevel
         |~~ The trace holds a frame for each level the error left. ~~|
-        ~(5 | apply ~(add "x" | mul 2) | sub 3 !| trace | map ~failed | eq [~(add "x") ~(apply ~(add "x" | mul 2))])
+        ~(5 | apply (add "x" | mul 2) | sub 3 !| trace | map failed | eq [~(add "x") ~(apply (add "x" | mul 2))])
     | proves :errors/holdsTheSkippedSteps
         |~~ The last frame holds the steps skipped. ~~|
         ~("x" | add 1 | mul 2 !| trace | last | skipped | toString | eq "mul 2")
     | proves :errors/runsTheSkippedStepsAgain
         |~~ The steps a failure skipped run again by `apply`. ~~|
-        ~("x" | add 1 | mul 2 !| trace | last | skipped | with {:rest ~it} ~(5 | apply rest) | eq 10)
+        ~("x" | add 1 | mul 2 !| trace | last | skipped | with {:rest it} (5 | apply rest) | eq 10)
     | proves :errors/namesThePathOfThePart
         |~~ The frame of a verb that ran its code on an element names the
             path of the element.
         ~~|
-        ~([1 "x" 3] | map ~(mul 2) !| trace | last | path | eq /1)
+        ~([1 "x" 3] | map (mul 2) !| trace | last | path | eq /1)
     | proves :errors/resumesItsTrace
         |~~ A map raised again resumes its trace. ~~|
         ~(!{:code 404} | raise | count !| raise | add 1 !| get /trace | last | skipped | eq ~(count | add 1))
     | proves :errors/asksWhetherTheStepBeforeStood
         |~~ `ok !| false` answers whether the step before stood. ~~|
-        ~(get [~(!{:code 404} | raise | ok !| false) ~(42 | ok !| false)] | eq [false true])
+        ~(get [(!{:code 404} | raise | ok !| false) (42 | ok !| false)] | eq [false true])
     | tells :code
         |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb
             takes one where it needs code, `filter`, `sort`, `if`, `apply`
@@ -876,7 +881,7 @@
             A quote written in a step, what a verb takes or a part of a
             template it takes, is code of that step: the step writes at its
             head the values of its scope the quote reads,
-            `{:bonus 10} | with [/bonus] ~([1 2] | map ~(add bonus))` handing `map`
+            `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` handing `map`
             the code `~(:bonus 10; add bonus)`, so it runs as it reads by whatever road the
             call hands it on, a verb written in the language among them.
             All code runs in a lane of its own: the verbs, the nodes and
@@ -892,26 +897,26 @@
         #[::quote]
     | proves :code/runsByApply
         |~~ A quote is a value, which counts its steps, and `apply` runs it. ~~|
-        ~(~(add 1 | mul 2) | with {:rule ~it} ~(get [~(count) ~(5 | apply rule)]) | eq [2 12])
+        ~(~(add 1 | mul 2) | with {:rule it} (get [count (5 | apply rule)]) | eq [2 12])
     | proves :code/isAVectorOfSteps
         |~~ A quote counts its steps. ~~|
         ~(~(add 1 | mul 2) | count | eq 2)
     | proves :code/readsTheStepThatWroteIt
         |~~ A quote written in a step reads the names of that step. ~~|
-        ~({:bonus 10} | with [/bonus] ~(5 | apply ~(add bonus)) | eq 15)
+        ~({:bonus 10} | with [/bonus] (5 | apply (add bonus)) | eq 15)
     | proves :code/carriesTheValuesItReads
         |~~ The step writes at the head of its code the values it reads. ~~|
-        ~(:vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)); {:bonus 10} | with [/bonus] ~([1] | show ~(add bonus)) | eq ~(:bonus 10; add bonus))
+        ~(:vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)); {:bonus 10} | with [/bonus] ([1] | show (add bonus)) | eq ~(:bonus 10; add bonus))
     | proves :code/withholdsAValueOfTheReader
         |~~ Held code reads no value the reader named: a rule kept in a name
             reads no value of the code around it.
         ~~|
-        ~(apply ~(:bonus 10; :rule ~(add bonus); 5 | apply rule !| get [~(tag) ~(name)]) | eq [::call/ValueWithheldError :bonus])
+        ~(apply (:bonus 10; :rule ~(add bonus); 5 | apply rule !| get [tag name]) | eq [::call/ValueWithheldError :bonus])
     | proves :code/readsTheStepThroughAVerbOfTheLanguage
         |~~ A verb written in the language hands a quote on from the step that
             wrote it.
         ~~|
-        ~(:vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); {:bonus 10} | with [/bonus] ~([1 2] | twice ~(add bonus)) | eq [21 22])
+        ~(:vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); {:bonus 10} | with [/bonus] ([1 2] | twice (add bonus)) | eq [21 22])
     | tells :hypertext
         |~~ The hypertext. The names are a space of addresses, `::`
             beginning an absolute one, `::vec/sort`, and a verb passes
@@ -932,7 +937,7 @@
             query a reader runs by `answer` to see what it shows. So a
             page leads on to the pages that go deeper, and the pipeline
             moves through them as through any data: `manifest` lists what
-            lies under a noun, its verbs and refusals, `links | map ~open`
+            lies under a noun, its verbs and refusals, `links | map open`
             opens every page a page names in one query, and a filter over
             pages by `content | contains` searches them. Nothing is read
             that was not asked for, and a query names the shape of what it
@@ -945,13 +950,13 @@
         #[::doc ::link ::snippet ::law]
     | proves :hypertext/opensTheLinksOfAPage
         |~~ The links of a page open in one query. ~~|
-        ~(::qlang | doc | links | map ~open | count | gt 0)
+        ~(::qlang | doc | links | map open | count | gt 0)
     | proves :hypertext/passesIntoThreeAxes
         |~~ One address passes into its page, its record and its source. ~~|
-        ~(::vec/take | get [~(doc | tag) ~(binding | tag) ~(source | tag)] | eq [::doc ::binding ::quote])
+        ~(::vec/take | get [(doc | tag) (binding | tag) (source | tag)] | eq [::doc ::binding ::quote])
     | proves :hypertext/searchesThePages
         |~~ A filter over pages finds `drop`. ~~|
-        ~(::vec | manifest | filter ~(doc | content | contains "after the first") | eq #[::vec/drop])
+        ~(::vec | manifest | filter (doc | content | contains "after the first") | eq #[::vec/drop])
     | tells :hosts
         |~~ Hosts. The language runs inside a host, a tool that embeds it
             and brings verbs of its own, each a name whose value is

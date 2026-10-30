@@ -1,12 +1,12 @@
-{"name":"sort-takes-a-vector-as-a-compound-key","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b])","expect":"[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]"}
-{"name":"sort-puts-nulls-last-through-a-key","query":"[3 null 1] | sort ~(get [~(eq null) ~(it)])","expect":"[1 3 null]"}
+{"name":"sort-takes-a-vector-as-a-compound-key","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort (get [/a /b])","expect":"[{:a 0 :b 9} {:a 1 :b 1} {:a 1 :b 2}]"}
+{"name":"sort-puts-nulls-last-through-a-key","query":"[3 null 1] | sort (get [(eq null) it])","expect":"[1 3 null]"}
 {"name":"sort-descends-through-reverse","query":"[{:k 1} {:k 3} {:k 2}] | sort /k | reverse","expect":"[{:k 3} {:k 2} {:k 1}]"}
 {"name":"sort-keeps-equal-keys-in-subject-order","query":"[{:k 1 :i 0} {:k 0 :i 1} {:k 1 :i 2}] | sort /k","expect":"[{:k 0 :i 1} {:k 1 :i 0} {:k 1 :i 2}]"}
 {"name":"sort-orders-keys-of-every-kind","query":"[{:k \"a\"} {:k null} {:k 2}] | sort /k","expect":"[{:k null} {:k 2} {:k \"a\"}]"}
-{"name":"min-and-max-relate-values-of-one-kind","query":"get [~([3 1 2] | min) ~([3 1 2] | max) ~([3 \"a\" null] | min !| tag) ~([3 \"a\" null] | max !| get [~(leftTag) ~(rightTag) ~(trace | last | path)])]","expect":"[1 3 ::call/KindsMismatchedError [::number ::string /1]]"}
+{"name":"min-and-max-relate-values-of-one-kind","query":"get [([3 1 2] | min) ([3 1 2] | max) ([3 \"a\" null] | min !| tag) ([3 \"a\" null] | max !| get [leftTag rightTag (trace | last | path)])]","expect":"[1 3 ::call/KindsMismatchedError [::number ::string /1]]"}
 {"name":"a-key-that-answers-an-error-answers-it-over-a-map","query":"{:a {:n 1}} | sort /b !| tag","expect":"::path/KeyNotInMapError"}
-{"name":"a-vector-key-ranks-by-its-next-index-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b","expect":"[9 1 2]"}
-{"name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort ~(get [/a]) !| tag","expect":"::path/KeyNotInMapError"}
+{"name":"a-vector-key-ranks-by-its-next-index-among-ties","query":"[{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort (get [/a /b]) | map /b","expect":"[9 1 2]"}
+{"name":"a-vector-key-that-fails-at-an-index-answers-the-call","query":"[{:a 2} {:b 1}] | sort (get [/a]) !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"max-takes-a-key-and-answers-the-element","query":"[{:age 30} {:age 40}] | max /age","expect":"{:age 40}"}
 {"name":"min-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | min /n | get /i","expect":"0"}
 {"name":"max-of-the-entries-by-their-values-finds-the-key-of-the-greatest","query":"{:a 3 :b 1} | entries | max /1 | get /0","expect":":a"}
@@ -18,7 +18,7 @@
 {"name":"a-key-of-another-kind-is-refused-under-the-key","query":"[2 1] | sort 5 !| tag","expect":"::vec/sort/KeyKindNotTakenError"}
 {"name":"a-key-of-a-map-that-is-no-code-is-refused","query":"{:a 1} | sort 5 !| tag","expect":"::map/sort/KeyKindNotTakenError"}
 {"name":"a-key-of-min-that-is-no-code-is-refused","query":"[1] | min 5 !| tag","expect":"::vec/min/KeyKindNotTakenError"}
-{"name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort ~(get [/e /a]) | map /a","expect":"[1 2]"}
+{"name":"an-error-at-rest-a-key-answers-ranks-as-the-one-order-ranks-it","query":"[{:a 2 :e !{:k 1}} {:a 1 :e !{:k 1}}] | sort (get [/e /a]) | map /a","expect":"[1 2]"}
 {"name":"a-value-that-is-no-container-answers-no-sort","query":"\"cab\" | sort !| tag","expect":"::call/KindAnswersNoVerbError"}
-{"name":"a-missing-value-is-taken-out-before-max-relates-the-rest","query":"get [~([1 null 3] | max !| get [~(leftTag) ~(rightTag)]) ~([1 null 3] | filter ~(ne null) | max) ~([{:age 30} {:age \"15\"}] | max /age !| tag)]","expect":"[[::number ::null] 3 ::call/KindsMismatchedError]"}
+{"name":"a-missing-value-is-taken-out-before-max-relates-the-rest","query":"get [([1 null 3] | max !| get [leftTag rightTag]) ([1 null 3] | filter (ne null) | max) ([{:age 30} {:age \"15\"}] | max /age !| tag)]","expect":"[[::number ::null] 3 ::call/KindsMismatchedError]"}
 {"name":"max-takes-a-key-and-answers-the-first-of-equal-ones","query":"[{:n 1 :i 0} {:n 1 :i 1}] | max /n | get /i","expect":"0"}

@@ -4,10 +4,10 @@ import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } 
 import { declareRefusal, refusingAPart, QlangError, QlangDefect } from '../errors.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
-import { layTag, errorAtRestOf } from '../eval.mjs';
+import { errorAtRestOf, readOne, readTemplate, relaid } from '../eval.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 import { atPath } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf, TAG_HEADER_SYMBOL } from '../types.mjs';
+import { isPath, makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf } from '../types.mjs';
 
 const StringToPathTextNotPathError = declareRefusal('string/toPath/TextNotPathError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
@@ -16,40 +16,10 @@ const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError'
 // [QSPTH#key]
 const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
 
-function readOne(subject, path, soft, fallback) {
-  const read = readPath(subject, path, soft);
-  return read === MISSED ? fallback : read;
-}
-
 // [QSLIT#tag]
 export function readByPath(subject, path, soft, fallback, state) {
   const key = beneathTags(path);
   return isPath(path) || isKeyAlone(key) ? readOne(subject, pathOf(key), soft, fallback) : readTemplate(subject, path, soft, fallback, state);
-}
-
-export async function readTemplate(subject, template, soft, fallback, state) {
-  if (typeof template === 'function') return await template(subject);
-  if (isPath(template)) return readOne(subject, template, soft, fallback);
-  if (isValueClass(template, 'underTag')) {
-    const payload = await readTemplate(subject, template.payload, soft, fallback, state);
-    if (payload === template.payload) return template;
-    return isErrorValue(payload) ? payload : await relaid(template, payload, state);
-  }
-  const parts = partsOfTemplate(template);
-  if (parts === null) return template;
-  const read = await readParts(subject, [...parts], soft, fallback, state);
-  if (isErrorValue(read)) return read;
-  return await relaid(template, isMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
-}
-
-async function readParts(subject, templates, soft, fallback, state) {
-  const parts = [];
-  for (const template of templates) {
-    const part = await readTemplate(subject, template, soft, fallback, state);
-    if (isErrorValue(part)) return part;
-    parts.push(part);
-  }
-  return parts;
 }
 
 registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
@@ -110,13 +80,6 @@ async function written(value, path, at, write, state) {
   return await relaid(value, bare, state);
 }
 
-async function relaid(original, rebuilt, state) {
-  if (isErrorValue(rebuilt)) return rebuilt;
-  const tag = original[TAG_HEADER_SYMBOL];
-  if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
-  return await layTag(tag.name, rebuilt, state);
-}
-
 registerStateReader('any/put', (subject, pathOrKey, value, state) =>
   written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
 registerStateReader('any/update', runsAsCode(['code'], (subject, pathOrKey, code, state) => {
@@ -143,6 +106,10 @@ registerPrimitive('path/segments', path => Object.freeze(path.segments.map(segme
   const index = segmentIndex(segment);
   return Number.isNaN(index) || String(index) !== segment ? makeKeyword(segment) : index;
 })));
+
+// [QSPTH#key]
+registerPrimitive('vec/at', (vector, index) => readPath(vector, makePath([String(index)])));
+registerPrimitive('map/at', (map, key) => readPath(map, makePath([keyNameOf(key)])));
 
 // [QSPTH#value], [QSPTH#key], [QSPTH#verbs]
 registerPrimitive('vec/toPath', keys => {

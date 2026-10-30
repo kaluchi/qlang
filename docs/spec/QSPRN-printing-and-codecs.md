@@ -78,16 +78,16 @@ true
 > #[2 1] | print
 "#[1 2]"
 
-> ["\uD800" "\u0007"] | map ~print
+> ["\uD800" "\u0007"] | map print
 ["\"\\ud800\"" "\"\\u0007\""]
 
-> ["a\n  b\n\nc"] | tag ::doc | get [~(print | lines | map ~count) ~(eq (print | parse | first))]
+> ["a\n  b\n\nc"] | tag ::doc | get [(print | lines | map count) (eq (print | parse | first))]
 [[5 5 0 7] true]
 
-> ::number/round | source | toString | lines | filter ~(startsWith "| takes") | first
+> ::number/round | source | toString | lines | filter (startsWith "| takes") | first
 "| takes :digits"
 
-> [~(:Box |~~ B ~~|; :Box/print ~("box");) ~(:number/print ~("n");)] | map ~(answer !| get [~(tag) ~(name)])
+> [~(:Box |~~ B ~~|; :Box/print ~("box");) ~(:number/print ~("n");)] | map (answer !| get [tag name])
 [[::bind/PrintDeclaredError :Box/print] [::bind/PrintDeclaredError :number/print]]
 
 > [::Box#1 ::Box] | print
@@ -96,10 +96,10 @@ true
 > {:user {:tags [1 2]}} | get /group !| trace
 ::trace[::frame[{:user {:tags [1 2]}} ~(get /group)]]
 
-> [1 "x" 3] | map ~(mul 2) !| trace | print | lines | count
+> [1 "x" 3] | map (mul 2) !| trace | print | lines | count
 4
 
-> "[1] | map ~(:rate (\"x\" | add 1);\n:fee 2;\nrate)" | parse | answer !| trace | map ~(print | lines | count)
+> "[1] | map ~(:rate (\"x\" | add 1);\n:fee 2;\nrate)" | parse | answer !| trace | map (print | lines | count)
 [1 1 1 1]
 ```
 
@@ -147,7 +147,7 @@ gloss of its page and beneath it a closed comment for each name the kind
 wires, in the order it wires them, the name, the path it reads where it
 reads no key of its own name, the kind of the part and the gloss of its
 page, so the print reads back as the legend of the tag and
-`::host | kinds | map ~legend` tells
+`::host | kinds | map legend` tells
 the parts of every kind before a value of it is held; beneath them stands a
 closed comment for each view the kind reveals [QSPRN#excerpt], its name,
 the kind its verb answers and the gloss of the page of that answer, a view
@@ -165,7 +165,7 @@ $ qplay ':Box |~~ A parcel: of a width. ~~| (::kind | wires :width |~~ The width
 ```
 
 ```qlang
-> [1 2] | map ~legend | get [~(print | lines | count) ~(print | parse | answer) ~(first | tag)]
+> [1 2] | map legend | get [(print | lines | count) (print | parse | answer) (first | tag)]
 [4 [::legend#1 ::legend#2] ::legend]
 
 > ::point | legend | print | lines | get /2
@@ -177,7 +177,7 @@ $ qplay ':Box |~~ A parcel: of a width. ~~| (::kind | wires :width |~~ The width
 > ::trace | legend | print | lines | drop 1 | first
 "|~ failed ::vec · The steps that failed, level by level ~|"
 
-> 1 | add (5000 | range) !| legend | print | get [~(count | gt 16000) ~(contains "4999]")]
+> 1 | add (5000 | range) !| legend | print | get [(count | gt 16000) (contains "4999]")]
 [true true]
 
 > ::qlang/AnswerBeyondBudgetError::excerpt{:answer ::cell"dba04efcdf7d" :answer/tag ::legend :answer/payload/tag ::number/add/AddendKindNotTakenError :answer/addend/expected #[::number]} | legend | print | lines | get /4 | split "|~ " | get /1
@@ -211,7 +211,7 @@ the number is the whole text [QSPTH#value]; a duplicate key reads as
 > "[1, 2" | parseJson !| tag
 ::string/parseJson/TextNotJsonError
 
-> "[1e400]" | parseJson !| get [~(tag) ~(path)]
+> "[1e400]" | parseJson !| get [tag path]
 [::string/parseJson/NumberNotFiniteError /0]
 
 > "1e400" | parseJson !| payload | keys
@@ -255,19 +255,19 @@ the whole is read live, a fact of a failure by `!|` and a cell by
 `answer`.
 
 ```qlang
-> [1 "x" 3] | map ~(mul 2) !| trace | get [~(failed) ~(subject) ~(paths)]
+> [1 "x" 3] | map (mul 2) !| trace | get [failed subject paths]
 [[~(mul 2) ~(map ~(mul 2))] "x" [/1]]
 
 > ::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer)
 true
 
-> ::number/add/AddendKindNotTakenError::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [~(addend | found | tag) ~(payload | get /:addend/found/count)]
+> ::number/add/AddendKindNotTakenError::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/tag ::vec :addend/found/count 3410} | get [(addend | found | tag) (payload | get /:addend/found/count)]
 [::cell 3410]
 
-> ::vec | legend | print | lines | drop 1 | map ~(split " " | get /1)
+> ::vec | legend | print | lines | drop 1 | map (split " " | get /1)
 ["count" "shape" "first" "last"]
 
-> ::map | legend | print | lines | drop 1 | map ~(split " " | get /1)
+> ::map | legend | print | lines | drop 1 | map (split " " | get /1)
 ["count" "shape"]
 
 > [1 2] | excerpt !| tag
@@ -284,7 +284,7 @@ $ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^  :addend/found ::ce
 Every host but the REPL prints an answer within one budget,
 `ANSWER_BUDGET` of the core, the characters of the print counted as
 `count` counts a string, which is never smaller than the first screen,
-`[::qlang ::host] | map ~(get [~it ~doc])`: an answer that fits
+`[::qlang ::host] | map (get [it doc])`: an answer that fits
 prints whole, and one past the budget prints as the failure
 `::qlang/AnswerBeyondBudgetError` instead, under the line of the raise,
 whose facts are `:characters`, the characters of the print, `:budget`,
@@ -338,6 +338,6 @@ numbers.
 > ::span[0 1 1] !| tag
 ::span/EndNotReadError
 
-> ::span[0 1 "x" 1 1 2] !| get [~(tag) ~(index)]
+> ::span[0 1 "x" 1 1 2] !| get [tag index]
 [::span/ElementKindNotTakenError 2]
 ```

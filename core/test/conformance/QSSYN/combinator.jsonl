@@ -3,13 +3,13 @@
 {"name":"a-pipe-after-the-catch-keeps-the-catch","query":"\"[1] !| | count\" | parse !| message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
 {"name":"a-catch-after-the-catch-stands-once","query":"\"[1] !| !| count\" | parse !| message","expect":"\"`!|` written after `!|`: a combinator stands once between two steps, write `a !| b`\""}
 {"name":"a-pipe-after-a-combinator-names-the-form-that-keeps-it","query":"\"[1] !| | count\" | parse !| message | contains \"write `a !| b`\"","expect":"true"}
-{"name":"a-comment-opener-against-a-pipe-names-the-verb-that-runs-code","query":"\"[1 2] |~(add)\" | parse !| message","expect":"\"`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply ~(…)`\""}
+{"name":"a-comment-opener-against-a-pipe-names-the-verb-that-runs-code","query":"\"[1 2] |~(add)\" | parse !| message","expect":"\"`|~` opens a comment that is never closed; code runs on the value in the pipe by a verb, `| apply (…)`\""}
 {"name":"a-step-after-a-piped-combinator-names-its-own-fault","query":"\"[1 2] | !| {:a (/x | mul) /y}\" | parse !| message | contains \"map entry\"","expect":"true"}
 {"name":"a-combinator-before-a-closing-bracket-names-the-step-it-misses","query":"\"(1 | )\" | parse !| message","expect":"\"`|` joins two steps, and the step after it is missing\""}
 {"name":"a-combinator-after-a-piped-catch-is-refused-as-after-a-catch","query":"\"[1] | !| | count\" | parse !| message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
-{"name":"a-group-and-a-quote-may-open-with-a-combinator","query":"get [~(5 | (| add 1)) ~(5 | apply ~(!| 0))]","expect":"[6 5]"}
+{"name":"a-group-and-a-quote-may-open-with-a-combinator","query":"get [(5 | (| add 1)) (5 | apply (!| 0))]","expect":"[6 5]"}
 {"name":"a-pipe-before-the-catch-at-the-head-stands-for-it","query":"\"| !| 0\" | parse","expect":"~(!| 0)"}
 {"name":"a-pipe-after-the-catch-at-the-head-is-refused-as-the-habit","query":"\"!| | 0\" | parse !| message","expect":"\"`|` written after `!|` is the habit of a pipe before every step: write `a !| b`\""}
 {"name":"a-semicolon-between-two-queries-is-refused-naming-a-template","query":"\"::vec | doc; ::map | doc\" | parse !| message","expect":"\"`;` ends a declaration, and a text holds one query after its declarations: steps are joined by `|`, and one query asks several things by a template, `get [~(…) ~(…)]`\""}
 {"name":"a-semicolon-after-a-step-is-refused-where-it-stands","query":"\"[1 2] | count ; count\" | parse !| location","expect":"::span[14 1 15 15 1 16]"}
-{"name":"a-combinator-the-source-ends-with-before-a-comment-names-the-step-it-misses","query":"[\"[1] | |~ note ~|\" \"[1] |~ note ~| |\"] | map ~(parse !| message)","expect":"[\"`|` joins two steps, and the step after it is missing\" \"`|` joins two steps, and the step after it is missing\"]"}
+{"name":"a-combinator-the-source-ends-with-before-a-comment-names-the-step-it-misses","query":"[\"[1] | |~ note ~|\" \"[1] |~ note ~| |\"] | map (parse !| message)","expect":"[\"`|` joins two steps, and the step after it is missing\" \"`|` joins two steps, and the step after it is missing\"]"}

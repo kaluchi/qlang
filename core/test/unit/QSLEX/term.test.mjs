@@ -101,7 +101,7 @@ it('refuses the names the read of text into code, the template, the read of a pr
 
 it('leaves parse of a string, open of a link, the tuple of a shape and the names of the shape written instead', () => {
   for (const text of [
-    '"add 1" | parse', '"#[3 1 3]" | parse | answer', '::link/open', '5 | apply ~(add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
+    '"add 1" | parse', '"#[3 1 3]" | parse | answer', '::link/open', '5 | apply (add 1)', '::string/parse', '::quote/ParseError', ':readsTuplesIndexByIndex', 'a shape reads a tuple index by index',
     'get-reads-two-fields-of-one-record-by-a-template', 'coreKindOf', 'foldersOfForm', 'intoTemplate', ':readsByTheKeyItShows'
   ]) expect(refused(text), text).toBe(false);
 });

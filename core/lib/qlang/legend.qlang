@@ -22,7 +22,7 @@
         |~~ A legend prints under its tag as the value it tells laid out, read
             back as the legend.
         ~~|
-        ~(::point[0 1 2] | legend | get [~(print | startsWith "::legend::point[") ~(eq (print | parse | answer))] | eq [true true])
+        ~(::point[0 1 2] | legend | get [(print | startsWith "::legend::point[") (eq (print | parse | answer))] | eq [true true])
     | proves :glossesEachPartItsKindWires
         |~~ A part its kind wires stands beside the gloss of its page and the
             name that reads it.

@@ -7,7 +7,7 @@ import {
   FN_TAG_NAME, KIND_TAG_NAME, BUILTIN_TAG, ERROR_TAG, EXCERPT_TAG, TRACE_TAG, TAG_HEADER_SYMBOL
 } from './types.mjs';
 import { makeSet } from './ordering.mjs';
-import { isCallStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
+import { isCallStep, isGroupStep, isBindStep, isPathAlone, builtFrom, commandStep } from './steps.mjs';
 import { ANY_KIND_NAME, elementsRefusalAddress, kindsRefusalAddress, notGivenAddress, notReadAddress, payloadRefusalName } from './address.mjs';
 import { readPath, segmentIndex, MISSED } from './path-read.mjs';
 
@@ -60,9 +60,17 @@ export const FN_COMMAND_NAMES = Object.freeze([...COMMANDS.keys()]);
 export const KIND_COMMAND_NAMES = Object.freeze([...KIND_COMMANDS.keys()]);
 export const COMMAND_NAMES = Object.freeze([...new Set([...FN_COMMAND_NAMES, ...KIND_COMMAND_NAMES, 'impl'])]);
 
-// [QSNAM#address], [QSLSP#server]
+// [QSNAM#address], [QSLSP#server], [QSNAM#declare]
 export function isVerbBody(body) {
-  return isQuote(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
+  return isQuote(body) || headsAProgram(body) || [FN_TAG_NAME, BUILTIN_TAG.name].includes(builtFrom(body));
+}
+
+// [QSNAM#declare]
+function headsAProgram(step) {
+  if (isCallStep(step)) return true;
+  if (!isGroupStep(step)) return false;
+  const head = step.payload.find(held => !isBindStep(held));
+  return head !== undefined && headsAProgram(head);
 }
 
 function modifierNotTaken(step, commands) {
@@ -238,6 +246,14 @@ export function functionOfRecipe(recipe) {
   let fn = FUNCTIONS_OF_RECIPES.get(recipe);
   if (fn === undefined) FUNCTIONS_OF_RECIPES.set(recipe, fn = makeTagged(makeTag(FN_TAG_NAME), Object.freeze([NO_COMMANDS, recipe])));
   return fn;
+}
+
+// [QSQUO#modifier]
+const WAYS_OF_CODE = ['run', 'folded', 'within', 'held'];
+
+export function inputsTakingCode(chain, marks) {
+  if (marks !== undefined) return new Set(WAYS_OF_CODE.flatMap(way => [...(marks[way] ?? [])]));
+  return new Set(chain.inputs.filter(({ kinds }) => (kinds ?? []).some(kind => kind === 'quote' || kind === 'fn')).map(({ name }) => name.name));
 }
 
 const CHAINS_OF_KINDS = new WeakMap();

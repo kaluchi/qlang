@@ -28,7 +28,7 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > [{:a 1} #[1] [1] ::t :k "s" 1 true null] | sort
 [null true 1 "s" :k ::t [1] #[1] {:a 1}]
 
-> get [~(!{:a 1} | eq !{:a 2}) ~(#[!{:a 1} !{:a 2}] | count) ~(::A#1 | eq ::A::B#1) ~(#[::A#1 ::A::B#1] | count) ~(#[1 2] | eq [1 2])]
+> get [(!{:a 1} | eq !{:a 2}) (#[!{:a 1} !{:a 2}] | count) (::A#1 | eq ::A::B#1) (#[::A#1 ::A::B#1] | count) (#[1 2] | eq [1 2])]
 [false 2 false 2 false]
 
 > ["b" "B" "a"] | sort
@@ -37,10 +37,10 @@ elements a set keeps, the algebra of sets, the keys `groupBy` and
 > ["😀" "ﬁ" "a" "👍"] | sort
 ["a" "ﬁ" "👍" "😀"]
 
-> [/b /a/c /a] | sort | map ~(print)
+> [/b /a/c /a] | sort | map print
 ["/a" "/a/c" "/b"]
 
-> get [~([::aaa#1 ::excerpt{:count 1}] | sort | map ~tag) ~([::desc#1 ::excerpt{:count 1} ~(a) |~~ a ~~| {:a 1}] | sort | map ~tag)]
+> get [([::aaa#1 ::excerpt{:count 1}] | sort | map tag) ([::desc#1 ::excerpt{:count 1} ~(a) |~~ a ~~| {:a 1}] | sort | map tag)]
 [[::aaa ::excerpt] [::map ::quote ::doc ::desc ::excerpt]]
 ```
 
@@ -77,16 +77,16 @@ while `map` answers the vector of the images.
 > #[1 2] | eq [1 2]
 false
 
-> #[3 1 2] | filter ~(gt 1)
+> #[3 1 2] | filter (gt 1)
 #[2 3]
 
-> get [~(#[3 1 2] | sort) ~(#[3 1 2] | reverse) ~(#[3 1 2] | take 2) ~(#[-1 1] | map ~(mul 0))]
+> get [(#[3 1 2] | sort) (#[3 1 2] | reverse) (#[3 1 2] | take 2) (#[-1 1] | map (mul 0))]
 [[1 2 3] [3 2 1] #[1 2] [0 0]]
 
-> #[1 2] | get [~(binding :filter | name) ~(binding :sort | name)]
+> #[1 2] | get [(binding :filter | name) (binding :sort | name)]
 [:vec/filter :set/sort]
 
-> get [~(#[[1 1] [2 2]] | zip) ~(#[[1 1] [2 2]] | flat) ~(#[[1 1] [2 2]] | vec/zip)]
+> get [(#[[1 1] [2 2]] | zip) (#[[1 1] [2 2]] | flat) (#[[1 1] [2 2]] | vec/zip)]
 [[[1 2] [1 2]] #[1 2] #[[1 2]]]
 ```
 
@@ -98,7 +98,7 @@ their values, each value keeping its key; `min` and `max` relate the
 values as `gt` relates two and answer the least and the greatest, null
 for an empty container, a pair of two kinds, null beside a number among
 them, refused where its second stands, a missing value taken out first,
-`filter ~(ne null) | max`, and a value that is no container answers none
+`filter (ne null) | max`, and a value that is no container answers none
 of them. Each takes a key, null, a
 quote or a path, another kind refused under its input `key`,
 `::vec/sort/KeyKindNotTakenError`, `::map/sort/KeyKindNotTakenError` and
@@ -112,7 +112,7 @@ the elements does where no key is given. `gt`, `gte`, `lt` and `lte`
 compare within one kind [QSCND#compare].
 
 ```qlang
-> [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort ~(get [/a /b]) | map /b
+> [{:a 1 :b 2} {:a 1 :b 1} {:a 0 :b 9}] | sort (get [/a /b]) | map /b
 [9 1 2]
 
 > [{:age 30} {:age 40}] | max /age
@@ -124,7 +124,7 @@ compare within one kind [QSCND#compare].
 > [!{:k 1} 1 null] | sort
 [null 1 !{:k 1}]
 
-> get [~([3 1 2] | min) ~([1 null 3] | max !| get [~(tag) ~(trace | last | path)]) ~([1 null 3] | filter ~(ne null) | max)]
+> get [([3 1 2] | min) ([1 null 3] | max !| get [tag (trace | last | path)]) ([1 null 3] | filter (ne null) | max)]
 [1 [::call/KindsMismatchedError /1] 3]
 ```
 
@@ -146,10 +146,10 @@ kind it ranks; a value under `::desc` beside one that is not is a pair of
 two kinds, which a comparison refuses [QSCND#compare].
 
 ```qlang
-> ["b" "c" "a"] | sort ~(desc)
+> ["b" "c" "a"] | sort desc
 ["c" "b" "a"]
 
-> [{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort ~(get [~(get /n | desc) /s]) | map /s
+> [{:n 1 :s "b"} {:n 2 :s "c"} {:n 2 :s "a"}] | sort (get [(get /n | desc) /s]) | map /s
 ["a" "c" "b"]
 
 > 1 | desc | gt (2 | desc)
@@ -158,18 +158,18 @@ true
 > 1 | desc | gt ("a" | desc)
 true
 
-> get [~(1 | desc | gt 2 !| tag) ~(2 | gt (1 | desc | desc) !| tag) ~(get [2 ~(1 | desc | desc)] | sort)]
+> get [(1 | desc | gt 2 !| tag) (2 | gt (1 | desc | desc) !| tag) (get [2 (1 | desc | desc)] | sort)]
 [::call/KindsMismatchedError true [1 2]]
 
-> get [~(5 | desc | desc) ~(::desc::desc#5) ~(5 | desc | tag ::Box | desc)]
+> get [(5 | desc | desc) (::desc::desc#5) (5 | desc | tag ::Box | desc)]
 [5 ::desc#5 ::Box#5]
 
-> [1 2] | map ~(desc | tag ::Box) | get [~(sort | map ~(payload | payload)) ~(sort ~(desc) | map ~(payload | payload))]
+> [1 2] | map (desc | tag ::Box) | get [(sort | map (payload | payload)) (sort desc | map (payload | payload))]
 [[2 1] [1 2]]
 
-> [1 3 2] | sort ~(desc | desc)
+> [1 3 2] | sort (desc | desc)
 [1 2 3]
 
-> get [~(1 | desc | tag ::Box) ~(2 | desc | tag ::Box)] | sort
+> get [(1 | desc | tag ::Box) (2 | desc | tag ::Box)] | sort
 [::Box::desc#2 ::Box::desc#1]
 ```

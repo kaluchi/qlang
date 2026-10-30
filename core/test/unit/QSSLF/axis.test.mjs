@@ -26,7 +26,7 @@ describe('::name | source answers the quote of the declarations under the name',
     const { createNotebook } = await import('../../../src/notebook.mjs');
     const sessionInstance = await createNotebook();
     const cellEntry = await sessionInstance.evalCell(
-      'apply ~(:landing {}; :landing/chapter01 |~~ Глава из лендинг пейджа ~~|; ::landing/chapter01 | doc | content)');
+      'apply (:landing {}; :landing/chapter01 |~~ Глава из лендинг пейджа ~~|; ::landing/chapter01 | doc | content)');
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toBe('Глава из лендинг пейджа');
   });
@@ -58,7 +58,7 @@ describe('the axes read the node a tag addresses', () => {
   });
 
   it('::quote | doc reads the page the declaration of the kind holds, the page a quote reads', async () => {
-    expect(await evalQuery('::quote | doc | get [~(tag) ~(eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
+    expect(await evalQuery('::quote | doc | get [tag (eq (~(1) | doc))]')).toEqual(await evalQuery('[::doc true]'));
   });
 
   it('an axis refusing a tag no declaration names hands its host the refusal under `originalError`, with its address and its facts', async () => {
@@ -94,7 +94,7 @@ it('an error at rest reads the page of its tag', async () => {
 
 describe('the axes resolve the binding the evaluator dispatches', () => {
   // [QSNAM#binding]
-  const hundredfold = ':any/hundredfold ~(mul 100); ';
+  const hundredfold = ':any/hundredfold mul 100; ';
 
   it('doc answers null for a verb of the reader that carries no page', async () => {
     expect(await evalQuery(hundredfold + '::any/hundredfold | doc')).toBeNull();
@@ -108,7 +108,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
     });
     const cellEntry = await sessionInstance.evalCell(
       ':contested |~~ from the cell ~~|; ' +
-      'get [~(::contested | source | toString), ~(::contested | doc | content)]');
+      'get [(::contested | source | toString), (::contested | doc | content)]');
     expect(cellEntry.defect).toBeNull();
     expect(cellEntry.result).toEqual([':contested |~~ from the source ~~|;', 'from the source']);
   });
@@ -119,7 +119,7 @@ describe('the axes resolve the binding the evaluator dispatches', () => {
 });
 
 it('source on a declaration answers the declaration', async () => {
-  const source = await evalQuery('apply ~(:snap 42; ::snap | source | toString)');
+  const source = await evalQuery('apply (:snap 42; ::snap | source | toString)');
   expect(source).toBe(':snap 42;');
 });
 
@@ -129,12 +129,12 @@ describe('source axis prints the declaration for rare forms of a body', () => {
   });
 
   it('a line comment inside the body of a declaration leaves no step', async () => {
-    const evalResult = await evalQuery('apply ~(:x (42 |~| note\n); ::x | source | toString)');
+    const evalResult = await evalQuery('apply (:x (42 |~| note\n); ::x | source | toString)');
     expect(evalResult).toBe(':x (42);');
   });
 
   it('renders an error literal as the body of a declaration', async () => {
-    expect(await evalQuery('apply ~(:x !{:a 1}; ::x | source | toString)')).toBe(':x !{:a 1};');
+    expect(await evalQuery('apply (:x !{:a 1}; ::x | source | toString)')).toBe(':x !{:a 1};');
   });
 
   it('renders a group that opens with `!|` as the body of a declaration', async () => {

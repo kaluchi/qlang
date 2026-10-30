@@ -34,12 +34,12 @@
         |~~ A point holds three whole numbers, its offset, its line and
             its column.
         ~~|
-        ~(allOf ~(count | eq 3) ~(every ~(eq (floor))))
+        ~(allOf (count | eq 3) (every (eq (floor))))
     | proves :readsItsPartsByTheirNames
         |~~ The offset, the line and the column of a point are read by
             their names.
         ~~|
-        ~(::point[4 2 5] | get [~(offset) ~(line) ~(column)] | eq [4 2 5])
+        ~(::point[4 2 5] | get [offset line column] | eq [4 2 5])
     | proves :ElementKindNotTakenError/refusesAString
         |~~ An element that is no number is refused. ~~|
         ~(::point["a" 1 1] !| tag | eq ::point/ElementKindNotTakenError)

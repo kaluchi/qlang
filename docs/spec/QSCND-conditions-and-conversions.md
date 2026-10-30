@@ -33,16 +33,16 @@ true
 > 1 | ne 2
 true
 
-> [null 1] | filter ~(eq null)
+> [null 1] | filter (eq null)
 [null]
 
-> get [~(5 | gt "a" !| tag) ~(true | gt false !| tag)]
+> get [(5 | gt "a" !| tag) (true | gt false !| tag)]
 [::call/KindsMismatchedError true]
 
-> get [~([1 "a"] | max !| tag) ~([1 "a"] | sort) ~("a" | gt 1 !| tag) ~(::Cents#100 | gt ::Dollars#50 !| get [~(leftTag) ~(rightTag)])]
+> get [([1 "a"] | max !| tag) ([1 "a"] | sort) ("a" | gt 1 !| tag) (::Cents#100 | gt ::Dollars#50 !| get [leftTag rightTag])]
 [::call/KindsMismatchedError [1 "a"] ::call/KindsMismatchedError [::Cents ::Dollars]]
 
-> get [~(#"a"i | eq #"a"i) ~(#"a"i | eq #"a") ~(/a/0 | eq /a/0) ~(1 | desc | eq (1 | desc)) ~({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) ~(~(add 1) | eq ~(add 1))]
+> get [(#"a"i | eq #"a"i) (#"a"i | eq #"a") (/a/0 | eq /a/0) (1 | desc | eq (1 | desc)) ({:b [1] :a #[2]} | eq {:a #[2] :b [1]}) (~(add 1) | eq ~(add 1))]
 [true false true true true true]
 ```
 
@@ -71,19 +71,19 @@ such index, and an error computed at the call at its own, the conditions
 computed in their order before their kinds are read [QSQUO#modifier].
 
 ```qlang
-> 5 | if 1 ~(1) ~(2) !| tag
+> 5 | if 1 (1) (2) !| tag
 ::any/if/ConditionKindNotTakenError
 
 > true | and 1 !| tag
 ::boolean/and/ConditionKindNotTakenError
 
-> {:email null} | allOf (get /email | ne null) ~(get /email | endsWith ".org")
+> {:email null} | allOf (get /email | ne null) (get /email | endsWith ".org")
 false
 
-> 5 | allOf ~(1) !| get [~(tag) ~(conditions | index)]
+> 5 | allOf (1) !| get [tag (conditions | index)]
 [::any/allOf/ConditionsAnswerKindNotTakenError 0]
 
-> 5 | allOf ~(true | tag ::Ok)
+> 5 | allOf (true | tag ::Ok)
 true
 ```
 
@@ -104,13 +104,13 @@ answers a failure hands it on, a clause of another kind is refused as
 `::any/cond/ClausesNoBranchesError`.
 
 ```qlang
-> 75 | if (gte 60) ~("pass") ~("fail")
+> 75 | if (gte 60) ("pass") ("fail")
 "pass"
 
-> -5 | if (gt 0) ~(add 100) ~()
+> -5 | if (gt 0) (add 100) it
 -5
 
-> 5 | cond ~(gt 10) ~("big") ~(gt 3) ~("mid") ~("small")
+> 5 | cond (gt 10) ("big") (gt 3) ("mid") ("small")
 "mid"
 ```
 
@@ -126,16 +126,16 @@ map, the path of the step's frame naming it [QSERR#trace], and a
 predicate that answers a failure hands it on as the answer.
 
 ```qlang
-> [] | every ~(gt 0)
+> [] | every (gt 0)
 true
 
-> {:a -1 :b 2} | any ~(gt 0)
+> {:a -1 :b 2} | any (gt 0)
 true
 
-> get [~(#[true 1] | every ~(it) !| tag) ~(42 | any ~(gt 0) !| addresses)]
+> get [(#[true 1] | every it !| tag) (42 | any (gt 0) !| addresses)]
 [::vec/every/PredicateAnswerKindNotTakenError #[::map/any ::vec/any]]
 
-> {:a true :b 1} | every ~(it) !| get [~(tag) ~(trace | last | path)]
+> {:a true :b 1} | every it !| get [tag (trace | last | path)]
 [::map/every/PredicateAnswerKindNotTakenError /b]
 ```
 
@@ -149,7 +149,7 @@ before the alternative where the call gives one and it is a value, so
 `query /timeout | coalesce 30` reads the timeout, else 30, while several
 values alone, which read no subject, are refused,
 `::any/coalesce/AlternativesValuesAloneError`, the subject first written
-by a quote, `coalesce ~(it) e 8080`, and a field by a path,
+by a quote, `coalesce it e 8080`, and a field by a path,
 `coalesce /t 30`. A quote or a path beneath tags is code there
 [QSDSP#walk]. An alternative passes to the next where it answers
 null, beneath the tags over it, or the refusal of a read `query` answers
@@ -164,19 +164,19 @@ alternative passes, and code after the alternative that answers stays
 unrun.
 
 ```qlang
-> {} | coalesce /missing ~("fallback")
+> {} | coalesce /missing ("fallback")
 "fallback"
 
-> [{:t 45} {:t null}] | map ~(query /t | coalesce 30)
+> [{:t 45} {:t null}] | map (query /t | coalesce 30)
 [45 30]
 
-> get [~({:t null} | coalesce (get /t) 30 !| tag) ~(9000 | coalesce ~(it) 7000 8080) ~({:t null} | coalesce /t 30)]
+> get [({:t null} | coalesce (get /t) 30 !| tag) (9000 | coalesce it 7000 8080) ({:t null} | coalesce /t 30)]
 [::any/coalesce/AlternativesValuesAloneError 9000 30]
 
-> {:items [{:price 1} {:cost 2}]} | get [~(coalesce ~(get /items | map /price | sum) 0 !| tag) ~(coalesce ~(get /items | first | get /cost) 0)]
+> {:items [{:price 1} {:cost 2}]} | get [(coalesce (get /items | map /price | sum) 0 !| tag) (coalesce (get /items | first | get /cost) 0)]
 [::path/KeyNotInMapError 0]
 
-> get [~({:a null} | coalesce /a/b 0) ~({} | coalesce ~(nosuchword) 30 !| tag) ~({:a ::T#null} | coalesce /a 0)]
+> get [({:a null} | coalesce /a/b 0) ({} | coalesce nosuchword 30 !| tag) ({:a ::T#null} | coalesce /a 0)]
 [0 ::call/UnknownNameError 0]
 ```
 
@@ -229,30 +229,30 @@ over any other, so `::Box#5 | desc` answers `::desc::Box#5` and
 > "42" | toNumber
 42
 
-> ["4x" ""] | map ~(toNumber !| tag)
+> ["4x" ""] | map (toNumber !| tag)
 [::string/toNumber/TextNotNumberError ::string/toNumber/TextNotNumberError]
 
-> [42 :a ::vec true null ~(add 1 | mul 2)] | map ~toString
+> [42 :a ::vec true null ~(add 1 | mul 2)] | map toString
 ["42" "a" "vec" "true" "null" "add 1 | mul 2"]
 
-> get [~(:"a b" | toTag !| tag) ~("a b" | toTag !| tag) ~(#"a" | toString !| tag)]
+> get [(:"a b" | toTag !| tag) ("a b" | toTag !| tag) (#"a" | toString !| tag)]
 [::keyword/toTag/NameNotTagError ::string/toTag/TextNotTagError ::call/KindAnswersNoVerbError]
 
-> get [~(::Box#[2 1] | toSet) ~(::Box#[2 1] | tag ::set !| tag) ~([2 1 2] | distinct) ~(::W#5 | toNumber)]
+> get [(::Box#[2 1] | toSet) (::Box#[2 1] | tag ::set !| tag) ([2 1 2] | distinct) (::W#5 | toNumber)]
 [::Box#[1 2] ::Box#[1 2] [2 1] ::W#5]
 
-> get [~(::Box#[2 1] | toVec) ~(::Box~(add 1 | mul 2) | toVec | tag) ~(|~~ a ~(b) ~~| | toVec)]
+> get [(::Box#[2 1] | toVec) (::Box~(add 1 | mul 2) | toVec | tag) (|~~ a ~(b) ~~| | toVec)]
 [[1 2] ::vec ["a " ~(b)]]
 
 > [[:a 1] [:a 2]] | toMap
 {:a 2}
 
-> [[[1] 2]] | toMap !| get [~(tag) ~(trace | last | path) ~(subject | expected)]
+> [[[1] 2]] | toMap !| get [tag (trace | last | path) (subject | expected)]
 [::vec/toMap/KeyKindNotTakenError /0/0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1] | toKeyword !| tag
 ::call/KindAnswersNoVerbError
 
-> get [~(::Box#5 | desc) ~(::Box::desc#5 | desc) ~(::any/desc | binding | value | get /1)]
+> get [(::Box#5 | desc) (::Box::desc#5 | desc) (::any/desc | binding | value | get /1)]
 [::desc::Box#5 ::Box#5 ~(if (is ::desc) ~(if (tag | eq ::desc) ~(payload) ~(within ~(desc))) ~(tag ::desc))]
 ```

@@ -1,22 +1,22 @@
-{"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m ~(:y 5; add 1 | add y); get [~(1 | m) ~(::host | env | has :y)]","expect":"[7 false]"}
-{"name":"a-recipe-reads-no-value-of-a-text","query":"apply ~(:n 3; :number/times ~(mul n); 5 | times !| tag)","expect":"::call/UnknownNameError"}
-{"name":"a-verb-recurses-through-the-tree","query":":number/fact ~(if (lte 1) ~(1) ~(mul (sub 1 | fact))); 5 | fact","expect":"120"}
-{"name":"a-value-the-text-names-reaches-no-selector-of-a-verb","query":"apply ~(:it 5; 3 | is ::number)","expect":"true"}
-{"name":"a-value-the-text-names-reaches-no-invariant-of-a-verb","query":"apply ~(:floor 3; [1 2 3] | drop 1)","expect":"[2 3]"}
-{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":"apply ~(:k 1; :number/f ~(add k); :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)); g 100 !| tag)","expect":"::call/UnknownNameError"}
-{"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-text","query":"apply ~(:by 99; :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); 5 | plus 3)","expect":"8"}
-{"name":"a-value-of-the-text-shadows-no-verb-the-recipe-of-a-function-calls","query":"apply ~(:twice 7; :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)); :number/twice ~(mul 2); 5 | plus 1)","expect":"12"}
-{"name":"a-recipe-reads-no-quote-its-query-names","query":"apply ~(:x 10; :q ~(add x); :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)); 2 | t 99 !| code | found | name)","expect":":q"}
-{"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map ~(add by))); [1 2] | addAll 10","expect":"[11 12]"}
-{"name":"a-recipe-of-a-function-reads-a-verb-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)); :number/twice ~(mul 2); 5 | plus 1","expect":"12"}
+{"name":"the-declarations-of-a-recipe-stay-inside-it","query":":number/m (:y 5; add 1 | add y); get [(1 | m) (::host | env | has :y)]","expect":"[7 false]"}
+{"name":"a-recipe-reads-no-value-of-a-text","query":"apply (:n 3; :number/times mul n; 5 | times !| tag)","expect":"::call/UnknownNameError"}
+{"name":"a-verb-recurses-through-the-tree","query":":number/fact (if (lte 1) (1) (mul (sub 1 | fact))); 5 | fact","expect":"120"}
+{"name":"a-value-the-text-names-reaches-no-selector-of-a-verb","query":"apply (:it 5; 3 | is ::number)","expect":"true"}
+{"name":"a-value-the-text-names-reaches-no-invariant-of-a-verb","query":"apply (:floor 3; [1 2 3] | drop 1)","expect":"[2 3]"}
+{"name":"a-recipe-reads-no-value-of-the-query-that-declares-it","query":"apply (:k 1; :number/f add k; :any/g (::fn | takes :k |~~ The k. ~~| /0 | impl ~(5 | f)); g 100 !| tag)","expect":"::call/UnknownNameError"}
+{"name":"a-recipe-of-a-function-reads-its-input-past-a-value-of-the-text","query":"apply (:by 99; :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); 5 | plus 3)","expect":"8"}
+{"name":"a-value-of-the-text-shadows-no-verb-the-recipe-of-a-function-calls","query":"apply (:twice 7; :number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)); :number/twice mul 2; 5 | plus 1)","expect":"12"}
+{"name":"a-recipe-reads-no-quote-its-query-names","query":"apply (:x 10; :q ~(add x); :any/t (::fn | takes :x |~~ The x. ~~| /0 | impl ~(apply q)); 2 | t 99 !| get [tag name])","expect":"[::call/UnknownNameError :q]"}
+{"name":"a-quote-written-in-its-step-reads-that-step","query":":vec/addAll (::fn | takes :by |~~ The by. ~~| /0 | impl ~(map (add by))); [1 2] | addAll 10","expect":"[11 12]"}
+{"name":"a-recipe-of-a-function-reads-a-verb-declared-after-it","query":":number/plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by | twice)); :number/twice mul 2; 5 | plus 1","expect":"12"}
 {"name":"a-verb-reads-its-input-by-its-name","query":":number/m (::fn | takes :x |~~ The x. ~~| /0 | impl ~(mul 10 | add x)); 2 | m it","expect":"22"}
-{"name":"a-verb-recurses-through-its-input","query":":number/fact (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(if (n | lte 1) ~(1) ~(n | mul (fact (n | sub 1))))); 5 | fact it","expect":"120"}
+{"name":"a-verb-recurses-through-its-input","query":":number/fact (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(if (n | lte 1) (1) (n | mul (fact (n | sub 1))))); 5 | fact it","expect":"120"}
 {"name":"a-recipe-under-a-label-reads-no-input-of-the-verb-it-shadows","query":":Box |~~ B ~~|; :Box/take ~([7 8 9] | count); ::Box[1 2 3] | take","expect":"3"}
-{"name":"a-declared-verb-recurses-with-its-input-of-code","query":":map/treeMap (::fn | takes :fn |~~ The fn. ~~| /0 ::quote | impl ~(get {:label ~(get /label | apply fn) :children ~(get /children | map ~(treeMap fn))})); {:label \"a\" :children [{:label \"b\" :children []}]} | treeMap ~(append \"!\") | get /label","expect":"\"a!\""}
-{"name":"fractal-composition-three-levels","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :KeyFnNotCodeError |~~ Code. ~~| ~(keyFn | is ::quote ::path) | impl ~(sort keyFn | reverse | take n)); :vec/topNByV (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(topBy /v n)); :vec/top2ByV ~(topNByV 2); [{:v 10} {:v 30} {:v 20}] | top2ByV | map /v","expect":"[30 20]"}
-{"name":"a-verb-of-no-inputs-reads-its-args","query":":any/n ~(args | count); 5 | n","expect":"0"}
-{"name":"a-recipe-written-alone-refuses-the-args-given-to-it","query":":any/n ~(args | count); 5 | n 1 !| tag","expect":"::any/n/ArgsBeyondInputsError"}
-{"name":"a-recipe-under-a-closed-label-sees-the-names-of-its-wiring","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/minutes ~(took | div 60 | floor); ::Card[\"a\" 312] | minutes","expect":"5"}
-{"name":"an-input-named-as-a-part-of-the-wiring-of-its-label-is-refused","query":"~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/plus (::fn | takes :took |~~ x ~~| /0 | impl ~(took))) | answer !| get [~(tag) ~(name)]","expect":"[::bind/NameDeclaredTwiceError :took]"}
-{"decision":"D496","name":"a-verb-under-a-label-is-declared-by-its-program","query":":number/twice mul 2; 5 | twice","expect":"10","target":true,"now":"::bind/SubjectNotGivenError"}
-{"decision":"D496","name":"a-quote-under-a-label-is-refused-naming-its-program","query":"~(:number/twice ~(mul 2); 5 | twice) | answer !| tag","expect":"::bind/BodyQuotedError","target":true,"now":"10"}
+{"name":"a-declared-verb-recurses-with-its-input-of-code","query":":map/treeMap (::fn | takes :fn |~~ The fn. ~~| /0 ::quote | impl ~(get {:label (get /label | apply fn) :children (get /children | map (treeMap fn))})); {:label \"a\" :children [{:label \"b\" :children []}]} | treeMap (append \"!\") | get /label","expect":"\"a!\""}
+{"name":"fractal-composition-three-levels","query":":vec/topBy (::fn | takes :keyFn |~~ The keyFn. ~~| /0 | takes :n |~~ The n. ~~| /1 ::number | holds :KeyFnNotCodeError |~~ Code. ~~| ~(keyFn | is ::quote ::path) | impl ~(sort keyFn | reverse | take n)); :vec/topNByV (::fn | takes :n |~~ The n. ~~| /0 ::number | impl ~(topBy /v n)); :vec/top2ByV topNByV 2; [{:v 10} {:v 30} {:v 20}] | top2ByV | map /v","expect":"[30 20]"}
+{"name":"a-verb-of-no-inputs-reads-its-args","query":":any/n (args | count); 5 | n","expect":"0"}
+{"name":"a-recipe-written-alone-refuses-the-args-given-to-it","query":":any/n (args | count); 5 | n 1 !| tag","expect":"::any/n/ArgsBeyondInputsError"}
+{"name":"a-recipe-under-a-closed-label-sees-the-names-of-its-wiring","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/minutes (took | div 60 | floor); ::Card[\"a\" 312] | minutes","expect":"5"}
+{"name":"an-input-named-as-a-part-of-the-wiring-of-its-label-is-refused","query":"~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/plus (::fn | takes :took |~~ x ~~| /0 | impl ~(took))) | answer !| get [tag name]","expect":"[::bind/NameDeclaredTwiceError :took]"}
+{"decision":"D496","name":"a-verb-under-a-label-is-declared-by-its-program","query":":number/twice mul 2; 5 | twice","expect":"10"}
+{"decision":"D496","name":"a-quote-under-a-label-is-refused-naming-its-program","query":"~(:number/twice ~(mul 2); 5 | twice) | answer !| tag","expect":"::bind/BodyQuotedError"}

@@ -1,6 +1,6 @@
 {"name":"a-quote-of-a-number-is-a-value-as-written","query":"~(42)","expect":"~(42)"}
 {"name":"a-quote-of-a-call-is-a-value-as-written","query":"~(mul 2)","expect":"~(mul 2)"}
-{"name":"a-quote-of-a-pipeline-that-holds-a-quote-is-a-value-as-written","query":"~([1 2 3] | filter ~(gt 1))","expect":"~([1 2 3] | filter ~(gt 1))"}
+{"name":"a-quote-of-a-pipeline-that-holds-a-quote-is-a-value-as-written","query":"~([1 2 3] | eq ~(gt 1))","expect":"~([1 2 3] | eq ~(gt 1))"}
 {"name":"a-quote-of-a-read-by-get-is-a-value-as-written","query":"~(get /name)","expect":"~(get /name)"}
 {"name":"the-empty-quote-is-a-value-as-written","query":"~()","expect":"~()"}
 {"name":"a-quote-of-a-keyword-is-a-value-as-written","query":"~(:foo)","expect":"~(:foo)"}

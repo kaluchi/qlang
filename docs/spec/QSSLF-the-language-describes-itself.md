@@ -77,25 +77,25 @@ true
 > ::map | doc :minus | eq (::map/minus | doc)
 true
 
-> ::vec/sort | get [~(doc) ~(binding | doc) ~(tutorial | first) ~(::vec | doc :sort)] | toSet | count
+> ::vec/sort | get [doc (binding | doc) (tutorial | first) (::vec | doc :sort)] | toSet | count
 1
 
 > ::vec/take | source 1 !| tag
 ::any/source/AnchorKindNotTakenError
 
-> ::nosuchbinding | doc !| get [~(tag) ~(name)]
+> ::nosuchbinding | doc !| get [tag name]
 [::any/doc/UnknownNameError ::nosuchbinding]
 
 > "x" | add 1 !| doc | eq (::number/add/SubjectNotNumberError | doc)
 true
 
-> 5 | gte !| get [~(tag) ~(doc | content | contains "comes after")]
+> 5 | gte !| get [tag (doc | content | contains "comes after")]
 [::any/gte/ValueNotGivenError true]
 
 > ::number/add/FooError | binding | name
 :number/add
 
-> get [~(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [~(tag) ~(doc | eq (::fn/call | doc))]) ~(::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
+> get [(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [tag (doc | eq (::fn/call | doc))]) (::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
 [[::fn/call/ByKindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
@@ -126,7 +126,7 @@ refusals its source declares.
 > ::vec | manifest | has ::vec/count
 true
 
-> ::qlang | manifest | get [~(has ::qlang/values) ~(has ::qlang/AnswerBeyondBudgetError)]
+> ::qlang | manifest | get [(has ::qlang/values) (has ::qlang/AnswerBeyondBudgetError)]
 [true true]
 
 > :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box | manifest
@@ -141,7 +141,7 @@ true
 > ::vec | manifest :take | eq (::vec/take | manifest)
 true
 
-> get [~(::set | manifest | has ::set/count) ~(#[3 1 2] | count) ~(#[3 1 2] | binding :count | name)]
+> get [(::set | manifest | has ::set/count) (#[3 1 2] | count) (#[3 1 2] | binding :count | name)]
 [false 3 :vec/count]
 ```
 
@@ -171,13 +171,13 @@ refuses it. Every law of the core passes.
 > :Box |~~ A box. ~~|; :Box/holdsItsWidth ::law~(::Box{:width 1} | get /width | eq 1); ::Box | runLaws | map /ok
 [true]
 
-> ::law::Foo~(3 | eq 3) !| get [~(tag) ~(found | tag)]
+> ::law::Foo~(3 | eq 3) !| get [tag (found | tag)]
 [::law/PayloadKindNotTakenError ::Foo]
 
 > ::number/add | laws | count
 4
 
-> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | every ~(runLaws | every /ok))])))))
+> ::host | kinds | toVec | with {:level1 it} (map manifest | flat | with {:level2 it} (map manifest | flat | with {:level3 it} (map manifest | flat | with {:level4 it} (map manifest | flat | with {:level5 it} (get [(level5 | map manifest | flat | count) (get [level1 level2 level3 level4 level5] | flat | every (runLaws | every /ok))])))))
 [0 true]
 ```
 
@@ -260,28 +260,28 @@ written.
 > ::Box|~~ a ~(add 1) b ~~| | segments
 ["a " ~(add 1) " b"]
 
-> get [~(|~~ a ~(add   1) b ~~| | print) ~(|~~ see ::group~(add 1) ~~| | segments | count)]
+> get [(|~~ a ~(add   1) b ~~| | print) (|~~ see ::group~(add 1) ~~| | segments | count)]
 ["|~~ a ~(add 1) b ~~|" 2]
 
-> get [~(|~~ a ::link~(::qlang) b ~~| | content) ~([" a\n     b "] | tag ::doc | content)]
+> get [(|~~ a ::link~(::qlang) b ~~| | content) ([" a\n     b "] | tag ::doc | content)]
 ["a ::link~(::qlang) b" "a\nb"]
 
 > |~~ a ::snippet~(1 | add 1) b ~~| | snippets | first | answer
 2
 
-> |~~ a ::link~(::vec/sort) b ~~| | links | first | get [~(answer) ~(open | tag)]
+> |~~ a ::link~(::vec/sort) b ~~| | links | first | get [answer (open | tag)]
 [::vec/sort ::doc]
 
-> get [~(::link#5 !| tag) ~(|~~ a ::Host::link~(1) b ~~| | links | count)]
+> get [(::link#5 !| tag) (|~~ a ::Host::link~(1) b ~~| | links | count)]
 [::link/PayloadKindNotTakenError 1]
 
-> get [~(|~~ a ::link::snippet~(1) b ~~| | links | count) ~(::link::Foo~(1) !| get [~(tag) ~(found | tag)])]
+> get [(|~~ a ::link::snippet~(1) b ~~| | links | count) (::link::Foo~(1) !| get [tag (found | tag)])]
 [1 [::link/PayloadKindNotTakenError ::Foo]]
 
 > :Role |~~ A role. ~~| (::kind | holds :k |~~ k. ~~| ~(count | gt 5)); |~~ see ::Role~(x) ~~| !| tag
 ::Role/k
 
-> get [~(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) ~(~(:x |~~ see ::map~(x) ~~| 1) | answer !| tag)]
+> get [(|~~ see ::quote~(a) ~~| | segments | get /1 | eq ~(a)) (~(:x |~~ see ::map~(x) ~~| 1) | answer !| tag)]
 [true ::map/PayloadKindNotTakenError]
 ```
 
@@ -305,22 +305,22 @@ doc, every node one name under a label of the root has a page, and the
 first page prints within 13664 characters.
 
 ```qlang
-> ::qlang | doc | links | map ~open | every ~(tag | eq ::doc)
+> ::qlang | doc | links | map open | every (tag | eq ::doc)
 true
 
 > ::qlang | doc :pipeline | tag
 ::doc
 
-> get [~(::host | kinds | has ::qlang) ~(::qlang | binding | value | tag) ~(::qlang/values[1] !| tag) ~(::qlang | manifest | has ::qlang/values)]
+> get [(::host | kinds | has ::qlang) (::qlang | binding | value | tag) (::qlang/values[1] !| tag) (::qlang | manifest | has ::qlang/values)]
 [true ::kind ::construct/TagNamesAValueError true]
 
-> ::qlang | doc | content | get [~(contains "::cell its host keeps it in") ~(contains "its ::cell read back whole") ~(contains "::qlang/AnswerBeyondBudgetError")]
+> ::qlang | doc | content | get [(contains "::cell its host keeps it in") (contains "its ::cell read back whole") (contains "::qlang/AnswerBeyondBudgetError")]
 [true true true]
 
-> ::host | kinds | toVec | with {:level1 ~it} ~(map ~(manifest) | flat | with {:level2 ~it} ~(map ~(manifest) | flat | with {:level3 ~it} ~(map ~(manifest) | flat | with {:level4 ~it} ~(map ~(manifest) | flat | with {:level5 ~it} ~(get [~(level5 | map ~(manifest) | flat | count) ~(get [~(level1) ~(level2) ~(level3) ~(level4) ~(level5)] | flat | map ~(doc) | filter ~(eq null | not) | map ~(links) | flat | every ~(open | tag | eq ::doc))])))))
+> ::host | kinds | toVec | with {:level1 it} (map manifest | flat | with {:level2 it} (map manifest | flat | with {:level3 it} (map manifest | flat | with {:level4 it} (map manifest | flat | with {:level5 it} (get [(level5 | map manifest | flat | count) (get [level1 level2 level3 level4 level5] | flat | map doc | filter (eq null | not) | map links | flat | every (open | tag | eq ::doc))])))))
 [0 true]
 
-> ::host | kinds | map ~(manifest) | flat | every ~(doc | content | eq "" | not)
+> ::host | kinds | map manifest | flat | every (doc | content | eq "" | not)
 true
 
 > ::qlang | doc | print | count | lte 13664
@@ -390,6 +390,6 @@ $ git grep -h -o -E "^:number(/[A-Za-z]+)?" -- core/lib/qlang/number.qlang | hea
 ```
 
 ```qlang
-> [::number ::string ::vec ::map ::set] | map ~(binding | value | get /0 | map ~(get /name) | get [~(first) ~(last)]) | distinct
+> [::number ::string ::vec ::map ::set] | map (binding | value | get /0 | map (get /name) | get [first last]) | distinct
 [[:accepts :proves]]
 ```

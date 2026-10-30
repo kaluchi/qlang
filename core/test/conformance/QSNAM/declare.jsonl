@@ -1,20 +1,17 @@
-{"name":"with-names-the-subject-for-the-code-of-one-step","query":"apply ~(42 | with {:answer ~it} ~(answer))","expect":"42"}
-{"name":"the-code-of-with-reads-the-name-it-gives-in-its-steps","query":"apply ~([1 2 3] | with {:nums ~it} ~(nums | count))","expect":"3"}
-{"name":"with-inside-the-code-of-with-names-a-value-of-each-stage","query":"apply ~([85 92 47 78 68 95 52] | with {:allScores ~it} ~(filter ~(gte 70) | with {:passingScores ~it} ~(get [~(allScores | count), ~(passingScores | count)])))","expect":"[7 4]"}
-{"name":"a-vector-after-a-name-is-its-body","query":"apply ~(:xs [1 2]; xs)","expect":"[1 2]"}
-{"name":"a-binding-names-the-value-at-its-declaration","query":"apply ~(42 | with {:x ~it} ~(add 1 | (x)))","expect":"42"}
-{"name":"a-declaration-names-a-kind","query":"apply ~(:s ::vec; ::host | env | get /s | value)","expect":"::vec"}
-{"name":"a-declaration-names-a-keyword","query":"apply ~(:status :active; ::host | env | get /status | value)","expect":":active"}
+{"name":"with-names-the-subject-for-the-code-of-one-step","query":"apply (42 | with {:answer it} answer)","expect":"42"}
+{"name":"the-code-of-with-reads-the-name-it-gives-in-its-steps","query":"apply ([1 2 3] | with {:nums it} (nums | count))","expect":"3"}
+{"name":"with-inside-the-code-of-with-names-a-value-of-each-stage","query":"apply ([85 92 47 78 68 95 52] | with {:allScores it} (filter (gte 70) | with {:passingScores it} (get [(allScores | count), (passingScores | count)])))","expect":"[7 4]"}
+{"name":"a-vector-after-a-name-is-its-body","query":"apply (:xs [1 2]; xs)","expect":"[1 2]"}
+{"name":"a-binding-names-the-value-at-its-declaration","query":"apply (42 | with {:x it} (add 1 | (x)))","expect":"42"}
+{"name":"a-declaration-names-a-kind","query":"apply (:s ::vec; ::host | env | get /s | value)","expect":"::vec"}
+{"name":"a-declaration-names-a-keyword","query":"apply (:status :active; ::host | env | get /status | value)","expect":":active"}
 {"name":"a-word-after-the-body-of-a-declaration-is-refused-naming-the-semicolon","query":"\":s ::vec it\" | parse !| message","expect":"\"a declaration ends with `;` before what follows it: write `:name body; …`\""}
-{"name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~|; :number/double ~(mul 2); :Box/side |~~ The side of a box. ~~|; :Box/fits |~~ A box fits. ~~| ::law~(true); 5 | double | get [~(it) ~(::Box/side | doc | content) ~(::Box | laws | keys)]","expect":"[10 \"The side of a box.\" [:fits]]"}
+{"name":"the-top-declares-a-kind-a-verb-and-a-node-under-a-noun","query":":Box |~~ A box. ~~|; :number/double mul 2; :Box/side |~~ The side of a box. ~~|; :Box/fits |~~ A box fits. ~~| ::law~(true); 5 | double | get [it (::Box/side | doc | content) (::Box | laws | keys)]","expect":"[10 \"The side of a box.\" [:fits]]"}
 {"name":"a-modifier-declares-a-value-in-its-own-group","query":"5 | add (:k 2; k)","expect":"7"}
 {"name":"a-text-of-declarations-alone-answers-the-addresses-it-declared","query":":Box |~~ A box. ~~|","expect":"#[::Box]"}
 {"name":"a-constant-at-the-top-is-read-by-the-query-after-it","query":":rate 2; 5 | mul rate","expect":"10"}
-{"name":"a-body-that-reads-the-subject-is-refused-naming-with","query":"~(:n (count); 5) | answer !| tag","expect":"::bind/SubjectNotGivenError"}
 {"name":"a-chain-that-answers-no-word-is-refused-naming-the-semicolon","query":"~(:Box |~~ A box. ~~| ::vec | tag) | answer !| tag","expect":"::bind/ChainAnswersNoWordError"}
-{"name":"a-body-reads-a-label-by-its-bare-name","query":":K |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag)]","expect":"[::Box ::Box/PayloadKindNotTakenError]"}
-{"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :x]"}
-{"name":"a-verb-called-in-the-body-of-a-declaration-is-refused-for-no-subject","query":"~(:x count; 1) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :count]"}
-{"name":"a-verb-called-by-its-address-in-the-body-of-a-declaration-is-refused-for-no-subject","query":"~(:x vec/count; 1) | answer !| get [~(tag) ~(name)]","expect":"[::bind/SubjectNotGivenError :vec/count]"}
-{"decision":"D496","name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]","target":true,"now":"::bind/SubjectNotGivenError"}
-{"decision":"D496","name":"a-verb-runs-a-program-its-text-declares","query":":isEven (mod 2 | eq 0); :vec/evens (filter isEven); [1 2 3 4] | evens","expect":"[2 4]","target":true,"now":"::bind/SubjectNotGivenError"}
+{"name":"a-body-reads-a-label-by-its-bare-name","query":":K |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [(::Box{:a 1} | tag) (::Box#5 !| tag)]","expect":"[::Box ::Box/PayloadKindNotTakenError]"}
+{"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [tag name]","expect":"[::bind/SubjectNotGivenError :x]"}
+{"decision":"D496","name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]"}
+{"decision":"D496","name":"a-verb-runs-a-program-its-text-declares","query":":isEven (mod 2 | eq 0); :vec/evens (filter isEven); [1 2 3 4] | evens","expect":"[2 4]"}

@@ -75,7 +75,7 @@
         ~(5 | stdio/err 7 !| tag | eq ::stdio/err/TextKindNotTakenError)
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `stdio/err` writes alone. ~~|
-        ~(42 | stdio/err !| get [~(tag) ~(subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
+        ~(42 | stdio/err !| get [tag (subject | expected)] | eq [::stdio/err/SubjectKindNotTakenError #[::string]])
     | proves :ArgsBeyondInputsError/refusesTwoTexts
         |~~ A call with two texts is refused under the verb. ~~|
         ~("hi" | stdio/err "a" "b" !| tag | eq ::stdio/err/ArgsBeyondInputsError)
@@ -129,7 +129,7 @@
         ~~|
     | proves :SubjectKindNotTakenError/refusesANumber
         |~~ A number is no line `stdio/out` writes alone. ~~|
-        ~(42 | stdio/out !| get [~(tag) ~(subject | expected)] | eq [::stdio/out/SubjectKindNotTakenError #[::string]])
+        ~(42 | stdio/out !| get [tag (subject | expected)] | eq [::stdio/out/SubjectKindNotTakenError #[::string]])
     | proves :TextKindNotTakenError/refusesANumber
         |~~ A number is no text to write. ~~|
         ~("hi" | stdio/out 5 !| tag | eq ::stdio/out/TextKindNotTakenError)
@@ -247,16 +247,16 @@
         ~([] | table | eq "(empty)")
     | proves :drawsAMapInAVector
         |~~ A single map is drawn in a vector. ~~|
-        ~({:name "alice"} | get [~(it)] | table | contains "alice")
+        ~({:name "alice"} | get [it] | table | contains "alice")
     | proves :SubjectNotVecError/refusesAMap
         |~~ A single map is refused under the verb. ~~|
-        ~({:name "alice"} | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
+        ~({:name "alice"} | table !| get [tag (subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::map])
     | proves :SubjectNotVecError/refusesANumber
         |~~ A number is no vector of rows. ~~|
-        ~(42 | table !| get [~(tag) ~(subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
+        ~(42 | table !| get [tag (subject | found | tag)] | eq [::vec/table/SubjectNotVecError ::number])
     | proves :RowKindNotTakenError/refusesARowThatIsNoMap
         |~~ A row that is no map is refused at its index. ~~|
-        ~([42 "hello"] | table !| get [~(tag) ~(trace | last | path) ~(subject | found | get /0 | tag) ~(subject | expected)]
+        ~([42 "hello"] | table !| get [tag (trace | last | path) (subject | found | get /0 | tag) (subject | expected)]
           | eq [::vec/table/RowKindNotTakenError /0 ::number #[::map]])
     | impl ::builtin{};
 

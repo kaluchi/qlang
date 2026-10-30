@@ -12,25 +12,27 @@ import {
   isSet, isVec, isMap, isErrorValue, isQuote, isDoc, isPath, handedFor,
   tagOf, makeKeyword, makeErrorValue, makeDoc, makeQuote,
   makeBinding, bindingValueOf, makeTagged, makeTag, beneathTags,
-  isFn, isKind, isBinding, isTag, recipeOf, constructorOf, commandsOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
+  isFn, isKind, FN_TAG_NAME, KIND_TAG_NAME, isBinding, isTag, recipeOf, constructorOf, commandsOf, stampTagHeader, payloadBeneath, TAG_HEADER_SYMBOL,
   ERROR_TAG, TRACE_TAG, isExcerpt, isCell, isValueClass, tagsOver, TagsInCommon, pairRefused, builtinOf, addressNamedBy, wiringOf, isBuiltinDescriptor
 } from './types.mjs';
 import { makeSet, kindsExpected, compareValues } from './ordering.mjs';
 import { originOf, repeatsDeclarationAt, declaresBefore } from './parsed-parts.mjs';
 import {
-  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, errorFieldsOf,
-  commandStep, groupStep, declarationStep, namesAQuoteReads
+  isCallStep, isBindStep, isConstructStep, isFailStep, isGroupStep, isComputingStep, errorFieldsOf,
+  commandStep, groupStep, declarationStep, namesAQuoteReads, computesWithin, heldAsALiteral, CallLiteralComputesError
 } from './steps.mjs';
+import { asPrinted } from './print-value.mjs';
 import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
-  returnsItsLabel, slotsOfAVerdict, invariantNamedByARule, refusalsAddressOf, CallValueWithheldError
+  returnsItsLabel, slotsOfAVerdict, invariantNamedByARule, refusalsAddressOf, CallValueWithheldError, isProgramRecord, markProgram
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, FnNameDeclaredTwiceError } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, inputsTakingCode, FnNameDeclaredTwiceError } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
-  notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, FN_CALL_ADDRESS, ANY_KIND_NAME
+  notGivenAddress, notReadAddress, payloadRefusalName, subjectRefusalAddress, quotedRefusalAddress, quotedTwiceRefusalAddress,
+  FN_CALL_ADDRESS, ANY_KIND_NAME
 } from './address.mjs';
 import { runPrimitive, heldAtTheDoor, isThenable, walkToKinds, subjectOfCall } from './dispatch.mjs';
 import { answerOfStep, skipping, flightOfACall, flightOfThrow } from './eval-trace.mjs';
@@ -48,6 +50,7 @@ const CallKindAnswersNoVerbError = declareRefusal('call/KindAnswersNoVerbError')
 // [QSNAM#declare]
 const BindSubjectNotGivenError = declareRefusal('bind/SubjectNotGivenError');
 const BindChainAnswersNoWordError = declareRefusal('bind/ChainAnswersNoWordError');
+const BindBodyQuotedError = declareRefusal('bind/BodyQuotedError');
 
 // [QSPRN#print]
 const BindPrintDeclaredError = declareRefusal('bind/PrintDeclaredError');
@@ -172,6 +175,10 @@ async function evalSet(set, state) {
 async function elementValues(elements, state) {
   const values = [];
   for (const element of elements) {
+    if (isComputingStep(element)) {
+      values.push(element);
+      continue;
+    }
     const answered = (await evalStep(element, state)).pipeValue;
     if (isErrorValue(answered)) return answered;
     values.push(answered);
@@ -207,9 +214,10 @@ async function evalDoc(doc, state) {
   return withPipeValue(state, makeDoc(segments));
 }
 
-// [QSERR#flow]
+// [QSERR#flow], [QSPTH#template]
 async function evalConstruct(construct, state) {
   const payload = (await evalStep(construct.get('payload'), state)).pipeValue;
+  if (!isErrorValue(payload) && computesWithin(construct.get('payload'))) return withPipeValue(state, makeTagged(makeTag(construct.get('tag').name), payload));
   return withPipeValue(state, await layTag(construct.get('tag').name, payload, state));
 }
 
@@ -233,7 +241,13 @@ async function evalBind(bind, state, at) {
     if (isErrorValue(doc)) return withPipeValue(state, doc);
     docs.push(doc);
   }
-  const body = !bind.has('body') ? null : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
+  const program = bind.has('body') && !VALUES_WRITTEN.has(bind) && asksForASubject(bind.get('body'), state.scope);
+  if (nounName !== null && bind.has('body') && isQuote(bind.get('body')) && bind.get('body').length > 0 && asksForASubject(headOfCode(bind.get('body')) ?? null, state.scope)) {
+    throw new BindBodyQuotedError({ name: makeKeyword(name), found: bind.get('body') });
+  }
+  const body = !bind.has('body') ? null
+    : program ? withPipeValue(state, codeOfAStep(bind.get('body')))
+      : VALUES_WRITTEN.has(bind) ? withPipeValue(state, VALUES_WRITTEN.get(bind)) : await evalStep(bind.get('body'), state);
   const answered = body !== null ? body.pipeValue : makeDoc(docs.flatMap((doc, index) => index === 0 ? doc : ['\n', ...doc]));
   if (isErrorValue(answered)) return withFlight(withPipeValue(state, answered), body.flight);
   if (answered === NO_SUBJECT) throw new BindSubjectNotGivenError({ name: makeKeyword(name) });
@@ -247,6 +261,7 @@ async function evalBind(bind, state, at) {
   }
   const origin = makeKeyword(at.origin);
   const record = makeBinding({ name: bind.get('name'), docs, value: answered, source: makeQuote([bind]), origin });
+  if (program && nounName === null) markProgram(record);
   const declared = scopeSet(state.scope, name, record);
   if (!bind.has('body')) return withScope(state, declared);
   if (isKind(answered)) return withScope(state, nodesOfKind(answered, name, declared, origin));
@@ -431,6 +446,7 @@ async function partCalled(address, modifiers, state) {
 
 // [QSNAM#value]
 async function applyBinding(entry, name, lastName, modifiers, state, at) {
+  if (isProgramRecord(entry)) return await applyFunctionVerb(entry, functionOfRecipe(bindingValueOf(entry)), modifiers, state);
   const value = bindingValueOf(entry);
   if (modifiers.length === 0 && isALaterStep(at)) throw new CallValueAsALaterStepError({ name: makeKeyword(name), found: value, addresses: addressesOf(state.scope, lastName) });
   return valueCalled(value, name, lastName, modifiers, state);
@@ -571,7 +587,7 @@ function nodesAndLabelsOf(scope) {
 }
 
 function isNodeOrLabel(name, record) {
-  return name.includes('/') || declaresALabel(record);
+  return name.includes('/') || declaresALabel(record) || isProgramRecord(record);
 }
 
 // [QSBLD#input]
@@ -767,8 +783,55 @@ function handedTo(primitive, chain, { values, state: called }, state, flight) {
     if (asCode.within?.has(name.name)) return quotesClosedIn(value, close);
     if (asCode.folded?.has(name.name)) return ofTheCall(foldingCodeOf(value, close, called));
     if (!asCode.run?.has(name.name)) return value;
+    if (asCode.template?.has(name.name) && walkToKinds(value, ['quote', 'path']) === null && !isFn(value)) return ofTheCall(templateCodeOf(value, close, called));
     return reading.readsArgs ? value.map(element => codeOfArg(element, close, state)) : ofTheCall(codeOfArg(value, close, state));
   });
+}
+
+// [QSCOL#image]
+function templateCodeOf(template, close, callState) {
+  const closed = quotesClosedIn(template, close);
+  return async subject => await readTemplate(subject, closed, false, null, callState);
+}
+
+// [QSPTH#get]
+export function readOne(subject, path, soft, fallback) {
+  const read = readPath(subject, path, soft);
+  return read === MISSED ? fallback : read;
+}
+
+// [QSPTH#template], [QSLIT#tag]
+export async function readTemplate(subject, template, soft, fallback, state) {
+  if (typeof template === 'function') return await template(subject);
+  if (isPath(template)) return readOne(subject, template, soft, fallback);
+  if (isValueClass(template, 'underTag')) {
+    const payload = await readTemplate(subject, template.payload, soft, fallback, state);
+    if (payload === template.payload) return template;
+    return isErrorValue(payload) ? payload : await relaid(template, payload, state);
+  }
+  const parts = partsOfTemplate(template);
+  if (parts === null) return template;
+  const read = await readParts(subject, [...parts], soft, fallback, state);
+  if (isErrorValue(read)) return read;
+  return await relaid(template, isMap(template) ? new Map([...template.keys()].map((key, at) => [key, read[at]])) : read, state);
+}
+
+async function readParts(subject, templates, soft, fallback, state) {
+  const parts = [];
+  for (const template of templates) {
+    const part = await readTemplate(subject, template, soft, fallback, state);
+    if (isErrorValue(part)) return part;
+    parts.push(part);
+  }
+  return parts;
+}
+
+// [QSPTH#write], [QSPTH#template]
+export async function relaid(original, rebuilt, state) {
+  if (isErrorValue(rebuilt)) return rebuilt;
+  const tag = original[TAG_HEADER_SYMBOL];
+  if (tag === undefined) return isVec(rebuilt) ? Object.freeze(rebuilt) : rebuilt;
+  return await layTag(tag.name, rebuilt, state);
 }
 
 function closerOf(state, names) {
@@ -799,6 +862,7 @@ function closeWritten(code, lane) {
 
 function quotesClosedIn(value, closeOf) {
   if (isQuote(value)) return closeOf(value);
+  if (isComputingStep(value)) return closeOf(codeOfAStep(value));
   if (!holdsAQuote(value)) return value;
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesClosedIn(value.payload, closeOf));
   const header = value[TAG_HEADER_SYMBOL];
@@ -815,6 +879,10 @@ function quotesWithin(value, into) {
     into.add(value);
     return;
   }
+  if (isComputingStep(value)) {
+    into.add(codeOfAStep(value));
+    return;
+  }
   if (isValueClass(value, 'underTag')) return quotesWithin(value.payload, into);
   if (!holdsAQuote(value)) return;
   for (const part of partsOfTemplate(value)) quotesWithin(part, into);
@@ -822,6 +890,7 @@ function quotesWithin(value, into) {
 
 function quotesFilledWithin(value, fill) {
   if (isQuote(value)) return fill(value);
+  if (isComputingStep(value)) return fill(codeOfAStep(value));
   if (isValueClass(value, 'underTag')) return makeTagged(value.tag, quotesFilledWithin(value.payload, fill));
   if (!holdsAQuote(value)) return value;
   const header = value[TAG_HEADER_SYMBOL];
@@ -868,10 +937,14 @@ function filled(quote, records) {
 
 function writtenBy(state, names) {
   let named;
+  let withSelf;
   const given = names === undefined ? undefined : new Map([...names].map(([name, value]) => [name, makeBinding({ name: makeKeyword(name), value })]));
   const ofTheStep = () => named ??= given === undefined ? valuesNamedIn(ownScopeOf(state)) : new Map([...valuesNamedIn(ownScopeOf(state)), ...given]);
+  const ofTheStepAndItsSubject = () => withSelf ??= ofTheStep().has(SELF_NAME) || state.pipeValue === NO_SUBJECT
+    ? ofTheStep()
+    : new Map([...ofTheStep(), [SELF_NAME, makeBinding({ name: makeKeyword(SELF_NAME), value: state.pipeValue })]]);
   return quote => {
-    if (writtenIn(state, quote)) return filled(quote, ofTheStep());
+    if (writtenIn(state, quote)) return filled(quote, namesAQuoteReads(quote).includes(SELF_NAME) ? ofTheStepAndItsSubject() : ofTheStep());
     return given === undefined ? quote : filled(quote, given);
   };
 }
@@ -883,7 +956,7 @@ function laneStateOf(state) {
 const HOLDERS_OF_QUOTES = new WeakMap();
 
 function holdsAQuote(value) {
-  if (isQuote(value)) return true;
+  if (isQuote(value) || isComputingStep(value)) return true;
   if (isValueClass(value, 'underTag')) return !isQuote(value.payload) && holdsAQuote(value.payload);
   if (typeof value !== 'object' || value === null) return false;
   let holds = HOLDERS_OF_QUOTES.get(value);
@@ -935,13 +1008,22 @@ async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps
   const values = [];
   const written = new Set();
   const writtenAt = [];
+  const codeInputs = inputsTakingCode(chain, asCode);
+  const inputAt = index => chain.inputs.find(({ reading }) => !reading.readsArgs && reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
   for (const [index, modifier] of modifiers.entries()) {
-    const computing = modifier(state.pipeValue, flight);
+    const input = inputAt(index);
+    const takesCode = input !== undefined && codeInputs.has(input.name.name);
+    if (!takesCode && modifier.holdsSteps === true) heldAsALiteral(modifier.step, CallLiteralComputesError, { index }, asPrinted);
+    const handsCode = takesCode && modifier.code !== undefined;
+    const computing = handsCode ? modifier.code : modifier(state.pipeValue, flight);
     const value = isThenable(computing) ? await computing : computing;
-    if (isErrorValue(value)) return await refusalOfFailedModifier(chain, address, index, value, state, scope, values, asCode?.run);
+    if (isErrorValue(value)) return value;
+    const refused = takesCode ? refusalOfWrittenCode(`${address}/${input.name.name}`, input, modifier, value, state, scope) : null;
+    if (refused !== null) return refused;
     values.push(value);
-    writtenAt.push(modifier.written === true);
-    if (modifier.written === true) quotesWithin(value, written);
+    const ofTheStep = handsCode || modifier.written === true;
+    writtenAt.push(ofTheStep);
+    if (ofTheStep) quotesWithin(value, written);
   }
   const called = withWritten(state, written);
   if (recipeSteps !== null) handedToTheRecipe(values, writtenAt, called);
@@ -1006,19 +1088,51 @@ function withTheParts(scope, parts) {
 }
 
 // [QSQUO#modifier]
-async function refusalOfFailedModifier(chain, address, index, error, state, scope, values, runAsCode) {
-  if (error.tag.name === CallValueWithheldError.prototype.address) return error;
-  const input = chain.inputs.find(({ reading }) => reading.index === index) ?? chain.inputs.find(({ reading }) => reading.readsArgs);
-  if (input === undefined || !(input.kinds?.includes('quote') ?? runAsCode?.has(input.name.name) === true)) return error;
-  const kinds = input.kinds ?? [ANY_KIND_NAME];
-  const atRest = await errorAtRestOf(error, state);
-  if (isErrorValue(atRest)) return atRest;
-  const inputAddress = `${address}/${input.name.name}`;
-  if (input.each && input.reading.readsArgs) {
-    return refusalUnder(elementsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected: kindsExpected(...kinds), found: Object.freeze([...values, atRest]), index })), scope);
+function refusalOfWrittenCode(inputAddress, input, modifier, value, state, scope) {
+  const facts = () => slotsPoured(state.pipeValue, [], { [`${input.name.name}/found`]: value });
+  if (quotedTwice(value, state.scope)) return refusalUnder(quotedTwiceRefusalAddress(inputAddress), facts(), scope);
+  if (writtenAsAQuote(modifier)) return refusalUnder(quotedRefusalAddress(inputAddress), facts(), scope);
+  return null;
+}
+
+const isCodeValue = value => isQuote(value) || isFn(value) || isPath(value);
+
+function quotedTwice(code, scope) {
+  if (!isQuote(code)) return false;
+  const steps = code.filter(step => !isBindStep(step));
+  if (steps.length !== 1) return false;
+  const [step] = steps;
+  if (isQuote(step)) return true;
+  if (!isCallStep(step) || step.has('modifiers')) return false;
+  const name = step.get('name').name;
+  return !name.includes('/') && holdsAValueOf(scope, name) && isCodeValue(bindingValueOf(scope.get(name)));
+}
+
+function writtenAsAQuote({ step }) {
+  if (step === undefined) return false;
+  if (isQuote(step) || quoteUnderTags(step)) return true;
+  return isTemplate(step) && holdsAQuoteWritten(step);
+}
+
+const quoteUnderTags = step => isConstructStep(step) && (isQuote(step.get('payload')) || quoteUnderTags(step.get('payload')));
+
+function holdsAQuoteWritten(literal) {
+  for (const part of partsOfATemplate(literal)) {
+    if (isQuote(part) || quoteUnderTags(part)) return true;
+    if (!isComputingStep(part) && holdsAQuoteWritten(part)) return true;
   }
-  const expected = input.each ? kindsExpected('vec') : kindsExpected(...kinds);
-  return refusalUnder(kindsRefusalAddress(inputAddress), slotsPoured(state.pipeValue, [], slotRefused(input.name.name, { expected, found: atRest })), scope);
+  return false;
+}
+
+// [QSPTH#template]
+const BUILDS_A_VALUE_OF_CODE = new Set([FN_TAG_NAME, KIND_TAG_NAME]);
+
+function partsOfATemplate(literal) {
+  if (isConstructStep(literal)) return BUILDS_A_VALUE_OF_CODE.has(literal.get('tag').name) ? [] : [literal.get('payload')];
+  const fields = errorFieldsOf(literal);
+  if (fields !== null) return [...fields.values()];
+  if (isVec(literal) || isSet(literal)) return isQuote(literal) || isDoc(literal) || isFn(literal) || isKind(literal) ? [] : literal;
+  return isMap(literal) && !isCallStep(literal) && !isBindStep(literal) ? [...literal.values()] : [];
 }
 
 // [QSDSP#answer], [QSBLD#kind], [QSLIT#tag], [QSBLD#label], [QSERR#flow], [QSQUO#held]
@@ -1129,11 +1243,52 @@ function closeQuote(quote, state) {
   return async subject => (await evalPipeline(quote, nestState(state, subject, state.scope))).pipeValue;
 }
 
-// [QSQUO#held], [QSNAM#verb], [QSERR#trace]
+// [QSQUO#held], [QSNAM#verb], [QSERR#trace], [QSQUO#modifier]
 function modifierOf(step, state) {
-  if (isQuote(step)) return writtenInTheStep(() => step);
-  if (isTemplate(step)) return writtenInTheStep(closeStep(step, state));
-  return closeStep(step, state);
+  if (isQuote(step)) return Object.assign(writtenInTheStep(() => step), { step });
+  if (isTemplate(step)) return Object.assign(writtenInTheStep(closeStep(step, state)), { step, holdsSteps: computesWithin(step) });
+  const computing = Object.assign(closeStep(step, state), { step });
+  if (restsAsCode(step, state.scope)) computing.code = codeOfAStep(step);
+  return computing;
+}
+
+// [QSQUO#modifier]
+const SELF_NAME = 'self';
+const CODES_OF_STEPS = new WeakMap();
+
+function codeOfAStep(step) {
+  if (isGroupStep(step)) return step.payload;
+  let code = CODES_OF_STEPS.get(step);
+  if (code === undefined) CODES_OF_STEPS.set(step, code = makeQuote([step]));
+  return code;
+}
+
+const headOfCode = steps => steps.find(step => !isBindStep(step));
+
+function holdsAValueOf(scope, name) {
+  const entry = scope.get(name);
+  return isBinding(entry) && !isProgramRecord(entry);
+}
+
+function namesAValue(step, scope) {
+  if (!isCallStep(step)) return true;
+  const name = step.get('name').name;
+  return name.includes('/') ? !isVerb(scope, name) : holdsAValueOf(scope, name);
+}
+
+function restsAsCode(step, scope) {
+  return isGroupStep(step) || (isCallStep(step) && !namesAValue(step, scope));
+}
+
+// [QSNAM#declare]
+function asksForASubject(step, scope) {
+  if (isGroupStep(step)) {
+    const head = headOfCode(step.payload);
+    if (head === undefined) return false;
+    if (isCallStep(head) && step.payload.some(held => isBindStep(held) && held.get('name').name === head.get('name').name)) return false;
+    return isGroupStep(head) || asksForASubject(head, scope);
+  }
+  return isCallStep(step) && !namesAValue(step, scope);
 }
 
 // [QSQUO#held]

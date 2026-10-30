@@ -55,10 +55,10 @@
         ~~|
     | proves :holdsADeclaredName
         |~~ A name declared before the step is held. ~~|
-        ~(:number/double ~(mul 2); ::host | env | has :number/double)
+        ~(:number/double mul 2; ::host | env | has :number/double)
     | proves :holdsTheRecord
         |~~ Each name holds the record its declaration wrote. ~~|
-        ~(:number/double ~(mul 2); ::host | env | get /:number/double | value | eq ~(mul 2))
+        ~(:number/double mul 2; ::host | env | get /:number/double | value | eq ~(mul 2))
     | proves :holdsANameWithAPath
         |~~ A name with a path is held by its address. ~~|
         ~(:Box |~~ A box. ~~|; :Box/area ~(1); ::host | env | keys | eq [:Box :Box/area])
@@ -66,7 +66,7 @@
         |~~ Inside a fork the names before it and its own are held, and
             the fork's stay inside it.
         ~~|
-        ~(:Box |~~ A box. ~~|; get [~(:Crate |~~ A crate. ~~|; ::host | env | keys) ~(::host | env | keys)] | eq [[:Box :Crate] [:Box]])
+        ~(:Box |~~ A box. ~~|; get [(:Crate |~~ A crate. ~~|; ::host | env | keys) (::host | env | keys)] | eq [[:Box :Crate] [:Box]])
     | proves :isEmptyAtTheStart
         |~~ Nothing is declared at the start. ~~|
         ~(::host | env | eq {})
@@ -74,7 +74,7 @@
         |~~ A value is no host: `env` of it is refused as a verb no kind of
             the value answers, naming its address.
         ~~|
-        ~([1 2] | env !| get [~(tag) ~(addresses)] | eq [::call/KindAnswersNoVerbError #[::host/env]])
+        ~([1 2] | env !| get [tag addresses] | eq [::call/KindAnswersNoVerbError #[::host/env]])
     | proves :ArgsBeyondInputsError/refusesAName
         |~~ A name given to `env` is refused under the verb. ~~|
         ~(:Box |~~ A box. ~~|; ::host | env :Box !| tag | eq ::host/env/ArgsBeyondInputsError)
@@ -114,7 +114,7 @@
         |~~ A value is no host: `kinds` of it is refused as a verb no kind
             of the value answers, naming its address.
         ~~|
-        ~([1 2] | kinds !| get [~(tag) ~(addresses)] | eq [::call/KindAnswersNoVerbError #[::host/kinds]])
+        ~([1 2] | kinds !| get [tag addresses] | eq [::call/KindAnswersNoVerbError #[::host/kinds]])
     | proves :ArgsBeyondInputsError/refusesAKind
         |~~ A kind given to `kinds` is refused under the verb. ~~|
         ~(::host | kinds ::set !| tag | eq ::host/kinds/ArgsBeyondInputsError)
@@ -139,17 +139,17 @@
         ::vec
     | throws :ArgsBeyondInputsError
         |~~ `status` answers every section and takes none: one is read by
-            its address, `::host | status | filter ~(get /section | eq ::host/budget)`.
+            its address, `::host | status | filter (get /section | eq ::host/budget)`.
         ~~|
     | proves :answersASectionDeclaredUnderTheHost
         |~~ A snippet declared under `::host` is a section, its page, its
             query and what the query answers now.
         ~~|
         ~(:host/rate |~~ The rate. ~~| ::snippet~(1 | add 1);
-          ::host | status | filter ~(get /section | eq ::host/rate)
+          ::host | status | filter (get /section | eq ::host/rate)
           | eq [{:section ::host/rate :page "The rate." :query ~(1 | add 1) :answer 2}])
     | proves :ArgsBeyondInputsError/refusesASection
         |~~ A section given to `status` is refused under the verb. ~~|
         ~(::host | status :budget !| tag | eq ::host/status/ArgsBeyondInputsError)
-    | impl ~(manifest | toVec | filter ~(binding | value | tag | eq ::snippet)
-            | map ~(get {:section ~(it) :page ~(doc | content) :query ~(binding | value | payload) :answer ~(binding | value | answer !| it)}));
+    | impl ~(manifest | toVec | filter (binding | value | tag | eq ::snippet)
+            | map (get {:section it :page (doc | content) :query (binding | value | payload) :answer (binding | value | answer !| it)}));

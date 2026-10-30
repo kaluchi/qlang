@@ -58,7 +58,7 @@ describe('a verb as the tooling reads it', () => {
 
   it('shows a verb written as its recipe alone, the function of no commands it is, with no inputs', async () => {
     const notebook = await createNotebook();
-    await notebook.evalCell(':number/double ~(mul 2);');
+    await notebook.evalCell(':number/double mul 2;');
     expect(shownFor(notebook.scope, 'double')).toEqual({ address: expect.objectContaining({ name: 'number/double' }), inputs: [] });
   });
 });
@@ -131,7 +131,7 @@ describe('the occurrences of a name', () => {
   });
 
   it('finds a name with a path by the name a step calls it by', () => {
-    const refs = findNameOccurrences(rootOf(':any/double ~(mul 2); [1 2] | map ~double | any/double'), 'double');
+    const refs = findNameOccurrences(rootOf(':any/double mul 2; [1 2] | map double | any/double'), 'double');
     expect(refs.map(kindOf)).toEqual(['bind', 'call', 'call']);
   });
 
@@ -156,7 +156,7 @@ describe('the names visible at a position', () => {
   });
 
   it('offers a name with a path by the name a step calls it by', () => {
-    expect(visibleIn(':any/twice ~(mul 2); 5').has('twice')).toBe(true);
+    expect(visibleIn(':any/twice mul 2; 5').has('twice')).toBe(true);
   });
 
   it('does not include bindings ahead of the cursor', () => {
@@ -186,17 +186,17 @@ describe('the names visible at a position', () => {
   });
 
   it('hides bindings inside one quote of a vector from a sibling element', () => {
-    const source = 'get [~(:x 1; x) ~(x)]';
+    const source = 'get [(:x 1; x) (x)]';
     expect(visibleIn(source, source.lastIndexOf('x')).has('x')).toBe(false);
   });
 
   it('hides bindings inside one map entry value from a sibling entry value', () => {
-    const source = 'get {:a ~(:x 1; x) :b ~(x)}';
+    const source = 'get {:a (:x 1; x) :b (x)}';
     expect(visibleIn(source, source.lastIndexOf('x')).has('x')).toBe(false);
   });
 
   it('sees a binding of the query inside nested groups, literals and quotes', () => {
-    const source = ':outer 1; ((get [{:k ~(outer)}]))';
+    const source = ':outer 1; ((get [{:k (outer)}]))';
     expect(visibleIn(source, source.lastIndexOf('outer')).has('outer')).toBe(true);
   });
 
@@ -229,10 +229,10 @@ describe('the names visible at a position', () => {
   });
 
   describe('in the body of a verb, around it and in its docs', () => {
-    const source = ':k 1; :map/walk |~~ see ~(walk) ~~| ~(:j 2; get /kids | map ~walk); :vec/f ~(f); :Late |~~ L ~~|; :n 3; here';
+    const source = ':k 1; :map/walk |~~ see ~(walk) ~~| (:j 2; get /kids | map walk); :vec/f f; :Late |~~ L ~~|; :n 3; here';
     const verbs = read => read.value.get('name').name.includes('/');
     const namesAt = (offset, spelling, declaresAVerb) => [...bindingNamesVisibleAt(rootOf(source), offset, spelling, declaresAVerb).keys()];
-    const inTheBody = source.indexOf('~walk') + 1;
+    const inTheBody = source.indexOf('map walk') + 4;
 
     it('sees in the body of a verb the declarations of the body before the offset and, outside the body, the verbs and the labels wherever they stand, and no value', () => {
       expect(namesAt(inTheBody, undefined, verbs)).toEqual(['map/walk', 'walk', 'j', 'vec/f', 'f', 'Late']);
@@ -256,14 +256,14 @@ describe('the names visible at a position', () => {
   });
 
   it('answers a name in the body of a verb with its nearest declaration, one in a text nearer the verb before one farther out', () => {
-    const source = ':vec/g |~~ outer ~~| ~(2); (:vec/g |~~ inner ~~| ~(1); :vec/f ~(g); [1] | f)';
-    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
+    const source = ':vec/g |~~ outer ~~| ~(2); (:vec/g |~~ inner ~~| ~(1); :vec/f g; [1] | f)';
+    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf(':vec/f g') + 7, undefined, read => read.value.get('name').name.includes('/')).get('g');
     expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
   });
 
   it('answers a name in the body of a verb with the declaration nearer the verb, one farther out written after it set aside', () => {
-    const source = ':h (:vec/g |~~ inner ~~| ~(1); :vec/f ~(g); [1] | f); :vec/g |~~ outer ~~| ~(2); h';
-    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf('~(g)') + 2, undefined, read => read.value.get('name').name.includes('/')).get('g');
+    const source = ':h (:vec/g |~~ inner ~~| ~(1); :vec/f g; [1] | f); :vec/g |~~ outer ~~| ~(2); h';
+    const reached = bindingNamesVisibleAt(rootOf(source), source.indexOf(':vec/f g') + 7, undefined, read => read.value.get('name').name.includes('/')).get('g');
     expect(source.slice(reached.span.start.offset, reached.span.end.offset)).toBe(':vec/g |~~ inner ~~| ~(1)');
   });
 });

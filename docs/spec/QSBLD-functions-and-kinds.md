@@ -104,19 +104,19 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [~(::fn | impl ~(add 1)) ~(::fn | takes 5 |~~ The amount. ~~| /0 !| get [~(command) ~(index) ~(found)]) ~(-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+> get [(::fn | impl ~(add 1)) (::fn | takes 5 |~~ The amount. ~~| /0 !| get [command index found]) (-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
 [::fn[~() ~(add 1)] [~(takes 5 |~~ The amount. ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
 
-> get [~(::fn[[] ~(1)] !| tag) ~(::fn | returns |~~ A. ~~| #[] !| tag) ~(::fn | takes :null |~~ w ~~| /0 !| tag)]
+> get [(::fn[[] ~(1)] !| tag) (::fn | returns |~~ A. ~~| #[] !| tag) (::fn | takes :null |~~ w ~~| /0 !| tag)]
 [::fn/PayloadNotPairError ::fn/CommandNotTakenError ::fn/CommandNotTakenError]
 
-> 5 | apply ~(add 1) [3] !| tag
+> 5 | apply (add 1) [3] !| tag
 ::any/apply/ArgsNotTakenError
 
 > ::host | kinds | inter #[::accepts ::holds ::impl ::on ::proves ::returns ::takes ::tells ::throws ::wires]
 #[]
 
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number) | impl ~(add by)); get [~(::number/plus/TooBigError!{:bound 3} | bound) ~(::fn | throws :TooBigError |~~ Too big. ~~| ~(accepts |~~ The facts. ~~| ::map) !| tag) ~(::number/plus | binding | value | print | parse | answer | eq (::number/plus | binding | value))]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 | throws :TooBigError |~~ A sum past a bound. ~~| ~(wires :bound |~~ The bound. ~~| ::number) | impl ~(add by)); get [(::number/plus/TooBigError!{:bound 3} | bound) (::fn | throws :TooBigError |~~ Too big. ~~| ~(accepts |~~ The facts. ~~| ::map) !| tag) (::number/plus | binding | value | print | parse | answer | eq (::number/plus | binding | value))]
 [3 ::kind/NameDeclaredTwiceError true]
 ```
 
@@ -159,22 +159,22 @@ and an element of none as `…/ElementKindNotTakenError` with the input's
 `index`.
 
 ```qlang
-> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [~(5 | plus 2) ~(5 | plus "x" !| tag) ~(5 | plus !| tag) ~(5 | plus 1 2 !| tag)]
+> :number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [(5 | plus 2) (5 | plus "x" !| tag) (5 | plus !| tag) (5 | plus 1 2 !| tag)]
 [7 ::number/plus/ByKindNotTakenError ::number/plus/ByNotGivenError ::number/plus/ArgsBeyondInputsError]
 
-> :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)); [5 1 4 2] | get [~(top) ~(top 1)]
+> :vec/top (::fn | takes :n |~~ The n. ~~| ~(query /0 3) ::number | impl ~(sort | reverse | take n)); [5 1 4 2] | get [top (top 1)]
 [[5 4 2] [5]]
 
-> apply ~(:total (::fn | takes :prices |~~ The prices. ~~| /0 [::number] | impl ~(prices)); get [~(5 | apply total [5] !| tag) ~(5 | apply total [[1 "two"]] !| get [~(tag) /:prices/index])])
+> apply (:total (::fn | takes :prices |~~ The prices. ~~| /0 [::number] | impl ~(prices)); get [(5 | apply total [5] !| tag) (5 | apply total [[1 "two"]] !| get [tag /:prices/index])])
 [::fn/call/PricesKindNotTakenError [::fn/call/PricesElementKindNotTakenError 1]]
 
 > 1 | add 1 2 !| surplus | found
 [2]
 
-> :vec/it ~(99); :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)); :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)); :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)); 5 | get [~(w 1 2) ~(a) ~(a 2)]
+> :vec/it ~(99); :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)); :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)); :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)); 5 | get [(w 1 2) a (a 2)]
 [::number/w[1 2] 6 7]
 
-> get [~(:any/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(x)); null | m ::Width#5) ~("abc" | take ::N#2)]
+> get [(:any/m (::fn | takes :x |~~ The x. ~~| /0 ::number | impl ~(x)); null | m ::Width#5) ("abc" | take ::N#2)]
 [::Width#5 "ab"]
 ```
 
@@ -211,7 +211,7 @@ scope the call is made in, the verbs among them, the args as `args`,
 each input by its name, and the names its steps declare, and what it
 reads as data is read as [QSNAM#owner] states. The recipe of a word under
 a label whose kind wires its parts sees the names of the wiring of its
-subject beside its inputs, `:Card/minutes ~(took | div 60)`, as the body
+subject beside its inputs, `:Card/minutes (took | div 60)`, as the body
 of `with` sees the names it is given, and an input named as one of them
 is refused where the word is declared, `::bind/NameDeclaredTwiceError`. A value the code
 that calls the verb names stands outside that scope, a bare step of that
@@ -229,13 +229,13 @@ recipe written alone under a label takes no args, those given to it
 refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
 
 ```qlang
-> 5 | apply ~(:factor 3; :number/times ~(mul factor); times !| tag)
+> 5 | apply (:factor 3; :number/times mul factor; times !| tag)
 ::call/UnknownNameError
 
-> :number/fact ~(if (lte 1) ~(1) ~(mul (sub 1 | fact))); 5 | fact
+> :number/fact (if (lte 1) (1) (mul (sub 1 | fact))); 5 | fact
 120
 
-> :any/given ~(args | count); 5 | get [~(given) ~(given 1 !| tag)]
+> :any/given (args | count); 5 | get [given (given 1 !| tag)]
 [0 ::any/given/ArgsBeyondInputsError]
 ```
 
@@ -295,19 +295,19 @@ chain and a constructor refused as `::kind/PayloadNotPairError`.
 > ::kind | accepts |~~ The sizes. ~~| ::map | print
 "::kind[~(accepts |~~ The sizes. ~~| ::map) null]"
 
-> get [~(::kind[[] null] !| tag) ~(::kind | wires :null |~~ n ~~| /n !| tag) ~(::kind | impl 5 !| tag) ~(::kind[~() ~(add 1)] !| tag)]
+> get [(::kind[[] null] !| tag) (::kind | wires :null |~~ n ~~| /n !| tag) (::kind | impl 5 !| tag) (::kind[~() ~(add 1)] !| tag)]
 [::kind/PayloadNotPairError ::kind/CommandNotTakenError ::kind/ConstructorKindNotTakenError ::kind/ConstructorKindNotTakenError]
 
-> :B |~~ B. ~~| (::kind | accepts |~~ w ~~| ::number | impl ::builtin{}); get [~(::B#5 | tag) ~(::B"x" !| tag)]
+> :B |~~ B. ~~| (::kind | accepts |~~ w ~~| ::number | impl ::builtin{}); get [(::B#5 | tag) (::B"x" !| tag)]
 [::B ::B/PayloadKindNotTakenError]
 
-> :B |~~ B. ~~| (::kind | impl (::number | binding | value | get /1)); get [~(::B | binding | value | get /1) ~(::number | binding | value | get /1) ~(::B"x")]
+> :B |~~ B. ~~| (::kind | impl (::number | binding | value | get /1)); get [(::B | binding | value | get /1) (::number | binding | value | get /1) (::B"x")]
 [::builtin{:of ::number} ::builtin{:of ::number} ::B"x"]
 
 > :Bag |~~ A bag. ~~| (::kind | accepts |~~ The things. ~~| ::vec | reveals :size); :Bag/size (::fn | returns |~~ How many things: it holds. ~~| ::number | impl ~(count)); ::Bag | legend | print | lines | last
 "|~ size ::number · How many things ~|"
 
-> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | with {:took ~(5)} ~(get [~(took) ~(Card/took)])
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | with {:took (5)} (get [took Card/took])
 [5 312]
 ```
 
@@ -352,31 +352,31 @@ wires no part stays open, its tag passing the words of its payload,
 `::Width#2 | add 3` answering `::Width#5`.
 
 ```qlang
-> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)); get [~(::Box{:w 3} | tag) ~(::Box{} !| tag) ~(::Box{:w "x"} !| tag) ~(::Box{:w 20} !| tag)]
+> :Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number | holds :TooWideError |~~ At most ten. ~~| ~(get /w | lte 10)); get [(::Box{:w 3} | tag) (::Box{} !| tag) (::Box{:w "x"} !| tag) (::Box{:w 20} !| tag)]
 [::Box ::Box/WNotGivenError ::Box/WKindNotTakenError ::Box/TooWideError]
 
 > :Box |~~ B. ~~| (::kind | holds :NegError |~~ Above zero. ~~| ~(get /0 | gt 0)); ::Box[-1] !| payload | keys
 [:found :trace]
 
-> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))); get [~(::Sorted[1 2] | payload) ~(::Sorted[2 1] !| found)]
+> :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))); get [(::Sorted[1 2] | payload) (::Sorted[2 1] !| found)]
 [[1 2] [2 1]]
 
-> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number); get [~(::W#5 | tag ::Pos !| get [~(tag) ~(found | tag)]) ~(::W#5 | payload | tag ::Pos)]
+> :Pos |~~ P ~~| (::kind | accepts |~~ n ~~| ::number); get [(::W#5 | tag ::Pos !| get [tag (found | tag)]) (::W#5 | payload | tag ::Pos)]
 [[::Pos/PayloadKindNotTakenError ::W] ::Pos#5]
 
-> :Nums |~~ n ~~| (::kind | accepts |~~ v ~~| [::number]); get [~(#[2 1] | tag ::Nums !| tag) ~([1 "a"] | tag ::Nums !| get [~(tag) ~(index)])]
+> :Nums |~~ n ~~| (::kind | accepts |~~ v ~~| [::number]); get [(#[2 1] | tag ::Nums !| tag) ([1 "a"] | tag ::Nums !| get [tag index])]
 [::Nums/PayloadKindNotTakenError [::Nums/ElementKindNotTakenError 1]]
 
-> :Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[]); 5 | tag ::Topic !| get [~(tag) ~(expected)]
+> :Topic |~~ A topic. ~~| (::kind | accepts |~~ None. ~~| #[]); 5 | tag ::Topic !| get [tag expected]
 [::Topic/PayloadKindNotTakenError #[]]
 
-> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | get [~(took) ~(get /took !| repair) ~(count !| tag) ~(payload | get /1)]
+> :Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); ::Card["a" 312] | get [took (get /took !| repair) (count !| tag) (payload | get /1)]
 [312 ~(took) ::call/KindAnswersNoVerbError 312]
 
-> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number); ::E"x" !| get [~(tag) ~(found | tag)]
+> :E |~~ E ~~| (::kind | accepts |~~ t ~~| ::string | wires :n |~~ n ~~| ~(toNumber) ::number); ::E"x" !| get [tag (found | tag)]
 [::E/NNotReadError ::string/toNumber/TextNotNumberError]
 
-> ::Box{:w 3} | apply ~(:Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number); w)
+> ::Box{:w 3} | apply (:Box |~~ B ~~| (::kind | wires :w |~~ w ~~| /w ::number); w)
 3
 ```
 
@@ -411,22 +411,22 @@ the root is that kind, its constructor building within it, `:N
 > :Sorted |~~ Sorted. ~~| (::kind | holds :NotSortedError |~~ In order. ~~| ~(eq (sort))); ::Sorted[1 2 3] | reverse !| tag
 ::Sorted/NotSortedError
 
-> ::Pos#-3 | apply ~(:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)); tag ::Pos) !| tag
+> ::Pos#-3 | apply (:Pos |~~ A positive number. ~~| (::kind | holds :NotPositiveError |~~ Above zero. ~~| ~(gt 0)); tag ::Pos) !| tag
 ::Pos/NotPositiveError
 
-> :number/c (::fn | takes :x |~~ x ~~| /0); get [~(::number/c[1] | tag) ~(:limit 5; ::limit[1] !| tag)]
+> :number/c (::fn | takes :x |~~ x ~~| /0); get [(::number/c[1] | tag) (:limit 5; ::limit[1] !| tag)]
 [::number/c ::construct/TagNamesAValueError]
 
-> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)); get [~(::Box/TooBigError[1] !| tag) ~(::Box/TooBigError!{:found 10} | found)]
+> :Box |~~ B ~~| (::kind | holds :TooBigError |~~ t ~~| ~(lt 9)); get [(::Box/TooBigError[1] !| tag) (::Box/TooBigError!{:found 10} | found)]
 [::Box/TooBigError/PayloadKindNotTakenError 10]
 
 > ::vec/take/CountNotIntegerError | binding | value | tag
 ::invariant
 
-> get [~(::set | binding | value | get /1 | tag) ~(::keyword | binding | value | get /1)]
+> get [(::set | binding | value | get /1 | tag) (::keyword | binding | value | get /1)]
 [::builtin null]
 
-> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}); :Pos/construct ~(add 0); get [~(::Pos#5 | construct) ~(::Pos | manifest)]
+> :Pos |~~ A positive number. ~~| (::kind | impl ::builtin{}); :Pos/construct add 0; get [(::Pos#5 | construct) (::Pos | manifest)]
 [::Pos#5 #[::Pos/construct]]
 
 > ::null | binding | value | tag
@@ -448,7 +448,7 @@ data, a function under a verb among it [QSNAM#declare]. A failure of such a decl
 text, caught where the text is read.
 
 ```qlang
-> get [~(~(:Positive ::invariant~(gt 0);) | answer !| tag) ~(~(:Positive ::invariant::Foo~(gt 0);) | answer !| tag)]
+> get [(~(:Positive ::invariant~(gt 0);) | answer !| tag) (~(:Positive ::invariant::Foo~(gt 0);) | answer !| tag)]
 [::bind/WrittenOutsideItsChainError ::invariant/PayloadKindNotTakenError]
 
 > ~(:number/add/extra |~~ More. ~~| /1;) | answer !| tag

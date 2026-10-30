@@ -19,7 +19,7 @@
 
       `content` answers its text, `segments` its prose and its quotes in
       order, `links` its links and `snippets` its snippets, so
-      `::vec | doc | links | map ~open` opens every page the page of
+      `::vec | doc | links | map open` opens every page the page of
       vectors names.
       ::snippet~(::doc | manifest) lists its verbs and refusals.
       ::link~(::link) ::link~(::snippet)
@@ -39,7 +39,7 @@
         |~~ Every element of a doc is a segment, a string of prose or a
             quote, and another value is refused at the index it stands at;
             a number is made prose by `toString` first,
-            `get ["a" ~(5 | toString)] | tag ::doc`.
+            `get ["a" (5 | toString)] | tag ::doc`.
         ~~|
     | proves :isThePageOfAName
         |~~ The page of a name is a doc. ~~|
@@ -52,10 +52,10 @@
         ~(["a" ~(add 1)] | tag ::doc | eq (|~~a~(add 1)~~|))
     | proves :PayloadKindNotTakenError/refusesAString
         |~~ A string payload is refused. ~~|
-        ~(::doc"x" !| get [~(tag) ~(found | tag)] | eq [::doc/PayloadKindNotTakenError ::string])
+        ~(::doc"x" !| get [tag (found | tag)] | eq [::doc/PayloadKindNotTakenError ::string])
     | proves :ElementKindNotTakenError/refusesANumberAmongTheSegments
         |~~ A number among the segments is refused at its index. ~~|
-        ~(["a" 1] | tag ::doc !| get [~(tag) ~(index) ~(expected)] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
+        ~(["a" 1] | tag ::doc !| get [tag index expected] | eq [::doc/ElementKindNotTakenError 1 #[::quote ::string]])
     | impl ::builtin{};
 
 :doc/content
@@ -90,7 +90,7 @@
         ~(::vec/join | doc | content | contains "separator")
     | proves :SubjectNotDocError/refusesTheNullOfANameWithoutAPage
         |~~ A name declared without a page has no content to read. ~~|
-        ~(:number/double ~(mul 2); ::number/double | doc | content !| get [~(tag) ~(subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
+        ~(:number/double mul 2; ::number/double | doc | content !| get [tag (subject | found | tag)] | eq [::doc/content/SubjectNotDocError ::null])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
         ~("x" | content !| tag | eq ::doc/content/SubjectNotDocError)
@@ -102,7 +102,7 @@
       one a tag of a host or a reader stands over, `::Host::link~(…)`,
       code that names another page. A doc without links answers the empty
       vector, and a snippet is no link. A link opens the page it names, so
-      `::vec | doc | links | map ~open` reads every page the page of
+      `::vec | doc | links | map open` reads every page the page of
       vectors names, in one query, and `toString` spells its code. The
       subject is a doc, the page of a name read by `doc` first.
       ::link~(::link/open) ::link~(::doc/snippets)
@@ -130,7 +130,7 @@
     | proves :SubjectNotDocError/refusesItsText
         |~~ The text of a page is no doc. ~~|
         ~(::vec | doc | content | links
-          !| get [~(tag) ~(subject | found | tag)] | eq [::doc/links/SubjectNotDocError ::string])
+          !| get [tag (subject | found | tag)] | eq [::doc/links/SubjectNotDocError ::string])
     | impl ::builtin{};
 
 :doc/segments
@@ -172,16 +172,16 @@
         |~~ A quote of a doc that reads as no code is refused, and code a
             prose shows stands between backquotes.
         ~~|
-        ~(get [~("|~~ Add one, ~(add 1 | ), then double. ~~|" | parse !| tag) ~(|~~ Write `~(add 1 | )` whole. ~~| | segments | count)] | eq [::quote/ParseError 1])
+        ~(get [("|~~ Add one, ~(add 1 | ), then double. ~~|" | parse !| tag) (|~~ Write `~(add 1 | )` whole. ~~| | segments | count)] | eq [::quote/ParseError 1])
     | proves :buildsTheDocAgainUnderItsTag
         |~~ The segments under `::doc` are the doc again. ~~|
         ~(|~~ Add one, ~(add 1), then double. ~~| | eq (segments | tag ::doc))
     | proves :refusesARoleWhosePayloadIsNoQuote
         |~~ A quote under a tag that takes no quote refuses the doc. ~~|
-        ~(|~~ see ::number~(~(x)) ~~| !| get [~(tag) ~(found | tag)] | eq [::number/PayloadKindNotTakenError ::quote])
+        ~(|~~ see ::number~(~(x)) ~~| !| get [tag (found | tag)] | eq [::number/PayloadKindNotTakenError ::quote])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | doc/segments !| get [~(tag) ~(subject | found | tag)] | eq [::doc/segments/SubjectNotDocError ::string])
+        ~("text" | doc/segments !| get [tag (subject | found | tag)] | eq [::doc/segments/SubjectNotDocError ::string])
     | impl ::builtin{};
 
 :doc/snippets
@@ -190,7 +190,7 @@
       reader runs to see what it shows, `::snippet~([2 1] | sort)`. A
       doc without snippets answers the empty vector, and a link is no
       snippet. A snippet answers what it shows, so
-      `snippets | map ~answer` runs every example of a page. The subject
+      `snippets | map answer` runs every example of a page. The subject
       is a doc, the page of a name read by `doc` first.
       ::link~(::quote/answer) ::link~(::doc/links)
   ~~|
@@ -210,10 +210,10 @@
         ~(|~~ a ::link~(::vec) b ~~| | snippets | eq [])
     | proves :answersWhatItShows
         |~~ A snippet answers what it shows. ~~|
-        ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map ~answer | eq [[1 2]])
+        ~(|~~ ::snippet~([2 1] | sort) ~~| | snippets | map answer | eq [[1 2]])
     | proves :SubjectNotDocError/refusesAString
         |~~ A string is no doc. ~~|
-        ~("text" | snippets !| get [~(tag) ~(subject | found | tag)] | eq [::doc/snippets/SubjectNotDocError ::string])
+        ~("text" | snippets !| get [tag (subject | found | tag)] | eq [::doc/snippets/SubjectNotDocError ::string])
     | impl ::builtin{};
 
 :doc/toVec
@@ -228,6 +228,6 @@
         |~~ A doc answers the vector of its segments, under a tag of its own
             as well.
         ~~|
-        ~([|~~ a ~(eq 1) b ~~| ::Box|~~ c ~~|] | map ~(toVec | get [~(tag) ~(count)]) | eq [[::vec 3] [::vec 1]])
+        ~([|~~ a ~(eq 1) b ~~| ::Box|~~ c ~~|] | map (toVec | get [tag count]) | eq [[::vec 3] [::vec 1]])
     | impl ::builtin{};
 

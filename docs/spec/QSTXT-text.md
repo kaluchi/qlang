@@ -36,7 +36,7 @@ with the addresses of its verbs.
 > "Ann@Example.COM" | lower
 "ann@example.com"
 
-> get [~("ΣΑΣ" | lower) ~("straße" | upper)]
+> get [("ΣΑΣ" | lower) ("straße" | upper)]
 ["σας" "STRASSE"]
 
 > "x" | append :a
@@ -45,7 +45,7 @@ with the addresses of its verbs.
 > "a\nb\nc" | lines
 ["a" "b" "c"]
 
-> get [~(42 | lower !| tag) ~(42 | take 2 !| get [~(tag) ~(addresses)])]
+> get [(42 | lower !| tag) (42 | take 2 !| get [tag addresses])]
 [::string/lower/SubjectNotStringError [::call/KindAnswersNoVerbError #[::map/take ::string/take ::vec/take]]]
 ```
 
@@ -73,7 +73,7 @@ true
 > "abc" | contains :a !| tag
 ::string/contains/NeedleKindNotTakenError
 
-> get [~(42 | contains "x" !| get [~(tag) ~(addresses)]) ~(#[1 2] | binding :contains | name)]
+> get [(42 | contains "x" !| get [tag addresses]) (#[1 2] | binding :contains | name)]
 [[::call/KindAnswersNoVerbError #[::string/contains ::vec/contains]] :vec/contains]
 ```
 
@@ -96,7 +96,7 @@ refused at its index, the path of the step's frame naming it
 > "a,b,c" | split "," | join ";"
 "a;b;c"
 
-> ["a" 42] | join "," !| get [~(tag) ~(trace | last | path)]
+> ["a" 42] | join "," !| get [tag (trace | last | path)]
 [::vec/join/ElementKindNotTakenError /1]
 ```
 
@@ -125,7 +125,7 @@ end runs as long as its matching does.
 > #"\d+ms" | tag
 ::regex
 
-> [#"\d+ms" #"a"mi] | map ~print
+> [#"\d+ms" #"a"mi] | map print
 ["#\"\\d+ms\"" "#\"a\"im"]
 
 > "#\"(?i)a\"" | parse !| message | contains "the flags follow"
@@ -185,6 +185,6 @@ writes a whole literal is refused as
 > "error" | toRegex "mi"
 #"error"im
 
-> get [~(::string/match | binding | value | inputs | map ~(get /name)) ~(::string/replace | binding | value | inputs | map ~(get /name)) ~("abc" | match "a" !| tag) ~("a1" | capture #"(\d)" !| tag) ~("(" | toRegex !| tag)]
+> get [(::string/match | binding | value | inputs | map (get /name)) (::string/replace | binding | value | inputs | map (get /name)) ("abc" | match "a" !| tag) ("a1" | capture #"(\d)" !| tag) ("(" | toRegex !| tag)]
 [[:regex] [:needle :with] ::string/match/RegexKindNotTakenError ::string/capture/RegexNamesNoGroupError ::string/toRegex/TextNotRegexError]
 ```

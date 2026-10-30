@@ -34,7 +34,7 @@ segments are, and the one order ranks paths by their segments
 > {:"first name" 1} | get /"first name"
 1
 
-> ["a/b" "c"] | toPath | get [~(print) ~(eq (print | parse | answer))]
+> ["a/b" "c"] | toPath | get [print (eq (print | parse | answer))]
 ["/:a/b/:c" true]
 ```
 
@@ -65,22 +65,22 @@ reads as any value.
 > {:a {:b [10 20]}} | get /a/b/-1
 20
 
-> {:emails [] :age 3} | get /email !| get [~(tag) ~(key) ~(nearest) ~(path)]
+> {:emails [] :age 3} | get /email !| get [tag key nearest path]
 [::path/KeyNotInMapError :email [:emails] /email]
 
-> [10 20] | get /name !| get [~(tag) ~(segment)]
+> [10 20] | get /name !| get [tag segment]
 [::path/IndexNotIntegerError :name]
 
-> {:a 5} | get /a/b !| get [~(tag) ~(segment)]
+> {:a 5} | get /a/b !| get [tag segment]
 [::path/SubjectHasNoPartsError :b]
 
-> {:b ::T#5} | get /b/c !| get [~(tag) ~(found)]
+> {:b ::T#5} | get /b/c !| get [tag found]
 [::path/SubjectHasNoPartsError 5]
 
-> get [~(::T#5 | get /a !| get [~(payload | keys) ~(found)]) ~(:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box[1 2] !| found | found)]
+> get [(::T#5 | get /a !| get [(payload | keys) found]) (:Box |~~ A box. ~~| (::kind | wires :w |~~ The width. ~~| /w ::number); ::Box[1 2] !| found | found)]
 [[[:found :segment :path :trace] 5] [1 2]]
 
-> "[1" | parse !| location | get [~(get /start/line !| get [~(tag) ~(names) ~(repair)]) ~(start | line)]
+> "[1" | parse !| location | get [(get /start/line !| get [tag names repair]) (start | line)]
 [[::path/TagClosedError #[:end :endColumn :endLine :endOffset :start :startColumn :startLine :startOffset] ~(start | line)] 1]
 ```
 
@@ -95,7 +95,7 @@ answered as it is where the path misses; a `null` that stands at the path
 is answered as it stands.
 
 ```qlang
-> get [~({:a null} | query /a/b) ~({:a ::T#null} | query /a/b)]
+> get [({:a null} | query /a/b) ({:a ::T#null} | query /a/b)]
 [null null]
 
 > [] | query /0 7
@@ -119,10 +119,10 @@ whether `get` reads a part there, so a path held as an element is
 asked for by `contains` [QSTXT#search].
 
 ```qlang
-> {:a {:b 1}} | get [~(has /a/b) ~(has /a/c)]
+> {:a {:b 1}} | get [(has /a/b) (has /a/c)]
 [true false]
 
-> {:"1" 5} | get [~(has 1) ~(has 2)]
+> {:"1" 5} | get [(has 1) (has 2)]
 [true false]
 ```
 
@@ -161,19 +161,19 @@ reading `:b` under `:a`.
 > {:k "b" :b 7} | get (get /k)
 7
 
-> get [~({:k null} | get (get /k) !| tag) ~({} | get (get /k) !| tag)]
+> get [({:k null} | get (get /k) !| tag) ({} | get (get /k) !| tag)]
 [::any/get/PathKindNotTakenError ::path/KeyNotInMapError]
 
-> [1 2 3] | groupBy ~(gt 1) | get [~(get true !| tag) ~(get :true)]
+> [1 2 3] | groupBy (gt 1) | get [(get true !| tag) (get :true)]
 [::any/get/PathKindNotTakenError [2 3]]
 
-> {:a 1} | get [~(get ::K:a) ~(has ::K:a) ~(get ::T#/a)]
+> {:a 1} | get [(get ::K:a) (has ::K:a) (get ::T#/a)]
 [1 true ::T#1]
 
-> {:"1" 5 :b 2} | get [~(minus ["b"]) ~(inter [1]) ~(get [~(it) [1]] | minus)]
+> {:"1" 5 :b 2} | get [(minus ["b"]) (inter [1]) (get [it [1]] | minus)]
 [{:"1" 5} {:"1" 5} {:b 2}]
 
-> get [~({:a 1} | minus [:a true] !| get [~(tag) ~(keys | index) ~(keys | expected)]) ~([{:a 1} [true]] | minus !| tag)]
+> get [({:a 1} | minus [:a true] !| get [tag (keys | index) (keys | expected)]) ([{:a 1} [true]] | minus !| tag)]
 [[::map/minus/KeysElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
 > {:a/b 1} | get :a/b
@@ -196,7 +196,7 @@ kind are answered as they are, their parts unread, and a template held in
 a name builds the same shape wherever it is applied. A part that answers
 a failure is the answer of the template, the parts after it unread
 [QSERR#flow]. A value under a closed tag is read in a template by the
-quotes of its names, `get [~took ~result]`, a path of the template
+quotes of its names, `get [took result]`, a path of the template
 beneath its tag refused as `get` refuses it.
 
 `with` names parts of its subject for one template and answers the
@@ -235,31 +235,31 @@ others; a question alone, which no brackets hold, is refused as
 > {:price 4 :qty 3} | get [/price /qty]
 [4 3]
 
-> {:first "Ann" :age 30} | get {:who /first :next ~(get /age | add 1)}
+> {:first "Ann" :age 30} | get {:who /first :next (get /age | add 1)}
 {:who "Ann" :next 31}
 
-> {:name "Ann"} | query [~(get /name) /age]
+> {:name "Ann"} | query [(get /name) /age]
 ["Ann" null]
 
-> {:type "user" :id 7} | with [/id /type] ~(id | toString | append type)
+> {:type "user" :id 7} | with [/id /type] (id | toString | append type)
 "7user"
 
 > {:a 1} | get [::Box::Crate[/a] ::Box#[/a]]
 [::Box::Crate[1] ::Box#[1]]
 
-> {:id 7 :user {:name "Ann"}} | with [/id /user/name] ~(name | append (id | toString))
+> {:id 7 :user {:name "Ann"}} | with [/id /user/name] (name | append (id | toString))
 "Ann7"
 
-> [::Box 5] | with {:t ~first :p ~last} [~(t) ~(p) ~(p | tag t)]
+> [::Box 5] | with {:t first :p last} [t p (p | tag t)]
 [::Box 5 ::Box#5]
 
-> get [~({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] ~(who | append (id | toString))) ~([::Box 5] | with [{:t ~first} {:p ~(t)}] ~(p) !| name) ~({:a 1 :b 2} | with it ~(a) !| tag)]
+> get [({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] (who | append (id | toString))) ([::Box 5] | with [{:t first} {:p t}] p !| name) ({:a 1 :b 2} | with it a !| tag)]
 ["Ann7" :t ::any/with/NamesSelectorKindNotTakenError]
 
-> {:users [{:name "Ann" :age 30} {:name "Bo" :age null}]} | settle [~(get /users | count) ~(get /users/1/age | add 1) /users/5/name] | map ~(get [/ok ~(query /value) ~(query /error | tag)])
+> {:users [{:name "Ann" :age 30} {:name "Bo" :age null}]} | settle [(get /users | count) (get /users/1/age | add 1) /users/5/name] | map (get [/ok (query /value) (query /error | tag)])
 [[true 2 ::null] [false null ::number/add/SubjectNotNumberError] [false null ::path/IndexOutOfBoundsError]]
 
-> get [~({:users [{:name "Ann"}]} | settle {:count ~(get /users | count) :first /users/0/name} | map /value) ~(5 | settle ~(add 1) !| tag)]
+> get [({:users [{:name "Ann"}]} | settle {:count (get /users | count) :first /users/0/name} | map /value) (5 | settle (add 1) !| tag)]
 [{:count 1 :first "Ann"} ::any/settle/QuestionsKindNotTakenError]
 ```
 
@@ -286,13 +286,13 @@ as the value it is.
 > [{:n 2} {:n 1}] | sort /n
 [{:n 1} {:n 2}]
 
-> [{:n 1} {:m 2}] | map /n !| trace | map ~failed
+> [{:n 1} {:m 2}] | map /n !| trace | map failed
 [~(get /n) ~(map /n)]
 
 > {:price 4 :qty 3} | mulOf /price /qty
 12
 
-> 5 | mul /qty !| get [~(tag) ~(repair)]
+> 5 | mul /qty !| get [tag repair]
 [::number/mul/MultiplierKindNotTakenError ~(mul (get /qty))]
 ```
 
@@ -316,7 +316,7 @@ string of another form refused as `::string/toPath/TextNotPathError`; and
 a path answers it with itself.
 
 ```qlang
-> get [~(/tags | count !| get [~(tag) ~(repair)]) ~(/tags | keys !| get [~(tag) ~(repair)])]
+> get [(/tags | count !| get [tag repair]) (/tags | keys !| get [tag repair])]
 [[::call/KindAnswersNoVerbError ~(get /tags | count)] [::map/keys/SubjectNotMapError ~(get /tags | keys)]]
 
 > /a/0 | segments
@@ -325,7 +325,7 @@ a path answers it with itself.
 > /01 | segments
 [:"01"]
 
-> get [~("/a~1b/0" | toPath) ~([:a 1.5] | toPath) ~(/a/0 | toPath)]
+> get [("/a~1b/0" | toPath) ([:a 1.5] | toPath) (/a/0 | toPath)]
 [/:a/b/0 /a/"1.5" /a/0]
 
 > [] | toPath !| tag
@@ -381,7 +381,7 @@ read beneath a mark is answered without the mark, which stands over the
 part above it. The shape of a part of the data is the shape of that part,
 `get /items | map /assignee | shape`, and the size of the data, a sample
 of it and the share of its kinds are read from the data, by `count`,
-`get /0` and `groupBy ~(tag) | map ~count`.
+`get /0` and `groupBy tag | map count`.
 
 `paths` answers the leaves of a value, the vector of the pairs of the path
 that reads each and its kind in the order the value holds its parts, the
@@ -393,28 +393,28 @@ vector, set or map a leaf of its kind and a set read as its vector, and
 > [1] | shape
 ::shape[::number]
 
-> get [~([{:labels [{:name "bug"}]} {:labels []}] | shape) ~({:rows [["2024-01-01" 1.5] ["2024-01-02" null]]} | shape)]
+> get [([{:labels [{:name "bug"}]} {:labels []}] | shape) ({:rows [["2024-01-01" 1.5] ["2024-01-02" null]]} | shape)]
 [::shape[{:labels [::absent{:name ::string}]}] ::shape{:rows [[::string ::nullable::number]]}]
 
 > [{:a 1} {:a null :b "x"} {:c 2}] | shape
 ::shape[#[{:a ::nullable::number :b ::absent::string} {:c ::number}]]
 
-> get [~({:"17" {:id 1} :"42" {:id 2}} | shape) ~({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ~({:"ann@x.org" 1 :"bo@y.org" 2} | shape) ~({:db {:host "h"} :cache {:host "c"}} | shape) ~({:x 1 :y 2} | shape)]
+> get [({:"17" {:id 1} :"42" {:id 2}} | shape) ({:"2024-01-01" 3 :"2024-01-02" 5} | shape) ({:"ann@x.org" 1 :"bo@y.org" 2} | shape) ({:db {:host "h"} :cache {:host "c"}} | shape) ({:x 1 :y 2} | shape)]
 [::shape::each{:"17" {:id ::number}} ::shape::each{:"2024-01-01" ::number} ::shape::each{:"ann@x.org" ::number} ::shape{:db {:host ::string} :cache {:host ::string}} ::shape{:x ::number :y ::number}]
 
 > {:a {:n 1} :b {:n 2} :c {:n 3} :d {:n 4} :e {:n 5} :f {:n 6} :g {:n 7} :h {:n 8} :i null} | shape
 ::shape::each{:a ::nullable{:n ::number}}
 
-> get [~({:"2024-01-01xyz" 1 :"2024-01-02 x" 2} | shape) ~({:"-1" 1 :"1.5" 2} | shape) ~({:"10:00" 1 :"11:30" 2} | shape) ~({:"1" null :"2" null} | shape)]
+> get [({:"2024-01-01xyz" 1 :"2024-01-02 x" 2} | shape) ({:"-1" 1 :"1.5" 2} | shape) ({:"10:00" 1 :"11:30" 2} | shape) ({:"1" null :"2" null} | shape)]
 [::shape::each{:"2024-01-01xyz" ::number} ::shape::each{:"-1" ::number} ::shape{:"10:00" ::number :"11:30" ::number} ::shape{:"1" ::null :"2" ::null}]
 
-> get [~([{:a 1} {}] | shape) ~([{:"1" 1 :"2" 2} {:"3" 3}] | shape) ~([{:"1" 1 :"2" 2} {}] | shape)]
+> get [([{:a 1} {}] | shape) ([{:"1" 1 :"2" 2} {:"3" 3}] | shape) ([{:"1" 1 :"2" 2} {}] | shape)]
 [::shape[{:a ::absent::number}] ::shape[::each{:"1" ::number}] ::shape[::each{:"1" ::absent::number}]]
 
-> get [~([{:b 2} {:a 1} {}] | shape) ~([{:k true :x {:b 2}} {:k 1 :x {}} {:k "s" :x {:a 1}}] | shape | get /0/x) ~([{:"1" 1 :"2" 2} {} {:x 1}] | shape)]
+> get [([{:b 2} {:a 1} {}] | shape) ([{:k true :x {:b 2}} {:k 1 :x {}} {:k "s" :x {:a 1}}] | shape | get /0/x) ([{:"1" 1 :"2" 2} {} {:x 1}] | shape)]
 [::shape[#[{:a ::absent::number} {:b ::absent::number}]] #[{:a ::absent::number} {:b ::absent::number}] ::shape[#[{:x ::absent::number} ::each{:"1" ::absent::number}]]]
 
-> get [~({:"42" 1 :"17" 1} | shape) ~({:"3" {} :"2" {:b 2} :"1" {:a 1}} | shape | eq ({:"1" {:a 1} :"2" {:b 2} :"3" {}} | shape)) ~([{:"1" 1} {:"2" "s"} {}] | shape)]
+> get [({:"42" 1 :"17" 1} | shape) ({:"3" {} :"2" {:b 2} :"1" {:a 1}} | shape | eq ({:"1" {:a 1} :"2" {:b 2} :"3" {}} | shape)) ([{:"1" 1} {:"2" "s"} {}] | shape)]
 [::shape::each{:"17" ::number} true ::shape[#[::each{:"1" ::absent::number} ::each{:"2" ::absent::string}]]]
 
 > {:users [{:name "a" :age 1 :tags ["x" "y"]} {:name "b" :age "2" :tags []}]} | shape | get [/users/0/name /users/0/age /users/0/tags]
@@ -432,7 +432,7 @@ vector, set or map a leaf of its kind and a set read as its vector, and
 > {:q ~(add 1) :n [1 "x"] :s #[2]} | paths
 [[/q ::quote] [/n/0 ::number] [/n/1 ::string] [/s/0 ::number]]
 
-> {:a {:b 1 :c [2 3]} :d []} | paths | map ~(print)
+> {:a {:b 1 :c [2 3]} :d []} | paths | map print
 ["[/a/b ::number]" "[/a/c/0 ::number]" "[/a/c/1 ::number]" "[/d ::vec]"]
 ```
 
@@ -455,7 +455,7 @@ its tag is refused. No path writes beneath a closed tag, refused as
 > {:a {:b 1}} | put /a/c 2
 {:a {:b 1 :c 2}}
 
-> {:n 1} | update /n ~(add 1)
+> {:n 1} | update /n (add 1)
 {:n 2}
 
 > [1 2 3] | delete /1

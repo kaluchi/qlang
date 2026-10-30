@@ -5,7 +5,7 @@ import { CallEvaluationDepthExceededError } from '../../../src/errors.mjs';
 import { catchOriginalError } from '../../helpers/error-assertions.mjs';
 
 it('a verb that calls itself answers ::call/EvaluationDepthExceededError with :depth and :limit among its facts', async () => {
-  const runaway = await evalQuery(':any/inf ~(add 1 | inf); 0 | inf');
+  const runaway = await evalQuery(':any/inf (add 1 | inf); 0 | inf');
   expect(runaway.facts.get('depth')).toBe(EVAL_DEPTH_LIMIT + 1);
   expect(runaway.facts.get('limit')).toBe(EVAL_DEPTH_LIMIT);
   const original = runaway.originalError;
@@ -15,11 +15,11 @@ it('a verb that calls itself answers ::call/EvaluationDepthExceededError with :d
 
 describe('the limit of the evaluation depth — every re-entry seam', () => {
   const seams = [
-    ['a body under map naming its own verb',         ':any/f ~(get [~(it)] | map ~f | first); 1 | f'],
-    ['a quote filter runs naming its own verb',     ':any/p ~(get [~(it)] | filter ~(p)); [1] | p'],
-    ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 ~r)); [1] | reduce 0 ~r'],
-    ['a verb predicate over a map',                 ':any/k ~({:a 1} | filter ~k); {:a 1} | filter ~k'],
-    ['code apply runs naming its own verb',          ':any/a ~(apply ~(a)); 1 | a'],
+    ['a body under map naming its own verb',         ':any/f (get [it] | map f | first); 1 | f'],
+    ['a quote filter runs naming its own verb',     ':any/p (get [it] | filter p); [1] | p'],
+    ['a verb folding through reduce',               ':any/r (::fn | takes :el |~~ The element. ~~| /0 | impl ~([1] | reduce 0 r)); [1] | reduce 0 r'],
+    ['a verb predicate over a map',                 ':any/k ~({:a 1} | filter k); {:a 1} | filter k'],
+    ['code apply runs naming its own verb',          ':any/a apply a; 1 | a'],
     ['an invariant of a kind laying its own tag',    ':T |~~ T. ~~| (::kind | holds :E |~~ e ~~| ~(::T#1 | payload | eq 1)); ::T#1']
   ];
   for (const [seamName, query] of seams) {
@@ -49,7 +49,7 @@ it('runLaws runs each law one deeper than its step, so a law that runs its own l
 });
 
 it('a name with a path calls the verb its address names, with the modifiers the call takes', async () => {
-  expect(await evalQuery('[1 2 3] | vec/filter ~(gt 1)')).toEqual([2, 3]);
+  expect(await evalQuery('[1 2 3] | vec/filter (gt 1)')).toEqual([2, 3]);
 });
 
 describe('the evaluation depth of a state', () => {

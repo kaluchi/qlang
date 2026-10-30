@@ -44,11 +44,11 @@
         ~(::tag::Box | eq ::Box)
     | proves :PayloadKindNotTakenError/refusesAKeyword
         |~~ A keyword payload is refused. ~~|
-        ~(::tag:k !| get [~(tag) ~(found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword]);
+        ~(::tag:k !| get [(tag) (found | tag)] | eq [::tag/PayloadKindNotTakenError ::keyword]);
 
 :tag/toKeyword
   |~~ Answers the keyword of the tag's name, `::Box | toKeyword`
-      answering `:Box`, as `groupBy ~(tag)` files values by their kinds.
+      answering `:Box`, as `groupBy tag` files values by their kinds.
       `toTag` turns the keyword back into the tag.
       ::link~(::keyword/toTag)
   ~~|
@@ -69,12 +69,12 @@
     | returns |~~ The name of the tag, a string. ~~| ::string
     | proves :answersTheName
         |~~ A tag answers its name. ~~|
-        ~([::vec ::number/add] | map ~toString | eq ["vec" "number/add"])
+        ~([::vec ::number/add] | map toString | eq ["vec" "number/add"])
     | impl ::builtin{};
 
 :tag/toTag
-  |~~ Answers the tag itself, so `map ~toTag` turns names and tags into
-      tags, `["vec" :Box ::map] | map ~toTag` answering
+  |~~ Answers the tag itself, so `map toTag` turns names and tags into
+      tags, `["vec" :Box ::map] | map toTag` answering
       `[::vec ::Box ::map]`.
       ::link~(::string/toTag)
   ~~|
@@ -82,6 +82,6 @@
     | returns |~~ The tag itself. ~~| ::tag
     | proves :answersItself
         |~~ A tag answers itself, so names and tags turn into tags. ~~|
-        ~(["vec" :Box ::map] | map ~toTag | eq [::vec ::Box ::map])
+        ~(["vec" :Box ::map] | map toTag | eq [::vec ::Box ::map])
     | impl ::builtin{};
 

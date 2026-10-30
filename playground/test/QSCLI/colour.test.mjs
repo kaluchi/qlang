@@ -32,7 +32,7 @@ describe('the flag --color', () => {
 const ESCAPE = /\x1b\[[0-9;]*m/g;
 const RESET = '\x1b[0m';
 const VERBS = new Set(['filter', 'count', 'gt']);
-const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter ~(gt 1) !| count | (x) |~| c';
+const EVERY_KIND = ':x |~~ d ~~| [null true 1 "s" #"r" :k /a ::T !{} #[1] {:a 1}]; filter (gt 1) !| count | (x) |~| c';
 
 function paintedTokens(source, verbNames) {
   let rest = highlightAnsi(source, verbNames);

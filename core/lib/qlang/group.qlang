@@ -7,7 +7,7 @@
       value in the pipe, it answers what its last step answers, and the
       names it declares stay inside. A modifier of more than one word
       stands in one, `take (count | sub 1)`, and the quotes of a template
-      `get` runs are forks of their own, `5 | get [~(add 1) ~(mul 2)]`
+      `get` runs are forks of their own, `5 | get [(add 1) (mul 2)]`
       answering `[6 10]`.
 
       In a quote the step is a record that holds the quote of the
@@ -34,15 +34,15 @@
         ~(~((add 1 | mul 2)) | first | payload | count | eq 2)
     | proves :PayloadKindNotTakenError/refusesANumber
         |~~ A number payload is refused. ~~|
-        ~(42 | tag ::group !| get [~(tag) ~(found | tag)] | eq [::group/PayloadKindNotTakenError ::number])
+        ~(42 | tag ::group !| get [tag (found | tag)] | eq [::group/PayloadKindNotTakenError ::number])
     | proves :PayloadKindNotTakenError/buildsTheStepOfAPipeline
         |~~ The quote of a pipeline builds the group that runs it. ~~|
-        ~(~(add 1 | mul 2) | tag ::group | get [~(it)] | tag ::quote | eq ~((add 1 | mul 2)))
+        ~(~(add 1 | mul 2) | tag ::group | get [it] | tag ::quote | eq ~((add 1 | mul 2)))
     | proves :PayloadEmptyError/refusesAnEmptyGroup
         |~~ An empty group holds no step. ~~|
         ~(~() | tag ::group !| tag | eq ::group/PayloadEmptyError)
     | proves :PayloadEmptyError/keepsTheValueByIt
         |~~ A group of `it` is a step that keeps the value. ~~|
-        ~(~(it) | tag ::group | get [~(it)] | tag ::quote | eq ~((it)))
+        ~(~(it) | tag ::group | get [it] | tag ::quote | eq ~((it)))
     | impl ::builtin{};
 

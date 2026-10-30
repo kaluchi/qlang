@@ -26,20 +26,20 @@ literal writes after the tag of its kind, a number, a string, a vector
 and a map their own and a set, a quote and a doc the vector of their
 elements, of their steps and of their segments, so every value splits
 into its tag and its payload and joins back by `tag`,
-`with {:t ~tag} ~(payload | tag t)`; behaviour lives in the catalog and is found
+`with {:t tag} (payload | tag t)`; behaviour lives in the catalog and is found
 through the tag.
 
 ```qlang
 > [1 2] | tag
 ::vec
 
-> get [~(1 | tag) ~(1 | payload) ~(#[2 1] | payload) ~(::Box#5 | with {:t ~tag} ~(payload | tag t))]
+> get [(1 | tag) (1 | payload) (#[2 1] | payload) (::Box#5 | with {:t tag} (payload | tag t))]
 [::number 1 [1 2] ::Box#5]
 
 > null | tag
 ::null
 
-> ::A::B{} | get [~(tag) ~(payload | tag)]
+> ::A::B{} | get [tag (payload | tag)]
 [::A ::B]
 
 > 5 | tag | tag
@@ -60,7 +60,7 @@ double's precision round.
 > -2.5e3
 -2500
 
-> "1e400" | parse !| get [~(tag) ~(found) ~(location)]
+> "1e400" | parse !| get [tag found location]
 [::quote/ParseError "1" ::span[0 1 1 1 1 2]]
 
 > [1e0 2e3 1.5e-2]
@@ -147,7 +147,7 @@ query [QSPRN#json].
 > {"a": 1, "b": 2, "a": 3}
 {:a 3 :b 2}
 
-> "{\"a\": 1, :b 2}" | parse !| get [~(message) ~(location)]
+> "{\"a\": 1, :b 2}" | parse !| get [message location]
 ["a map writes its keys one way, as keywords, `{:a 1 :b 2}`, or as the strings of JSON, `{\"a\": 1, \"b\": 2}`" ::span[7 1 8 7 1 8]]
 ```
 
@@ -188,7 +188,7 @@ declares for the tag, as the literal lays it,
 value, a vector of a tag and a value the vector it is.
 
 ```qlang
-> ::Width#5 | add 3 | get [~(tag) ~(payload)]
+> ::Width#5 | add 3 | get [tag payload]
 [::Width 8]
 
 > [::Pos#-3 ::T#true ::T#null ::T#/a]
@@ -197,16 +197,16 @@ value, a vector of a tag and a value the vector it is.
 > ::number"5" !| tag
 ::number/PayloadKindNotTakenError
 
-> :Lab |~~ L ~~|; get [~(::Lab::Lab[1]) ~(::T[2 1] | tag ::set !| tag)]
+> :Lab |~~ L ~~|; get [(::Lab::Lab[1]) (::T[2 1] | tag ::set !| tag)]
 [::Lab[1] ::set/PayloadKindNotTakenError]
 
-> get [~(5 | tag ::number) ~(5 | tag ::any) ~(#[2 1] | tag ::vec) ~(::Box#5 | tag ::number) ~(5 | tag ::tagged !| tag)]
+> get [(5 | tag ::number) (5 | tag ::any) (#[2 1] | tag ::vec) (::Box#5 | tag ::number) (5 | tag ::tagged !| tag)]
 [5 5 #[1 2] ::Box#5 ::tagged/PayloadKindNotTakenError]
 
 > [::Foo 5] | tag
 ::vec
 
-> get [~(::vec/sort#5 | tag) ~(::vec/take/CountNotIntegerError#5 !| tag) ~(:limit 5; ::limit#1 !| tag)]
+> get [(::vec/sort#5 | tag) (::vec/take/CountNotIntegerError#5 !| tag) (:limit 5; ::limit#1 !| tag)]
 [::vec/sort ::vec/take/CountNotIntegerError/PayloadKindNotTakenError ::construct/TagNamesAValueError]
 ```
 
@@ -219,9 +219,9 @@ name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
 is refused by the parser, which names the literal as the template of
 `get`, its brackets and the tags of its parts kept, `[::Box[x] 1]` naming
-`get [::Box[~(x)] 1]` [QSPTH#template], a literal under a tag its payload
+`get [::Box[x] 1]` [QSPTH#template], a literal under a tag its payload
 built so and the tag laid after it, through the kind of the tag,
-`::Box{:w (x)}` naming `get {:w ~(x)} | tag ::Box`, a template past a line,
+`::Box{:w (x)}` naming `get {:w x} | tag ::Box`, a template past a line,
 eighty characters, written by its parts that compute alone, each run of the
 rest cut to `…`, and inside an error literal names the facts built by `get`
 and made an error by `raise`, under its bang where a tag stands over it,
@@ -242,7 +242,7 @@ true
 > "::Width(5)" | parse !| message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"
 
-> "{:a 1 2}" | parse !| get [~(message) ~(location)]
+> "{:a 1 2}" | parse !| get [message location]
 ["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
 
 > :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)); ::Pos#-1 !| tag
@@ -263,14 +263,14 @@ its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from the
 pair of its tag and its payload, each a quote `get` runs against the set,
-the payload laid under the tag by `with {:t /0 :p /1} ~(p | tag t)`.
+the payload laid under the tag by `with {:t /0 :p /1} (p | tag t)`.
 Every value comes back so, each example of
 the catalog and each literal a case expects among them.
 
 ```qlang
-> #[1 "x" :a :b] | apply ~(get [/1 [/0 /0] ~(get [[/3 /2]] | indexBy ~(first) | map ~last)])
+> #[1 "x" :a :b] | apply (get [/1 [/0 /0] (get [[/3 /2]] | indexBy first | map last)])
 ["x" [1 1] {:b :a}]
 
-> #[1 ::Foo] | with {:t /1 :p /0} ~(p | tag t)
+> #[1 ::Foo] | with {:t /1 :p /0} (p | tag t)
 ::Foo#1
 ```

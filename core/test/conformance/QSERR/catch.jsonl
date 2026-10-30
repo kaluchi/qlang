@@ -1,6 +1,6 @@
-{"name":"ok-asks-whether-the-step-before-stood","query":"get [~(5 | ok !| false) ~(!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
+{"name":"ok-asks-whether-the-step-before-stood","query":"get [(5 | ok !| false) (!{:k 1} | raise | ok !| false)]","expect":"[true false]"}
 {"name":"the-catch-reads-a-fact-by-get","query":"!{:k 1} | raise !| get /k","expect":"1"}
-{"name":"error-test-in-a-template","query":"get [~(!{:kind :oops} | raise | ok !| false) ~(42 | ok !| false)]","expect":"[false true]"}
+{"name":"error-test-in-a-template","query":"get [(!{:kind :oops} | raise | ok !| false) (42 | ok !| false)]","expect":"[false true]"}
 {"name":"a-catch-passes-a-map-by","query":"{:kind :oops} !| get /kind","expect":"{:kind :oops}"}
 {"name":"a-catch-passes-null-by","query":"null !| get /kind","expect":"null"}
 {"name":"a-catch-reads-the-kind-entry-of-the-error-at-rest","query":"!{:kind :oops :message \"boom\"} | raise !| get /kind","expect":":oops"}
@@ -10,17 +10,17 @@
 {"name":"a-catch-passes-a-vector-by","query":"[1 2 3] !| get /kind","expect":"[1 2 3]"}
 {"name":"a-catch-runs-a-group-on-the-error-at-rest","query":"!{:kind :oops} | raise !| (get /kind)","expect":":oops"}
 {"name":"an-error-literal-passes-the-fail-track-by","query":"!{:a 1} !| tag","expect":"!{:a 1}"}
-{"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map ~(mul 2) | !| 0","expect":"0"}
+{"name":"a-pipe-before-the-fail-track-stands-for-it","query":"[1 \"x\"] | map (mul 2) | !| 0","expect":"0"}
 {"name":"an-error-that-describes-an-error-rides-through","query":"!{:kind :inner} | raise !| get /kind","expect":":inner"}
 {"name":"a-path-reads-before-a-combinator","query":"{:a 1} | get /a !| 0","expect":"1"}
-{"name":"a-catch-whose-label-takes-errors-holds-the-error-at-rest-under-it","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [~(tag) /by]","expect":"[::Late 3]"}
+{"name":"a-catch-whose-label-takes-errors-holds-the-error-at-rest-under-it","query":":Late |~~ Late. ~~| (::kind | accepts |~~ The facts. ~~| #[::map ::error]); ::Late{:by 3} | raise !| get [tag /by]","expect":"[::Late 3]"}
 {"name":"a-literal-that-holds-no-path-after-a-catch-is-its-recovery","query":"!{:k 1} | raise !| [1 2]","expect":"[1 2]"}
-{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [~(::fail~([/k]) !| tag) ~(::fail~({:k ~(get /k)}) !| tag)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
+{"name":"a-step-of-the-fail-track-built-from-data-refuses-a-literal-of-paths-and-quotes","query":"get [(::fail~([/k]) !| tag) (::fail~({:k ~(get /k)}) !| tag)]","expect":"[::fail/StepNotCommandError ::fail/StepNotCommandError]"}
 {"name":"a-quote-the-recovery-answers-is-computed-by-a-group","query":"\"x\" | add 1 !| (~(get /message))","expect":"~(get /message)"}
 {"name":"a-step-of-the-fail-track-built-from-data-refuses-a-quote","query":"::fail~(~(get /k)) !| tag","expect":"::fail/StepNotCommandError"}
-{"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [~(!{:a 1} | raise !| payload | tag) ~({:a 1} | raise !| payload | tag)]","expect":"[::map ::map]"}
-{"name":"a-caught-error-of-a-refusal-answers-its-facts-by-their-names","query":"1 | add \"x\" !| get [~(addend | expected) ~(addend | found | tag) ~(addend | found) ~(trace | count)]","expect":"[#[::number] ::string \"x\" 1]"}
-{"name":"a-path-beneath-the-tag-of-a-caught-refusal-is-refused-with-the-read-by-its-names","query":"\"x\" | add 1 !| get /subject !| get [~(tag) ~(repair)]","expect":"[::path/TagClosedError ~(subject)]"}
-{"name":"settle-holds-the-failure-of-a-question-as-its-error-at-rest","query":"{:age null} | settle [~(get /age | add 1)] | get /0/error | get [~(tag) ~(subject | found)]","expect":"[::number/add/SubjectNotNumberError null]"}
-{"name":"a-catch-whose-scope-declares-the-label-of-the-error-otherwise-answers-the-refusal-of-that-label","query":":P |~~ P ~~| (::kind | accepts |~~ m ~~| ::map); (:P |~~ P ~~| (::kind | accepts |~~ x ~~| #[::map ::error]); ::P{:a 1} | raise) !| it !| get [~(tag) ~(trace | first | failed)]","expect":"[::P/PayloadKindNotTakenError ~(it)]"}
-{"name":"a-catch-whose-scope-binds-the-tag-of-the-error-to-a-value-answers-the-refusal-of-that-tag","query":":P 5; (:P |~~ P ~~|; ::P{:a 1} | raise) !| it !| get [~(tag) ~(found)]","expect":"[::construct/TagNamesAValueError 5]"}
+{"name":"a-raised-map-is-caught-under-the-kind-of-errors-once","query":"get [(!{:a 1} | raise !| payload | tag) ({:a 1} | raise !| payload | tag)]","expect":"[::map ::map]"}
+{"name":"a-caught-error-of-a-refusal-answers-its-facts-by-their-names","query":"1 | add \"x\" !| get [(addend | expected) (addend | found | tag) (addend | found) (trace | count)]","expect":"[#[::number] ::string \"x\" 1]"}
+{"name":"a-path-beneath-the-tag-of-a-caught-refusal-is-refused-with-the-read-by-its-names","query":"\"x\" | add 1 !| get /subject !| get [tag repair]","expect":"[::path/TagClosedError ~(subject)]"}
+{"name":"settle-holds-the-failure-of-a-question-as-its-error-at-rest","query":"{:age null} | settle [(get /age | add 1)] | get /0/error | get [tag (subject | found)]","expect":"[::number/add/SubjectNotNumberError null]"}
+{"name":"a-catch-whose-scope-declares-the-label-of-the-error-otherwise-answers-the-refusal-of-that-label","query":":P |~~ P ~~| (::kind | accepts |~~ m ~~| ::map); (:P |~~ P ~~| (::kind | accepts |~~ x ~~| #[::map ::error]); ::P{:a 1} | raise) !| it !| get [tag (trace | first | failed)]","expect":"[::P/PayloadKindNotTakenError ~(it)]"}
+{"name":"a-catch-whose-scope-binds-the-tag-of-the-error-to-a-value-answers-the-refusal-of-that-tag","query":":P 5; (:P |~~ P ~~|; ::P{:a 1} | raise) !| it !| get [tag found]","expect":"[::construct/TagNamesAValueError 5]"}

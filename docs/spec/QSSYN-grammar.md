@@ -22,7 +22,7 @@ modifier of a command, where a declaration follows a chain no `;` ended.
 
 A query is a pipeline of steps. A step is a command: a name and its
 modifiers, each one word, separated by whitespace, `take 2`,
-`if (gt 0) ~("pos") ~("neg")`. Parentheses hold a pipeline taken as one
+`if (gt 0) ("pos") ("neg")`. Parentheses hold a pipeline taken as one
 value, a group. The first modifier of a command may touch its name where
 it opens with a parenthesis, so `filter(gt(1))` reads as `filter` with
 the group `(gt(1))`, a call written by habit that runs where its input
@@ -62,7 +62,7 @@ declaration's name stands is refused.
 > "{:a 1} | /a" | parse !| message
 "a path is a value, which the verb that takes it reads: write `get /a`"
 
-> get [~("5 | ~(add 1)" | parse !| message | contains "by `apply`") ~("\"x\" | add 1 !| ~(get /message)" | parse !| message | contains "by `apply`")]
+> get [("5 | ~(add 1)" | parse !| message | contains "by `apply`") ("\"x\" | add 1 !| ~(get /message)" | parse !| message | contains "by `apply`")]
 [true true]
 
 > "5 | ::Box#5" | parse !| message
@@ -83,16 +83,16 @@ declaration's name stands is refused.
 > "[{:age 2} {:age 1}] | sort .age" | parse !| message
 "`.age` is no path: a path opens with a slash, `/age`"
 
-> get [~({:"?a" 1} | get /"?a") ~("{:\"a?\" 1} | get /\"a?\"?" | parse !| message | contains "`query /\"a?\"`")]
+> get [({:"?a" 1} | get /"?a") ("{:\"a?\" 1} | get /\"a?\"?" | parse !| message | contains "`query /\"a?\"`")]
 [1 true]
 
-> :Box |~~ A box. ~~|; :Box/area ~(mulOf /0 /1); ::Box[3 4] | area
+> :Box |~~ A box. ~~|; :Box/area mulOf /0 /1; ::Box[3 4] | area
 12
 
-> get [~(":rate 2 | [1 2]" | parse !| message) ~("[1 2] | :x 1; x" | parse !| message | contains "at the head of its text")]
+> get [(":rate 2 | [1 2]" | parse !| message) ("[1 2] | :x 1; x" | parse !| message | contains "at the head of its text")]
 ["a declaration ends with `;`, which joins it to the query after it: write `:name body; query`" true]
 
-> get [~(":rate 2" | parse | answer) ~("{:a {:tags [1]}} | /a/tags count" | parse !| message)]
+> get [(":rate 2" | parse | answer) ("{:a {:tags [1]}} | /a/tags count" | parse !| message)]
 [#[::rate] "`/a/tags` is a path, a value: a part is read by `get`, `get /a/tags | count`"]
 ```
 
@@ -132,7 +132,7 @@ true
 > "[1 2] | count ; count" | parse !| location
 ::span[14 1 15 15 1 16]
 
-> get [~("[1] | |~ note ~|" | parse !| message) ~(":x 1;| x" | parse | answer)]
+> get [("[1] | |~ note ~|" | parse !| message) (":x 1;| x" | parse | answer)]
 ["`|` joins two steps, and the step after it is missing" 1]
 ```
 
@@ -185,7 +185,7 @@ trace skipped.
 > 5 | |~ why ~| add 3
 8
 
-> get [~("[|~ ~(x ~|]" | parse) ~("(|~ ~(x ~|)" | parse !| tag)]
+> get [("[|~ ~(x ~|]" | parse) ("(|~ ~(x ~|)" | parse !| tag)]
 [~([]) ::quote/ParseError]
 
 > [1 |~ middle ~| 2 3]
@@ -194,7 +194,7 @@ trace skipped.
 > "|~ only a note ~|" | parse | eq ~()
 true
 
-> get [~(5 | |~ x |~| y ~| add 3) ~(5 | |~ x ~~| y ~| add 3) ~(5 | |~ a |~~ b ~~| c ~| add 3) ~(|~~ a ~| b ~~| | content) ~(|~~ a |~| b ~~| | content) ~(|~~ a |~ b ~~| | content)]
+> get [(5 | |~ x |~| y ~| add 3) (5 | |~ x ~~| y ~| add 3) (5 | |~ a |~~ b ~~| c ~| add 3) (|~~ a ~| b ~~| | content) (|~~ a |~| b ~~| | content) (|~~ a |~ b ~~| | content)]
 [8 8 8 "a ~| b" "a |~| b" "a |~ b"]
 ```
 
@@ -232,7 +232,7 @@ and no indentation its lines after the first share [QSSLF#doc], so
 > :Box |~~ A box. ~~| |~ a note ~| |~~ It holds parcels. ~~|; ::Box | doc | content
 "A box.\nIt holds parcels."
 
-> get [~(|~~A box.~~| | content) ~(|~~   A box.   ~~| | content) ~("|~~ a\n      b\n    ~~|" | parse | first | content)]
+> get [(|~~A box.~~| | content) (|~~   A box.   ~~| | content) ("|~~ a\n      b\n    ~~|" | parse | first | content)]
 ["A box." "A box." "a\nb"]
 
 > |~~ a ``~(add 1)`` c ~~| | segments
@@ -247,7 +247,7 @@ and no indentation its lines after the first share [QSSLF#doc], so
 > [|~~ a `~~| |~~ b` c ~~|] | count
 2
 
-> get [~("|~~| a ~(b, ~(add 1)) c" | parse !| message) ~("|~~ a ~(f 01) ~~|" | parse !| message) ~("|~~ a ~(count | 1) b ~~|" | parse !| tag)]
+> get [("|~~| a ~(b, ~(add 1)) c" | parse !| message) ("|~~ a ~(f 01) ~~|" | parse !| message) ("|~~ a ~(count | 1) b ~~|" | parse !| tag)]
 ["modifiers are separated by spaces, not by commas: `f a b`" "a number is written without a leading zero: write `1`" ::quote/ParseError]
 
 > "|~~ note ~~| :x 42" | parse !| message | contains "the slot of the declaration"
@@ -256,7 +256,7 @@ true
 > "|~~| see ~(5\n  | add 1) and more" | parse | first | segments
 ["see " ~(5 | add 1) " and more"]
 
-> "[|~~| x ~(a" | parse !| expected | filter ~(eq ")") | count
+> "[|~~| x ~(a" | parse !| expected | filter (eq ")") | count
 1
 
 > "|~~| x\r\n" | parse | first | content
@@ -307,19 +307,19 @@ its parentheses, a comma between modifiers names the space, the path of
 jq names a slash, and a `;` after a query names a template.
 
 ```qlang
-> "[1 2 3] | filter ~(gt 1" | parse !| get [~(expected) ~(message)]
+> "[1 2 3] | filter ~(gt 1" | parse !| get [expected message]
 [[")"] "`~(` opened at line 1, column 18 is never closed; `)` completes the source"]
 
-> get [~("[1 |~ a" | parse !| message) ~("|~~ a |~~ e" | parse !| message) ~("1 |~ a" | parse !| message | contains "apply")]
+> get [("[1 |~ a" | parse !| message) ("|~~ a |~~ e" | parse !| message) ("1 |~ a" | parse !| message | contains "apply")]
 ["`|~` opened at line 1, column 4 is never closed; `~|]` completes the source" "`|~~` opened at line 1, column 7 is never closed; `~~|~~|` completes the source" true]
 
 > "#{1}" | parse !| message | contains "#["
 true
 
-> "[1 2" | parse !| get [~(source) ~(location | start | column) ~(origin)]
+> "[1 2" | parse !| get [source (location | start | column) origin]
 ["[1 2" 5 :string/parse]
 
-> "[mul(2) add(1)]" | parse !| get [~(source) ~(marker)]
+> "[mul(2) add(1)]" | parse !| get [source marker]
 ["[mul(2) add(1)]" "    ^~~        "]
 
 > "[1 2 x" | parse !| expected

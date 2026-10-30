@@ -46,7 +46,7 @@
         |~~ A payload computes nothing, as every part of a literal: a name
             or a group in it is refused, and `:message` writes the template
             `get` builds the value from, its parts computed written as
-            quotes, `get ::Box[~(x)]`, while a value computed goes under a
+            quotes, `get ::Box[x]`, while a value computed goes under a
             tag by `tag`, `x | tag ::Box`.
             ::link~(::construct) ::link~(::any/get)
         ~~|
@@ -76,37 +76,36 @@
     | proves :PayloadNotSchemaError/refusesATagThatIsAKeyword
         |~~ A `:tag` that is a keyword is refused, `:field` naming it. ~~|
         ~(::construct{:tag :Box :payload [1]}
-          !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
+          !| get [tag field] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadNotSchemaError/refusesARecordWithoutAPayload
         |~~ A record without its payload is refused, `:field` naming it. ~~|
         ~({:tag ::Box} | tag ::construct
-          !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :payload])
+          !| get [tag field] | eq [::construct/PayloadNotSchemaError :payload])
     | proves :PayloadNotSchemaError/buildsTheStepOfATag
         |~~ A tag name and the step of a payload build the step. ~~|
-        ~({:tag ::Box :payload [1]} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Box[1]))
+        ~({:tag ::Box :payload [1]} | tag ::construct | get [it] | tag ::quote | eq ~(::Box[1]))
     | proves :PayloadNotSchemaError/buildsTheStepOfAnErrorLiteralUnderATag
         |~~ A tag name and an error literal build the step of the error
             literal written with the tag before its bang.
         ~~|
-        ~(~(!{:by 3}) | get {:tag ::Late :payload /0} | tag ::construct | get [~(it)] | tag ::quote | eq ~(::Late!{:by 3}))
+        ~(~(!{:by 3}) | get {:tag ::Late :payload /0} | tag ::construct | get [it] | tag ::quote | eq ~(::Late!{:by 3}))
     | proves :PayloadNotSchemaError/refusesTheKindOfErrorsOverAnErrorLiteral
         |~~ The kind of errors over an error literal is the literal itself,
             and `:field` names the tag.
         ~~|
-        ~(::construct{:tag ::error :payload !{:by 3}} !| get [~(tag) ~(field)] | eq [::construct/PayloadNotSchemaError :tag])
+        ~(::construct{:tag ::error :payload !{:by 3}} !| get [tag field] | eq [::construct/PayloadNotSchemaError :tag])
     | proves :PayloadKindNotTakenError/refusesAVector
         |~~ A vector is no record of a tagged literal. ~~|
-        ~(::construct[1] !| get [~(tag) ~(expected)] | eq [::construct/PayloadKindNotTakenError #[::map]])
+        ~(::construct[1] !| get [tag expected] | eq [::construct/PayloadKindNotTakenError #[::map]])
     | proves :LiteralComputesError/refusesAPayloadOfCode
         |~~ The step of a call as the payload computes, and is refused. ~~|
-        ~(get {:tag ::Box :payload ~(~(x) | first)} | tag ::construct
-          !| get [~(tag) ~(message)] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get ~(x) | tag ::Box`"])
+        ~(get {:tag ::Box :payload (~(x) | first)} | tag ::construct !| get [tag message] | eq [::construct/LiteralComputesError "a literal computes nothing: a shape computed is built by `get`, its parts paths and code, write `get x | tag ::Box`"])
     | proves :writesANumberPayloadByAHash
         |~~ A number payload touches its tag by `#`. ~~|
-        ~(::construct{:tag ::Box :payload 42} | get [~(it)] | tag ::quote | eq ~(::Box#42))
+        ~(::construct{:tag ::Box :payload 42} | get [it] | tag ::quote | eq ~(::Box#42))
     | proves :TagNamesAValueError/refusesTheTagOfAValue
         |~~ The tag of a name that holds a value builds nothing. ~~|
-        ~(:Box |~~ A box. ~~|; :Box/limit 5; ::Box/limit[1] !| get [~(tag) ~(address) ~(found | tag)] | eq [::construct/TagNamesAValueError ::Box/limit ::number])
+        ~(:Box |~~ A box. ~~|; :Box/limit 5; ::Box/limit[1] !| get [tag address (found | tag)] | eq [::construct/TagNamesAValueError ::Box/limit ::number])
     | proves :TagNamesAValueError/laysAVerbsTagOverItsArgs
         |~~ The tag of a verb lays itself over its args. ~~|
         ~(::vec/take[2] | tag | eq ::vec/take)

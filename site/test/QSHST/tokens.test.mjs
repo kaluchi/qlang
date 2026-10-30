@@ -73,16 +73,16 @@ describe('multi-line blocks', () => {
 
   it('a query of several lines: prompt + continuation share highlighting context', () => {
     const src = [
-      '> :double ~(mul 2);',
-      '  [10 20] | map ~double'
+      '> :double mul 2;',
+      '  [10 20] | map double'
     ].join('\n');
     const lines = fmt(src).split('\n');
     // prompt line has the > prompt prefix
     expect(lines[0]).toContain('<span class="prompt">&gt; </span>');
     // continuation line starts with two spaces
     expect(lines[1].startsWith('  ')).toBe(true);
-    // the continuation body is highlighted (double, a reader's name quoted, → a quoted name)
-    expect(lines[1]).toContain('<span class="name italic">double</span>');
+    // the continuation body is highlighted (double, the reader's name the prompt line declares)
+    expect(lines[1]).toContain('<span class="name">double</span>');
   });
 
   it('multiple prompt lines each get their own > prefix', () => {
@@ -165,6 +165,6 @@ describe('the rest of the source', () => {
   });
 
   it('writes no angle bracket but those of its spans', () => {
-    expect(hl('[1 2] | filter ~(gt 1)')).not.toMatch(/<(?!\/?span)/);
+    expect(hl('[1 2] | filter (gt 1)')).not.toMatch(/<(?!\/?span)/);
   });
 });

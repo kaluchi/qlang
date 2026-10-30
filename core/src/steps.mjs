@@ -92,12 +92,27 @@ export const computesWithin = value => holdsWithin(value, isComputingStep);
 const TEMPLATE_WITHIN = 80;
 
 function templateOf(literal, written) {
-  const whole = written.quoting(literal);
+  const whole = templateWhole(literal, written);
   return Array.from(whole).length <= TEMPLATE_WITHIN ? whole : templateCut(literal, written);
 }
 
+// [QSLIT#closed]
+const quoteWritten = part => isQuote(part) || (isConstructStep(part) && quoteWritten(part.get('payload')));
+
+function templateWhole(literal, written) {
+  if (quoteWritten(literal)) return `(${written.stepOf(literal)})`;
+  if (isComputingStep(literal) || !holdsWithin(literal, quoteWritten)) return written.stepOf(literal);
+  if (isConstructStep(literal)) return `${literal.get('tag').literal}${templateWhole(literal.get('payload'), written)}`;
+  const fields = errorFieldsOf(literal);
+  if (fields !== null) return `!{${entriesWhole(fields, written)}}`;
+  if (isBareMap(literal)) return `{${entriesWhole(literal, written)}}`;
+  return `${isSet(literal) ? '#[' : '['}${literal.map(part => templateWhole(part, written)).join(' ')}]`;
+}
+
+const entriesWhole = (entries, written) => [...entries].map(([key, part]) => `${canonicalKeywordLiteral(key)} ${templateWhole(part, written)}`).join(' ');
+
 function templateCut(literal, written) {
-  if (isComputingStep(literal)) return written.quoting(literal);
+  if (isComputingStep(literal)) return written.stepOf(literal);
   if (!computesWithin(literal)) return '…';
   if (isConstructStep(literal)) return `${literal.get('tag').literal}${templateCut(literal.get('payload'), written)}`;
   const fields = errorFieldsOf(literal);
@@ -115,20 +130,20 @@ function literalMessage(literal, written) {
   const tagged = isConstructStep(literal) && errorFieldsOf(literal.get('payload')) !== null;
   if (errorFieldsOf(literal) === null && !tagged) {
     const shape = isConstructStep(literal) ? `${templateOf(literal.get('payload'), written)} | tag ${literal.get('tag').literal}` : template;
-    return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and quotes, write \`get ${shape}\``;
+    return `a literal computes nothing: a shape computed is built by \`get\`, its parts paths and code, write \`get ${shape}\``;
   }
   const facts = template.slice(template.indexOf('!') + (tagged ? 0 : 1));
   return `an error literal computes nothing: facts computed are built by \`get\` and \`raise\` makes them an error, write \`get ${facts}${tagged ? ` | tag ${literal.get('tag').literal}` : ''} | raise\``;
 }
 
-function heldAsALiteral(literal, Refusal, facts, written) {
+export function heldAsALiteral(literal, Refusal, facts, written) {
   if (written.computesWithin(literal)) throw new Refusal({ found: literal, ...facts, message: literalMessage(literal, written) });
 }
 
 function laterStepMessage(step, written) {
   if (isPath(step)) return `a path is a value, which the verb that takes it reads: write \`get ${written.of(step)}\``;
   if (isTag(step)) return `a tag goes over the value in the pipe by \`tag\`: write \`tag ${written.of(step)}\``;
-  if (isQuote(step)) return 'code runs on the value in the pipe by `apply`: write `apply ~(…)`';
+  if (isQuote(step)) return 'code runs on the value in the pipe by `apply`: write `apply (…)`';
   if (isSet(step) || isBareVec(step) || isBareMap(step) || isConstructStep(step)) return 'a literal is a value, which a step does not run: a shape is built by `get`, `get {:k /path}`';
   return 'a step is a command: a value stands at the head, where it is the subject, or as what a verb takes';
 }
@@ -144,7 +159,7 @@ const QuoteStepNotCommandError = declareRefusal('quote/StepNotCommandError');
 const QuoteLiteralComputesError = declareRefusal('quote/LiteralComputesError');
 const CallPayloadNotSchemaError = declareRefusal('call/PayloadNotSchemaError');
 const CallNameNotCallableError = declareRefusal('call/NameNotCallableError');
-const CallLiteralComputesError = declareRefusal('call/LiteralComputesError');
+export const CallLiteralComputesError = declareRefusal('call/LiteralComputesError');
 const BindPayloadNotSchemaError = declareRefusal('bind/PayloadNotSchemaError');
 const BindNameNotCallableError = declareRefusal('bind/NameNotCallableError');
 const BindLiteralComputesError = declareRefusal('bind/LiteralComputesError');
@@ -185,9 +200,6 @@ export function callOf(payload, written) {
   const call = recordFrom(payload, CALL);
   const name = call.get('name');
   if (!readsAsBareKeyword(name.name) || LITERAL_WORDS.has(name.name.split('/')[0])) throw new CallNameNotCallableError({ name, message: nameMessage(name, written) });
-  (call.get('modifiers') ?? []).forEach((modifier, index) => {
-    if (holdsALiteral(modifier)) heldAsALiteral(modifier, CallLiteralComputesError, { index }, written);
-  });
   return call;
 }
 
@@ -220,7 +232,7 @@ export function failOf(payload, written) {
   const [step] = payload;
   if (isPath(step) || isQuote(step)) throw new FailStepNotCommandError({ message: laterStepMessage(step, written), found: step });
   if (partsOfALiteral(step).some(part => holdsWithin(part, held => isPath(held) || isQuote(held)))) {
-    throw new FailStepNotCommandError({ message: `a literal that holds a path or a quote is the template \`get\` reads: write \`get ${written.quoting(step)}\``, found: step });
+    throw new FailStepNotCommandError({ message: `a literal that holds a path or a quote is the template \`get\` reads: write \`get ${written.stepOf(step)}\``, found: step });
   }
   return makeTagged(FAIL_TAG, payload);
 }

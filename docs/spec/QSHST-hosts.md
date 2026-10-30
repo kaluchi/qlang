@@ -141,7 +141,7 @@ the failure.
 > ::vec | binding | origin
 :qlang/vec
 
-> get [~(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | apply it
+> get [(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | apply it
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
@@ -150,16 +150,16 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | with {:counting ~it} ~(print | parse | answer | with {:back ~it} ~(get [~(eq counting) ~([1 2] | apply back) ~({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [~(tag) ~(of)])]))
+> ::vec/count | binding | value | with {:counting it} (print | parse | answer | with {:back it} (get [(eq counting) ([1 2] | apply back) ({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [tag of])]))
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}); ::B[1]
 ::B[1]
 
-> get [~({:id 7} | apply (::vec/first | binding | value) [] !| tag) ~(:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
+> get [({:id 7} | apply (::vec/first | binding | value) [] !| tag) (:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
-> get [~("add (" | parse !| origin) ~(::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
+> get [("add (" | parse !| origin) (::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
 [:string/parse true]
 ```
 
@@ -262,10 +262,10 @@ order, and a verb of a host that takes the whole vector bounds its calls
 itself.
 
 ```qlang
-> :any/quiet ~(stdio/out); 1
+> :any/quiet stdio/out; 1
 1
 
-> "hi" | out !| get [~(tag) ~(addresses)]
+> "hi" | out !| get [tag addresses]
 [::call/KindAnswersNoVerbError #[::stdio/out]]
 ```
 
@@ -316,7 +316,7 @@ it does not hold as `::cell/answer/SubjectNotHeldError`. A host that keeps no
 cell names none.
 
 ```qlang
-> ::cell"a3f9c2d1e04b" | get [~(tag) ~(payload) ~(eq (print | parse | answer))]
+> ::cell"a3f9c2d1e04b" | get [tag payload (eq (print | parse | answer))]
 [::cell "a3f9c2d1e04b" true]
 
 > ::cell"../notes" !| tag

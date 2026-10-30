@@ -26,7 +26,7 @@ true
 > {:body ~(mul 2)} | get /body | toString
 "mul 2"
 
-> 5 | apply ~()
+> 5 | apply it
 5
 ```
 
@@ -91,7 +91,7 @@ answers the path it holds; written as `~(/age)` it is refused by the
 parser, which gives the path bare.
 
 ```qlang
-> ~(filter ~(gt 1)) | payload
+> ~(filter (gt 1)) | payload
 [::call{:name :filter :modifiers [~(gt 1)]}]
 
 > ~(add 1 !| 0) | query /1
@@ -100,10 +100,10 @@ parser, which gives the path bare.
 > ~(:rate |~~ The rate. ~~| it;) | first | get /docs
 [|~~ The rate. ~~|]
 
-> [~(:rate 1;) ~(:rate |~~ The rate. ~~| 1;) ~(:Box |~~ A box. ~~|;)] | map ~(first | keys)
+> [~(:rate 1;) ~(:rate |~~ The rate. ~~| 1;) ~(:Box |~~ A box. ~~|;)] | map (first | keys)
 [[:name :body] [:name :docs :body] [:name :docs]]
 
-> ~(::Box[1 2]) | first | get [~(tag) /tag /payload]
+> ~(::Box[1 2]) | first | get [tag /tag /payload]
 [::construct ::Box [1 2]]
 
 > [[1 2] ::call{:name :count}] | tag ::quote | toString
@@ -115,19 +115,19 @@ parser, which gives the path bare.
 > [/age] | tag ::quote | print
 "::quote[/age]"
 
-> get [~([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ~([[::call{:name :count}]] | tag ::quote !| tag)]
+> get [([::construct{:tag ::Box :payload ::call{:name :count}}] | tag ::quote !| tag) ([[::call{:name :count}]] | tag ::quote !| tag)]
 [::construct/LiteralComputesError ::quote/LiteralComputesError]
 
-> get [~(::call[1] !| get [~(tag) ~(expected)]) ~(::fail[1] !| get [~(tag) ~(expected)]) ~(::call{:name 1} !| field)]
+> get [(::call[1] !| get [tag expected]) (::fail[1] !| get [tag expected]) (::call{:name 1} !| field)]
 [[::call/PayloadKindNotTakenError #[::map]] [::fail/PayloadKindNotTakenError #[::quote]] :name]
 
-> get {:tag ::Box :payload ~(~(width) | first)} | tag ::construct !| get [~(tag) ~(found | tag) ~(eq (print | parse | answer))]
+> get {:tag ::Box :payload (~(width) | first)} | tag ::construct !| get [tag (found | tag) (eq (print | parse | answer))]
 [::construct/LiteralComputesError ::map true]
 
 > "::Late::error!{:by 3}" | parse | eq ("::Late!{:by 3}" | parse)
 true
 
-> get [~(~(::Late!{:by 3}) | first | get [~(tag) /tag /payload]) ~(::construct{:tag ::error :payload !{:by 3}} !| get [~(tag) ~(field)])]
+> get [(~(::Late!{:by 3}) | first | get [tag /tag /payload]) (::construct{:tag ::error :payload !{:by 3}} !| get [tag field])]
 [[::construct ::Late !{:by 3}] [::construct/PayloadNotSchemaError :tag]]
 ```
 
@@ -162,16 +162,16 @@ the same quote.
 > "add 1 | mul 2" | parse
 ~(add 1 | mul 2)
 
-> ~(add 1 | mul 2) | get [~(toString) ~(print) ~(toString | parse | eq ~(add 1 | mul 2))]
+> ~(add 1 | mul 2) | get [toString print (toString | parse | eq ~(add 1 | mul 2))]
 ["add 1 | mul 2" "~(add 1 | mul 2)" true]
 
 > ~(:rate 2; :fee 5;) | toString
 ":rate 2;\n:fee 5;"
 
-> ~(add 1 | mul 2) | parse !| get [~(tag) ~(subject | found | tag)]
+> ~(add 1 | mul 2) | parse !| get [tag (subject | found | tag)]
 [::string/parse/SubjectNotStringError ::quote]
 
-> "add (" | parse !| get [~(tag) ~(source) ~(origin)]
+> "add (" | parse !| get [tag source origin]
 [::quote/ParseError "add (" :string/parse]
 ```
 
@@ -190,19 +190,19 @@ its code answers, so a print reads back as the value it writes by
 `open` opens the page a link names [QSSLF#doc].
 
 ```qlang
-> 5 | apply ~(add 1 | mul 2)
+> 5 | apply (add 1 | mul 2)
 12
 
 > 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
 8
 
-> {:id 7} | apply ~(:rate 2;) | rate !| tag
+> {:id 7} | apply (:rate 2;) | rate !| tag
 ::call/UnknownNameError
 
 > 42 | apply 1 !| tag
 ::any/apply/CodeKindNotTakenError
 
-> get [~({:id 7} | print | parse | answer) ~("10 | add 5" | parse | answer)]
+> get [({:id 7} | print | parse | answer) ("10 | add 5" | parse | answer)]
 [{:id 7} 15]
 ```
 
@@ -220,8 +220,8 @@ parts of a template, the modifiers of a command, the keys of `sort` and
 the laws `runLaws` runs.
 
 A verb that runs a part per element, in its own order, or only when the
-part is chosen takes a quote or a path there: `filter ~(gt 1)`,
-`reduce 0 ~(add)`, the branches of `if` and the clauses of `cond`, while
+part is chosen takes a quote or a path there: `filter (gt 1)`,
+`reduce 0 add`, the branches of `if` and the clauses of `cond`, while
 the condition of `if`, which always runs, is a value. An input that
 takes code, one its function runs as code whatever kinds it names among
 them, the alternatives of `coalesce`, takes a quote or a path, beneath
@@ -243,7 +243,7 @@ its modifier on as the answer of the call.
 > [1 2] | take (get /count) !| tag
 ::path/IndexNotIntegerError
 
-> [1 2] | apply ~(:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); map plus !| tag)
+> [1 2] | apply (:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); map plus !| tag)
 ::vec/map/CodeKindNotTakenError
 ```
 
@@ -296,42 +296,42 @@ names the code reads near it as `:nearest`. Code that calls itself is a
 verb.
 
 ```qlang
-> [1 2] | apply ~(:bonus 10; map ~(add bonus))
+> [1 2] | apply (:bonus 10; map (add bonus))
 [11 12]
 
-> :vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)); [1] | apply ~(:bonus 10; get [~(show ~(add bonus)) ~(show ~(add 1))])
+> :vec/show (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(code)); [1] | apply (:bonus 10; get [(show (add bonus)) (show (add 1))])
 [~(:bonus 10; add bonus) ~(add 1)]
 
-> :vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); [1 2] | apply ~(:bonus 10; twice ~(add bonus))
+> :vec/twice (::fn | takes :code |~~ The code. ~~| /0 ::quote | impl ~(map code | map code)); [1 2] | apply (:bonus 10; twice (add bonus))
 [21 22]
 
-> 5 | apply ~(:bonus 10; get [~(get ::Late!{:by ~(add bonus)}) ~(get !{:by ~(add bonus)})])
+> 5 | apply (:bonus 10; get [(get ::Late!{:by (add bonus)}) (get !{:by (add bonus)})])
 [::Late!{:by 15} !{:by 15}]
 
 > ~(add bonus) | eq ~(add bonus)
 true
 
-> apply ~(:vec 5; get [~(::host | env | has :vec) ~(vec)])
+> apply (:vec 5; get [(::host | env | has :vec) (vec)])
 [false 5]
 
-> [1 5 10] | apply ~(:big ~(gt limit); :limit 4; filter big !| get [~(tag) ~(name)])
+> [1 5 10] | apply (:big ~(gt limit); :limit 4; filter big !| get [tag name])
 [::call/ValueWithheldError :limit]
 
-> [1 2] | apply ~(:bonus 10; get [~(map (~(add bonus)) !| tag) ~(:rule ~(add bonus); map rule !| tag)])
+> [1 2] | apply (:bonus 10; get [(map (~(add bonus)) !| tag) (:rule ~(add bonus); map rule !| tag)])
 [::call/ValueWithheldError ::call/ValueWithheldError]
 
-> 5 | apply ~(:rate 1; :rule ~(:rate 2; add rate); apply rule)
+> 5 | apply (:rate 1; :rule ~(:rate 2; add rate); apply rule)
 7
 
-> :vec/tally ~(:count 7; :rule ~(count); apply rule); [1 2 3] | tally !| query [~(tag) ~(name)]
+> :vec/tally (:count 7; :rule ~(count); apply rule); [1 2 3] | tally !| query [tag name]
 [::call/ValueWithheldError :count]
 
-> [1 2] | apply ~(:bonus "x"; map ~(add bonus) !| trace | map ~failed)
+> [1 2] | apply (:bonus "x"; map (add bonus) !| trace | map failed)
 [~(add bonus) ~(map ~(add bonus))]
 
-> get [~(~(mul qty | add fee) | fill {:fee 5 :qty 3}) ~(5 | apply (~(add bonus) | fill {:bonus 10}))]
+> get [(~(mul qty | add fee) | fill {:fee 5 :qty 3}) (5 | apply (~(add bonus) | fill {:bonus 10}))]
 [~(:qty 3; :fee 5; mul qty | add fee) 15]
 
-> ~(add myaddend) | fill {:myadend 1} !| get [~(tag) ~(name) ~(nearest)]
+> ~(add myaddend) | fill {:myadend 1} !| get [tag name nearest]
 [::quote/fill/NamesNameNotReadError :myadend [:myaddend]]
 ```

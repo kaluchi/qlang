@@ -21,7 +21,7 @@
       answering `::string` under a `::nullable` author. The shape of a part
       of the data is the shape of that part, `get /items | map /assignee | shape`,
       and its size, a sample and the share of its kinds are asked of the
-      data, by `count`, `get /0` and `groupBy ~(tag) | map ~count`.
+      data, by `count`, `get /0` and `groupBy tag | map count`.
       ::link~(::any/shape) ::link~(::absent)
       ::link~(::nullable) ::link~(::each)
   ~~|

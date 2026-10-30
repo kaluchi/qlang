@@ -5,14 +5,14 @@ import { silentStreams } from '../helpers/silent-streams.mjs';
 import { langRuntime, evalQuery, boundAnswer } from '@kaluchi/qlang-core';
 
 const forty = Array.from({ length: 40 }, (_, index) => index + 1);
-const past = '3000 | range | map ~(get {:id ~(it) :name "user"})';
+const past = '3000 | range | map (get {:id it :name "user"})';
 
 it('writes an answer whose print fits the budget whole', async () => {
   expect(await answerText(forty, await langRuntime())).toBe(`[${forty.join(' ')}]`);
 });
 
 it('writes the first screen whole, the budget never smaller than it', async () => {
-  const cellEntry = await runQuery('[::qlang ::host] | map ~(get [~it ~doc])', silentStreams);
+  const cellEntry = await runQuery('[::qlang ::host] | map (get [it doc])', silentStreams);
   expect(await boundAnswer(cellEntry.result, cellEntry.scopeAfterCell)).toBe(cellEntry.result);
 });
 

@@ -77,7 +77,7 @@ verbs of the kinds of its name [QSBLD#value]; and where the server knows
 no kind it offers every name:
 
 ```qlang
-> get [~(::Box[1 2] | within ~(get /0) | payload | tag) ~(::Box[1 2] | payload | tag)]
+> get [(::Box[1 2] | within (get /0) | payload | tag) (::Box[1 2] | payload | tag)]
 [::number ::vec]
 ```
 
@@ -91,7 +91,7 @@ a verb, and no document run to name them, so a kind built elsewhere and
 bound by name is a kind to the runtime and a value to the tools:
 
 ```qlang
-> :K (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [~(::Box{:a 1} | tag) ~(::Box#5 !| tag) ~(::host | kinds | has ::Box)]
+> :K (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [(::Box{:a 1} | tag) (::Box#5 !| tag) (::host | kinds | has ::Box)]
 [::Box ::Box/PayloadKindNotTakenError true]
 ```
 

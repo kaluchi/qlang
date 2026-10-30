@@ -130,7 +130,7 @@ describe('stdio/tap', () => {
 
   it('writes the refusal instead of a subject past the budget, the subject kept in a cell beside its tag and the views of its kind, and goes on', async () => {
     const io = captureIoContext();
-    const cellEntry = await runQuery('3000 | range | map ~(get {:id ~(it) :name "user"}) | stdio/tap :big | count', io);
+    const cellEntry = await runQuery('3000 | range | map (get {:id it :name "user"}) | stdio/tap :big | count', io);
     expect(cellEntry.result).toBe(3000);
     expect(io.stderrText()).toMatch(/^\[tap big\] \|~\| raised, and no !\| caught it\n::qlang\/AnswerBeyondBudgetError::excerpt\{/);
     expect(io.stderrText()).toMatch(/\n {2}:answer ::cell"[0-9a-f]{12}"\n {2}:answer\/tag ::vec\n {2}:answer\/count 3000\n/);

@@ -17,7 +17,7 @@ set a vector and of a vector under a tag the vector under that tag,
 `flatten` as it does, `concat`, the vectors the call gives joined after
 the subject under the tags they share, a value given that is no vector
 refused as `::vec/concat/VectorsElementKindNotTakenError`, so
-`reduce [] ~(concat)` joins the vectors a vector holds, `join`, the texts
+`reduce [] concat` joins the vectors a vector holds, `join`, the texts
 of the elements under the tags its strings share, `sum`, the numbers the
 elements hold beneath their tags added under the tags they share, an
 element that is no number refused at its index, at its key over a map,
@@ -52,25 +52,25 @@ keeps or leaves the tags of its subject as its kind says [QSDSP#answer].
 > [[1 2 3] [:a :b]] | zip
 [[1 :a] [2 :b]]
 
-> get [~(#[[1 1] [2 2]] | zip) ~(#[1 [2]] | zip !| get [~(tag) ~(trace | last | path)])]
+> get [(#[[1 1] [2 2]] | zip) (#[1 [2]] | zip !| get [tag (trace | last | path)])]
 [[[1 2] [1 2]] [::set/zip/ElementKindNotTakenError /0]]
 
-> get [~([1] | concat [2 3] [4]) ~([[1] [2 3]] | reduce [] ~(concat)) ~([[1 2] [3 [4]]] | flatten) ~(#[1 2] | size)]
+> get [([1] | concat [2 3] [4]) ([[1] [2 3]] | reduce [] concat) ([[1 2] [3 [4]]] | flatten) (#[1 2] | size)]
 [[1 2 3 4] [1 2 3] [1 2 3 [4]] 2]
 
 > [1 2 3 4] | avg
 2.5
 
-> get [~([0 1 6 1] | avg) ~([1e308 1e308] | avg | eq 1e308) ~([1e308 -1e308] | avg)]
+> get [([0 1 6 1] | avg) ([1e308 1e308] | avg | eq 1e308) ([1e308 -1e308] | avg)]
 [2 true 0]
 
-> [1 "x"] | avg !| get [~(tag) ~(trace | last | path)]
+> [1 "x"] | avg !| get [tag (trace | last | path)]
 [::vec/avg/ElementKindNotTakenError /1]
 
 > [::W#2 1] | sum
 ::W#3
 
-> get [~([::T"a" ::T"b"] | join ",") ~([::A[1] ::B[2]] | flat) ~([::Cents#1 ::Dollars#2] | sum !| get [~(tag) ~(trace | last | path)])]
+> get [([::T"a" ::T"b"] | join ",") ([::A[1] ::B[2]] | flat) ([::Cents#1 ::Dollars#2] | sum !| get [tag (trace | last | path)])]
 [::T"a,b" [1 2] [::call/KindsMismatchedError /1]]
 
 > [] | min
@@ -95,7 +95,7 @@ them, a map does not answer, and a reader asks them of its values by
 `vals` first, `{:a 1} | vals | contains 1` answering `true`.
 
 ```qlang
-> {:b 2 :a 1} | map ~(add 1)
+> {:b 2 :a 1} | map (add 1)
 {:b 3 :a 2}
 
 > {:a 3 :b 1} | sort | take 1
@@ -117,10 +117,10 @@ code is refused with what it computed as `found`, its page naming the
 tilde [QSQUO#modifier].
 
 ```qlang
-> #[1 2 3] | map ~(mod 2)
+> #[1 2 3] | map (mod 2)
 [1 0 1]
 
-> ::Box[1 2] | map ~(add 1)
+> ::Box[1 2] | map (add 1)
 [2 3]
 
 > [1 2] | map (add 1) !| tag
@@ -136,10 +136,10 @@ its key, and one that answers a failure hands it on, the path of the
 step's frame naming the element on either road [QSERR#trace].
 
 ```qlang
-> {:c 3 :a 1 :b 2} | filter ~(gt 1)
+> {:c 3 :a 1 :b 2} | filter (gt 1)
 {:c 3 :b 2}
 
-> get [~([1 2] | filter ~(add 1) !| trace | last | path) ~([1 "x"] | filter ~(add 1 | gt 1) !| trace | last | path)]
+> get [([1 2] | filter (add 1) !| trace | last | path) ([1 "x"] | filter (add 1 | gt 1) !| trace | last | path)]
 [/0 /1]
 ```
 
@@ -164,19 +164,19 @@ at its step, the value so far the subject that frame holds, and the step
 of `reduce` names the path of the element [QSERR#trace].
 
 ```qlang
-> [1 2 3] | reduce 0 ~(add)
+> [1 2 3] | reduce 0 add
 6
 
-> [1 2 3] | get [~(reduce 0 ([::call{:name :add}] | tag ::quote)) ~(reduce 0 ~(add | it) !| tag)]
+> [1 2 3] | get [(reduce 0 ([::call{:name :add}] | tag ::quote)) (reduce 0 (add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
-> [1 2 3] | reduce 0 ~(with {:sofar /0 :digit /1} ~(sofar | mul 10 | add digit))
+> [1 2 3] | reduce 0 (with {:sofar /0 :digit /1} (sofar | mul 10 | add digit))
 123
 
-> apply ~(:add 5; [1 2 3] | reduce 0 ~(add) !| get [~(tag) ~(addresses)])
+> apply (:add 5; [1 2 3] | reduce 0 (add) !| get [tag addresses])
 [::call/ValueTakesNoModifiersError #[::number/add]]
 
-> [1 2] | reduce "x" ~(add) !| trace | map ~(get [~(subject) ~(failed) ~(path)])
+> [1 2] | reduce "x" add !| trace | map (get [subject failed path])
 [["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]
 ```
 
@@ -232,7 +232,7 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 > [#[:a :b] #[:b :d]] | inter
 #[:b]
 
-> get [~(#[#[1 2] #[1]] | vec/minus) ~([#[1 2] #[1]] | minus) ~(#[#[1] #[2]] | flat) ~(#[1] | union #[2])]
+> get [(#[#[1 2] #[1]] | vec/minus) ([#[1 2] #[1]] | minus) (#[#[1] #[2]] | flat) (#[1] | union #[2])]
 [#[] #[2] #[1 2] #[1 2]]
 
 > #[#[1] #[2]] | union
@@ -247,13 +247,13 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 > ::T{:a 1} | union {:b 2}
 ::T{:a 1 :b 2}
 
-> [{:a 1 :b 2} #[:a]] | get [~(minus) ~(inter) ~(union !| tag)]
+> [{:a 1 :b 2} #[:a]] | get [minus inter (union !| tag)]
 [{:b 2} {:a 1} ::call/KindsMismatchedError]
 
-> get [~([#[1] #[2] {:a 1}] | union !| get [~(tag) ~(trace | last | path)]) ~([{:a 1} [:a true]] | minus !| get [~(tag) ~(trace | last | path)])]
+> get [([#[1] #[2] {:a 1}] | union !| get [tag (trace | last | path)]) ([{:a 1} [:a true]] | minus !| get [tag (trace | last | path)])]
 [[::call/KindsMismatchedError /2] [::vec/minus/KeyKindNotTakenError /1/1]]
 
-> get [~([::A#[1] #[2]] | union) ~({:a 1} | union ::B{:b 2}) ~({:a 1 :b 2} | minus ::T[:a])]
+> get [([::A#[1] #[2]] | union) ({:a 1} | union ::B{:b 2}) ({:a 1 :b 2} | minus ::T[:a])]
 [::A#[1 2] ::B{:a 1 :b 2} {:b 2}]
 ```
 
@@ -275,10 +275,10 @@ meet, the second refused as `KeyTakenError`, `key | answer` the keyword and
 frame naming the element in each [QSERR#trace].
 
 ```qlang
-> [1 2 3] | groupBy ~(gt 1)
+> [1 2 3] | groupBy (gt 1)
 {:false [1] :true [2 3]}
 
-> [{:k [1]}] | indexBy /k !| get [~(tag) ~(trace | last | path) ~(key | expected)]
+> [{:k [1]}] | indexBy /k !| get [tag (trace | last | path) (key | expected)]
 [::vec/indexBy/KeyAnswerKindNotTakenError /0 #[::boolean ::keyword ::null ::number ::string ::tag]]
 
 > [1 "1"] | groupBy !| tag
@@ -297,12 +297,12 @@ a set is edited as its vector and laid back under `::set`. A subject
 under no tag is refused as `::tagged/within/SubjectNotTaggedError`.
 
 ```qlang
-> ::Box#[1 2] | within ~(append 1)
+> ::Box#[1 2] | within (append 1)
 ::Box#[1 2]
 
-> ::Box[1 2] | within ~(append 3)
+> ::Box[1 2] | within (append 3)
 ::Box[1 2 3]
 
-> #[1 2] | within ~(get [/0 /0 /1])
+> #[1 2] | within (get [/0 /0 /1])
 #[1 2]
 ```

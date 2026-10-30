@@ -32,13 +32,13 @@
 |~| from `::fn`, `takes` an input of the call held to its kinds. A
 |~| doc stands in the slot of the declaration it documents.
 
-:number/double |~~ Doubles a number. ~~| ~(mul 2);
+:number/double |~~ Doubles a number. ~~| mul 2;
 
 :Person |~~ A person, a name and an age. ~~| ::kind
   | accepts |~~ The name and the age. ~~| ::map
   | wires :name |~~ The name. ~~| /name ::string
   | wires :age |~~ The age in years. ~~| /age ::number;
-:Person/adult |~~ Whether the person is of age. ~~| ~(age | gte 18);
+:Person/adult |~~ Whether the person is of age. ~~| (age | gte 18);
 :Person/greet |~~ The person's name after a greeting. ~~| ::fn
   | takes :greeting |~~ The words before the name. ~~| /0 ::string
   | impl ~(name | prepend greeting);
@@ -60,15 +60,15 @@
 |~| pipe, `map` on each element, `filter` to keep the elements it
 |~| holds of.
 
-| (5 | apply ~(add 1 | mul 2))
+| (5 | apply (add 1 | mul 2))
 
-| ([1 2 3] | map ~(mul 2))
+| ([1 2 3] | map (mul 2))
 
-| ([1 2 3] | filter ~(gt 1))
+| ([1 2 3] | filter (gt 1))
 
 | (5 | double)
 
-| ([1 2 3] | map ~double)
+| ([1 2 3] | map double)
 
 
 |~| ── 3. A kind of your own ─────────────────────────────────
@@ -91,7 +91,7 @@
 
 | ({:price 4 :qty 3} | mulOf /price /qty)
 
-| ({:price 4 :qty 3} | with [/price /qty] ~(price | mul qty))
+| ({:price 4 :qty 3} | with [/price /qty] (price | mul qty))
 
 
 |~| ── 5. A fold ─────────────────────────────────────────────
@@ -99,9 +99,9 @@
 |~| element as its first arg; code of several steps runs on the
 |~| pair of the value so far and the element.
 
-| ([1 2 3] | reduce 0 ~(add))
+| ([1 2 3] | reduce 0 add)
 
-| ([{:x 1} {:x 2}] | reduce 0 ~(sumOf /0 (get /1 | get /x)))
+| ([{:x 1} {:x 2}] | reduce 0 (sumOf /0 (get /1 | get /x)))
 
 
 |~| ── 6. Names and their scope ──────────────────────────────
@@ -110,10 +110,10 @@
 |~| inside parentheses closes with them; `with` names a value of the
 |~| subject for the code of one step.
 
-| apply ~(
+| apply (
     :x 1;
     :y (x | add 1);
-    42 | with {:inner ~it} ~(inner | add y))
+    42 | with {:inner it} (inner | add y))
 
 
 |~| ── 7. Signature Help and Completion ──────────────────────
@@ -122,7 +122,7 @@
 |~| else. After `|` Ctrl+Space lists the verbs the kind of the
 |~| value answers and the names the file declares.
 
-| (5 | if (gt 0) ~("pos") ~("neg"))
+| (5 | if (gt 0) ("pos") ("neg"))
 
 | ("text" | upper)
 
@@ -133,7 +133,7 @@
 
 | ("hello" | add 1 !| tag)
 
-| ([1 "x" 3] | map ~(add 10 !| 0))
+| ([1 "x" 3] | map (add 10 !| 0))
 
 |~ a block comment between two steps ~|
 | ("hello" | add 1 !| doc)

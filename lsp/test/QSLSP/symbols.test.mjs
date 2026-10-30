@@ -36,7 +36,7 @@ describe('the folds', () => {
 
 describe('the symbols of a document', () => {
   it('collects the verbs a reader declares under a label as verb symbols', async () => {
-    const src = ':number/double ~(mul 2); :number/triple ~(mul 3); :q ~(add 1);';
+    const src = ':number/double mul 2; :number/triple mul 3; :q ~(add 1);';
     const { root } = parseDocument(src, 'test.qlang');
     const syms = documentSymbols(root, await langRuntime());
     expect(syms).toHaveLength(3);

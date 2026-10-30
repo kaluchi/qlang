@@ -238,7 +238,7 @@ describe('the gaps between the parts', () => {
 
 describe('every character in one token', () => {
   it('every byte of `[1 2 3] | filter ~(gt 1) | count` lies inside exactly one token', async () => {
-    const src = '[1 2 3] | filter ~(gt 1) | count';
+    const src = '[1 2 3] | filter (gt 1) | count';
     const tokens = tokenize(src, await rootVerbNames());
     expectCoversInputExactly(tokens, src);
   });
@@ -250,7 +250,7 @@ describe('every character in one token', () => {
   });
 
   it('every byte of a multi-line query with a comment lies inside exactly one token', async () => {
-    const src = '[1 2 3]\n  |~| keep big ones |~|\n  | filter ~(gt 1)';
+    const src = '[1 2 3]\n  |~| keep big ones |~|\n  | filter (gt 1)';
     const tokens = tokenize(src, await rootVerbNames());
     expectCoversInputExactly(tokens, src);
   });

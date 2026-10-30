@@ -11,9 +11,6 @@ const AnyCondClausesAnswerKindNotTakenError = declareRefusal('any/cond/ClausesAn
 const AnyAllOfConditionsAnswerKindNotTakenError = declareRefusal('any/allOf/ConditionsAnswerKindNotTakenError');
 const AnyAnyOfConditionsAnswerKindNotTakenError = declareRefusal('any/anyOf/ConditionsAnswerKindNotTakenError');
 
-// [QSQUO#modifier]
-declareRefusal('any/coalesce/AlternativesKindNotTakenError');
-
 registerPrimitive('any/if', runsAsCode(['then', 'else'], async (subject, condition, thenCode, elseCode) =>
   (condition ? await thenCode(subject) : await elseCode(subject))));
 

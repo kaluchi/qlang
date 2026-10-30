@@ -184,8 +184,8 @@
           !| tag
           |  eq ::path/SubjectHasNoPartsError)
     | proves :answersTheFailureOfAModifier
-        |~~ A modifier computed at the call that failed is the answer,
-            where the input that reads it takes no quote.
+        |~~ A modifier computed at the call that failed is the answer of
+            the call.
         ~~|
         ~(:number/plus (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by));
           :number/one (::fn | returns |~~ One. ~~| ::number | impl ~(1));

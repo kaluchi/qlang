@@ -741,7 +741,7 @@
     | throws :WithAnswerKindNotTakenError
         |~~ The code of `replace` answers the text that replaces
             a match: a number becomes text by `toString`,
-            `~(get /0 | toNumber | mul 2 | toString)`.
+            `(get /0 | toNumber | mul 2 | toString)`.
         ~~|
     | returns |~~ The text with every match replaced. ~~| ::string
     | proves :NeedleKindNotTakenError/refusesANumber

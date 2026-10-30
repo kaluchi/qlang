@@ -67,7 +67,10 @@
       record are read in one step, `get [/price /qty]`, or combined by a
       verb that reads them, `{:price 4 :qty 3} | mulOf /price /qty`
       answering `12`. A modifier of more than one word stands in
-      parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`.
+      parentheses: `[1 2 3] | take (count | sub 1)` answers `[1 2]`; the
+      modifiers past the inputs of a verb are the modifiers of the bare
+      verb its last input takes, `[1 2] | map add 1` reading
+      `map (add 1)`.
 
       5. Code. An input of code takes a group or a bare name as code,
       which the verb runs where it needs, `it` naming the value the code
@@ -92,8 +95,7 @@
       `[1 2 3] | map (div (self | sum))` divides each element by the sum
       of them all. A quote, `~(…)`, is code held as a value, which a name
       hands to a verb that runs code, `:double ~(mul 2); [1 2] | map double`
-      answering `[2 4]`; written where a verb takes code it is refused,
-      `map ~(mul 2)` naming `map (mul 2)`.
+      answering `[2 4]`.
 
       6. Building answers. An answer of a new shape is built by `get`
       over a template, a literal of paths and code, each path read and
@@ -708,13 +710,14 @@
             with a value of its kind, `add`, `append`, `concat` or
             `union`, answers beneath the tags the two share, a bare one
             sharing any, two under different tags combining in no step. A
-            modifier is evaluated at the call
+            modifier an input of a value takes is evaluated at the call
             against the subject, the value in the pipe, which is always
             the subject of the call; a verb that combines several values
             of one subject reads each from its args, `mulOf /price /qty`;
-            an input that runs code later takes
-            a quote, `~name` or `~(get /path)` the quote of one step, and
-            a condition is a boolean. A label is a kind declared under a
+            an input that runs code later takes it written bare, a verb,
+            `map toString`, or a group, `filter (gt 1)`, and a condition
+            is a boolean; the modifiers past the inputs are the modifiers
+            of the bare verb the last input takes, `map add 1`. A label is a kind declared under a
             name, by the chain that builds it from `::kind`,
             `:Box |~~ A parcel. ~~| (::kind | wires :width |~~ The width. ~~| /width ::number);`,
             or by its page alone, a kind of no commands: `accepts` names its
@@ -867,10 +870,11 @@
         |~~ `ok !| false` answers whether the step before stood. ~~|
         ~(get [(!{:code 404} | raise | ok !| false) (42 | ok !| false)] | eq [false true])
     | tells :code
-        |~~ Code. A quote, `~(…)`, holds steps unrun as a value: a verb
-            takes one where it needs code, `filter`, `sort`, `if`, `apply`
-            runs one on a subject, and a quote is taken apart and built
-            like any vector of steps. Because code is a value, the laws of
+        |~~ Code. A verb that runs code takes it written bare, a group or
+            a verb, `filter (gt 1)`, `sort /age`, `if`, and `apply` runs
+            code on a subject; a quote, `~(…)`, holds steps unrun as a
+            value, which a name hands to a verb that runs code, and a quote
+            is taken apart and built like any vector of steps. Because code is a value, the laws of
             a name run, a page holds links that open, and the trace of an
             error holds the steps it skipped, a quote that runs again.
             Rests on values and the pipeline; the hypertext is written in
@@ -878,9 +882,10 @@
             ::link~(::quote) ::link~(::qlang/hypertext)
             ::link~(::call/ValueWithheldError)
 
-            A quote written in a step, what a verb takes or a part of a
+            Code written in a step, what a verb takes or a part of a
             template it takes, is code of that step: the step writes at its
-            head the values of its scope the quote reads,
+            head the values of its scope the code reads, `self` the subject
+            of the step among them,
             `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` handing `map`
             the code `~(:bonus 10; add bonus)`, so it runs as it reads by whatever road the
             call hands it on, a verb written in the language among them.

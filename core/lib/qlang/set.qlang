@@ -101,9 +101,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /dept)`, it
-            runs on each element, while `(get /dept)` is computed once at the call,
-            against the set, and refused with what it answered.
+        |~~ The key is code written bare, `(get /dept)`, a path, `/dept`,
+            or null; a value given there is refused.
         ~~|
     | returns
         |~~ The elements filed under the keyword their key answered, each
@@ -126,7 +125,7 @@
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,
-            `~(get /id | if (tag | eq ::string) it print)`.
+            `groupBy (get /id | if (tag | eq ::string) it print)`.
         ~~|
         ::vec/groupBy/KeyTakenError
     | proves :filesIntoSets
@@ -287,9 +286,8 @@
       greatest down, `#[1 2 3] | sort desc` answering `[3 2 1]`. A set
       keeps no order but the one order, so the answer is a vector, and
       `toSet` after it brings the set back in the one order. The key is
-      code, a quote run on each element with the element as its subject;
-      a value computed at the call instead is refused under the
-      input.
+      code written bare or a path, run on each element with the element
+      as its subject; a value given instead is refused under the input.
       ::link~(::vec/sort) ::link~(::set/reverse)
       ::link~(::desc)
   ~~|
@@ -300,9 +298,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it runs
-            on each element, while `(get /age)` is computed once at the call,
-            against the set, and refused with what it answered.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
+            or null; a value given there is refused.
         ~~|
     | returns
         |~~ The elements in the order the key ranks them, a vector. ~~|

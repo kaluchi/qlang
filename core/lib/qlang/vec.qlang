@@ -72,9 +72,8 @@
       `[1 2 3] | any (gt 2)` answering `true`. It stops at the first
       element that answers `true`, so the elements after it are not run,
       and the empty vector answers `false`. The predicate is code run on
-      each element, a quote or a verb by its name, as `filter` takes it:
-      a value computed at the call is refused, and the predicate answers
-      a boolean. A set is asked in its one order, and a map of its values
+      each element, written bare or a path, as `filter` takes it: a value
+      given there is refused, and the predicate answers a boolean. A set is asked in its one order, and a map of its values
       by an `any` of its own; `every` asks whether each element holds.
       ::link~(::vec/every) ::link~(::vec/filter)
   ~~|
@@ -84,9 +83,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `any (gt 2)`, or a path,
-            `any /vip`; written without the tilde, `any (gt 2)`, it is
-            computed once at the call and refused.
+        |~~ The predicate is code written bare, `any (gt 2)`, a path,
+            `any /vip`, or a name that holds code; a value given there is
+            refused.
         ~~|
     | returns
         |~~ `true` when the predicate held for some element, `false`
@@ -477,8 +476,8 @@
       answering `true`. It stops at the first element that answers
       `false`, so the elements after it are not run, and the empty
       vector answers `true`. The predicate is code run on each element,
-      a quote or a verb by its name, as `filter` takes it: a value
-      computed at the call is refused, the predicate answers a boolean,
+      written bare or a path, as `filter` takes it: a value given there
+      is refused, the predicate answers a boolean,
       and an error it answers for an element answers the call. A set is
       asked in its one order, and a map of its values by an `every` of its
       own; `any` asks whether some element holds.
@@ -490,9 +489,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `every (gt 0)`, or a path,
-            `every /active`; written without the tilde, `every (gt 0)`, it
-            is computed once at the call and refused.
+        |~~ The predicate is code written bare, `every (gt 0)`, a path,
+            `every /active`, or a name that holds code; a value given there
+            is refused.
         ~~|
     | returns
         |~~ `true` when the predicate held for every element, `false`
@@ -539,13 +538,12 @@
 :vec/filter
   |~~ Answers the elements whose predicate answers `true`, in their order,
       `[1 2 3 4 5] | filter (gt 2)` answering `[3 4 5]`. The predicate is
-      code run on each element as its subject, a quote,
-      `~(get /age | gte 18)`, or a verb by its name, `~empty`; a value
-      computed at the call is refused, the error of a read computed at the
-      call among them, `filter (get /active)` for `filter /active`. The
+      code run on each element as its subject, written bare,
+      `(get /age | gte 18)`, a verb by its name, `empty`, or a path,
+      `/active`; a value given there is refused. The
       predicate answers a boolean, since no other value stands for one,
       and an error it answers for an element answers the call, so a field
-      an element may lack is read softly, `~(query /active | eq true)`. Several
+      an element may lack is read softly, `(query /active | eq true)`. Several
       conditions are one predicate,
       `filter (allOf /active (get /age | gte 18))`. The answer keeps the
       kind of the subject: a vector under a tag stays under it, a quote
@@ -560,9 +558,9 @@
         ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `filter (gt 1)`, or a path,
-            `filter /active`; written without the tilde, `filter (gt 1)`,
-            it is computed once at the call and refused.
+        |~~ The predicate is code written bare, `filter (gt 1)`, a path,
+            `filter /active`, or a name that holds code; a value given
+            there is refused.
         ~~|
     | returns |~~ The elements the predicate accepted, in order. ~~| ::vec
     | throws :PredicateAnswerKindNotTakenError
@@ -750,8 +748,9 @@
       its element with the kinds a key files under.
       Without a key an element files under itself, so
       `groupBy | map count` counts the occurrences of each value. The key
-      is code run on each element, a quote, `~(get /dept)`; a value computed
-      at the call is refused, and a key that misses its field answers the
+      is code run on each element, written bare, `(get /dept)`, or a
+      path; a value given there is refused, and a key that misses its
+      field answers the
       error of the read. A set answers `groupBy` by a verb of its own, and
       `indexBy` keeps one element under each key.
       ::link~(::vec/indexBy) ::link~(::vec/avg)
@@ -763,9 +762,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /kind)`, it
-            runs on each element, while `(get /kind)` is computed once at
-            the call, against the vector, and refused with what it answered.
+        |~~ The key is code written bare, `(get /kind)`, a path, `/kind`,
+            or null; a value given there is refused.
         ~~|
     | returns
         |~~ The elements filed under the keyword their key answered. ~~|
@@ -787,7 +785,7 @@
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,
-            `~(get /id | if (tag | eq ::string) it print)`.
+            `groupBy (get /id | if (tag | eq ::string) it print)`.
         ~~|
         ~(wires :taken |~~ The value of the key that filed under the keyword first. ~~|)
     | proves :filesUnderTheKey
@@ -832,8 +830,8 @@
         |~~ A number and a string of one text meet under one key. ~~|
         ~([1 "1"] | groupBy !| get [tag (key | answer) taken (trace | last | path)] | eq [::vec/groupBy/KeyTakenError :"1" 1 /1])
     | proves :KeyKindNotTakenError/refusesAKeyword
-        |~~ A keyword given as the key is computed at the call, and
-            refused.
+        |~~ A keyword given as the key is refused: a field is read by its
+            path.
         ~~|
         ~([{:dept :ops}] | groupBy :dept
           !| get [tag (key | found | tag)]
@@ -927,8 +925,8 @@
       `"1"`, meet and are refused; a key of another kind is refused at its
       element with the kinds a key files under. Without a key an element
       files under itself, a string under its keyword. The key is code run on
-      each element, a quote, `~(get /id)`; a value computed at the call is
-      refused. A set files its elements in its one order, the last of
+      each element, written bare, `(get /id)`, or a path, `/id`; a value
+      given there is refused. A set files its elements in its one order, the last of
       alike keys staying, and `groupBy` keeps every element of a key.
       ::link~(::vec/groupBy)
   ~~|
@@ -939,9 +937,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /id)`, it
-            runs on each element, while `(get /id)` is computed once at the
-            call, against the vector, and refused with what it answered.
+        |~~ The key is code written bare, `(get /id)`, a path, `/id`,
+            or null; a value given there is refused.
         ~~|
     | returns
         |~~ Each element under the keyword its key answered, the last of
@@ -969,7 +966,7 @@
             keyword, `:taken` the value that filed under it first and
             the path of its frame the element that met it. A key that
             means both answers one kind,
-            `~(get /id | if (tag | eq ::string) it print)`.
+            `groupBy (get /id | if (tag | eq ::string) it print)`.
         ~~|
         ::vec/groupBy/KeyTakenError
     | proves :filesEachUnderItsKey
@@ -1003,8 +1000,8 @@
         |~~ A number and a string of one text meet under one key. ~~|
         ~([{:id 1} {:id "1"}] | indexBy /id !| get [tag (key | answer) taken (trace | last | path)] | eq [::vec/indexBy/KeyTakenError :"1" 1 /1])
     | proves :KeyKindNotTakenError/refusesAKeyword
-        |~~ A keyword given as the key is computed at the call, and
-            refused.
+        |~~ A keyword given as the key is refused: a field is read by its
+            path.
         ~~|
         ~([{:id :ann}] | indexBy :id
           !| get [tag (key | found | tag)]
@@ -1057,7 +1054,7 @@
         ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `inter` keeps of a map is a keyword, a number or a
-            string, as `get` reads a key alone; the path of its frame
+            string, as `at` reads a key; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
@@ -1242,13 +1239,13 @@
 :vec/map
   |~~ Answers the vector of what the code answers for each element, in
       their order, `[1 2 3] | map (add 10)` answering `[11 12 13]`. The
-      code is a quote run on each element as its subject: a step of one
-      word or one path written short, `map /name` or `map count`,
-      several steps in one quote, `map (mul 2 | add 1)`, and the template
-      of `get`, which builds the shape of each element,
-      `map (get {:id /id :count (get /tags | count)})`.
-      A quote written in the call reads the names of its step, a name
-      declared before the call among them; a quote held in a name runs
+      code is written bare and runs on each element as its subject: a
+      verb, `map count`, a path, `map /name`, a verb with the modifiers
+      after it, `map add 1`, several steps in one group,
+      `map (mul 2 | add 1)`, and a template, which builds the shape of
+      each element, `map {:id /id :count (get /tags | count)}`.
+      Code written in the call reads the names of its step, a name
+      declared before the call among them; code held in a name runs
       in a lane of its own, which reads the verbs of the tree and no
       value a reader named; and the names a run declares stay in it. The
       first failure the code answers for an element is the answer of the
@@ -1268,10 +1265,9 @@
         |~~ The code run on each element, or the template built on it. ~~|
         /0 #[::map ::path ::quote ::set ::vec]
     | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `map (add 1)`, or a path, `map /name`;
-            written without the tilde, `map (add 1)`, it is computed once
-            at the call, against the vector, and refused with what it
-            answered.
+        |~~ The code is code written bare, `map (add 1)`, a path,
+            `map /name`, a template, `map {:n /name}`, or a name that holds
+            code; a value given there is refused.
         ~~|
     | throws :CodeNotGivenError
         |~~ `map` runs the code the call gives on each element,
@@ -1283,8 +1279,10 @@
         ~~|
         ::any
     | throws :ArgsBeyondInputsError
-        |~~ `map` takes one code: several steps run in order inside one
-            quote, `map (mul 2 | add 1)`.
+        |~~ `map` takes one code: a verb on it takes the modifiers after
+            it, `map add 1`, and several steps run in one group,
+            `map (mul 2 | add 1)`; past a value or a group the modifiers
+            are refused.
         ~~|
     | proves :answersWhatEachElementAnswers
         |~~ Each element is replaced by what the code answers for it. ~~|
@@ -1292,8 +1290,8 @@
     | proves :takesAPathShort
         |~~ A path alone is written short. ~~|
         ~([{:name "Ann"} {:name "Bob"}] | map /name | eq ["Ann" "Bob"])
-    | proves :runsSeveralStepsInOneQuote
-        |~~ Several steps run in one quote on each element. ~~|
+    | proves :runsSeveralStepsInOneGroup
+        |~~ Several steps run in one group on each element. ~~|
         ~([1 2 3] | map (mul 2 | add 1) | eq [3 5 7])
     | proves :readsANameOfTheScope
         |~~ A name of the code around the call is read inside. ~~|
@@ -1353,7 +1351,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null, `max /age`, as for `min`. ~~|
+        |~~ The key is code written bare, a path or null, `max /age`, as for `min`. ~~|
     | returns
         |~~ The greatest element, any value, null for the empty vector. ~~|
         ::any
@@ -1389,8 +1387,8 @@
       gives, the element whose key answers least answers whole, the first
       of equal ones, `[{:age 30} {:age 20}] | min /age` answering
       `{:age 20}`. The key is code run on each element, a path, `/age`, or
-      a quote, `~(get /age | abs)`, read as `sort` reads its key, so
-      `desc` turns it; a value computed at the call other than null, which
+      code written bare, `(get /age | abs)`, read as `sort` reads its key,
+      so `desc` turns it; a value given there other than null, which
       gives no key, is refused, and a key that misses its field answers the
       error of the read. A set answers its least element without a key,
       the first of its one order, and a map its least value by a `min` of
@@ -1404,9 +1402,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it
-            runs on each element, while `(get /age)` is computed once at the
-            call, against the vector, and refused with what it answered.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
+            or null; a value given there is refused.
         ~~|
     | returns
         |~~ The least element, any value, null for the empty vector. ~~|
@@ -1473,7 +1470,7 @@
         ~~|
     | throws :KeyKindNotTakenError
         |~~ A key `minus` takes out of a map is a keyword, a number or a
-            string, as `get` reads a key alone; the path of its frame
+            string, as `at` reads a key; the path of its frame
             names the first key of a value of the vector that is none of
             them, and `:expected` the three kinds.
         ~~|
@@ -1555,10 +1552,10 @@
       element folded into the value so far,
       `[1 2 3 4 5] | reduce 0 add` answering `15`; the empty vector
       answers the seed. The seed comes first and the reducer after it, so
-      `reduce ~(add)` reads the quote as the seed and is refused for the
-      reducer it lacks. The reducer is code, a path or a quote. A quote
-      of one word, `~(add)` or `~add`, or of its address,
-      `~(number/add)`, names the verb the fold calls with the value so far
+      `reduce add` reads the verb as the seed, which it computes at the
+      call and refuses. The reducer is code or a path. A verb written bare,
+      `add`, or its address, `number/add`, names the verb the fold calls
+      with the value so far
       as its subject and the element as its first arg; any other code runs
       on the pair of the value so far and the element, and what it answers
       is the value so far after that element:
@@ -1573,17 +1570,16 @@
   ::fn
     | takes :seed |~~ The value the fold starts from, any value. ~~| /0
     | takes :reducer
-        |~~ Code: a quote of one word, which names the verb the fold calls
-            with the element, or a path or a quote it runs on the pair of
-            the value so far and the element.
+        |~~ Code: a verb written bare, which the fold calls with the
+            element, or a path or code it runs on the pair of the value so
+            far and the element.
         ~~|
         /1 #[::path ::quote]
     | throws :ReducerKindNotTakenError
-        |~~ The reducer is a path or a quote, `reduce 0 add`, after the
-            seed: written first, `reduce ~(add) 0`, it is read as the
-            seed and the seed as the reducer, and written
-            without the tilde, `(add)`, it is computed once at the call;
-            either is refused.
+        |~~ The reducer is code after the seed, a verb written bare,
+            `reduce 0 add`, a path or a name that holds code; a value given
+            there is refused, and so is the seed written after it, the
+            reducer then read as the seed.
         ~~|
     | throws :ReducerNotGivenError
         |~~ `reduce` takes the seed first and the reducer after it,
@@ -1638,7 +1634,7 @@
         |~~ An error the reducer answers answers the call. ~~|
         ~([1 "x" 3] | reduce 0 add !| tag | eq ::number/add/AddendKindNotTakenError)
     | proves :ReducerKindNotTakenError/refusesANumber
-        |~~ A number computed at the call is refused. ~~|
+        |~~ A number given as the reducer is refused. ~~|
         ~([1 2 3] | reduce 0 1
           !| get [tag (reducer | found | tag)]
           |  eq [::vec/reduce/ReducerKindNotTakenError ::number])
@@ -1710,11 +1706,11 @@
       `ORDER BY count DESC, name`, and `eq null` at the first index puts
       null last; elements the key leaves alike keep the order of the
       subject, and `desc` turns the key, or one index of it, to descend.
-      The key is code run on each element, a path, `/age`, or a quote,
-      `~(get /name | lower)`; a value computed at the call other than
+      The key is code run on each element, a path, `/age`, or code
+      written bare, `(get /name | lower)`; a value given there other than
       null, which gives no key, is refused, one key is
       given, and a key that misses its field answers the error of the
-      read, so a field an element may lack is read softly, `~(query /age)`.
+      read, so a field an element may lack is read softly, `(query /age)`.
 
       The answer keeps the kind of the subject, a vector under a tag and a
       quote among them; a set sorts into a vector, and a map by its
@@ -1728,9 +1724,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it
-            runs on each element, while `(get /age)` is computed once at the
-            call, against the vector, and refused with what it answered.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
+            or null; a value given there is refused.
         ~~|
     | returns |~~ The elements in the order the key ranks them. ~~| ::vec
     | throws :ArgsBeyondInputsError
@@ -1788,9 +1783,7 @@
         ~~|
         ~([{:age 30} {:name "Bob"}] | sort (get [/age]) !| tag | eq ::path/KeyNotInMapError)
     | proves :KeyKindNotTakenError/refusesANumber
-        |~~ A number given as the key is computed at the call, and
-            refused.
-        ~~|
+        |~~ A number given as the key is refused. ~~|
         ~([3 1 2] | sort 1 !| get [tag (key | found | tag)] | eq [::vec/sort/KeyKindNotTakenError ::number])
     | proves :ArgsBeyondInputsError/refusesTwoKeys
         |~~ Two keys are refused under the verb. ~~|
@@ -1970,7 +1963,7 @@
 
 :vec/toPath
   |~~ Answers the path whose segments are the texts of the elements, each
-      a key alone, a keyword, a string or a number, as `get` reads one: a
+      a key, a keyword, a string or a number, as `at` reads one: a
       map reads a segment as the key that spells it and a vector as the
       index its digits write. `[:items 0] | toPath` answers `/items/0`,
       the path `segments` takes apart, and `[:version 1.5] | toPath`

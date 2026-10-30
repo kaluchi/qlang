@@ -58,9 +58,9 @@
       tag whose invariant the answer breaks refuses it. The names the
       code binds stay inside it. Under two tags the code runs beneath the
       outer one, and the value beneath both is reached by nesting
-      `within`, `within (within reverse)`. The code is a quote or a
-      path, `within /items`: a value computed at the call,
-      `within (reverse)`, is refused under the input. A value under no
+      `within`, `within (within reverse)`. The code is written bare or a
+      path, `within /items`; a value given there is refused under
+      the input. A value under no
       tag runs its code by `apply`, and is refused here.
       ::link~(::any/apply) ::link~(::any/payload)
   ~~|
@@ -69,9 +69,8 @@
         |~~ The edit, a quote run against the payload. ~~|
         /0 #[::path ::quote]
     | throws :CodeKindNotTakenError
-        |~~ The edit `within` runs is a quote, `within reverse`; a
-            value computed at the call is refused, the error a step
-            answered there among them.
+        |~~ The edit `within` runs is code written bare, `within reverse`,
+            or a path; a value given there is refused.
         ~~|
     | throws :CodeNotGivenError
         |~~ `within` runs the code its call gives beneath the tag,
@@ -108,7 +107,7 @@
         |~~ An edit under two tags reaches the innermost payload. ~~|
         ~(:Box |~~ A box. ~~|; ::Box#[3 1] | within (within (get [/1 /0 2])) | eq ::Box#[1 2 3])
     | proves :CodeKindNotTakenError/refusesANumber
-        |~~ A number computed at the call is refused. ~~|
+        |~~ A number given as the code is refused. ~~|
         ~(#[3 1] | within 1 !| get [tag (code | found | tag)] | eq [::tagged/within/CodeKindNotTakenError ::number])
     | proves :SubjectNotTaggedError/refusesAVector
         |~~ A vector under no tag is refused. ~~|

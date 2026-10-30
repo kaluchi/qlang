@@ -8,20 +8,21 @@
 
 :quote
   |~~ A quote is code held as a value, `~(add 1 | mul 2)`: steps that
-      run only when something runs them. A verb that runs code later
-      takes a quote, `map (mul 2)`, `filter (gt 1)`, `sort /name`,
-      and `apply` runs one on a subject, `5 | apply (add 1)` answering
-      `6`. A quote written in the step that hands it to a verb reads the
-      names of that step wherever the verb runs it,
-      `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` answering `[11 12]`; one held as
+      run only when something runs them. A verb that runs code takes it
+      written bare, `map (mul 2)`, `filter (gt 1)`, `sort /name`, and
+      runs a quote a name holds, `:double ~(mul 2); [1 2] | map double`;
+      `apply` runs code on a subject, `5 | apply (add 1)` answering `6`.
+      Code written in the step that hands it to a verb reads the names
+      of that step wherever the verb runs it,
+      `{:bonus 10} | with [/bonus] ([1 2] | map (add bonus))` answering `[11 12]`; a quote held as
       data, in a name, a field or a page, runs in a lane of its own and
       reads no value the reader named, and `fill` writes the values it
       needs at its head, `~(mul rate) | fill {:rate 1.2}`.
 
       It is written `~(…)` around a pipeline, and one name drops the
-      parentheses, `~count`. A verb that runs code takes a path bare,
-      `sort /name`, so a quote of a path alone is refused where it is
-      written; one built, by `parse` or by `tag ::quote`, answers the
+      parentheses, `~count`. A
+      quote of a path alone is refused where it is written; one built,
+      by `parse` or by `tag ::quote`, answers the
       path and prints under its tag, `::quote[/name]`. A
       quote is the vector of its steps under `::quote`,
       `~(add 1 | mul 2) | count` answering `2`, and each step reads as

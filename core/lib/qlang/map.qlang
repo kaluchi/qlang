@@ -79,7 +79,7 @@
 :map/any
   |~~ Answers whether the predicate answers true for some value,
       `{:tea 0 :cake 2} | any (gt 0)` answering `true`, and `false` for the
-      empty map. The predicate is a quote the call gives, run on each
+      empty map. The predicate is code the call gives, run on each
       value, and answers a boolean; any other answer is refused with the
       key of its entry. A vector and a set ask their elements by the `any`
       of vectors.
@@ -91,8 +91,8 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `any (gt 0)`, or a path,
-            `any /vip`.
+        |~~ The predicate is code written bare, `any (gt 0)`, a path,
+            `any /vip`, or a name that holds code.
         ~~|
     | returns
         |~~ `true` when the predicate held for some value, `false`
@@ -318,7 +318,7 @@
 :map/every
   |~~ Answers whether the predicate answers true for every value,
       `{:tea 4 :cake 6} | every (gt 0)` answering `true`, and `true` for the
-      empty map, which holds no value to fail it. The predicate is a quote
+      empty map, which holds no value to fail it. The predicate is code
       the call gives, run on each value, and answers a boolean; any other
       answer is refused with the key of its entry. A vector and a set ask
       their elements by the `every` of vectors.
@@ -330,8 +330,8 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `every (gt 0)`, or a path,
-            `every /active`.
+        |~~ The predicate is code written bare, `every (gt 0)`, a path,
+            `every /active`, or a name that holds code.
         ~~|
     | returns
         |~~ `true` when the predicate held for every value, `false`
@@ -364,7 +364,7 @@
   |~~ Answers the entries whose value the predicate answers true for,
       their keys kept, under the tags of the map:
       `{:tea 4 :cake 6 :jam 3} | filter (gt 3)` answers
-      `{:tea 4 :cake 6}`. The predicate is a quote the call gives, run on
+      `{:tea 4 :cake 6}`. The predicate is code the call gives, run on
       each value and not on its entry, so a test of a key reads the
       entries and builds the map back,
       `entries | filter (get /0 | ne :tmp) | toMap`, and a key leaves by
@@ -379,9 +379,9 @@
         |~~ The code each value is run through, which answers a boolean. ~~|
         /0 #[::path ::quote]
     | throws :PredicateKindNotTakenError
-        |~~ The predicate is a quote, `filter (gt 1)`, or a path,
-            `filter /active`; written without the tilde, `filter (gt 1)`,
-            it is computed once at the call and refused.
+        |~~ The predicate is code written bare, `filter (gt 1)`, a path,
+            `filter /active`, or a name that holds code; a value given
+            there is refused.
         ~~|
     | returns
         |~~ The entries whose values the predicate accepted, under the
@@ -505,7 +505,7 @@
   |~~ Answers the entries of the map whose keys are among the keys the
       call gives, under the tags of the map: the keys of a map, or the
       keys a vector or a set names, each a keyword, a number or a string,
-      as `get` reads a key alone.
+      as `at` reads a key.
       `{:name "Ann" :age 30 :tmp 3} | inter #[:age :name]` answers
       `{:name "Ann" :age 30}`, and keys the map lacks keep none of its
       entries. A set and a vector keep the elements they share by an
@@ -522,7 +522,7 @@
         ~~|
     | throws :KeysElementKindNotTakenError
         |~~ A key `inter` keeps of a map is a keyword, a number or a
-            string, as `get` reads a key alone; `:index` names the first
+            string, as `at` reads a key; `:index` names the first
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
@@ -636,9 +636,10 @@
 :map/map
   |~~ Answers the map of what the code answers for each value, under the
       same keys in their order, `{:tea 4 :cake 6} | map (add 1)` answering
-      `{:tea 5 :cake 7}`. The code is a quote run on each value as its
-      subject, not on its entry, so a key is read beside its value by
-      `entries | map ~(…)`, and `toMap` builds the map back from the pairs.
+      `{:tea 5 :cake 7}`. The code, written bare, a path or a template,
+      runs on each value as its subject, not on its entry, so a key is
+      read beside its value by `entries | map (…)`, and `toMap` builds the
+      map back from the pairs.
       The first error the code answers for a value is the answer of the
       call, and the answers stand in a map of their own, under no tag of
       the subject. A vector and a set answer `map` by the verb of vectors.
@@ -650,10 +651,9 @@
         |~~ The code run on each value, or the template built on it. ~~|
         /0 #[::map ::path ::quote ::set ::vec]
     | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `map (add 1)`, or a path, `map /name`;
-            written without the tilde, `map (add 1)`, it is computed once
-            at the call, against the map, and refused with what it
-            answered.
+        |~~ The code is code written bare, `map (add 1)`, a path,
+            `map /name`, a template, `map {:n /name}`, or a name that holds
+            code; a value given there is refused.
         ~~|
     | returns
         |~~ What the code answered for each value, under the same keys, a
@@ -691,7 +691,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null, `max /age`. ~~|
+        |~~ The key is code written bare, a path or null, `max /age`. ~~|
     | returns |~~ The greatest value, null for the empty map. ~~| ::any
     | proves :answersTheGreatestValue
         |~~ The greatest value answers. ~~|
@@ -759,9 +759,8 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null: written `~(get /age)`, it
-            runs on each value, while `(get /age)` is computed once at the call,
-            against the map, and refused with what it answered.
+        |~~ The key is code written bare, `(get /age)`, a path, `/age`,
+            or null; a value given there is refused.
         ~~|
     | returns |~~ The least value, null for the empty map. ~~| ::any
     | proves :answersTheLeastValue
@@ -788,7 +787,7 @@
   |~~ Answers the entries of the map whose keys are not among the keys the
       call gives, under the tags of the map: the keys of a map, or the
       keys a vector or a set names, each a keyword, a number or a string,
-      as `get` reads a key alone, a number naming the key of its text.
+      as `at` reads a key, a number naming the key of its text.
       `{:name "Ann" :tmp 3} | minus #[:tmp]` answers `{:name "Ann"}`, and
       a key the map lacks changes nothing. A single key is written in a
       set, `minus #[:tmp]`. A set and a vector take out their elements by
@@ -806,7 +805,7 @@
         ~~|
     | throws :KeysElementKindNotTakenError
         |~~ A key `minus` takes out of a map is a keyword, a number or a
-            string, as `get` reads a key alone; `:index` names the first
+            string, as `at` reads a key; `:index` names the first
             element of the keys that is none of them, and `:expected` the
             three kinds.
         ~~|
@@ -858,17 +857,16 @@
   ::fn
     | takes :seed |~~ The value the fold starts from. ~~| /0
     | takes :reducer
-        |~~ Code: a quote of one word, which names the verb the fold calls
-            with a value, or a path or a quote it runs on the pair of the
-            value so far and the value.
+        |~~ Code: a verb written bare, which the fold calls with a value,
+            or a path or code it runs on the pair of the value so far and
+            the value.
         ~~|
         /1 #[::path ::quote]
     | throws :ReducerKindNotTakenError
-        |~~ The reducer is a path or a quote, `reduce 0 add`, after the
-            seed: written first, `reduce ~(add) 0`, it is read as the
-            seed and the seed as the reducer, and written
-            without the tilde, `(add)`, it is computed once at the call;
-            either is refused.
+        |~~ The reducer is code after the seed, a verb written bare,
+            `reduce 0 add`, a path or a name that holds code; a value given
+            there is refused, and so is the seed written after it, the
+            reducer then read as the seed.
         ~~|
     | returns
         |~~ The value the fold reached, the seed for the empty map. ~~|
@@ -945,7 +943,7 @@
         ~~|
         ~(query /0) #[::null ::path ::quote]
     | throws :KeyKindNotTakenError
-        |~~ The key is a path, a quote or null, `sort /age`. ~~|
+        |~~ The key is code written bare, a path or null, `sort /age`. ~~|
     | returns
         |~~ The entries in the order the key ranks them, under the tags of
             the map.

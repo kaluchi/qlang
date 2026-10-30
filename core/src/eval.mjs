@@ -1003,8 +1003,19 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
+// [D497]
+function withTheTail(chain, modifiers, state) {
+  const { arity } = chain;
+  if (arity === null || arity === 0 || modifiers.length <= arity) return modifiers;
+  const step = modifiers[arity - 1].step;
+  if (!isCallStep(step) || step.has('modifiers') || namesAValue(step, state.scope)) return modifiers;
+  const tail = commandStep(step.get('name').name, modifiers.slice(arity).map(modifier => modifier.step));
+  return [...modifiers.slice(0, arity - 1), modifierOf(tail, state)];
+}
+
 // [D417], [QSBLD#input], [QSBLD#recipe], [QSNAM#reach], [QSNUM#combine]
-async function inputsOfCall(chain, address, modifiers, state, scope, recipeSteps, flight, parts, asCode) {
+async function inputsOfCall(chain, address, modifiersWritten, state, scope, recipeSteps, flight, parts, asCode) {
+  const modifiers = withTheTail(chain, modifiersWritten, state);
   const values = [];
   const written = new Set();
   const writtenAt = [];

@@ -43,20 +43,20 @@
 :any/allOf
   |~~ Answers whether every condition the call gives holds of the subject:
       two conditions of one record hold together by
-      `allOf (get /active) (get /age | gte 18)`. Each modifier is a
-      condition computed at the call, every one of them, or code that
-      answers one in its turn, a quote or a path, run on the subject once every condition
-      before it held: a condition that fails where an earlier one does not
-      hold is written as such a quote,
+      `allOf (get /active) (get /age | gte 18)`. Each modifier is code
+      that answers a condition, written bare or a path, run on the
+      subject in its turn once every condition before it held, or a
+      boolean: a condition that fails where an earlier one does not hold
+      stands after it,
       `allOf (get /email | ne null) (get /email | endsWith ".org")`, and
       the first condition that does not hold answers `false` with the
-      quotes after it unrun; a quote that fails answers its error. The
-      call gives one condition at least.
+      code after it unrun; code that fails answers its error. The call
+      gives one condition at least.
       ::link~(::any/anyOf) ::link~(::vec/every)
   ~~|
   ::fn
     | takes :conditions
-        |~~ The conditions, booleans and quotes that answer them, one at
+        |~~ The conditions, booleans and code that answers them, one at
             least.
         ~~|
         ~(it) [#[::boolean ::path ::quote]]
@@ -66,25 +66,17 @@
         ~~|
         ~(conditions | count | gt 0)
     | throws :ConditionsElementKindNotTakenError
-        |~~ Each modifier of `allOf` is a condition computed at the call,
-            `(get /age | gte 18)`, a path whose field answers one,
-            `/active`, or a quote that answers one in its turn,
-            `~(get /email | endsWith ".org")`. A condition computed at the
-            call is computed at every index, the first among them, and one
-            that answered an error is refused here, the error its value: a
-            field a record may lack is read softly,
-            `allOf (query /verified | eq true)`, and a condition that fails where an
-            earlier one does not hold is written as a quote that answers
-            it in its turn, which runs only once every condition before it
-            held.
+        |~~ Each modifier of `allOf` is code that answers a condition in
+            its turn, `(get /age | gte 18)`, a path whose field answers
+            one, `/active`, or a boolean; a value of another kind is
+            refused at its `:index`.
         ~~|
     | returns |~~ Whether every condition holds. ~~| ::boolean
     | throws :ConditionsAnswerKindNotTakenError
-        |~~ A quote or a path among the conditions of `allOf` answers a
+        |~~ Code or a path among the conditions of `allOf` answers a
             boolean when it runs; `:index` names, from zero, the condition
-            whose code answered another kind, and a quote that reads a
-            field compares it to answer a condition,
-            `~(get /email | ne null)`.
+            whose code answered another kind, and code that reads a field
+            compares it to answer a condition, `(get /email | ne null)`.
         ~~|
     | proves :holdsWhenEveryConditionHolds
         |~~ An active adult passes both conditions. ~~|
@@ -119,19 +111,18 @@
 :any/anyOf
   |~~ Answers whether some condition the call gives holds of the subject:
       a high score passes without the flag,
-      `anyOf /vip (get /score | gt 95)`. Each modifier is a condition
-      computed at the call or code that answers one in its turn, a quote
-      or a path, run on
-      the subject once no condition before it held, as for `allOf`: the
-      first that holds answers `true` with the quotes after it unrun, so a
-      flagged record passes without the field its quote reads,
-      `anyOf /vip (get /score | gt 95)`, and a quote that fails answers
-      its error. The call gives one condition at least.
+      `anyOf /vip (get /score | gt 95)`. Each modifier is code that
+      answers a condition, written bare or a path, run on the subject in
+      its turn once no condition before it held, as for `allOf`, or a
+      boolean: the first that holds answers `true` with the code after it
+      unrun, so a flagged record passes without the field its code reads,
+      `anyOf /vip (get /score | gt 95)`, and code that fails answers its
+      error. The call gives one condition at least.
       ::link~(::any/allOf) ::link~(::vec/any)
   ~~|
   ::fn
     | takes :conditions
-        |~~ The conditions, booleans and quotes that answer them, one at
+        |~~ The conditions, booleans and code that answers them, one at
             least.
         ~~|
         ~(it) [#[::boolean ::path ::quote]]
@@ -141,25 +132,17 @@
         ~~|
         ~(conditions | count | gt 0)
     | throws :ConditionsElementKindNotTakenError
-        |~~ Each modifier of `anyOf` is a condition computed at the call,
-            `(get /score | gt 95)`, a path whose field answers one,
-            `/vip`, or a quote that answers one in its turn,
-            `~(get /score | gt 95)`. A condition computed at the call is
-            computed at every index, the first among them, and one that
-            answered an error is refused here, the error its value: a
-            field a record may lack is read softly,
-            `anyOf (query /vip | eq true)`, and a condition that fails
-            where an earlier one holds is written as a quote that answers
-            it in its turn, which runs only once no condition before it
-            held.
+        |~~ Each modifier of `anyOf` is code that answers a condition in
+            its turn, `(get /score | gt 95)`, a path whose field answers
+            one, `/vip`, or a boolean; a value of another kind is refused
+            at its `:index`.
         ~~|
     | returns |~~ Whether some condition holds. ~~| ::boolean
     | throws :ConditionsAnswerKindNotTakenError
-        |~~ A quote or a path among the conditions of `anyOf` answers a
+        |~~ Code or a path among the conditions of `anyOf` answers a
             boolean when it runs; `:index` names, from zero, the condition
-            whose code answered another kind, and a quote that reads a
-            field compares it to answer a condition,
-            `~(get /score | gt 95)`.
+            whose code answered another kind, and code that reads a field
+            compares it to answer a condition, `(get /score | gt 95)`.
         ~~|
     | proves :holdsWhenOneHolds
         |~~ A high score passes without the flag. ~~|
@@ -193,36 +176,37 @@
 
 :any/apply
   |~~ Answers the code the call gives run against the subject,
-      `5 | apply (add 1)` answering `6`. The code is a quote, a path or
-      a function, or a name that holds one, `apply double`, and a
+      `5 | apply (add 1)` answering `6`. The code is written bare, a
+      path, a function or a name that holds code, `apply double`, and a
       function takes its args as a vector, as a call holds its args,
       `5 | apply f [3]`. Its steps run in order, a
       leading `!|` routing the first through the fail track, so the steps
       a frame of a trace skipped run again, as held code runs. Code held
-      as the subject runs on itself by `apply it`, and text runs on a
-      subject once `parse` reads it, `5 | apply ("add 3" | parse)`. The
-      code runs under the fork rule: its declarations stay inside it, and
-      only its value comes out. A step written without its quote runs at the
-      call, so `apply (add 1)` is refused, as is the error a step
-      answered there. The call takes one code; code of several steps is
-      one quote.
+      as the subject runs by `answer`, and text runs on a subject once
+      `parse` reads it and a name holds it,
+      `5 | with {:q ("add 3" | parse)} (apply q)`. The code runs under
+      the fork rule: its declarations stay inside it, and only its value
+      comes out, a function or a quote it computes among it, which runs
+      where a name hands it on. The call takes one code; code of several
+      steps is one group.
       ::link~(::quote) ::link~(::fn) ::link~(::string/parse)
       ::link~(::qlang/code)
   ~~|
   ::fn
     | takes :code
-        |~~ The code the call runs, a quote, a path or a function, or a
+        |~~ The code the call runs, written bare, a path, a function or a
             name that holds one.
         ~~|
         /0 #[::fn ::path ::quote]
     | throws :CodeKindNotTakenError
-        |~~ The code is a quote, `apply (add 1)`, a path, `apply /price`, or
-            a function: a step written without its quote runs at the call,
-            and its answer, an error among them, is no code.
+        |~~ The code is written bare, `apply (add 1)`, a path,
+            `apply /price`, a function or a name that holds one; a value
+            of another kind given there is refused, text among it, which
+            `parse` reads into code a name then holds.
         ~~|
     | throws :CodeNotGivenError
         |~~ `apply` runs the code the call gives, `apply (add 1)`; code
-            held as the subject runs on itself by `apply it`.
+            held as the subject runs by `answer`.
         ~~|
     | takes :args
         |~~ The args of a function, a vector, as a call holds its args.
@@ -233,9 +217,9 @@
             holds its args.
         ~~|
     | throws :ArgsNotTakenError
-        |~~ A quote and a path take no args: steps run in order inside
-            one quote, `apply (add 1 | mul 2)`, and args go to a
-            function, `apply f [3]`.
+        |~~ Code and a path take no args: steps run in order inside one
+            group, `apply (add 1 | mul 2)`, and args go to a function a
+            name holds, `apply f [3]`.
         ~~|
     | returns |~~ The answer of the code run against the subject. ~~| ::any
     | throws :ArgsBeyondInputsError
@@ -258,7 +242,7 @@
         |~~ The declarations of the code stay inside it. ~~|
         ~(5 | apply (:bonus 1; add bonus) | get [it (::host | env | has :bonus)] | eq [6 false])
     | proves :CodeKindNotTakenError/refusesANumber
-        |~~ A number computed at the call is refused. ~~|
+        |~~ A number given as the code is refused. ~~|
         ~(42 | apply 1 !| get [tag (code | found | tag)] | eq [::any/apply/CodeKindNotTakenError ::number])
     | proves :CodeNotGivenError/refusesACallWithNoCode
         |~~ A call with no code is refused under the input. ~~|
@@ -367,8 +351,8 @@
 
 :any/coalesce
   |~~ Answers the first of the alternatives the call gives that answers a
-      value, each in its turn: code, a quote or a path, runs against the
-      subject, and a value answers itself,
+      value, each in its turn: code written bare, a path or a name that
+      holds code runs against the subject, and a value answers itself,
       `{:nickname null :name "alice"} | coalesce /nickname /name`
       answering `"alice"`. An alternative passes to the next where it
       answers null, or the refusal of a read `query` answers null for met
@@ -380,7 +364,7 @@
       the walk, false, `0` and `""` among them. When every alternative
       passes the call answers null. A value alone stands after the subject,
       `coalesce 30` reading "the subject, else 30", and several values
-      alone are refused, the subject first written by a quote,
+      alone are refused, the subject first written by `it`,
       `coalesce it port 8080`, and a field by a path,
       `coalesce /timeout 30`. An
       error the steps before answered passes over the call, as over every
@@ -392,8 +376,8 @@
   ~~|
   ::fn
     | takes :alternatives
-        |~~ The alternatives, in their order, each code, a quote or a path,
-            run against the subject, or a value that answers itself.
+        |~~ The alternatives, in their order, each code written bare or a
+            path, run against the subject, or a value that answers itself.
         ~~|
         ~(it)
     | holds :AlternativesEmptyError
@@ -405,19 +389,12 @@
     | holds :AlternativesValuesAloneError
         |~~ `coalesce` reads the subject before one value,
             `query /timeout | coalesce 30`, and several values alone read
-            no subject: the subject first is written by a quote,
-            `coalesce it port 8080`, a value a name holds by a quote,
-            `coalesce port 8080`, and a field by a path,
-            `coalesce /timeout 30`.
+            no subject: the subject first is written by `it`,
+            `coalesce it port 8080`, a value a name holds stands as the
+            subject, `port | coalesce 8080`, and a field is read by a
+            path, `coalesce /timeout 30`.
         ~~|
         ~(alternatives | anyOf (count | lt 2) (any (is ::quote)) (any (is ::path)))
-    | throws :AlternativesKindNotTakenError
-        |~~ An alternative is code, a quote or a path, which runs on the
-            subject, or a value: a group runs at the call, and a failure it
-            answers is no alternative, the code written as a quote,
-            `coalesce (get /a | upper) "none"`, or as a path,
-            `coalesce /a 0`.
-        ~~|
     | returns
         |~~ The first answer that is a value, a failure of the code that
             answered it, or null when every alternative passes.
@@ -507,9 +484,9 @@
         ~~|
         ~(it) [#[::path ::quote]]
     | throws :ClausesElementKindNotTakenError
-        |~~ Each of the clauses is code, a quote, `~(gte 90)`: a predicate
-            runs against the subject in its turn, so one computed at the
-            call is refused at its index.
+        |~~ Each of the clauses is code written bare, `(gte 90)`, or a
+            path: a predicate runs against the subject in its turn, and a
+            value given there is refused at its index.
         ~~|
     | holds :ClausesNoBranchesError
         |~~ `cond` takes its clauses in pairs, a predicate and its branch,
@@ -567,11 +544,11 @@
         |~~ The path of the part taken out. ~~|
         /0 ::path
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `delete /user/tmp`; a key alone is taken
-            out by its path, `delete /tmp`.
+        |~~ The path is a path, `delete /user/tmp`, a key taken out by its
+            path, `delete /tmp`.
         ~~|
     | proves :PathKindNotTakenError/refusesAKeyAlone
-        |~~ A key alone is no path. ~~|
+        |~~ A key alone is refused. ~~|
         ~({:tmp 3} | delete :tmp !| tag | eq ::any/delete/PathKindNotTakenError)
     | proves :takesAKeyOut
         |~~ A key is taken out of the map at the path. ~~|
@@ -597,10 +574,9 @@
       turns its own index alone,
       `sort (get [(get /score | desc) /name])`. A value of every kind
       turns, a map among them, and `payload` reads it back. The key is
-      code, a quote: `sort desc` turns the vector itself, which `sort`
-      refuses as no key. A key turned in `max` finds the least. The call
-      takes no value; a field turns by reading it first,
-      `~(get /score | desc)`.
+      code, so `sort desc` turns each element. A key turned in `max` finds
+      the least. The call takes no value; a field turns by reading it
+      first, `sort (get /score | desc)`.
       ::link~(::desc) ::link~(::any/tag)
       ::link~(::vec/sort)
   ~~|
@@ -921,7 +897,7 @@
       read, `{:user {:name "Ann"}} | get /user/name` answering `"Ann"`.
       It is the sibling of `map` that walks no element: code it is given
       runs on the subject, `[1 2 3 4 5] | get (count | sub 2)` answering
-      `3`, and a key alone is no path, read by its path, `get /0`, or by
+      `3`, and a key is read by its path, `get /0`, or by
       `at`, which reads a key the query computes, `at (get /field)`. Over
       a template, a literal of paths and code, it answers the template
       with each path read and each code run against the subject where it
@@ -945,9 +921,9 @@
     | throws :PathKindNotTakenError
         |~~ The path is a path, `get /user/name`, code run on the subject,
             `get (count | sub 2)`, or a template, a vector, a map or a set of
-            paths and code, or a value under a tag. A key alone is no path:
-            it is read by its path, `get /0`, or by `at`, `at 0`, which reads
-            a key the query computes, `at (get /field)`.
+            paths and code, or a value under a tag; a key is read by its
+            path, `get /0`, or by `at`, `at 0`, which reads a key the query
+            computes, `at (get /field)`.
         ~~|
     | proves :PathKindNotTakenError/refusesAKeyAlone
         |~~ A key alone is refused, its path or `at` reading it. ~~|
@@ -1101,9 +1077,10 @@
       `then` when the condition holds, `else` when it fails,
       `5 | if (gt 0) ("positive") ("negative")` answering `"positive"`.
       The condition is a boolean computed against the subject at the
-      call, `if (get /age | gte 18)`; a branch is code, a quote, so only the
-      chosen branch runs, and the empty quote `~()` leaves the subject
-      as it is. So the condition is no quote, `if ~(gt 0)` being
+      call, `if (get /age | gte 18)`; a branch is code written bare, so
+      only the chosen branch runs, `it` leaving the subject as it is, and
+      the else branch takes the modifiers past the inputs,
+      `if (gt 0) (add 100) sub 1`. So the condition is no quote, `if ~(gt 0)` being
       refused, and null and a number are refused too, having no second
       reading; a field the record lacks answers its error, which
       `query /flag | eq true` asks around. Under `map` the subject is
@@ -1123,18 +1100,18 @@
             number has no second reading.
         ~~|
     | takes :then
-        |~~ The branch run when the condition holds, a quote. ~~|
+        |~~ The branch run when the condition holds, code. ~~|
         /1 #[::path ::quote]
     | throws :ThenKindNotTakenError
-        |~~ The then branch is code, a quote, `~("yes")`, or a path, run
-            only when chosen.
+        |~~ The then branch is code written bare, `("yes")`, or a path,
+            run only when chosen; a value given there is refused.
         ~~|
     | takes :else
-        |~~ The branch run when the condition fails, a quote. ~~|
+        |~~ The branch run when the condition fails, code. ~~|
         /2 #[::path ::quote]
     | throws :ElseKindNotTakenError
-        |~~ The else branch is code, a quote, `~("no")`, or a path, run
-            only when chosen.
+        |~~ The else branch is code written bare, `("no")`, or a path,
+            run only when chosen; a value given there is refused.
         ~~|
     | throws :ElseNotGivenError
         |~~ `if` takes both branches: a branch that leaves the subject as
@@ -1869,8 +1846,8 @@
       `{:user {:name "Ann" :age 30}}`. The path is followed as `get`
       follows it, so a key or an index missing on the way is refused where
       the path writes it, and a value under a tag on the way is laid under
-      it again through its kind. A key alone is no path, written by its
-      path, `put /age 30`, and a vector grows by `append`.
+      it again through its kind. A key is written by its path,
+      `put /age 30`, and a vector grows by `append`.
       ::link~(::any/update) ::link~(::any/delete)
       ::link~(::any/get)
   ~~|
@@ -1879,12 +1856,12 @@
         |~~ The path written. ~~|
         /0 ::path
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `put /user/age 30`; a key alone is written
-            by its path, `put /age 30`.
+        |~~ The path is a path, `put /user/age 30`, a key written by its
+            path, `put /age 30`.
         ~~|
     | takes :value |~~ The value laid at the path. ~~| /1
     | proves :PathKindNotTakenError/refusesAKeyAlone
-        |~~ A key alone is no path. ~~|
+        |~~ A key alone is refused. ~~|
         ~({:age 30} | put :age 31 !| tag | eq ::any/put/PathKindNotTakenError)
     | proves :addsAKey
         |~~ A key the last map lacks is added. ~~|
@@ -1934,8 +1911,8 @@
         |~~ The path is a path, `query /user/name`, code run on the
             subject, or a template, a vector, a map or a set of paths and
             code, or a value under a tag, and `query` reads any other no
-            more softly than `get`. A key alone is no path: it is read by its
-            path, `query /age`.
+            more softly than `get`; a key is read by its path,
+            `query /age`.
         ~~|
     | takes :default
         |~~ What a missed path answers, held and never run, null when the
@@ -1943,7 +1920,7 @@
         ~~|
         ~(query /1 null)
     | proves :PathKindNotTakenError/refusesAKeyAlone
-        |~~ A key alone is no path. ~~|
+        |~~ A key alone is refused. ~~|
         ~({:name "Ann"} | query :name 7 !| tag | eq ::any/query/PathKindNotTakenError)
     | proves :answersNullForAMissingKey
         |~~ A key that is not there answers null. ~~|
@@ -2757,7 +2734,7 @@
         |~~ The path written. ~~|
         /0 ::path
     | throws :PathKindNotTakenError
-        |~~ The path is a path, `update /visits (add 1)`; a key alone is
+        |~~ The path is a path, `update /user/visits (add 1)`, a key
             written by its path, `update /visits (add 1)`.
         ~~|
     | takes :code
@@ -2769,7 +2746,7 @@
             refused.
         ~~|
     | proves :PathKindNotTakenError/refusesAKeyAlone
-        |~~ A key alone is no path. ~~|
+        |~~ A key alone is refused. ~~|
         ~({:visits 1} | update :visits (add 1) !| tag | eq ::any/update/PathKindNotTakenError)
     | proves :CodeKindNotTakenError/refusesANumber
         |~~ Code that is no quote and no path is refused. ~~|

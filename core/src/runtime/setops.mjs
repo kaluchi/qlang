@@ -44,23 +44,25 @@ function unionOfMaps(left, right) {
 // [QSPTH#key]
 const KINDS_NAMING_A_MAP_KEY = kindsExpected(...KINDS_OF_A_KEY_ALONE);
 
-function keyNamesOf(keysValue, KeyRefusal, at) {
+function keyNamesOf(keysValue, refusalAt) {
   if (isMap(keysValue)) return keysValue;
   return new Set(keysValue.map((keyOfEntry, index) => {
     const key = beneathTags(keyOfEntry);
     if (isKeyAlone(key)) return keyNameOf(key);
-    if (at === undefined) throw new KeyRefusal({ 'keys/expected': KINDS_NAMING_A_MAP_KEY, 'keys/index': index });
-    throw refusingAPart(new KeyRefusal({ 'subject/expected': KINDS_NAMING_A_MAP_KEY }), at, index);
+    throw refusalAt(index);
   }));
 }
 
-const minusOfMap = (map, keys, KeyRefusal, at) => {
-  const names = keyNamesOf(keys, KeyRefusal, at);
+const refusalOfAKeyGiven = KeyRefusal => index => new KeyRefusal({ 'keys/expected': KINDS_NAMING_A_MAP_KEY, 'keys/index': index });
+const refusalOfAKeyOfAPart = (KeyRefusal, at) => index => refusingAPart(new KeyRefusal({ 'subject/expected': KINDS_NAMING_A_MAP_KEY }), at, index);
+
+const minusOfMap = (map, keys, refusalAt) => {
+  const names = keyNamesOf(keys, refusalAt);
   return new Map([...map].filter(([key]) => !names.has(key)));
 };
 
-const interOfMap = (map, keys, KeyRefusal, at) => {
-  const names = keyNamesOf(keys, KeyRefusal, at);
+const interOfMap = (map, keys, refusalAt) => {
+  const names = keyNamesOf(keys, refusalAt);
   return new Map([...map].filter(([key]) => names.has(key)));
 };
 
@@ -78,17 +80,17 @@ function unionPair(left, right, refusals, at) {
 
 function minusPair(left, right, { KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, MINUS_KEEPS);
-  if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, KeyKindNotTakenError, at);
+  if (isMap(left) && (isMap(right) || isVec(right))) return minusOfMap(left, right, refusalOfAKeyOfAPart(KeyKindNotTakenError, at));
   throw mismatched(left, right, at);
 }
 
 function interPair(left, right, { KeyKindNotTakenError }, at) {
   if (isSet(left) && isSet(right)) return mergeSets(left, right, INTER_KEEPS);
-  if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, KeyKindNotTakenError, at);
+  if (isMap(left) && (isMap(right) || isVec(right))) return interOfMap(left, right, refusalOfAKeyOfAPart(KeyKindNotTakenError, at));
   throw mismatched(left, right, at);
 }
 
-function foldOf(values, pair, refusals, readsEvery, state) {
+function foldOfTheAlgebra(values, pair, refusals, readsEvery, state) {
   if (values.length === 0) throw new refusals.SubjectEmptyError({});
   const first = beneathTags(values[0]);
   const tally = new TagsInCommon();
@@ -108,7 +110,7 @@ const VEC_UNION = {
   ElementKindNotTakenError: declareRefusal('vec/union/ElementKindNotTakenError')
 };
 
-registerStateReader('vec/union', (vector, state) => foldOf(vector, unionPair, VEC_UNION, true, state));
+registerStateReader('vec/union', (vector, state) => foldOfTheAlgebra(vector, unionPair, VEC_UNION, true, state));
 registerPrimitive('set/union', asCombiner((set, other) => mergeSets(set, other, UNION_KEEPS)));
 registerPrimitive('map/union', asCombiner((map, other) => unionOfMaps(map, other)));
 
@@ -120,9 +122,9 @@ const VEC_MINUS = {
   KeyKindNotTakenError: declareRefusal('vec/minus/KeyKindNotTakenError')
 };
 
-registerStateReader('vec/minus', (vector, state) => foldOf(vector, minusPair, VEC_MINUS, false, state));
+registerStateReader('vec/minus', (vector, state) => foldOfTheAlgebra(vector, minusPair, VEC_MINUS, false, state));
 registerPrimitive('set/minus', asCombiner((set, other) => mergeSets(set, other, MINUS_KEEPS)));
-registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, MapMinusKeysElementKindNotTakenError));
+registerPrimitive('map/minus', (map, keys) => minusOfMap(map, keys, refusalOfAKeyGiven(MapMinusKeysElementKindNotTakenError)));
 
 const MapInterKeysElementKindNotTakenError = declareRefusal('map/inter/KeysElementKindNotTakenError');
 
@@ -132,6 +134,6 @@ const VEC_INTER = {
   KeyKindNotTakenError: declareRefusal('vec/inter/KeyKindNotTakenError')
 };
 
-registerStateReader('vec/inter', (vector, state) => foldOf(vector, interPair, VEC_INTER, false, state));
+registerStateReader('vec/inter', (vector, state) => foldOfTheAlgebra(vector, interPair, VEC_INTER, false, state));
 registerPrimitive('set/inter', asCombiner((set, other) => mergeSets(set, other, INTER_KEEPS)));
-registerPrimitive('map/inter', (map, keys) => interOfMap(map, keys, MapInterKeysElementKindNotTakenError));
+registerPrimitive('map/inter', (map, keys) => interOfMap(map, keys, refusalOfAKeyGiven(MapInterKeysElementKindNotTakenError)));

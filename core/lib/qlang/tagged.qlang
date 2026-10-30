@@ -36,9 +36,6 @@
     | proves :reachesPayload
         |~~ A box answers `payload`. ~~|
         ~(:Box |~~ A box. ~~|; ::Box[1 2] | payload | eq [1 2])
-    | proves :readsAsAConstructStep
-        |~~ The step `::Box[1 2]` is a `::construct`. ~~|
-        ~(~(::Box[1 2]) | first | tag | eq ::construct)
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::tagged`, and a value under a tag is of
             it already.

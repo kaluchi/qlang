@@ -1,10 +1,9 @@
 // [QSNAM#root], [QSDSP#residence], [QSHST#notebook]
 
 import { parseSource, SourceParseError } from './parse.mjs';
-import { evalPipeline } from './eval.mjs';
+import { evalPipeline, refusalOfAParse } from './eval.mjs';
 import { langRuntime } from './runtime/lang-runtime.mjs';
 import { rootState } from './state.mjs';
-import { refusalOfAParse } from './runtime/code.mjs';
 import { declareRoot } from './runtime/root.mjs';
 import { foreignPartOf } from './dispatch.mjs';
 import { BuiltinForeignValueError } from './types.mjs';

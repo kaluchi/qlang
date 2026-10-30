@@ -75,7 +75,7 @@
   }
   function recordComment(type, content) {
     const loc = span();
-    commentTrivia.set(loc.start.offset, { type, content, location: loc, text: text() });
+    commentTrivia.set(loc.start.offset, { type, content, location: loc });
   }
 
   // [QSSYN#refusal]
@@ -850,7 +850,7 @@ ElementList
 
 LiteralGap
   = __
-  / &(!"/" Element) Element { error('the words of a literal are set off by whitespace: `[1 2]`'); }
+  / &(!"/" Element) Element { error('the elements of a literal are set off by whitespace: `[1 2]`'); }
 
 // [QSPTH#value], [QSSYN#step]
 Path

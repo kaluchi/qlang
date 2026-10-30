@@ -3,7 +3,7 @@
 import { ROOT_KEY, QUERY_KEY, RECIPE_KEY, WITHHELD_KEY } from './scope-keys.mjs';
 import {
   withPipeValue, withScope, withFlight, nestState, depthBelow, scopeSet, scopeWith, scopeHas, rootOf, markRootVerbScope, isRootVerbScope, queryTreeOf,
-  withWritten, writtenIn, ownScopeOf, ownStateOf, NO_SUBJECT
+  withWritten, writtenIn, ownScopeOf, ownStateOf, rootState, NO_SUBJECT
 } from './state.mjs';
 import { declareRefusal, QlangError, QlangDefect, CallUnknownNameError, CallUnknownAddressError, BindNameDeclaredTwiceError } from './errors.mjs';
 import { nearestNames, nearestTagNames, nearestVerbs } from './nearest-names.mjs';
@@ -22,12 +22,12 @@ import {
   commandStep, groupStep, declarationStep, namesAQuoteReads, computesWithin, heldAsALiteral, CallLiteralComputesError
 } from './steps.mjs';
 import { asPrinted } from './print-value.mjs';
-import { errorFromQlang, errorFromForeign, factsInOrder } from './error-convert.mjs';
+import { errorFromQlang, errorFromForeign, errorFromParse, factsInOrder, spanOfLocation } from './error-convert.mjs';
 import {
   INVARIANT_TAG, LAW_TAG, addressesOf, bareNameReach, declaresALabel, isInvariant, isLaw, isVerb, isNodeOfAPart, kindOfAValueOf, nodeOf, refuseWithheld,
   returnsItsLabel, slotsOfAVerdict, invariantNamedByARule, refusalsAddressOf, CallValueWithheldError, isProgramRecord, markProgram
 } from './nouns.mjs';
-import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, functionOfRecipe, chainOfKind, chainOfFn, inputsTakingCode, FnNameDeclaredTwiceError } from './chain.mjs';
+import { ANSWER_NAME, PAYLOAD_NAME, SUBJECT_NAME, SURPLUS_NAME, REPAIR_NAME, ARGS_NAME, functionOfRecipe, chainOfKind, chainOfFn, inputsTakingCode, FnNameDeclaredTwiceError } from './chain.mjs';
 import { inputsAsCode, combinesItsInput } from './primitives.mjs';
 import {
   splitAddress, argsBeyondInputsAddress, subjectKindsRefusalAddress, elementsRefusalAddress, kindsRefusalAddress,
@@ -605,7 +605,7 @@ function isNodeOrLabel(name, record) {
 }
 
 // [QSBLD#input]
-const ARGS_NAME = makeKeyword('args');
+const ARGS_KEYWORD = makeKeyword(ARGS_NAME);
 
 // [QSBLD#recipe], [QSDSP#residence]
 async function applyVerb(record, modifiers, state) {
@@ -1058,8 +1058,8 @@ async function inputsOfCall(chain, address, modifiersWritten, state, scope, reci
     return refusalUnder(argsBeyondInputsAddress(address), slotsPoured(state.pipeValue, inputsOfTheArgs(chain, values), { [`${SURPLUS_NAME}/found`]: Object.freeze(values.slice(chain.arity)) }), scope);
   }
   const named = recipeSteps !== null || chain.invariants.length > 0;
-  const recipeScope = named ? withTheParts(scopeSet(scope, ARGS_NAME.name, makeBinding({ name: ARGS_NAME, value: argsValue() })), parts) : null;
-  if (recipeSteps !== null) recipeScope.set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME.name, ...chain.inputs.map(({ name }) => name.name), ...(parts?.keys() ?? [])]) });
+  const recipeScope = named ? withTheParts(scopeSet(scope, ARGS_NAME, makeBinding({ name: ARGS_KEYWORD, value: argsValue() })), parts) : null;
+  if (recipeSteps !== null) recipeScope.set(RECIPE_KEY, { steps: recipeSteps, names: new Set([ARGS_NAME, ...chain.inputs.map(({ name }) => name.name), ...(parts?.keys() ?? [])]) });
   const overArgs = () => nestState(called, argsValue(), scope);
   const inputValues = [];
   const given = [];
@@ -1174,6 +1174,13 @@ export async function layTag(tagName, laidOver, state) {
   if (kind !== null) return await underKind(tagName, kind, payload, step, refusalsAddressOf(step.scope, tagName));
   if (isDoc(declared) || node === null || isVerb(step.scope, tagName) || isInvariant(declared)) return makeTagged(makeTag(tagName), payload);
   throw new ConstructTagNamesAValueError({ address: makeTag(tagName), found: declared });
+}
+
+// [QSSYN#refusal], [QSPRN#span]
+export async function refusalOfAParse(parseError, scope, uri) {
+  const ofTheRoot = rootState(null, new Map([[ROOT_KEY, rootOf(scope)]]));
+  const location = parseError.location ? await layTag('span', spanOfLocation(parseError.location, parseError.source), ofTheRoot) : undefined;
+  return errorFromParse(parseError, scope, location, uri);
 }
 
 // [QSBLD#value]

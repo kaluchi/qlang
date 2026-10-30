@@ -77,7 +77,7 @@ export const RETIRED_WORDS = [
   { regex: /NumberNotFiniteLeakedToPrintError\b|\bfiniteNumberOrLift\b/, written: 'a number past the finite doubles a host hands, `::builtin/ForeignValueError`', by: 'D361' },
   { regex: /\blogicalName\b|\blogical[\s-]+names?\b/i, written: 'the source a refusal of the boot names, `:origin`', by: 'D361' },
   { regex: /:uri\b|\bget[\s-]+\/uri\b|\bParseError\/uri\b/, written: 'where a text came from, `:origin`, a keyword, the `uri` a host hands recorded as it', by: 'D361' },
-  { regex: /\benvAfterCell\b|\bsession(?:Instance)?\.env\b|createSession\(\{\s*env\b/, written: 'the scope a session keeps, `session.scope`, `createSession({ scope })` and the entry\'s `scopeAfterCell`', by: 'D361' },
+  { regex: /\benvAfterCell\b|\bsession(?:Instance)?\.env\b|createSession\(\{\s*env\b/, written: 'the scope a notebook keeps, `notebook.scope`, `createNotebook({ scope })` and the entry\'s `scopeAfterCell`', by: 'D361' },
   { regex: /\bsession(?:Instance)?\.bind\b|\bbind\(name,\s*value\)/, written: 'a host puts its names into the scope by its sources alone, and a binding no declaration wrote holds no source', by: 'D361' },
   { regex: /\bbuiltinNames\b|\bnoBuiltins\b|\bbuiltin[\s-]+(?:names|completions)\b/, written: 'the verbs of the root, which the painters read as `verbNames`, a verb of the language', by: 'D361' },
   { regex: /\bmakeIoImpls\b|\bformatImpls\b/, written: 'the primitives of the command line, `streamPrimitives` and `tablePrimitives`', by: 'D361' },

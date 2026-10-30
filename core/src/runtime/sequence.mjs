@@ -255,7 +255,7 @@ registerPrimitive('set/groupBy', runsAsCode(['key'], async (set, key) => {
   return isErrorValue(buckets) ? buckets : new Map([...buckets].map(([name, elements]) => [name, makeSet(elements)]));
 }));
 
-async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
+async function indexedBy(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError) {
   const index = new Map();
   const filed = new Map();
   for (const [position, element] of sequence.entries()) {
@@ -268,7 +268,7 @@ async function indexOf(sequence, key, KeyAnswerKindNotTakenError, KeyTakenError)
 
 const VecIndexByKeyAnswerKindNotTakenError = declareRefusal('vec/indexBy/KeyAnswerKindNotTakenError');
 const VecIndexByKeyTakenError = declareRefusal('vec/indexBy/KeyTakenError');
-registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexOf(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
+registerPrimitive('vec/indexBy', runsAsCode(['key'], (vector, key) => indexedBy(vector, key, VecIndexByKeyAnswerKindNotTakenError, VecIndexByKeyTakenError)));
 
 // [QSTXT#string], [QSCOL#sequence]
 registerPrimitive('string/take', (text, count) => Array.from(text).slice(0, Math.max(0, count)).join(''));
@@ -335,7 +335,7 @@ function firstOfEach(vector) {
 registerPrimitive('vec/distinct', firstOfEach);
 
 // [QSCOL#reduce]
-async function foldOf(entries, seed, reducer) {
+async function reducedFrom(entries, seed, reducer) {
   let acc = seed;
   for (const [segment, element] of entries) {
     acc = await reducer(acc, element);
@@ -344,5 +344,5 @@ async function foldOf(entries, seed, reducer) {
   return acc;
 }
 
-registerPrimitive('vec/reduce', foldsAsCode(['reducer'], (sequence, seed, reducer) => foldOf(sequence.entries(), seed, reducer)));
-registerPrimitive('map/reduce', foldsAsCode(['reducer'], (map, seed, reducer) => foldOf(map, seed, reducer)));
+registerPrimitive('vec/reduce', foldsAsCode(['reducer'], (sequence, seed, reducer) => reducedFrom(sequence.entries(), seed, reducer)));
+registerPrimitive('map/reduce', foldsAsCode(['reducer'], (map, seed, reducer) => reducedFrom(map, seed, reducer)));

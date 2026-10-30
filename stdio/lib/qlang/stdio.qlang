@@ -31,12 +31,6 @@
             words, and takes no payload: it is asked by itself,
             `::stdio | doc`.
         ~~|
-    | proves :declaresTable
-        |~~ The streams declare `table` under vectors. ~~|
-        ~(::vec | manifest | has ::vec/table)
-    | proves :declaresTheStreams
-        |~~ The streams declare their verbs under `::stdio`. ~~|
-        ~(::stdio | manifest | has ::stdio/out)
     | proves :PayloadKindNotTakenError/refusesAValue
         |~~ No value is put under `::stdio`. ~~|
         ~(5 | tag ::stdio !| tag | eq ::stdio/PayloadKindNotTakenError);

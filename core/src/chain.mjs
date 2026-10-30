@@ -23,6 +23,7 @@ export const SUBJECT_NAME = 'subject';
 export const PAYLOAD_NAME = 'payload';
 export const SURPLUS_NAME = 'surplus';
 export const REPAIR_NAME = 'repair';
+export const ARGS_NAME = 'args';
 
 const isNameOfChain = value => isKeyword(value) && readsAsBareKeyword(value.name);
 const isNameOfOneSegment = value => isKeyword(value) && readsAsName(value.name);

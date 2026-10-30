@@ -45,8 +45,7 @@ back as the same steps, a line break of the prose of a doc standing as it
 is, which the literal of a doc writes no other way [QSSLF#doc], so a frame lays the quote it holds on one line; a host that
 writes a value on one line, a cell of the `table` of the streams among
 them, whose view writes the prose of a doc with each line break as a
-space, asks the printer for that form and lays no print on one line by a
-regex over its text.
+space, asks the printer for that form.
 
 The literal of a value is the language's, whatever its kind: a `print`
 declared under a label, a kind of a reader, of a host or of the root, is
@@ -198,8 +197,8 @@ reads such an object back as the plain map it is. `parseJson` takes a
 string, `::string/parseJson/SubjectNotStringError` refusing another,
 and refuses a text that is no JSON with the reason, and a number past
 the doubles with its `:path`, the path to it in the text, and none where
-the number is the whole text [QSPTH#value]; a duplicate key reads as
-`JSON.parse` reads it.
+the number is the whole text [QSPTH#value]; of two entries of one key the
+last value stands where the first entry stood [QSLIT#container].
 
 ```qlang
 > #[3 1] | json
@@ -247,7 +246,7 @@ answers an empty vector, set, map or string. `::vec` reveals `count`,
 the elements at its two ends; `::map` `count` and `shape`; `::string`
 `count`; `::doc` `links`; and `::trace` `failed`, the steps that failed
 level by level, `subject`, the subject the step that failed met, and
-`paths`, the paths of the parts its verbs ran their code on; the legend of
+`paths`, the paths of the parts its levels failed at; the legend of
 a tag name reads each view so. An excerpt is a map read by its keys, a view
 by its key under the tag of a refusal, `payload | get /:addend/found/count`,
 and prints and reads back as itself;

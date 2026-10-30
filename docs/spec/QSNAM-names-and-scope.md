@@ -33,9 +33,9 @@ chain or by its page alone, `:Box |~~ A box. ~~|;`, a page under a noun
 among them, a law under a noun,
 `:Box/fits |~~ A box fits. ~~| ::law~(true);`, a node of data under an
 address, which every code reads, and a value under a bare name, a
-constant the query reads where a value stands and the code its steps write
-carries, while code held as data withholds it and the body of a word does
-not see it [QSQUO#held]. A chain, a tag name and the commands joined to it
+constant the query reads where a value stands, which the code its steps
+write and a program its text declares carry, while code held as data and
+the recipe of a word withhold it [QSQUO#held], [QSBLD#recipe]. A chain, a tag name and the commands joined to it
 up to the `;`, builds a word, a kind, a function, a page or a law, under a
 noun the recipe of a verb among them, and one that answers any other
 value is refused as `::bind/ChainAnswersNoWordError` with its `:name` and
@@ -50,9 +50,14 @@ The body is a step: a program, a literal, a group for what the group
 computes, a name for the value it holds, a quote, which is held as the
 value it is, a keyword, a tag name, a doc, or a chain, and a word after the body is
 refused naming the `;`. A page written between the name and the body is
-the name's page. A program runs where its name stands, and a quote in a
-declaration is held as its literal and runs in the lane of the step that
-runs it [QSQUO#held]; a verb declared under a
+the name's page. A program carries the values of its text it reads and
+does not declare itself, written at its head where it is declared, as a
+step writes them at the head of code written in it, and none of its own
+name, by which a word calls itself; a value declared after it is no value
+of its text yet. It runs where its name stands, its value the code with
+that head and its source the declaration as written. A quote in a
+declaration is held as its literal, nothing written at its head, and runs
+in the lane of the step that runs it [QSQUO#held]; a verb declared under a
 label reads the tree as it stands where it is called [QSNAM#verb]; and a
 value is computed once, at the declaration.
 
@@ -89,6 +94,12 @@ true
 
 > 5 | apply (:bonus 10; :rule ~(add bonus); apply rule !| tag)
 ::call/ValueWithheldError
+
+> :limit 4; :big (gt limit); get [([1 5 10] | filter big) (::big | binding | value)]
+[[5 10] ~(:limit 4; gt limit)]
+
+> [1 5 10] | apply (:limit 4; :big ~(gt limit); filter big !| get [tag name])
+[::call/ValueWithheldError :limit]
 ```
 
 ## letters
@@ -326,8 +337,8 @@ name as it was declared. A noun is the name an address names before its
 last name, a label, a verb or a name of data, as the value of its
 binding says. A label is a kind declared under a name, by the chain that
 builds it from `::kind`, by its page alone, which declares a kind of
-no commands, or by a name that holds a kind, `:Box |~~ A box. ~~| K;`, a
-label to the runtime [QSLSP#symbols]: its verbs reside on it, its nodes lie under its address,
+no commands, or by a name that holds a kind, `:Box |~~ A box. ~~| K;`:
+its verbs reside on it, its nodes lie under its address,
 `::host | kinds` answers it where its name is of one segment [QSNAM#root], and a
 value goes under its tag through the kind [QSBLD#label]. A verb is a
 function named under a label, whatever recipe it holds, or a recipe

@@ -306,8 +306,12 @@ verbs, the nodes and the labels of the step that runs it, and the names
 the code declares itself, those its step wrote into it among them, which
 `env`, `doc` and `binding` read there. A value of that step is withheld:
 read by a step, by a tag or as the noun of a declaration, it is refused
-under its name as `::call/ValueWithheldError`, while a tag reads a label
-of the root before any name of the reader. A quote its step did not
+under its name as `::call/ValueWithheldError`, the verb of its name called
+by its address, while a tag reads a label of the root before any name of
+the reader. The recipe of a verb and the conditions and the selectors of a
+verb or a kind withhold so the values of the text they were declared in
+[QSBLD#recipe], one refusal for a value of a text read by code that cannot
+read it. A quote its step did not
 write, read from a name, a field or a page, a law and a snippet among
 them, computed by a group of a template or answered by a call, is held as it is
 written: a verb of the root runs it in the lane of its step, which

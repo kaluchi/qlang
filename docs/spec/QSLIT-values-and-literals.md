@@ -126,10 +126,9 @@ whitespace or by commas, one comma between every two, and braces with
 string keys separate their entries by commas, one between every two; a
 map of keyword keys and a set are written with whitespace, and a map that
 writes its keys both ways is refused where its entries end, naming the
-two. An object reads
-as the map of its keys, `type` and `error` as any other, and a
-duplicate key reads as `JSON.parse` reads it, at the boundary as in a
-query [QSPRN#json].
+two. An object reads as the map of its keys, of two entries of one key
+the last value standing where the first entry stood [QSLIT#container], at
+the boundary as in a query [QSPRN#json].
 
 ```qlang
 > {"name": "alice", "age": 30}
@@ -140,9 +139,6 @@ query [QSPRN#json].
 
 > [1, null, true]
 [1 null true]
-
-> {"type": "quote", "source": "hi"} | tag
-::map
 
 > {"a": 1, "b": 2, "a": 3}
 {:a 3 :b 2}

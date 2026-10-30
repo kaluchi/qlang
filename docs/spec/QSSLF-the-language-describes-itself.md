@@ -332,8 +332,7 @@ true
 The catalog holds a verb that expresses what was inexpressible over the
 values the language has, or shortens what every host would otherwise write;
 the verbs and the nouns of a domain belong to its host. The core carries the
-working set a shell would supply to every host, one with no shell around
-its queries among them, the site's playground: the JSON codec both ways,
+working set every host would otherwise write: the JSON codec both ways,
 text as lines, `split` and `join`, trimming, replacing, case and search; a
 host keeps its domain, its streams and its renderings. One sequence serves
 them all, the vector, a string reading in pieces by `split`, `lines`,
@@ -380,7 +379,12 @@ and its value after them. A source declares a noun before the names under it
 and the names under a noun together, in the one order of their addresses,
 which `manifest` lists them in, `::number/abs` before `::number/add`, so a
 reader finds a verb where its name puts it; a source that declares under
-the noun of another stands those names together after its own.
+the noun of another stands those names together after its own. A line of a
+source runs eighty characters at most, the prose of a doc poured a
+paragraph at a time and a line of code broken at the whitespace of the
+language, before a pipe at its shallowest depth; a sentence of a page runs
+sixty words at most, as `scripts/sensors/sentence-lengths.mjs` cuts it, and
+`check:conventions` holds the two.
 
 ```sh
 $ git grep -h -o -E "^:number(/[A-Za-z]+)?" -- core/lib/qlang/number.qlang | head -3

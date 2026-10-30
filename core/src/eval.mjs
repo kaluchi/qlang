@@ -269,7 +269,7 @@ async function evalBind(bind, state, at) {
   return withScope(state, nounName !== null && isFn(answered) ? nodesOfFunction(answered, name, declared, origin) : declared);
 }
 
-// [D500], [QSBLD#recipe]
+// [QSNAM#declare], [QSBLD#recipe]
 function valuesAProgramCarries(name, state) {
   const values = valuesNamedIn(ownScopeOf(state));
   const ownName = splitAddress(name)[1];

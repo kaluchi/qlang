@@ -41,8 +41,7 @@ facts [QSERR#raise].
 
 Under `::error` alone, or under a tag no node declares, an error at rest
 is a map of facts no refusal declares: it holds the facts it is written
-with, a `:kind` entry a fact as any key is and a `:trace` that holds no
-frames among them, so `!{:trace 5}` stands as the value it writes, and the
+with, a `:trace` that holds no frames among them, so `!{:trace 5}` stands as the value it writes, and the
 walk of its tags passes `::error`, then the map, so a path reads its facts
 and a verb declared once on `::error` reaches it. A label of the reader
 takes an error at rest by its own tag, `::error`, so one whose `accepts`
@@ -57,8 +56,8 @@ are that error.
 > ::Oops!{:a 1} | eq ::Oops::error{:a 1}
 true
 
-> !{:kind ::Foo} | get [tag /kind]
-[::error ::Foo]
+> !{:code 404} | get [tag /code]
+[::error 404]
 
 > !{:trace 5} | get [tag /trace]
 [::error 5]
@@ -165,7 +164,7 @@ question it asks, `{:ok false :error …}` beside the answers of the others
 > !{:k 1 :j 2} | raise !| get [/k /j]
 [1 2]
 
-> 42 !| get /kind
+> 42 !| message
 42
 
 > [1 "x"] | map (mul 2) | !| 0

@@ -124,7 +124,7 @@ bytes of a text it reads, a source or standard input, as UTF-8 by
 `TextDecoder`, the decode the text of a response runs: a byte order mark
 at the head of the text drops, one inside it stays the character U+FEFF,
 and a byte no character reads is U+FFFD, so a text reads alike on every
-host and no mark a host read reaches the core; the bundle of the site reads
+host and no byte order mark a host read reaches the core; the bundle of the site reads
 its sources by the loader `text` of esbuild, which drops the mark alike.
 A string that holds the mark holds the character, which the grammar reads
 as no whitespace. The language server
@@ -252,10 +252,7 @@ subject as it came, so the query goes on with it, and
 is a verb of its host, addressing the same names the queries read, and
 its result a noun that queries read. A verb of a host has one output, a
 value under its tag, and the kinds of its refusals; what it answers is
-the data its inputs chose, filtered for the question. A tag may describe
-an effect a host is to perform, and such a value is performed by an
-explicit step at the boundary, the provenance of a value a host shows
-being a tag over it. A constructor is pure, and reading or
+the data its inputs chose, filtered for the question. A constructor is pure, and reading or
 constructing a literal performs nothing. The forks of a sequence run in
 its order, so a verb of a host with an effect meets the elements in their
 order, and a verb of a host that takes the whole vector bounds its calls

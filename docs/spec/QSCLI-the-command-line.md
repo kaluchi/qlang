@@ -25,8 +25,8 @@ the one its answer exits with. `-i` or `--repl` opens the REPL, a query
 after it its first cell, `-h` or `--help` prints the page of `::host`,
 what `qplay '::host | doc'` answers, its first line the mission of the
 playground, which tells the usage and names the budget by its refusal, and
-`-V` or `--version` the version. `playground/src/bin.mjs` is the one file
-of the playground that touches the process.
+`-V` or `--version` the version. The playground touches the process in one
+file [QSGAT#hosts].
 
 A failure is an answer, written to standard output with the exit code 0,
 so calls run side by side never stop each other; `--fail` before the

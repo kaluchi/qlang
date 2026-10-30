@@ -214,18 +214,24 @@ it is.
 
 A recipe is the code a function runs, which `impl` gives it, or the
 program or the quote written alone under a label, `:number/double mul 2;`,
-the function of no commands it is. It runs
-in the scope its call opens: the root, the nodes and the labels of the
+the function of no commands it is, a program carrying at its head the
+values of its text it reads [QSNAM#declare]. It runs in the scope its call
+opens: the root, the nodes and the labels of the
 scope the call is made in, the verbs among them, the args as `args`,
 each input by its name, and the names its steps declare, and what it
 reads as data is read as [QSNAM#owner] states. The recipe of a word under
 a label whose kind wires its parts sees the names of the wiring of its
 subject beside its inputs, `:Card/minutes (took | div 60)`, as the body
 of `with` sees the names it is given, and an input named as one of them
-is refused where the word is declared, `::bind/NameDeclaredTwiceError`. A value the code
-that calls the verb names stands outside that scope, a bare step of that
-name refused as `::call/UnknownNameError`, so a value a recipe needs is
-an input. A selector reads the args alone. The condition of an invariant is a
+is refused where the word is declared, `::bind/NameDeclaredTwiceError`. The
+recipe, the conditions and the selectors of a verb or a kind read no value
+of the text they were declared in, before them, but the name of the verb:
+a bare step of such a value is refused as `::call/ValueWithheldError`, as
+held code refuses a value of its step [QSQUO#held], and a verb of its name
+is called by its address. A verb of the root, whose sources declare no
+value, reads the root alone, and a value of the code that calls a verb
+stands outside its scope, so a value a recipe needs is an input. A
+selector reads the args alone. The condition of an invariant is a
 small recipe of the same scope, the subject in the pipe and each input by
 its name, `holds :ByTooBigError |~~ … ~~| ~(by | lt 100)`, run once the
 inputs are held and before the recipe, or, written after `returns`, once
@@ -238,8 +244,14 @@ recipe written alone under a label takes no args, those given to it
 refused as `…/ArgsBeyondInputsError`, and hands its answer on as it is.
 
 ```qlang
-> 5 | apply (:factor 3; :number/times mul factor; times !| tag)
-::call/UnknownNameError
+> 5 | apply (:factor 3; :number/times mul factor; times)
+15
+
+> 5 | apply (:factor 3; :number/times ~(factor); times !| get [tag name])
+[::call/ValueWithheldError :factor]
+
+> apply (:count 5; :vec/w ~(count); :vec/v vec/count; [1 2] | get [(w !| get [tag name]) v])
+[[::call/ValueWithheldError :count] 2]
 
 > :number/fact (if (lte 1) (1) (mul (sub 1 | fact))); 5 | fact
 120

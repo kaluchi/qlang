@@ -9,13 +9,20 @@ file under `core/test/conformance/QSNAM/`, `scope.jsonl` for
 
 One form declares every name: `:name body;`, which stands at the head of
 its text, before the query [QSSYN#step], and adds a name with its page to
-the scope of the text. The body, the step after the name and its page,
-`:body` of the `::bind` a quote holds of the declaration [QSQUO#step],
-runs once, where the declaration stands, with no subject: a verb called
-there is refused as `::bind/SubjectNotGivenError` with its `:name`, and so
-is a body that hands on the value it is not given, the fail track alone,
-with the name of its declaration, and a value of the subject is named for
-the code of one step by `with` [QSPTH#template]. A failure of a declaration is the failure of its text,
+the scope of the text. The body is the step after the name and its page,
+`:body` of the `::bind` a quote holds of the declaration [QSQUO#step]. A
+body whose head asks for a subject, a verb or a group whose head asks in
+its turn, declares a program, which runs on the subject wherever its name
+stands and is handed on as code,
+`:adult (get /age | gte 18); [{:age 20}] | filter adult`; under a label
+the program is the verb, `:number/double mul 2;`, and a quote whose bare
+writing is that program is refused there as `::bind/BodyQuotedError`
+with its `:name` and the quote as `:found`. Any other body runs once,
+where the declaration stands, with no subject: a body that hands on the
+value it is not given, the fail track alone, is refused as
+`::bind/SubjectNotGivenError` with the name of its declaration, and a
+value of the subject is named for the code of one step by `with`
+[QSPTH#template]. A failure of a declaration is the failure of its text,
 which declares nothing and runs no query, the failure passing every `!|`
 of the text to whoever reads it, the host, `parse | answer`, `answer` or
 `apply` [QSERR#flow].
@@ -39,12 +46,13 @@ value, a kind and a verb under a label among it: in a modifier, in a
 quote, which declares names of its own, and in the recipe of a verb,
 whose inputs its call declares [QSBLD#recipe].
 
-The body is a step: a literal, a group for what the group computes, a
-name for the value it holds, a quote, which is held as the value it is, a
-keyword, a tag name, a doc, or a chain, and a word after the body is
+The body is a step: a program, a literal, a group for what the group
+computes, a name for the value it holds, a quote, which is held as the
+value it is, a keyword, a tag name, a doc, or a chain, and a word after the body is
 refused naming the `;`. A page written between the name and the body is
-the name's page. A quote in a declaration is held as its literal and runs
-in the lane of the step that runs it [QSQUO#held]; a verb declared under a
+the name's page. A program runs where its name stands, and a quote in a
+declaration is held as its literal and runs in the lane of the step that
+runs it [QSQUO#held]; a verb declared under a
 label reads the tree as it stands where it is called [QSNAM#verb]; and a
 value is computed once, at the declaration.
 
@@ -64,8 +72,8 @@ value is computed once, at the declaration.
 > 5 | apply (:rate |~~ The rate. ~~| 2; mul rate)
 10
 
-> get [(~(:size (count); 1) | answer !| get [tag name]) ([1 2 3] | with {:size count} (map (mul size)))]
-[[::bind/SubjectNotGivenError :count] [3 6 9]]
+> get [(~(:size count; [1 2 3] | size) | answer) (~(:x (!| 0);) | answer !| get [tag name]) ([1 2 3] | with {:size count} (map (mul size)))]
+[3 [::bind/SubjectNotGivenError :x] [3 6 9]]
 
 > get [(:Box |~~ A box. ~~|;) (~(:Box |~~ A box. ~~| ::vec | manifest;) | answer !| get [tag (found | tag)])]
 [#[::Box] [::bind/ChainAnswersNoWordError ::set]]
@@ -130,9 +138,9 @@ at the head of a query, the declarations of its text before it, after
 `!|`, and as
 what a verb takes, a modifier and a part of a template among them, a
 quote among values, the name alone reading its quote. Code under a bare
-name runs by `apply`, and a quote or a path under it goes bare into an
-input that takes code, held as its literal [QSQUO#held], a function to
-`apply` alone [QSQUO#modifier]. Written as a later step, a name that holds
+name runs by `apply`, and a quote or a path under it runs where the name
+stands in an input that takes code, `map double`, held as its literal
+[QSQUO#held], a function by `apply` alone [QSQUO#modifier]. Written as a later step, a name that holds
 a value is refused, as a literal written there is, as
 `::call/ValueAsALaterStepError`
 with its `:name`, its value as `:found` and the `:addresses` of the verbs

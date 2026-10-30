@@ -40,8 +40,10 @@ segments are, and the one order ranks paths by their segments
 
 ## get
 
-`get` answers the value at a path and refuses a miss, each refusal
-holding the path it followed as `:path`: a key a map lacks,
+`get` is the sibling of `map` that walks no element: it runs code on
+the subject, `[1 2 3 4 5] | get (count | sub 2)` answering `3`, builds a
+template [QSPTH#template], and answers the value at a path, refusing a
+miss, each refusal holding the path it followed as `:path`: a key a map lacks,
 `::path/KeyNotInMapError` with the key as `:key` and the keys near it as
 `:nearest`; an index past either end, `::path/IndexOutOfBoundsError`
 with the index as `:index` and the length of the value as `:length`; a segment that is no whole number on a value
@@ -86,8 +88,8 @@ reads as any value.
 
 ## query
 
-`query` reads a path as `get` does and answers `null` where a key or an
-index is missing or `null` stands on the path, beneath the tags over it
+`query` runs code and builds a template as `get` does, and reads a path
+as `get` does, answering `null` where a key or an index is missing or `null` stands on the path, beneath the tags over it
 as every value the path meets; another kind on the path
 it refuses as `get` does, a segment that is no whole number on a vector
 among it, and a closed tag as `get` does. Its second input is a default,
@@ -110,9 +112,9 @@ null
 
 ## has
 
-`has` on a map takes a key as `get` takes one, a keyword, a string, a
-number or a path, and answers whether `get` reads it, a number naming
-the key of its text; a key of another kind is refused as
+`has` on a map takes a key, a keyword, a string or a number, as `at`
+reads it, or a path, and answers whether a part stands there, a number
+naming the key of its text; a key of another kind is refused as
 `::map/has/KeyKindNotTakenError`. On a vector and a set `has` asks
 whether an element equal to the value stands, and reads a path, answering
 whether `get` reads a part there, so a path held as an element is
@@ -128,18 +130,19 @@ asked for by `contains` [QSTXT#search].
 
 ## key
 
-A key or an index alone, a keyword, a number or a string, beneath the
-tags over it, is the path of one segment of its text where `get`, `query`
-and the verbs that write take a path, which a map reads as a key and a
-vector as an index, so one the query computes is read. Any other value
-`get` and `query` take is a template [QSPTH#template], a vector, a map or
-a set, or a path or a container under a tag, a quote among them, and they
-refuse the rest under their input
-`path`, `::any/get/PathKindNotTakenError`, so a key computed from data
-that holds null is refused where it is read, and a key a modifier failed
-to compute answers its failure [QSQUO#modifier]. A boolean, null and a
-tag name are no key: a map files them under the keyword `toKeyword`
-answers [QSCND#convert], which reads that key, `get :true`. Every input
+A key, a keyword, a number or a string, beneath the tags over it, is
+read by `at`, a vector by its index, a negative one counting from the
+end, and a map by the key of its text, a value the call computes against
+the subject, so `{:k "b" :b 7} | at (get /k)` answers `7`; a part it
+misses is refused as a path of one segment is, and a key of another kind
+under its input `index` or `key`, `::map/at/KeyKindNotTakenError`, so a
+key computed from data that holds null is refused where it is read.
+`get`, `query` and the verbs that write take a path, code or a template
+[QSPTH#template], and refuse a value of another kind under their input
+`path`, `::any/get/PathKindNotTakenError`, a key read by its path,
+`get /0`. A boolean, null and a tag name are no key: a map files them
+under the keyword `toKeyword` answers [QSCND#convert], which reads that
+key, `at :true`. Every input
 that takes a key of a map reads a string so, and a number as the key of
 its text. The keys
 `minus` takes out of a map and `inter` keeps of it are the value of
@@ -153,21 +156,21 @@ input at its index, the three kinds as `:expected`,
 holds by `minus` and `inter` [QSCOL#algebra] reads the keys in each
 element after the first, a key of another kind refused under the verb,
 `::vec/minus/KeyKindNotTakenError` and `::vec/inter/KeyKindNotTakenError`.
-Inside a keyword the slash is a letter of the one name, `get :a/b`
+Inside a keyword the slash is a letter of the one name, `at :a/b`
 reading the key `:a/b`; in a path it parts the segments, `get /a/b`
 reading `:b` under `:a`.
 
 ```qlang
-> {:k "b" :b 7} | get (get /k)
-7
+> {:k "b" :b 7} | get [(get (get /k)) (at (get /k))]
+["b" 7]
 
-> get [({:k null} | get (get /k) !| tag) ({} | get (get /k) !| tag)]
-[::any/get/PathKindNotTakenError ::path/KeyNotInMapError]
+> get [({:k null} | at (get /k) !| tag) ({} | at (get /k) !| tag)]
+[::map/at/KeyKindNotTakenError ::path/KeyNotInMapError]
 
-> [1 2 3] | groupBy (gt 1) | get [(get true !| tag) (get :true)]
-[::any/get/PathKindNotTakenError [2 3]]
+> [1 2 3] | groupBy (gt 1) | get [(at true !| tag) (at :true)]
+[::map/at/KeyKindNotTakenError [2 3]]
 
-> {:a 1} | get [(get ::K:a) (has ::K:a) (get ::T#/a)]
+> {:a 1} | get [(at ::K:a) (has ::K:a) (get ::T#/a)]
 [1 true ::T#1]
 
 > {:"1" 5 :b 2} | get [(minus ["b"]) (inter [1]) (get [it [1]] | minus)]
@@ -176,17 +179,18 @@ reading `:b` under `:a`.
 > get [({:a 1} | minus [:a true] !| get [tag (keys | index) (keys | expected)]) ([{:a 1} [true]] | minus !| tag)]
 [[::map/minus/KeysElementKindNotTakenError 1 #[::keyword ::number ::string]] ::vec/minus/KeyKindNotTakenError]
 
-> {:a/b 1} | get :a/b
+> {:a/b 1} | at :a/b
 1
 ```
 
 ## template
 
-`get` and `query` over a template, a literal of paths and quotes at any
-depth of its vectors, maps and sets, answer the template with each path
-read and each quote run against the subject, any other value of it as it
-is, so two fields of one record are read in one step by `get`, and
-softly by `query`. A container under a tag in the template, a stack of
+`get` and `query` over a template, a literal of paths and code at any
+depth of its vectors, maps and sets, a group and a name written inside
+it at rest, answer the template with each path read and each code run
+against the subject, any other value of it as it is, so two fields of one
+record are read in one step by `get`, and softly by `query`; `map` builds
+its template on each element, `map {:name /name :count (get /tags | count)}`. A container under a tag in the template, a stack of
 tags and a set among them, is read and laid back under its tags through
 their kinds, which hold the template as its literal writes it and then
 the payload read, so a kind whose field takes a number refuses a path
@@ -195,26 +199,26 @@ written at that field, and such a value is built by `get` and then `tag`,
 kind are answered as they are, their parts unread, and a template held in
 a name builds the same shape wherever it is applied. A part that answers
 a failure is the answer of the template, the parts after it unread
-[QSERR#flow]. A value under a closed tag is read in a template by the
-quotes of its names, `get [took result]`, a path of the template
+[QSERR#flow]. A value under a closed tag is read in a template by its
+names, `get [took result]`, a path of the template
 beneath its tag refused as `get` refuses it.
 
 `with` names parts of its subject for one template and answers the
-template as `get` answers it, the names in each of its quotes beside the
+template as `get` answers it, the names in each code of it beside the
 names of its step. Its first input names the parts: a vector of paths,
 each part named by the last key of its path, a map among them naming the
 parts it maps, or a map of names and their selectors. A selector is a
-path or a quote, each read against the subject apart from the others, a
-path strictly and a quote as it is written, so no selector sees the name of
-another and the maps of a vector are one map in any order; a shape or a
-literal is written in a quote, so a map of the data names no parts, a
-value that is neither a path nor a quote refused as
-`::any/with/NamesSelectorKindNotTakenError`, and an element that is neither
-path nor map as `::any/with/NamesElementKindNotTakenError`. A name is a
+path or code, each read against the subject apart from the others, a path
+strictly, so no selector sees the name of another and the maps of a
+vector are one map in any order; a value that is neither a path nor code
+is refused as `::any/with/NamesSelectorKindNotTakenError`, an element that
+is neither a path nor a map, code written alone among it, as
+`::any/with/NamesElementKindNotTakenError`, and code given for the names
+as `::any/with/NamesKindNotTakenError`. A name is a
 name of one segment by the letters of a name [QSNAM#letters], a last key
 that is an index, a quoted key or a word of the literals refused as
 `::any/with/NamesKeyNotNameError` and a name written twice as
-`::any/with/NamesNameWrittenTwiceError`. Each quote of the template runs
+`::any/with/NamesNameWrittenTwiceError`. Each code of the template runs
 on the subject, seeing nothing of the others but the names, and no name
 leaves the call; a name stands over a verb of its name in the template,
 the verb called by its address there [QSNAM#reach], and a key of the
@@ -222,7 +226,7 @@ subject no name names is read by its path. A path of `with` beneath a
 closed tag is refused as `get` refuses it, the names of a closed value
 being its own.
 
-`settle` asks each question of a vector, a set or a map of them, a quote,
+`settle` asks each question of a vector, a set or a map of them, code,
 a path or any part of a template, of the subject as `get` reads that part,
 and answers in the shape of the questions the outcome of each,
 `{:ok true :value …}` where it answered and `{:ok false :error …}` where it
@@ -254,7 +258,7 @@ others; a question alone, which no brackets hold, is refused as
 [::Box 5 ::Box#5]
 
 > get [({:id 7 :user {:name "Ann"}} | with [/id {:who /user/name}] (who | append (id | toString))) ([::Box 5] | with [{:t first} {:p t}] p !| name) ({:a 1 :b 2} | with it a !| tag)]
-["Ann7" :t ::any/with/NamesSelectorKindNotTakenError]
+["Ann7" :t ::any/with/NamesKindNotTakenError]
 
 > {:users [{:name "Ann" :age 30} {:name "Bo" :age null}]} | settle [(get /users | count) (get /users/1/age | add 1) /users/5/name] | map (get [/ok (query /value) (query /error | tag)])
 [[true 2 ::null] [false null ::number/add/SubjectNotNumberError] [false null ::path/IndexOutOfBoundsError]]
@@ -269,7 +273,7 @@ A verb whose input takes code takes a path as the code that reads it
 from each value it runs on, as `get` reads it: `map /name`,
 `filter /active`, `sort /age`, `groupBy /status`; a read that misses
 passes a frame at the value it missed, its step the `get` of the path,
-as `~(get /name)` passes one there. The path of `get`, `query` and `has`
+as `(get /name)` passes one there. The path of `get`, `query` and `has`
 and the inputs of the verbs of one subject, which combine several of its
 values, `sumOf`, `subOf`, `mulOf`, `divOf` and `unionOf`, take a path and
 read it against the subject, the verbs of one subject at the call, holding
@@ -468,9 +472,17 @@ its tag is refused. No path writes beneath a closed tag, refused as
 ## it
 
 `it` answers the value in the pipe, the value itself where a verb takes
-a value.
+a value, and in code a verb runs the value the code runs on, each element
+under `map`. `self` answers the subject of the step that writes the code,
+which the step writes at the head of the code with the values it reads
+[QSQUO#held], so in code a verb runs on the parts of its subject `self`
+is the whole, and anywhere else it answers the value in the pipe as `it`
+does.
 
 ```qlang
 > 5 | mul it
 25
+
+> [[1 2] [3]] | get [(map (it | count)) (map (self | count))]
+[[2 1] [2 2]]
 ```

@@ -11,7 +11,7 @@
 {"name":"a-key-a-modifier-failed-to-compute-answers-its-failure","query":"{} | get (get /k) !| tag","expect":"::path/KeyNotInMapError"}
 {"name":"the-group-of-a-boolean-is-read-by-its-keyword","query":"[1 2 3] | groupBy (gt 1) | get [(at true !| tag) (at :true)]","expect":"[::map/at/KeyKindNotTakenError [2 3]]"}
 {"name":"get-and-query-read-a-key-beneath-its-tags-and-a-path-under-a-tag-as-a-template","query":"{:a 1} | get [(get ::K:a) (query ::K:b 7) (has ::K:a) (get ::T#/a)]","expect":"[1 7 true ::T#1]"}
-{"decision":"D496","name":"a-program-given-to-get-answers-the-key-it-computes","query":"{:k \"a\" :a 5} | get (get /k)","expect":"\"a\""}
-{"decision":"D496","name":"put-refuses-a-key-alone-naming-its-path","query":"{:a 1} | put :a 2 !| tag","expect":"::any/put/PathKindNotTakenError"}
-{"decision":"D496","name":"at-reads-a-vector-by-its-index","query":"[10 20] | at -1","expect":"20"}
-{"decision":"D496","name":"at-reads-a-map-by-a-key-the-query-computes","query":"{:k \"b\" :b 7} | at (get /k)","expect":"7"}
+{"name":"a-program-given-to-get-answers-the-key-it-computes","query":"{:k \"a\" :a 5} | get (get /k)","expect":"\"a\""}
+{"name":"put-refuses-a-key-alone-naming-its-path","query":"{:a 1} | put :a 2 !| tag","expect":"::any/put/PathKindNotTakenError"}
+{"name":"at-reads-a-vector-by-its-index","query":"[10 20] | at -1","expect":"20"}
+{"name":"at-reads-a-map-by-a-key-the-query-computes","query":"{:k \"b\" :b 7} | at (get /k)","expect":"7"}

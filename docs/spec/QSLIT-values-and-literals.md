@@ -217,15 +217,20 @@ literals, fixed by its text, which reads no name and no subject, and a
 tag it writes is laid through the label the scope declares under that
 name, its kind attaching the tag to the payload or refusing it
 [QSLIT#tag]. A group or a name written inside a container, at any depth,
-is refused by the parser, which names the literal as the template of
-`get`, its brackets and the tags of its parts kept, `[::Box[x] 1]` naming
-`get [::Box[x] 1]` [QSPTH#template], a literal under a tag its payload
-built so and the tag laid after it, through the kind of the tag,
-`::Box{:w (x)}` naming `get {:w x} | tag ::Box`, a template past a line,
+holds a step at rest, which a verb that takes the literal as a template
+runs [QSPTH#template]; at the head of a query, as the body of a
+declaration and after `!|` the parser refuses it, and where a verb takes
+a value the call refuses it as `::call/LiteralComputesError`, each naming
+the literal as the template of `get`, its brackets and the tags of its
+parts kept, `[::Box[x] 1]` naming `get [::Box[x] 1]`, a quote it holds
+written in a group, where the quote stays the value it is, `[~(count) x]`
+naming `get [(~(count)) x]`, a literal under a tag its payload built so
+and the tag laid after it, through the kind of the tag, `::Box{:w (x)}`
+naming `get {:w (x)} | tag ::Box`, a template past a line,
 eighty characters, written by its parts that compute alone, each run of the
 rest cut to `…`, and inside an error literal names the facts built by `get`
 and made an error by `raise`, under its bang where a tag stands over it,
-`get !{:subject/found ~(…)} | tag ::number/add/SubjectNotNumberError | raise`; code in
+`get !{:subject/found (…)} | tag ::number/add/SubjectNotNumberError | raise`; code in
 parentheses after a tag is refused, naming `tag` for a value computed,
 and a literal in them names the literal touching its tag, `::Width(5)`
 naming `::Width#5`; a map entry of two values is refused where it
@@ -234,16 +239,16 @@ rules as any code does [QSSYN#doc].
 
 ```qlang
 > "[(5 | add 1) 2]" | parse !| message
-"a literal computes nothing: a shape computed is built by `get`, its parts paths and quotes, write `get [~(5 | add 1) 2]`"
+"a literal computes nothing: a shape computed is built by `get`, its parts paths and code, write `get [(5 | add 1) 2]`"
 
-> "[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 (add 1) 27 28 29 30]" | parse !| message | contains "write `get [… ~(add 1) …]`"
+> "[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 (add 1) 27 28 29 30]" | parse !| message | contains "write `get [… (add 1) …]`"
 true
 
 > "::Width(5)" | parse !| message
 "a number, a boolean, null or a path touches its tag by `#`: write `::Width#5`"
 
 > "{:a 1 2}" | parse !| get [message location]
-["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k ~(f x)}`" ::span[6 1 7 6 1 7]]
+["a map entry holds one literal, `{:k 1}`, and a shape computed is built by `get`: `get {:k (f x)}`" ::span[6 1 7 6 1 7]]
 
 > :Pos |~~ P ~~| (::kind | holds :NegError |~~ n ~~| ~(gt 0)); ::Pos#-1 !| tag
 ::Pos/NegError
@@ -262,7 +267,7 @@ parts: an atom by the path of
 its index in the set, a vector as the vector of its elements' reads, a
 map from the pairs of its keys and values by `indexBy`, and a tagged
 value, a set, a quote, a doc and an error at rest among them, from the
-pair of its tag and its payload, each a quote `get` runs against the set,
+pair of its tag and its payload, each a group `get` runs against the set,
 the payload laid under the tag by `with {:t /0 :p /1} (p | tag t)`.
 Every value comes back so, each example of
 the catalog and each literal a case expects among them.

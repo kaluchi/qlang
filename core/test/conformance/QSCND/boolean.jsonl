@@ -21,4 +21,4 @@
 {"name":"a-condition-of-allOf-answers-a-boolean","query":"5 | allOf (1) !| tag","expect":"::any/allOf/ConditionsAnswerKindNotTakenError"}
 {"name":"a-path-is-a-condition-of-allOf","query":"{:a true :b true} | allOf /a /b","expect":"true"}
 {"name":"and-and-or-work-beneath-the-tags-the-two-share","query":"get [(::Ok#true | and false) (false | and ::Ok#true) (::Ok#true | and ::No#true !| tag) (true | or ::Ok#false)]","expect":"[::Ok#false ::Ok#false ::call/KindsMismatchedError ::Ok#true]"}
-{"decision":"D496","name":"all-of-runs-each-program-in-its-turn","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\")","expect":"false"}
+{"name":"all-of-runs-each-program-in-its-turn","query":"{:email null} | allOf (get /email | ne null) (get /email | endsWith \".org\")","expect":"false"}

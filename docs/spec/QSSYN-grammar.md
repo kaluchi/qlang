@@ -13,7 +13,7 @@ ended by `;`, the parser's token, the last one by the end of the text where
 no query follows, and at most one query after them. A
 declaration is told by its first word, a keyword followed by a page or by
 a word, and stands alone before its `;`, `:name |~~ page ~~| body;`: its
-body is one step, a literal, a quote, a name, a tagged literal, a tag
+body is one step, a literal, a quote, a call, a tagged literal, a tag
 name, a doc or a group, or a chain, a tag name and the commands joined to
 it up to the `;`. The parser refuses, each naming the `;`, a `|` after a
 declaration, a declaration after the first step of the query, a `!|`
@@ -123,7 +123,7 @@ opens a step of the fail track.
 > "[1] || count" | parse !| message
 "a combinator is set off by whitespace on both sides: write ` | `"
 
-> "[1 2] |~(add)" | parse !| message | contains "| apply ~("
+> "[1 2] |~(add)" | parse !| message | contains "| apply ("
 true
 
 > "::vec | doc; ::map | doc" | parse !| message | contains "one query asks several things by a template"

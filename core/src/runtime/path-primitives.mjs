@@ -4,26 +4,18 @@ import { registerPrimitive, registerStateReader, runsAsCode, runsWithinAsCode } 
 import { declareRefusal, refusingAPart, QlangError, QlangDefect } from '../errors.mjs';
 import { kindsExpected, makeSet } from '../ordering.mjs';
 import { readPath, MISSED, segmentIndex, keyNotInMap, indexIn, noPartsOn, tagClosed, partsOfTemplate, isKeyAlone, keyNameOf, KINDS_OF_A_KEY_ALONE } from '../path-read.mjs';
-import { errorAtRestOf, readOne, readTemplate, relaid } from '../eval.mjs';
+import { errorAtRestOf, readTemplate, relaid } from '../eval.mjs';
 import { errorFromQlang } from '../error-convert.mjs';
 import { atPath } from '../eval-trace.mjs';
-import { isPath, makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf } from '../types.mjs';
+import { makePath, isMap, isVec, isSet, isValueClass, isErrorValue, makeKeyword, beneathTags, wiringOf } from '../types.mjs';
 
 const StringToPathTextNotPathError = declareRefusal('string/toPath/TextNotPathError');
 const VecToPathElementKindNotTakenError = declareRefusal('vec/toPath/ElementKindNotTakenError');
 const VecToPathSubjectEmptyError = declareRefusal('vec/toPath/SubjectEmptyError');
 
-// [QSPTH#key]
-const pathOf = pathOrKey => (isPath(pathOrKey) ? pathOrKey : makePath([keyNameOf(pathOrKey)]));
-
-// [QSLIT#tag]
-export function readByPath(subject, path, soft, fallback, state) {
-  const key = beneathTags(path);
-  return isPath(path) || isKeyAlone(key) ? readOne(subject, pathOf(key), soft, fallback) : readTemplate(subject, path, soft, fallback, state);
-}
-
-registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readByPath(subject, path, false, null, state)));
-registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readByPath(subject, path, true, fallback, state)));
+// [QSPTH#get], [QSPTH#query], [QSLIT#tag]
+registerStateReader('any/get', runsWithinAsCode(['path'], (subject, path, state) => readTemplate(subject, path, false, null, state)));
+registerStateReader('any/query', runsWithinAsCode(['path'], (subject, path, fallback, state) => readTemplate(subject, path, true, fallback, state)));
 
 // [QSPTH#template], [QSERR#catch]
 async function outcomeOf(subject, question, state) {
@@ -80,18 +72,17 @@ async function written(value, path, at, write, state) {
   return await relaid(value, bare, state);
 }
 
-registerStateReader('any/put', (subject, pathOrKey, value, state) =>
-  written(subject, pathOf(pathOrKey), 0, { adds: true, removes: false, part: () => value }, state));
-registerStateReader('any/update', runsAsCode(['code'], (subject, pathOrKey, code, state) => {
-  const path = pathOf(pathOrKey);
+registerStateReader('any/put', (subject, path, value, state) =>
+  written(subject, path, 0, { adds: true, removes: false, part: () => value }, state));
+registerStateReader('any/update', runsAsCode(['code'], (subject, path, code, state) => {
   const part = async old => {
     const answer = await code(old);
     return isErrorValue(answer) ? atPath(code, answer, path) : answer;
   };
   return written(subject, path, 0, { adds: false, removes: false, part }, state);
 }));
-registerStateReader('any/delete', (subject, pathOrKey, state) =>
-  written(subject, pathOf(pathOrKey), 0, { adds: false, removes: true }, state));
+registerStateReader('any/delete', (subject, path, state) =>
+  written(subject, path, 0, { adds: false, removes: true }, state));
 
 // [QSPTH#has]
 export function pathReads(subject, path) {

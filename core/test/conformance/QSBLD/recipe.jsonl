@@ -18,5 +18,5 @@
 {"name":"a-recipe-written-alone-refuses-the-args-given-to-it","query":":any/n (args | count); 5 | n 1 !| tag","expect":"::any/n/ArgsBeyondInputsError"}
 {"name":"a-recipe-under-a-closed-label-sees-the-names-of-its-wiring","query":":Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/minutes (took | div 60 | floor); ::Card[\"a\" 312] | minutes","expect":"5"}
 {"name":"an-input-named-as-a-part-of-the-wiring-of-its-label-is-refused","query":"~(:Card |~~ A card. ~~| (::kind | accepts |~~ The parts. ~~| ::vec | wires :took |~~ The seconds. ~~| /1 ::number); :Card/plus (::fn | takes :took |~~ x ~~| /0 | impl ~(took))) | answer !| get [tag name]","expect":"[::bind/NameDeclaredTwiceError :took]"}
-{"decision":"D496","name":"a-verb-under-a-label-is-declared-by-its-program","query":":number/twice mul 2; 5 | twice","expect":"10"}
-{"decision":"D496","name":"a-quote-under-a-label-is-refused-naming-its-program","query":"~(:number/twice ~(mul 2); 5 | twice) | answer !| tag","expect":"::bind/BodyQuotedError"}
+{"name":"a-verb-under-a-label-is-declared-by-its-program","query":":number/twice mul 2; 5 | twice","expect":"10"}
+{"name":"a-quote-under-a-label-is-refused-naming-its-program","query":"~(:number/twice ~(mul 2); 5 | twice) | answer !| tag","expect":"::bind/BodyQuotedError"}

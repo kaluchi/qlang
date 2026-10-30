@@ -13,5 +13,5 @@
 {"name":"a-chain-that-answers-no-word-is-refused-naming-the-semicolon","query":"~(:Box |~~ A box. ~~| ::vec | tag) | answer !| tag","expect":"::bind/ChainAnswersNoWordError"}
 {"name":"a-body-reads-a-label-by-its-bare-name","query":":K |~~ A kind. ~~| (::kind | accepts |~~ x ~~| ::map); :Box |~~ A box. ~~| K; get [(::Box{:a 1} | tag) (::Box#5 !| tag)]","expect":"[::Box ::Box/PayloadKindNotTakenError]"}
 {"name":"a-body-on-the-fail-track-alone-is-refused-naming-its-declaration","query":"~(:x (!| 0);) | answer !| get [tag name]","expect":"[::bind/SubjectNotGivenError :x]"}
-{"decision":"D496","name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]"}
-{"decision":"D496","name":"a-verb-runs-a-program-its-text-declares","query":":isEven (mod 2 | eq 0); :vec/evens (filter isEven); [1 2 3 4] | evens","expect":"[2 4]"}
+{"name":"a-body-that-asks-a-subject-declares-a-program","query":":isEven (mod 2 | eq 0); [1 2 3 4] | filter isEven","expect":"[2 4]"}
+{"name":"a-verb-runs-a-program-its-text-declares","query":":isEven (mod 2 | eq 0); :vec/evens (filter isEven); [1 2 3 4] | evens","expect":"[2 4]"}

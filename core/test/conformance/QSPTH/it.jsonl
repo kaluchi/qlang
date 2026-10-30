@@ -1,3 +1,3 @@
 {"name":"it-answers-the-value-in-the-pipe","query":"5 | mul it","expect":"25"}
-{"decision":"D496","name":"it-names-each-value-the-code-runs-on","query":"[true false true] | filter it","expect":"[true true]"}
-{"decision":"D496","name":"self-names-the-subject-of-the-step-that-writes-the-code","query":"[1 2 3] | map (div (self | sum))","expect":"[0.16666666666666666 0.3333333333333333 0.5]"}
+{"name":"it-names-each-value-the-code-runs-on","query":"[true false true] | filter it","expect":"[true true]"}
+{"name":"self-names-the-subject-of-the-step-that-writes-the-code","query":"[1 2 3] | map (div (self | sum))","expect":"[0.16666666666666666 0.3333333333333333 0.5]"}

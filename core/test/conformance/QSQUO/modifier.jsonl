@@ -7,5 +7,5 @@
 {"name":"a-modifier-is-read-from-the-subject-of-its-step","query":"{:price 4 :qty 3} | get /price | mul (get /qty) !| get [tag segment]","expect":"[::path/SubjectHasNoPartsError :qty]"}
 {"name":"a-verb-of-the-reader-is-a-modifier-a-bare-name-computes","query":":vec/most (count | sub 1); {:items [1 2 3] :limit 2} | get /items | take most","expect":"[1 2]"}
 {"name":"an-input-that-reads-from-the-end-reads-the-last-arg","query":":any/runAll (::fn | takes :steps |~~ The steps. ~~| /-1 [::quote] | impl ~(steps | count)); 5 | get [(runAll (get /nope) [~(1)] !| tag) (runAll 7 [~(1)])]","expect":"[::path/SubjectHasNoPartsError 1]"}
-{"decision":"D496","name":"a-program-in-an-input-of-code-runs-on-each-element","query":"[1 2 3] | map toString","expect":"[\"1\" \"2\" \"3\"]"}
-{"decision":"D496","name":"a-group-in-an-input-of-code-runs-on-each-element-whatever-its-head","query":"[1 2] | map (5 | add 1)","expect":"[6 6]"}
+{"name":"a-program-in-an-input-of-code-runs-on-each-element","query":"[1 2 3] | map toString","expect":"[\"1\" \"2\" \"3\"]"}
+{"name":"a-group-in-an-input-of-code-runs-on-each-element-whatever-its-head","query":"[1 2] | map (5 | add 1)","expect":"[6 6]"}

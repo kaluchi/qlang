@@ -73,9 +73,9 @@
 {"name":"a-selector-of-any-other-form-calls-the-verb-of-its-name","query":":vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)); :number/b (::fn | takes :by |~~ B. ~~| ~(query /0 1 | it) | impl ~(add by)); 5 | b","expect":"104"}
 {"name":"a-refusal-a-rule-lays-pours-the-slots-of-its-verb","query":"1 | add 1 2 !| get [(addend | found) (surplus | found)]","expect":"[1 [2]]"}
 {"name":"an-input-named-args-is-refused-where-the-recipe-is-code","query":"get [(::fn | takes :args |~~ a ~~| /0 | impl ~(args) !| get [tag index found]) (::fn | takes :args |~~ a ~~| /0 | impl null | tag)]","expect":"[[::fn/CommandNotTakenError 0 :args] ::fn]"}
-{"decision":"D497","name":"map-takes-the-tail-of-the-bare-verb-its-last-input-takes","query":"[-1 2] | map gt 0","expect":"[false true]"}
-{"decision":"D497","name":"the-call-a-tail-forms-takes-a-tail-of-its-own","query":"[[-1 2] [3]] | map filter gt 0","expect":"[[2] [3]]"}
-{"decision":"D497","name":"an-input-of-a-value-computes-the-call-its-tail-forms","query":"5 | add mul 2","expect":"15"}
-{"decision":"D497","name":"the-last-branch-of-if-takes-the-tail","query":"-5 | if (gt 0) (add 100) sub 1","expect":"-6"}
-{"decision":"D497","name":"the-call-a-tail-forms-refuses-a-tail-past-its-own-inputs","query":"[1] | map add 1 2 !| tag","expect":"::number/add/ArgsBeyondInputsError"}
-{"decision":"D497","name":"a-tail-past-a-name-that-holds-a-value-is-refused","query":":k 5; [1] | map k 1 !| tag","expect":"::vec/map/ArgsBeyondInputsError"}
+{"name":"map-takes-the-tail-of-the-bare-verb-its-last-input-takes","query":"[-1 2] | map gt 0","expect":"[false true]"}
+{"name":"the-call-a-tail-forms-takes-a-tail-of-its-own","query":"[[-1 2] [3]] | map filter gt 0","expect":"[[2] [3]]"}
+{"name":"an-input-of-a-value-computes-the-call-its-tail-forms","query":"5 | add mul 2","expect":"15"}
+{"name":"the-last-branch-of-if-takes-the-tail","query":"-5 | if (gt 0) (add 100) sub 1","expect":"-6"}
+{"name":"the-call-a-tail-forms-refuses-a-tail-past-its-own-inputs","query":"[1] | map add 1 2 !| tag","expect":"::number/add/ArgsBeyondInputsError"}
+{"name":"a-tail-past-a-name-that-holds-a-value-is-refused","query":":k 5; [1] | map k 1 !| tag","expect":"::vec/map/ArgsBeyondInputsError"}

@@ -795,7 +795,7 @@ function templateCodeOf(template, close, callState) {
 }
 
 // [QSPTH#get]
-export function readOne(subject, path, soft, fallback) {
+function readOne(subject, path, soft, fallback) {
   const read = readPath(subject, path, soft);
   return read === MISSED ? fallback : read;
 }
@@ -1003,7 +1003,7 @@ function foldingCodeOf(value, close, called) {
   return calledOn((modifiers, at) => callByName(name, modifiers, at, call));
 }
 
-// [D497]
+// [QSBLD#input]
 function withTheTail(chain, modifiers, state) {
   const { arity } = chain;
   if (arity === null || arity === 0 || modifiers.length <= arity) return modifiers;

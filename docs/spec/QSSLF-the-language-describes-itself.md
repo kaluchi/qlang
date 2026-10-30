@@ -95,7 +95,7 @@ true
 > ::number/add/FooError | binding | name
 :number/add
 
-> get [(5 | apply (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)) ["x"] !| get [tag (doc | eq (::fn/call | doc))]) (::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
+> :f (::fn | takes :by |~~ How much. ~~| /0 ::number | impl ~(add by)); get [(5 | apply f ["x"] !| get [tag (doc | eq (::fn/call | doc))]) (::fn/call/refusesArgsPastItsInputs/FooError | binding | name)]
 [[::fn/call/ByKindNotTakenError true] :fn/call/refusesArgsPastItsInputs]
 ```
 
@@ -202,7 +202,7 @@ guess for itself.
 
 ```qlang
 > 5 | ad 2 !| nearest
-[:add :and]
+[:add :and :at]
 
 > ::str | doc !| nearest
 [::string]

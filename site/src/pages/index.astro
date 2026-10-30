@@ -9,12 +9,12 @@ const examples = [
   {
     tab: "pipeline",
     file: "filter + count",
-    code: `|~| a vector · filter · count\n> [1 2 3 4 5] | filter ~(gt 3) | count\n2`,
+    code: `|~| a vector · filter · count\n> [1 2 3 4 5] | filter (gt 3) | count\n2`,
   },
   {
     tab: "bind",
     file: "a name under a noun + map",
-    code: `|~| a name under a noun · run on each element\n> :number/double ~(mul 2); [10 20 30] | map ~double\n[20 40 60]`,
+    code: `|~| a name under a noun · run on each element\n> :number/double mul 2; [10 20 30] | map double\n[20 40 60]`,
   },
   {
     tab: "name",
@@ -141,7 +141,7 @@ const features = [
                   class="repl-input"
                   id="repl-input"
                   rows="1"
-                  placeholder={`[1 2 3 4 5] | filter ~(gt 2) | count`}
+                  placeholder={`[1 2 3 4 5] | filter (gt 2) | count`}
                   spellcheck="false"
                   autocomplete="off"
                 ></textarea>
@@ -228,7 +228,7 @@ const features = [
 
     // Pre-populate with example results
     const demos = [
-      '[1 2 3 4 5] | filter ~(gt 2) | count',
+      '[1 2 3 4 5] | filter (gt 2) | count',
       '"hello" | append " world" | prepend ">>> "',
       `{
     "glossary": {

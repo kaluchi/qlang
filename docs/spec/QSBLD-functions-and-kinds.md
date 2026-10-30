@@ -83,7 +83,7 @@ function its args, a vector or a set, another value refused as
 `::any/apply/ArgsKindNotTakenError`, and the call of the function is
 refused under `::fn/call/…`, a function whose recipe it cannot run as
 `::fn/RecipeMissingError`, a contract and a `::builtin{}` no host handed
-with it [QSHST#source]; a quote or a path takes empty args alone,
+with it [QSHST#source]; code or a path takes empty args alone,
 `[]`, `#[]` or an empty vector under a tag, others refused as
 `::any/apply/ArgsNotTakenError`; `fill` writes the args into the head
 of its code, refused under `::fn/call/…` as a call and, for a function
@@ -104,7 +104,7 @@ map of its name, its page, its selector and its kinds as written.
 > ::fn[~(takes :by |~~ How much. ~~| /0) ~(add by)] | inputs | map /name
 [:by]
 
-> get [(::fn | impl ~(add 1)) (::fn | takes 5 |~~ The amount. ~~| /0 !| get [command index found]) (-5 | apply (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)) [] !| tag)]
+> :f (::fn | holds :SubjectNotAboveZeroError |~~ Above zero. ~~| ~(gt 0) | impl ~(add 1)); get [(::fn | impl ~(add 1)) (::fn | takes 5 |~~ The amount. ~~| /0 !| get [command index found]) (-5 | apply f [] !| tag)]
 [::fn[~() ~(add 1)] [~(takes 5 |~~ The amount. ~~| /0) 0 5] ::fn/call/SubjectNotAboveZeroError]
 
 > get [(::fn[[] ~(1)] !| tag) (::fn | returns |~~ A. ~~| #[] !| tag) (::fn | takes :null |~~ w ~~| /0 !| tag)]
@@ -145,13 +145,18 @@ kinds it takes as `expected`, a set of tags, and the value as `found`,
 no vector as of no `::vec`; an arg the
 call leaves out, read strictly by a path or by code, as
 `…/ByNotGivenError`, and a path that meets a value it cannot read with
-the path's refusal, `::path/SubjectHasNoPartsError`; args past the
-arity of the function, the most args its inputs read where every input
-reads the arg at an index, by a path from it or by `query` of one, as
+the path's refusal, `::path/SubjectHasNoPartsError`. The arity of the
+function is the most args its inputs read where every input reads the
+arg at an index, by a path from it or by `query` of one, and the
+modifiers a call writes past it are the modifiers of the bare verb its
+last input takes, a verb or a program written with no modifiers of its
+own, so `[[-1 2] [3]] | map filter gt 0` reads
+`map (filter (gt 0))` and `5 | add mul 2` reads `add (mul 2)`; past any
+other modifier the args past the arity are refused as
 `…/ArgsBeyondInputsError` with those args as `surplus`, while an
 input that reads `/-1`, the args whole or an arg by any other code, `~(get /0)` among it, takes any
-number; and a call that breaks an invariant under the invariant's name,
-its verdict holding every slot. Kinds written as a vector
+number; and a call that breaks an invariant is refused under the
+invariant's name, its verdict holding every slot. Kinds written as a vector
 of one tag or of one set are the kinds of each element: the input holds
 a vector, or a set, of the value of each, a recipe each as given, a quote
 and a doc as they are, a value that is no vector refused as `…/KindNotTakenError`
@@ -170,6 +175,9 @@ and an element of none as `…/ElementKindNotTakenError` with the input's
 
 > 1 | add 1 2 !| surplus | found
 [2]
+
+> get [([[-1 2] [3]] | map filter gt 0) (5 | add mul 2)]
+[[[2] [3]] 15]
 
 > :vec/it ~(99); :vec/query (::fn | takes :p |~~ P. ~~| /0 | takes :d |~~ D. ~~| ~(query /1 null) | impl ~(99)); :number/w (::fn | takes :cs |~~ C. ~~| ~(it) | impl ~(cs)); :number/a (::fn | takes :by |~~ B. ~~| ~(query /0 1) | impl ~(add by)); 5 | get [(w 1 2) a (a 2)]
 [::number/w[1 2] 6 7]

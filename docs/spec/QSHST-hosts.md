@@ -141,7 +141,7 @@ the failure.
 > ::vec | binding | origin
 :qlang/vec
 
-> get [(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | apply it
+> get [(~((:rate 1; ::host | env | get /rate | origin)) | first)] | tag ::quote | answer
 :quote
 
 > ::vec/count | source | toString | contains "::builtin{}"
@@ -150,13 +150,13 @@ true
 > ::number | binding | value | get /1
 ::builtin{:of ::number}
 
-> ::vec/count | binding | value | with {:counting it} (print | parse | answer | with {:back it} (get [(eq counting) ([1 2] | apply back) ({:id 7} | apply (::fn | impl (counting | get /1)) [] !| get [tag of])]))
+> ::vec/count | binding | value | with {:counting it} (print | parse | answer | with {:back it :own (::fn | impl (counting | get /1))} (get [(eq counting) ([1 2] | apply back) ({:id 7} | apply own [] !| get [tag of])]))
 [true 2 [::fn/RecipeMissingError ::vec/count]]
 
 > :B |~~ B. ~~| (::kind | impl ::builtin{}); ::B[1]
 ::B[1]
 
-> get [({:id 7} | apply (::vec/first | binding | value) [] !| tag) (:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
+> get [({:id 7} | with {:f (::vec/first | binding | value)} (apply f []) !| tag) (:any/greet (::fn | impl ::builtin{}); 5 | greet !| tag)]
 [::fn/call/SubjectNotVecError ::fn/RecipeMissingError]
 
 > get [("add (" | parse !| origin) (::builtin | manifest | has ::builtin/PrimitiveNotHandedError)]
@@ -164,7 +164,7 @@ true
 ```
 
 ```sh
-$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply ~(:rate 1; named)')).result)"
+$ node --input-type=module -e "const { createNotebook, readingState } = await import('./core/src/index.mjs'); const s = await createNotebook({ sources: [{ uri: 'probe', source: ':any/named (::fn | returns |~~ N. ~~| ::boolean | impl ::builtin{})', primitives: { 'any/named': readingState((subject, state) => state.scope.has('rate')) } }] }); console.log((await s.evalCell('apply (:rate 1; named)')).result)"
 true
 ```
 
@@ -324,7 +324,7 @@ cell names none.
 ```
 
 ```sh
-$ qplay "$(qplay '3000 | range | map ~(get {:id ~(it)})' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
+$ qplay "$(qplay '3000 | range | map {:id it}' < /dev/null | grep -o '::cell"[0-9a-f]*"') | answer | count" < /dev/null
 3000
 
 $ qplay '::cell"000000000000" | answer !| tag' < /dev/null

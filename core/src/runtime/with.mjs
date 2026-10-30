@@ -7,7 +7,6 @@ import { templateClosedIn, readTemplate } from '../eval.mjs';
 import { readsAsName } from '../name-chars.mjs';
 import { isPath, isMap, isQuote, isErrorValue, makeKeyword } from '../types.mjs';
 import { isComputingStep } from '../steps.mjs';
-import { readByPath } from './path-primitives.mjs';
 
 const AnyWithNamesKindNotTakenError = declareRefusal('any/with/NamesKindNotTakenError');
 const AnyWithNamesElementKindNotTakenError = declareRefusal('any/with/NamesElementKindNotTakenError');
@@ -36,5 +35,5 @@ function selectorsOf(names) {
 
 registerStateReader('any/with', holdsAsCode(['names', 'body'], async (subject, names, body, state) => {
   const read = await readTemplate(subject, templateClosedIn(selectorsOf(names), state), false, null, state);
-  return isErrorValue(read) ? read : await readByPath(subject, templateClosedIn(body, state, read), false, null, state);
+  return isErrorValue(read) ? read : await readTemplate(subject, templateClosedIn(body, state, read), false, null, state);
 }));

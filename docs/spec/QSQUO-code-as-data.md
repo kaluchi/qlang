@@ -38,7 +38,8 @@ index. Code is one model, the records of its steps, which the evaluator
 runs by their tags, a quote read from text and a quote assembled from
 data alike: a call is held as `::call`, its `:name` and its
 `:modifiers`, each modifier the step it is, so `add ~(bonus)` holds
-`[~(bonus)]` and `add bonus` holds `[::call{:name :bonus}]`; a declaration, which
+`[~(bonus)]`, `add bonus` holds `[::call{:name :bonus}]` and
+`filter (gt 1)` holds `[::group~(gt 1)]`; a declaration, which
 writes a `::binding` into its scope, as `::bind`, its `:name`, the doc
 values of its slot as `:docs` and its body, the step after its name and
 its page, as `:body`, each where the declaration writes one; a tagged
@@ -92,7 +93,7 @@ parser, which gives the path bare.
 
 ```qlang
 > ~(filter (gt 1)) | payload
-[::call{:name :filter :modifiers [~(gt 1)]}]
+[::call{:name :filter :modifiers [::group~(gt 1)]}]
 
 > ~(add 1 !| 0) | query /1
 ::fail~(0)
@@ -177,12 +178,14 @@ the same quote.
 
 ## apply
 
-`apply` runs code against its subject: a quote, a path, which reads, or
-a function, which takes its args as one vector, as a call holds its
-args, `apply f [4]`, where a quote and a path take none,
-`::any/apply/ArgsNotTakenError`, and args that are no vector are
-refused as `::any/apply/ArgsKindNotTakenError`. Code a quote declares
-stays inside its run. A value of another kind is refused as
+`apply` runs code against its subject: code written bare, a path, which
+reads, a function, which takes its args as one vector, as a call holds
+its args, `apply f [4]`, or a name that holds one, where code and a path
+take none, `::any/apply/ArgsNotTakenError`, and args that are no vector
+are refused as `::any/apply/ArgsKindNotTakenError`. Code a group declares
+stays inside its run, and what the code answers is the answer, a
+function or a quote it builds among it, which runs where a name hands it
+on. A value of another kind is refused as
 `::any/apply/CodeKindNotTakenError`. `answer`, a verb of `::quote`, runs
 a quote from null, beneath whatever tags stand over it, and answers what
 its code answers, so a print reads back as the value it writes by
@@ -193,7 +196,7 @@ its code answers, so a print reads back as the value it writes by
 > 5 | apply (add 1 | mul 2)
 12
 
-> 5 | apply (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)) [3]
+> :f (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); 5 | apply f [3]
 8
 
 > {:id 7} | apply (:rate 2;) | rate !| tag
@@ -208,57 +211,86 @@ its code answers, so a print reads back as the value it writes by
 
 ## modifier
 
-A step writes its modifiers, each read by its own form and computed at
-the call against the subject, a bare name and a group among them, so
-`take count` takes as many elements as there are; their values are the
-args of the call, which the inputs of its function read by their selectors.
-The modifiers of a command are forks against the subject, their values
+A step writes its modifiers, each as it is written, and its verb reads
+them one by one, each into the input that takes it, which decides what
+the modifier is. An input of a value computes its modifier at the call
+against the subject of the step, a bare name and a group among them, so
+`take count` takes as many elements as there are and `5 | add (mul 2)`
+answers `15`; their values are the args of the call, which the inputs of
+its function read by their selectors. An input of code or of a template
+takes a group and a name that holds no value of the step, a verb, a
+program its text declares or a name the verb gives, as code at rest,
+whatever stands at its head, and runs it on the values of its own
+choosing, `[1 2] | map (5 | add 1)` answering `[6 6]`; a literal, a
+quote, a path, a tag and a name that holds a value of the step are the
+values they are at either. `it` names the subject the code runs on,
+`[true false true] | filter it` answering `[true true]`, and `self` the
+subject of the step that writes the code [QSQUO#held]. The modifiers past
+the inputs of a verb are the modifiers of the bare verb its last input
+takes, `map gt 0` reading `map (gt 0)` and `5 | add mul 2` reading
+`add (mul 2)`, and past any other they are refused [QSBLD#input].
+
+The modifiers a call computes are forks against the subject, their values
 the args in their order, none seeing another; a call computes them in
-their order up to the first that answers a failure, and the forks of
-every sequence run in its order: the elements a verb runs over, the
-parts of a template, the modifiers of a command, the keys of `sort` and
-the laws `runLaws` runs.
+their order up to the first that answers a failure, which answers the
+call, and the forks of every sequence run in its order: the elements a
+verb runs over, the parts of a template, the modifiers of a command, the
+keys of `sort` and the laws `runLaws` runs.
 
 A verb that runs a part per element, in its own order, or only when the
-part is chosen takes a quote or a path there: `filter (gt 1)`,
-`reduce 0 add`, the branches of `if` and the clauses of `cond`, while
-the condition of `if`, which always runs, is a value. An input that
-takes code, one its function runs as code whatever kinds it names among
-them, the alternatives of `coalesce`, takes a quote or a path, beneath
-the tags over it, a group that computes a quote among them, `apply` a
-function too, and refuses a value computed at the call that none of its
-kinds takes, a failure among it, one level under the
-verb by the input's name raised, the value the input's `found`, but for a
-name withheld from held code, whose refusal passes as it is; the page of
-that refusal names the tilde. An input of a value hands the failure of
-its modifier on as the answer of the call.
+part is chosen takes code there: `filter (gt 1)`, `reduce 0 add`, the
+branches of `if` and the clauses of `cond`, the conditions of `allOf`
+and `anyOf` and the alternatives of `coalesce` each in its turn, while
+the condition of `if`, which always runs, is a value. An input of code is
+one its function marks to run, to fold or to read within, the names and
+the body of `with` among them, and one of a verb written in the language
+whose kinds name `::quote` or `::fn`. A quote written in the step where
+its verb takes code or a template, beneath any tags over it, is refused
+under the address of the verb and the name of its input,
+`::vec/map/CodeQuotedError`, and code whose one step is a quote written
+in a group or a name of the step that holds code as
+`::vec/map/CodeQuotedTwiceError`. A value of none of the kinds an input
+of code takes is refused under the input, `42 | apply 1` as
+`::any/apply/CodeKindNotTakenError`.
 
 ```qlang
 > [1 2 3] | take count
 [1 2 3]
 
-> [{:active true}] | filter (get /active) !| tag
-::vec/filter/PredicateKindNotTakenError
+> 5 | add (mul 2)
+15
 
-> [1 2] | take (get /count) !| tag
-::path/IndexNotIntegerError
+> [1 2] | map (5 | add 1)
+[6 6]
 
-> [1 2] | apply (:plus (::fn | takes :by |~~ How much. ~~| /0 | impl ~(add by)); map plus !| tag)
-::vec/map/CodeKindNotTakenError
+> [-1 2] | map gt 0
+[false true]
+
+> [true false true] | filter it
+[true true]
+
+> [1 2] | map ~(mul 2) !| tag
+::vec/map/CodeQuotedError
+
+> :mf ~(mul 2); [1 2] | get [(map mf) (map (mf) !| tag)]
+[[2 4] ::vec/map/CodeQuotedTwiceError]
 ```
 
 ## held
 
-Code a verb runs is a quote, which is its literal. A quote written in a
-step, a modifier of its call or a part of a template the modifier writes,
-a quote, an error literal or a template under a tag among them, is code
-of that step. Where the step hands it to a verb that runs it, the step
-writes at its head a declaration of each value of its scope the quote
-reads and does not declare itself, read by its bare name or by its tag,
-with the page of its record, so the verb takes the literal of what it
-runs, the values it reads in it. A verb runs code by an input a
-primitive runs, the code of `map`, `filter`, `sort` or `if` and the
-templates of `get` and `query`, by any input of a verb written in the
+Code a verb runs is held as a quote, which is its literal. Code written
+in a step, a group or a name at rest where its call takes code, or a part
+of a template the modifier writes, an error literal or a template under a
+tag among them, is code of that step. Where the step hands it to a verb
+that runs it, the step writes at its head a declaration of each value of
+its scope the code reads and does not declare itself, read by its bare
+name or by its tag, with the page of its record, and of `self`, the
+subject of the step, where the code reads it, so the verb takes the
+literal of what it runs, the values it reads in it, and
+`[1 2 3] | map (div (self | sum))` divides each element by the sum of
+them all. A verb runs code by an input a primitive runs, the code of
+`map`, `filter`, `sort` or `if` and the templates of `get`, `query` and
+`map`, by any input of a verb written in the
 language, whose recipe may hand it on, by the args `apply` hands a
 function, and by the body and the selectors of `with`, whose names stand
 over the values of the step [QSPTH#template]; an input that takes a quote
@@ -277,7 +309,7 @@ read by a step, by a tag or as the noun of a declaration, it is refused
 under its name as `::call/ValueWithheldError`, while a tag reads a label
 of the root before any name of the reader. A quote its step did not
 write, read from a name, a field or a page, a law and a snippet among
-them, computed by a group or answered by a call, is held as it is
+them, computed by a group of a template or answered by a call, is held as it is
 written: a verb of the root runs it in the lane of its step, which
 withholds the value it reads, and a verb written in the language refuses
 it at the step that hands it on, under the name it reads that the step
@@ -317,7 +349,7 @@ true
 > [1 5 10] | apply (:big ~(gt limit); :limit 4; filter big !| get [tag name])
 [::call/ValueWithheldError :limit]
 
-> [1 2] | apply (:bonus 10; get [(map (~(add bonus)) !| tag) (:rule ~(add bonus); map rule !| tag)])
+> [1 2] | apply (:bonus 10; get [(with {:q (~(add bonus))} (map q) !| tag) (:rule ~(add bonus); map rule !| tag)])
 [::call/ValueWithheldError ::call/ValueWithheldError]
 
 > 5 | apply (:rate 1; :rule ~(:rate 2; add rate); apply rule)
@@ -327,10 +359,13 @@ true
 [::call/ValueWithheldError :count]
 
 > [1 2] | apply (:bonus "x"; map (add bonus) !| trace | map failed)
-[~(add bonus) ~(map ~(add bonus))]
+[~(add bonus) ~(map (add bonus))]
 
-> get [(~(mul qty | add fee) | fill {:fee 5 :qty 3}) (5 | apply (~(add bonus) | fill {:bonus 10}))]
+> get [(~(mul qty | add fee) | fill {:fee 5 :qty 3}) (5 | with {:q (~(add bonus) | fill {:bonus 10})} (apply q))]
 [~(:qty 3; :fee 5; mul qty | add fee) 15]
+
+> [[1 2] [3]] | get [(map (it | count)) (map (self | count))]
+[[2 1] [2 2]]
 
 > ~(add myaddend) | fill {:myadend 1} !| get [tag name nearest]
 [::quote/fill/NamesNameNotReadError :myadend [:myaddend]]

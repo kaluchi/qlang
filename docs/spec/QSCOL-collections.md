@@ -107,29 +107,34 @@ them, a map does not answer, and a reader asks them of its values by
 
 ## image
 
-`map` runs its code, a quote or a path, on each element in order: over
-a vector it answers a plain vector of what each answered; over a map a
+`map` runs its code, a path or a template on each element in order, code
+written bare, `map (add 1)`, a verb with the modifiers after it,
+`map add 1`, and a template that builds the shape of each element,
+`map {:id /id}`: over a vector it answers a plain vector of what each
+answered; over a map a
 plain map of the answers under the same keys; over a set, which the
 `map` of vectors serves, the vector of the images in the one order, its
 answer naming `::any` [QSDSP#answer]. The first error its code answers
-is the answer of the call. A value computed at the call instead of the
-code is refused with what it computed as `found`, its page naming the
-tilde [QSQUO#modifier].
+is the answer of the call. A value of none of the kinds it takes is
+refused with the value as `found` [QSQUO#modifier].
 
 ```qlang
 > #[1 2 3] | map (mod 2)
 [1 0 1]
 
+> [{:id 7 :tags [1 2]}] | map {:id /id :count (get /tags | count)}
+[{:id 7 :count 2}]
+
 > ::Box[1 2] | map (add 1)
 [2 3]
 
-> [1 2] | map (add 1) !| tag
-::vec/map/CodeKindNotTakenError
+> [1 2] | map (5 | add 1)
+[6 6]
 ```
 
 ## filter
 
-`filter` keeps the elements its predicate, a quote or a path, answers
+`filter` keeps the elements its predicate, code or a path, answers
 `true` for, in their order, a map keeping its keys and a set its kind;
 a predicate that answers no boolean is refused at its index, a map's at
 its key, and one that answers a failure hands it on, the path of the
@@ -167,7 +172,7 @@ of `reduce` names the path of the element [QSERR#trace].
 > [1 2 3] | reduce 0 add
 6
 
-> [1 2 3] | get [(reduce 0 ([::call{:name :add}] | tag ::quote)) (reduce 0 (add | it) !| tag)]
+> [1 2 3] | get [(with {:r ([::call{:name :add}] | tag ::quote)} (reduce 0 r)) (reduce 0 (add | it) !| tag)]
 [6 ::number/add/SubjectNotNumberError]
 
 > [1 2 3] | reduce 0 (with {:sofar /0 :digit /1} (sofar | mul 10 | add digit))
@@ -177,7 +182,7 @@ of `reduce` names the path of the element [QSERR#trace].
 [::call/ValueTakesNoModifiersError #[::number/add]]
 
 > [1 2] | reduce "x" add !| trace | map (get [subject failed path])
-[["x" ~(add) null] [[1 2] ~(reduce "x" ~(add)) /0]]
+[["x" ~(add) null] [[1 2] ~(reduce "x" add) /0]]
 ```
 
 ## algebra
@@ -262,7 +267,7 @@ read it, and a map beside a set as the pair, `::call/KindsMismatchedError`.
 `groupBy` files the elements of a vector or a set into a map of
 buckets, a set's buckets sets, and `indexBy` into a map of one element a
 key, the last of one key standing, a set reaching the `indexBy` of
-vectors. The key, a quote, a path or none, files an element under the
+vectors. The key, code, a path or none, files an element under the
 keyword `toKeyword` answers for it [QSCND#convert]: a keyword as it is, a
 string or a number under the keyword of its text, a boolean or null
 under that of its literal, a tag name under that of its name, and without
@@ -290,7 +295,8 @@ frame naming the element in each [QSERR#trace].
 
 ## within
 
-`within` edits under one tag: it applies its code, a quote or a path, to
+`within` edits under one tag: it applies its code, written bare or a
+path, to
 the payload and lays the tag back through its kind, once, on its
 answer, so the steps between may break the invariant the result holds;
 a set is edited as its vector and laid back under `::set`. A subject

@@ -273,7 +273,7 @@ trace over at that raise.
 > [1 "x" 3] | map (mul 2) | count !| trace
 ::trace[
   ::frame["x" ~(mul 2)]
-  ::frame[[1 "x" 3] ~(map ~(mul 2) | count) /1]
+  ::frame[[1 "x" 3] ~(map (mul 2) | count) /1]
 ]
 
 > "x" | add 1 | mul 2 !| trace | first | get [subject unfinished failed skipped]
@@ -340,11 +340,8 @@ declaration to the end of the text and no subject [QSERR#trace]; a tag
 over a payload that fails answers the
 failure, and so does a verb whose answer the kind of its subject refuses,
 under the tags its walk passed as under none, since no tag is laid over a
-failure; a modifier that answers a failure answers the call where its
-input takes a value, and is refused under the input where its function
-runs it as code, whatever kinds it names [QSQUO#modifier]. A refusal holds
-a failure computed at the call as the error at rest it is, so reading it
-raises nothing.
+failure; a modifier the call computes that answers a failure answers
+the call, at an input of code as at one of a value [QSQUO#modifier].
 
 ```qlang
 > get [1 ("x" | add 1)] !| tag
@@ -360,7 +357,7 @@ raises nothing.
 ::Pair/NotPairError
 
 > [1 2] | map (1 | div 0) !| tag
-::vec/map/CodeKindNotTakenError
+::number/div/DivisorZeroError
 
 > get [(#[::number"b" ::string#1] !| tag) ({:k ::number"x" :k 1} | count)]
 [::string/PayloadKindNotTakenError 1]
@@ -585,14 +582,14 @@ fact within the room of a fact [QSSYN#refusal].
 $ qplay '1 | add (3410 | range)' < /dev/null | grep -c -e '^::number/add/AddendKindNotTakenError::excerpt{$' -e '^  :addend/found ::cell"[0-9a-f]\{12\}"$' -e '^  :addend/found/tag ::vec$' -e '^  :addend/found/count 3410$'
 4
 
-$ qplay ':number/inf ~(add 1 | inf); 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
+$ qplay ':number/inf (add 1 | inf); 0 | inf' < /dev/null | grep -o -E ':trace ::cell|:trace/subject 999'
 :trace ::cell
 :trace/subject 999
 
 $ qplay '::host | kinds | add 1' < /dev/null | grep -c -e '^  :trace ::cell"[0-9a-f]\{12\}"$' -e '^  :trace/failed \[~(add 1)\]$'
 2
 
-$ qplay 'get {:record ~(get {:a 1 :rows ~(5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
+$ qplay 'get {:record (get {:a 1 :rows (5000 | range)})} | raise' < /dev/null | grep -o -E '^  :record/(a|rows/count) [0-9]+'
   :record/a 1
   :record/rows/count 5000
 ```

@@ -45,5 +45,5 @@
 {"name":"a-path-past-a-name-a-closed-tag-beneath-wires-names-no-repair","query":"\"x\" | add 1 !| get /trace/0/nope !| repair","expect":"null"}
 {"name":"a-path-past-the-last-part-there-is-repairs-by-the-path-it-reads-on","query":"\"x\" | add 1 !| get /trace/5/subject !| repair","expect":"~(trace | get /5/subject)"}
 {"name":"a-path-beneath-a-part-with-no-parts-repairs-by-the-path-it-reads-on","query":"\"x\" | add 1 !| get /subject/found/x !| repair","expect":"~(subject | found | get /x)"}
-{"decision":"D496","name":"get-runs-a-program-on-the-subject-as-apply-does","query":"[1 2 3 4 5] | get (count | sub 2)","expect":"3"}
-{"decision":"D496","name":"get-refuses-a-number-given-alone-as-apply-does","query":"[1 2 3 4 5] | get 0 !| tag","expect":"::any/get/PathKindNotTakenError"}
+{"name":"get-runs-a-program-on-the-subject-as-apply-does","query":"[1 2 3 4 5] | get (count | sub 2)","expect":"3"}
+{"name":"get-refuses-a-number-given-alone-as-apply-does","query":"[1 2 3 4 5] | get 0 !| tag","expect":"::any/get/PathKindNotTakenError"}

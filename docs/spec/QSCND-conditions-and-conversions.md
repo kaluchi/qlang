@@ -59,16 +59,15 @@ joins its numbers, the tag of either over the answer and two under
 different tags refused as the pair [QSDSP#answer], a subject of another kind refused under
 the verb, `::boolean/and/SubjectNotBooleanError`, and a condition under
 the input. `allOf` and `anyOf` take conditions, one at least,
-`::any/allOf/ConditionsEmptyError` refusing none: each a boolean
-computed at the call, or a quote or a path that answers one in its turn,
-run once every condition before it held for `allOf` and once none did
-for `anyOf`, the first that decides answering with the quotes after it
-unrun. A quote that answers another kind is refused at its index,
-`::any/allOf/ConditionsAnswerKindNotTakenError`, a quote that answers a failure
-hands it on as the answer, a condition of another kind than a boolean, a
-path or a quote is refused as `ElementKindNotTakenError` at the first
-such index, and an error computed at the call at its own, the conditions
-computed in their order before their kinds are read [QSQUO#modifier].
+`::any/allOf/ConditionsEmptyError` refusing none: each code or a path
+that answers one in its turn, run once every condition before it held
+for `allOf` and once none did for `anyOf`, or a boolean, the first that
+decides answering with the code after it unrun. Code that answers another
+kind is refused at its index,
+`::any/allOf/ConditionsAnswerKindNotTakenError`, code that answers a
+failure hands it on as the answer, and a condition of another kind than
+a boolean, a path or code is refused as `ElementKindNotTakenError` at its
+index [QSQUO#modifier].
 
 ```qlang
 > 5 | if 1 (1) (2) !| tag
@@ -143,13 +142,13 @@ true
 
 `coalesce` answers the first of its alternatives that answers a value,
 one at least, `::any/coalesce/AlternativesEmptyError` refusing none.
-Each alternative is read in its turn: code, a quote or a path, runs
-against the subject, and a value answers itself; the subject stands
+Each alternative is read in its turn: code or a path runs against the
+subject, and a value answers itself; the subject stands
 before the alternative where the call gives one and it is a value, so
 `query /timeout | coalesce 30` reads the timeout, else 30, while several
 values alone, which read no subject, are refused,
 `::any/coalesce/AlternativesValuesAloneError`, the subject first written
-by a quote, `coalesce it e 8080`, and a field by a path,
+by `it`, `coalesce it e 8080`, and a field by a path,
 `coalesce /t 30`. A quote or a path beneath tags is code there
 [QSDSP#walk]. An alternative passes to the next where it answers
 null, beneath the tags over it, or the refusal of a read `query` answers
@@ -157,9 +156,8 @@ null for, a key a map
 lacks, an index past an end or null on the way [QSPTH#query], met on its
 own way and not in the code a verb ran on a part of it, whose frame
 names the path of the part [QSERR#trace]; code that answers any other
-failure answers the call with it, and a value computed at the call that
-is a failure is refused under the alternatives, which the function runs as
-code, `::any/coalesce/AlternativesKindNotTakenError` [QSQUO#modifier]. Null answers where every
+failure answers the call with it, and so does a value computed at the
+call that is a failure [QSQUO#modifier]. Null answers where every
 alternative passes, and code after the alternative that answers stays
 unrun.
 
@@ -170,7 +168,7 @@ unrun.
 > [{:t 45} {:t null}] | map (query /t | coalesce 30)
 [45 30]
 
-> get [({:t null} | coalesce (get /t) 30 !| tag) (9000 | coalesce it 7000 8080) ({:t null} | coalesce /t 30)]
+> get [(:port null; coalesce port 8080 !| tag) (9000 | coalesce it 7000 8080) ({:t null} | coalesce /t 30)]
 [::any/coalesce/AlternativesValuesAloneError 9000 30]
 
 > {:items [{:price 1} {:cost 2}]} | get [(coalesce (get /items | map /price | sum) 0 !| tag) (coalesce (get /items | first | get /cost) 0)]
@@ -254,5 +252,5 @@ over any other, so `::Box#5 | desc` answers `::desc::Box#5` and
 ::call/KindAnswersNoVerbError
 
 > get [(::Box#5 | desc) (::Box::desc#5 | desc) (::any/desc | binding | value | get /1)]
-[::desc::Box#5 ::Box#5 ~(if (is ::desc) ~(if (tag | eq ::desc) ~(payload) ~(within ~(desc))) ~(tag ::desc))]
+[::desc::Box#5 ::Box#5 ~(if (is ::desc) (if (tag | eq ::desc) payload (within desc)) (tag ::desc))]
 ```

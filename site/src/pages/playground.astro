@@ -35,8 +35,8 @@ import Base from "../layouts/Base.astro"
               autocomplete="off"
               placeholder="Type a qlang text here: its declarations, each ended by ;, and the query after them.
 
-:number/double ~(mul 2);
-[10 20 30] | map ~double | filter ~(gt 30)"
+:number/double mul 2;
+[10 20 30] | map double | filter (gt 30)"
             ></textarea>
           </div>
         </div>

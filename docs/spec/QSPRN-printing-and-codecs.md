@@ -99,7 +99,7 @@ true
 > [1 "x" 3] | map (mul 2) !| trace | print | lines | count
 4
 
-> "[1] | map ~(:rate (\"x\" | add 1);\n:fee 2;\nrate)" | parse | answer !| trace | map (print | lines | count)
+> "[1] | map (:rate (\"x\" | add 1);\n:fee 2;\nrate)" | parse | answer !| trace | map (print | lines | count)
 [1 1 1 1]
 ```
 
@@ -256,7 +256,7 @@ the whole is read live, a fact of a failure by `!|` and a cell by
 
 ```qlang
 > [1 "x" 3] | map (mul 2) !| trace | get [failed subject paths]
-[[~(mul 2) ~(map ~(mul 2))] "x" [/1]]
+[[~(mul 2) ~(map (mul 2))] "x" [/1]]
 
 > ::excerpt{:addend/found ::cell"f410f1df625c" :addend/found/count 3410} | eq (print | parse | answer)
 true
@@ -295,7 +295,7 @@ room of a fact, the cell its host keeps it in, where it keeps one
 of the refusal it tells.
 
 ```sh
-$ qplay '3000 | range | map ~(get {:id ~(it) :name "user"})' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
+$ qplay '3000 | range | map {:id it :name "user"}' < /dev/null | grep -o -E ':(characters|budget) [0-9]+|:answer ::cell"[0-9a-f]{12}"|:answer/count [0-9]+' | sed 's/"[0-9a-f]*"/"…"/'
 :characters 70891
 :budget 16000
 :answer ::cell"…"
